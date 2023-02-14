@@ -249,6 +249,50 @@ def test_order_from_checkout_with_transaction(
     assert not order.original
 
 
+@pytest.mark.parametrize(
+    "auto_confirm, order_status",
+    [(True, OrderStatus.UNFULFILLED), (False, OrderStatus.UNCONFIRMED)],
+)
+def test_order_from_checkout_auto_confirm_flag(
+    auto_confirm,
+    order_status,
+    app_api_client,
+    site_settings,
+    checkout_with_item_and_transaction_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_transaction_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = auto_confirm
+    channel.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    order = Order.objects.first()
+    assert order.status == order_status
+
+
 @pytest.mark.integration
 @patch("saleor.plugins.manager.PluginsManager.order_confirmed")
 def test_order_from_checkout_with_metadata(

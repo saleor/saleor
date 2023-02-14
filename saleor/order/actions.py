@@ -14,7 +14,6 @@ from ..core.exceptions import AllocationError, InsufficientStock, InsufficientSt
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.events import call_event
-from ..discount.utils import release_voucher_usage
 from ..giftcard import GiftCardLineData
 from ..payment import (
     ChargeStatus,
@@ -194,26 +193,6 @@ def cancel_order(
         call_event(manager.order_updated, order)
 
         call_event(send_order_canceled_confirmation, order, user, app, manager)
-
-
-def expire_order(
-    order: Order,
-    user: Optional[User],
-    manager: "PluginsManager",
-    save_order_object: bool = True,
-):
-    with traced_atomic_transaction():
-        deallocate_stock_for_order(order, manager)
-        user_email = user.email if user else None
-        if order.voucher:
-            release_voucher_usage(order.voucher, user_email)
-
-        order.status = OrderStatus.EXPIRED
-        if save_order_object:
-            order.save(update_fields=["status", "updated_at"])
-
-        call_event(manager.order_expired, order)
-        call_event(manager.order_updated, order)
 
 
 def order_refunded(

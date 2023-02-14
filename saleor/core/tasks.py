@@ -11,7 +11,18 @@ from .models import CeleryTask, EventDelivery, EventDeliveryAttempt, EventPayloa
 
 
 @contextmanager
-def celery_task_lock(task_name):
+def celery_task_lock(task_name: str):
+    """Celery task lock.
+
+    This contextmanager provides lock on database for executing celery task.
+
+    Parameters
+    ----------
+    task_name : str
+        Unique name of the celery task.
+
+    """
+
     lock = None
     created = False
     try:

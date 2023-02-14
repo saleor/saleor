@@ -72,13 +72,6 @@ def order_total_authorized_and_total_charged(
     }
 
 
-def update_order(
-    order_id: uuid.UUID,
-    **update_fields,
-):
-    Order.objects.filter(id=order_id).update(**update_fields)
-
-
 class PaymentInput(graphene.InputObjectType):
     gateway = graphene.Field(
         graphene.String,
@@ -848,7 +841,7 @@ class TransactionCreate(BaseMutation):
             and order.status is OrderStatus.UNCONFIRMED
         ):
             updated_fields["status"] = OrderStatus.UNFULFILLED
-        update_order(order_id, **updated_fields)
+        Order.objects.filter(id=order_id).update(**updated_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -964,7 +957,7 @@ class TransactionUpdate(TransactionCreate):
             authorized_amount_to_add=authorized_amount_to_add,
             charged_amount_to_add=charged_amount_to_add,
         )
-        update_order(order_id, **updated_fields)
+        Order.objects.filter(id=order_id).update(**updated_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -3,18 +3,25 @@ from decimal import Decimal
 from typing import List
 
 from celery.exceptions import SoftTimeLimitExceeded
+from django.db.models import Exists, F, OuterRef
+from django.db.models.functions import Extract
 from django.utils import timezone
 
 from ..celeryconf import app
 from ..core.tasks import celery_task_lock
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.events import call_event
+from ..discount.models import Voucher, VoucherCustomer
+from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
+from ..warehouse.management import deallocate_stock_for_orders
 from . import OrderStatus
-from .actions import expire_order
 from .models import Order
 from .utils import invalidate_order_prices
 
 logger = logging.getLogger(__name__)
+
+ORDER_BATCH_SIZE = 1000
 
 
 @app.task
@@ -42,35 +49,51 @@ def _batch_ids(iterable, batch_size=1):
 
 def _queryset_in_batches(queryset):
     ids = queryset.values_list("id", flat=True)
-    for ids_batch in _batch_ids(ids, 1000):
+    for ids_batch in _batch_ids(ids, ORDER_BATCH_SIZE):
         yield ids_batch
+
+
+def _bulk_release_voucher_usage(order_ids):
+    voucher_orders = Order.objects.filter(
+        voucher=OuterRef("pk"),
+        id__in=order_ids,
+    )
+    Voucher.objects.filter(
+        Exists(voucher_orders),
+        usage_limit__isnull=False,
+    ).update(used=F("used") - 1)
+
+    voucher_customer_orders = Order.objects.filter(
+        voucher=OuterRef("voucher__id"),
+        user_email=OuterRef("customer_email"),
+        id__in=order_ids,
+    )
+    VoucherCustomer.objects.filter(Exists(voucher_customer_orders)).delete()
+
+
+def _call_expired_order_events(order_ids, manager):
+    orders = Order.objects.filter(id__in=order_ids)
+    for order in orders:
+        call_event(manager.order_expired, order)
+        call_event(manager.order_updated, order)
 
 
 def _expire_orders(manager, now):
     qs = Order.objects.filter(
+        ~Exists(TransactionItem.objects.filter(order=OuterRef("pk"))),
+        ~Exists(Payment.objects.filter(order=OuterRef("pk"))),
         status=OrderStatus.UNCONFIRMED,
         channel__expire_orders_after__isnull=False,
+        channel__expire_orders_after__lte=Extract(now - F("created_at"), "epoch"),
         total_charged_amount=Decimal(0),
-    ).select_related("channel")
+    )
     for ids_batch in _queryset_in_batches(qs):
         with traced_atomic_transaction():
-            orders = Order.objects.filter(id__in=ids_batch).prefetch_related("user")
-            orders_to_update = []
-            for order in orders:
-                if _process_order(order, manager, now):
-                    orders_to_update.append(order)
-            Order.objects.bulk_update(orders_to_update, ["status", "updated_at"])
+            Order.objects.filter(id__in=ids_batch).update(status=OrderStatus.EXPIRED)
 
-
-def _process_order(order, manager, now):
-    if (
-        order.channel.expire_orders_after is not None
-        and order.created_at
-        <= now - timezone.timedelta(minutes=order.channel.expire_orders_after)
-    ):
-        expire_order(order, order.user, manager, save_order_object=False)
-        return True
-    return False
+            _bulk_release_voucher_usage(ids_batch)
+            deallocate_stock_for_orders(ids_batch, manager)
+            _call_expired_order_events(ids_batch, manager)
 
 
 @app.task(soft_time_limit=60 * 30)

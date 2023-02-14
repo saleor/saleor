@@ -47,7 +47,9 @@ class OrderSettingsInput(graphene.InputObjectType):
     expire_orders_after = Minute(
         required=False,
         description=(
-            "Expiration time in minutes. Default null - means do not expire any orders"
+            "Expiration time in minutes. Default null - means do not expire any orders."
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
         ),
     )
 

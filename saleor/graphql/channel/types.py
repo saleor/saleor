@@ -182,8 +182,9 @@ class OrderSettings(ObjectType):
     expire_orders_after = Minute(
         required=False,
         description=(
-            "Expiration time in minutes. Default null - means do not expire any orders"
+            "Expiration time in minutes. Default null - means do not expire any orders."
             + ADDED_IN_312
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -434,5 +435,5 @@ class Channel(ModelObjectType):
             automatically_fulfill_non_shippable_gift_card=(
                 root.automatically_fulfill_non_shippable_gift_card
             ),
-            expire_orders_after=(root.expire_orders_after),
+            expire_orders_after=root.expire_orders_after,
         )
