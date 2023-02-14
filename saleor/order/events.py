@@ -34,7 +34,7 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
     }
 
 
-def event_transaction_capture_requested(
+def event_transaction_charge_requested(
     order_id: "UUID",
     reference: str,
     amount: Decimal,
@@ -43,7 +43,7 @@ def event_transaction_capture_requested(
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
-        type=OrderEvents.TRANSACTION_CAPTURE_REQUESTED,
+        type=OrderEvents.TRANSACTION_CHARGE_REQUESTED,
         user=user,
         app=app,
         parameters={
@@ -72,12 +72,12 @@ def event_transaction_refund_requested(
     )
 
 
-def event_transaction_void_requested(
+def event_transaction_cancel_requested(
     order_id: "UUID", reference: str, user: Optional[User], app: Optional[App]
 ):
     return OrderEvent.objects.create(
         order_id=order_id,
-        type=OrderEvents.TRANSACTION_VOID_REQUESTED,
+        type=OrderEvents.TRANSACTION_CANCEL_REQUESTED,
         user=user,
         app=app,
         parameters={
