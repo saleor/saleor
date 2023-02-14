@@ -1031,7 +1031,7 @@ def _prepare_manual_event(
 
 
 def prepare_manual_event(
-    events_to_create: List[TransactionEvent],
+    events_to_create: list[TransactionEvent],
     amount_field: str,
     money_data: Dict[str, Decimal],
     event_type: str,
@@ -1069,7 +1069,7 @@ def create_manual_adjustment_events(
     match the amounts, the manual events are created in case of calling
     transactionCreate or transactionUpdate
     """
-    events_to_create: List[TransactionEvent] = []
+    events_to_create: list[TransactionEvent] = []
     if "authorized_value" in money_data:
         authorized_value = money_data["authorized_value"]
         event_type = TransactionEventType.AUTHORIZATION_SUCCESS
