@@ -38,19 +38,20 @@ from ..mutations.product_variant.product_variant_create import (
 from ..types import ProductVariant
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
 
+CURRENCY_FRACTIONS = get_global("currency_fractions")
+
 
 def clean_price(
     price,
     field_name,
     currency,
     channel_id,
-    currency_fractions,
     variant_index,
     errors,
     index_error_map,
 ):
     try:
-        validate_price_precision(price, currency, currency_fractions)
+        validate_price_precision(price, currency, CURRENCY_FRACTIONS)
     except ValidationError as error:
         index_error_map[variant_index].append(
             ProductVariantBulkError(
@@ -278,7 +279,6 @@ class ProductVariantBulkCreate(BaseMutation):
         cost_price,
         currency_code,
         channel_id,
-        currency_fractions,
         variant_index,
         errors,
         index_error_map,
@@ -288,7 +288,6 @@ class ProductVariantBulkCreate(BaseMutation):
             "price",
             currency_code,
             channel_id,
-            currency_fractions,
             variant_index,
             errors,
             index_error_map,
@@ -298,7 +297,6 @@ class ProductVariantBulkCreate(BaseMutation):
             "cost_price",
             currency_code,
             channel_id,
-            currency_fractions,
             variant_index,
             errors,
             index_error_map,
@@ -309,7 +307,6 @@ class ProductVariantBulkCreate(BaseMutation):
         cls,
         channel_listings,
         product_channel_global_id_to_instance_map,
-        currency_fractions,
         errors,
         variant_index,
         index_error_map,
@@ -389,7 +386,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 cost_price,
                 currency_code,
                 channel_id,
-                currency_fractions,
                 variant_index,
                 errors,
                 index_error_map,
@@ -581,7 +577,6 @@ class ProductVariantBulkCreate(BaseMutation):
         info,
         variant_data,
         product_channel_global_id_to_instance_map,
-        currency_fractions,
         warehouse_global_id_to_instance_map,
         variant_attributes,
         used_attribute_values,
@@ -626,7 +621,6 @@ class ProductVariantBulkCreate(BaseMutation):
             cleaned_input["channel_listings"] = cls.clean_channel_listings(
                 listings_data,
                 product_channel_global_id_to_instance_map,
-                currency_fractions,
                 errors,
                 index,
                 index_error_map,
@@ -674,7 +668,6 @@ class ProductVariantBulkCreate(BaseMutation):
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
         )
-        currency_fractions = get_global("currency_fractions")
 
         for index, variant_data in enumerate(variants):
             variant_data["product_type"] = product_type
@@ -684,7 +677,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 info,
                 variant_data,
                 product_channel_global_id_to_instance_map,
-                currency_fractions,
                 warehouse_global_id_to_instance_map,
                 variant_attributes,
                 used_attribute_values,

@@ -19118,7 +19118,7 @@ input ProductVariantStocksUpdateInput {
   """List of warehouses to create stocks."""
   create: [StockInput!]
 
-  """List od stocks to updated."""
+  """List of stocks to update."""
   update: [StockUpdateInput!]
 
   """List of stocks to remove."""
