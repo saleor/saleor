@@ -196,6 +196,9 @@ MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
 OrderErrorCode.doc_category = DOC_CATEGORY_ORDERS
+OrderBulkCreateErrorCode = graphene.Enum.from_enum(
+    order_error_codes.OrderBulkCreateErrorCode
+)
 
 InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
