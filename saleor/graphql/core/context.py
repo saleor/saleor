@@ -47,7 +47,7 @@ def get_database_connection_name(context: SaleorContext) -> str:
     Queryset to main database: `User.objects.all()`.
     Queryset to read replica: `User.objects.using(connection_name).all()`.
     """
-    allow_replica = getattr(context, "allow_replica", False)
+    allow_replica = getattr(context, "allow_replica", True)
     if allow_replica:
         return settings.DATABASE_CONNECTION_REPLICA_NAME
     return settings.DATABASE_CONNECTION_DEFAULT_NAME
