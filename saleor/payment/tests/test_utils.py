@@ -23,6 +23,7 @@ from ..utils import (
     create_payment_lines_information,
     create_transaction_event_from_request_and_webhook_response,
     get_channel_slug_from_payment,
+    get_correct_event_types_based_on_request_type,
     parse_transaction_action_data,
     try_void_or_refund_inactive_payment,
 )
@@ -240,7 +241,9 @@ def test_parse_transaction_action_data_with_only_psp_reference():
     response_data = {"pspReference": expected_psp_reference}
 
     # when
-    parsed_data = parse_transaction_action_data(response_data)
+    parsed_data, _ = parse_transaction_action_data(
+        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+    )
 
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
@@ -268,10 +271,12 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     }
 
     # when
-    parsed_data = parse_transaction_action_data(response_data)
-
+    parsed_data, error_msg = parse_transaction_action_data(
+        response_data, TransactionEventType.CHARGE_REQUEST
+    )
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
+    assert error_msg is None
 
     assert parsed_data.psp_reference == expected_psp_reference
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
@@ -281,6 +286,34 @@ def test_parse_transaction_action_data_with_event_all_fields_provided():
     assert parsed_data.event.external_url == event_url
     assert parsed_data.event.message == event_cause
     assert parsed_data.event.type == event_type
+
+
+def test_parse_transaction_action_data_with_incorrect_result():
+    # given
+    expected_psp_reference = "psp:122:222"
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_SUCCESS
+    event_time = "2022-11-18T13:25:58.169685+00:00"
+    event_url = "http://localhost:3000/event/ref123"
+    event_cause = "No cause"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "time": event_time,
+        "externalUrl": event_url,
+        "message": event_cause,
+    }
+
+    # when
+    parsed_data, error_msg = parse_transaction_action_data(
+        response_data, TransactionEventType.REFUND_REQUEST
+    )
+
+    # then
+    assert parsed_data is None
+    assert isinstance(error_msg, str)
 
 
 @freeze_time("2018-05-31 12:00:01")
@@ -293,7 +326,9 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     }
 
     # when
-    parsed_data = parse_transaction_action_data(response_data)
+    parsed_data, _ = parse_transaction_action_data(
+        response_data, TransactionEventType.CHARGE_REQUEST
+    )
 
     # then
     assert isinstance(parsed_data, TransactionRequestResponse)
@@ -314,7 +349,9 @@ def test_parse_transaction_action_data_with_missin_psp_reference():
     response_data = {}
 
     # when
-    parsed_data = parse_transaction_action_data(response_data)
+    parsed_data, _ = parse_transaction_action_data(
+        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+    )
 
     # then
     assert parsed_data is None
@@ -327,7 +364,9 @@ def test_parse_transaction_action_data_with_missing_mandatory_event_fields():
     response_data = {"pspReference": expected_psp_reference, "amount": Decimal("1")}
 
     # when
-    parsed_data = parse_transaction_action_data(response_data)
+    parsed_data, _ = parse_transaction_action_data(
+        response_data, TransactionEventType.AUTHORIZATION_REQUEST
+    )
 
     # then
     assert parsed_data is None
@@ -829,3 +868,42 @@ def test_create_manual_adjustment_events_additional_cancel(
     event = transaction.events.filter(type=TransactionEventType.CANCEL_SUCCESS).last()
     assert event.amount_value == canceled_value - current_canceled_value
     assert event.include_in_calculations is True
+
+
+@pytest.mark.parametrize(
+    "request_type, expected_events",
+    [
+        (
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            [
+                TransactionEventType.AUTHORIZATION_FAILURE,
+                TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+                TransactionEventType.AUTHORIZATION_SUCCESS,
+            ],
+        ),
+        (
+            TransactionEventType.CHARGE_REQUEST,
+            [
+                TransactionEventType.CHARGE_FAILURE,
+                TransactionEventType.CHARGE_SUCCESS,
+            ],
+        ),
+        (
+            TransactionEventType.REFUND_REQUEST,
+            [
+                TransactionEventType.REFUND_FAILURE,
+                TransactionEventType.REFUND_SUCCESS,
+            ],
+        ),
+        (
+            TransactionEventType.CANCEL_REQUEST,
+            [
+                TransactionEventType.CANCEL_FAILURE,
+                TransactionEventType.CANCEL_SUCCESS,
+            ],
+        ),
+    ],
+)
+def test_get_correct_event_types_based_on_request_type(request_type, expected_events):
+    correct_types = get_correct_event_types_based_on_request_type(request_type)
+    assert set(correct_types) == set(expected_events)
