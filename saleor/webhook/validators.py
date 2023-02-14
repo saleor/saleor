@@ -4,7 +4,7 @@ from typing import Dict
 from django.core.exceptions import ValidationError
 
 HEADERS_NUMBER_LIMIT = 5
-HEADERS_LENGTH_LIMIT = 78
+HEADERS_LENGTH_LIMIT = 998
 
 
 def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
