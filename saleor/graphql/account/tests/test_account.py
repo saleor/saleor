@@ -4449,7 +4449,7 @@ def test_password_change_invalid_new_password(user_api_client, settings):
 
 
 def test_password_change_user_unusable_password_fails_if_old_password_is_set(
-    user_api_client
+    user_api_client,
 ):
     customer_user = user_api_client.user
     customer_user.set_unusable_password()
@@ -4469,7 +4469,7 @@ def test_password_change_user_unusable_password_fails_if_old_password_is_set(
 
 
 def test_password_change_user_unusable_password_if_old_password_is_omitted(
-    user_api_client
+    user_api_client,
 ):
     customer_user = user_api_client.user
     customer_user.set_unusable_password()
@@ -4493,7 +4493,7 @@ def test_password_change_user_unusable_password_if_old_password_is_omitted(
 
 
 def test_password_change_user_usable_password_fails_if_old_password_is_omitted(
-    user_api_client
+    user_api_client,
 ):
     customer_user = user_api_client.user
 
