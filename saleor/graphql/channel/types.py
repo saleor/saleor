@@ -31,7 +31,7 @@ from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
-from .enums import AllocationStrategyEnum
+from .enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
 
 if TYPE_CHECKING:
     from ...shipping.models import ShippingZone
@@ -176,6 +176,18 @@ class OrderSettings(ObjectType):
         description=(
             "When enabled, all non-shippable gift card orders "
             "will be fulfilled automatically."
+        ),
+    )
+
+    mark_as_paid_strategy = MarkAsPaidStrategyEnum(
+        required=True,
+        description=(
+            "Determine what strategy will be used to mark the order as paid. "
+            "Based on the choosen option the proper object will be created "
+            "and attached to the order, when order is manualy marked as paid."
+            "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
+            "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -426,4 +438,5 @@ class Channel(ModelObjectType):
             automatically_fulfill_non_shippable_gift_card=(
                 root.automatically_fulfill_non_shippable_gift_card
             ),
+            mark_as_paid_strategy=root.order_mark_as_paid_strategy,
         )

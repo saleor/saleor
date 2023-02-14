@@ -1108,3 +1108,27 @@ def create_manual_adjustment_events(
     if events_to_create:
         return TransactionEvent.objects.bulk_create(events_to_create)
     return []
+
+
+def create_transaction_for_order(
+    order: "Order",
+    user: Optional["User"],
+    app: Optional["App"],
+    psp_reference: Optional[str],
+    charged_value: Decimal,
+) -> TransactionItem:
+    transaction = TransactionItem.objects.create(
+        order_id=order.pk,
+        user=user,
+        app_identifier=app.identifier if app else None,
+        psp_reference=psp_reference,
+        currency=order.currency,
+    )
+    create_manual_adjustment_events(
+        transaction=transaction,
+        money_data={"charged_value": charged_value},
+        user=user,
+        app=app,
+    )
+    recalculate_transaction_amounts(transaction=transaction)
+    return transaction

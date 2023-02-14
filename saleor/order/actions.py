@@ -24,7 +24,7 @@ from ..payment import (
 )
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction
-from ..payment.utils import create_payment
+from ..payment.utils import create_payment, create_transaction_for_order
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -62,6 +62,7 @@ from .utils import (
     update_order_authorize_data,
     update_order_charge_data,
     update_order_status,
+    updates_amounts_for_order,
 )
 
 if TYPE_CHECKING:
@@ -498,7 +499,37 @@ def approve_fulfillment(
     return fulfillment
 
 
-def mark_order_as_paid(
+def mark_order_as_paid_with_transaction(
+    order: "Order",
+    request_user: User,
+    app: Optional["App"],
+    manager: "PluginsManager",
+    external_reference: Optional[str] = None,
+):
+    """Mark order as paid.
+
+    Allows to create a transaction for an order.
+    """
+    with transaction.atomic():
+        create_transaction_for_order(
+            order=order,
+            user=request_user,
+            app=app,
+            psp_reference=external_reference,
+            charged_value=order.total.gross.amount,
+        )
+        updates_amounts_for_order(order)
+        events.order_manually_marked_as_paid_event(
+            order=order,
+            user=request_user,
+            app=app,
+            transaction_reference=external_reference,
+        )
+        call_event(manager.order_fully_paid, order)
+        call_event(manager.order_updated, order)
+
+
+def mark_order_as_paid_with_payment(
     order: "Order",
     request_user: User,
     app: Optional["App"],
@@ -559,6 +590,10 @@ def clean_mark_order_as_paid(order: "Order"):
     if order.payments.exists():
         raise PaymentError(
             "Orders with payments can not be manually marked as paid.",
+        )
+    if order.payment_transactions.exists():
+        raise PaymentError(
+            "Orders with transactions can not be manually marked as paid.",
         )
 
 

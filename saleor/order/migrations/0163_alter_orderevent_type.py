@@ -52,6 +52,10 @@ class Migration(migrations.Migration):
                     ("TRANSACTION_REFUND_REQUESTED", "transaction_refund_requested"),
                     ("TRANSACTION_VOID_REQUESTED", "transaction_void_requested"),
                     ("TRANSACTION_CANCEL_REQUESTED", "transaction_cancel_requested"),
+                    (
+                        "TRANSACTION_MARK_AS_PAID_FAILED",
+                        "transaction_mark_as_paid_failed",
+                    ),
                     ("INVOICE_REQUESTED", "invoice_requested"),
                     ("INVOICE_GENERATED", "invoice_generated"),
                     ("INVOICE_UPDATED", "invoice_updated"),

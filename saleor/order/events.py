@@ -486,6 +486,20 @@ def payment_failed_event(
     )
 
 
+def transaction_mark_order_as_paid_failed_event(
+    order: Order, user: Optional[User], app: Optional[App], message: str
+):
+    parameters = {"message": message}
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.TRANSACTION_MARK_AS_PAID_FAILED,
+        user=user,
+        app=app,
+        parameters=parameters,
+    )
+
+
 def transaction_event(
     *,
     order: Order,

@@ -21,6 +21,7 @@ class OrderErrorCode(Enum):
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"
     PAYMENT_MISSING = "payment_missing"
+    TRANSACTION_ERROR = "transaction_error"
     REQUIRED = "required"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"

@@ -119,6 +119,7 @@ class OrderEvents:
     TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
     TRANSACTION_VOID_REQUESTED = "transaction_void_requested"
     TRANSACTION_CANCEL_REQUESTED = "transaction_cancel_requested"
+    TRANSACTION_MARK_AS_PAID_FAILED = "transaction_mark_as_paid_failed"
 
     EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
@@ -178,6 +179,7 @@ class OrderEvents:
         (TRANSACTION_REFUND_REQUESTED, "The refund requested for transaction"),
         (TRANSACTION_VOID_REQUESTED, "The void requested for transaction"),
         (TRANSACTION_CANCEL_REQUESTED, "The cancel requested for transaction"),
+        (TRANSACTION_MARK_AS_PAID_FAILED, "The mark as paid failed for transaction"),
         (INVOICE_REQUESTED, "An invoice was requested"),
         (INVOICE_GENERATED, "An invoice was generated"),
         (INVOICE_UPDATED, "An invoice was updated"),
