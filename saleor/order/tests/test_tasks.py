@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
 from django.utils import timezone
 
 from ...core.models import CeleryTask
@@ -12,9 +13,10 @@ from ..tasks import expire_orders_task
 
 def test_expire_orders_task(order_list, allocations, channel_USD, voucher_customer):
     # given
-    channel_USD.expire_orders_after = 0
+    channel_USD.expire_orders_after = 1
     channel_USD.save()
 
+    now = timezone.now()
     voucher = voucher_customer.voucher
     voucher.used = 3
     voucher.usage_limit = 3
@@ -22,17 +24,20 @@ def test_expire_orders_task(order_list, allocations, channel_USD, voucher_custom
 
     order_1 = order_list[0]
     order_1.status = OrderStatus.UNCONFIRMED
+    order_1.created_at = now - timezone.timedelta(minutes=10)
     order_1.total_charged_amount = Decimal(0)
     order_1.voucher = voucher
     order_1.save()
 
     order_2 = order_list[1]
     order_2.status = OrderStatus.UNCONFIRMED
+    order_2.created_at = now - timezone.timedelta(minutes=10)
     order_2.total_charged_amount = Decimal(10)
     order_1.voucher = voucher
     order_2.save()
 
     order_3 = order_list[2]
+    order_3.created_at = now - timezone.timedelta(minutes=10)
     order_3.status = OrderStatus.UNFULFILLED
     order_3.total_charged_amount = Decimal(0)
     order_1.voucher = voucher
@@ -63,9 +68,15 @@ def test_expire_orders_task(order_list, allocations, channel_USD, voucher_custom
     assert not VoucherCustomer.objects.filter(pk=voucher_customer.pk).exists()
 
 
-def test_expire_orders_task_none_expiration_time(order_list, allocations, channel_USD):
+@pytest.mark.parametrize("expire_after", [None, 0, -1])
+def test_expire_orders_task_none_expiration_time(
+    expire_after,
+    order_list,
+    allocations,
+    channel_USD,
+):
     # given
-    channel_USD.expire_orders_after = None
+    channel_USD.expire_orders_after = expire_after
     channel_USD.save()
 
     order_1 = order_list[0]

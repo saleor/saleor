@@ -1,7 +1,9 @@
 import graphene
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
 from ....channel import models
+from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ChannelPermissions
 from ....tax.models import TaxConfiguration
@@ -47,9 +49,9 @@ class OrderSettingsInput(graphene.InputObjectType):
     expire_orders_after = Minute(
         required=False,
         description=(
-            "Expiration time in minutes. Default null - means do not expire any orders."
-            + ADDED_IN_312
-            + PREVIEW_FEATURE
+            "Expiration time in minutes. "
+            "Default null - means do not expire any orders. "
+            "Enter 0 or null to disable." + ADDED_IN_312 + PREVIEW_FEATURE
         ),
     )
 
@@ -141,11 +143,28 @@ class ChannelCreate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
-            expire_orders_after = order_settings.get("expire_orders_after")
-            if expire_orders_after is not None:
-                cleaned_input["expire_orders_after"] = expire_orders_after
+            if "expire_orders_after" in order_settings:
+                expire_orders_after = order_settings["expire_orders_after"]
+                cleaned_input["expire_orders_after"] = cls.clean_expire_orders_after(
+                    expire_orders_after
+                )
 
         return cleaned_input
+
+    @classmethod
+    def clean_expire_orders_after(cls, expire_orders_after):
+        if expire_orders_after is None or expire_orders_after == 0:
+            return None
+        if expire_orders_after < 0:
+            raise ValidationError(
+                {
+                    "expire_orders_after": ValidationError(
+                        "Expiration time for orders cannot be lower than 1.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return expire_orders_after
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

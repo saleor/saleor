@@ -106,11 +106,28 @@ class ChannelUpdate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
-            expire_orders_after = order_settings.get("expire_orders_after")
-            if expire_orders_after is not None:
-                cleaned_input["expire_orders_after"] = expire_orders_after
+            if "expire_orders_after" in order_settings:
+                expire_orders_after = order_settings["expire_orders_after"]
+                cleaned_input["expire_orders_after"] = cls.clean_expire_orders_after(
+                    expire_orders_after
+                )
 
         return cleaned_input
+
+    @classmethod
+    def clean_expire_orders_after(cls, expire_orders_after):
+        if expire_orders_after is None or expire_orders_after == 0:
+            return None
+        if expire_orders_after < 0:
+            raise ValidationError(
+                {
+                    "expire_orders_after": ValidationError(
+                        "Expiration time for orders cannot be lower than 1.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return expire_orders_after
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):

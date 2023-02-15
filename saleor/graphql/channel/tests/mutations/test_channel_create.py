@@ -2,6 +2,7 @@ import json
 from unittest import mock
 
 import graphene
+import pytest
 from django.utils.functional import SimpleLazyObject
 from django.utils.text import slugify
 from freezegun import freeze_time
@@ -185,6 +186,82 @@ def test_channel_create_mutation_as_customer(user_api_client):
 
     # then
     assert_no_permission(response)
+
+
+def test_channel_create_mutation_negative_expire_orders(
+    permission_manage_channels,
+    app_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "stockSettings": {"allocationStrategy": allocation_strategy},
+            "orderSettings": {
+                "expireOrdersAfter": -1,
+            },
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["channelCreate"]["errors"][0]
+    assert error["field"] == "expireOrdersAfter"
+    assert error["code"] == ChannelErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize("expire_input", [0, None])
+def test_channel_create_mutation_disabled_expire_orders(
+    expire_input,
+    permission_manage_channels,
+    app_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    allocation_strategy = AllocationStrategyEnum.PRIORITIZE_SORTING_ORDER.name
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "stockSettings": {"allocationStrategy": allocation_strategy},
+            "orderSettings": {
+                "expireOrdersAfter": expire_input,
+            },
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    assert data["channel"]["orderSettings"]["expireOrdersAfter"] is None
 
 
 def test_channel_create_mutation_as_anonymous(api_client):

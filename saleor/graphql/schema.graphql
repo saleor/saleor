@@ -22563,7 +22563,7 @@ input OrderSettingsInput {
   automaticallyFulfillNonShippableGiftCard: Boolean
 
   """
-  Expiration time in minutes. Default null - means do not expire any orders.
+  Expiration time in minutes. Default null - means do not expire any orders. Enter 0 or null to disable.
   
   Added in Saleor 3.12.
   

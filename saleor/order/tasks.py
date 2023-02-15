@@ -84,6 +84,7 @@ def _expire_orders(manager, now):
         ~Exists(Payment.objects.filter(order=OuterRef("pk"))),
         status=OrderStatus.UNCONFIRMED,
         channel__expire_orders_after__isnull=False,
+        channel__expire_orders_after__gt=0,
         channel__expire_orders_after__lte=Extract(now - F("created_at"), "epoch"),
         total_charged_amount=Decimal(0),
     )

@@ -719,6 +719,71 @@ def test_channel_update_mutation_duplicated_warehouses(
     assert errors[0]["warehouses"] == [add_warehouse]
 
 
+@pytest.mark.parametrize("expire_input", [0, None])
+def test_channel_update_mutation_disable_expire_orders(
+    expire_input,
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.expire_orders_after = 10
+    channel_USD.save()
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {"expireOrdersAfter": expire_input},
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    assert data["channel"]["orderSettings"]["expireOrdersAfter"] is None
+
+    channel_USD.refresh_from_db()
+    assert channel_USD.expire_orders_after is None
+
+
+def test_channel_update_mutation_negative_expire_orders(
+    permission_manage_channels,
+    app_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {"expireOrdersAfter": -1},
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "expireOrdersAfter"
+    assert error["code"] == ChannelErrorCode.INVALID.name
+
+
 def test_channel_update_order_settings_manage_orders(
     permission_manage_orders,
     staff_api_client,
@@ -762,6 +827,9 @@ def test_channel_update_order_settings_empty_order_settings(
 ):
     # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_USD.expire_orders_after = 10
+    channel_USD.save()
+
     variables = {
         "id": channel_id,
         "input": {
@@ -786,6 +854,12 @@ def test_channel_update_order_settings_empty_order_settings(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         is True
     )
+    assert channel_data["orderSettings"]["expireOrdersAfter"] == 10
+
+    channel_USD.refresh_from_db()
+    assert channel_USD.automatically_confirm_all_new_orders is True
+    assert channel_USD.automatically_fulfill_non_shippable_gift_card is True
+    assert channel_USD.expire_orders_after == 10
 
 
 def test_channel_update_order_settings_manage_orders_as_app(
