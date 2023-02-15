@@ -4395,14 +4395,14 @@ files = [
 
 [[package]]
 name = "types-mock"
-version = "4.0.15.2"
+version = "5.0.0.3"
 description = "Typing stubs for mock"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-mock-4.0.15.2.tar.gz", hash = "sha256:83fe479741adb92210c3c92f006fe058297d5051e93c2cec36f1a9e0bae16e9e"},
-    {file = "types_mock-4.0.15.2-py3-none-any.whl", hash = "sha256:39d489b6d9361b75448677680a3087701c0cfab61260363cfc0f646d2bf0a8b2"},
+    {file = "types-mock-5.0.0.3.tar.gz", hash = "sha256:cb1d201e0fa81d368d7f75560561b2215505964f522cf487c21a6cbdd3efe05e"},
+    {file = "types_mock-5.0.0.3-py3-none-any.whl", hash = "sha256:752916030b9b59875d033d9bf39434f99d346dda01e825b31737a37c271ab905"},
 ]
 
 [[package]]
@@ -5102,4 +5102,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "d22d77d897c3c73f05ebd20d1ce6277f6b8bfca1d76353a6de93676eaf31db43"
+content-hash = "86461d520f911863644f6e397dafe6fe5f9cf3ff391f8bd8aad93f76a46e65d4"
