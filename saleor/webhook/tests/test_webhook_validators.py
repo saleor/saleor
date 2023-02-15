@@ -52,15 +52,6 @@ from ..validators import (
             '"ABCAuthorization-Key" does not match allowed key pattern:'
             ' "X-*" or "Authorization*".',
         ),
-        (
-            {"X-": "Value"},
-            '"X-" does not match allowed key pattern: "X-*" or "Authorization*".',
-        ),
-        (
-            {"Authorization": "Value"},
-            '"Authorization" does not match allowed key pattern: '
-            '"X-*" or "Authorization*".',
-        ),
     ],
 )
 def test_webhook_validator(headers, err_msg):

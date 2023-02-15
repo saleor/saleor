@@ -37,7 +37,7 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
                 f'"{header}" exceeds the limit of characters: {HEADERS_LENGTH_LIMIT}.'
             )
 
-        if not re.search(r"(^X-\S+)|(^Authorization\S+)", key):
+        if not re.search(r"(^X-\S*)|(^Authorization\S*)", key):
             raise ValidationError(
                 f'"{key}" does not match allowed key pattern: '
                 f'"X-*" or "Authorization*".'
