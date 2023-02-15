@@ -14854,6 +14854,19 @@ type Mutation {
   ): OrderBulkCancel @doc(category: "Orders")
 
   """
+  Creates multiple orders. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderBulkCreate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
+    """Input list of orders to create."""
+    orders: [OrderBulkCreateInput!]!
+  ): OrderBulkCreate
+
+  """
   Delete metadata of an object. To use it, you need to have access to the modified object.
   """
   deleteMetadata(
@@ -22215,6 +22228,238 @@ type OrderBulkCancel @doc(category: "Orders") {
   count: Int!
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Creates multiple orders. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderBulkCreate {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created orders."""
+  results: [OrderBulkCreateResult!]!
+  bulkOrderErrors: [OrderBulkCreateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderBulkCreateError!]!
+}
+
+type OrderBulkCreateResult {
+  """Order data."""
+  order: Order!
+
+  """List of errors occurred on create attempt."""
+  errors: [OrderBulkCreateError!]
+}
+
+type OrderBulkCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderBulkCreateErrorCode!
+}
+
+"""An enumeration."""
+enum OrderBulkCreateErrorCode {
+  GRAPHQL_ERROR
+  REQUIRED
+}
+
+input OrderBulkCreateInput {
+  """Unique identifier of the order."""
+  number: String
+
+  """External ID of the order."""
+  externalReference: String
+
+  """ID of the channel associated with the order."""
+  channel: ID!
+
+  """The date, when the order was inserted to Saleor database."""
+  createdAt: DateTime!
+
+  """Customer accociated with the order."""
+  user: OrderBulkCreateUserInput!
+
+  """Tracking ID of the customer."""
+  trackingClientId: String
+
+  """Billing address of the customer."""
+  billingAddress: AddressInput!
+
+  """Shipping address of the customer."""
+  shippingAddress: AddressInput
+
+  """Metadata of the order."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order."""
+  privateMetadata: [MetadataInput!]
+
+  """Note about customer."""
+  customerNote: String
+
+  """Notes related to the order."""
+  notes: [OrderBulkCreateNoteInput!]
+
+  """Order language code."""
+  languageCodeEnum: LanguageCodeEnum!
+
+  """
+  Determines whether checkout prices should include taxes, when displayed in a storefront.
+  """
+  displayGrossPrice: Boolean
+
+  """Weight of the order."""
+  weight: WeightScalar
+
+  """
+  URL of a view, where users should be redirected to see the order details.
+  """
+  redirectUrl: String
+
+  """List of order lines."""
+  lines: [OrderBulkCreateOrderLineInput!]!
+
+  """The delivery method selected for this order."""
+  deliveryMethod: OrderBulkCreateDeliveryMethodInput!
+
+  """List of promo codes."""
+  promoCodes: [String!]
+
+  """List of discounts."""
+  discounts: [OrderDiscountCommonInput!]
+}
+
+input OrderBulkCreateUserInput {
+  """Customer ID associated with the order."""
+  id: ID
+
+  """Customer email associated with the order."""
+  email: String
+
+  """Customer external ID associated with the order."""
+  externalReference: String
+}
+
+input OrderBulkCreateNoteInput {
+  """Note message."""
+  message: String!
+
+  """The date associated with the message."""
+  date: DateTime
+
+  """The user ID associated with the message."""
+  user: ID
+
+  """The app ID associated with the message."""
+  app: ID
+}
+
+input OrderBulkCreateOrderLineInput {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The sku of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """The name of the product variant."""
+  variantName: String
+
+  """The name of the product."""
+  productName: String
+
+  """Translation of the product variant name."""
+  translatedVariantName: String
+
+  """Translation of the product name."""
+  translatedProductName: String
+
+  """The date, when the order line was created."""
+  createdAt: DateTime!
+
+  """Determines whether shipping of the order line items is required."""
+  isShippingRequired: Boolean!
+
+  """Gift card flag."""
+  isGiftCard: Boolean!
+
+  """Number of items in the order line"""
+  quantity: Int!
+
+  """Number of items in the order line, which have been already fulfilled."""
+  quantityFulfilled: Int!
+
+  """Price of the order line."""
+  totalPrice: TaxedMoneyInput!
+
+  """Price of the order line excluding applied discount."""
+  undiscountedTotalPrice: TaxedMoneyInput!
+
+  """Tax rate of the order line."""
+  taxRate: Float!
+
+  """The ID of the tax class."""
+  taxClassId: ID
+
+  """The name of the tax class."""
+  taxClassName: String
+
+  """Metadata of the tax class."""
+  taxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  taxClassPrivateMetadata: [MetadataInput!]
+}
+
+input TaxedMoneyInput {
+  """Gross value of an item."""
+  gross: MoneyInput!
+
+  """Net value of an item."""
+  net: MoneyInput!
+}
+
+input OrderBulkCreateDeliveryMethodInput {
+  """The ID of the warehouse."""
+  warehouseId: ID
+
+  """The ID of the shipping method."""
+  shippingMethodId: ID
+
+  """The name of the shipping method."""
+  shippingMethodName: String
+
+  """The name of the collection point."""
+  collectionPointName: String
+
+  """The price of the shipping."""
+  shippingPrice: TaxedMoneyInput
+
+  """Tax rate of the shipping."""
+  shippingTaxRate: Float!
+
+  """The ID of the tax class."""
+  shippingTaxClassId: ID
+
+  """The name of the tax class."""
+  shippingTaxClassName: String
+
+  """Metadata of the tax class."""
+  shippingTaxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  shippingTaxClassPrivateMetadata: [MetadataInput!]
 }
 
 """
