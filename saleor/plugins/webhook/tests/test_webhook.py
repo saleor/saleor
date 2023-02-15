@@ -1508,6 +1508,7 @@ def test_transaction_charge_requested(
         order_id=order.pk,
         authorized_value=Decimal("10"),
         app_identifier=app.identifier,
+        app=app,
     )
     event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
     action_value = Decimal("5.00")
@@ -1562,6 +1563,7 @@ def test_transaction_refund_requested(
         order_id=order.pk,
         authorized_value=Decimal("10"),
         app_identifier=app.identifier,
+        app=app,
     )
     event = transaction.events.create(type=TransactionEventType.REFUND_REQUEST)
     action_value = Decimal("5.00")
@@ -1616,6 +1618,7 @@ def test_transaction_cancelation_requested(
         order_id=order.pk,
         authorized_value=Decimal("10"),
         app_identifier=app.identifier,
+        app=app,
     )
     event = transaction.events.create(type=TransactionEventType.CANCEL_REQUEST)
     action_value = Decimal("5.00")
