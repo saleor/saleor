@@ -32,6 +32,10 @@ All notable, unreleased changes to this project will be documented in this file.
         }
        }
     ```
+- Change the discount rounding mode - #12041 by @IKarbowiak
+  - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount
+  and the total amount of the order. The discount amount might by 0.01 greater, and the total
+  price might by 0.01 lower.
 
 
 
