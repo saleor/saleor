@@ -1,4 +1,3 @@
-from .....order.models import Order
 from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
@@ -27,30 +26,11 @@ ORDER_BULK_CREATE = """
                         streetAddress1
                         postalCode
                     }
-                    shippingAddress{
-                        city
-                        streetAddress1
-                        postalCode
-                    }
-                    status
-                    voucher {
-                        code
-                    }
-                    customerNote
-                    total {
-                        gross {
-                            amount
-                        }
-                    }
-                    shippingMethodName
-                    externalReference
                 }
                 errors {
                     field
                     message
                     code
-                    warehouses
-                    channels
                 }
             }
         }
