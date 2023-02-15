@@ -696,6 +696,8 @@ BUILTIN_PLUGINS = [
 # Plugin discovery
 EXTERNAL_PLUGINS = [
     "saleor.payment.gateways.shop2shop.plugin.Shop2ShopGatewayPlugin",
+    "saleor.payment.gateways.kazang.plugin.KazangGatewayPlugin",
+    "saleor.payment.gateways.flash.plugin.FlashGatewayPlugin",
 ]
 installed_plugins = pkg_resources.iter_entry_points("saleor.plugins")
 for entry_point in installed_plugins:
