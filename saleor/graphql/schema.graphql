@@ -22266,8 +22266,8 @@ input OrderBulkCreateInput {
   """External ID of the order."""
   externalReference: String
 
-  """ID of the channel associated with the order."""
-  channel: ID!
+  """Slug of the channel associated with the order."""
+  channel: String!
 
   """The date, when the order was inserted to Saleor database."""
   createdAt: DateTime!
@@ -22297,7 +22297,7 @@ input OrderBulkCreateInput {
   notes: [OrderBulkCreateNoteInput!]
 
   """Order language code."""
-  languageCodeEnum: LanguageCodeEnum!
+  languageCode: LanguageCodeEnum!
 
   """
   Determines whether checkout prices should include taxes, when displayed in a storefront.
@@ -22411,10 +22411,13 @@ input OrderBulkCreateOrderLineInput {
 
 input TaxedMoneyInput {
   """Gross value of an item."""
-  gross: MoneyInput!
+  gross: PositiveDecimal!
 
   """Net value of an item."""
-  net: MoneyInput!
+  net: PositiveDecimal!
+
+  """Currency code."""
+  currency: String!
 }
 
 input OrderBulkCreateDeliveryMethodInput {
