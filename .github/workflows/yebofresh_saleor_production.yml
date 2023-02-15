@@ -70,7 +70,7 @@ jobs:
       if: ${{ success() }}
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Saleor Staging Image Created"
+        title: "Saleor Production Image Created"
         description: "A Docker image has been created and ready for deploy on Rancher.\n\nImage URL: `${{ env.REGISTRY_HOSTNAME }}/${{ env.GCR_PROJECT }}/${{ env.IMAGE }}:${{ env.GITHUB_SHA }}`"
 
     - name: Push Failure Notification to Discord
@@ -78,5 +78,5 @@ jobs:
       if: ${{ failure() }}
       with:
         webhook: ${{ secrets.DISCORD_WEBHOOK }}
-        title: "Saleor Staging Image Creation"
+        title: "Saleor Production Image Creation"
         description: "There was an error creating the Docker image"
