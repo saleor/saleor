@@ -86,6 +86,7 @@ async def test_access_control_header_simple(asgi_app: ASGI3Application, settings
             type="http.response.start",
             status=200,
             headers=[
+                (b"access-control-allow-credentials", b"true"),
                 (b"access-control-allow-origin", b"http://localhost:3000"),
                 (b"content-type", b"text/plain"),
                 (b"vary", b"Origin"),
