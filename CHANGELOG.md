@@ -42,6 +42,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
   - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
 - Add meta fields to `ProductMedia` model - #11894 by @zedzior
+- Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
 
 
 ### Other changes

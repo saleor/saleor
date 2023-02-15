@@ -2,6 +2,7 @@ from typing import cast
 
 import graphene
 from django.contrib.auth import password_validation
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
@@ -272,7 +273,7 @@ class PasswordChange(BaseMutation):
 
     class Arguments:
         old_password = graphene.String(
-            required=True, description="Current user password."
+            required=False, description="Current user password."
         )
         new_password = graphene.String(required=True, description="New user password.")
 
@@ -282,22 +283,34 @@ class PasswordChange(BaseMutation):
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
 
+    @staticmethod
+    def raise_invalid_credentials():
+        raise ValidationError(
+            {
+                "old_password": ValidationError(
+                    "Old password isn't valid.",
+                    code=AccountErrorCode.INVALID_CREDENTIALS.value,
+                )
+            }
+        )
+
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         user = info.context.user
         user = cast(models.User, user)
-        old_password = data["old_password"]
+        old_password = data.get("old_password")
         new_password = data["new_password"]
 
-        if not user.check_password(old_password):
-            raise ValidationError(
-                {
-                    "old_password": ValidationError(
-                        "Old password isn't valid.",
-                        code=AccountErrorCode.INVALID_CREDENTIALS.value,
-                    )
-                }
-            )
+        if old_password is None:
+            # Spend time hashing useless password
+            # This prevents the outside actors from telling if user has
+            # unusable password set or not by measuring API's response time
+            make_password("waste-time")
+
+            if user.has_usable_password():
+                cls.raise_invalid_credentials()
+        elif not user.check_password(old_password):
+            cls.raise_invalid_credentials()
         try:
             password_validation.validate_password(new_password, user)
         except ValidationError as error:
