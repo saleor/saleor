@@ -14,7 +14,7 @@ env:
   SALEOR_SECRET: ${{ secrets.SALEOR_STAGING_BUILD_SECRET }}
   GAC_FILENAME: gcs_staging.json
   GITHUB_SHA: ${{ github.sha }}
-  IMAGE: saleor-staging
+  IMAGE: saleor-core-staging
   REGISTRY_HOSTNAME: eu.gcr.io
 
 jobs:

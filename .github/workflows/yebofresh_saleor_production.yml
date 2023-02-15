@@ -10,7 +10,7 @@ on:
 # Environment variables available to all jobs and steps in this workflow
 env:
   GCR_PROJECT: ${{ secrets.GCR_PROJECT }}
-  GS_JSON: ${{ secrets.GS_JSON }}
+  GS_JSON: ${{ secrets.GS_JSON_PRODUCTION }}
   SALEOR_SECRET: ${{ secrets.SALEOR_PRODUCTION_BUILD_SECRET }}
   GAC_FILENAME: gcs_production.json
   GITHUB_SHA: ${{ github.sha }}
