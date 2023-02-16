@@ -1,9 +1,8 @@
 import logging
-from decimal import Decimal
 from typing import List
 
 from celery.exceptions import SoftTimeLimitExceeded
-from django.db.models import Exists, F, OuterRef
+from django.db.models import Exists, F, Func, OuterRef, Subquery
 from django.db.models.functions import Extract
 from django.utils import timezone
 
@@ -58,16 +57,23 @@ def _bulk_release_voucher_usage(order_ids):
         voucher=OuterRef("pk"),
         id__in=order_ids,
     )
+    count_orders = voucher_orders.annotate(
+        count=Func(F("pk"), function="Count")
+    ).values("count")
+
     Voucher.objects.filter(
         Exists(voucher_orders),
         usage_limit__isnull=False,
-    ).update(used=F("used") - 1)
+    ).annotate(
+        order_count=Subquery(count_orders)
+    ).update(used=F("used") - F("order_count"))
 
     voucher_customer_orders = Order.objects.filter(
         voucher=OuterRef("voucher__id"),
         user_email=OuterRef("customer_email"),
         id__in=order_ids,
     )
+
     VoucherCustomer.objects.filter(Exists(voucher_customer_orders)).delete()
 
 
@@ -86,7 +92,6 @@ def _expire_orders(manager, now):
         channel__expire_orders_after__isnull=False,
         channel__expire_orders_after__gt=0,
         channel__expire_orders_after__lte=Extract(now - F("created_at"), "epoch"),
-        total_charged_amount=Decimal(0),
     )
     for ids_batch in _queryset_in_batches(qs):
         with traced_atomic_transaction():

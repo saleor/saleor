@@ -122,7 +122,7 @@ class ChannelUpdate(ModelMutation):
             raise ValidationError(
                 {
                     "expire_orders_after": ValidationError(
-                        "Expiration time for orders cannot be lower than 1.",
+                        "Expiration time for orders cannot be lower than 0.",
                         code=ChannelErrorCode.INVALID.value,
                     )
                 }
