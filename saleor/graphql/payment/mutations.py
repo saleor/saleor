@@ -62,10 +62,10 @@ from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
-    ADDED_IN_38,
-    ADDED_IN_310,
+    ADDED_IN_312,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
+    PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT,
 )
 from ..core.enums import TransactionEventReportErrorCode
 from ..core.fields import JSONString
@@ -643,34 +643,32 @@ class TransactionUpdateInput(graphene.InputObjectType):
     status = graphene.String(
         description=(
             "Status of the transaction."
-            + DEPRECATED_IN_3X_INPUT
+            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
             + " The `status` is not needed. The amounts can be used to define "
             "the current status of transactions."
         ),
     )
     type = graphene.String(
         description="Payment type used for this transaction."
-        + DEPRECATED_IN_3X_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
         + " Use `name` and `message` instead.",
     )
-    name = graphene.String(description="Payment name of the transaction.")
-    message = graphene.String(description="The message of the transaction.")
+    name = graphene.String(
+        description="Payment name of the transaction." + ADDED_IN_312
+    )
+    message = graphene.String(
+        description="The message of the transaction." + ADDED_IN_312
+    )
 
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
-            "The reference and PSP reference must be unique across all "
-            "`transactionItem` objects. "
-            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). "
-            "Use `pspReference` instead."
+            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+            + " Use `pspReference` instead."
         )
     )
     psp_reference = graphene.String(
-        description=(
-            "PSP Reference of the transaction. "
-            "The PSP reference must be unique across all `transactionItem` objects."
-            + ADDED_IN_38
-        )
+        description=("PSP Reference of the transaction. " + ADDED_IN_312)
     )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
@@ -681,10 +679,12 @@ class TransactionUpdateInput(graphene.InputObjectType):
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
     amount_voided = MoneyInput(
         description="Amount voided by this transaction."
-        + DEPRECATED_IN_3X_INPUT
-        + "Use `amountCanceled` instead."
+        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+        + " Use `amountCanceled` instead."
     )
-    amount_canceled = MoneyInput(description="Amount canceled by this transaction.")
+    amount_canceled = MoneyInput(
+        description="Amount canceled by this transaction." + ADDED_IN_312
+    )
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -699,7 +699,7 @@ class TransactionUpdateInput(graphene.InputObjectType):
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
-            "payment provider page with transaction event details." + ADDED_IN_310
+            "payment provider page with transaction event details." + ADDED_IN_312
         )
     )
 
@@ -713,26 +713,28 @@ class TransactionEventInput(graphene.InputObjectType):
         TransactionEventStatusEnum,
         required=False,
         description="Current status of the payment transaction."
-        + DEPRECATED_IN_3X_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
         + " Status will be calculated by Saleor.",
     )
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
-            "DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). "
-            "Use `pspReference` instead."
+            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+            + " Use `pspReference` instead."
         )
     )
 
     psp_reference = graphene.String(
-        description=("PSP Reference related to this action." + ADDED_IN_310)
+        description=("PSP Reference related to this action." + ADDED_IN_312)
     )
     name = graphene.String(
         description="Name of the transaction."
-        + DEPRECATED_IN_3X_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
         + " Use `message` instead. `name` field will be added to `message`."
     )
-    message = graphene.String(description="The message related to the event.")
+    message = graphene.String(
+        description="The message related to the event." + ADDED_IN_312
+    )
 
 
 class TransactionCreate(BaseMutation):
@@ -1086,7 +1088,7 @@ class TransactionUpdate(TransactionCreate):
                     {
                         "transaction": ValidationError(
                             "Transaction with provided `pspReference` already exists.",
-                            code=TransactionCreateErrorCode.UNIQUE.value,
+                            code=TransactionUpdateErrorCode.UNIQUE.value,
                         )
                     }
                 )
@@ -1350,7 +1352,7 @@ class TransactionEventReport(ModelMutation):
     class Meta:
         description = (
             "Report the event for the transaction."
-            + ADDED_IN_310
+            + ADDED_IN_312
             + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "

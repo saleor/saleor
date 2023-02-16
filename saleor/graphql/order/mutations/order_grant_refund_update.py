@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....order import models
 from ....permission.enums import OrderPermissions
+from ...core.descriptions import ADDED_IN_312, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error
@@ -35,7 +36,7 @@ class OrderGrantRefundUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates granted refund."
+        description = "Updates granted refund." + ADDED_IN_312 + PREVIEW_FEATURE
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundUpdateError
         model = models.OrderGrantedRefund
