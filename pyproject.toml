@@ -43,7 +43,7 @@ documentation = "https://docs.saleor.io/"
   razorpay = "^1.2"
   requests = "^2.22"
   sentry-sdk = "^1.9"
-  stripe = "^3.0.0"
+  stripe = "^5.1.1"
   text-unidecode = "^1.2"
   # libpango >=1.44 is required
   weasyprint = ">=53.0"
