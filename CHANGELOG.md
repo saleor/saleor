@@ -21,7 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
       - `TransactionRefundRequested` - Event sent when transaction refund is requested.
       - `TransactionCancelationRequested` - Event sent when transaction cancelation is requested.
     - Add new fields:
-      - `OrderSettings.markAsPaidStrategy` - Determine what strategy will be used to mark the order as paid
+      - `OrderSettings.markAsPaidStrategy` - Determine what strategy will be used to mark the order as paid.
       - `TransactionItem`:
         - `authorizePendingAmount` - Total amount of ongoing authorization requests for the transaction.
         - `refundPendingAmount` - Total amount of ongoing refund requests for the transaction.
@@ -61,7 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
         - `message` -  The message of the transaction.
         - `pspReference` - The PSP Reference of the transaction.
         - `amountCanceled` - Amount canceled by this transaction.
-        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction
+        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction.
       - `TransactionEventInput`:
         - `pspReference` - The PSP Reference of the transaction.
         - `message` - Message related to the transaction's event.
@@ -71,7 +71,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Deprecate object fields:
       - `TransactionItem`:
         - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.13 (Preview feature).
-        - `status` - The amounts can be used to define the current status of transactions. This field will be removed in Saleor 3.13 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.13 (Preview feature).
         - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.13 (Preview feature).
       - `TransactionEvent`:
         - `status` - Use `type` instead. This field will be removed in Saleor 3.13 (Preview feature).
@@ -89,7 +89,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
     - Deprecate input fields:
       - `TransactionCreateInput` & `TransactionUpdateInput`:
-        - `status` - The amounts can be used to define the current status of transactions. This input field will be removed in Saleor 3.13 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This input field will be removed in Saleor 3.13 (Preview feature).
         - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.13 (Preview feature).
         - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.13 (Preview feature).
         - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.13 (Preview feature).
@@ -97,14 +97,15 @@ All notable, unreleased changes to this project will be documented in this file.
         - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.13 (Preview feature).
         - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.13 (Preview feature).
         - `name` - Use `message` instead. This field will be removed in Saleor 3.13 (Preview feature).
-  - Feature preview breaking change:
-    - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
-    - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
-    - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
-    - When calling `transactionUpdate` mutation, the amounts from the previous state should not be reduced.
 
 
 ### Breaking changes
+  - **Feature preview breaking change**:
+    - Improve support for handling transactions - #10350 by @korycins
+      - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
+      - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
+      - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
+      - When calling `transactionUpdate` mutation, the amounts from the previous state should not be reduced.
 
 ### GraphQL API
 - Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
