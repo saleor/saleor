@@ -4872,3 +4872,79 @@ def test_delete_private_metadata_for_transaction_item(
         transaction_item,
         transaction_id,
     )
+
+
+def test_add_public_metadata_for_product_media(
+    staff_api_client, permission_manage_products, product_with_image
+):
+    # given
+    media = product_with_image.media.first()
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_products, media_id, "ProductMedia"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], media, media_id
+    )
+
+
+def test_delete_public_metadata_for_product_media(
+    staff_api_client, permission_manage_products, product_with_image
+):
+    # given
+    media = product_with_image.media.first()
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    media.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    media.save(update_fields=["metadata"])
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, media_id, "ProductMedia"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], media, media_id
+    )
+
+
+def test_add_private_metadata_for_product_media(
+    staff_api_client, permission_manage_products, product_with_image
+):
+    # given
+    media = product_with_image.media.first()
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, media_id, "ProductMedia"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], media, media_id
+    )
+
+
+def test_delete_private_metadata_for_product_media(
+    staff_api_client, permission_manage_products, product_with_image
+):
+    # given
+    media = product_with_image.media.first()
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    media.store_value_in_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    media.save(update_fields=["private_metadata"])
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_products, media_id, "ProductMedia"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], media, media_id
+    )

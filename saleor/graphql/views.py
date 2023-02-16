@@ -1,4 +1,3 @@
-import fnmatch
 import hashlib
 import importlib
 import json
@@ -54,7 +53,6 @@ class GraphQLView(View):
     # https://github.com/prisma/graphql-playground)
     # - file upload (https://github.com/lmcgartland/graphene-file-upload)
     # - query batching
-    # - CORS
 
     schema = None
     executor = None
@@ -105,27 +103,13 @@ class GraphQLView(View):
             if settings.PLAYGROUND_ENABLED:
                 return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-        if request.method == "OPTIONS":
-            response = self.options(request, *args, **kwargs)
         elif request.method == "POST":
-            response = self.handle_query(request)
+            return self.handle_query(request)
         else:
-            return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
-        # Add access control headers
-        if "HTTP_ORIGIN" in request.META:
-            for origin in settings.ALLOWED_GRAPHQL_ORIGINS:
-                if fnmatch.fnmatchcase(request.META["HTTP_ORIGIN"], origin):
-                    response["Access-Control-Allow-Origin"] = request.META[
-                        "HTTP_ORIGIN"
-                    ]
-                    response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
-                    response["Access-Control-Allow-Headers"] = (
-                        "Origin, Content-Type, Accept, Authorization, "
-                        "Authorization-Bearer"
-                    )
-                    response["Access-Control-Allow-Credentials"] = "true"
-                    break
-        return response
+            if settings.PLAYGROUND_ENABLED:
+                return HttpResponseNotAllowed(["GET", "OPTIONS", "POST"])
+            else:
+                return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
     def render_playground(self, request):
         return render(

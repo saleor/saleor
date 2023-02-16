@@ -298,7 +298,6 @@ def test_handle_authorization_for_checkout_out_of_stock_after_payment(
     address,
     shipping_method,
 ):
-
     refund_response = {"pspReference": "refund-psp"}
     mock_refund_response = MagicMock()
     mock_refund.return_value = mock_refund_response
@@ -1555,7 +1554,6 @@ def test_webhook_not_implemented_invalid_payment_id(
 def test_handle_cancel_or_refund_action_refund(
     mock_handle_refund, notification, adyen_plugin, payment_adyen_for_order
 ):
-
     payment = payment_adyen_for_order
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     config = adyen_plugin().config

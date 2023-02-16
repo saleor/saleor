@@ -120,18 +120,24 @@ def test_product_variant_bulk_update_stocks(
     variants = [
         {
             "id": variant_id,
-            "stocks": [
-                {
-                    "quantity": new_quantity,
-                    "warehouse": graphene.Node.to_global_id(
-                        "Warehouse", stock_to_update.warehouse.pk
-                    ),
-                },
-                {
-                    "quantity": new_stock_quantity,
-                    "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
-                },
-            ],
+            "stocks": {
+                "create": [
+                    {
+                        "quantity": new_stock_quantity,
+                        "warehouse": graphene.Node.to_global_id(
+                            "Warehouse", warehouse.pk
+                        ),
+                    },
+                ],
+                "update": [
+                    {
+                        "quantity": new_quantity,
+                        "stock": graphene.Node.to_global_id(
+                            "Stock", stock_to_update.pk
+                        ),
+                    },
+                ],
+            },
         }
     ]
 
@@ -155,6 +161,87 @@ def test_product_variant_bulk_update_stocks(
     assert variant.stocks.last().quantity == new_stock_quantity
 
 
+def test_product_variant_bulk_update_and_remove_stock(
+    staff_api_client,
+    variant_with_many_stocks,
+    warehouse,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = variant.stocks.all()
+    assert len(stocks) == 2
+    stock_to_remove = stocks[0]
+
+    variants = [
+        {
+            "id": variant_id,
+            "stocks": {
+                "remove": [graphene.Node.to_global_id("Stock", stock_to_remove.pk)]
+            },
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert variant.stocks.count() == 1
+
+
+def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
+    staff_api_client,
+    variant_with_many_stocks,
+    warehouse,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    product_id = graphene.Node.to_global_id("Product", variant.product_id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stocks = variant.stocks.all()
+    assert len(stocks) == 2
+
+    variants = [
+        {
+            "id": variant_id,
+            "stocks": {"remove": [graphene.Node.to_global_id("Stock", "randomID")]},
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    assert variant.stocks.count() == 2
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
+
+
 def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
     staff_api_client,
     variant_with_many_stocks,
@@ -174,7 +261,9 @@ def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
     variants = [
         {
             "id": variant_id,
-            "stocks": [{"quantity": 10, "warehouse": not_existing_warehouse_id}],
+            "stocks": {
+                "create": [{"quantity": 10, "warehouse": not_existing_warehouse_id}]
+            },
         }
     ]
 
@@ -225,16 +314,24 @@ def test_product_variant_bulk_update_channel_listings_input(
     variants = [
         {
             "id": variant_id,
-            "channelListings": [
-                {
-                    "price": new_price_for_existing_variant_listing,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
-                },
-                {
-                    "price": not_existing_variant_listing_price,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_PLN.pk),
-                },
-            ],
+            "channelListings": {
+                "update": [
+                    {
+                        "price": new_price_for_existing_variant_listing,
+                        "channelListing": graphene.Node.to_global_id(
+                            "ProductVariantChannelListing", existing_variant_listing.id
+                        ),
+                    }
+                ],
+                "create": [
+                    {
+                        "price": not_existing_variant_listing_price,
+                        "channelId": graphene.Node.to_global_id(
+                            "Channel", channel_PLN.pk
+                        ),
+                    }
+                ],
+            },
         },
     ]
 
@@ -262,6 +359,53 @@ def test_product_variant_bulk_update_channel_listings_input(
     )
 
 
+def test_product_variant_bulk_update_and_remove_channel_listings(
+    staff_api_client,
+    variant,
+    permission_manage_products,
+    warehouses,
+    size_attribute,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    product = variant.product
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    ProductChannelListing.objects.create(product=product, channel=channel_PLN)
+    existing_variant_listing = variant.channel_listings.last()
+
+    assert variant.channel_listings.count() == 1
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variants = [
+        {
+            "id": variant_id,
+            "channelListings": {
+                "remove": [
+                    graphene.Node.to_global_id(
+                        "ProductVariantChannelListing", existing_variant_listing.id
+                    )
+                ]
+            },
+        },
+    ]
+
+    # when
+    variables = {"productId": product_id, "variants": variants}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["productVariantBulkUpdate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert variant.channel_listings.count() == 0
+
+
 def test_product_variant_bulk_update_channel_listings_with_invalid_price(
     staff_api_client,
     variant,
@@ -284,12 +428,16 @@ def test_product_variant_bulk_update_channel_listings_with_invalid_price(
         {
             "id": variant_id,
             "name": "RandomName",
-            "channelListings": [
-                {
-                    "price": 0.99999,
-                    "channelId": graphene.Node.to_global_id("Channel", channel_USD.pk),
-                },
-            ],
+            "channelListings": {
+                "update": [
+                    {
+                        "price": 0.99999,
+                        "channelListing": graphene.Node.to_global_id(
+                            "ProductVariantChannelListing", existing_variant_listing.pk
+                        ),
+                    },
+                ],
+            },
         },
     ]
 

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0057_clear_user_addresses"),
         ("account", "0058_update_user_search_document"),

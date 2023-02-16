@@ -240,7 +240,6 @@ def test_checkout_complete(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -779,7 +778,6 @@ def test_checkout_complete_with_variant_without_price(
     address,
     shipping_method,
 ):
-
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -2066,7 +2064,6 @@ def test_checkout_complete_without_redirect_url(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -2299,7 +2296,6 @@ def test_checkout_complete_0_total_value(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_item
@@ -2867,7 +2863,6 @@ def test_checkout_complete_variant_channel_listing_does_not_exist(
     address,
     shipping_method,
 ):
-
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address

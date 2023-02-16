@@ -90,7 +90,6 @@ def test_sort_products_within_collection(
     permission_manage_products,
     channel_USD,
 ):
-
     staff_api_client.user.user_permissions.add(permission_manage_products)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
 
@@ -230,7 +229,6 @@ def test_sort_products_by_created_at(direction, api_client, product_list, channe
 def test_sort_products_by_rating(
     direction, order_direction, api_client, product_list, channel_USD
 ):
-
     for product in product_list:
         product.rating = random.uniform(1, 10)
     Product.objects.bulk_update(product_list, ["rating"])

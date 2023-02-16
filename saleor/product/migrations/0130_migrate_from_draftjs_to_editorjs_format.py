@@ -186,7 +186,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0131_update_ts_vector_existing_product_name"),
     ]

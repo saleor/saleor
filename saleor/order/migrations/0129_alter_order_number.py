@@ -6,7 +6,6 @@ import saleor.order.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0128_set_order_number"),
     ]

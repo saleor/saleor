@@ -64,7 +64,6 @@ def test_query_vouchers_with_sort(
     voucher_with_high_min_spent_amount,
     voucher_percentage,
 ):
-
     variables = {"sort_by": {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"}}
     staff_api_client.user.user_permissions.add(permission_manage_discounts)
 

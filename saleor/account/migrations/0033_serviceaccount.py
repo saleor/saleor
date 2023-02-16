@@ -8,7 +8,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("auth", "0011_update_proxy_permissions"),
         ("account", "0032_remove_user_token"),

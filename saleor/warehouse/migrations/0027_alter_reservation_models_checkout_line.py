@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0026_fulfill_checkout_line_token_fields"),
     ]

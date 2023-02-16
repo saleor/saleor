@@ -12,7 +12,6 @@ def create_default_menus(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("menu", "0001_initial")]
 
     operations = [migrations.RunPython(create_default_menus, migrations.RunPython.noop)]

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0009_convert_to_partially_charged_and_partially_refunded")
     ]

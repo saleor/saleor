@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0167_digitalcontenturl_order_line_token"),
         ("order", "0140_alter_orderline_old_id_and_created_at"),

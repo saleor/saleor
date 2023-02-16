@@ -88,7 +88,6 @@ def test_product_type_create_mutation(
     monkeypatch,
     tax_classes,
 ):
-
     query = PRODUCT_TYPE_CREATE_MUTATION
     product_type_name = "test type"
     slug = "test-type"

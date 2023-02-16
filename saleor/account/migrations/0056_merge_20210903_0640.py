@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0055_alter_user_language_code"),
         ("account", "0055_alter_user_options"),

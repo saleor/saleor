@@ -78,7 +78,6 @@ PLUGIN_UPDATE_MUTATION = """
 def test_plugin_configuration_update(
     staff_api_client_can_manage_plugins, settings, active, updated_configuration_item
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
@@ -171,7 +170,6 @@ def test_plugin_configuration_update_value_not_given(
 def test_plugin_configuration_update_for_channel_configurations(
     staff_api_client_can_manage_plugins, settings, active, channel_PLN
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(
@@ -213,7 +211,6 @@ def test_plugin_configuration_update_for_channel_configurations(
 def test_plugin_configuration_update_channel_slug_required(
     staff_api_client_can_manage_plugins, settings, channel_PLN
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(
@@ -242,7 +239,6 @@ def test_plugin_configuration_update_channel_slug_required(
 def test_plugin_configuration_update_unneeded_channel_slug(
     staff_api_client_can_manage_plugins, settings, channel_PLN
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID, channel_slug=channel_PLN.slug)

@@ -142,7 +142,7 @@ def _apply_tax_data(
     order.shipping_tax_rate = normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
 
     subtotal = zero_taxed_money(order.currency)
-    for (order_line, tax_line) in zip(lines, tax_data.lines):
+    for order_line, tax_line in zip(lines, tax_data.lines):
         line_total_price = TaxedMoney(
             net=Money(tax_line.total_net_amount, currency),
             gross=Money(tax_line.total_gross_amount, currency),

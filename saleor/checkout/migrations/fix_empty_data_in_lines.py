@@ -14,7 +14,6 @@ def convert_lines_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0002_auto_20161014_1221")]
 
     replaces = [("cart", "fix_empty_data_in_lines")]

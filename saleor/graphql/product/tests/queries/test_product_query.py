@@ -1471,7 +1471,6 @@ def test_product_variant_without_price_as_staff_without_permission(
     stock,
     channel_USD,
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -1498,7 +1497,6 @@ def test_product_variant_without_price_as_staff_without_permission(
 def test_product_variant_without_price_as_staff_with_permission(
     staff_api_client, variant, stock, channel_USD, permission_manage_products
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()
@@ -1879,6 +1877,60 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
     assert (
         content["data"]["product"]["mediaById"]["url"]
         == f"http://{site_settings.site.domain}/media/{media.image.name}"
+    )
+
+
+def test_query_product_media_by_id_original_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.ORIGINAL.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/"
+    )
+
+
+def test_query_product_media_by_id_avif_format(
+    user_api_client, product_with_image, channel_USD, site_settings
+):
+    query = QUERY_PRODUCT_MEDIA_BY_ID
+    media = product_with_image.media.first()
+
+    media_id = graphene.Node.to_global_id("ProductMedia", media.pk)
+    format = ThumbnailFormatEnum.AVIF.name
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": media_id,
+        "channel": channel_USD.slug,
+        "format": format,
+        "size": 128,
+    }
+
+    response = user_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    assert content["data"]["product"]["mediaById"]["id"]
+    assert (
+        content["data"]["product"]["mediaById"]["url"]
+        == f"http://{site_settings.site.domain}/thumbnail/{media_id}/128/avif/"
     )
 
 

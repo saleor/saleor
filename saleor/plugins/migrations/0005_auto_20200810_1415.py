@@ -6,7 +6,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0004_drop_support_for_env_vatlayer_access_key"),
     ]

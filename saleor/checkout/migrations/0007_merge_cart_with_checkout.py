@@ -13,7 +13,6 @@ def fix_blank_emails_in_carts(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0019_auto_20180528_1205"),
         ("shipping", "0008_auto_20180108_0814"),

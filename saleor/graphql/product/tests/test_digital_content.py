@@ -15,7 +15,6 @@ from ...tests.utils import (
 def test_fetch_all_digital_contents(
     staff_api_client, variant, digital_content, permission_manage_products
 ):
-
     digital_content_num = DigitalContent.objects.count()
     query = """
     query {

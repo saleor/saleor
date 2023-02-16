@@ -35,7 +35,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0022_plain_text_attribute"),
     ]

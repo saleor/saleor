@@ -21,7 +21,6 @@ def assign_psp_reference_values(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0026_payment_psp_reference"),
     ]

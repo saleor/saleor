@@ -197,7 +197,6 @@ def test_shipping_zones_query(
     permission_manage_products,
     channel_USD,
 ):
-
     num_of_shippings = shipping_zone._meta.model.objects.count()
     variables = {"channel": channel_USD.slug}
     response = staff_api_client.post_graphql(

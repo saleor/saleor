@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0129_alter_order_number"),
         ("payment", "0031_merge_0030_auto_20210908_1346_0030_payment_partial"),

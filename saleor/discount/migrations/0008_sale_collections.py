@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0064_productvariant_handle_stock"),
         ("discount", "0007_auto_20180108_0814"),

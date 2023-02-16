@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional, cast, overload
+from typing import Any, Dict, Optional, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -154,7 +154,7 @@ def create_order_payment_lines_information(order: Order) -> PaymentLinesData:
     )
 
 
-def generate_transactions_data(payment: Payment) -> List[TransactionData]:
+def generate_transactions_data(payment: Payment) -> list[TransactionData]:
     return [
         TransactionData(
             token=t.token,
@@ -467,7 +467,7 @@ def validate_gateway_response(response: GatewayResponse):
 
 @traced_atomic_transaction()
 def gateway_postprocess(transaction, payment: Payment):
-    changed_fields: List[str] = []
+    changed_fields: list[str] = []
 
     if not transaction.is_success or transaction.already_processed:
         if changed_fields:
@@ -583,7 +583,7 @@ def update_payment(payment: "Payment", gateway_response: "GatewayResponse"):
 def update_payment_method_details(
     payment: "Payment",
     payment_method_info: Optional["PaymentMethodInfo"],
-    changed_fields: List[str],
+    changed_fields: list[str],
 ):
     if not payment_method_info:
         return
@@ -694,39 +694,37 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
     )
 
 
-def get_correct_event_types_based_on_request_type(request_type: str) -> List[str]:
-    if request_type == TransactionEventType.AUTHORIZATION_REQUEST:
-        return [
+def get_correct_event_types_based_on_request_type(request_type: str) -> list[str]:
+    type_map = {
+        TransactionEventType.AUTHORIZATION_REQUEST: [
             TransactionEventType.AUTHORIZATION_FAILURE,
             TransactionEventType.AUTHORIZATION_ADJUSTMENT,
             TransactionEventType.AUTHORIZATION_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.CHARGE_REQUEST:
-        return [
+        ],
+        TransactionEventType.CHARGE_REQUEST: [
             TransactionEventType.CHARGE_FAILURE,
             TransactionEventType.CHARGE_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.REFUND_REQUEST:
-        return [
+        ],
+        TransactionEventType.REFUND_REQUEST: [
             TransactionEventType.REFUND_FAILURE,
             TransactionEventType.REFUND_SUCCESS,
-        ]
-    elif request_type == TransactionEventType.CANCEL_REQUEST:
-        return [
+        ],
+        TransactionEventType.CANCEL_REQUEST: [
             TransactionEventType.CANCEL_FAILURE,
             TransactionEventType.CANCEL_SUCCESS,
-        ]
-    return []
+        ],
+    }
+    return type_map.get(request_type, [])
 
 
 def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
-    error_field_msg: List[str],
+    error_field_msg: list[str],
     psp_reference: str,
     request_type: str,
 ):
-    if not event_data.get("amount") and not event_data.get("result"):
+    if event_data.get("amount") is None and not event_data.get("result"):
         return
     missing_msg = (
         "Missing value for field: %s in " "response of transaction action webhook."
@@ -802,7 +800,7 @@ def parse_transaction_action_data(
         return None, msg
 
     parsed_event_data: dict = {}
-    error_field_msg: List[str] = []
+    error_field_msg: list[str] = []
     parse_transaction_event_data(
         event_data=response_data,
         parsed_event_data=parsed_event_data,
@@ -1010,7 +1008,7 @@ def create_transaction_event_from_request_and_webhook_response(
     return event
 
 
-def prepare_manual_event(
+def _prepare_manual_event(
     transaction: TransactionItem,
     transaction_amount: Decimal,
     input_amount: Decimal,
@@ -1032,12 +1030,38 @@ def prepare_manual_event(
     )
 
 
+def prepare_manual_event(
+    events_to_create: list[TransactionEvent],
+    amount_field: str,
+    money_data: Dict[str, Decimal],
+    event_type: str,
+    transaction: TransactionItem,
+    user: Optional["User"],
+    app: Optional["App"],
+):
+    amount_value = money_data.get(amount_field)
+    if amount_value is None:
+        return
+    transaction_amount = getattr(transaction, amount_field)
+    if transaction_amount != amount_value:
+        events_to_create.append(
+            _prepare_manual_event(
+                transaction,
+                transaction_amount,
+                amount_value,
+                event_type,
+                user,
+                app,
+            )
+        )
+
+
 def create_manual_adjustment_events(
     transaction: TransactionItem,
     money_data: Dict[str, Decimal],
     user: Optional["User"],
     app: Optional["App"],
-) -> List[TransactionEvent]:
+) -> list[TransactionEvent]:
     """Create TransactionEvent used to recalculate the transaction amounts.
 
     The transaction amounts are calculated based on the amounts stored in
@@ -1045,7 +1069,7 @@ def create_manual_adjustment_events(
     match the amounts, the manual events are created in case of calling
     transactionCreate or transactionUpdate
     """
-    events_to_create = []
+    events_to_create: list[TransactionEvent] = []
     if "authorized_value" in money_data:
         authorized_value = money_data["authorized_value"]
         event_type = TransactionEventType.AUTHORIZATION_SUCCESS
@@ -1057,7 +1081,7 @@ def create_manual_adjustment_events(
             current_authorized_value = Decimal(0)
         if transaction.authorized_value != authorized_value:
             events_to_create.append(
-                prepare_manual_event(
+                _prepare_manual_event(
                     transaction,
                     current_authorized_value,
                     authorized_value,
@@ -1066,48 +1090,33 @@ def create_manual_adjustment_events(
                     app,
                 )
             )
-    if "charged_value" in money_data:
-        charged_value = money_data["charged_value"]
-        event_type = TransactionEventType.CHARGE_SUCCESS
-        if transaction.charged_value != charged_value:
-            events_to_create.append(
-                prepare_manual_event(
-                    transaction,
-                    transaction.charged_value,
-                    charged_value,
-                    event_type,
-                    user,
-                    app,
-                )
-            )
-    if "refunded_value" in money_data:
-        refunded_value = money_data["refunded_value"]
-        event_type = TransactionEventType.REFUND_SUCCESS
-        if transaction.refunded_value != refunded_value:
-            events_to_create.append(
-                prepare_manual_event(
-                    transaction,
-                    transaction.refunded_value,
-                    refunded_value,
-                    event_type,
-                    user,
-                    app,
-                )
-            )
-    if "canceled_value" in money_data:
-        canceled_value = money_data["canceled_value"]
-        event_type = TransactionEventType.CANCEL_SUCCESS
-        if transaction.canceled_value != canceled_value:
-            events_to_create.append(
-                prepare_manual_event(
-                    transaction,
-                    transaction.canceled_value,
-                    canceled_value,
-                    event_type,
-                    user,
-                    app,
-                )
-            )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="charged_value",
+        money_data=money_data,
+        event_type=TransactionEventType.CHARGE_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="refunded_value",
+        money_data=money_data,
+        event_type=TransactionEventType.REFUND_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="canceled_value",
+        money_data=money_data,
+        event_type=TransactionEventType.CANCEL_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
     if events_to_create:
         return TransactionEvent.objects.bulk_create(events_to_create)
     return []

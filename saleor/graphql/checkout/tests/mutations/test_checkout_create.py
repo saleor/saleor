@@ -216,7 +216,6 @@ def test_checkout_create_with_unavailable_variant(
 def test_checkout_create_with_malicious_variant_id(
     api_client, stock, graphql_address_data, channel_USD
 ):
-
     variant = stock.product_variant
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
     test_email = "test@example.com"

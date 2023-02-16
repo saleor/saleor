@@ -21,7 +21,6 @@ def set_origin_and_original_order_values(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0106_origin_and_original"),
     ]

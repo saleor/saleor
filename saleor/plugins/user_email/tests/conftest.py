@@ -105,7 +105,6 @@ def user_email_plugin(settings, channel_USD):
         order_refund_template=DEFAULT_EMAIL_VALUE,
         order_refund_subject=ORDER_REFUND_CONFIRMATION_DEFAULT_SUBJECT,
     ):
-
         settings.PLUGINS = ["saleor.plugins.user_email.plugin.UserEmailPlugin"]
         manager = get_plugins_manager()
         with patch(

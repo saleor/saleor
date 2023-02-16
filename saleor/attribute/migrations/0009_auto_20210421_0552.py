@@ -17,7 +17,6 @@ def clear_assignment_instances_without_values(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0008_auto_20210407_0632"),
     ]

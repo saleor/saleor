@@ -25,7 +25,6 @@ def get_product_costs_data(
     has_variants: bool,
     currency: str,
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
-
     purchase_costs_range = MoneyRange(
         start=zero_money(currency), stop=zero_money(currency)
     )

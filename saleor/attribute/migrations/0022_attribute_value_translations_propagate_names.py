@@ -136,7 +136,6 @@ def propagate_names_for_rich_text_attribute_value_translations(apps, schema_edit
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0021_auto_20220406_1713"),
     ]

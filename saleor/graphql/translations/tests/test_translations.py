@@ -3014,7 +3014,6 @@ def test_translation_query_product(
     product,
     product_translation_fr,
 ):
-
     product_id = graphene.Node.to_global_id("Product", product.id)
 
     variables = {
@@ -3058,7 +3057,6 @@ def test_translation_query_collection(
     permission_manage_translations,
     channel_USD,
 ):
-
     channel_listing = published_collection.channel_listings.get()
     channel_listing.save()
     collection_id = graphene.Node.to_global_id("Collection", published_collection.id)

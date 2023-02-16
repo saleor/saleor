@@ -20,7 +20,6 @@ def revert_existing_order_events_in_db(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0102_auto_20210310_1552"),
     ]

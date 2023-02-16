@@ -15,7 +15,6 @@ def migrate_warehouse_address(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0013_auto_20210308_1135"),
     ]

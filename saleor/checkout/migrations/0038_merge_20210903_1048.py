@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0037_merge_20210903_1013"),
         ("checkout", "0037_remove_empty_lines"),

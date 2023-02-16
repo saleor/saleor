@@ -71,7 +71,6 @@ def update_menus(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("menu", "0006_auto_20180803_0528")]
 
     operations = [

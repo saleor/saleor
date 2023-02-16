@@ -7,7 +7,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0055_remove_order_note_order_history_entry")]
 
     operations = [

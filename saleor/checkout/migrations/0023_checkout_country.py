@@ -7,7 +7,6 @@ import saleor.checkout.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0022_auto_20191219_1137"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0136_add_attribute_type_and_page_to_attribute_relation"),
         ("attribute", "0001_initial"),

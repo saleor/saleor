@@ -23,7 +23,6 @@ def reverse_transfer_locations(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0014_auto_20161207_0840")]
 
     operations = [

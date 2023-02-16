@@ -38,7 +38,6 @@ def update_groups_with_manage_products_with_new_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0128_update_publication_date"),
     ]

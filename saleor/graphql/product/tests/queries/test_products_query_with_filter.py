@@ -49,7 +49,6 @@ def test_products_query_with_filter_attributes(
     permission_manage_products,
     channel_USD,
 ):
-
     product_type = ProductType.objects.create(
         name="Custom Type",
         slug="custom-type",
@@ -1475,7 +1474,6 @@ def test_products_query_with_filter_stock_availability_as_staff(
     permission_manage_products,
     channel_USD,
 ):
-
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
@@ -1566,7 +1564,6 @@ def test_products_query_with_filter_stock_availability_as_user(
     permission_manage_products,
     channel_USD,
 ):
-
     for product in product_list:
         stock = product.variants.first().stocks.first()
         Allocation.objects.create(
