@@ -27,7 +27,7 @@ from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusF
 
 def filter_payment_status(qs, _, value):
     if value:
-        qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
+        qs = qs.filter(payments__charge_status__in=value)
     return qs
 
 
