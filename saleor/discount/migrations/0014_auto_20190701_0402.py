@@ -11,7 +11,6 @@ def replace_value_vocucher_type(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("discount", "0013_auto_20190618_0733")]
 
     operations = [

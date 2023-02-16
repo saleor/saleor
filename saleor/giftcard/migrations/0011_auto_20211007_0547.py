@@ -13,7 +13,6 @@ def move_gift_card_tags_to_objects(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0010_auto_20211007_0546"),
     ]

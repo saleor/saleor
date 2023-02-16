@@ -69,6 +69,7 @@ def resolve_object_with_metadata_type(instance):
             product_models.Collection: product_types.Collection,
             product_models.DigitalContent: product_types.DigitalContent,
             product_models.Product: product_types.Product,
+            product_models.ProductMedia: product_types.ProductMedia,
             product_models.ProductType: product_types.ProductType,
             product_models.ProductVariant: product_types.ProductVariant,
             shipping_models.ShippingMethod: shipping_types.ShippingMethodType,

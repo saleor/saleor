@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("discount", "0015_voucher_min_quantity_of_products")]
 
     operations = [

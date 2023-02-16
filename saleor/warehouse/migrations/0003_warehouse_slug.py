@@ -52,7 +52,6 @@ def generate_unique_slug(instance, slug_values):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0002_auto_20200123_0036"),
     ]

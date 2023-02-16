@@ -7,7 +7,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0019_checkout_gift_cards")]
 
     operations = [

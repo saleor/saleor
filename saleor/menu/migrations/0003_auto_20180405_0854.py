@@ -11,7 +11,6 @@ def migrate_slug_to_name(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("menu", "0002_auto_20180319_0412")]
 
     operations = [

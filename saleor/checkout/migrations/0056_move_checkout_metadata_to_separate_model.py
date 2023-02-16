@@ -55,7 +55,6 @@ def move_all_checkout_metadata(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0055_create_checkout_metadata_model"),
     ]

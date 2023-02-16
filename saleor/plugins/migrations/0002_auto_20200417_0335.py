@@ -28,7 +28,6 @@ def update_identifier_field(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0001_initial"),
     ]

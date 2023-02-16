@@ -120,7 +120,6 @@ def resolve_address_validation_rules(
     city: Optional[str],
     city_area: Optional[str],
 ):
-
     params = {
         "country_code": country_code,
         "country_area": country_area,

@@ -10,7 +10,6 @@ def set_order_number(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0127_add_order_number_and_alter_order_token"),
     ]

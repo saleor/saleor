@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0072_merge_20221227_1353"),
         ("account", "0073_alter_group_permissions"),

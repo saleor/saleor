@@ -94,7 +94,6 @@ class StripeGatewayPlugin(BasePlugin):
     }
 
     def __init__(self, *, configuration, **kwargs):
-
         # Webhook details are not listed in CONFIG_STRUCTURE as user input is not
         # required here
         raw_configuration = {item["name"]: item["value"] for item in configuration}

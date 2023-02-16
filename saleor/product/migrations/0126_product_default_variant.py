@@ -14,7 +14,6 @@ def set_default_variants(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0125_auto_20200916_1511"),
     ]

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0009_cart_translated_discount_name")]
 
     operations = [

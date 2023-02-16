@@ -33,7 +33,6 @@ def assign_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0013_alter_appextension_mount"),
     ]

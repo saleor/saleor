@@ -54,7 +54,6 @@ def set_default_checkout_line_currency(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0050_auto_20220713_1057"),
     ]

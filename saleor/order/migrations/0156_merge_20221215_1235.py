@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0155_merge_20221215_1223"),
         ("order", "0155_order_should_refresh_prices"),

@@ -93,6 +93,7 @@ class ProductMediaCreate(BaseMutation):
 
         alt = input.get("alt", "")
         media_url = input.get("media_url")
+        media = None
         if img_data := input.get("image"):
             input["image"] = info.context.FILES.get(img_data)
             image_data = clean_image_file(input, "image", ProductErrorCode)
@@ -125,5 +126,6 @@ class ProductMediaCreate(BaseMutation):
                 )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_media_created, media)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)

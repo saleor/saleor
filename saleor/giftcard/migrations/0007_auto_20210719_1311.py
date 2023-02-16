@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0006_auto_20210719_1117"),
     ]

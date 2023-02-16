@@ -42,7 +42,6 @@ def move_order_history_entry_to_events(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0053_orderevent")]
 
     operations = [

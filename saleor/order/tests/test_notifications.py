@@ -438,7 +438,6 @@ def test_send_confirmation_emails_without_addresses_for_order(
     digital_content,
     anonymous_plugins,
 ):
-
     assert not order.lines.count()
     line_data = OrderLineData(
         variant_id=str(digital_content.product_variant.id),
@@ -678,4 +677,7 @@ def test_get_default_images_payload(product_with_image):
     # then
     images_payload = payload["first_image"]["original"]
     for th_size in THUMBNAIL_SIZES:
-        assert images_payload[str(th_size)] == f"/thumbnail/{media_id}/{th_size}/"
+        assert (
+            images_payload[str(th_size)]
+            == f"http://mirumee.com/thumbnail/{media_id}/{th_size}/"
+        )

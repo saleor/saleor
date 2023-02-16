@@ -41,7 +41,6 @@ def create_allocations(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0081_auto_20200406_0456"),
         ("warehouse", "0006_auto_20200228_0519"),

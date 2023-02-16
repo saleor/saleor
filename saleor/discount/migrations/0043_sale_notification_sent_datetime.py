@@ -5,7 +5,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0042_migrate_orderdiscount_id_to_uuid"),
     ]

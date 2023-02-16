@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tax", "0001_initial"),
         ("product", "0176_merge_20221007_1324"),

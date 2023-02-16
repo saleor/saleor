@@ -25,7 +25,6 @@ ALTER TABLE app_app_permissions
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0018_auto_20221122_1148"),
     ]

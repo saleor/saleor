@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0010_auto_20170919_0839")]
 
     replaces = [("userprofile", "0011_auto_20171110_0552")]

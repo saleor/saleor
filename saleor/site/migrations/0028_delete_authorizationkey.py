@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("site", "0027_sitesettings_automatically_confirm_all_new_orders"),
     ]

@@ -49,7 +49,6 @@ PLUGINS_QUERY = """
 
 
 def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settings):
-
     # Enable test plugin
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     response = staff_api_client_can_manage_plugins.post_graphql(PLUGINS_QUERY)
@@ -92,7 +91,6 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
 def test_query_plugin_configurations_for_channel_configurations(
     staff_api_client_can_manage_plugins, settings, channel_PLN
 ):
-
     # Enable test plugin
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
 
@@ -159,7 +157,6 @@ def test_query_plugins_hides_secret_fields(
     permission_manage_plugins,
     settings,
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
@@ -217,7 +214,6 @@ def test_query_plugins_hides_secret_fields_for_channel_configurations(
     settings,
     channel_PLN,
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.ChannelPluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(

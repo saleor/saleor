@@ -12,7 +12,6 @@ def assign_sort_order_to_product_images(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0061_product_taxes")]
 
     operations = [

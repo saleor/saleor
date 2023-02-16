@@ -1712,6 +1712,27 @@ enum WebhookEventTypeEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -1908,6 +1929,13 @@ enum WebhookEventTypeEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 
   """Authorize payment."""
   PAYMENT_AUTHORIZE
@@ -2292,6 +2320,27 @@ enum WebhookEventTypeAsyncEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -2488,6 +2537,13 @@ enum WebhookEventTypeAsyncEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 }
 
 """Represents app data."""
@@ -3008,6 +3064,9 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
   PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
@@ -3056,6 +3115,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
+  THUMBNAIL_CREATED
 }
 
 """Represents warehouse."""
@@ -4986,7 +5046,7 @@ type Product implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -6011,7 +6071,7 @@ type Category implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -6271,6 +6331,8 @@ type Image {
 
 """An enumeration."""
 enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
   WEBP
 }
 
@@ -6620,13 +6682,71 @@ type ProductImage {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 }
 
 """Represents a product media."""
-type ProductMedia implements Node {
+type ProductMedia implements Node & ObjectWithMetadata {
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   sortOrder: Int
   alt: String!
   type: ProductMediaType!
@@ -6644,8 +6764,15 @@ type ProductMedia implements Node {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
+
+  """
+  Product id the media refers to.
+  
+  Added in Saleor 3.12.
+  """
+  productId: ID
 }
 
 """An enumeration."""
@@ -7005,7 +7132,7 @@ type Collection implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -8818,7 +8945,7 @@ type User implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -10140,7 +10267,7 @@ type OrderLine implements Node & ObjectWithMetadata {
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Price of the single item in the order line."""
@@ -10228,9 +10355,9 @@ type OrderLine implements Node & ObjectWithMetadata {
 }
 
 """
-Positive Decimal scalar implementation.
+Nonnegative Decimal scalar implementation.
 
-Should be used in places where value must be positive.
+Should be used in places where value must be nonnegative (0 or greater).
 """
 scalar PositiveDecimal
 
@@ -16041,7 +16168,7 @@ type Mutation {
     newPassword: String!
 
     """Current user password."""
-    oldPassword: String!
+    oldPassword: String
   ): PasswordChange
 
   """
@@ -19181,8 +19308,22 @@ type ProductVariantBulkError {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """List of channel IDs which causes the error."""
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  stocks: [ID!]
+
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   channels: [ID!]
+
+  """List of channel listings IDs which causes the error."""
+  channelListings: [ID!]
 }
 
 """An enumeration."""
@@ -19421,14 +19562,70 @@ input ProductVariantBulkUpdateInput {
   """
   externalReference: String
 
-  """Stocks of a product available for sale."""
-  stocks: [StockInput!]
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stocks: ProductVariantStocksUpdateInput
 
-  """List of prices assigned to channels."""
-  channelListings: [ProductVariantChannelListingAddInput!]
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
   id: ID!
+}
+
+input ProductVariantStocksUpdateInput {
+  """List of warehouses to create stocks."""
+  create: [StockInput!]
+
+  """List of stocks to update."""
+  update: [StockUpdateInput!]
+
+  """List of stocks to remove."""
+  remove: [ID!]
+}
+
+input StockUpdateInput {
+  """Stock."""
+  stock: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingUpdateInput {
+  """List of channels to create variant channel listings."""
+  create: [ProductVariantChannelListingAddInput!]
+
+  """List of channel listings to update."""
+  update: [ChannelListingUpdateInput!]
+
+  """List of channel listings to remove."""
+  remove: [ID!]
+}
+
+input ChannelListingUpdateInput {
+  """ID of a channel listing."""
+  channelListing: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """The threshold for preorder variant in channel."""
+  preorderThreshold: Int
 }
 
 """
@@ -25908,6 +26105,72 @@ type ProductMetadataUpdated implements Event {
 }
 
 """
+Event sent when new product media is created.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is updated.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is deleted.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -27482,6 +27745,53 @@ type WarehouseMetadataUpdated implements Event {
 
   """The warehouse the event relates to."""
   warehouse: Warehouse
+}
+
+"""
+Event sent when thumbnail is created.
+
+Added in Saleor 3.12.
+"""
+type ThumbnailCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Thumbnail id.
+  
+  Added in Saleor 3.12.
+  """
+  id: ID
+
+  """
+  Thumbnail url.
+  
+  Added in Saleor 3.12.
+  """
+  url: String
+
+  """
+  Object the thumbnail refers to.
+  
+  Added in Saleor 3.12.
+  """
+  objectId: ID
+
+  """
+  Original media url.
+  
+  Added in Saleor 3.12.
+  """
+  mediaUrl: String
 }
 
 """

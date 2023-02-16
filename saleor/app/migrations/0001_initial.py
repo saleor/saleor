@@ -50,7 +50,6 @@ def convert_service_account_permissions_to_app_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

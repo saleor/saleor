@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("menu", "0009_remove_menu_json_content")]
 
     operations = [

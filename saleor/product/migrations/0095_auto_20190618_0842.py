@@ -32,7 +32,6 @@ def move_tax_rate_to_meta(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0094_auto_20190618_0430")]
 
     operations = [

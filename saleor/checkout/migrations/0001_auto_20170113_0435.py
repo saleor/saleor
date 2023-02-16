@@ -6,7 +6,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "fix_empty_data_in_lines")]
 
     replaces = [("cart", "0001_auto_20170113_0435")]

@@ -33,18 +33,58 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.12.0 [Unreleased]
 
 ### Breaking changes
+- `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
+    - `create` input - list of items that should be created
+    - `update` input - list of items that should be updated
+    - `remove` input - list of objects ID's that should be removed
+
+  If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
+    ```
+       {
+        "stocks/channelListings": [
+          {
+            ...
+          }
+        ]
+       }
+    ```
+    to:
+    ```
+       {
+        "stocks/channelListings": {
+          "create": [
+            {
+             ...
+            }
+          ]
+        }
+       }
+    ```
+
+
 
 ### GraphQL API
+- Add possibility  to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
 - Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
   - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
   - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
   - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
+- Add meta fields to `ProductMedia` model - #11894 by @zedzior
+- Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
+- Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
 
 
 ### Other changes
 
 - Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
 - Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
+- Add new asynchronous events related to media: #11918 by @zedzior
+  - `PRODUCT_MEDIA CREATED`
+  - `PRODUCT_MEDIA_UPDATED`
+  - `PRODUCT_MEDIA_DELETED`
+  - `THUMBNAIL_CREATED`
+- CORS is now handled in the ASGI layer - #11415 by @patrys
+- Added native support for gzip compression - #11833 by @patrys
 
 # 3.11.0
 

@@ -48,7 +48,6 @@ def create_variant_name_based_on_attributes(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0058_auto_20180329_0142")]
 
     operations = [

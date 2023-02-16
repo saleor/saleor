@@ -10,7 +10,6 @@ def add_default_tax_rate_instead_of_empty_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0078_auto_20181120_0437")]
 
     operations = [

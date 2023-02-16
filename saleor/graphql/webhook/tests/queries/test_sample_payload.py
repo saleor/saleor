@@ -41,7 +41,6 @@ def test_sample_payload_query_by_app(
     app_api_client,
     permission_manage_orders,
 ):
-
     mock_generate_sample_payload.return_value = {"mocked_response": ""}
     query = SAMPLE_PAYLOAD_QUERY
     variables = {"event_type": event_type.name}

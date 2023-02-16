@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0014_set_giftcardevent_order_values"),
     ]

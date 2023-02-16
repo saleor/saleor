@@ -49,7 +49,6 @@ def add_page_types_to_existing_pages(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0016_auto_20201112_0904"),
     ]

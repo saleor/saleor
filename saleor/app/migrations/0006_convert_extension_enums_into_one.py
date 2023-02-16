@@ -19,7 +19,6 @@ def migrate_enum_values_to_single_enum(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0005_appextension"),
     ]

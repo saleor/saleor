@@ -4,6 +4,7 @@ from typing import DefaultDict, Iterable, Optional, Tuple, cast
 from ...account.models import Address, CustomerEvent, User
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
+from ...thumbnail.utils import get_thumbnail_format
 from ..core.dataloaders import DataLoader
 
 
@@ -50,7 +51,7 @@ class ThumbnailByUserIdSizeAndFormatLoader(
             Tuple[int, int, Optional[str]], Optional[Thumbnail]
         ] = defaultdict()
         for thumbnail in thumbnails:
-            format = thumbnail.format.lower() if thumbnail.format else None
+            format = get_thumbnail_format(thumbnail.format)
             thumbnails_by_user_size_and_format_map[
                 (cast(int, thumbnail.user_id), thumbnail.size, format)
             ] = thumbnail

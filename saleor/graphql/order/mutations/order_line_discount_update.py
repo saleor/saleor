@@ -50,7 +50,6 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, order_line_id, input
     ):
-
         order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
         cls.validate(info, order, order_line, input)

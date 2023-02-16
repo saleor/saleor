@@ -559,7 +559,6 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
-
     return manager.list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
     )

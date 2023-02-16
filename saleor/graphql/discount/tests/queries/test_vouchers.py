@@ -139,7 +139,6 @@ def test_vouchers_query_with_channel_slug(
     channel_PLN,
     product,
 ):
-
     query = """
     query vouchers($channel: String) {
         vouchers(first: 2, channel: $channel) {
@@ -168,7 +167,6 @@ def test_vouchers_query(
     channel_PLN,
     product,
 ):
-
     query = """
     query vouchers {
         vouchers(first: 2) {

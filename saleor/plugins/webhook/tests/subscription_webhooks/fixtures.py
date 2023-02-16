@@ -325,6 +325,27 @@ def subscription_product_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_product_media_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_CREATED, WebhookEventAsyncType.PRODUCT_CREATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_updated_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_UPDATED, WebhookEventAsyncType.PRODUCT_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_product_media_deleted_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PRODUCT_MEDIA_DELETED, WebhookEventAsyncType.PRODUCT_DELETED
+    )
+
+
+@pytest.fixture
 def subscription_product_variant_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.PRODUCT_VARIANT_CREATED,
@@ -889,7 +910,6 @@ def subscription_checkout_filter_shipping_method_webhook_with_shipping_methods(
 def subscription_checkout_filter_shipping_method_webhook_with_available_ship_methods(
     subscription_webhook,
 ):
-
     return subscription_webhook(
         queries.CHECKOUT_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
@@ -923,4 +943,22 @@ def subscription_order_filter_shipping_methods_webhook_with_available_ship_metho
     return subscription_webhook(
         queries.ORDER_FILTER_SHIPPING_METHODS_AVAILABLE_SHIPPING_METHODS,
         WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS,
+    )
+
+
+@pytest.fixture
+def subscription_thumbnail_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.THUMBNAIL_CREATED,
+        WebhookEventAsyncType.THUMBNAIL_CREATED,
+    )
+
+
+@pytest.fixture
+def subscription_calculate_taxes_for_order(
+    subscription_webhook,
+):
+    return subscription_webhook(
+        queries.ORDER_CALCULATE_TAXES,
+        WebhookEventSyncType.ORDER_CALCULATE_TAXES,
     )

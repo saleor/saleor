@@ -117,6 +117,12 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: (
         "A product metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
     ),
+    WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: "A new product media is created."
+    + ADDED_IN_312,
+    WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: "A product media is updated."
+    + ADDED_IN_312,
+    WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: "A product media is deleted."
+    + ADDED_IN_312,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: "A new product variant is created.",
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: "A product variant is updated.",
     WebhookEventAsyncType.PRODUCT_VARIANT_DELETED: "A product variant is deleted.",
@@ -169,6 +175,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     ),
     WebhookEventAsyncType.ANY: "All the events.",
     WebhookEventAsyncType.OBSERVABILITY: "An observability event is created.",
+    WebhookEventAsyncType.THUMBNAIL_CREATED: "A thumbnail is created." + ADDED_IN_312,
     WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT: (
         "Fetch external shipping methods for checkout."
     ),

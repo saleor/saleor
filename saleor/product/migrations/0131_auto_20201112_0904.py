@@ -7,7 +7,6 @@ import saleor.core.utils.editorjs
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0130_migrate_from_draftjs_to_editorjs_format"),
     ]
