@@ -74,8 +74,16 @@ def cors_handler(application: ASGI3Application) -> ASGI3Application:
                     response_headers = [
                         (key, value)
                         for key, value in message["headers"]
-                        if key.lower() not in {b"access-control-allow-origin", b"vary"}
+                        if key.lower()
+                        not in {
+                            b"access-control-allow-credentials",
+                            b"access-control-allow-origin",
+                            b"vary",
+                        }
                     ]
+                    response_headers.append(
+                        (b"access-control-allow-credentials", b"true")
+                    )
                     vary_header = next(
                         (
                             value
