@@ -34,10 +34,8 @@ def handle_thumbnail(
     """
     # check formats
     format = format.lower() if format else None
-    if format and format != ThumbnailFormat.WEBP:
-        return HttpResponseNotFound(
-            f"Invalid format value. Available format: {ThumbnailFormat.WEBP}."
-        )
+    if format and format not in {ThumbnailFormat.AVIF, ThumbnailFormat.WEBP}:
+        return HttpResponseNotFound("Unsupported image format.")
 
     # try to find corresponding instance based on given instance_id
     try:

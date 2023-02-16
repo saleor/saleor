@@ -18,6 +18,7 @@ from ....product.models import (
     VariantMedia,
 )
 from ....thumbnail.models import Thumbnail
+from ....thumbnail.utils import get_thumbnail_format
 from ...core.dataloaders import DataLoader
 
 ProductIdAndChannelSlug = Tuple[int, str]
@@ -664,7 +665,7 @@ class BaseThumbnailBySizeAndFormatLoader(
             Tuple[int, int, Optional[str]], Thumbnail
         ] = defaultdict()
         for thumbnail in thumbnails:
-            format = thumbnail.format.lower() if thumbnail.format else None
+            format = get_thumbnail_format(thumbnail.format)
             thumbnails_by_instance_id_size_and_format_map[
                 (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
             ] = thumbnail
