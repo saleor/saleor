@@ -5,9 +5,9 @@ interactions:
       true, "itemCode": "123", "discounted": false, "description": "Test product",
       "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
-      "7537c2e1-57f9-4222-a08f-057f3fc2f705", "date": "2022-09-09", "customerCode":
+      "9d07cb7b-a4ef-4a89-b64f-c72b94e69c04", "date": "2023-02-16", "customerCode":
       0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
-      null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
+      "", "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
       "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
       "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
       "USD", "email": "user@email.com"}}'
@@ -21,9 +21,9 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '845'
+      - '843'
       User-Agent:
-      - python-requests/2.28.1
+      - python-requests/2.28.2
     method: POST
     uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
   response:
@@ -40,13 +40,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 09 Sep 2022 08:59:46 GMT
+      - Thu, 16 Feb 2023 12:53:48 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - 622c1559-4ab7-49fc-89ef-8f76f80cf0c1
+      - c672b840-55d0-49a9-bd0b-f7e56bf16bdc
       x-correlation-id:
-      - 622c1559-4ab7-49fc-89ef-8f76f80cf0c1
+      - c672b840-55d0-49a9-bd0b-f7e56bf16bdc
     status:
       code: 401
       message: Unauthorized

@@ -32,6 +32,10 @@ All notable, unreleased changes to this project will be documented in this file.
         }
        }
     ```
+- Change the discount rounding mode - #12041 by @IKarbowiak
+  - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount and total price of future checkouts and orders with a percentage discount applied.
+  The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
+  E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
 
 
 

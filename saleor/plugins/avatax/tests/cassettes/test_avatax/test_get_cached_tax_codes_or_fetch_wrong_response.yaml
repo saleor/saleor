@@ -11,7 +11,7 @@ interactions:
       Connection:
       - keep-alive
       User-Agent:
-      - python-requests/2.28.1
+      - python-requests/2.28.2
     method: GET
     uri: https://sandbox-rest.avatax.com/api/v2/definitions/taxcodes
   response:
@@ -28,13 +28,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 09 Sep 2022 08:59:48 GMT
+      - Thu, 16 Feb 2023 12:53:49 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - ee92e0c5-14f7-438f-8f8f-273ca6298cde
+      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
       x-correlation-id:
-      - ee92e0c5-14f7-438f-8f8f-273ca6298cde
+      - 7ca9a8dc-f173-4109-b246-b63c4436ec54
     status:
       code: 401
       message: Unauthorized
