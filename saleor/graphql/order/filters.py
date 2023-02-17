@@ -10,6 +10,7 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
+from ...payment import ChargeStatus
 from ...product.models import ProductVariant
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -27,7 +28,13 @@ from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusF
 
 def filter_payment_status(qs, _, value):
     if value:
-        qs = qs.filter(payments__charge_status__in=value)
+        if ChargeStatus.FULLY_REFUNDED in value:
+            qs = qs.filter(
+                Q(payments__is_active=True, payments__charge_status__in=value)
+                | Q(payments__charge_status=ChargeStatus.FULLY_REFUNDED)
+            )
+        else:
+            qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
     return qs
 
 
