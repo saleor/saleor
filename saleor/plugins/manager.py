@@ -56,6 +56,7 @@ if TYPE_CHECKING:
         InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
+        PaymentGatewayData,
         TokenConfig,
         TransactionActionData,
     )
@@ -940,6 +941,21 @@ class PluginsManager(PaymentInterface):
             "transaction_cancelation_requested",
             default_value,
             payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def payment_gateway_initialize_session(
+        self,
+        payment_gateways: Optional[list["PaymentGatewayData"]],
+        transaction_object: Union["Order", "Checkout"],
+        channel_slug: str,
+    ) -> list["PaymentGatewayData"]:
+        default_value = None
+        return self.__run_method_on_plugins(
+            "payment_gateway_initialize_session",
+            default_value,
+            payment_gateways,
+            transaction_object,
             channel_slug=channel_slug,
         )
 

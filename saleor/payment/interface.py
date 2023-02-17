@@ -51,6 +51,13 @@ class TransactionData:
 
 
 @dataclass
+class PaymentGatewayData:
+    app_identifier: str
+    data: Optional[Dict[Any, Any]] = None
+    error: Optional[str] = None
+
+
+@dataclass
 class PaymentMethodInfo:
     """Uniform way to represent payment method information."""
 
