@@ -128,6 +128,19 @@ class TransactionItem(ModelWithMetadata):
         on_delete=models.SET_NULL,
         related_name="+",
     )
+
+    # We store app and app_identifier, as the app field stores apps of
+    # all types (local, third-party), and the app_identifier field stores
+    # only third-party apps.
+    # In the case of re-installing the third-party app, we are able to match
+    # existing transactions with the re-installed app by using `app_identifier`.
+    app = models.ForeignKey(
+        "app.App",
+        related_name="+",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
     app_identifier = models.CharField(blank=True, null=True, max_length=256)
 
     class Meta:
@@ -173,6 +186,15 @@ class TransactionEvent(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         related_name="+",
+    )
+
+    # We store app and app_identifier, as the app field stores apps of
+    # all types (local, third-party), and the app_identifier field stores
+    # only third-party apps.
+    # In the case of re-installing the third-party app, we are able to match
+    # existing transactions with the re-installed app by using `app_identifier`.
+    app = models.ForeignKey(
+        "app.App", related_name="+", null=True, blank=True, on_delete=models.SET_NULL
     )
     app_identifier = models.CharField(blank=True, null=True, max_length=256)
 

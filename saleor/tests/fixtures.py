@@ -5502,6 +5502,7 @@ def transaction_item_generator():
             order_id=order_id,
             checkout_id=checkout_id,
             app_identifier=app.identifier if app else None,
+            app=app,
             user=user,
         )
         create_manual_adjustment_events(

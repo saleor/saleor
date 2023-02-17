@@ -897,10 +897,14 @@ class TransactionCreate(BaseMutation):
         transaction_input["psp_reference"] = transaction_input.get(
             "psp_reference", reference
         )
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
         return payment_models.TransactionItem.objects.create(
             **transaction_input,
             user=user if user and user.is_authenticated else None,
-            app_identifier=app.identifier if app else None,
+            app_identifier=app_identifier,
+            app=app,
         )
 
     @classmethod
@@ -913,13 +917,17 @@ class TransactionCreate(BaseMutation):
     ) -> payment_models.TransactionEvent:
         reference = transaction_event_input.pop("reference", None)
         psp_reference = transaction_event_input.get("psp_reference", reference)
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
         return transaction.events.create(
             status=transaction_event_input["status"],
             psp_reference=psp_reference,
             message=cls.create_event_message(transaction_event_input),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
-            app_identifier=app.identifier if app else None,
+            app_identifier=app_identifier,
+            app=app,
         )
 
     @classmethod
@@ -1399,6 +1407,10 @@ class TransactionEventReport(ModelMutation):
                 ]
             )
 
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
+
         transaction_event_data = {
             "psp_reference": psp_reference,
             "type": type,
@@ -1408,7 +1420,8 @@ class TransactionEventReport(ModelMutation):
             "external_url": external_url or "",
             "message": message or "",
             "transaction": transaction,
-            "app_identifier": app.identifier if app else None,
+            "app_identifier": app_identifier,
+            "app": app,
             "user": user,
             "include_in_calculations": True,
         }
