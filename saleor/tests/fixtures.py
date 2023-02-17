@@ -4034,6 +4034,7 @@ def order_with_lines(
         slug="test-product-9",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
