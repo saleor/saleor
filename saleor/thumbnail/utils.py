@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 import magic
@@ -7,7 +7,12 @@ from django.core.files.storage import default_storage
 from django.urls import reverse
 from PIL import Image
 
-from . import MIME_TYPE_TO_PIL_IDENTIFIER, THUMBNAIL_SIZES, ThumbnailFormat
+from . import (
+    DEFAULT_THUMBNAIL_SIZE,
+    MIME_TYPE_TO_PIL_IDENTIFIER,
+    THUMBNAIL_SIZES,
+    ThumbnailFormat,
+)
 
 if TYPE_CHECKING:
     from .models import Thumbnail
@@ -38,13 +43,16 @@ def prepare_image_proxy_url(
     return reverse("thumbnail", kwargs=kwargs)
 
 
-def get_thumbnail_size(size: Union[str, int]) -> int:
+def get_thumbnail_size(size: Optional[int]) -> int:
     """Return the closest size to the given one of the available sizes."""
-    size = int(size)
-    if size in THUMBNAIL_SIZES:
-        return size
+    if size is None:
+        requested_size = DEFAULT_THUMBNAIL_SIZE
+    else:
+        requested_size = size
+    if requested_size in THUMBNAIL_SIZES:
+        return requested_size
 
-    return min(THUMBNAIL_SIZES, key=lambda x: abs(x - size))
+    return min(THUMBNAIL_SIZES, key=lambda x: abs(x - requested_size))
 
 
 def get_thumbnail_format(format: Optional[str]) -> Optional[str]:

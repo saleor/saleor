@@ -900,7 +900,7 @@ def test_query_user_avatar_with_size_thumbnail_url_returned(
     )
 
 
-def test_query_user_avatar_only_format_provided_original_image_returned(
+def test_query_user_avatar_original_size_custom_format_provided_original_image_returned(
     staff_api_client, media_root, permission_manage_staff, site_settings
 ):
     # given
@@ -913,7 +913,7 @@ def test_query_user_avatar_only_format_provided_original_image_returned(
     format = ThumbnailFormatEnum.WEBP.name
 
     id = graphene.Node.to_global_id("User", user.pk)
-    variables = {"id": id, "format": format}
+    variables = {"id": id, "format": format, "size": 0}
 
     # when
     response = staff_api_client.post_graphql(
@@ -942,6 +942,8 @@ def test_query_user_avatar_no_size_value(
     id = graphene.Node.to_global_id("User", user.pk)
     variables = {"id": id}
 
+    user_uuid = graphene.Node.to_global_id("User", user.uuid)
+
     # when
     response = staff_api_client.post_graphql(
         USER_AVATAR_QUERY, variables, permissions=[permission_manage_staff]
@@ -952,7 +954,7 @@ def test_query_user_avatar_no_size_value(
     data = content["data"]["user"]
     assert (
         data["avatar"]["url"]
-        == f"http://{site_settings.site.domain}/media/user-avatars/{avatar_mock.name}"
+        == f"http://{site_settings.site.domain}/thumbnail/{user_uuid}/4096/"
     )
 
 
@@ -5897,7 +5899,7 @@ USER_AVATAR_UPDATE_MUTATION = """
     mutation userAvatarUpdate($image: Upload!) {
         userAvatarUpdate(image: $image) {
             user {
-                avatar {
+                avatar(size: 0) {
                     url
                 }
             }

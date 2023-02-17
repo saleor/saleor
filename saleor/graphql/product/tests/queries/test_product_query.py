@@ -1854,7 +1854,7 @@ def test_query_product_media_by_id_with_size_thumbnail_url_returned(
     )
 
 
-def test_query_product_media_by_id_only_format_provided_original_image_returned(
+def test_query_product_media_by_id_zero_size_custom_format_provided(
     user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
@@ -1868,6 +1868,7 @@ def test_query_product_media_by_id_only_format_provided_original_image_returned(
         "mediaId": media_id,
         "channel": channel_USD.slug,
         "format": format,
+        "size": 0,
     }
 
     response = user_api_client.post_graphql(query, variables)
@@ -1934,7 +1935,7 @@ def test_query_product_media_by_id_avif_format(
     )
 
 
-def test_query_product_media_by_id_no_size_value_original_image_returned(
+def test_query_product_media_by_id_zero_size_value_original_image_returned(
     user_api_client, product_with_image, channel_USD, site_settings
 ):
     query = QUERY_PRODUCT_MEDIA_BY_ID
@@ -1946,6 +1947,7 @@ def test_query_product_media_by_id_no_size_value_original_image_returned(
         "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
         "mediaId": media_id,
         "channel": channel_USD.slug,
+        "size": 0,
     }
 
     response = user_api_client.post_graphql(query, variables)
@@ -2011,7 +2013,7 @@ def test_query_product_media_for_federation(
           __typename
           ... on ProductMedia {
             id
-            url
+            url(size: 0)
           }
         }
       }

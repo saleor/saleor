@@ -1791,7 +1791,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         if not root.image:
             return
 
-        if not size:
+        if size == 0:
             return build_absolute_uri(root.image.url)
 
         format = get_thumbnail_format(format)
@@ -1851,7 +1851,7 @@ class ProductImage(graphene.ObjectType):
         if not root.image:
             return
 
-        if not size:
+        if size == 0:
             return build_absolute_uri(root.image.url)
 
         format = get_thumbnail_format(format)

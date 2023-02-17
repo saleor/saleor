@@ -37,7 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
   The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
   E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
 
-
+- Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
 
 ### GraphQL API
 - Add possibility  to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
