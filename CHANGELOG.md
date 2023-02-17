@@ -48,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add meta fields to `ProductMedia` model - #11894 by @zedzior
 - Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
 - Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
+- Introduce custom headers for webhook requests - #11978 by @zedzior
 
 
 ### Other changes

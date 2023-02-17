@@ -7,9 +7,20 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.error_codes import WebhookErrorCode
+from ....webhook.validators import (
+    HEADERS_LENGTH_LIMIT,
+    HEADERS_NUMBER_LIMIT,
+    custom_headers_validator,
+)
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
+from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
 from ...core.types import NonNullList, WebhookError
 from ...core.utils import raise_validation_error
@@ -51,8 +62,15 @@ class WebhookCreateInput(graphene.InputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        required=False,
+    )
+    custom_headers = JSONString(
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
+        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
         required=False,
     )
 
@@ -109,6 +127,16 @@ class WebhookCreate(ModelMutation):
                     code=subscription_query.error_code,
                 )
             instance.subscription_query = query
+
+        if headers := cleaned_data.get("custom_headers"):
+            try:
+                custom_headers_validator(headers)
+            except ValidationError as err:
+                raise_validation_error(
+                    field="customHeaders",
+                    message=err.message,
+                    code=WebhookErrorCode.INVALID_CUSTOM_HEADERS,
+                )
 
         cls._clean_webhook_events(cleaned_data, subscription_query)
 

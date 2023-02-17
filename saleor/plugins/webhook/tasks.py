@@ -300,7 +300,13 @@ def trigger_all_webhooks_sync(
 
 
 def send_webhook_using_http(
-    target_url, message, domain, signature, event_type, timeout=settings.WEBHOOK_TIMEOUT
+    target_url,
+    message,
+    domain,
+    signature,
+    event_type,
+    timeout=settings.WEBHOOK_TIMEOUT,
+    custom_headers: Optional[Dict[str, str]] = None,
 ) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
@@ -310,6 +316,7 @@ def send_webhook_using_http(
     :param signature: Webhook secret key checksum.
     :param event_type: Webhook event type.
     :param timeout: Request timeout.
+    :param custom_headers: Custom headers which will be added to request headers.
 
     :return: WebhookResponse object.
     """
@@ -324,6 +331,10 @@ def send_webhook_using_http(
         AppHeaders.SIGNATURE: signature,
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
+
+    if custom_headers:
+        headers.update(custom_headers)
+
     try:
         response = requests.post(
             target_url, data=message, headers=headers, timeout=timeout
@@ -357,7 +368,9 @@ def send_webhook_using_http(
     )
 
 
-def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type):
+def send_webhook_using_aws_sqs(
+    target_url, message, domain, signature, event_type, **kwargs
+):
     parts = urlparse(target_url)
     region = "us-east-1"
     hostname_parts = parts.hostname.split(".")
@@ -415,7 +428,7 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
 
 
 def send_webhook_using_google_cloud_pubsub(
-    target_url, message, domain, signature, event_type
+    target_url, message, domain, signature, event_type, **kwargs
 ):
     parts = urlparse(target_url)
     client = pubsub_v1.PublisherClient()
@@ -438,7 +451,12 @@ def send_webhook_using_google_cloud_pubsub(
 
 
 def send_webhook_using_scheme_method(
-    target_url, domain, secret, event_type, data
+    target_url,
+    domain,
+    secret,
+    event_type,
+    data,
+    custom_headers=None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
     message = data.encode("utf-8")
@@ -449,6 +467,7 @@ def send_webhook_using_scheme_method(
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
         WebhookSchemes.GOOGLE_CLOUD_PUBSUB: send_webhook_using_google_cloud_pubsub,
     }
+
     if send_method := scheme_matrix.get(parts.scheme.lower()):
         # try:
         return send_method(
@@ -457,6 +476,7 @@ def send_webhook_using_scheme_method(
             domain,
             signature,
             event_type,
+            custom_headers=custom_headers,
         )
     raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
@@ -500,6 +520,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 webhook.secret_key,
                 delivery.event_type,
                 data,
+                webhook.custom_headers,
             )
 
         attempt_update(attempt, response)
@@ -581,6 +602,7 @@ def send_webhook_request_sync(
                 signature,
                 delivery.event_type,
                 timeout=timeout,
+                custom_headers=webhook.custom_headers,
             )
             response_data = json.loads(response.content)
 

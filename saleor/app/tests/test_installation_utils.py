@@ -257,7 +257,7 @@ def test_install_app_extension_incorrect_url(
         install_app(app_installation, activate=True)
 
 
-def test_install_app_extension_ivalid_permission(
+def test_install_app_extension_invalid_permission(
     app_manifest, app_installation, monkeypatch
 ):
     # given
@@ -332,6 +332,8 @@ def test_install_app_with_webhook(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
     # given
+    custom_headers = {"X-Key": "Value"}
+    app_manifest_webhook["customHeaders"] = custom_headers
     app_manifest["webhooks"] = [app_manifest_webhook]
 
     mocked_get_response = Mock()
@@ -353,6 +355,7 @@ def test_install_app_with_webhook(
     assert webhook.subscription_query == app_manifest_webhook["query"]
     assert webhook.target_url == app_manifest_webhook["targetUrl"]
     assert webhook.is_active is True
+    assert webhook.custom_headers == custom_headers
 
 
 def test_install_app_webhook_incorrect_url(
@@ -407,6 +410,30 @@ def test_install_app_webhook_incorrect_query(
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
     assert "Subscription query is not valid:" in error_dict["webhooks"][0].message
+
+
+def test_install_app_webhook_incorrect_custom_headers(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    custom_headers = {"InvalidKey": "Value"}
+    app_manifest_webhook["customHeaders"] = custom_headers
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == (
+        'Invalid custom headers: "InvalidKey" '
+        'does not match allowed key pattern: "X-*" or "Authorization*".'
+    )
 
 
 def test_install_app_with_webhook_mismatch_between_query_and_event_fields(
