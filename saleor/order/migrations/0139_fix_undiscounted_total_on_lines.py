@@ -34,7 +34,7 @@ RAW_SQL = """
         NOT ("order_orderline"."undiscounted_total_price_net_amount" =
                 ("order_orderline"."undiscounted_unit_price_net_amount" *
                 "order_orderline"."quantity")))
-    RETURNING "order_orderline"."id";
+    RETURNING "order_orderline"."order_id";
 """  # noqa: E501
 
 
