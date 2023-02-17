@@ -1,4 +1,3 @@
-import re
 from typing import Dict
 
 from django.core.exceptions import ValidationError
@@ -26,14 +25,13 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
         )
 
     for key, value in headers.items():
-        try:
-            header = ": ".join([key, value])
-        except TypeError:
-            raise ValidationError(f'Header with "{key}" can\'t be converted to string.')
+        if not isinstance(key, str) or not isinstance(value, str):
+            raise ValidationError("Header must consist of strings.")
 
-        if len(header) > HEADERS_LENGTH_LIMIT:
+        if len(key) + len(value) + 2 > HEADERS_LENGTH_LIMIT:
             raise ValidationError(
-                f'"{header}" exceeds the limit of characters: {HEADERS_LENGTH_LIMIT}.'
+                f'Header with key: "{key}" exceeds the limit of characters:'
+                f" {HEADERS_LENGTH_LIMIT}."
             )
 
         if not set(key).issubset(set(KEY_CHARS_ALLOWED)):
@@ -42,7 +40,7 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
         if not set(value).issubset(set(VALUE_CHARS_ALLOWED)):
             raise ValidationError(f'Value "{value}" contains invalid character.')
 
-        if not re.search(r"(^X-\S*)|(^Authorization\S*)", key):
+        if not (key.startswith("X-") or key.startswith("Authorization")):
             raise ValidationError(
                 f'"{key}" does not match allowed key pattern: '
                 f'"X-*" or "Authorization*".'

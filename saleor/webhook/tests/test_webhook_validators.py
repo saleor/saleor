@@ -28,7 +28,7 @@ from ..validators import (
         ),
         (
             {"X-Key": 123},
-            'Header with "X-Key" can\'t be converted to string.',
+            "Header must consist of strings.",
         ),
         (
             {"Ke:y": "Value"},
@@ -40,7 +40,7 @@ from ..validators import (
         ),
         (
             {"Key": "X" * HEADERS_LENGTH_LIMIT},
-            f'"Key: {"X"*HEADERS_LENGTH_LIMIT}" exceeds the limit of characters: '
+            f'Header with key: "Key" exceeds the limit of characters: '
             f"{HEADERS_LENGTH_LIMIT}.",
         ),
         (
