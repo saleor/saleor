@@ -58,7 +58,10 @@ def test_webhook_create_by_app(app_api_client, permission_manage_orders):
     new_webhook = Webhook.objects.get()
     assert new_webhook.name == "New integration"
     assert new_webhook.target_url == "https://www.example.com"
-    assert new_webhook.custom_headers == custom_headers
+    assert new_webhook.custom_headers == {
+        "x-key": "Value",
+        "authorization-key": "Value",
+    }
     events = new_webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.ORDER_CREATED.value
@@ -315,7 +318,7 @@ def test_webhook_create_invalid_custom_headers(app_api_client):
     error = data["errors"][0]
     assert error["field"] == "customHeaders"
     assert (
-        error["message"] == '"DisallowedKey" does not match allowed key pattern: '
+        error["message"] == '"disallowedkey" does not match allowed key pattern: '
         '"X-*" or "Authorization*".'
     )
     assert error["code"] == WebhookErrorCode.INVALID_CUSTOM_HEADERS.name

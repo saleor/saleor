@@ -5,8 +5,7 @@ from django.core.exceptions import ValidationError
 HEADERS_NUMBER_LIMIT = 5
 HEADERS_LENGTH_LIMIT = 998
 KEY_CHARS_ALLOWED = (
-    "!\"#$%&'()*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+    "!\"#$%&'()*+,-./0123456789;<=>?@[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 )
 VALUE_CHARS_ALLOWED = (
     "!\"#$%&'()*+,-./0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -24,6 +23,7 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
             f"Number of headers exceeds the limit: {HEADERS_NUMBER_LIMIT}."
         )
 
+    headers = {k.lower(): v for k, v in headers.items()}
     for key, value in headers.items():
         if not isinstance(key, str) or not isinstance(value, str):
             raise ValidationError("Header must consist of strings.")
@@ -40,7 +40,7 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
         if not set(value).issubset(set(VALUE_CHARS_ALLOWED)):
             raise ValidationError(f'Value "{value}" contains invalid character.')
 
-        if not (key.startswith("X-") or key.startswith("Authorization")):
+        if not (key.startswith("x-") or key.startswith("authorization")):
             raise ValidationError(
                 f'"{key}" does not match allowed key pattern: '
                 f'"X-*" or "Authorization*".'

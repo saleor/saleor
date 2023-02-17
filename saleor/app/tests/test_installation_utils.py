@@ -355,7 +355,7 @@ def test_install_app_with_webhook(
     assert webhook.subscription_query == app_manifest_webhook["query"]
     assert webhook.target_url == app_manifest_webhook["targetUrl"]
     assert webhook.is_active is True
-    assert webhook.custom_headers == custom_headers
+    assert webhook.custom_headers == {"x-key": "Value"}
 
 
 def test_install_app_webhook_incorrect_url(
@@ -431,7 +431,7 @@ def test_install_app_webhook_incorrect_custom_headers(
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
     assert error_dict["webhooks"][0].message == (
-        'Invalid custom headers: "InvalidKey" '
+        'Invalid custom headers: "invalidkey" '
         'does not match allowed key pattern: "X-*" or "Authorization*".'
     )
 
