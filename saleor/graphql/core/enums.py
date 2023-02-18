@@ -168,6 +168,15 @@ TransactionEventReportErrorCode = graphene.Enum.from_enum(
     payment_error_codes.TransactionEventReportErrorCode
 )
 
+PaymentGatewayConfigErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayConfigErrorCode
+)
+
+PaymentGatewayInitializeErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayInitializeErrorCode
+)
+
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
