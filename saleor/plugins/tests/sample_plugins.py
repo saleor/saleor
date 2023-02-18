@@ -312,6 +312,7 @@ class PluginSample(BasePlugin):
 
     def payment_gateway_initialize_session(
         self,
+        amount: Decimal,
         payment_gateways: Optional[list["PaymentGatewayData"]],
         transaction_object: Union["Order", "Checkout"],
         previous_value: Any,

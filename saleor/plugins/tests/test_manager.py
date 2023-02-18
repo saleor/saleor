@@ -1186,6 +1186,7 @@ def test_manager_payment_gateway_initialize_session(channel_USD, checkout):
 
     # when
     response = manager.payment_gateway_initialize_session(
+        amount=Decimal("10.00"),
         payment_gateways=None,
         transaction_object=checkout,
         channel_slug=channel_USD.slug,

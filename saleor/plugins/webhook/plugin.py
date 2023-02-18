@@ -1,5 +1,6 @@
 import json
 import logging
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
@@ -1428,7 +1429,7 @@ class WebhookPlugin(BasePlugin):
         webhook: "Webhook",
         gateways: dict[str, "PaymentGatewayData"],
         response_gateway: dict[str, "PaymentGatewayData"],
-        decoded_payload: list[dict[str, Any]],
+        amount: Decimal,
         transaction_object: Union["Order", "Checkout"],
         request: SaleorContext,
     ):
@@ -1444,21 +1445,20 @@ class WebhookPlugin(BasePlugin):
                 webhook.app.identifier,
             )
             return
+
         gateway = gateways.get(webhook.app.identifier)
         gateway_data = None
         if gateway:
             gateway_data = gateway.data
 
-        payload = decoded_payload[0].copy()
-        payload["data"] = gateway_data
-        payload_with_data = json.dumps([payload])
-        subscribable_object = (
-            transaction_object,
-            gateway_data,
+        transaction_object_id = graphene.Node.to_global_id(
+            transaction_object.__class__.__name__, transaction_object.pk
         )
+        payload = {"id": transaction_object_id, "data": gateway_data, "amount": amount}
+        subscribable_object = (transaction_object, gateway_data, amount)
         response_data = trigger_webhook_sync(
             event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
-            data=payload_with_data,
+            data=json.dumps(payload, cls=CustomJsonEncoder),
             webhook=webhook,
             subscribable_object=subscribable_object,
             request=request,
@@ -1474,6 +1474,7 @@ class WebhookPlugin(BasePlugin):
 
     def payment_gateway_initialize_session(
         self,
+        amount: Decimal,
         payment_gateways: Optional[list[PaymentGatewayData]],
         transaction_object: Union["Order", "Checkout"],
         previous_value,
@@ -1492,11 +1493,6 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
             apps_identifier=apps_identifiers,
         )
-        if isinstance(transaction_object, Checkout):
-            payload = generate_checkout_payload(transaction_object, self.requestor)
-        else:
-            payload = generate_order_payload(transaction_object, self.requestor)
-        decoded_payload = json.loads(payload)
 
         request = initialize_request(self.requestor, sync_event=True)
 
@@ -1505,7 +1501,7 @@ class WebhookPlugin(BasePlugin):
                 webhook=webhook,
                 gateways=gateways,
                 response_gateway=response_gateway,
-                decoded_payload=decoded_payload,
+                amount=amount,
                 transaction_object=transaction_object,
                 request=request,
             )

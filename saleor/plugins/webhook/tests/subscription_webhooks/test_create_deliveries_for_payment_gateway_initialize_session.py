@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 
 import graphene
 
@@ -39,10 +40,11 @@ def test_payment_gateway_initialize_session_checkout_with_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = {"some": "json data"}
+    amount = Decimal("10")
 
     # when
     delivery = create_deliveries_for_subscriptions(
-        event_type, (checkout, payload_data), [webhook]
+        event_type, (checkout, payload_data, amount), [webhook]
     )[0]
 
     # then
@@ -69,10 +71,10 @@ def test_payment_gateway_initialize_session_checkout_without_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = None
-
+    amount = Decimal("10")
     # when
     delivery = create_deliveries_for_subscriptions(
-        event_type, (checkout, payload_data), [webhook]
+        event_type, (checkout, payload_data, amount), [webhook]
     )[0]
 
     # then
@@ -98,10 +100,11 @@ def test_payment_gateway_initialize_session_order_with_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = {"some": "json data"}
+    amount = Decimal("10")
 
     # when
     delivery = create_deliveries_for_subscriptions(
-        event_type, (order, payload_data), [webhook]
+        event_type, (order, payload_data, amount), [webhook]
     )[0]
 
     # then
@@ -128,10 +131,11 @@ def test_payment_gateway_initialize_session_order_without_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
     payload_data = None
+    amount = Decimal("10")
 
     # when
     delivery = create_deliveries_for_subscriptions(
-        event_type, (order, payload_data), [webhook]
+        event_type, (order, payload_data, amount), [webhook]
     )[0]
 
     # then

@@ -946,6 +946,7 @@ class PluginsManager(PaymentInterface):
 
     def payment_gateway_initialize_session(
         self,
+        amount: Decimal,
         payment_gateways: Optional[list["PaymentGatewayData"]],
         transaction_object: Union["Order", "Checkout"],
         channel_slug: str,
@@ -953,6 +954,7 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "payment_gateway_initialize_session",
+            amount,
             default_value,
             payment_gateways,
             transaction_object,

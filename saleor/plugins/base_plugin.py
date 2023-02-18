@@ -774,7 +774,12 @@ class BasePlugin:
     transaction_refund_requested: Callable[["TransactionActionData", None], None]
 
     payment_gateway_initialize_session: Callable[
-        [Optional[list["PaymentGatewayData"]], Union["Checkout", "Order"], None],
+        [
+            Decimal,
+            Optional[list["PaymentGatewayData"]],
+            Union["Checkout", "Order"],
+            None,
+        ],
         list["PaymentGatewayData"],
     ]
 

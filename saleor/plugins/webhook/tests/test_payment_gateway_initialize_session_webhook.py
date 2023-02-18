@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from unittest import mock
 
 import graphene
@@ -9,13 +10,13 @@ from ....core.models import EventDelivery, EventPayload
 from ....payment.interface import PaymentGatewayData
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
-from ....webhook.payloads import generate_checkout_payload, generate_order_payload
 
 PAYMENT_GATEWAY_INITIALIZE_SESSION = """
 subscription {
   event{
     ...on PaymentGatewayInitializeSession{
       data
+      amount
       sourceObject{
         __typename
         ... on Checkout{
@@ -31,41 +32,42 @@ subscription {
 """
 
 
-def _assert_for_checkout_with_subscription(
-    checkout, request_data, webhook, expected_data, response, mock_request
+def _assert_with_subscription(
+    transaction_object,
+    request_data,
+    amount,
+    webhook,
+    expected_data,
+    response,
+    mock_request,
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    object_id = graphene.Node.to_global_id(
+        transaction_object.__class__.__name__, transaction_object.pk
+    )
     payload = {
         "data": request_data,
-        "sourceObject": {"__typename": "Checkout", "id": checkout_id},
+        "amount": amount,
+        "sourceObject": {
+            "__typename": transaction_object.__class__.__name__,
+            "id": object_id,
+        },
     }
     _assert_fields(payload, webhook, expected_data, response, mock_request)
 
 
-def _assert_for_order_with_subscription(
-    order, request_data, webhook, expected_data, response, mock_request
+def _assert_with_static_payload(
+    transaction_object,
+    request_data,
+    amount,
+    webhook,
+    expected_data,
+    response,
+    mock_request,
 ):
-    order_id = graphene.Node.to_global_id("Order", order.pk)
-    payload = {
-        "data": request_data,
-        "sourceObject": {"__typename": "Order", "id": order_id},
-    }
-    _assert_fields(payload, webhook, expected_data, response, mock_request)
-
-
-def _assert_for_checkout_with_static_payload(
-    checkout, request_data, webhook, expected_data, response, mock_request
-):
-    payload = json.loads(generate_checkout_payload(checkout, None))
-    payload[0]["data"] = request_data
-    _assert_fields(payload, webhook, expected_data, response, mock_request)
-
-
-def _assert_for_order_with_static_payload(
-    order, request_data, webhook, expected_data, response, mock_request
-):
-    payload = json.loads(generate_order_payload(order, None))
-    payload[0]["data"] = request_data
+    transaction_object_id = graphene.Node.to_global_id(
+        transaction_object.__class__.__name__, transaction_object.pk
+    )
+    payload = {"id": transaction_object_id, "data": request_data, "amount": str(amount)}
     _assert_fields(payload, webhook, expected_data, response, mock_request)
 
 
@@ -105,15 +107,18 @@ def test_gateway_initialize_checkout_without_request_data_and_static_payload(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
-
+    amount = Decimal("10.00")
     # when
     response = plugin.payment_gateway_initialize_session(
-        payment_gateways=None, transaction_object=checkout, previous_value=None
+        amount=amount,
+        payment_gateways=None,
+        transaction_object=checkout,
+        previous_value=None,
     )
 
     # then
-    _assert_for_checkout_with_static_payload(
-        checkout, None, webhook, expected_data, response, mock_request
+    _assert_with_static_payload(
+        checkout, None, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -137,9 +142,11 @@ def test_gateway_initialize_checkout_with_request_data_and_static_payload(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
 
     # when
     response = plugin.payment_gateway_initialize_session(
+        amount=amount,
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
@@ -148,8 +155,8 @@ def test_gateway_initialize_checkout_with_request_data_and_static_payload(
     )
 
     # then
-    _assert_for_checkout_with_static_payload(
-        checkout, data, webhook, expected_data, response, mock_request
+    _assert_with_static_payload(
+        checkout, data, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -173,15 +180,19 @@ def test_gateway_initialize_checkout_without_request_data(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
 
     # when
     response = plugin.payment_gateway_initialize_session(
-        payment_gateways=None, transaction_object=checkout, previous_value=None
+        amount=amount,
+        payment_gateways=None,
+        transaction_object=checkout,
+        previous_value=None,
     )
 
     # then
-    _assert_for_checkout_with_subscription(
-        checkout, None, webhook, expected_data, response, mock_request
+    _assert_with_subscription(
+        checkout, None, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -206,9 +217,11 @@ def test_gateway_initialize_checkout_with_request_data(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
 
     # when
     response = plugin.payment_gateway_initialize_session(
+        amount=amount,
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
@@ -217,8 +230,8 @@ def test_gateway_initialize_checkout_with_request_data(
     )
 
     # then
-    _assert_for_checkout_with_subscription(
-        checkout, data, webhook, expected_data, response, mock_request
+    _assert_with_subscription(
+        checkout, data, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -237,10 +250,14 @@ def test_gateway_initialize_session_skips_app_without_identifier(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
 
     # when
     response = plugin.payment_gateway_initialize_session(
-        payment_gateways=None, transaction_object=checkout, previous_value=None
+        amount=amount,
+        payment_gateways=None,
+        transaction_object=checkout,
+        previous_value=None,
     )
 
     # then
@@ -269,15 +286,18 @@ def test_gateway_initialize_order_without_request_data_static_payload(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
-
+    amount = Decimal("10.00")
     # when
     response = plugin.payment_gateway_initialize_session(
-        payment_gateways=None, transaction_object=order, previous_value=None
+        amount=amount,
+        payment_gateways=None,
+        transaction_object=order,
+        previous_value=None,
     )
 
     # then
-    _assert_for_order_with_static_payload(
-        order, None, webhook, expected_data, response, mock_request
+    _assert_with_static_payload(
+        order, None, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -301,9 +321,11 @@ def test_gateway_initialize_order_with_request_data_static_payload(
     )
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
+    amount = Decimal("10.00")
 
     # when
     response = plugin.payment_gateway_initialize_session(
+        amount=amount,
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
@@ -312,8 +334,8 @@ def test_gateway_initialize_order_with_request_data_static_payload(
     )
 
     # then
-    _assert_for_order_with_static_payload(
-        order, data, webhook, expected_data, response, mock_request
+    _assert_with_static_payload(
+        order, data, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -338,14 +360,19 @@ def test_gateway_initialize_session_for_order_without_request_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
 
+    amount = Decimal("10.00")
+
     # when
     response = plugin.payment_gateway_initialize_session(
-        payment_gateways=None, transaction_object=order, previous_value=None
+        amount=amount,
+        payment_gateways=None,
+        transaction_object=order,
+        previous_value=None,
     )
 
     # then
-    _assert_for_order_with_subscription(
-        order, None, webhook, expected_data, response, mock_request
+    _assert_with_subscription(
+        order, None, amount, webhook, expected_data, response, mock_request
     )
 
 
@@ -371,8 +398,11 @@ def test_gateway_initialize_session_for_order_with_request_data(
     event_type = WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION
     webhook.events.create(event_type=event_type)
 
+    amount = Decimal("10.00")
+
     # when
     response = plugin.payment_gateway_initialize_session(
+        amount=amount,
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
@@ -381,6 +411,6 @@ def test_gateway_initialize_session_for_order_with_request_data(
     )
 
     # then
-    _assert_for_order_with_subscription(
-        order, data, webhook, expected_data, response, mock_request
+    _assert_with_subscription(
+        order, data, amount, webhook, expected_data, response, mock_request
     )

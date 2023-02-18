@@ -1566,10 +1566,16 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
 
 
 class PaymentGatewayInitializeSession(SubscriptionObjectType):
-    source_object = graphene.Field(OrderOrCheckout, description="Checkout or order")
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
     data = graphene.Field(
         JSON,
         description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    amount = graphene.Field(
+        PositiveDecimal,
+        description="Amount requested for initializing the payment gateway.",
     )
 
     class Meta:
@@ -1585,14 +1591,20 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
     @staticmethod
     def resolve_source_object(root, _info: ResolveInfo):
         _, objects = root
-        source_object, _ = objects
+        source_object, _, _ = objects
         return source_object
 
     @staticmethod
     def resolve_data(root, _info: ResolveInfo):
         _, objects = root
-        _, data = objects
+        _, data, _ = objects
         return data
+
+    @staticmethod
+    def resolve_amount(root, _info: ResolveInfo):
+        _, objects = root
+        _, _, amount = objects
+        return amount
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):

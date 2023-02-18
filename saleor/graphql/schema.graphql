@@ -27811,10 +27811,13 @@ type PaymentGatewayInitializeSession implements Event {
   recipient: App
 
   """Checkout or order"""
-  sourceObject: OrderOrCheckout
+  sourceObject: OrderOrCheckout!
 
   """Payment gateway data in JSON format, recieved from storefront."""
   data: JSON
+
+  """Amount requested for initializing the payment gateway."""
+  amount: PositiveDecimal
 }
 
 union OrderOrCheckout = Checkout | Order
