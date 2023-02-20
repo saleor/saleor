@@ -13,11 +13,10 @@ from prices import Money
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..discount import DiscountInfo, VoucherType
-from .fetch import CheckoutInfo, CheckoutLineInfo
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
-    from .fetch import ShippingMethodInfo
+    from .fetch import CheckoutInfo, CheckoutLineInfo, ShippingMethodInfo
 
 
 def calculate_base_line_unit_price(

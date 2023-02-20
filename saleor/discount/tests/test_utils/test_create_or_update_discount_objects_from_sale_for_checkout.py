@@ -7,10 +7,6 @@ from ... import DiscountType, DiscountValueType
 from ...utils import create_or_update_discount_objects_from_sale_for_checkout
 from . import generate_discount_info
 
-# TODO Owczar: tests:
-# - Replace sale % -> Fixed
-# - Replace sale Fixed -> %
-
 
 def test_create_or_update_discount_objects_from_sale_for_checkout_without_sale(
     checkout_lines_info, checkout_info

@@ -24,8 +24,8 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
 from ..channel.types import Channel
+from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
