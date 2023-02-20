@@ -85,6 +85,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                     if voucher_info
                 }
                 for checkout, lines in zip(checkouts, checkout_lines):
+                    # TODO: Add channel
                     lines_info_map[checkout.pk].extend(
                         [
                             CheckoutLineInfo(
@@ -96,7 +97,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
+                                discounts=[],
                                 tax_class=tax_class_map[line.variant_id],
+                                channel=None,
                             )
                             for line in lines
                         ]

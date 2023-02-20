@@ -320,7 +320,9 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
             collections=[],
             product=line.variant.product,
             variant=line.variant,
+            discounts=list(line.checkout_line_discounts.all()),
             product_type=line.variant.product.product_type,
+            channel=channel_USD,
         )
         for line in checkout_with_items.lines.all()
     ]
@@ -468,6 +470,8 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
             line=line,
             channel_listing=line.variant.channel_listings.first(),
             collections=[],
+            channel=channel_USD,
+            discounts=list(line.checkout_line_discounts.all()),
             product=line.variant.product,
             variant=line.variant,
             product_type=line.variant.product.product_type,

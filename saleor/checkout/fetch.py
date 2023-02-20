@@ -14,8 +14,10 @@ from typing import (
 )
 from uuid import UUID
 
+from django.utils.functional import SimpleLazyObject
+
 from ..core.utils.lazyobjects import lazy_no_retry
-from ..discount import DiscountInfo, VoucherType
+from ..discount import DiscountInfo, DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..discount.utils import fetch_active_discounts
 from ..shipping.interface import ShippingMethodData
@@ -31,7 +33,7 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount.interface import VoucherInfo
-    from ..discount.models import Voucher
+    from ..discount.models import CheckoutLineDiscount, Voucher
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -53,8 +55,16 @@ class CheckoutLineInfo:
     product: "Product"
     product_type: "ProductType"
     collections: List["Collection"]
+    discounts: List["CheckoutLineDiscount"]
+    channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
+
+    def get_sale_discount(self) -> Optional["CheckoutLineDiscount"]:
+        for discount in self.discounts:
+            if discount.type == DiscountType.SALE:
+                return discount
+        return None
 
 
 @dataclass
@@ -243,6 +253,7 @@ def fetch_checkout_lines(
     lines_info = []
     unavailable_variant_pks = []
     product_channel_listing_mapping: Dict[int, Optional["ProductChannelListing"]] = {}
+    channel = checkout.channel
 
     for line in lines:
         variant = line.variant
@@ -268,6 +279,8 @@ def fetch_checkout_lines(
                         product_type=product_type,
                         collections=collections,
                         tax_class=product.tax_class or product_type.tax_class,
+                        discounts=[],
+                        channel=channel,
                     )
                 )
             continue
@@ -281,13 +294,14 @@ def fetch_checkout_lines(
                 product_type=product_type,
                 collections=collections,
                 tax_class=product.tax_class or product_type.tax_class,
+                discounts=[],
+                channel=channel,
             )
         )
 
     if checkout.voucher_code and lines_info:
-        channel_slug = checkout.channel.slug
         voucher = get_voucher_for_checkout(
-            checkout, channel_slug=channel_slug, with_prefetch=True
+            checkout, channel_slug=channel.slug, with_prefetch=True
         )
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any

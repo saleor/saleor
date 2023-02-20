@@ -5579,6 +5579,13 @@ def sale_translation_fr(sale):
 
 
 @pytest.fixture
+def new_sale_translation_fr(new_sale):
+    return SaleTranslation.objects.create(
+        language_code="fr", sale=new_sale, name="French sale name"
+    )
+
+
+@pytest.fixture
 def menu_item_translation_fr(menu_item):
     return MenuItemTranslation.objects.create(
         language_code="fr", menu_item=menu_item, name="French manu item name"

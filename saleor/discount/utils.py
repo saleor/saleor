@@ -24,12 +24,14 @@ from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
-from . import DiscountInfo
+from . import DiscountInfo, DiscountType
 from .models import (
+    CheckoutLineDiscount,
     DiscountValueType,
     NotApplicable,
     Sale,
     SaleChannelListing,
+    SaleTranslation,
     VoucherCustomer,
 )
 
@@ -420,6 +422,7 @@ def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
     return catalogue_info
 
 
+# TODO: COnsider typing refactor:
 def apply_discount_to_value(
     value: Decimal,
     value_type: str,
@@ -442,7 +445,7 @@ def apply_discount_to_value(
 
 def fetch_active_sales_for_checkout(
     lines_info: Iterable["CheckoutLineInfo"],
-) -> List[DiscountInfo]:
+) -> Iterable[DiscountInfo]:
     """Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
 
     Return list of `DiscountInfo` applicable for list of `CheckoutLineInfo`.
@@ -481,3 +484,139 @@ def fetch_active_sales_for_checkout(
             )
 
     return discounts_info
+
+
+def is_sale_applicable_on_line(
+    line_info: "CheckoutLineInfo",
+    discount: DiscountInfo,
+) -> bool:
+    collection_ids = set(collection.id for collection in line_info.collections)
+    is_product_on_sale = line_info.product.id in discount.product_ids
+    is_variant_on_sale = line_info.variant.id in discount.variants_ids
+    is_category_on_sale = line_info.product.category_id in discount.category_ids
+    is_collection_on_sale = bool(collection_ids.intersection(discount.collection_ids))
+    return (
+        is_product_on_sale
+        or is_variant_on_sale
+        or is_category_on_sale
+        or is_collection_on_sale
+    )
+
+
+def _get_best_sale_for_line(
+    line_info: "CheckoutLineInfo",
+    sales_info: Iterable[DiscountInfo],
+    base_line_total_price: Money,
+) -> Optional[Tuple[Sale, SaleChannelListing, Money]]:
+    current_best_price = base_line_total_price
+    current_best_sale = None
+    channel_listing_for_best_sale = None
+    for sale_info in sales_info:
+        if is_sale_applicable_on_line(line_info, sale_info):
+            sale = sale_info.sale
+            channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
+            if not channel_listing:
+                continue
+            temp_price = apply_discount_to_value(
+                channel_listing.discount_value,
+                sale.type,
+                channel_listing.currency,
+                base_line_total_price,
+            )
+            if temp_price < current_best_price:
+                current_best_sale = sale
+                channel_listing_for_best_sale = channel_listing
+                current_best_price = temp_price
+    if current_best_sale:
+        channel_listing_for_best_sale = cast(
+            SaleChannelListing, channel_listing_for_best_sale
+        )
+        return current_best_sale, channel_listing_for_best_sale, current_best_price
+    return None
+
+
+def create_or_update_discount_objects_from_sale_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+    sales_info: Iterable[DiscountInfo],
+):
+    line_discounts_to_create = []
+    line_discounts_to_update = []
+    updated_fields = []
+    for line_info in lines_info:
+        line = line_info.line
+        quantity = line.quantity
+        base_unit_price = line_info.variant.get_base_price(
+            line_info.channel_listing, line.price_override
+        )
+        base_total_price = base_unit_price * quantity
+        sale_data = _get_best_sale_for_line(line_info, sales_info, base_total_price)
+        if sale_data:
+            sale, sale_channel_listing, best_price = sale_data
+
+            # Calculate discount amount. Discount amount couldn't be more the line price
+            discount_amount = min(base_total_price - best_price, base_total_price)
+
+            # Fetch Sale translation
+            translation_language_code = checkout_info.checkout.language_code
+            sale_translation = SaleTranslation.objects.filter(
+                sale_id=sale.pk, language_code=translation_language_code
+            ).first()
+            translated_name = None
+            if sale_translation:
+                translated_name = sale_translation.name
+            discount_to_update = line_info.get_sale_discount()
+            if not discount_to_update:
+                line_discount = CheckoutLineDiscount(
+                    line=line,
+                    type=DiscountType.SALE,
+                    value_type=sale.type,
+                    value=sale_channel_listing.discount_value,
+                    amount_value=discount_amount.amount,
+                    currency=line.currency,
+                    name=sale.name,
+                    translated_name=translated_name,
+                    reason=None,
+                    sale=sale,
+                )
+                line_discounts_to_create.append(line_discount)
+                line_info.discounts.append(line_discount)
+            else:
+                if discount_to_update.value_type != sale.type:
+                    discount_to_update.value_type = sale.type
+                    updated_fields.append("value_type")
+                if discount_to_update.value != sale_channel_listing.discount_value:
+                    discount_to_update.value = sale_channel_listing.discount_value
+                    updated_fields.append("value")
+                if discount_to_update.amount_value != discount_amount.amount:
+                    discount_to_update.amount_value = discount_amount.amount
+                    updated_fields.append("amount_value")
+                if discount_to_update.name != sale.name:
+                    discount_to_update.name = sale.name
+                    updated_fields.append("name")
+                if discount_to_update.translated_name != translated_name:
+                    discount_to_update.translated_name = translated_name
+                    updated_fields.append("translated_name")
+                if discount_to_update.sale != sale:
+                    discount_to_update.sale = sale
+                    updated_fields.append("sale")
+
+                line_discounts_to_update.append(discount_to_update)
+
+    if line_discounts_to_create:
+        CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
+    if line_discounts_to_update and updated_fields:
+        CheckoutLineDiscount.objects.bulk_update(
+            line_discounts_to_update, updated_fields
+        )
+
+
+def generate_discount_objects_from_sale_for_checkout(
+    checkout_info: "CheckoutInfo",
+    lines_info: Iterable["CheckoutLineInfo"],
+):
+    # TODO: Add tests for that base prices are set correctly.
+    sales_info = fetch_active_sales_for_checkout(lines_info)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines_info, sales_info
+    )
