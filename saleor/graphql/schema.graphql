@@ -13752,7 +13752,7 @@ type Mutation {
     """
     amount: PositiveDecimal
 
-    """The ID of the checkout."""
+    """The ID of the checkout or order."""
     id: ID!
 
     """List of payment gateways to initialize."""

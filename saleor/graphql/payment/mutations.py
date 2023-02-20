@@ -1507,7 +1507,7 @@ class PaymentGatewayInitialize(BaseMutation):
 
     class Arguments:
         id = graphene.ID(
-            description="The ID of the checkout.",
+            description="The ID of the checkout or order.",
             required=True,
         )
         amount = graphene.Argument(
@@ -1518,7 +1518,6 @@ class PaymentGatewayInitialize(BaseMutation):
                 "transactions that are already processed will be send."
             ),
         )
-        # FIXME: Change to null possible
         payment_gateways = graphene.List(
             graphene.NonNull(PaymentGatewayToInitialize),
             description="List of payment gateways to initialize.",
