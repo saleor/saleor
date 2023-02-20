@@ -24,10 +24,14 @@ from ..validators import (
         ),
         (
             {"Key": "Value"},
-            '"key" does not match allowed key pattern: "X-*" or "Authorization*".',
+            '"Key" does not match allowed key pattern: "X-*" or "Authorization*".',
         ),
         (
             {"X-Key": 123},
+            "Header must consist of strings.",
+        ),
+        (
+            {123: "value"},
             "Header must consist of strings.",
         ),
         (
@@ -40,16 +44,16 @@ from ..validators import (
         ),
         (
             {"Key": "X" * HEADERS_LENGTH_LIMIT},
-            f'Header with key: "key" exceeds the limit of characters: '
+            f'Header with key: "Key" exceeds the limit of characters: '
             f"{HEADERS_LENGTH_LIMIT}.",
         ),
         (
             {"ABCX-Key": "Value"},
-            '"abcx-key" does not match allowed key pattern: "X-*" or "Authorization*".',
+            '"ABCX-Key" does not match allowed key pattern: "X-*" or "Authorization*".',
         ),
         (
             {"ABCAuthorization-Key": "Value"},
-            '"abcauthorization-key" does not match allowed key pattern:'
+            '"ABCAuthorization-Key" does not match allowed key pattern:'
             ' "X-*" or "Authorization*".',
         ),
     ],
