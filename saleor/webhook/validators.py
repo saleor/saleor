@@ -40,10 +40,12 @@ def custom_headers_validator(headers: Dict[str, str]) -> Dict[str, str]:
         if not set(value).issubset(set(VALUE_CHARS_ALLOWED)):
             raise ValidationError(f'Value "{value}" contains invalid character.')
 
-        if not (key.startswith("X-") or key.startswith("Authorization")):
+        if not (
+            key.lower().startswith("x-") or key.lower().startswith("authorization")
+        ):
             raise ValidationError(
                 f'"{key}" does not match allowed key pattern: '
                 f'"X-*" or "Authorization*".'
             )
 
-    return headers
+    return {k.lower(): v for k, v in headers.items()}

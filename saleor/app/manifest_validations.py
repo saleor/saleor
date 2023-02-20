@@ -247,7 +247,7 @@ def clean_webhooks(manifest_data, errors):
 
         if custom_headers := webhook.get("customHeaders"):
             try:
-                custom_headers_validator(custom_headers)
+                webhook["customHeaders"] = custom_headers_validator(custom_headers)
             except ValidationError as err:
                 errors["webhooks"].append(
                     ValidationError(

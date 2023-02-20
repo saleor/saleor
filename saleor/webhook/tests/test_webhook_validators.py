@@ -31,8 +31,12 @@ from ..validators import (
             "Header must consist of strings.",
         ),
         (
-            {"Ke:y": "Value"},
-            'Key "Ke:y" contains invalid character.',
+            {123: "value"},
+            "Header must consist of strings.",
+        ),
+        (
+            {"ke:y": "Value"},
+            'Key "ke:y" contains invalid character.',
         ),
         (
             {"Key": "Val:ue"},
@@ -58,3 +62,10 @@ def test_webhook_validator(headers, err_msg):
     with pytest.raises(ValidationError) as err:
         custom_headers_validator(headers)
     assert err.value.message == err_msg
+
+
+@pytest.mark.parametrize(
+    "header", ["X-Key", "x-keY", "AuthoriZAtionKey", "authorization"]
+)
+def test_webhook_header_name_case_insensitive(header):
+    assert {header.lower(): "Value"} == custom_headers_validator({header: "Value"})

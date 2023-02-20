@@ -51,7 +51,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
     # given
     query = WEBHOOK_UPDATE
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
-    custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    custom_headers = {"x-key": "Value", "authorization-key": "Value"}
     variables = {
         "id": webhook_id,
         "input": {
@@ -72,7 +72,7 @@ def test_webhook_update_by_staff(staff_api_client, webhook, permission_manage_ap
 
     # then
     assert webhook.is_active is False
-    assert webhook.custom_headers == custom_headers
+    assert webhook.custom_headers == {"x-key": "Value", "authorization-key": "Value"}
     events = webhook.events.all()
     assert len(events) == 1
     assert events[0].event_type == WebhookEventTypeAsyncEnum.CUSTOMER_CREATED.value

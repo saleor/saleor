@@ -130,7 +130,7 @@ class WebhookCreate(ModelMutation):
 
         if headers := cleaned_data.get("custom_headers"):
             try:
-                custom_headers_validator(headers)
+                cleaned_data["custom_headers"] = custom_headers_validator(headers)
             except ValidationError as err:
                 raise_validation_error(
                     field="customHeaders",
