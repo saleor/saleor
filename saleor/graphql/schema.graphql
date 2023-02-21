@@ -22273,8 +22273,8 @@ enum OrderBulkCreateErrorCode {
 }
 
 input OrderBulkCreateInput {
-  """Unique identifier of the order."""
-  number: String
+  """Unique number of the order."""
+  number: Int
 
   """External ID of the order."""
   externalReference: String
@@ -22284,6 +22284,9 @@ input OrderBulkCreateInput {
 
   """The date, when the order was inserted to Saleor database."""
   createdAt: DateTime!
+
+  """Status of the order."""
+  status: String
 
   """Customer accociated with the order."""
   user: OrderBulkCreateUserInput!
@@ -22315,7 +22318,7 @@ input OrderBulkCreateInput {
   """
   Determines whether checkout prices should include taxes, when displayed in a storefront.
   """
-  displayGrossPrice: Boolean
+  displayGrossPrices: Boolean
 
   """Weight of the order."""
   weight: WeightScalar
@@ -22357,10 +22360,10 @@ input OrderBulkCreateNoteInput {
   date: DateTime
 
   """The user ID associated with the message."""
-  user: ID
+  userId: ID
 
   """The app ID associated with the message."""
-  app: ID
+  appId: ID
 }
 
 input OrderBulkCreateOrderLineInput {
@@ -22437,14 +22440,14 @@ input OrderBulkCreateDeliveryMethodInput {
   """The ID of the warehouse."""
   warehouseId: ID
 
+  """The name of the warehouse."""
+  warehouseName: String
+
   """The ID of the shipping method."""
   shippingMethodId: ID
 
   """The name of the shipping method."""
   shippingMethodName: String
-
-  """The name of the collection point."""
-  collectionPointName: String
 
   """The price of the shipping."""
   shippingPrice: TaxedMoneyInput

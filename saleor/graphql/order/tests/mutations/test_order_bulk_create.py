@@ -3,7 +3,6 @@ from datetime import datetime
 import graphene
 
 from .....order import OrderStatus
-from .....tests.utils import flush_post_commit_hooks
 from ....tests.utils import get_graphql_content
 
 ORDER_BULK_CREATE = """
@@ -107,8 +106,9 @@ def test_order_bulk_create(
     # when
     response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
     content = get_graphql_content(response)
-    flush_post_commit_hooks()
 
     # then
-    data = content["data"]["orderBulkCreate"]
-    assert not data["results"][0]["errors"]
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert data[0]["order"]["lines"]
+    assert not data[0]["errors"]
