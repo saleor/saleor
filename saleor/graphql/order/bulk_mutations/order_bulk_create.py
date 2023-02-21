@@ -1,13 +1,12 @@
 from dataclasses import dataclass
-from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....account.models import User
 from ....channel.models import Channel
-from ....order import OrderStatus
 from ....order.models import Order, OrderLine
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
@@ -29,113 +28,11 @@ from ..types import Order as OrderType
 
 
 @dataclass
-class OrderBulkErrorDataclass:
-    order: str
-    field: str
+class OrderBulkError:
     message: str
-
-
-@dataclass
-class TaxedMoneyDataclass:
-    # add slots to dataclasses
-    gross: Decimal
-    net: Decimal
-    currency: str
-
-
-@dataclass
-class NoteInputDataclass:
-    message: str
-    date: Optional[datetime]
-    user_id: Optional[str]
-    app_id: Optional[str]
-
-
-@dataclass
-class UserInputDataclass:
-    id: Optional[str]
-    email: Optional[str]
-    external_reference: Optional[str]
-
-
-@dataclass
-class DeliveryMethodInputDataclass:
-    warehouse_id: Optional[str]
-    warehouse_name: Optional[str]
-    shipping_method_id: Optional[str]
-    shipping_method_name: Optional[str]
-    shipping_price = Optional[TaxedMoneyDataclass]
-    shipping_tax_rate: Decimal
-    shipping_tax_class_id: Optional[str]
-    shipping_tax_class_name: Optional[str]
-    shipping_tax_class_metadata: Optional[List[Dict[str, str]]]
-    shipping_tax_class_private_metadata: Optional[List[Dict[str, str]]]
-
-
-@dataclass
-class OrderLineInputDataclass:
-    variant_id: Optional[str]
-    variant_sku: Optional[str]
-    variant_external_reference: Optional[str]
-    variant_name: Optional[str]
-    product_name: Optional[str]
-    translated_variant_name: Optional[str]
-    translated_product_name: Optional[str]
-    created_at: datetime
-    is_shipping_required: bool
-    is_gift_card: bool
-    quantity: int
-    quantity_fulfilled: int
-    total_price: TaxedMoneyDataclass
-    undiscounted_total_price: TaxedMoneyDataclass
-    tax_rate: Decimal
-    tax_class_id: Optional[str]
-    tax_class_name: Optional[str]
-    tax_class_metadata = Optional[List[Dict[str, str]]]
-    tax_class_private_metadata = Optional[List[Dict[str, str]]]
-
-
-@dataclass
-class AddressInputDataclass:
-    first_name: Optional[str]
-    last_name: Optional[str]
-    company_name: Optional[str]
-    street_address_1: Optional[str]
-    street_address_2: Optional[str]
-    city: Optional[str]
-    city_area: Optional[str]
-    postal_code: Optional[str]
-    country: Optional[str]
-    country_area: Optional[str]
-    phone: Optional[str]
-
-
-@dataclass
-class OrderInputDataclass:
-    number: Optional[str]
-    external_reference: Optional[str]
-    channel: str
-    created_at: datetime
-    status: OrderStatus
-    user: UserInputDataclass
-    tracking_client_id: Optional[str]
-    billing_address = AddressInputDataclass
-    shipping_address = Optional[AddressInputDataclass]
-    delivery_method: DeliveryMethodInputDataclass
-    metadata = Optional[List[Dict[str, str]]]
-    private_metadata = Optional[List[Dict[str, str]]]
-    customer_note: Optional[str]
-    notes = Optional[List[NoteInputDataclass]]
-    language_code: Optional[str]
-    display_gross_prices: Optional[bool]
-    redirect_url: Optional[str]
-    lines = List[OrderLineInputDataclass]
-    promo_codes: Optional[str]
-    # TODO weight = WeightScalar(description="Weight of the order.")
-    # TODO discounts = NonNullList(OrderDiscountCommonInput, description="List of dis")
-    # TODO invoices = [OrderBulkCreateInvoiceInput!]
-    # TODO transactions: [TransactionCreateInput!]!
-    # TODO fulfillments: [OrderBulkCreateFulfillmentInput!]
+    code: Optional[str] = None
+    order_line_id: Optional[str] = None
+    order_id: Optional[str] = None
 
 
 class TaxedMoneyInput(graphene.InputObjectType):
@@ -337,39 +234,87 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def get_instance(cls, input: Dict[str, Any], model, key_map: Dict[str, str]):
-        """Resolve instance based on data, model and `key_map` argument provided.
+        """Resolve instance based on input data, model and `key_map` argument provided.
 
         `input`: data from input
         `model`: database model associated with searched instance
         `key_map`: mapping between keys from input and keys from database
+
+        Return model instance and or rise error.
         """
         # TODO replace model with query set if additional filters needed
         if sum((input.get(key) is not None for key in key_map.keys())) > 1:
-            # TODO error
-            return
+            args = {", ".join((k for k in key_map.keys()))}
+            raise ValidationError(
+                f"Only one of [{args}] arguments can be provided "
+                f"to resolve {model.__name__} instance."
+            )
+
+        if all((input.get(key) is None for key in key_map.keys())):
+            args = {", ".join((k for k in key_map.keys()))}
+            raise ValidationError(
+                f"One of [{args}] arguments must be provided "
+                f"to resolve {model.__name__} instance."
+            )
 
         for data_key, db_key in key_map.items():
             if input.get(data_key) and isinstance(input.get(data_key), str):
                 if db_key == "id":
                     id = from_global_id_or_none(input.get(data_key), model.__name__)
                     if not id:
-                        # TODO error
-                        break
+                        raise ValidationError(
+                            f"Can't resolve global id: {input.get(data_key)}"
+                        )
                     else:
                         input[data_key] = id
 
                 return model.objects.filter(**{db_key: input.get(data_key)}).first()
 
-        # TODO error if data.get(data_key) didn't return any not None
-        # TODO error if there is no instance
-        return
+        raise ValidationError(f"Can't return {model.__name__} instance.")
+
+    @classmethod
+    def get_instance_and_errors(
+        cls,
+        input: Dict[str, Any],
+        model,
+        key_map: Dict[str, str],
+        errors: List[OrderBulkError],
+    ):
+        """Resolve instance based on input data, model and `key_map` argument provided.
+
+        `input`: data from input
+        `model`: database model associated with searched instance
+        `key_map`: mapping between keys from input and keys from database
+        `errors`: error list to be updated if an error occur
+
+        Return model instance and error list.
+        """
+        instance = None
+        try:
+            instance = cls.get_instance(input, model, key_map)
+        except ValidationError as err:
+            errors.append(OrderBulkError(message=err.message))
+        return instance, errors
+
+    @classmethod
+    def add_info_to_error_classes(
+        cls, errors: List[OrderBulkError], args: Dict[str, Any]
+    ):
+        """Update all error objects with common argument values."""
+        for error in errors:
+            for arg, value in args.items():
+                setattr(error, arg, value)
+        return errors
 
     @classmethod
     def create_single_order_line(
         cls, order_line_input: Dict[str, Any], order: Order
-    ) -> OrderLine:
-        variant: ProductVariant = cls.get_instance(
+    ) -> Tuple[Optional[OrderLine], List[OrderBulkError]]:
+        errors: List[OrderBulkError] = []
+
+        variant, errors = cls.get_instance_and_errors(
             input=order_line_input,
+            errors=errors,
             model=ProductVariant,
             key_map={
                 "variant_id": "id",
@@ -377,12 +322,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "variant_sku": "sku",
             },
         )
+
         # TODO handle tax class metadata
-        line_tax_class = cls.get_instance(
+        line_tax_class, errors = cls.get_instance_and_errors(
             input=order_line_input,
+            errors=errors,
             model=TaxClass,
             key_map={"tax_class_id": "id", "tax_class_name": "name"},
         )
+
+        if not all([variant, line_tax_class]):
+            cls.add_info_to_error_classes(errors, {"order_id": order.id})
+            return None, errors
 
         order_line_currency = order_line_input["total_price"]["currency"]
         order_line_gross_amount = order_line_input["total_price"]["gross"]
@@ -390,7 +341,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_line_quantity = order_line_input["quantity"]
 
         # TODO take into account quantity / fulfilled
-        # move ot calculations / utils
+        # TODO move to calculations / utils
         order_line_unit_price_net_amount = order_line_net_amount / order_line_quantity
         order_line_unit_price_gross_amount = (
             order_line_gross_amount / order_line_quantity
@@ -418,14 +369,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             # TODO handle taxes
         )
         order_line.save()
-        return order_line
+        return order_line, errors
 
     @classmethod
     def create_single_order(
-        cls, order_input, order: Order, order_lines: List[OrderLine]
-    ) -> Order:
-        user = cls.get_instance(
+        cls, order_input, order: Order, order_lines: List[Optional[OrderLine]]
+    ) -> Tuple[Optional[Order], List[OrderBulkError]]:
+        errors: List[OrderBulkError] = []
+        user, errors = cls.get_instance_and_errors(
             input=order_input["user"],
+            errors=errors,
             model=User,
             key_map={
                 "id": "id",
@@ -433,26 +386,33 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "external_reference": "external_reference",
             },
         )
+
         # TODO check if zones etc needed
-        warehouse = cls.get_instance(
+        warehouse, errors = cls.get_instance_and_errors(
             input=order_input["delivery_method"],
+            errors=errors,
             model=Warehouse,
             key_map={"warehouse_id": "id", "warehouse_name": "name"},
         )
+
         # TODO check if zones etc needed
-        shipping_method = cls.get_instance(
+        shipping_method, errors = cls.get_instance_and_errors(
             input=order_input["delivery_method"],
+            errors=errors,
             model=ShippingMethod,
             key_map={"shipping_method_id": "id", "shipping_method_name": "name"},
         )
+
         # TODO handle tax class metadata
         # TODO check if zones etc needed
-        shipping_tax_class = cls.get_instance(
+        shipping_tax_class, errors = cls.get_instance_and_errors(
             input=order_input["delivery_method"],
+            errors=errors,
             model=TaxClass,
             key_map={"shipping_tax_class_id": "id", "shipping_tax_class_name": "name"},
         )
 
+        billing_address, shipping_address = None, None
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
@@ -473,6 +433,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 print(e)
                 pass
 
+        if not all(
+            [user, warehouse, shipping_method, shipping_tax_class, billing_address]
+        ):
+            cls.add_info_to_error_classes(errors, {"order_id": order.id})
+            return None, errors
+
         channel = Channel.objects.get(slug=order_input["channel"])
         shipping_price_gross_amount = (
             ShippingMethodChannelListing.objects.values_list("price_amount", flat=True)
@@ -481,11 +447,23 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
         # TODO calculate totals
         order_gross_total_amount = Decimal(
-            sum((line.total_price_gross_amount for line in order_lines))
+            sum(
+                (
+                    line.total_price_gross_amount
+                    for line in order_lines
+                    if line is not None
+                )
+            )
         )
         order_undiscounted_total_gross_amount = Decimal(order_gross_total_amount)
         order_net_total_amount = Decimal(
-            sum((line.total_price_net_amount for line in order_lines))
+            sum(
+                (
+                    line.total_price_net_amount
+                    for line in order_lines
+                    if line is not None
+                )
+            )
         )
         order_undiscounted_total_net_amount = Decimal(order_net_total_amount)
         # TODO handle taxes
@@ -525,7 +503,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO weight
 
         order.save()
-        return order
+        return order, errors
 
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
@@ -534,17 +512,29 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO consider error policy
         # TODO save orders
         # TODO post save actions
+
         orders_input = data["orders"]
-        orders = []
+        orders_with_errors: List[Tuple[Optional[Order], List[OrderBulkError]]] = []
         for order_input in orders_input:
             order_lines_input = order_input["lines"]
             order = Order()
-            order_lines = []
+            order_lines_with_errors: List[
+                Tuple[Optional[OrderLine], List[OrderBulkError]]
+            ] = []
             for order_line_input in order_lines_input:
-                order_lines.append(
+                order_lines_with_errors.append(
                     cls.create_single_order_line(order_line_input, order)
                 )
-            orders.append(cls.create_single_order(order_input, order, order_lines))
+            orders_with_errors.append(
+                cls.create_single_order(
+                    order_input,
+                    order,
+                    [order_line[0] for order_line in order_lines_with_errors],
+                )
+            )
 
-        results = [OrderBulkCreateResult(order=order, errors=[]) for order in orders]
-        return OrderBulkCreate(count=len(orders), results=results)
+        results = [
+            OrderBulkCreateResult(order=order[0], errors=[])
+            for order in orders_with_errors
+        ]
+        return OrderBulkCreate(count=len(orders_with_errors), results=results)
