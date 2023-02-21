@@ -51,19 +51,24 @@ def test_order_bulk_create(
     warehouse,
     variant,
     default_tax_class,
-    shipping_method,
+    shipping_method_channel_PLN,
 ):
     # given
     # orders_count = Order.objects.count()
+    shipping_method = shipping_method_channel_PLN
     user = {
         "id": graphene.Node.to_global_id("User", customer_user.id),
         "email": None,
     }
     delivery_method = {
         "warehouseId": graphene.Node.to_global_id("Warehouse", warehouse.id),
-        "shippingMethodId": graphene.Node.to_global_id("ShippingMethod", shipping_method.id),
-        "shippingTaxRate": 10,
-        "shippingTaxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
+        "shippingMethodId": graphene.Node.to_global_id(
+            "ShippingMethod", shipping_method.id
+        ),
+        "shippingTaxRate": 0.1,
+        "shippingTaxClassId": graphene.Node.to_global_id(
+            "TaxClass", default_tax_class.id
+        ),
     }
     line_1 = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
@@ -86,7 +91,6 @@ def test_order_bulk_create(
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
     }
     order_1 = {
-        "number": "order_1_id",
         "channel": channel_PLN.slug,
         "createdAt": datetime.today(),
         "status": OrderStatus.DRAFT,
@@ -94,7 +98,6 @@ def test_order_bulk_create(
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
         "languageCode": "PL",
-        "displayGrossPrices": False,
         "deliveryMethod": delivery_method,
         "lines": [line_1],
     }
