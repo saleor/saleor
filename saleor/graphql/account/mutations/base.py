@@ -1,7 +1,9 @@
 import graphene
+from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.utils import timezone
 
 from ....account import events as account_events
 from ....account import models
@@ -150,7 +152,6 @@ class RequestPasswordReset(BaseMutation):
 
     @classmethod
     def clean_user(cls, email, redirect_url):
-
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
@@ -169,6 +170,7 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
+
         if not user.is_active:
             raise ValidationError(
                 {
@@ -178,6 +180,19 @@ class RequestPasswordReset(BaseMutation):
                     )
                 }
             )
+
+        if password_reset_time := user.last_password_reset_request:
+            delta = timezone.now() - password_reset_time
+            if delta.total_seconds() < settings.RESET_PASSWORD_LOCK_TIME:
+                raise ValidationError(
+                    {
+                        "email": ValidationError(
+                            "Password reset already requested",
+                            code=AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED,
+                        )
+                    }
+                )
+
         return user
 
     @classmethod
@@ -203,6 +218,8 @@ class RequestPasswordReset(BaseMutation):
             channel_slug=channel_slug,
             staff=user.is_staff,
         )
+        user.last_password_reset_request = timezone.now()
+        user.save(update_fields=["last_password_reset_request"])
         return RequestPasswordReset()
 
 

@@ -4889,6 +4889,50 @@ def test_account_reset_password(
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
     )
+    user = user_api_client.user
+    user.refresh_from_db()
+    assert user.last_password_reset_request == timezone.now()
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_account_reset_password_on_cooldown(
+    mocked_notify, user_api_client, customer_user, channel_PLN
+):
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    user = user_api_client.user
+    user.last_password_reset_request = timezone.now()
+    user.save(update_fields=["last_password_reset_request"])
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["requestPasswordReset"]["errors"]
+    assert errors == [{"field": "email", "message": "Password reset already requested"}]
+    mocked_notify.assert_not_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_account_reset_password_after_cooldown(
+    user_api_client, customer_user, channel_PLN, settings
+):
+    redirect_url = "https://www.example.com"
+    variables = {
+        "email": customer_user.email,
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    user = user_api_client.user
+    user.last_password_reset_request = timezone.now() - datetime.timedelta(
+        seconds=settings.RESET_PASSWORD_LOCK_TIME
+    )
+    user.save(update_fields=["last_password_reset_request"])
+    response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["requestPasswordReset"]["errors"] == []
 
 
 @freeze_time("2018-05-31 12:00:01")
