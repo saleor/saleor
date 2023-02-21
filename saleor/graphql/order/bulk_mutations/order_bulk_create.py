@@ -1,31 +1,34 @@
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, List, Dict, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import graphene
+from django.core.exceptions import ValidationError
 
-from ...account.i18n import I18nMixin
-from ...core.utils import from_global_id_or_none
 from ....account.models import User
+from ....channel.models import Channel
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus
 from ....order.models import Order, OrderLine
 from ....permission.enums import OrderPermissions
+from ....product.models import ProductVariant
+from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
+from ....tax.models import TaxClass
+from ....warehouse.models import Warehouse
+from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...channel.utils import validate_channel
 from ...core import ResolveInfo
 from ...core.enums import ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
+from ...core.utils import from_global_id_or_none
 from ...meta.mutations import MetadataInput
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
-from ....product.models import ProductVariant
-from ....shipping.models import ShippingMethod
-from ....tax.models import TaxClass
-from ....warehouse.models import Warehouse
 
 
 @dataclass
@@ -127,7 +130,7 @@ class OrderInputDataclass:
     customer_note: Optional[str]
     notes = Optional[List[NoteInputDataclass]]
     language_code: Optional[str]
-    display_gross_prices: bool
+    display_gross_prices: Optional[bool]
     redirect_url: Optional[str]
     lines = List[OrderLineInputDataclass]
     promo_codes: Optional[str]
@@ -232,7 +235,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
 
 
 class OrderBulkCreateInput(graphene.InputObjectType):
-    number = graphene.String(description="Unique identifier of the order.")
+    number = graphene.Int(description="Unique number of the order.")
     external_reference = graphene.String(description="External ID of the order.")
     channel = graphene.String(
         required=True, description="Slug of the channel associated with the order."
@@ -267,7 +270,6 @@ class OrderBulkCreateInput(graphene.InputObjectType):
         LanguageCodeEnum, required=True, description="Order language code."
     )
     display_gross_prices = graphene.Boolean(
-        requierd=True,
         description="Determines whether checkout prices should include taxes, "
         "when displayed in a storefront.",
     )
@@ -286,6 +288,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     )
     promo_codes = NonNullList(graphene.String, description="List of promo codes.")
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
+    # TODO notes
     # TODO invoices = [OrderBulkCreateInvoiceInput!]
     # TODO transactions: [TransactionCreateInput!]!
     # TODO fulfillments: [OrderBulkCreateFulfillmentInput!]
@@ -378,7 +381,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             key_map={
                 "id": "id",
                 "email": "email",
-                "external_reference": "external_reference"
+                "external_reference": "external_reference",
             },
         )
         # TODO check if zones etc needed
@@ -415,9 +418,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=ProductVariant,
             key_map={
                 "variant_id": "id",
-                "variant_name": "name",
                 "variant_external_reference": "external_reference",
-                "variant_sku": "name",
+                "variant_sku": "sku",
             },
         )
         # TODO handle tax class metadata
@@ -433,6 +435,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
+            billing_address.save()
         except Exception as e:
             # TODO error
             print(e)
@@ -441,47 +444,89 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if shipping_address_input := order_input["shipping_address"]:
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
+                shipping_address.save()
             except:
                 # TODO error
                 pass
 
-
         order = Order()
+
+        order_line_currency = order_line_input["total_price"]["currency"]
+        order_line_gross_amount = order_line_input["total_price"]["gross"]
+        order_line_net_amount = order_line_input["total_price"]["net"]
+        order_line_quantity = order_line_input["quantity"]
+
+        # TODO take into account quantity fulfilled
+        order_line_unit_price_net_amount = order_line_net_amount / order_line_quantity
+        order_line_unit_price_gross_amount = (
+            order_line_gross_amount / order_line_quantity
+        )
 
         order_line = OrderLine(
             order=order,
             variant=variant,
-            product_name=variant.product.name,
+            product_name="placeholder",
             variant_name=variant.name,
             product_sku=variant.sku,
             product_variant_id=variant.get_global_id(),
             is_shipping_required=variant.is_shipping_required(),
             is_gift_card=variant.is_gift_card(),
-            quantity=order_line_input["quantity"],
-            quantityFulfilled=order_line_input["quantity_fulfilled"],
+            quantity=order_line_quantity,
+            quantity_fulfilled=order_line_input["quantity_fulfilled"],
+            currency=order_line_currency,
+            unit_price_net_amount=order_line_unit_price_net_amount,
+            unit_price_gross_amount=order_line_unit_price_gross_amount,
+            total_price_net_amount=order_line_net_amount,
+            total_price_gross_amount=order_line_gross_amount,
+            # TODO handle discounts
+            # TODO handle taxes
         )
+        order_line.save()
 
-        order.number = order_input.get("number")
+        channel = Channel.objects.get(slug=order_input["channel"])
+        shipping_price_gross_amount = (
+            ShippingMethodChannelListing.objects.values_list("price_amount", flat=True)
+            .filter(shipping_method_id=shipping_method.id, channel_id=channel.id)
+            .first()
+        )
+        # TODO calculate totals
+        order_gross_total_amount = Decimal(order_line_gross_amount)
+        order_undiscounted_total_gross_amount = Decimal(order_gross_total_amount)
+        order_net_total_amount = Decimal(order_line_net_amount)
+        order_undiscounted_total_net_amount = Decimal(order_net_total_amount)
+        # TODO handle taxes
+
         order.external_reference = order_input.get("external_reference")
-        order.channel = order_input.get("channel")
+        order.channel = channel
         order.created_at = order_input.get("created_at")
         order.status = order_input.get("status")
         order.user = user
         order.billing_address = billing_address if billing_address else None
-        order.shipping_address = shipping_address if shipping_method else None
+        order.shipping_address = shipping_address if shipping_address else None
         order.language_code = order_input.get("language_code")
-        order.display_gross_prices = order_input.get("display_gross_prices")
-        order
+        order.user_email = user.email
+        order.shipping_method = shipping_method
+        order.shipping_method_name = shipping_method.name
+        order.collection_point = warehouse
+        order.collection_point_name = warehouse.name
+        order.shipping_price_gross_amount = shipping_price_gross_amount
+        # TODO handle gross/net
+        order.shipping_price_net_amount = shipping_price_gross_amount
+        order.shipping_tax_class = shipping_tax_class
+        order.shipping_tax_name = shipping_tax_class.name
+        order.shipping_tax_rate = Decimal(order_input["delivery_method"]["shipping_tax_rate"])
+        order.total_gross_amount = order_gross_total_amount
+        order.undiscounted_total_gross_amount = order_undiscounted_total_gross_amount
+        order.total_net_amount = order_net_total_amount
+        order.undiscounted_total_net_amount = order_undiscounted_total_net_amount
+        order.customer_note = order_input.get("customer_note", "")
+        order.redirect_url = order_input.get("redirect_url")
+        # TODO charged
+        # TODO authourized
+        # TODO voucher
+        # TODO gift cards
+        # TODO weight
 
         order.save()
 
-
-
         breakpoint()
-
-
-
-
-
-
-
