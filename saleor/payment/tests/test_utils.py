@@ -320,9 +320,11 @@ def test_parse_transaction_action_data_with_incorrect_result():
 def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     # given
     expected_psp_reference = "psp:122:222"
+    expected_amount = Decimal("10.00")
     response_data = {
         "pspReference": expected_psp_reference,
         "result": TransactionEventType.CHARGE_SUCCESS.upper(),
+        "amount": expected_amount
     }
 
     # when
@@ -337,7 +339,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     assert isinstance(parsed_data.event, TransactionRequestEventResponse)
     assert parsed_data.event.psp_reference == expected_psp_reference
     assert parsed_data.event.type == TransactionEventType.CHARGE_SUCCESS
-    assert parsed_data.event.amount is None
+    assert parsed_data.event.amount == expected_amount
     assert parsed_data.event.time == timezone.now()
     assert parsed_data.event.external_url == ""
     assert parsed_data.event.message == ""
