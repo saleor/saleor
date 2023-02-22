@@ -8,10 +8,12 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
 from ..payment.models import TransactionEvent, TransactionItem
-from . import TransactionEventType
 
 if TYPE_CHECKING:
     from ..app.models import App
+    from ..checkout.models import Checkout
+    from ..order.models import Order
+
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 
@@ -28,8 +30,8 @@ class TransactionActionData:
 @dataclass
 class TransactionRequestEventResponse:
     psp_reference: str
-    type: "TransactionEventType"
-    amount: Optional[Decimal] = None
+    type: str
+    amount: Decimal
     time: Optional[datetime] = None
     external_url: Optional[str] = ""
     message: Optional[str] = ""
@@ -55,6 +57,21 @@ class PaymentGatewayData:
     app_identifier: str
     data: Optional[Dict[Any, Any]] = None
     error: Optional[str] = None
+
+
+@dataclass
+class TransactionProcessActionData:
+    action_type: str
+    amount: Decimal
+    currency: str
+
+
+@dataclass
+class TransactionSessionData:
+    transaction: "TransactionItem"
+    source_object: Union["Checkout", "Order"]
+    action: TransactionProcessActionData
+    payment_gateway: PaymentGatewayData
 
 
 @dataclass

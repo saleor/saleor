@@ -59,6 +59,7 @@ if TYPE_CHECKING:
         PaymentGatewayData,
         TokenConfig,
         TransactionActionData,
+        TransactionSessionData,
     )
     from ..payment.models import TransactionItem
     from ..product.models import (
@@ -948,16 +949,28 @@ class PluginsManager(PaymentInterface):
         self,
         amount: Decimal,
         payment_gateways: Optional[list["PaymentGatewayData"]],
-        transaction_object: Union["Order", "Checkout"],
+        source_object: Union["Order", "Checkout"],
     ) -> list["PaymentGatewayData"]:
         default_value = None
         return self.__run_method_on_plugins(
             "payment_gateway_initialize_session",
-            amount,
             default_value,
+            amount,
             payment_gateways,
-            transaction_object,
-            channel_slug=transaction_object.channel.slug,
+            source_object,
+            channel_slug=source_object.channel.slug,
+        )
+
+    def transaction_initialize_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> list["PaymentGatewayData"]:
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_initialize_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
         )
 
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):

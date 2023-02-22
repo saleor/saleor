@@ -34,3 +34,16 @@ class MarkAsPaidStrategy:
         (TRANSACTION_FLOW, "Use transaction"),
         (PAYMENT_FLOW, "Use payment"),
     ]
+
+
+class TransactionFlowStrategy:
+    """Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+    """
+
+    AUTHORIZATION = "authorization"
+    CHARGE = "charge"
+
+    CHOICES = [(AUTHORIZATION, "Authorize"), (CHARGE, "Charge")]

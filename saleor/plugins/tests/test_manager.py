@@ -7,12 +7,18 @@ import pytest
 from django.http import HttpResponseNotFound, JsonResponse
 from prices import Money, TaxedMoney
 
+from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
 from ...discount.utils import fetch_catalogue_info
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
-from ...payment.interface import PaymentGateway
+from ...payment.interface import (
+    PaymentGateway,
+    PaymentGatewayData,
+    TransactionProcessActionData,
+    TransactionSessionData,
+)
 from ...product.models import Product
 from ..base_plugin import ExternalAccessTokens
 from ..manager import PluginsManager, get_plugins_manager
@@ -1188,9 +1194,50 @@ def test_manager_payment_gateway_initialize_session(channel_USD, checkout):
     response = manager.payment_gateway_initialize_session(
         amount=Decimal("10.00"),
         payment_gateways=None,
-        transaction_object=checkout,
+        source_object=checkout,
     )
 
     # then
     assert isinstance(response, list)
     assert len(response) == 1
+
+
+def test_manager_transaction_initialize_session(
+    channel_USD, checkout, webhook_app, transaction_item_generator
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        app=webhook_app,
+        psp_reference=None,
+        name=None,
+        message=None,
+    )
+    action_type = TransactionFlowStrategy.CHARGE
+
+    transaction_session_data = TransactionSessionData(
+        transaction=transaction,
+        source_object=checkout,
+        action=TransactionProcessActionData(
+            amount=Decimal("10"),
+            currency=transaction.currency,
+            action_type=action_type,
+        ),
+        payment_gateway=PaymentGatewayData(
+            app_identifier=webhook_app.identifier, data=None, error=None
+        ),
+    )
+    # when
+    response = manager.transaction_initialize_session(
+        transaction_session_data=transaction_session_data
+    )
+
+    # then
+    assert isinstance(response, PaymentGatewayData)

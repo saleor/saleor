@@ -20,7 +20,7 @@ from prices import Money, TaxedMoney
 from ...account.models import User
 from ...core.taxes import TaxData, TaxLineData, TaxType
 from ...order.interface import OrderTaxedPricesData
-from ...payment.interface import PaymentGatewayData
+from ...payment.interface import PaymentGatewayData, TransactionSessionData
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 
 if TYPE_CHECKING:
@@ -314,10 +314,17 @@ class PluginSample(BasePlugin):
         self,
         amount: Decimal,
         payment_gateways: Optional[list["PaymentGatewayData"]],
-        transaction_object: Union["Order", "Checkout"],
+        source_object: Union["Order", "Checkout"],
         previous_value: Any,
     ):
         return [PaymentGatewayData(app_identifier="123", data={"some": "json-data"})]
+
+    def transaction_initialize_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+        previous_value: Any,
+    ):
+        return PaymentGatewayData(app_identifier="123", data=None, error="Some error")
 
 
 class ChannelPluginSample(PluginSample):

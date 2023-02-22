@@ -522,6 +522,7 @@ class WebhookEventSyncType:
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
     PAYMENT_GATEWAY_INITIALIZE_SESSION = "payment_gateway_initialize_session"
+    TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
 
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
@@ -540,6 +541,7 @@ class WebhookEventSyncType:
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
         PAYMENT_GATEWAY_INITIALIZE_SESSION: "Initialize payment gateway session",
+        TRANSACTION_INITIALIZE_SESSION: "Initialize transaction session",
     }
 
     CHOICES = [
@@ -570,6 +572,10 @@ class WebhookEventSyncType:
         (
             PAYMENT_GATEWAY_INITIALIZE_SESSION,
             DISPLAY_LABELS[PAYMENT_GATEWAY_INITIALIZE_SESSION],
+        ),
+        (
+            TRANSACTION_INITIALIZE_SESSION,
+            DISPLAY_LABELS[TRANSACTION_INITIALIZE_SESSION],
         ),
     ]
 
@@ -602,4 +608,5 @@ class WebhookEventSyncType:
         ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
         PAYMENT_GATEWAY_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
     }

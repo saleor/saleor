@@ -11,7 +11,7 @@ from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
-from ...payment.interface import TransactionActionData
+from ...payment.interface import TransactionActionData, TransactionSessionData
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -24,6 +24,7 @@ from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_32,
@@ -1607,6 +1608,78 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
         return amount
 
 
+class TransactionProcessAction(SubscriptionObjectType, AbstractType):
+    amount = PositiveDecimal(
+        description="Transaction amount to process.", required=True
+    )
+    currency = graphene.String(description="Currency of the amount.", required=True)
+    action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
+
+
+class TransactionInitializeSession(SubscriptionObjectType):
+    transaction = graphene.Field(
+        TransactionItem, description="Look up a transaction.", required=True
+    )
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    merchant_reference = graphene.String(
+        description="Merchant reference assigned to this payment.", required=True
+    )
+    action = graphene.Field(
+        TransactionProcessAction,
+        description="Action to proceed for the transaction",
+        required=True,
+    )
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user starts processing the payment."
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
+        )
+
+    @classmethod
+    def resolve_transaction(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.transaction
+
+    @classmethod
+    def resolve_source_object(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.source_object
+
+    @classmethod
+    def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
+        _, transaction_session_data = root
+        return transaction_session_data.payment_gateway.data
+
+    @classmethod
+    def resolve_merchant_reference(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        transaction = cls.resolve_transaction(root, _info)
+        return graphene.Node.to_global_id("TransactionItem", transaction.pk)
+
+    @classmethod
+    def resolve_action(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.action
+
+
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
@@ -2098,4 +2171,5 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
         PaymentGatewayInitializeSession
     ),
+    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
 }
