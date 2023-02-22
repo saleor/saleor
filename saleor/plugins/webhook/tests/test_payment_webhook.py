@@ -78,15 +78,6 @@ def test_trigger_webhook_sync_with_subscription(
     mock_request.assert_called_once_with(payment_app.name, fake_delivery)
 
 
-def test_trigger_webhook_sync_no_webhook_available():
-    app = App.objects.create(name="Dummy app", is_active=True)
-    # should raise an error for app with no payment webhooks
-    with pytest.raises(PaymentError):
-        trigger_webhook_sync(
-            WebhookEventSyncType.PAYMENT_REFUND, {}, app.webhooks.first()
-        )
-
-
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
 @mock.patch("saleor.plugins.webhook.tasks.requests.post")
 def test_send_webhook_request_sync_failed_attempt(

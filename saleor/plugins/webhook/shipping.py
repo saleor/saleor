@@ -110,6 +110,8 @@ def get_excluded_shipping_methods_or_fetch(
     excluded_methods = []
     # Gather responses from webhooks
     for webhook in webhooks:
+        if not webhook:
+            continue
         response_data = trigger_webhook_sync(
             event_type,
             payload,

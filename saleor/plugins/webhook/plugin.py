@@ -1,16 +1,21 @@
 import json
 import logging
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
 
 from ...app.models import App
+from ...checkout.models import Checkout
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
+from ...graphql.core.context import SaleorContext
+from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
+from ...payment.interface import PaymentGatewayData
 from ...payment.models import Payment, TransactionItem
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
@@ -67,7 +72,6 @@ if TYPE_CHECKING:
     from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
-    from ...checkout.models import Checkout
     from ...discount.models import Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
@@ -92,6 +96,7 @@ if TYPE_CHECKING:
     from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
+    from ...webhook.models import Webhook
 
 logger = logging.getLogger(__name__)
 
@@ -1402,6 +1407,8 @@ class WebhookPlugin(BasePlugin):
 
         for app in apps:
             webhook = get_webhooks_for_event(event_type, app.webhooks.all()).first()
+            if not webhook:
+                raise PaymentError(f"No payment webhook found for event: {event_type}.")
             response_data = trigger_webhook_sync(
                 event_type, webhook_payload, webhook, subscribable_object=payment
             )
@@ -1417,6 +1424,89 @@ class WebhookPlugin(BasePlugin):
             "no response from the app."
         )
 
+    def _payment_gateway_initialize_session_for_single_webhook(
+        self,
+        webhook: "Webhook",
+        gateways: dict[str, "PaymentGatewayData"],
+        response_gateway: dict[str, "PaymentGatewayData"],
+        amount: Decimal,
+        transaction_object: Union["Order", "Checkout"],
+        request: SaleorContext,
+    ):
+        if not webhook.app.identifier:
+            logger.debug(
+                "Skipping app with id %s as identifier is not provided.",
+                webhook.app.pk,
+            )
+            return
+        if webhook.app.identifier in response_gateway:
+            logger.debug(
+                "Skipping next call for %s as app has been already processed.",
+                webhook.app.identifier,
+            )
+            return
+
+        gateway = gateways.get(webhook.app.identifier)
+        gateway_data = None
+        if gateway:
+            gateway_data = gateway.data
+
+        transaction_object_id = graphene.Node.to_global_id(
+            transaction_object.__class__.__name__, transaction_object.pk
+        )
+        payload = {"id": transaction_object_id, "data": gateway_data, "amount": amount}
+        subscribable_object = (transaction_object, gateway_data, amount)
+        response_data = trigger_webhook_sync(
+            event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
+            data=json.dumps(payload, cls=CustomJsonEncoder),
+            webhook=webhook,
+            subscribable_object=subscribable_object,
+            request=request,
+        )
+        error_msg = None
+        if response_data is None:
+            error_msg = "Unable to process a payment gateway response."
+        response_gateway[webhook.app.identifier] = PaymentGatewayData(
+            app_identifier=webhook.app.identifier,
+            data=response_data,
+            error=error_msg,
+        )
+
+    def payment_gateway_initialize_session(
+        self,
+        amount: Decimal,
+        payment_gateways: Optional[list[PaymentGatewayData]],
+        transaction_object: Union["Order", "Checkout"],
+        previous_value,
+    ) -> list[PaymentGatewayData]:
+        if not self.active:
+            return previous_value
+        response_gateway: dict[str, PaymentGatewayData] = {}
+        apps_identifiers = None
+
+        gateways = {}
+        if payment_gateways:
+            gateways = {gateway.app_identifier: gateway for gateway in payment_gateways}
+            apps_identifiers = list(gateways.keys())
+
+        webhooks = get_webhooks_for_event(
+            WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
+            apps_identifier=apps_identifiers,
+        )
+
+        request = initialize_request(self.requestor, sync_event=True)
+
+        for webhook in webhooks:
+            self._payment_gateway_initialize_session_for_single_webhook(
+                webhook=webhook,
+                gateways=gateways,
+                response_gateway=response_gateway,
+                amount=amount,
+                transaction_object=transaction_object,
+                request=request,
+            )
+        return list(response_gateway.values())
+
     def token_is_required_as_payment_input(self, previous_value):
         return False
 
@@ -1431,6 +1521,9 @@ class WebhookPlugin(BasePlugin):
         event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
         webhooks = get_webhooks_for_event(event_type)
         for webhook in webhooks:
+            if not webhook:
+                raise PaymentError(f"No payment webhook found for event: {event_type}.")
+
             response_data = trigger_webhook_sync(
                 event_type=event_type,
                 data=generate_list_gateways_payload(currency, checkout),
@@ -1557,6 +1650,10 @@ class WebhookPlugin(BasePlugin):
         if webhooks:
             payload = generate_checkout_payload(checkout, self.requestor)
             for webhook in webhooks:
+                if not webhook:
+                    raise PaymentError(
+                        f"No payment webhook found for event: {event_type}."
+                    )
                 response_data = trigger_webhook_sync(
                     event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                     data=payload,

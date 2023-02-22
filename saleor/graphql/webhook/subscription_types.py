@@ -35,10 +35,12 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_310,
     ADDED_IN_311,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
-from ..core.scalars import PositiveDecimal
+from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
+from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -1563,6 +1565,48 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
         )
 
 
+class PaymentGatewayInitializeSession(SubscriptionObjectType):
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    amount = graphene.Field(
+        PositiveDecimal,
+        description="Amount requested for initializing the payment gateway.",
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when user wants to initialize the payment gateway."
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_source_object(root, _info: ResolveInfo):
+        _, objects = root
+        source_object, _, _ = objects
+        return source_object
+
+    @staticmethod
+    def resolve_data(root, _info: ResolveInfo):
+        _, objects = root
+        _, data, _ = objects
+        return data
+
+    @staticmethod
+    def resolve_amount(root, _info: ResolveInfo):
+        _, objects = root
+        _, _, amount = objects
+        return amount
+
+
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
     transaction = graphene.Field(
         TransactionItem,
@@ -2051,4 +2095,7 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
     WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
+        PaymentGatewayInitializeSession
+    ),
 }

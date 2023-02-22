@@ -52,6 +52,7 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.interface import PaymentGatewayData
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -772,6 +773,16 @@ class BasePlugin:
 
     transaction_refund_requested: Callable[["TransactionActionData", None], None]
 
+    payment_gateway_initialize_session: Callable[
+        [
+            Decimal,
+            Optional[list["PaymentGatewayData"]],
+            Union["Checkout", "Order"],
+            None,
+        ],
+        list["PaymentGatewayData"],
+    ]
+
     # Trigger when transaction item metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a transaction
@@ -1127,7 +1138,6 @@ class BasePlugin:
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         fields_without_structure = []
         for configuration_field in configuration:
-
             structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
                 configuration_field.update(structure_to_add)

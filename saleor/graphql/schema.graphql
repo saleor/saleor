@@ -1955,6 +1955,7 @@ enum WebhookEventTypeEnum {
 
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+  PAYMENT_GATEWAY_INITIALIZE_SESSION
 }
 
 """Synchronous webhook event."""
@@ -2018,6 +2019,7 @@ enum WebhookEventTypeSyncEnum {
 
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+  PAYMENT_GATEWAY_INITIALIZE_SESSION
 }
 
 """Asynchronous webhook event."""
@@ -27787,6 +27789,40 @@ type TaxableObjectLine {
 }
 
 union TaxSourceLine = CheckoutLine | OrderLine
+
+"""
+Event sent when user wants to initialize the payment gateway.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentGatewayInitializeSession implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Checkout or order"""
+  sourceObject: OrderOrCheckout!
+
+  """Payment gateway data in JSON format, recieved from storefront."""
+  data: JSON
+
+  """Amount requested for initializing the payment gateway."""
+  amount: PositiveDecimal
+}
+
+union OrderOrCheckout = Checkout | Order
+
+scalar JSON
 
 """_Any value scalar as defined by Federation spec."""
 scalar _Any

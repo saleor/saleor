@@ -653,7 +653,6 @@ def test_plugin_updates_configuration_shape(
     plugin_configuration,
     monkeypatch,
 ):
-
     config_structure = PluginSample.CONFIG_STRUCTURE.copy()
     config_structure["Foo"] = new_config_structure
     monkeypatch.setattr(PluginSample, "CONFIG_STRUCTURE", config_structure)
@@ -1174,3 +1173,25 @@ def test_manager_is_event_active_for_any_plugin(channel_USD):
     assert manager.is_event_active_for_any_plugin(
         "calculate_checkout_total", channel_USD.slug
     )
+
+
+def test_manager_payment_gateway_initialize_session(channel_USD, checkout):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    response = manager.payment_gateway_initialize_session(
+        amount=Decimal("10.00"),
+        payment_gateways=None,
+        transaction_object=checkout,
+        channel_slug=channel_USD.slug,
+    )
+
+    # then
+    assert isinstance(response, list)
+    assert len(response) == 1

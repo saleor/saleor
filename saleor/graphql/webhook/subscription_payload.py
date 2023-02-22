@@ -10,7 +10,6 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...plugins.manager import PluginsManager
 from ...settings import get_host
 from ..core import SaleorContext
 from ..utils import format_error
@@ -25,9 +24,6 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
 
     return: HttpRequest
     """
-
-    def _get_plugins(requestor_getter):
-        return PluginsManager(settings.PLUGINS, requestor_getter)
 
     request_time = timezone.now()
 
