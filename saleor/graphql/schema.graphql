@@ -19012,14 +19012,91 @@ input BulkAttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  swatch: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.12.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.12.
+  """
+  numeric: String
+
+  """
+  URL of the file attribute. Every time, a new value is created.
+  
+  Added in Saleor 3.12.
+  """
+  file: String
+
+  """
+  File content type.
+  
+  Added in Saleor 3.12.
+  """
+  contentType: String
+
+  """
+  List of entity IDs that will be used as references.
+  
+  Added in Saleor 3.12.
+  """
+  references: [ID!]
+
+  """
+  Text content in JSON format.
+  
+  Added in Saleor 3.12.
+  """
+  richText: JSONString
+
+  """
+  Plain text content.
+  
+  Added in Saleor 3.12.
+  """
+  plainText: String
 
   """
   The boolean value of an attribute to resolve. If the passed value is non-existent, it will be created.
   """
   boolean: Boolean
+
+  """
+  Represents the date value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  date: Date
+
+  """
+  Represents the date/time value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  dateTime: DateTime
 }
 
 input ProductVariantChannelListingAddInput {
