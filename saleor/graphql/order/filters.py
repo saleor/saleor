@@ -28,13 +28,11 @@ from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusF
 
 def filter_payment_status(qs, _, value):
     if value:
+        print(value)
+        lookup = Q(payments__is_active=True, payments__charge_status__in=value)
         if ChargeStatus.FULLY_REFUNDED in value:
-            qs = qs.filter(
-                Q(payments__is_active=True, payments__charge_status__in=value)
-                | Q(payments__charge_status=ChargeStatus.FULLY_REFUNDED)
-            )
-        else:
-            qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
+            lookup |= Q(payments__charge_status=ChargeStatus.FULLY_REFUNDED)
+        qs = qs.filter(lookup)
     return qs
 
 
