@@ -974,7 +974,7 @@ def create_transaction_event_from_request_and_webhook_response(
         event = TransactionEvent(
             psp_reference=response_event.psp_reference,
             created_at=response_event.time or timezone.now(),
-            type=response_event.type,  # type:ignore
+            type=response_event.type,
             amount_value=response_event.amount or request_event.amount_value,
             external_url=response_event.external_url,
             currency=request_event.currency,
