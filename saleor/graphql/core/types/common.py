@@ -330,7 +330,7 @@ class OrderError(Error):
 
 
 class OrderBulkCreateError(Error):
-    code = OrderBulkCreateErrorCode(description="The error code.", required=True)
+    code = OrderBulkCreateErrorCode(description="The error code.", required=False)
 
 
 class InvoiceError(Error):

@@ -1,12 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
-from uuid import UUID
+from typing import Any, Dict, List, Optional, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....account.models import User
+from ....account.models import Address, User
 from ....channel.models import Channel
 from ....order.models import Order, OrderLine
 from ....permission.enums import OrderPermissions
@@ -30,7 +29,7 @@ from ..types import Order as OrderType
 
 @dataclass
 class OrderBulkError:
-    message: str  # typing: ignore
+    message: str
     code: Optional[str] = None
 
 
@@ -38,13 +37,37 @@ class OrderBulkError:
 class OrderLineWithErrors:
     line: Optional[OrderLine]
     errors: List[OrderBulkError]
-    order_id: UUID
 
 
 @dataclass
 class OrderWithErrors:
     order: Optional[Order]
+    lines: List[OrderLineWithErrors]
     errors: List[OrderBulkError]
+
+    def get_all_errors(self) -> List[OrderBulkError]:
+        return self.errors + [error for line in self.lines for error in line.errors]
+
+
+@dataclass
+class InstancesRelatedToOrder:
+    user: User
+    warehouse: Warehouse
+    shipping_method: ShippingMethod
+    shipping_tax_class: TaxClass
+    billing_address: Address
+    channel: Channel
+    shipping_address: Optional[Address] = None
+
+
+@dataclass
+class OrderAmounts:
+    shipping_price_gross: Decimal
+    shipping_price_net: Decimal
+    total_gross: Decimal
+    total_net: Decimal
+    undiscounted_total_gross: Decimal
+    undiscounted_total_net: Decimal
 
 
 class TaxedMoneyInput(graphene.InputObjectType):
@@ -203,7 +226,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
-    order = graphene.Field(OrderType, required=True, description="Order data.")
+    order = graphene.Field(OrderType, description="Order data.")
     errors = NonNullList(
         OrderBulkCreateError,
         description="List of errors occurred on create attempt.",
@@ -256,14 +279,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         """
         # TODO replace model with query set if additional filters needed
         if sum((input.get(key) is not None for key in key_map.keys())) > 1:
-            args = {", ".join((k for k in key_map.keys()))}
+            args = ", ".join((k for k in key_map.keys()))
             raise ValidationError(
                 f"Only one of [{args}] arguments can be provided "
                 f"to resolve {model.__name__} instance."
             )
 
         if all((input.get(key) is None for key in key_map.keys())):
-            args = {", ".join((k for k in key_map.keys()))}
+            args = ", ".join((k for k in key_map.keys()))
             raise ValidationError(
                 f"One of [{args}] arguments must be provided "
                 f"to resolve {model.__name__} instance."
@@ -334,7 +357,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         if not all([variant, line_tax_class]):
-            return OrderLineWithErrors(line=None, errors=errors, order_id=order.id)
+            return OrderLineWithErrors(line=None, errors=errors)
 
         order_line_currency = order_line_input["total_price"]["currency"]
         order_line_gross_amount = order_line_input["total_price"]["gross"]
@@ -370,13 +393,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             # TODO handle taxes
         )
 
-        return OrderLineWithErrors(line=order_line, errors=errors, order_id=order.id)
+        return OrderLineWithErrors(line=order_line, errors=errors)
 
     @classmethod
-    def create_single_order(
-        cls, order_input, order: Order, order_lines: List[Optional[OrderLine]]
-    ) -> OrderWithErrors:
-        errors: List[OrderBulkError] = []
+    def get_instances_related_to_order(
+        cls,
+        order_input: Dict[str, Any],
+        errors: List[OrderBulkError],
+    ) -> Tuple[Optional[InstancesRelatedToOrder], List[OrderBulkError]]:
+        """Get all instances of objects needed to create an order."""
+
         user, errors = cls.get_instance_and_errors(
             input=order_input["user"],
             errors=errors,
@@ -387,7 +413,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "external_reference": "external_reference",
             },
         )
-
         # TODO check if zones etc needed
         warehouse, errors = cls.get_instance_and_errors(
             input=order_input["delivery_method"],
@@ -395,7 +420,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=Warehouse,
             key_map={"warehouse_id": "id", "warehouse_name": "name"},
         )
-
         # TODO check if zones etc needed
         shipping_method, errors = cls.get_instance_and_errors(
             input=order_input["delivery_method"],
@@ -403,7 +427,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=ShippingMethod,
             key_map={"shipping_method_id": "id", "shipping_method_name": "name"},
         )
-
         # TODO handle tax class metadata
         # TODO check if zones etc needed
         shipping_tax_class, errors = cls.get_instance_and_errors(
@@ -412,13 +435,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=TaxClass,
             key_map={"shipping_tax_class_id": "id", "shipping_tax_class_name": "name"},
         )
-
         billing_address, shipping_address = None, None
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
             billing_address.save()
-            # TODO check if necessary
+            # TODO move saving
         except Exception as e:
             # TODO error
             print(e)
@@ -428,75 +450,128 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
                 shipping_address.save()
-                # TODO check if necessary
+                # TODO move saving
             except Exception as e:
                 # TODO error
                 print(e)
                 pass
 
-        if not all(
-            [user, warehouse, shipping_method, shipping_tax_class, billing_address]
-        ):
-            return OrderWithErrors(order=None, errors=errors)
-
         channel = Channel.objects.get(slug=order_input["channel"])
+
+        instances = None
+        if all(
+            [
+                user,
+                warehouse,
+                shipping_method,
+                shipping_tax_class,
+                billing_address,
+                channel,
+            ]
+        ):
+            instances = InstancesRelatedToOrder(
+                user=user,
+                warehouse=warehouse,
+                shipping_method=shipping_method,
+                shipping_tax_class=shipping_tax_class,
+                billing_address=billing_address,
+                shipping_address=shipping_address,
+                channel=channel,
+            )
+
+        return instances, errors
+
+    @classmethod
+    def make_calculations(
+        cls, instances: InstancesRelatedToOrder, order_lines: List[OrderLine]
+    ) -> OrderAmounts:
+        """Calculate all order amount fields based on associated order lines."""
+
         shipping_price_gross_amount = (
             ShippingMethodChannelListing.objects.values_list("price_amount", flat=True)
-            .filter(shipping_method_id=shipping_method.id, channel_id=channel.id)
+            .filter(
+                shipping_method_id=instances.shipping_method.id,
+                channel_id=instances.channel.id,
+            )
             .first()
         )
         if not shipping_price_gross_amount:
-            shipping_price_gross_amount = Decimal(0)
+            shipping_price_gross_amount = Decimal("0.0")
 
-        # TODO calculate totals
-        order_gross_total_amount = Decimal(
-            sum(
-                (
-                    line.total_price_gross_amount
-                    for line in order_lines
-                    if line is not None
-                )
-            )
+        order_total_gross_amount = Decimal(
+            sum((line.total_price_gross_amount for line in order_lines))
         )
-        order_undiscounted_total_gross_amount = Decimal(order_gross_total_amount)
-        order_net_total_amount = Decimal(
-            sum(
-                (
-                    line.total_price_net_amount
-                    for line in order_lines
-                    if line is not None
-                )
-            )
+        order_undiscounted_total_gross_amount = Decimal(order_total_gross_amount)
+        order_total_net_amount = Decimal(
+            sum((line.total_price_net_amount for line in order_lines))
         )
-        order_undiscounted_total_net_amount = Decimal(order_net_total_amount)
+        order_undiscounted_total_net_amount = Decimal(order_total_net_amount)
+
+        return OrderAmounts(
+            shipping_price_gross=shipping_price_gross_amount,
+            # TODO handle shipping_net_price
+            shipping_price_net=shipping_price_gross_amount,
+            total_gross=order_total_gross_amount,
+            total_net=order_total_net_amount,
+            undiscounted_total_gross=order_undiscounted_total_gross_amount,
+            undiscounted_total_net=order_undiscounted_total_net_amount,
+        )
         # TODO handle taxes
-        # TODO handle discounts
 
+    @classmethod
+    def create_single_order(
+        cls,
+        order_input,
+        order: Order,
+        order_lines_with_errors: List[OrderLineWithErrors],
+    ) -> OrderWithErrors:
+        errors: List[OrderBulkError] = []
+
+        # get related instances
+        instances, errors = cls.get_instances_related_to_order(
+            order_input=order_input,
+            errors=errors,
+        )
+        if not instances:
+            return OrderWithErrors(
+                order=None, lines=order_lines_with_errors, errors=errors
+            )
+
+        # calculate order amounts
+        order_lines: List[OrderLine] = [
+            line.line for line in order_lines_with_errors if line.line is not None
+        ]
+        order_amounts = cls.make_calculations(instances, order_lines)
+
+        # build note
+        # notes_input = order_input.get("notes")
+
+        # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
-        order.channel = channel
+        order.channel = instances.channel
         order.created_at = order_input.get("created_at")
         order.status = order_input.get("status")
-        order.user = user
-        order.billing_address = billing_address if billing_address else None
-        order.shipping_address = shipping_address if shipping_address else None
+        order.user = instances.user
+        order.billing_address = instances.billing_address
+        order.shipping_address = instances.shipping_address
         order.language_code = order_input.get("language_code")
-        order.user_email = user.email
-        order.shipping_method = shipping_method
-        order.shipping_method_name = shipping_method.name
-        order.collection_point = warehouse
-        order.collection_point_name = warehouse.name
-        order.shipping_price_gross_amount = shipping_price_gross_amount
+        order.user_email = instances.user.email
+        order.shipping_method = instances.shipping_method
+        order.shipping_method_name = instances.shipping_method.name
+        order.collection_point = instances.warehouse
+        order.collection_point_name = instances.warehouse.name
+        order.shipping_price_gross_amount = order_amounts.shipping_price_gross
         # TODO handle gross/net
-        order.shipping_price_net_amount = shipping_price_gross_amount
-        order.shipping_tax_class = shipping_tax_class
-        order.shipping_tax_class_name = shipping_tax_class.name
+        order.shipping_price_net_amount = order_amounts.shipping_price_gross
+        order.shipping_tax_class = instances.shipping_tax_class
+        order.shipping_tax_class_name = instances.shipping_tax_class.name
         order.shipping_tax_rate = Decimal(
             order_input["delivery_method"]["shipping_tax_rate"]
         )
-        order.total_gross_amount = order_gross_total_amount
-        order.undiscounted_total_gross_amount = order_undiscounted_total_gross_amount
-        order.total_net_amount = order_net_total_amount
-        order.undiscounted_total_net_amount = order_undiscounted_total_net_amount
+        order.total_gross_amount = order_amounts.total_gross
+        order.undiscounted_total_gross_amount = order_amounts.undiscounted_total_gross
+        order.total_net_amount = order_amounts.total_net
+        order.undiscounted_total_net_amount = order_amounts.undiscounted_total_net
         order.customer_note = order_input.get("customer_note", "")
         order.redirect_url = order_input.get("redirect_url")
         # TODO charged
@@ -505,55 +580,77 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO gift cards
         # TODO weight
 
-        return OrderWithErrors(order, errors)
+        return OrderWithErrors(
+            order=order, lines=order_lines_with_errors, errors=errors
+        )
 
     @classmethod
     def save_data(
         cls,
-        orders_map: Dict[UUID, OrderWithErrors],
-        order_lines_map: Dict[UUID, OrderLineWithErrors],
+        orders_with_errors: List[OrderWithErrors],
         policy: ErrorPolicy,
     ):
+        # TODO refcator with get_all_errors()
         errors: List[OrderBulkError] = [
-            error for line in order_lines_map.values() for error in line.errors
+            error for line in orders_with_errors for error in line.errors
         ]
         errors.extend(
-            [error for order in orders_map.values() for error in order.errors]
+            [
+                error
+                for order in orders_with_errors
+                for line in order.lines
+                for error in line.errors
+            ]
         )
 
-        if policy == ErrorPolicy.REJECT_EVERYTHING and errors:
-            return None
+        if errors:
+            for order in orders_with_errors:
+                if policy == ErrorPolicy.REJECT_EVERYTHING:
+                    order.order = None
+                elif policy == ErrorPolicy.REJECT_FAILED_ROWS:
+                    if order.get_all_errors():
+                        order.order = None
+            return orders_with_errors
+
+        # TODO should we allow orders with failed lines?
+        # elif policy == ErrorPolicy.IGNORE_FAILED and errors:
+        #     # TODO handle IGNORE_FAILED
+        #     pass
 
         # TODO save addresses
-        elif policy == ErrorPolicy.REJECT_FAILED_ROWS and errors:
-            for id, line in order_lines_map.items():
-                if not line.line or line.errors or orders_map[line.order_id].errors:
-                    order_lines_map.pop(id)
-            for id, order in orders_map.items():
-                if order.order and not order.errors:
-                    orders_map.pop(id)
-
-        elif policy == ErrorPolicy.IGNORE_FAILED and errors:
-            # TODO handle IGNORE_FAILED
-            pass
-
         OrderLine.objects.bulk_create(
-            [line.line for line in order_lines_map.values() if line.line]
+            [
+                line.line
+                for order in orders_with_errors
+                for line in order.lines
+                if line.line
+            ]
         )
         Order.objects.bulk_create(
-            [order.order for order in orders_map.values() if order.order]
+            [order.order for order in orders_with_errors if order.order]
         )
-        return orders_map, order_lines_map
+        return orders_with_errors
+
+    @classmethod
+    def validate_input(cls, input):
+        # TODO validate status
+        # TODO validate number
+        # TODO validate date created
+        # TODO validate display gross prices
+        pass
+
+    @classmethod
+    def create_note(cls, note_input):
+        pass
 
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
-        assert True
-        # TODO validate input
-        # TODO consider error policy
-        # TODO save orders
         # TODO post save actions
 
         orders_input = data["orders"]
+
+        cls.validate_input(orders_input)
+
         order_lines_with_errors: List[OrderLineWithErrors] = []
         orders_with_errors: List[OrderWithErrors] = []
         for order_input in orders_input:
@@ -563,25 +660,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order_lines_with_errors.append(
                     cls.create_single_order_line(order_line_input, order)
                 )
+
             orders_with_errors.append(
                 cls.create_single_order(
                     order_input,
                     order,
-                    [line.line for line in order_lines_with_errors],
+                    order_lines_with_errors,
                 )
             )
 
-        order_lines_map = {
-            line.line.id: line for line in order_lines_with_errors if line.line
-        }
-        orders_map = {
-            order.order.id: order for order in orders_with_errors if order.order
-        }
-
-        cls.save_data(orders_map, order_lines_map, data["error_policy"])
+        cls.save_data(orders_with_errors, data["error_policy"])
 
         results = [
-            OrderBulkCreateResult(order=order.order, errors=order.errors)
+            OrderBulkCreateResult(order=order.order, errors=order.get_all_errors())
             for order in orders_with_errors
         ]
-        return OrderBulkCreate(count=len(orders_with_errors), results=results)
+        count = sum([order.order is not None for order in orders_with_errors])
+        return OrderBulkCreate(count=count, results=results)
