@@ -109,7 +109,7 @@ class Category(ModelObjectType[models.Category]):
             return
 
         alt = root.background_image_alt
-        if not size:
+        if size == 0:
             return Image(url=root.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)

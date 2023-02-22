@@ -102,7 +102,7 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
             return
 
         alt = node.background_image_alt
-        if not size:
+        if size == 0:
             return Image(url=node.background_image.url, alt=alt)
 
         format = get_thumbnail_format(format)

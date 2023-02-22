@@ -694,7 +694,7 @@ PRODUCT_MEDIA_CREATED = """
         ...on ProductMediaCreated{
           productMedia{
             id
-            url
+            url(size: 0)
             productId
           }
         }
@@ -708,7 +708,7 @@ PRODUCT_MEDIA_UPDATED = """
         ...on ProductMediaUpdated{
           productMedia{
             id
-            url
+            url(size: 0)
             productId
           }
         }
@@ -722,7 +722,7 @@ PRODUCT_MEDIA_DELETED = """
         ...on ProductMediaDeleted{
           productMedia{
             id
-            url
+            url(size: 0)
             productId
           }
         }

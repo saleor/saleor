@@ -46,7 +46,10 @@ def handle_thumbnail(
     if object_type not in TYPE_TO_MODEL_DATA_MAPPING.keys():
         return HttpResponseNotFound("Invalid instance type.")
 
-    size_px: int = get_thumbnail_size(size)
+    try:
+        size_px = get_thumbnail_size(int(size))
+    except ValueError:
+        return HttpResponseNotFound("Invalid size.")
 
     # return the thumbnail if it's already exist
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]

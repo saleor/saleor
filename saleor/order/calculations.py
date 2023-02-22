@@ -253,7 +253,7 @@ def _calculate_and_add_tax(
         _recalculate_order_prices(manager, order, lines)
         tax_data = manager.get_taxes_for_order(order)
         _apply_tax_data(order, lines, tax_data)
-    elif tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
+    else:
         update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
 

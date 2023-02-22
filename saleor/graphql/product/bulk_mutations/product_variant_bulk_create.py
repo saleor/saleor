@@ -185,6 +185,8 @@ class ProductVariantBulkCreate(BaseMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkProductError
         error_type_field = "bulk_product_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_attributes(
@@ -496,9 +498,14 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
                 continue
             try:
+                metadata_list = cleaned_input.pop("metadata", None)
+                private_metadata_list = cleaned_input.pop("private_metadata", None)
                 instance = models.ProductVariant()
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
+                cls.validate_and_update_metadata(
+                    instance, metadata_list, private_metadata_list
+                )
                 cls.clean_instance(info, instance)
                 instances_data_and_errors_list.append(
                     {

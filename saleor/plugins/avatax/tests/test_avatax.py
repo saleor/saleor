@@ -53,6 +53,9 @@ from ..plugin import AvataxPlugin
 
 
 def order_set_shipping_method(order, shipping_method):
+    order.base_shipping_price = shipping_method.channel_listings.get(
+        channel=order.channel
+    ).price
     order.shipping_method = shipping_method
     order.shipping_method_name = shipping_method.name
     order.shipping_tax_class = shipping_method.tax_class
@@ -1865,10 +1868,11 @@ def test_calculate_order_shipping_free_shipping_voucher(
     method = shipping_zone.shipping_methods.get()
     shipping_channel_listings = method.channel_listings.get(channel=channel)
 
+    discount_amount = Decimal("10.0")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10.0"),
+        value=discount_amount,
         name=voucher_free_shipping.code,
         currency="USD",
         amount_value=shipping_channel_listings.price.amount,
@@ -1879,6 +1883,10 @@ def test_calculate_order_shipping_free_shipping_voucher(
     order.total = total
     order.undiscounted_total = total
     order.voucher = voucher_free_shipping
+    order.discount_amount = discount_amount
+    order.base_shipping_price_amount = (
+        order.base_shipping_price.amount - discount_amount
+    )
     order.save()
 
     site_settings.company_address = address
@@ -1919,19 +1927,23 @@ def test_calculate_order_shipping_voucher_on_shipping(
     method = shipping_zone.shipping_methods.get()
     shipping_channel_listings = method.channel_listings.get(channel=channel)
 
+    discount_amount = shipping_channel_listings.price.amount - Decimal("5")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10.0"),
+        value=discount_amount,
         name=voucher_shipping_type.code,
         currency="USD",
-        amount_value=shipping_channel_listings.price.amount - Decimal("5"),
+        amount_value=discount_amount,
     )
 
     order.shipping_address = order.billing_address.get_copy()
     order_set_shipping_method(order, method)
     order.total = total
     order.undiscounted_total = total
+    order.base_shipping_price_amount = (
+        order.base_shipping_price.amount - discount_amount
+    )
     order.voucher = voucher_shipping_type
     order.save()
 
@@ -1956,12 +1968,13 @@ def test_calculate_order_shipping_zero_shipping_amount(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order_set_shipping_method(order, method)
-    order.save()
 
     channel_listing = method.channel_listings.get(channel=order.channel)
     channel_listing.price_amount = 0
     channel_listing.save(update_fields=["price_amount"])
+
+    order_set_shipping_method(order, method)
+    order.save()
 
     site_settings.company_address = address
     site_settings.save()
@@ -1972,7 +1985,7 @@ def test_calculate_order_shipping_zero_shipping_amount(
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_calculate_order_shipping_no_channel_listing(
+def test_calculate_order_shipping_base_shipping_price_0(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
@@ -1981,6 +1994,7 @@ def test_calculate_order_shipping_no_channel_listing(
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
     order_set_shipping_method(order, method)
+    order.base_shipping_price = zero_money(order.currency)
     order.save()
 
     method.channel_listings.all().delete()
