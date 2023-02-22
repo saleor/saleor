@@ -51,6 +51,7 @@ def test_order_bulk_create(
     variant,
     default_tax_class,
     shipping_method_channel_PLN,
+    app,
 ):
     # given
     # orders_count = Order.objects.count()
@@ -89,6 +90,12 @@ def test_order_bulk_create(
         "taxRate": 20,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
     }
+    note_1 = {
+        "message": "Test message",
+        "date": datetime.today(),
+        "userId": graphene.Node.to_global_id("User", customer_user.id),
+        "appId": graphene.Node.to_global_id("App", app.id),
+    }
     order_1 = {
         "channel": channel_PLN.slug,
         "createdAt": datetime.today(),
@@ -99,6 +106,7 @@ def test_order_bulk_create(
         "languageCode": "PL",
         "deliveryMethod": delivery_method,
         "lines": [line_1],
+        "notes": [note_1],
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     variables = {"orders": [order_1]}

@@ -22247,7 +22247,7 @@ type OrderBulkCreate {
 
 type OrderBulkCreateResult {
   """Order data."""
-  order: Order!
+  order: Order
 
   """List of errors occurred on create attempt."""
   errors: [OrderBulkCreateError!]
@@ -22263,7 +22263,7 @@ type OrderBulkCreateError {
   message: String
 
   """The error code."""
-  code: OrderBulkCreateErrorCode!
+  code: OrderBulkCreateErrorCode
 }
 
 """An enumeration."""
