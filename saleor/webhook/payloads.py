@@ -1268,6 +1268,8 @@ def generate_checkout_payload_for_tax_calculation(
     )
     discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
     discount_name = checkout.discount_name
+    # TODO: it should be created only for entrie order discounts
+    # with apply once per order set to False
     discounts = (
         [{"name": discount_name, "amount": discount_amount}]
         if discount_amount and not is_shipping_voucher
