@@ -119,6 +119,7 @@ class BulkAttributeValueInput(InputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
+            + DEPRECATED_IN_3X_FIELD
         ),
     )
     dropdown = AttributeValueSelectableTypeInput(

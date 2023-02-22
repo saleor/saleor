@@ -19012,7 +19012,7 @@ input BulkAttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
   """
   values: [String!]
 
