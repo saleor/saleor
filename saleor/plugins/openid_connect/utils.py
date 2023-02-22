@@ -7,6 +7,7 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -332,6 +333,7 @@ def get_or_create_user_from_payload(
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
         "private_metadata": {oidc_metadata_key: sub},
+        "password": make_password(None),
     }
     try:
         user = User.objects.get(**get_kwargs)
@@ -346,7 +348,7 @@ def get_or_create_user_from_payload(
             email=user_email,
             defaults=defaults_create,
         )
-
+    print(repr(user.password))
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 

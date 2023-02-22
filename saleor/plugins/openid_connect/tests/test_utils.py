@@ -267,6 +267,7 @@ def test_get_or_create_user_from_payload_creates_user_with_sub():
 
     assert user_from_payload.email == customer_email
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert not user_from_payload.has_usable_password()
 
 
 def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user):
