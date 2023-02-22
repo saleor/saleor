@@ -65,6 +65,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added native support for gzip compression - #11833 by @patrys
 - Set flat rates as the default tax calculation strategy - #12069 by @maarcingebala
   - Enables flat rates for channels in which no tax calculation method was set.
+- Users created by the OIDC plugin now have unusable password set instead of empty string - #12103 by @rafalp
 
 # 3.11.0
 

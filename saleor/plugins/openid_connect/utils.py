@@ -348,7 +348,7 @@ def get_or_create_user_from_payload(
             email=user_email,
             defaults=defaults_create,
         )
-    print(repr(user.password))
+
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
