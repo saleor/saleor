@@ -949,7 +949,6 @@ class PluginsManager(PaymentInterface):
         amount: Decimal,
         payment_gateways: Optional[list["PaymentGatewayData"]],
         transaction_object: Union["Order", "Checkout"],
-        channel_slug: str,
     ) -> list["PaymentGatewayData"]:
         default_value = None
         return self.__run_method_on_plugins(
@@ -958,7 +957,7 @@ class PluginsManager(PaymentInterface):
             default_value,
             payment_gateways,
             transaction_object,
-            channel_slug=channel_slug,
+            channel_slug=transaction_object.channel.slug,
         )
 
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):

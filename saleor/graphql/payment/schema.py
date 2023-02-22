@@ -10,6 +10,7 @@ from .filters import PaymentFilterInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
+    PaymentGatewayInitialize,
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
@@ -80,3 +81,5 @@ class PaymentMutations(graphene.ObjectType):
     transaction_update = TransactionUpdate.Field()
     transaction_request_action = TransactionRequestAction.Field()
     transaction_event_report = TransactionEventReport.Field()
+
+    payment_gateway_initialize = PaymentGatewayInitialize.Field()
