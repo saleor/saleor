@@ -52,7 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 
 ### Other changes
-
+- Fix saving `metadata` in `ProductVariantBulkCreate` and `ProductVariantBulkupdate` mutations - #12097 by @SzymJ
 - Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
 - Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
 - Add new asynchronous events related to media: #11918 by @zedzior

@@ -141,6 +141,8 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
