@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -6,8 +7,10 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....account.models import Address, User
+from ....app.models import App
 from ....channel.models import Channel
-from ....order.models import Order, OrderLine
+from ....order import OrderEvents, OrderOrigin
+from ....order.models import Order, OrderEvent, OrderLine
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -26,6 +29,8 @@ from ...meta.mutations import MetadataInput
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
 
+MINUTES_DIFF = 5
+
 
 @dataclass
 class OrderBulkError:
@@ -40,13 +45,24 @@ class OrderLineWithErrors:
 
 
 @dataclass
-class OrderWithErrors:
-    order: Optional[Order]
-    lines: List[OrderLineWithErrors]
+class NoteWithErrors:
+    note: Optional[OrderEvent]
     errors: List[OrderBulkError]
 
+
+@dataclass
+class OrderWithErrors:
+    order: Optional[Order]
+    errors: List[OrderBulkError]
+    lines: List[OrderLineWithErrors]
+    notes: List[NoteWithErrors]
+
     def get_all_errors(self) -> List[OrderBulkError]:
-        return self.errors + [error for line in self.lines for error in line.errors]
+        return (
+            self.errors
+            + [error for line in self.lines for error in line.errors]
+            + [error for note in self.notes for error in note.errors]
+        )
 
 
 @dataclass
@@ -332,70 +348,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return instance, errors
 
     @classmethod
-    def create_single_order_line(
-        cls, order_line_input: Dict[str, Any], order: Order
-    ) -> OrderLineWithErrors:
-        errors: List[OrderBulkError] = []
-
-        variant, errors = cls.get_instance_and_errors(
-            input=order_line_input,
-            errors=errors,
-            model=ProductVariant,
-            key_map={
-                "variant_id": "id",
-                "variant_external_reference": "external_reference",
-                "variant_sku": "sku",
-            },
-        )
-
-        # TODO handle tax class metadata
-        line_tax_class, errors = cls.get_instance_and_errors(
-            input=order_line_input,
-            errors=errors,
-            model=TaxClass,
-            key_map={"tax_class_id": "id", "tax_class_name": "name"},
-        )
-
-        if not all([variant, line_tax_class]):
-            return OrderLineWithErrors(line=None, errors=errors)
-
-        order_line_currency = order_line_input["total_price"]["currency"]
-        order_line_gross_amount = order_line_input["total_price"]["gross"]
-        order_line_net_amount = order_line_input["total_price"]["net"]
-        order_line_quantity = order_line_input["quantity"]
-
-        # TODO take into account quantity / fulfilled
-        # TODO move to calculations / utils
-        order_line_unit_price_net_amount = order_line_net_amount / order_line_quantity
-        order_line_unit_price_gross_amount = (
-            order_line_gross_amount / order_line_quantity
-        )
-
-        order_line = OrderLine(
-            order=order,
-            variant=variant,
-            product_name="placeholder",
-            variant_name=variant.name,
-            product_sku=variant.sku,
-            product_variant_id=variant.get_global_id(),
-            is_shipping_required=variant.is_shipping_required(),
-            is_gift_card=variant.is_gift_card(),
-            quantity=order_line_quantity,
-            quantity_fulfilled=order_line_input["quantity_fulfilled"],
-            currency=order_line_currency,
-            unit_price_net_amount=order_line_unit_price_net_amount,
-            unit_price_gross_amount=order_line_unit_price_gross_amount,
-            total_price_net_amount=order_line_net_amount,
-            total_price_gross_amount=order_line_gross_amount,
-            tax_class=line_tax_class,
-            tax_class_name=line_tax_class.name,
-            # TODO handle discounts
-            # TODO handle taxes
-        )
-
-        return OrderLineWithErrors(line=order_line, errors=errors)
-
-    @classmethod
     def get_instances_related_to_order(
         cls,
         order_input: Dict[str, Any],
@@ -482,6 +434,70 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return instances, errors
 
     @classmethod
+    def create_single_order_line(
+        cls, order_line_input: Dict[str, Any], order: Order
+    ) -> OrderLineWithErrors:
+        errors: List[OrderBulkError] = []
+
+        variant, errors = cls.get_instance_and_errors(
+            input=order_line_input,
+            errors=errors,
+            model=ProductVariant,
+            key_map={
+                "variant_id": "id",
+                "variant_external_reference": "external_reference",
+                "variant_sku": "sku",
+            },
+        )
+
+        # TODO handle tax class metadata
+        line_tax_class, errors = cls.get_instance_and_errors(
+            input=order_line_input,
+            errors=errors,
+            model=TaxClass,
+            key_map={"tax_class_id": "id", "tax_class_name": "name"},
+        )
+
+        if not all([variant, line_tax_class]):
+            return OrderLineWithErrors(line=None, errors=errors)
+
+        order_line_currency = order_line_input["total_price"]["currency"]
+        order_line_gross_amount = order_line_input["total_price"]["gross"]
+        order_line_net_amount = order_line_input["total_price"]["net"]
+        order_line_quantity = order_line_input["quantity"]
+
+        # TODO take into account quantity / fulfilled
+        # TODO move to calculations / utils
+        order_line_unit_price_net_amount = order_line_net_amount / order_line_quantity
+        order_line_unit_price_gross_amount = (
+            order_line_gross_amount / order_line_quantity
+        )
+
+        order_line = OrderLine(
+            order=order,
+            variant=variant,
+            product_name="placeholder",
+            variant_name=variant.name,
+            product_sku=variant.sku,
+            product_variant_id=variant.get_global_id(),
+            is_shipping_required=variant.is_shipping_required(),
+            is_gift_card=variant.is_gift_card(),
+            quantity=order_line_quantity,
+            quantity_fulfilled=order_line_input["quantity_fulfilled"],
+            currency=order_line_currency,
+            unit_price_net_amount=order_line_unit_price_net_amount,
+            unit_price_gross_amount=order_line_unit_price_gross_amount,
+            total_price_net_amount=order_line_net_amount,
+            total_price_gross_amount=order_line_gross_amount,
+            tax_class=line_tax_class,
+            tax_class_name=line_tax_class.name,
+            # TODO handle discounts
+            # TODO handle taxes
+        )
+
+        return OrderLineWithErrors(line=order_line, errors=errors)
+
+    @classmethod
     def make_calculations(
         cls, instances: InstancesRelatedToOrder, order_lines: List[OrderLine]
     ) -> OrderAmounts:
@@ -519,13 +535,51 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO handle taxes
 
     @classmethod
-    def create_single_order(
-        cls,
-        order_input,
-        order: Order,
-        order_lines_with_errors: List[OrderLineWithErrors],
-    ) -> OrderWithErrors:
+    def is_datetime_valid(cls, date: datetime) -> bool:
+        return date < datetime.now() + timedelta(minutes=MINUTES_DIFF)
+
+    @classmethod
+    def create_single_note(cls, note_input, order: Order) -> NoteWithErrors:
         errors: List[OrderBulkError] = []
+        date = note_input.get("date")
+        if date and not cls.is_datetime_valid(date):
+            errors.append(OrderBulkError(message="Note input contains future date."))
+            date = None
+
+        user, app = None, None
+        if note_input.get("user_id") and note_input.get("app_id"):
+            errors.append(
+                OrderBulkError(message="Note input contains both userId and appId.")
+            )
+        elif note_input.get("user_id"):
+            user, errors = cls.get_instance_and_errors(
+                input=note_input,
+                errors=errors,
+                model=User,
+                key_map={"user_id": "id"},
+            )
+        elif note_input.get("app_id"):
+            app, errors = cls.get_instance_and_errors(
+                input=note_input,
+                errors=errors,
+                model=App,
+                key_map={"app_id": "id"},
+            )
+        event = OrderEvent(
+            date=date,
+            type=OrderEvents.NOTE_ADDED,
+            order=order,
+            parameters={"message": note_input["message"]},
+            user=user,
+            app=app,
+        )
+
+        return NoteWithErrors(note=event, errors=errors)
+
+    @classmethod
+    def create_single_order(cls, order_input) -> OrderWithErrors:
+        errors: List[OrderBulkError] = []
+        order = Order()
 
         # get related instances
         instances, errors = cls.get_instances_related_to_order(
@@ -533,8 +587,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
         )
         if not instances:
-            return OrderWithErrors(
-                order=None, lines=order_lines_with_errors, errors=errors
+            return OrderWithErrors(order=None, errors=errors, lines=[], notes=[])
+
+        # get order lines
+        order_lines_input = order_input["lines"]
+        order_lines_with_errors: List[OrderLineWithErrors] = []
+        for order_line_input in order_lines_input:
+            order_lines_with_errors.append(
+                cls.create_single_order_line(order_line_input, order)
             )
 
         # calculate order amounts
@@ -544,7 +604,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_amounts = cls.make_calculations(instances, order_lines)
 
         # build note
-        # notes_input = order_input.get("notes")
+        notes_input = order_input.get("notes")
+        notes_with_errors: List[NoteWithErrors] = []
+        for note_input in notes_input:
+            notes_with_errors.append(cls.create_single_note(note_input, order))
 
         # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
@@ -574,6 +637,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.undiscounted_total_net_amount = order_amounts.undiscounted_total_net
         order.customer_note = order_input.get("customer_note", "")
         order.redirect_url = order_input.get("redirect_url")
+        order.origin = OrderOrigin.BULK_CREATE
         # TODO charged
         # TODO authourized
         # TODO voucher
@@ -581,7 +645,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO weight
 
         return OrderWithErrors(
-            order=order, lines=order_lines_with_errors, errors=errors
+            order=order,
+            errors=errors,
+            lines=order_lines_with_errors,
+            notes=notes_with_errors,
         )
 
     @classmethod
@@ -590,19 +657,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         orders_with_errors: List[OrderWithErrors],
         policy: ErrorPolicy,
     ):
-        # TODO refcator with get_all_errors()
-        errors: List[OrderBulkError] = [
-            error for line in orders_with_errors for error in line.errors
-        ]
-        errors.extend(
-            [
-                error
-                for order in orders_with_errors
-                for line in order.lines
-                for error in line.errors
-            ]
-        )
-
+        errors = [order.get_all_errors() for order in orders_with_errors][0]
         if errors:
             for order in orders_with_errors:
                 if policy == ErrorPolicy.REJECT_EVERYTHING:
@@ -618,6 +673,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         #     pass
 
         # TODO save addresses
+        Order.objects.bulk_create(
+            [order.order for order in orders_with_errors if order.order]
+        )
         OrderLine.objects.bulk_create(
             [
                 line.line
@@ -626,9 +684,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 if line.line
             ]
         )
-        Order.objects.bulk_create(
-            [order.order for order in orders_with_errors if order.order]
+        OrderEvent.objects.bulk_create(
+            [
+                note.note
+                for order in orders_with_errors
+                for note in order.notes
+                if note.note
+            ]
         )
+
         return orders_with_errors
 
     @classmethod
@@ -640,34 +704,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         pass
 
     @classmethod
-    def create_note(cls, note_input):
-        pass
-
-    @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         # TODO post save actions
-
         orders_input = data["orders"]
-
         cls.validate_input(orders_input)
-
-        order_lines_with_errors: List[OrderLineWithErrors] = []
         orders_with_errors: List[OrderWithErrors] = []
         for order_input in orders_input:
-            order_lines_input = order_input["lines"]
-            order = Order()
-            for order_line_input in order_lines_input:
-                order_lines_with_errors.append(
-                    cls.create_single_order_line(order_line_input, order)
-                )
-
-            orders_with_errors.append(
-                cls.create_single_order(
-                    order_input,
-                    order,
-                    order_lines_with_errors,
-                )
-            )
+            orders_with_errors.append(cls.create_single_order(order_input))
 
         cls.save_data(orders_with_errors, data["error_policy"])
 

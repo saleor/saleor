@@ -43,11 +43,13 @@ class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
     REISSUE = "reissue"  # order created from reissue existing one
+    BULK_CREATE = "bulk_create"  # order created from bulk upload
 
     CHOICES = [
         (CHECKOUT, "Checkout"),
         (DRAFT, "Draft"),
         (REISSUE, "Reissue"),
+        (BULK_CREATE, "Bulk create"),
     ]
 
 

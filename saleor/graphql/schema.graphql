@@ -10675,6 +10675,7 @@ enum OrderOriginEnum @doc(category: "Orders") {
   CHECKOUT
   DRAFT
   REISSUE
+  BULK_CREATE
 }
 
 """An enumeration."""
