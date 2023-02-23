@@ -3,6 +3,7 @@ from datetime import datetime
 import graphene
 
 from .....order import OrderStatus
+from .....order.models import Order, OrderEvent, OrderLine
 from ....tests.utils import get_graphql_content
 
 ORDER_BULK_CREATE = """
@@ -29,6 +30,9 @@ ORDER_BULK_CREATE = """
                         streetAddress1
                         postalCode
                     }
+                    events {
+                        message
+                    }
                 }
                 errors {
                     field
@@ -54,7 +58,9 @@ def test_order_bulk_create(
     app,
 ):
     # given
-    # orders_count = Order.objects.count()
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+    order_events = OrderEvent.objects.count()
     shipping_method = shipping_method_channel_PLN
     user = {
         "id": graphene.Node.to_global_id("User", customer_user.id),
@@ -72,7 +78,7 @@ def test_order_bulk_create(
     }
     line_1 = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "createdAt": datetime.today(),
+        "createdAt": datetime.now(),
         "isShippingRequired": True,
         "isGiftCard": False,
         "quantity": 5,
@@ -94,7 +100,7 @@ def test_order_bulk_create(
         "message": "Test message",
         "date": datetime.today(),
         "userId": graphene.Node.to_global_id("User", customer_user.id),
-        "appId": graphene.Node.to_global_id("App", app.id),
+        # "appId": graphene.Node.to_global_id("App", app.id),
     }
     order_1 = {
         "channel": channel_PLN.slug,
@@ -119,4 +125,9 @@ def test_order_bulk_create(
     assert content["data"]["orderBulkCreate"]["count"] == 1
     data = content["data"]["orderBulkCreate"]["results"]
     assert data[0]["order"]["lines"]
+    assert data[0]["order"]["events"][0]["message"] == "Test message"
     assert not data[0]["errors"]
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderLine.objects.count() == order_lines_count + 1
+    assert OrderEvent.objects.count() == order_events + 1
