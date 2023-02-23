@@ -1484,6 +1484,15 @@ type Webhook implements Node {
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
+
+  """
+  Custom headers, which will be added to HTTP request.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """An object with an ID"""
@@ -1712,6 +1721,27 @@ enum WebhookEventTypeEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -1848,7 +1878,11 @@ enum WebhookEventTypeEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """
@@ -1905,6 +1939,13 @@ enum WebhookEventTypeEnum {
   """An observability event is created."""
   OBSERVABILITY
 
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
+
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
@@ -1925,8 +1966,32 @@ enum WebhookEventTypeEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CANCELATION_REQUESTED
 
   """
@@ -1990,8 +2055,32 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   TRANSACTION_CANCELATION_REQUESTED
 
   """
@@ -2244,6 +2333,27 @@ enum WebhookEventTypeAsyncEnum {
   PRODUCT_DELETED
 
   """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
   A product metadata is updated.
   
   Added in Saleor 3.8.
@@ -2380,7 +2490,11 @@ enum WebhookEventTypeAsyncEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """
@@ -2436,6 +2550,13 @@ enum WebhookEventTypeAsyncEnum {
 
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 }
 
 """Represents app data."""
@@ -2956,6 +3077,9 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
   PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
@@ -3004,6 +3128,7 @@ enum WebhookSampleEventTypeEnum {
   VOUCHER_DELETED
   VOUCHER_METADATA_UPDATED
   OBSERVABILITY
+  THUMBNAIL_CREATED
 }
 
 """Represents warehouse."""
@@ -4923,18 +5048,18 @@ type Product implements Node & ObjectWithMetadata {
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -5948,18 +6073,18 @@ type Category implements Node & ObjectWithMetadata {
   ): CategoryCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -6219,6 +6344,8 @@ type Image {
 
 """An enumeration."""
 enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
   WEBP
 }
 
@@ -6557,43 +6684,108 @@ type ProductImage {
   sortOrder: Int
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 }
 
 """Represents a product media."""
-type ProductMedia implements Node {
+type ProductMedia implements Node & ObjectWithMetadata {
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   sortOrder: Int
   alt: String!
   type: ProductMediaType!
   oembedData: JSONString!
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
+
+  """
+  Product id the media refers to.
+  
+  Added in Saleor 3.12.
+  """
+  productId: ID
 }
 
 """An enumeration."""
@@ -6942,18 +7134,18 @@ type Collection implements Node & ObjectWithMetadata {
   ): ProductCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -8755,18 +8947,18 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
   avatar(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -9389,7 +9581,7 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing authorization requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   authorizePendingAmount: Money!
 
@@ -9399,22 +9591,24 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing refund requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   refundPendingAmount: Money!
 
-  """
-  Total amount voided for this payment. This field will be removed in Saleor 4.0.Use `canceledAmount` instead.
-  """
-  voidedAmount: Money!
+  """Total amount voided for this payment."""
+  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `canceledAmount` instead.")
 
-  """Total amount canceled for this payment."""
+  """
+  Total amount canceled for this payment.
+  
+  Added in Saleor 3.12.
+  """
   canceledAmount: Money!
 
   """
   Total amount of ongoing cancel requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   cancelPendingAmount: Money!
 
@@ -9424,29 +9618,37 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing charge requests for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   chargePendingAmount: Money!
 
   """Status of transaction."""
-  status: String! @deprecated(reason: "This field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.")
+  status: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `name` or `message` instead.")
+  type: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `name` or `message` instead.")
 
-  """Name of the transaction."""
+  """
+  Name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String!
 
-  """Message related to the transaction."""
+  """
+  Message related to the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String!
 
   """Reference of transaction."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String!
 
@@ -9463,14 +9665,14 @@ type TransactionItem implements Node & ObjectWithMetadata {
   """
   User or App that created the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   createdBy: UserOrApp
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   externalUrl: String!
 }
@@ -9481,9 +9683,9 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action. DEPRECATED: this enum value will be removed
-    in Saleor 3.9 (Feature Preview). Use `CANCEL` instead.
-    CANCEL - Represents a cancel action.
+    VOID - Represents a void action. This field will be removed
+    in Saleor 3.13 (Preview Feature). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
 enum TransactionActionEnum {
   CHARGE
@@ -9727,15 +9929,21 @@ type Order implements Node & ObjectWithMetadata {
   """Amount authorized for the order."""
   totalAuthorized: Money!
 
-  """
-  Amount captured for the order. This field will be removed in Saleor 4.0.Use `totalCharged` instead
-  """
-  totalCaptured: Money!
+  """Amount captured for the order."""
+  totalCaptured: Money! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `totalCharged` instead.")
 
-  """Amount charged for the order."""
+  """
+  Amount charged for the order.
+  
+  Added in Saleor 3.12.
+  """
   totalCharged: Money!
 
-  """Amount canceled for the order."""
+  """
+  Amount canceled for the order.
+  
+  Added in Saleor 3.12.
+  """
   totalCanceled: Money!
 
   """
@@ -9810,7 +10018,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   List of granted refunds.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9821,7 +10029,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of granted refund.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9832,7 +10040,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total refund amount for the order.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9841,7 +10049,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing refund requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9852,7 +10060,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing authorize requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9863,7 +10071,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing charge requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9874,7 +10082,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   Total amount of ongoing cancel requests for the order's transactions.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -9885,7 +10093,7 @@ type Order implements Node & ObjectWithMetadata {
   """
   The difference amount between granted refund and the amounts that are pending and refunded.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -10061,18 +10269,18 @@ type OrderLine implements Node & ObjectWithMetadata {
   digitalContentUrl: DigitalContentUrl
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Price of the single item in the order line."""
@@ -10160,9 +10368,9 @@ type OrderLine implements Node & ObjectWithMetadata {
 }
 
 """
-Positive Decimal scalar implementation.
+Nonnegative Decimal scalar implementation.
 
-Should be used in places where value must be positive.
+Should be used in places where value must be nonnegative (0 or greater).
 """
 scalar PositiveDecimal
 
@@ -10576,7 +10784,7 @@ type OrderEvent implements Node {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionEventStatus
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
 
   """The reference of payment's transaction."""
   reference: String
@@ -10616,13 +10824,13 @@ enum OrderEventsEnum {
   TRANSACTION_CHARGE_REQUESTED
 
   """
-  This field will be removed in Saleor 4.0. Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  This field will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
   """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
 
   """
-  This field will be removed in Saleor 4.0. Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  This field will be removed in Saleor 3.13 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
   """
   TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
@@ -10701,7 +10909,7 @@ Represents a status of payment transaction.
     FAILURE - Represents a failure action.
     PENDING - Represents a pending action.
 """
-enum TransactionEventStatus {
+enum TransactionStatus {
   PENDING
   SUCCESS
   FAILURE
@@ -10807,7 +11015,7 @@ enum AddressTypeEnum {
 """
 The details of granted refund.
 
-Added in Saleor 3.8.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -10842,55 +11050,61 @@ type TransactionEvent implements Node {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionEventStatus! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `type` instead.")
+  status: TransactionStatus! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String!
 
   """Name of the transaction's event."""
-  name: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `message` instead.")
+  name: String @deprecated(reason: "This field will be removed in Saleor 3.13 (Preview Feature). Use `message` instead.")
 
-  """Message related to the transaction's event."""
+  """
+  Message related to the transaction's event.
+  
+  Added in Saleor 3.12.
+  """
   message: String!
 
   """
   The url that will allow to redirect user to payment provider page with transaction details.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   externalUrl: String!
 
   """
   The amount related to this event.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   amount: Money!
 
   """
   The type of action related to this event.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   type: TransactionEventTypeEnum
 
   """
   User or App that created the transaction event.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   createdBy: UserOrApp
 }
 
 """
 Represents possible event types.
+
+    Added in Saleor 3.12.
 
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
@@ -13711,7 +13925,7 @@ type Mutation {
   """
   Report the event for the transaction.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
@@ -14142,7 +14356,11 @@ type Mutation {
   ): FulfillmentReturnProducts
 
   """
-  Adds granted refund to the order. 
+  Adds granted refund to the order.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14155,7 +14373,11 @@ type Mutation {
   ): OrderGrantRefundCreate
 
   """
-  Updates granted refund. 
+  Updates granted refund.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -15985,7 +16207,7 @@ type Mutation {
     newPassword: String!
 
     """Current user password."""
-    oldPassword: String!
+    oldPassword: String
   ): PasswordChange
 
   """
@@ -16370,6 +16592,7 @@ enum WebhookErrorCode {
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
   MISSING_EVENT
+  INVALID_CUSTOM_HEADERS
 }
 
 input WebhookCreateInput {
@@ -16413,6 +16636,15 @@ input WebhookCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
@@ -16478,6 +16710,15 @@ input WebhookUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
@@ -19125,8 +19366,22 @@ type ProductVariantBulkError {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """List of channel IDs which causes the error."""
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  stocks: [ID!]
+
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   channels: [ID!]
+
+  """List of channel listings IDs which causes the error."""
+  channelListings: [ID!]
 }
 
 """An enumeration."""
@@ -19365,14 +19620,70 @@ input ProductVariantBulkUpdateInput {
   """
   externalReference: String
 
-  """Stocks of a product available for sale."""
-  stocks: [StockInput!]
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stocks: ProductVariantStocksUpdateInput
 
-  """List of prices assigned to channels."""
-  channelListings: [ProductVariantChannelListingAddInput!]
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
   id: ID!
+}
+
+input ProductVariantStocksUpdateInput {
+  """List of warehouses to create stocks."""
+  create: [StockInput!]
+
+  """List of stocks to update."""
+  update: [StockUpdateInput!]
+
+  """List of stocks to remove."""
+  remove: [ID!]
+}
+
+input StockUpdateInput {
+  """Stock."""
+  stock: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingUpdateInput {
+  """List of channels to create variant channel listings."""
+  create: [ProductVariantChannelListingAddInput!]
+
+  """List of channel listings to update."""
+  update: [ChannelListingUpdateInput!]
+
+  """List of channel listings to remove."""
+  remove: [ID!]
+}
+
+input ChannelListingUpdateInput {
+  """ID of a channel listing."""
+  channelListing: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """The threshold for preorder variant in channel."""
+  preorderThreshold: Int
 }
 
 """
@@ -19804,32 +20115,42 @@ input TransactionCreateInput {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
-  """Payment name of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String
 
-  """The message of the transaction."""
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 
   """
-  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
-  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  PSP Reference of the transaction. 
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
@@ -19848,11 +20169,15 @@ input TransactionCreateInput {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
-  """Amount canceled by this transaction."""
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.12.
+  """
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -19864,7 +20189,7 @@ input TransactionCreateInput {
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   externalUrl: String
 }
@@ -19873,30 +20198,36 @@ input TransactionEventInput {
   """
   Current status of the payment transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Status will be calculated by Saleor.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Status will be calculated by Saleor.
   """
-  status: TransactionEventStatus
+  status: TransactionStatus
 
   """
-  Reference of the transaction. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
   PSP Reference related to this action.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
   """
   Name of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `message` instead. `name` field will be added to `message`.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
   """
   name: String
 
-  """The message related to the event."""
+  """
+  The message related to the event.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 }
 
@@ -19941,32 +20272,42 @@ input TransactionUpdateInput {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
-  """Payment name of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   name: String
 
-  """The message of the transaction."""
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.12.
+  """
   message: String
 
   """
-  Reference of the transaction. The reference and PSP reference must be unique across all `transactionItem` objects. DEPRECATED: this field will be removed in Saleor 3.9 (Feature Preview). Use `pspReference` instead.
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
   """
-  PSP Reference of the transaction. The PSP reference must be unique across all `transactionItem` objects.
+  PSP Reference of the transaction. 
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.12.
   """
   pspReference: String
 
@@ -19985,11 +20326,15 @@ input TransactionUpdateInput {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 4.0.Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.13 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
-  """Amount canceled by this transaction."""
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.12.
+  """
   amountCanceled: MoneyInput
 
   """Payment public metadata."""
@@ -20001,7 +20346,7 @@ input TransactionUpdateInput {
   """
   The url that will allow to redirect user to payment provider page with transaction event details.
   
-  Added in Saleor 3.10.
+  Added in Saleor 3.12.
   """
   externalUrl: String
 }
@@ -20044,7 +20389,7 @@ enum TransactionRequestActionErrorCode {
 """
 Report the event for the transaction.
 
-Added in Saleor 3.10.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
@@ -20889,7 +21234,11 @@ input OrderReturnFulfillmentLineInput {
 }
 
 """
-Adds granted refund to the order. 
+Adds granted refund to the order.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -20938,7 +21287,11 @@ parses float to the Decimal on the way back.
 scalar Decimal
 
 """
-Updates granted refund. 
+Updates granted refund.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -23644,6 +23997,7 @@ enum AppErrorCode {
   INVALID_PERMISSION
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
+  INVALID_CUSTOM_HEADERS
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
@@ -25858,6 +26212,72 @@ type ProductMetadataUpdated implements Event {
 }
 
 """
+Event sent when new product media is created.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is updated.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is deleted.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -27122,7 +27542,7 @@ Event sent when transaction action is requested.
 
 Added in Saleor 3.4.
 
-DEPRECATED: This subscription will be removed in 3.10 release. Use `TransactionRequestCapture`, `TransactionRequestRefund`, `TransactionRequestCancel` instead.
+DEPRECATED: this subscription will be removed in Saleor 3.13 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 """
 type TransactionActionRequest implements Event {
   """Time of the event."""
@@ -27435,6 +27855,53 @@ type WarehouseMetadataUpdated implements Event {
 }
 
 """
+Event sent when thumbnail is created.
+
+Added in Saleor 3.12.
+"""
+type ThumbnailCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Thumbnail id.
+  
+  Added in Saleor 3.12.
+  """
+  id: ID
+
+  """
+  Thumbnail url.
+  
+  Added in Saleor 3.12.
+  """
+  url: String
+
+  """
+  Object the thumbnail refers to.
+  
+  Added in Saleor 3.12.
+  """
+  objectId: ID
+
+  """
+  Original media url.
+  
+  Added in Saleor 3.12.
+  """
+  mediaUrl: String
+}
+
+"""
 Authorize payment.
 
 Added in Saleor 3.6.
@@ -27605,7 +28072,7 @@ type PaymentListGateways implements Event {
 """
 Event sent when transaction cancelation is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -27632,7 +28099,7 @@ type TransactionCancelationRequested implements Event {
 """
 Event sent when transaction charge is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -27659,7 +28126,7 @@ type TransactionChargeRequested implements Event {
 """
 Event sent when transaction refund is requested.
 
-Added in Saleor 3.9.
+Added in Saleor 3.12.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """

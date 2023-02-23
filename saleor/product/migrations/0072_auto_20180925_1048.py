@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0071_attributechoicevalue_value")]
 
     operations = [

@@ -111,7 +111,6 @@ def test_order_from_checkout(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -486,7 +485,6 @@ def test_order_from_checkout_with_variant_without_price(
     address,
     shipping_method,
 ):
-
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -918,7 +916,6 @@ def test_order_from_checkout_0_total_value(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_item
@@ -1317,7 +1314,6 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
     app_api_client,
     permission_handle_checkouts,
 ):
-
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address

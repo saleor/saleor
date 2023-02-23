@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0043_alter_checkout_voucher_code"),
         ("checkout", "0046_alter_checkout_line_pk"),

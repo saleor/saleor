@@ -70,7 +70,6 @@ def initialize_apple_pay_session(
     display_name: str,
     certificate: str,
 ) -> dict:
-
     request_data = {
         "merchantIdentifier": merchant_identifier,
         "displayName": display_name,

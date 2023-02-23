@@ -73,7 +73,6 @@ def create_default_channel(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [

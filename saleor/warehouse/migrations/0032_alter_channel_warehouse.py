@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0004_create_default_channel"),
         ("warehouse", "0031_create_default_warehouse"),

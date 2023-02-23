@@ -89,7 +89,6 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     @classmethod
     @traced_atomic_transaction()
     def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses, manager):
-
         stocks = []
         for stock_data, warehouse in zip(stocks_data, warehouses):
             stock, is_created = warehouse_models.Stock.objects.get_or_create(

@@ -9,7 +9,6 @@ def get_token():
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0019_auto_20180528_1205")]
 
     operations = [

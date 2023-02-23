@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0160_merge_20221215_1253"),
         ("order", "0160_order_external_reference"),

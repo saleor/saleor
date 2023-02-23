@@ -22,6 +22,10 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
             ) {
                 results{
                     productVariant{
+                        metadata {
+                            key
+                            value
+                        }
                         id
                         name
                         sku
@@ -81,7 +85,10 @@ def test_product_variant_bulk_create_by_name(
     attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     attribute_value = size_attribute.values.last()
     sku = str(uuid4())[:12]
-    name = "new-variant-anem"
+    name = "new-variant-name"
+    metadata_key = "md key"
+    metadata_value = "md value"
+
     variants = [
         {
             "sku": sku,
@@ -89,6 +96,7 @@ def test_product_variant_bulk_create_by_name(
             "trackInventory": True,
             "name": name,
             "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
         }
     ]
 
@@ -106,7 +114,10 @@ def test_product_variant_bulk_create_by_name(
     # then
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
-    assert data["results"][0]["productVariant"]["name"] == name
+    variant_data = data["results"][0]["productVariant"]
+    assert variant_data["name"] == name
+    assert variant_data["metadata"][0]["key"] == metadata_key
+    assert variant_data["metadata"][0]["value"] == metadata_value
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)

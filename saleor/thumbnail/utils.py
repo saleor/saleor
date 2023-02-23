@@ -1,5 +1,5 @@
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Optional
 
 import graphene
 import magic
@@ -7,7 +7,12 @@ from django.core.files.storage import default_storage
 from django.urls import reverse
 from PIL import Image
 
-from . import MIME_TYPE_TO_PIL_IDENTIFIER, THUMBNAIL_SIZES
+from . import (
+    DEFAULT_THUMBNAIL_SIZE,
+    MIME_TYPE_TO_PIL_IDENTIFIER,
+    THUMBNAIL_SIZES,
+    ThumbnailFormat,
+)
 
 if TYPE_CHECKING:
     from .models import Thumbnail
@@ -33,18 +38,33 @@ def prepare_image_proxy_url(
 ):
     instance_id = graphene.Node.to_global_id(object_type, instance_pk)
     kwargs = {"instance_id": instance_id, "size": size}
-    if format:
+    if format and format.lower() != ThumbnailFormat.ORIGINAL:
         kwargs["format"] = format.lower()
     return reverse("thumbnail", kwargs=kwargs)
 
 
-def get_thumbnail_size(size: Union[str, int]) -> int:
+def get_thumbnail_size(size: Optional[int]) -> int:
     """Return the closest size to the given one of the available sizes."""
-    size = int(size)
-    if size in THUMBNAIL_SIZES:
-        return size
+    if size is None:
+        requested_size = DEFAULT_THUMBNAIL_SIZE
+    else:
+        requested_size = size
+    if requested_size in THUMBNAIL_SIZES:
+        return requested_size
 
-    return min(THUMBNAIL_SIZES, key=lambda x: abs(x - size))
+    return min(THUMBNAIL_SIZES, key=lambda x: abs(x - requested_size))
+
+
+def get_thumbnail_format(format: Optional[str]) -> Optional[str]:
+    """Return the thumbnail format if it's supported, otherwise None."""
+    if format is None:
+        return None
+
+    format = format.lower()
+    if format == ThumbnailFormat.ORIGINAL:
+        return None
+
+    return format
 
 
 def prepare_thumbnail_file_name(
@@ -70,6 +90,7 @@ class ProcessedImage:
     # The save quality of modified WEBP images. More info here:
     # https://pillow.readthedocs.io/en/latest/handbook/image-file-formats.html#webp
     WEBP_QUAL = 70
+    AVIF_QUAL = 70
 
     def __init__(
         self,
@@ -154,6 +175,15 @@ class ProcessedImage:
             save_kwargs.update(addl_save_kwargs)
 
         return image, save_kwargs
+
+    def preprocess_AVIF(self, image):
+        """Receive a PIL Image instance of an AVIF and return 2-tuple."""
+        save_kwargs = {
+            "quality": self.AVIF_QUAL,
+            "icc_profile": image.info.get("icc_profile", ""),
+        }
+
+        return (image, save_kwargs)
 
     def preprocess_GIF(self, image):
         """Receive a PIL Image instance of a GIF and return 2-tuple."""

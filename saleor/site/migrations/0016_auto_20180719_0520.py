@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("site", "0015_sitesettings_handle_stock_by_default")]
 
     operations = [

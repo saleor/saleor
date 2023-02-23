@@ -940,7 +940,6 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     payment_stripe_for_checkout,
     channel_USD,
 ):
-
     channel_USD.automatically_confirm_all_new_orders = False
     channel_USD.save()
 
@@ -1247,7 +1246,6 @@ def test_confirm_payment_intent_with_details(
 def test_confirm_payment_incorrect_payment_intent(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout
 ):
-
     gateway_response = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
     }

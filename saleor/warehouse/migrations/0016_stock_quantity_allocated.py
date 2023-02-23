@@ -37,7 +37,6 @@ def assign_quantity_allocated_to_stocks(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0015_alter_stock_quantity"),
     ]

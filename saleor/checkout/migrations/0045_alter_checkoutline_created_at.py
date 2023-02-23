@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0044_fulfill_checkout_line_new_fields"),
     ]

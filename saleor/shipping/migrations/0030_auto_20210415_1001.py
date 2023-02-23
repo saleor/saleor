@@ -7,7 +7,6 @@ import saleor.core.utils.editorjs
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("shipping", "0029_shippingzone_channels"),
     ]

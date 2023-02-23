@@ -6,7 +6,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0054_alter_checkout_options"),
     ]

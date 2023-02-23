@@ -31,7 +31,6 @@ def drop_media_to_remove(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0173_create_default_category_and_product_type"),
         ("thumbnail", "0001_initial"),

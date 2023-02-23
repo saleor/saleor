@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0009_remove_invalid_allocation"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0023_auto_20171206_0506")]
 
     operations = [migrations.RemoveField(model_name="order", name="status")]

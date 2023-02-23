@@ -15,6 +15,7 @@ from ..permission.enums import (
 )
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -233,14 +234,6 @@ def clean_webhooks(manifest_data, errors):
 
         if not webhook["events"]:
             webhook["events"] = subscription_query.events
-        elif sorted(webhook["events"]) != sorted(subscription_query.events):
-            errors["webhooks"].append(
-                ValidationError(
-                    "Events provided in `syncEvents` and `asyncEvents` does not "
-                    "match events from `query`",
-                    code=AppErrorCode.INVALID.value,
-                )
-            )
 
         try:
             target_url_validator(webhook["targetUrl"])
@@ -251,6 +244,17 @@ def clean_webhooks(manifest_data, errors):
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
                 )
             )
+
+        if custom_headers := webhook.get("customHeaders"):
+            try:
+                webhook["customHeaders"] = custom_headers_validator(custom_headers)
+            except ValidationError as err:
+                errors["webhooks"].append(
+                    ValidationError(
+                        f"Invalid custom headers: {err.message}",
+                        code=AppErrorCode.INVALID_CUSTOM_HEADERS.value,
+                    )
+                )
 
 
 def validate_required_fields(manifest_data, errors):

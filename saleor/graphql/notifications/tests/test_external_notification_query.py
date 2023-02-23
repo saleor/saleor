@@ -82,7 +82,6 @@ def test_notify_via_external_notification_trigger_for_plugin_manager(
     permission_manage_users,
     channel_PLN,
 ):
-
     settings.PLUGINS = ["saleor.plugins.tests.sample_plugins.PluginSample"]
 
     variables = {
@@ -113,7 +112,6 @@ def test_notify_via_external_notification_trigger_without_permission(
     staff_api_client,
     channel_PLN,
 ):
-
     variables = {
         "input": {
             "ids": [to_global_id(User.__name__, user.id) for user in staff_users],

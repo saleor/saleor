@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0022_fulfil_allocation_order_line_token"),
     ]

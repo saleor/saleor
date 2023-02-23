@@ -17,7 +17,6 @@ def update_variant_selection(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0017_auto_20210811_0701"),
     ]

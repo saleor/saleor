@@ -663,6 +663,7 @@ def test_transaction_request_charge_for_order(
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
 
     variables = {
@@ -746,6 +747,7 @@ def test_transaction_request_refund_for_order(
         order_id=order_with_lines.pk,
         charged_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
 
     variables = {
@@ -817,6 +819,7 @@ def test_transaction_request_cancelation_for_order(
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -887,6 +890,7 @@ def test_transaction_request_cancelation_for_checkout(
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -963,6 +967,7 @@ def test_transaction_request_charge_for_checkout(
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
 
     variables = {
@@ -1040,6 +1045,77 @@ def test_transaction_request_refund_for_checkout(
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": refund_amount,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert mocked_is_active.called
+    mocked_payment_action_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
+            action_value=expected_called_refund_amount,
+            event=request_event,
+            transaction_app_owner=transaction_request_webhook.app,
+        ),
+        checkout.channel.slug,
+    )
+
+    assert TransactionEvent.objects.get(
+        transaction=transaction,
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=expected_called_refund_amount,
+    )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_when_app_reinstalled(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+):
+    # given
+    refund_amount = Decimal("8.00")
+    expected_called_refund_amount = Decimal("8.00")
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+
+    transaction = TransactionItem.objects.create(
+        status="Captured",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        checkout_id=checkout.pk,
+        charged_value=Decimal("10"),
+        app_identifier=transaction_request_webhook.app.identifier,
+        app=None,
     )
 
     variables = {
@@ -1107,6 +1183,7 @@ def test_transaction_request_uses_handle_payment_permission(
         checkout_id=checkout.pk,
         charged_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
     refund_amount = Decimal("1")
     variables = {
@@ -1161,6 +1238,7 @@ def test_transaction_request_missing_permission(
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
         app_identifier=transaction_request_webhook.app.identifier,
+        app=transaction_request_webhook.app,
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
@@ -1197,6 +1275,7 @@ def test_transaction_request_missing_event(
         order_id=order.pk,
         authorized_value=authorization_value,
         app_identifier=app.identifier,
+        app=app,
     )
 
     mocked_get_webhooks.return_value = []

@@ -14,7 +14,6 @@ def deactivate_vatlayer(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0003_auto_20200429_0142"),
     ]

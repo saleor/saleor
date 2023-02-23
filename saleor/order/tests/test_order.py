@@ -675,7 +675,7 @@ def test_validate_voucher_in_order_without_voucher(
     "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
     [
         ("100", 10, DiscountValueType.FIXED, None, 10),
-        ("100.05", 10, DiscountValueType.PERCENTAGE, 100, 10),
+        ("100.05", 10, DiscountValueType.PERCENTAGE, 100, Decimal("10.01")),
     ],
 )
 def test_value_voucher_order_discount(

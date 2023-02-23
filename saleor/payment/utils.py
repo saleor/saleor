@@ -980,16 +980,20 @@ def _create_event_from_response(
     transaction_id: int,
     currency: str,
 ) -> tuple[Optional[TransactionEvent], Optional[error_msg]]:
+    app_identifier = None
+    if app and app.identifier:
+        app_identifier = app.identifier
     event = TransactionEvent(
         psp_reference=response.psp_reference,
         created_at=response.time or timezone.now(),
-        type=response.type,  # type:ignore
+        type=response.type,
         amount_value=response.amount,
         external_url=response.external_url,
         currency=currency,
         transaction_id=transaction_id,
         message=response.message,
-        app_identifier=app.identifier,
+        app_identifier=app_identifier,
+        app=app,
         include_in_calculations=True,
     )
     with transaction.atomic():
@@ -1144,6 +1148,7 @@ def _prepare_manual_event(
         transaction_id=transaction.pk,
         include_in_calculations=True,
         app_identifier=app.identifier if app else None,
+        app=app,
         user=user,
         created_at=timezone.now(),
         message="Manual adjustment of the transaction.",
@@ -1253,6 +1258,7 @@ def create_transaction_for_order(
         order_id=order.pk,
         user=user,
         app_identifier=app.identifier if app else None,
+        app=app,
         psp_reference=psp_reference,
         currency=order.currency,
     )

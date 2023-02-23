@@ -451,7 +451,6 @@ def test_create_fulfillments_without_allocations(
     warehouse,
     site_settings,
 ):
-
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     Allocation.objects.filter(order_line__order=order).delete()
@@ -617,7 +616,6 @@ def test_create_fullfilment_with_out_of_stock_webhook(
     warehouse,
     site_settings,
 ):
-
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {
@@ -648,7 +646,6 @@ def test_create_fullfilment_with_out_of_stock_webhook_not_triggered(
     warehouse,
     site_settings,
 ):
-
     order = order_with_lines
     order_line1, order_line2 = order.lines.all()
     fulfillment_lines_for_warehouses = {

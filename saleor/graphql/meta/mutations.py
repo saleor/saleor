@@ -44,21 +44,10 @@ def _save_instance(instance, metadata_field: str):
 
     try:
         instance.save(update_fields=fields)
-    except DatabaseError as e:
-        msg = (
-            "Cannot update metadata for instance: %(instance)s. "
-            "Updating not existing object. Details: %(details)s."
-        )
-        params = {
-            "instance": str(instance),
-            "details": str(e),
-        }
+    except DatabaseError:
+        msg = "Cannot update metadata for instance. Updating not existing object."
         raise ValidationError(
-            {
-                "metadata": ValidationError(
-                    msg, code=MetadataErrorCode.NOT_FOUND.value, params=params
-                )
-            }
+            {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
         )
 
 
@@ -398,7 +387,6 @@ class DeletePrivateMetadata(BaseMetadataMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
     ):
-
         instance = cls.get_instance(info, id=id)
 
         if instance:

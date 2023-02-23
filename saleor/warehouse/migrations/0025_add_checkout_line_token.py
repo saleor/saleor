@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("warehouse", "0024_rewrite_order_line_relations"),
     ]

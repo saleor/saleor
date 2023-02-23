@@ -43,7 +43,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0013_giftcardevent_order"),
     ]

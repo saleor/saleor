@@ -83,7 +83,11 @@ def _clean_product_attributes_filter_input(filter_value, queries):
         attributes_slug_pk_map[attr_slug] = attr_pk
         attributes_pk_slug_map[attr_pk] = attr_slug
 
-    for (attr_pk, value_pk, value_slug,) in AttributeValue.objects.filter(
+    for (
+        attr_pk,
+        value_pk,
+        value_slug,
+    ) in AttributeValue.objects.filter(
         slug__in=value_slugs, attribute_id__in=attributes_pk_slug_map.keys()
     ).values_list("attribute_id", "pk", "slug"):
         attr_slug = attributes_pk_slug_map[attr_pk]

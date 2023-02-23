@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0031_merge_0029_alter_voucher_code_0030_discount_variants"),
         ("discount", "0031_merge_20211020_1019"),

@@ -32,7 +32,6 @@ def migrate_attributes_to_list(model_name):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0103_schema_data_enterprise_grade_attributes")]
 
     operations = [

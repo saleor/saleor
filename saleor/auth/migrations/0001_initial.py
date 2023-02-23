@@ -7,7 +7,6 @@ from saleor.account.models import GroupManager, UserManager
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("contenttypes", "__first__"),
     ]

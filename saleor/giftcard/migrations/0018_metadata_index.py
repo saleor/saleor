@@ -5,7 +5,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0017_alter_giftcard_code"),
     ]

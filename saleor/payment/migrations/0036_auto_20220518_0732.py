@@ -18,7 +18,6 @@ def update_available_actions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0035_auto_20220421_0615"),
     ]

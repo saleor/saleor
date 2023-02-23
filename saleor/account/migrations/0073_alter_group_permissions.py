@@ -88,7 +88,6 @@ ALTER INDEX IF EXISTS account_group_permissions_permission_id_f654f978
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("permission", "0001_initial"),
         ("account", "0072_group"),

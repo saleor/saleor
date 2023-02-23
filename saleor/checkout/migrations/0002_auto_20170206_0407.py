@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0001_auto_20170113_0435")]
 
     replaces = [("cart", "0002_auto_20170206_0407")]

@@ -7,7 +7,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0098_auto_20190719_0733")]
 
     operations = [

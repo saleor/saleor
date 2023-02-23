@@ -83,7 +83,6 @@ def rename_permission_table_reverse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0072_group"),
         ("app", "0017_app_audience"),
