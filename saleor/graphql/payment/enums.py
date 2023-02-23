@@ -22,7 +22,7 @@ TransactionEventTypeEnum = to_enum(
 )
 TransactionEventStatusEnum = to_enum(
     TransactionEventStatus,
-    type_name="TransactionEventStatus",
+    type_name="TransactionStatus",
     description=TransactionEventStatus.__doc__,
 )
 

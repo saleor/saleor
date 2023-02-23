@@ -390,7 +390,7 @@ def _apply_tax_data(
         return
 
     currency = checkout.currency
-    for (line_info, tax_line_data) in zip(lines, tax_data.lines):
+    for line_info, tax_line_data in zip(lines, tax_data.lines):
         line = line_info.line
 
         line.total_price = quantize_price(

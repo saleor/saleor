@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0119_orderline_is_gift_card"),
         ("giftcard", "0008_auto_20210818_0633"),

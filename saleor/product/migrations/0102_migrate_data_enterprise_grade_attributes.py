@@ -95,7 +95,6 @@ SORTING_NULLABLE_LOGIC = [
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0101_auto_20190719_0839")]
 
     operations = (

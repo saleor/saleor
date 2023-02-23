@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0175_alter_productmedia_product"),
         ("attribute", "0022_plain_text_attribute"),

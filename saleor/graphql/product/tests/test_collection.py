@@ -718,7 +718,7 @@ MUTATION_UPDATE_COLLECTION_WITH_BACKGROUND_IMAGE = """
         ) {
             collection {
                 slug
-                backgroundImage{
+                backgroundImage(size: 0) {
                     alt
                     url
                 }
@@ -1459,7 +1459,7 @@ def test_collection_image_query_with_size_thumbnail_url_returned(
     )
 
 
-def test_collection_image_query_only_format_provided_original_image_returned(
+def test_collection_image_query_zero_size_custom_format_provided(
     user_api_client, published_collection, media_root, channel_USD, site_settings
 ):
     # given
@@ -1478,6 +1478,7 @@ def test_collection_image_query_only_format_provided_original_image_returned(
         "id": collection_id,
         "channel": channel_USD.slug,
         "format": format,
+        "size": 0,
     }
 
     # when
@@ -1495,7 +1496,7 @@ def test_collection_image_query_only_format_provided_original_image_returned(
     assert data["backgroundImage"]["url"] == expected_url
 
 
-def test_collection_image_query_no_size_value_original_image_returned(
+def test_collection_image_query_zero_size_value_original_image_returned(
     user_api_client, published_collection, media_root, channel_USD, site_settings
 ):
     # given
@@ -1511,6 +1512,7 @@ def test_collection_image_query_no_size_value_original_image_returned(
     variables = {
         "id": collection_id,
         "channel": channel_USD.slug,
+        "size": 0,
     }
 
     # when

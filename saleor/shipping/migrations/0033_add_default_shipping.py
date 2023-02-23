@@ -34,7 +34,6 @@ def add_default_shipping(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0004_create_default_channel"),
         ("shipping", "0032_shippingmethod_tax_class"),

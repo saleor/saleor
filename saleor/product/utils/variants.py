@@ -20,8 +20,7 @@ def generate_and_set_variant_name(
     attribute_rel: AssignedVariantAttribute
     for attribute_rel in variant_selection_attributes.iterator():
         values_qs = attribute_rel.values.all()
-        translated_values = [str(value.translated) for value in values_qs]
-        attributes_display.append(", ".join(translated_values))
+        attributes_display.append(", ".join([str(value) for value in values_qs]))
 
     name = " / ".join(sorted(attributes_display))
     if not name:

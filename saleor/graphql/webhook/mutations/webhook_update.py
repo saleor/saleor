@@ -2,8 +2,15 @@ import graphene
 
 from ....permission.enums import AppPermission
 from ....webhook import models
+from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
+from ...core.fields import JSONString
 from ...core.types import NonNullList, WebhookError
 from .. import enums
 from ..types import Webhook
@@ -48,8 +55,15 @@ class WebhookUpdateInput(graphene.InputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        required=False,
+    )
+    custom_headers = JSONString(
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
+        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
         required=False,
     )
 

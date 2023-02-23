@@ -50,7 +50,6 @@ def sanitize_pages_json(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("page", "0007_auto_20190225_0252")]
 
     operations = [

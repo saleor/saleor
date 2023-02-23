@@ -47,7 +47,6 @@ ALTER TABLE app_appinstallation_permissions
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("permission", "0001_initial"),
         ("app", "0017_app_audience"),

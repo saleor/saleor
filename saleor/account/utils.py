@@ -87,7 +87,6 @@ def change_user_default_address(
 
 
 def create_superuser(credentials):
-
     user, created = User.objects.get_or_create(
         email=credentials["email"],
         defaults={"is_active": True, "is_staff": True, "is_superuser": True},

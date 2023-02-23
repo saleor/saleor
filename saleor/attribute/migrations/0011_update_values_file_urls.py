@@ -17,7 +17,6 @@ def update_file_urls(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0010_auto_20210412_0736"),
     ]

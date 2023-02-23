@@ -15,7 +15,6 @@ def test_notify_via_external_notification_trigger(
     permission_manage_users,
     channel_PLN,
 ):
-
     settings.PLUGINS = [
         "saleor.plugins.tests.sample_plugins.PluginSample",
     ]

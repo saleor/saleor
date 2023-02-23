@@ -90,6 +90,13 @@ class StockInput(graphene.InputObjectType):
     )
 
 
+class StockUpdateInput(graphene.InputObjectType):
+    stock = graphene.ID(required=True, description="Stock.")
+    quantity = graphene.Int(
+        required=True, description="Quantity of items available for sell."
+    )
+
+
 class ProductCreateInput(ProductInput):
     product_type = graphene.ID(
         description="ID of the type that product belongs to.",

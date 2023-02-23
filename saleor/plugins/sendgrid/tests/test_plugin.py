@@ -23,7 +23,6 @@ def test_notify_via_external_notification_trigger_with_extra_payload(
     staff_users,
     sendgrid_email_plugin,
 ):
-
     extra_payload = {"TEST": "VALUE", "TEST_LIST": ["GUEST1", "GUEST2"]}
     plugin = sendgrid_email_plugin(
         active=True, api_key="AB12", account_password_reset_template_id="123"
@@ -47,7 +46,6 @@ def test_send_notification_to_customers_with_product_variant_payload(
     sendgrid_email_plugin,
     product_with_single_variant,
 ):
-
     plugin = sendgrid_email_plugin(active=True, api_key="AB12")
     extra_payload = json.dumps(
         json.loads(

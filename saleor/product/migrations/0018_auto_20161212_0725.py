@@ -13,7 +13,6 @@ def create_slugs(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0017_attributechoicevalue_slug")]
 
     operations = [migrations.RunPython(create_slugs, migrations.RunPython.noop)]

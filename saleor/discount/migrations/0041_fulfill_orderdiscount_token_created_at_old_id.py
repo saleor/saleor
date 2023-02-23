@@ -30,7 +30,6 @@ def set_order_discount_old_id(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0040_orderdiscount_token_old_id_created_at"),
     ]

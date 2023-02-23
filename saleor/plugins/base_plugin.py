@@ -33,6 +33,7 @@ from ..payment.interface import (
     PaymentGateway,
     TransactionActionData,
 )
+from ..thumbnail.models import Thumbnail
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -58,6 +59,7 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -133,7 +135,8 @@ class BasePlugin:
         active: bool,
         channel: Optional["Channel"] = None,
         requestor_getter: Optional[Callable[[], "Requestor"]] = None,
-        db_config: Optional["PluginConfiguration"] = None
+        db_config: Optional["PluginConfiguration"] = None,
+        allow_replica: bool = True,
     ):
         self.configuration = self.get_plugin_configuration(configuration)
         self.active = active
@@ -142,6 +145,7 @@ class BasePlugin:
             SimpleLazyObject(requestor_getter) if requestor_getter else requestor_getter
         )
         self.db_config = db_config
+        self.allow_replica = allow_replica
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -807,6 +811,24 @@ class BasePlugin:
     # updated.
     product_updated: Callable[["Product", Any], Any]
 
+    # Trigger when product media is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is created.
+    product_media_created: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when product media is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is updated.
+    product_media_updated: Callable[["ProductMedia", Any], Any]
+
+    # Trigger when product media is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after a product media
+    # is deleted.
+    product_media_deleted: Callable[["ProductMedia", Any], Any]
+
     # Trigger when product metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic after a product
@@ -923,6 +945,9 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic after a staff user is
     # deleted.
     staff_deleted: Callable[["User", Any], Any]
+
+    # Trigger when thumbnail is updated.
+    thumbnail_created: Callable[["Thumbnail", Any], Any]
 
     # Trigger when tracking number is updated.
     tracking_number_updated: Callable[["Fulfillment", Any], Any]

@@ -21,7 +21,6 @@ def add_tax_configuration_for_channels(apps, schema_editor):
     tax_configurations = []
 
     for channel in Channel.objects.all():
-
         # For US channels create a configuration that's meaningful in US, where prices
         # as entered and displayed without tax.
         if channel.default_country == "US":
@@ -108,7 +107,6 @@ def populate_tax_calculation_strategy(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0017_app_audience"),
         ("channel", "0005_channel_allocation_strategy"),

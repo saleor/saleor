@@ -2,6 +2,7 @@ import graphene
 
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_312, PREVIEW_FEATURE
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error
@@ -34,7 +35,9 @@ class OrderGrantRefundCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Adds granted refund to the order."
+        description = (
+            "Adds granted refund to the order." + ADDED_IN_312 + PREVIEW_FEATURE
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundCreateError
 

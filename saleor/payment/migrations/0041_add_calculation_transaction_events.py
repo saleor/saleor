@@ -93,7 +93,6 @@ def create_event_for_canceled(TransactionItem, TransactionEvent):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0040_auto_20220922_1146"),
     ]

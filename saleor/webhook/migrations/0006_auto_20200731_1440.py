@@ -6,7 +6,6 @@ import saleor.webhook.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("webhook", "0005_drop_manage_webhooks_permission"),
     ]

@@ -27,7 +27,6 @@ def create_order_discount_relations(apps, *_args, **_kwargs):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0097_auto_20210107_1148"),
         ("discount", "0024_orderdiscount"),

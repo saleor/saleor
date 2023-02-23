@@ -33,7 +33,6 @@ def migrate_voucher_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0022_sale_channel_listing"),
     ]

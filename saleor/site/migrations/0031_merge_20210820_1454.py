@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("site", "0030_alter_sitesettingstranslation_language_code"),
         ("site", "0030_auto_20210722_1141"),

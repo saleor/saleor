@@ -37,7 +37,6 @@ def assign_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tax", "0002_add_default_tax_configs"),
     ]

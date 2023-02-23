@@ -27,7 +27,6 @@ def sendgrid_email_plugin(settings, channel_USD):
         send_gift_card_template_id=None,
         api_key=None,
     ):
-
         settings.PLUGINS = ["saleor.plugins.sendgrid.plugin.SendgridEmailPlugin"]
         manager = get_plugins_manager()
         manager.save_plugin_configuration(

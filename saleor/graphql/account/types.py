@@ -1,6 +1,6 @@
 import uuid
 from functools import partial
-from typing import List, cast
+from typing import List, Optional, cast
 
 import graphene
 from django.contrib.auth import get_user_model
@@ -12,7 +12,11 @@ from ...core.exceptions import PermissionDenied
 from ...order import OrderStatus
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, AppPermission, OrderPermissions
-from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ...thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
@@ -475,25 +479,30 @@ class User(ModelObjectType[models.User]):
         return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
 
     @staticmethod
-    def resolve_avatar(root: models.User, info: ResolveInfo, size=None, format=None):
+    def resolve_avatar(
+        root: models.User,
+        info: ResolveInfo,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
+    ):
         if not root.avatar:
             return
 
-        if not size:
+        if size == 0:
             return Image(url=root.avatar.url, alt=None)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_avatar(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, str(root.uuid), "User", size, format
+                thumbnail, str(root.uuid), "User", selected_size, format
             )
             return Image(url=url, alt=None)
 
         return (
             ThumbnailByUserIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
+            .load((root.id, selected_size, format))
             .then(_resolve_avatar)
         )
 

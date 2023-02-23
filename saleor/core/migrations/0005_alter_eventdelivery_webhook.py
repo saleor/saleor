@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("webhook", "0008_webhook_subscription_query"),
         ("core", "0004_delete_delivery_without_webhook"),

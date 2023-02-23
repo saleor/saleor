@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0001_initial"),
         ("order", "0070_drop_update_event_and_rename_events"),

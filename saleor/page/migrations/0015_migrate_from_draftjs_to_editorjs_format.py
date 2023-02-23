@@ -175,7 +175,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0014_add_metadata"),
     ]

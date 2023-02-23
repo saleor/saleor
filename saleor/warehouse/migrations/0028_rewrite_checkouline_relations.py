@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0046_alter_checkout_line_pk"),
         ("warehouse", "0027_alter_reservation_models_checkout_line"),

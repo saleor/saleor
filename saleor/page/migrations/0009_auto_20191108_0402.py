@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("page", "0008_raw_html_to_json")]
 
     operations = [

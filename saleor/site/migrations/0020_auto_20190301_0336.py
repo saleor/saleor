@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("site", "0019_sitesettings_default_weight_unit")]
 
     operations = [

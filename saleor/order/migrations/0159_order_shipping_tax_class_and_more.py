@@ -6,7 +6,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tax", "0005_migrate_vatlayer"),
         ("order", "0158_migrate_base_shipping_price_amount"),

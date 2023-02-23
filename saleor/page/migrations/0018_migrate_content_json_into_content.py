@@ -24,7 +24,6 @@ def migrate_content_json_into_content_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0017_pagetype"),
     ]

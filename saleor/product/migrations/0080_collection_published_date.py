@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0079_default_tax_rate_instead_of_empty_field")]
 
     operations = [

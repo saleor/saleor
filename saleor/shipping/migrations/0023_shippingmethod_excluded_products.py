@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0135_collection_channel_listing"),
         ("shipping", "0022_shipping_method_channel_listing"),

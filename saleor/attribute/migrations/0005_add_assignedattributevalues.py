@@ -47,7 +47,6 @@ def create_through_page_relations(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0004_auto_20201204_1325"),
     ]

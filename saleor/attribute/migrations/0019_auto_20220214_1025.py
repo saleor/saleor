@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0158_auto_20220120_1633"),
         ("page", "0024_alter_pagetranslation_language_code"),

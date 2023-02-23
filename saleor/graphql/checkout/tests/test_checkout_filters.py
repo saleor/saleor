@@ -307,7 +307,6 @@ def test_checkouts_query_with_filter_search(
     customer_user,
     channel_USD,
 ):
-
     user1 = User.objects.create(email="user_email1@example.com")
     user2 = User.objects.create(email="user_email2@example.com")
     user3 = User.objects.create(email="john@wayne.com")
@@ -357,7 +356,6 @@ def test_checkouts_query_with_filter_search_by_global_payment_id(
     customer_user,
     channel_USD,
 ):
-
     checkouts = Checkout.objects.bulk_create(
         [
             Checkout(

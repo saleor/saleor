@@ -12,6 +12,7 @@ class WebhookErrorCode(Enum):
     MISSING_SUBSCRIPTION = "missing_subscription"
     UNABLE_TO_PARSE = "unable_to_parse"
     MISSING_EVENT = "missing_event"
+    INVALID_CUSTOM_HEADERS = "invalid_custom_headers"
 
 
 class WebhookDryRunErrorCode(Enum):

@@ -821,7 +821,7 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
-class ProductMedia(SortableModel):
+class ProductMedia(SortableModel, ModelWithMetadata):
     product = models.ForeignKey(
         Product,
         related_name="media",
@@ -842,7 +842,7 @@ class ProductMedia(SortableModel):
     # DEPRECATED
     to_remove = models.BooleanField(default=False)
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")
         app_label = "product"
 

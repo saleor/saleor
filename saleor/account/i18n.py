@@ -66,7 +66,6 @@ class AddressMetaForm(forms.ModelForm):
 
 
 class AddressForm(forms.ModelForm):
-
     AUTOCOMPLETE_MAPPING = [
         ("first_name", "given-name"),
         ("last_name", "family-name"),
@@ -140,7 +139,6 @@ class AddressForm(forms.ModelForm):
 
 
 class CountryAwareAddressForm(AddressForm):
-
     I18N_MAPPING: List[Tuple[str, List[str]]] = [
         ("name", ["first_name", "last_name"]),
         ("street_address", ["street_address_1", "street_address_2"]),
@@ -164,7 +162,6 @@ class CountryAwareAddressForm(AddressForm):
         for field_name, error_code in errors.items():
             local_fields = field_mapping[field_name]
             for field in local_fields:
-
                 if field in self.NOT_REQUIRED_FIELDS:
                     continue
 

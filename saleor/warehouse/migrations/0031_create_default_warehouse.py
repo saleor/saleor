@@ -20,7 +20,6 @@ def create_default_warehouse(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0004_create_default_channel"),
         ("warehouse", "0030_add_channels_to_warehouses"),

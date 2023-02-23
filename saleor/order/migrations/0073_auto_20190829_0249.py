@@ -16,7 +16,6 @@ def add_variant_name_to_order_line(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0072_django_price_2")]
 
     operations = [
