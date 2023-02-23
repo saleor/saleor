@@ -1,7 +1,16 @@
 import hashlib
+from contextlib import contextmanager
 import urllib
 import urllib.parse
 
+from ....core.tracing import opentracing_trace
+
+@contextmanager
+def payfast_opentracing_trace(span_name):
+    with opentracing_trace(
+        span_name=span_name, component_name="payment", service_name="stripe"
+    ):
+        yield
 
 def generate_signature(merchant_passphrase: str, payload: dict) -> str:
     """
@@ -21,3 +30,5 @@ def generate_signature(merchant_passphrase: str, payload: dict) -> str:
     del payload["passphrase"]
     payload_response = payload_response[:-1]
     return hashlib.md5(payload_response.encode()).hexdigest()
+
+
