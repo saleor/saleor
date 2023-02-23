@@ -1270,18 +1270,20 @@ def generate_checkout_payload_for_tax_calculation(
         user_public_metadata = user.metadata
 
     # Prepare discount data
-    is_shipping_voucher = (
-        checkout_info.voucher.type == VoucherType.SHIPPING
+    # total_amount include the specific product and apply once per order discounts,
+    # so we need to attach only entire order discount here with once per order flag
+    # set to False
+    discount_not_included = (
+        checkout_info.voucher.type == VoucherType.ENTIRE_ORDER
+        and checkout_info.voucher.apply_once_per_order is False
         if checkout_info.voucher
         else False
     )
     discount_amount = quantize_price(checkout.discount_amount, checkout.currency)
     discount_name = checkout.discount_name
-    # TODO: it should be created only for entrie order discounts
-    # with apply once per order set to False
     discounts = (
         [{"name": discount_name, "amount": discount_amount}]
-        if discount_amount and not is_shipping_voucher
+        if discount_amount and discount_not_included
         else []
     )
 
@@ -1293,6 +1295,11 @@ def generate_checkout_payload_for_tax_calculation(
     shipping_method_amount = quantize_price(
         base_calculations.base_checkout_delivery_price(checkout_info, lines).amount,
         checkout.currency,
+    )
+    is_shipping_voucher = (
+        checkout_info.voucher.type == VoucherType.SHIPPING
+        if checkout_info.voucher
+        else False
     )
     if is_shipping_voucher:
         shipping_method_amount = max(
