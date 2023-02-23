@@ -459,7 +459,7 @@ def get_base_lines_prices(
     lines: Iterable["CheckoutLineInfo"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
-    """Get base total price of provided checkout lines without discount applied."""
+    """Get base total price of checkout lines without voucher discount applied."""
     line_prices = []
     for line_info in lines:
         line = line_info.line
