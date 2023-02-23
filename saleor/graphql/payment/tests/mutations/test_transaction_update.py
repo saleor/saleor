@@ -103,6 +103,7 @@ def test_only_owner_can_update_its_transaction_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
+    transaction.app = None
     transaction.app_identifier = external_app.identifier
     transaction.save()
 
@@ -960,6 +961,45 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["name"] == event_name
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(psp_reference=event_reference).first()
+    assert event.message == event_name
+    assert event.status == event_status
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.user is None
+
+
+def test_creates_transaction_event_by_reinstalled_app(
+    transaction_item_created_by_app,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction_item_created_by_app.app = None
+    transaction_item_created_by_app.save()
+
+    transaction = order_with_lines.payment_transactions.first()
+    event_status = TransactionEventStatus.FAILURE
+    event_reference = "PSP-ref"
+    event_name = "Failed authorization"
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_event": {
+            "status": TransactionEventStatusEnum.FAILURE.name,
+            "pspReference": event_reference,
+            "message": event_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
 
     assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()

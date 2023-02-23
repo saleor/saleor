@@ -109,7 +109,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0020_auto_20220214_1027"),
     ]

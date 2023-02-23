@@ -7,13 +7,7 @@ from graphql.execution.base import ExecutionResult
 
 from .... import __version__ as saleor_version
 from ....demo.views import EXAMPLE_QUERY
-from ...tests.fixtures import (
-    ACCESS_CONTROL_ALLOW_CREDENTIALS,
-    ACCESS_CONTROL_ALLOW_HEADERS,
-    ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_ORIGIN,
-    API_PATH,
-)
+from ...tests.fixtures import API_PATH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...views import generate_cache_key
 
@@ -90,90 +84,11 @@ def test_graphql_view_get_enabled_or_disabled(client, settings, playground_on, s
     assert response.status_code == status
 
 
-def test_graphql_view_options(client):
-    response = client.options(API_PATH)
-    assert response.status_code == 200
-
-
 @pytest.mark.parametrize("method", ("put", "patch", "delete"))
 def test_graphql_view_not_allowed(method, client):
     func = getattr(client, method)
     response = func(API_PATH)
     assert response.status_code == 405
-
-
-def test_graphql_view_access_control_header(client, settings):
-    settings.ALLOWED_GRAPHQL_ORIGINS = ["*"]
-    origin = "http://localhost:3000"
-    response = client.options(API_PATH, HTTP_ORIGIN=origin)
-    assert response[ACCESS_CONTROL_ALLOW_ORIGIN] == origin
-    assert response[ACCESS_CONTROL_ALLOW_CREDENTIALS] == "true"
-    assert response[ACCESS_CONTROL_ALLOW_METHODS] == "POST, OPTIONS"
-    assert (
-        response[ACCESS_CONTROL_ALLOW_HEADERS]
-        == "Origin, Content-Type, Accept, Authorization, Authorization-Bearer"
-    )
-
-    response = client.options(API_PATH)
-    assert all(
-        [
-            field not in response
-            for field in (
-                ACCESS_CONTROL_ALLOW_ORIGIN,
-                ACCESS_CONTROL_ALLOW_CREDENTIALS,
-                ACCESS_CONTROL_ALLOW_HEADERS,
-                ACCESS_CONTROL_ALLOW_METHODS,
-            )
-        ]
-    )
-
-
-@pytest.mark.parametrize(
-    "allowed_origins,allowed,not_allowed",
-    [
-        (
-            ["*"],
-            [
-                "http://example.org",
-                "https://example.org",
-                "http://localhost:3000",
-                "http://localhost:9000",
-                "file://",
-            ],
-            [],
-        ),
-        (
-            ["http://example.org"],
-            ["http://example.org"],
-            [
-                "https://example.org",
-                "http://localhost:3000",
-                "http://localhost:9000",
-                "file://",
-            ],
-        ),
-        (
-            ["http://example.org", "https://example.org"],
-            ["http://example.org", "https://example.org"],
-            ["http://localhost:3000", "http://localhost:9000", "file://"],
-        ),
-        (
-            ["http://localhost:3000", "http://localhost:9000"],
-            ["http://localhost:3000", "http://localhost:9000"],
-            ["http://example.org", "https://example.org", "file://"],
-        ),
-    ],
-)
-def test_graphql_view_access_control_allowed_origins(
-    client, settings, allowed_origins, allowed, not_allowed
-):
-    settings.ALLOWED_GRAPHQL_ORIGINS = allowed_origins
-    for origin in allowed:
-        response = client.options(API_PATH, HTTP_ORIGIN=origin)
-        assert response[ACCESS_CONTROL_ALLOW_ORIGIN] == origin
-    for origin in not_allowed:
-        response = client.options(API_PATH, HTTP_ORIGIN=origin)
-        assert ACCESS_CONTROL_ALLOW_ORIGIN not in response
 
 
 def test_invalid_request_body_non_debug(client):

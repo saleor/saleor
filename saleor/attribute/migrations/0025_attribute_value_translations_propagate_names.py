@@ -134,7 +134,6 @@ def propagate_names_for_plain_text_attribute_value_translations(apps, schema_edi
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0024_merge_20221018_1100"),
     ]

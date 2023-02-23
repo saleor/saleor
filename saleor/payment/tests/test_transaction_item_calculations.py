@@ -11,9 +11,11 @@ from ..transaction_item_calculations import recalculate_transaction_amounts
 
 
 @pytest.fixture
-def transaction_events_generator() -> Callable[
-    [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
-]:
+def transaction_events_generator() -> (
+    Callable[
+        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+    ]
+):
     def factory(
         psp_references: List[str],
         types: List[str],

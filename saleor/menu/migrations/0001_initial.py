@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [("product", "0052_slug_field_length"), ("page", "0001_initial")]

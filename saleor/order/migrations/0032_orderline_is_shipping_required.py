@@ -12,7 +12,6 @@ def fill_is_shipping_required(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0031_auto_20180119_0405"),
         ("product", "0048_product_class_to_type"),

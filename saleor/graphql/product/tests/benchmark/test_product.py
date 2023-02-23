@@ -771,7 +771,7 @@ def test_products_media_for_federation_query_count(
           __typename
           ... on ProductMedia {
             id
-            url
+            url(size: 0)
           }
         }
       }

@@ -310,7 +310,6 @@ def test_external_refresh_when_plugin_is_disabled(openid_plugin, rf):
 def test_external_refresh_raises_error(
     openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
 ):
-
     plugin = openid_plugin()
     csrf_token = _get_new_csrf_token()
     oauth_refresh_token = "refresh"

@@ -634,7 +634,6 @@ def test_validate_plugin_configuration_without_apple_cert(adyen_plugin):
 def test_adyen_check_payment_balance(
     api_call_mock, adyen_plugin, adyen_check_balance_response
 ):
-
     api_call_mock.return_value = adyen_check_balance_response
     plugin = adyen_plugin()
 
@@ -670,7 +669,6 @@ def test_adyen_check_payment_balance(
 
 @mock.patch("saleor.payment.gateways.adyen.plugin.api_call")
 def test_adyen_check_payment_balance_adyen_raises_error(api_call_mock, adyen_plugin):
-
     api_call_mock.return_value = Adyen.AdyenError("Error")
     plugin = adyen_plugin()
 

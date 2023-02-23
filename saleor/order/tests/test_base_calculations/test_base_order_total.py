@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from prices import Money
 
@@ -488,7 +488,9 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
         subtotal / undiscounted_total * manual_discount_amount
     )
     temporary_subtotal_amount = subtotal.amount - subtotal_discount_from_order_discount
-    voucher_discount_amount = round(temporary_subtotal_amount * Decimal(0.5), 2)
+    voucher_discount_amount = (temporary_subtotal_amount * Decimal(0.5)).quantize(
+        Decimal("0.01"), ROUND_HALF_UP
+    )
     voucher_order_discount = order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
@@ -503,7 +505,7 @@ def test_base_order_total_with_fixed_manual_discount_and_percentage_voucher(
     order_total = base_calculations.base_order_total(order, lines)
 
     # then
-    assert voucher_discount_amount == Decimal("30.62")
+    assert voucher_discount_amount == Decimal("30.63")
     expected_total = (
         undiscounted_total
         - Money(voucher_discount_amount, order.currency)

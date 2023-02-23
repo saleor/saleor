@@ -971,6 +971,10 @@ def create_transaction_event_from_request_and_webhook_response(
     request_event.save()
     event = None
     if response_event := transaction_request_response.event:
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
+
         event = TransactionEvent(
             psp_reference=response_event.psp_reference,
             created_at=response_event.time or timezone.now(),
@@ -980,7 +984,8 @@ def create_transaction_event_from_request_and_webhook_response(
             currency=request_event.currency,
             transaction_id=request_event.transaction_id,
             message=response_event.message,
-            app_identifier=app.identifier,
+            app_identifier=app_identifier,
+            app=app,
             include_in_calculations=True,
         )
         with transaction.atomic():
@@ -1024,6 +1029,7 @@ def _prepare_manual_event(
         transaction_id=transaction.pk,
         include_in_calculations=True,
         app_identifier=app.identifier if app else None,
+        app=app,
         user=user,
         created_at=timezone.now(),
         message="Manual adjustment of the transaction.",
@@ -1133,6 +1139,7 @@ def create_transaction_for_order(
         order_id=order.pk,
         user=user,
         app_identifier=app.identifier if app else None,
+        app=app,
         psp_reference=psp_reference,
         currency=order.currency,
     )

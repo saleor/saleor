@@ -7,7 +7,6 @@ import saleor.core.weight
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0067_remove_product_is_featured")]
 
     operations = [

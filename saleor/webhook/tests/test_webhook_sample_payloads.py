@@ -159,7 +159,6 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )
 def test_generate_sample_checkout_payload(user_checkouts):
-
     with mock.patch(
         "saleor.webhook.payloads._get_sample_object", return_value=user_checkouts
     ):

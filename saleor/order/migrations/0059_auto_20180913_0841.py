@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0058_remove_orderevent_parameters")]
 
     operations = [

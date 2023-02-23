@@ -89,7 +89,6 @@ def request_charge_action(
     user: Optional[User],
     app: Optional[App],
 ):
-
     if charge_value is None:
         charge_value = transaction.authorized_value
 
@@ -214,7 +213,6 @@ def _request_payment_action(
     transaction_request_func: Callable[[TransactionActionData, str], None],
     plugin_func_name: str,
 ):
-
     transaction_action_request_event_active = manager.is_event_active_for_any_plugin(
         "transaction_action_request", channel_slug=channel_slug
     )

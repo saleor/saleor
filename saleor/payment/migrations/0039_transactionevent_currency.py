@@ -16,7 +16,6 @@ def set_default_currency_for_transaction_event(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0038_auto_20220922_0959"),
     ]

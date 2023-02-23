@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("account", "0031_auto_20190719_0745")]
 
     operations = [migrations.RemoveField(model_name="user", name="token")]

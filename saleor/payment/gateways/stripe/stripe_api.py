@@ -135,7 +135,6 @@ def create_payment_intent(
     payment_method_types: Optional[List[str]] = None,
     customer_email: Optional[str] = None,
 ) -> Tuple[Optional[StripeObject], Optional[StripeError]]:
-
     capture_method = AUTOMATIC_CAPTURE_METHOD if auto_capture else MANUAL_CAPTURE_METHOD
     additional_params = {}
 

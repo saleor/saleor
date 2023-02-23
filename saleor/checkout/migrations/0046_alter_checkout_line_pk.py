@@ -5,7 +5,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0045_alter_checkoutline_created_at"),
         ("warehouse", "0027_alter_reservation_models_checkout_line"),

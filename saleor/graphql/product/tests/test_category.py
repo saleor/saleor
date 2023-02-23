@@ -613,7 +613,7 @@ MUTATION_CATEGORY_UPDATE_MUTATION = """
                 parent {
                     id
                 }
-                backgroundImage{
+                backgroundImage(size: 0) {
                     alt
                     url
                 }
@@ -1479,7 +1479,7 @@ def test_category_image_query_with_size_thumbnail_url_returned(
     )
 
 
-def test_category_image_query_only_format_provided_original_image_returned(
+def test_category_image_query_zero_size_custom_format_provided_original_image_returned(
     user_api_client, non_default_category, media_root, site_settings
 ):
     # given
@@ -1497,6 +1497,7 @@ def test_category_image_query_only_format_provided_original_image_returned(
     variables = {
         "id": category_id,
         "format": format,
+        "size": 0,
     }
 
     # when
@@ -1512,7 +1513,7 @@ def test_category_image_query_only_format_provided_original_image_returned(
     assert data["backgroundImage"]["url"] == expected_url
 
 
-def test_category_image_query_no_size_value_original_image_returned(
+def test_category_image_query_zero_size_value_original_image_returned(
     user_api_client, non_default_category, media_root, site_settings
 ):
     # given
@@ -1527,6 +1528,7 @@ def test_category_image_query_no_size_value_original_image_returned(
     category_id = graphene.Node.to_global_id("Category", category.pk)
     variables = {
         "id": category_id,
+        "size": 0,
     }
 
     # when

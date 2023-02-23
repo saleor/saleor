@@ -265,7 +265,6 @@ def order_added_products_event(
     order_lines: List[OrderLine],
     quantity_diff: Optional[int] = None
 ) -> OrderEvent:
-
     if quantity_diff:
         lines = [_line_per_quantity_to_line_object(quantity_diff, order_lines[0])]
     else:
@@ -288,7 +287,6 @@ def order_removed_products_event(
     order_lines: List[OrderLine],
     quantity_diff: Optional[int] = None
 ) -> OrderEvent:
-
     if quantity_diff:
         lines = [_line_per_quantity_to_line_object(quantity_diff, order_lines[0])]
     else:
@@ -471,7 +469,6 @@ def payment_failed_event(
     message: str,
     payment: Payment
 ) -> OrderEvent:
-
     parameters = {"message": message}
 
     if payment:
@@ -509,7 +506,6 @@ def transaction_event(
     status: str,
     message: str
 ) -> OrderEvent:
-
     parameters = {"message": message, "reference": reference, "status": status}
     return OrderEvent.objects.create(
         order=order,
@@ -615,7 +611,6 @@ def order_returned_event(
     app: Optional[App],
     returned_lines: List[Tuple[int, OrderLine]],
 ):
-
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.FULFILLMENT_RETURNED,

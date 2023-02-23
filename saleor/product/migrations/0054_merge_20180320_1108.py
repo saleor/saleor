@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0053_product_seo_description"),
         ("product", "0053_auto_20180305_1002"),

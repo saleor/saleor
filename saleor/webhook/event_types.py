@@ -99,6 +99,10 @@ class WebhookEventAsyncType:
     PRODUCT_DELETED = "product_deleted"
     PRODUCT_METADATA_UPDATED = "product_metadata_updated"
 
+    PRODUCT_MEDIA_CREATED = "product_media_created"
+    PRODUCT_MEDIA_UPDATED = "product_media_updated"
+    PRODUCT_MEDIA_DELETED = "product_media_deleted"
+
     PRODUCT_VARIANT_CREATED = "product_variant_created"
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
@@ -156,6 +160,8 @@ class WebhookEventAsyncType:
     VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
 
     OBSERVABILITY = "observability"
+
+    THUMBNAIL_CREATED = "thumbnail_created"
 
     DISPLAY_LABELS = {
         ANY: "Any events",
@@ -218,6 +224,9 @@ class WebhookEventAsyncType:
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
         PRODUCT_DELETED: "Product deleted",
+        PRODUCT_MEDIA_CREATED: "Product media created",
+        PRODUCT_MEDIA_UPDATED: "Product media updated",
+        PRODUCT_MEDIA_DELETED: "Product media deleted",
         PRODUCT_METADATA_UPDATED: "Product metadata updated",
         PRODUCT_VARIANT_CREATED: "Product variant created",
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
@@ -266,6 +275,7 @@ class WebhookEventAsyncType:
         VOUCHER_DELETED: "Voucher deleted",
         VOUCHER_METADATA_UPDATED: "Voucher metadata updated",
         OBSERVABILITY: "Observability",
+        THUMBNAIL_CREATED: "Thumbnail created",
     }
 
     CHOICES = [
@@ -329,6 +339,9 @@ class WebhookEventAsyncType:
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
+        (PRODUCT_MEDIA_CREATED, DISPLAY_LABELS[PRODUCT_MEDIA_CREATED]),
+        (PRODUCT_MEDIA_UPDATED, DISPLAY_LABELS[PRODUCT_MEDIA_UPDATED]),
+        (PRODUCT_MEDIA_DELETED, DISPLAY_LABELS[PRODUCT_MEDIA_DELETED]),
         (PRODUCT_METADATA_UPDATED, DISPLAY_LABELS[PRODUCT_METADATA_UPDATED]),
         (PRODUCT_VARIANT_CREATED, DISPLAY_LABELS[PRODUCT_VARIANT_CREATED]),
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
@@ -386,6 +399,7 @@ class WebhookEventAsyncType:
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
         (VOUCHER_METADATA_UPDATED, DISPLAY_LABELS[VOUCHER_METADATA_UPDATED]),
         (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
+        (THUMBNAIL_CREATED, DISPLAY_LABELS[THUMBNAIL_CREATED]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -451,6 +465,9 @@ class WebhookEventAsyncType:
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_MEDIA_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_MEDIA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_MEDIA_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
@@ -498,6 +515,7 @@ class WebhookEventAsyncType:
         WAREHOUSE_DELETED: ProductPermissions.MANAGE_PRODUCTS,
         WAREHOUSE_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
+        THUMBNAIL_CREATED: ProductPermissions.MANAGE_PRODUCTS,
     }
 
 

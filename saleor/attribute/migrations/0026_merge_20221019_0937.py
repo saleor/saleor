@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0024_merge_20221018_0714"),
         ("attribute", "0025_attribute_value_translations_propagate_names"),

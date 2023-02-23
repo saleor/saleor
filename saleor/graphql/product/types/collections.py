@@ -1,12 +1,16 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Optional
 
 import graphene
 from graphene import relay
 
 from ....permission.enums import ProductPermissions
 from ....product import models
-from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ....thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
 from ...core import ResolveInfo
@@ -90,29 +94,29 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     def resolve_background_image(
         root: ChannelContext[models.Collection],
         info: ResolveInfo,
-        size=None,
-        format=None,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
     ):
         node = root.node
         if not node.background_image:
             return
 
         alt = node.background_image_alt
-        if not size:
+        if size == 0:
             return Image(url=node.background_image.url, alt=alt)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, str(node.id), "Collection", size, format
+                thumbnail, str(node.id), "Collection", selected_size, format
             )
             return Image(url=url, alt=alt)
 
         return (
             ThumbnailByCollectionIdSizeAndFormatLoader(info.context)
-            .load((node.id, size, format))
+            .load((node.id, selected_size, format))
             .then(_resolve_background_image)
         )
 

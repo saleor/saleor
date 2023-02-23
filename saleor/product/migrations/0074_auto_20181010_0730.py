@@ -97,7 +97,6 @@ def clean_stale_attributes(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0073_auto_20181010_0729")]
 
     operations = [

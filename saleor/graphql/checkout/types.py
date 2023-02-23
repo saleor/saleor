@@ -759,7 +759,6 @@ class Checkout(ModelObjectType[models.Checkout]):
 
     @staticmethod
     def resolve_metadata(root: models.Checkout, info):
-
         return (
             CheckoutMetadataByCheckoutIdLoader(info.context)
             .load(root.pk)

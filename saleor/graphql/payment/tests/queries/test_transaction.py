@@ -415,6 +415,57 @@ def test_transaction_event_by_app(
         amount_value=Decimal("10.00"),
         external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
         app_identifier=app_api_client.app.identifier,
+        app=app_api_client.app,
+    )
+
+    variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
+
+    # when
+    response = app_api_client.post_graphql(
+        TRANSACTION_QUERY,
+        variables,
+        permissions=[permission_manage_payments, permission_manage_staff],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["transaction"]["events"]
+    assert len(events) == 2
+    event_data = [event for event in events if event["pspReference"] == psp_reference][
+        0
+    ]
+    assert event_data["id"] == to_global_id_or_none(event)
+    assert event_data["createdAt"] == event.created_at.isoformat()
+    assert event_data["status"] == event.status.upper()
+    assert event_data["pspReference"] == event.psp_reference
+    assert event_data["name"] == event.message
+    assert event_data["message"] == event.message
+    assert event_data["externalUrl"] == event.external_url
+    assert event_data["amount"]["amount"] == event.amount_value
+    assert event_data["amount"]["currency"] == event.currency
+    assert event_data["type"] == event.type.upper()
+    assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+
+
+def test_transaction_event_by_reinstalled_app(
+    transaction_item_created_by_app,
+    permission_manage_payments,
+    permission_manage_staff,
+    app_api_client,
+):
+    # given
+    psp_reference = "psp-ref-123"
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item_created_by_app,
+        status=TransactionEventStatus.SUCCESS,
+        psp_reference=psp_reference,
+        message="Sucesfull charge",
+        currency="USD",
+        type=TransactionEventType.CHARGE_SUCCESS,
+        amount_value=Decimal("10.00"),
+        external_url=f"http://`{TEST_SERVER_DOMAIN}/test",
+        app_identifier=app_api_client.app.identifier,
+        app=None,
     )
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}

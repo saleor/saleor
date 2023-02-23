@@ -50,7 +50,6 @@ def migrate_description_json_into_description_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0137_drop_attribute_models"),
     ]

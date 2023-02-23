@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0168_fulfil_digitalcontenturl_orderline_token"),
     ]

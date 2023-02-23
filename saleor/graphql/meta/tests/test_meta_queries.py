@@ -3991,3 +3991,149 @@ def test_query_private_meta_for_gift_card_as_app(
     metadata = content["data"]["giftCard"]["privateMetadata"][0]
     assert metadata["key"] == PRIVATE_KEY
     assert metadata["value"] == PRIVATE_VALUE
+
+
+QUERY_PRODUCT_MEDIA_METADATA = """
+    query productMediaById(
+        $mediaId: ID!,
+        $productId: ID!,
+        $channel: String,
+    ) {
+        product(id: $productId, channel: $channel) {
+            mediaById(id: $mediaId) {
+                metadata {
+                    key
+                    value
+                }
+                privateMetadata {
+                    key
+                    value
+                }
+            }
+        }
+    }
+"""
+
+
+def test_query_metadata_for_product_media_as_staff(
+    staff_api_client, product_with_image, channel_USD, permission_manage_products
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_METADATA
+    media = product_with_image.media.first()
+
+    metadata = {"label": "image-name"}
+    private_metadata = {"private-label": "private-name"}
+    media.store_value_in_metadata(metadata)
+    media.store_value_in_private_metadata(private_metadata)
+    media.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["product"]["mediaById"]
+    assert data["metadata"][0]["key"] in metadata.keys()
+    assert data["metadata"][0]["value"] in metadata.values()
+    assert data["privateMetadata"][0]["key"] in private_metadata.keys()
+    assert data["privateMetadata"][0]["value"] in private_metadata.values()
+
+
+def test_query_metadata_for_product_media_as_app(
+    app_api_client, product_with_image, channel_USD, permission_manage_products
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_METADATA
+    media = product_with_image.media.first()
+
+    metadata = {"label": "image-name"}
+    private_metadata = {"private-label": "private-name"}
+    media.store_value_in_metadata(metadata)
+    media.store_value_in_private_metadata(private_metadata)
+    media.save(update_fields=["metadata", "private_metadata"])
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["product"]["mediaById"]
+    assert data["metadata"][0]["key"] in metadata.keys()
+    assert data["metadata"][0]["value"] in metadata.values()
+    assert data["privateMetadata"][0]["key"] in private_metadata.keys()
+    assert data["privateMetadata"][0]["value"] in private_metadata.values()
+
+
+def test_query_metadata_for_product_media_as_anonymous_user(
+    api_client, product_with_image, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_METADATA
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_metadata_for_product_media_as_customer_user(
+    user_api_client, product_with_image, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_METADATA
+    media = product_with_image.media.first()
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_query_metadata_for_product_media_as_staff_missing_permissions(
+    staff_api_client, product_with_image, channel_USD
+):
+    # given
+    query = QUERY_PRODUCT_MEDIA_METADATA
+    media = product_with_image.media.first()
+
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product_with_image.pk),
+        "mediaId": graphene.Node.to_global_id("ProductMedia", media.pk),
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)

@@ -142,7 +142,7 @@ def _apply_tax_data(
     order.shipping_tax_rate = normalize_tax_rate_for_db(tax_data.shipping_tax_rate)
 
     subtotal = zero_taxed_money(order.currency)
-    for (order_line, tax_line) in zip(lines, tax_data.lines):
+    for order_line, tax_line in zip(lines, tax_data.lines):
         line_total_price = TaxedMoney(
             net=Money(tax_line.total_net_amount, currency),
             gross=Money(tax_line.total_gross_amount, currency),
@@ -253,7 +253,7 @@ def _calculate_and_add_tax(
         _recalculate_order_prices(manager, order, lines)
         tax_data = manager.get_taxes_for_order(order)
         _apply_tax_data(order, lines, tax_data)
-    elif tax_calculation_strategy == TaxCalculationStrategy.FLAT_RATES:
+    else:
         update_order_prices_with_flat_rates(order, lines, prices_entered_with_tax)
 
 

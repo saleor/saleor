@@ -35,7 +35,6 @@ def migrate_variant_price_data(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("checkout", "0030_checkout_channel_listing"),

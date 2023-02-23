@@ -29,7 +29,6 @@ def assing_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0028_drop_searchable_key"),
         ("channel", "0003_alter_channel_default_country"),

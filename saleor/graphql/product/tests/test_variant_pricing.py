@@ -274,7 +274,6 @@ def test_product_variant_without_price_as_staff_without_permission(
     stock,
     channel_USD,
 ):
-
     variant_channel_listing = variant.channel_listings.first()
     variant_channel_listing.price_amount = None
     variant_channel_listing.save()

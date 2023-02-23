@@ -6,7 +6,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0074_merge_20230102_0914"),
     ]

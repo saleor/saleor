@@ -19,7 +19,6 @@ def set_total_prices(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0093_auto_20201130_1406"),
     ]

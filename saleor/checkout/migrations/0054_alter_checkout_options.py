@@ -42,7 +42,6 @@ def assign_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0053_checkout_tax_exemption"),
     ]

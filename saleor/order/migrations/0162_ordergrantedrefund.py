@@ -7,7 +7,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0016_alter_appextension_mount"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

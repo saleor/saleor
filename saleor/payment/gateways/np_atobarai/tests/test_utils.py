@@ -51,7 +51,6 @@ def test_get_fulfillment_for_order_multiple_fulfillments_one_valid(order):
 def test_get_fulfillment_for_order_no_fulfillment(order):
     # then
     with pytest.raises(PaymentError, match=r".* not exist .*"):
-
         # when
         get_fulfillment_for_order(order)
 
@@ -62,7 +61,6 @@ def test_get_fulfillment_for_order_no_fulfillment_with_tracking_number(order):
 
     # then
     with pytest.raises(PaymentError, match=r".* not exist .*"):
-
         # when
         get_fulfillment_for_order(order)
 
@@ -73,7 +71,6 @@ def test_get_fulfillment_for_order_no_refundable_fulfillment(order):
 
     # then
     with pytest.raises(PaymentError, match=r".* not exist .*"):
-
         # when
         get_fulfillment_for_order(order)
 
@@ -85,7 +82,6 @@ def test_get_fulfillment_for_order_multiple_fulfillments(order, fulfillment):
 
     # then
     with pytest.raises(PaymentError, match=r"More than one .* exist .*"):
-
         # when
         get_fulfillment_for_order(order)
 

@@ -10,9 +10,13 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-from saleor.asgi.health_check import health_check
+from .cors_handler import cors_handler
+from .gzip_compression import gzip_compression
+from .health_check import health_check
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
 
 application = get_asgi_application()
-application = health_check(application, "/health/")
+application = health_check(application, "/health/")  # type: ignore[arg-type] # Django's ASGI app is less strict than the spec # noqa: E501
+application = gzip_compression(application)
+application = cors_handler(application)

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import graphene
 from graphene import relay
@@ -6,7 +6,11 @@ from graphene import relay
 from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
-from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ....thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ...channel import ChannelQsContext
 from ...channel.utils import get_default_channel_slug_or_graphql_error
 from ...core.connection import (
@@ -95,26 +99,31 @@ class Category(ModelObjectType[models.Category]):
         return description if description is not None else {}
 
     @staticmethod
-    def resolve_background_image(root: models.Category, info, size=None, format=None):
+    def resolve_background_image(
+        root: models.Category,
+        info,
+        size: Optional[int] = None,
+        format: Optional[str] = None,
+    ):
         if not root.background_image:
             return
 
         alt = root.background_image_alt
-        if not size:
+        if size == 0:
             return Image(url=root.background_image.url, alt=alt)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, str(root.id), "Category", size, format
+                thumbnail, str(root.id), "Category", selected_size, format
             )
             return Image(url=url, alt=alt)
 
         return (
             ThumbnailByCategoryIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
+            .load((root.id, selected_size, format))
             .then(_resolve_background_image)
         )
 

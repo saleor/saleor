@@ -2,7 +2,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0056_move_checkout_metadata_to_separate_model"),
     ]
