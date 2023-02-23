@@ -25,7 +25,12 @@ def calculate_base_line_unit_price(
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
-    """Calculate line unit price including discounts and vouchers."""
+    """Calculate line unit price including discounts and vouchers.
+
+    The price includes sales, specific product and applied once per order
+    voucher discounts.
+    The price does not include the entire order discount.
+    """
     total_line_price = calculate_base_line_total_price(
         line_info=line_info, channel=channel, discounts=discounts
     )
@@ -39,7 +44,12 @@ def calculate_base_line_total_price(
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
-    """Calculate line total price including discounts and vouchers."""
+    """Calculate line total price including discounts and vouchers.
+
+    The price includes sales, specific product and applied once per order
+    voucher discounts.
+    The price does not include the entire order discount.
+    """
     unit_price = _calculate_base_line_unit_price(
         line_info=line_info, channel=channel, discounts=discounts
     )
@@ -66,7 +76,11 @@ def _calculate_base_line_unit_price(
     channel: "Channel",
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
-    """Calculate base line unit price including discounts and vouchers."""
+    """Calculate base line unit price including discounts and vouchers.
+
+    The price includes sales, specific product voucher discounts.
+    The price does not include the entire order discount.
+    """
     variant = line_info.variant
     variant_price = variant.get_price(
         line_info.product,
@@ -194,7 +208,7 @@ def base_checkout_total(
 ) -> Money:
     """Return the total cost of the checkout.
 
-    The price includes sales, specific voucher and applied once per order
+    The price includes sales, shipping, specific product and applied once per order
     voucher discounts.
     The price does not include the entire order discount.
     """
@@ -222,7 +236,7 @@ def base_checkout_subtotal(
 ) -> Money:
     """Return the checkout subtotal value.
 
-    The price includes sales, specific voucher and applied once per order
+    The price includes sales, specific product and applied once per order
     voucher discounts.
     The price does not include the entire order discount.
     """
@@ -243,7 +257,10 @@ def checkout_total(
     discounts: Iterable[DiscountInfo],
     lines: Iterable["CheckoutLineInfo"],
 ) -> Money:
-    """Return the total cost of the checkout including discounts and vouchers."""
+    """Return the total cost of the checkout including discounts and vouchers.
+
+    It should be used as a based value when no flat rate/tax plugin/tax app is active.
+    """
     currency = checkout_info.checkout.currency
     line_totals = [
         calculate_base_line_total_price(
