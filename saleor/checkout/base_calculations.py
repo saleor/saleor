@@ -295,9 +295,7 @@ def apply_checkout_discount_on_checkout_line(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable["DiscountInfo"],
-    line_price: Money,
-    *,
-    is_unit_price: bool = True
+    line_total_price: Money,
 ):
     """Calculate the checkout line price with discounts.
 
@@ -311,11 +309,10 @@ def apply_checkout_discount_on_checkout_line(
         or voucher.apply_once_per_order
         or voucher.type in [VoucherType.SHIPPING, VoucherType.SPECIFIC_PRODUCT]
     ):
-        return line_price
+        return line_total_price
 
-    line_quantity = checkout_line_info.line.quantity
     total_discount_amount = checkout_info.checkout.discount_amount
-    line_total_price = line_price * line_quantity if is_unit_price else line_price
+    line_total_price = line_total_price
     currency = checkout_info.checkout.currency
 
     lines = list(lines)
@@ -323,11 +320,10 @@ def apply_checkout_discount_on_checkout_line(
     # if the checkout has a single line, the whole discount amount will be applied
     # to this line
     if len(lines) == 1:
-        value = max(
+        return max(
             (line_total_price - Money(total_discount_amount, currency)),
             zero_money(currency),
         )
-        return value / line_quantity if is_unit_price else value
 
     # if the checkout has more lines we need to propagate the discount amount
     # proportionally to total prices of items
@@ -350,11 +346,10 @@ def apply_checkout_discount_on_checkout_line(
         )
     else:
         discount_amount = line_total_price.amount / total_price * total_discount_amount
-    value = max(
+    return max(
         (line_total_price - Money(discount_amount, currency)),
         zero_money(currency),
     )
-    return value / line_quantity if is_unit_price else value
 
 
 def _calculate_discount_for_last_element(

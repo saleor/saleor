@@ -393,7 +393,6 @@ class PluginsManager(PaymentInterface):
             checkout_line_info,
             discounts,
             default_value,
-            is_unit_price=False,
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
@@ -446,18 +445,21 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
+        quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
             checkout_line_info, checkout_info.channel, discounts
         )
         # apply entire order discount
-        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
+        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
             discounts,
-            default_value,
+            default_value * quantity,
         )
-        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
+        default_taxed_value = TaxedMoney(
+            net=total_value / quantity, gross=default_value
+        )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
             default_taxed_value,
