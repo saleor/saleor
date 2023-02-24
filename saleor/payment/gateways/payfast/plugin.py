@@ -1,10 +1,12 @@
 import logging
 
+from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 
 from .payfast_api import initiate_payment
 from .webhooks import handle_webhook
+from ....graphql.core.enums import PluginErrorCode
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from ...interface import (
@@ -108,6 +110,29 @@ class PayfastGatewayPlugin(BasePlugin):
             store_customer=True,
         )
 
+    @classmethod
+    def validate_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", **kwargs
+    ):
+        configuration = plugin_configuration.configuration
+        configuration = {item["name"]: item["value"] for item in configuration}
+        required_fields = ["api_endpoint", "merchant_id", "public_api_key",
+                           "merchant_passphrase", "notify_url"]
+        all_required_fields_provided = all(
+            [configuration.get(field) for field in required_fields]
+        )
+        if plugin_configuration.active:
+            if not all_required_fields_provided:
+                raise ValidationError(
+                    {
+                        field: ValidationError(
+                            "The parameter is required.",
+                            code=PluginErrorCode.REQUIRED.value,
+                        )
+                        for field in required_fields
+                    }
+                )
+
     def process_payment(self, payment_information: "PaymentData",
                         previous_value) -> "GatewayResponse":
         if not self.active:
@@ -131,6 +156,8 @@ class PayfastGatewayPlugin(BasePlugin):
 
         initiate_payment(base_url=api_url, passphrase=merchant_passphrase,
                          payment_data=payload)
+
+
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self.config
