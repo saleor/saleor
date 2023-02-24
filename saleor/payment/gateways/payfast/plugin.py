@@ -3,6 +3,8 @@ import logging
 from django.core.handlers.wsgi import WSGIRequest
 from django.http import HttpResponse, HttpResponseNotFound
 
+from .payfast_api import initiate_payment
+from .webhooks import handle_webhook
 from ....plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from ...interface import (
@@ -15,17 +17,18 @@ from ...interface import (
 
 from .consts import (
     PLUGIN_ID,
-    PLUGIN_NAME,
+    PLUGIN_NAME, WEBHOOK_PATH,
 )
 
 logger = logging.getLogger(__name__)
+
 
 class PayfastGatewayPlugin(BasePlugin):
     PLUGIN_NAME = PLUGIN_NAME
     PLUGIN_ID = PLUGIN_ID
 
     DEFAULT_CONFIGURATION = [
-        {"name": "api_endpoint", "value": ""},
+        {"name": "api_url", "value": ""},
         {"name": "merchant_id", "value": None},
         {"name": "public_api_key", "value": None},
         {"name": "automatic_payment_capture", "value": True},
@@ -37,7 +40,7 @@ class PayfastGatewayPlugin(BasePlugin):
     ]
 
     CONFIG_STRUCTURE = {
-        "api_endpoint": {
+        "api_url": {
             "type": ConfigurationTypeField.STRING,
             "help_text": "Provide Payfast public API url.",
             "label": "Payfast API url",
@@ -94,7 +97,7 @@ class PayfastGatewayPlugin(BasePlugin):
             auto_capture=configuration["automatic_payment_capture"],
             supported_currencies=configuration["supported_currencies"],
             connection_params={
-                "api_endpoint": configuration["api_endpoint"],
+                "api_url": configuration["api_url"],
                 "merchant_id": configuration["merchant_id"],
                 "public_api_key": configuration["public_api_key"],
                 "merchant_passphrase": configuration["merchant_passphrase"],
@@ -109,10 +112,34 @@ class PayfastGatewayPlugin(BasePlugin):
                         previous_value) -> "GatewayResponse":
         if not self.active:
             return previous_value
+        api_url = self.config.connection_params['api_url']
+        api_key = self.config.connection_params['public_api_key']
+        merchant_id = self.config.connection_params['merchant_id']
+        merchant_passphrase = self.config.connection_params['merchant_passphrase']
+        return_url = self.config.connection_params['return_url']
+        notify_url = self.config.connection_params['notify_url']
+        payload = {
+            "merchand_id": merchant_id,
+            "merchant_key": api_key,
+            "return_url": return_url,
+            "notify_url": notify_url,
+            "email_address": payment_information.customer_email,
+            "m_payment_id": payment_information.payment_id,
+            "amount": payment_information.amount,
+            "item_name": payment_information.order_id,
+        }
+
+        initiate_payment(base_url=api_url, passphrase=merchant_passphrase,
+                         payment_data=payload)
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
+        config = self.config
+        if not self.channel:
+            return HttpResponseNotFound()
+        if path.startswith(WEBHOOK_PATH, 1):  # 1 as we don't check the '/'
+            return handle_webhook(request, config, self.channel.slug)
         logger.warning(
-            "Received request to incorrect stripe path", extra={"path": path}
+            "Received request to incorrect Payfast path", extra={"path": path}
         )
         return HttpResponse(status=200)
 
