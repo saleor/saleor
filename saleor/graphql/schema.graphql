@@ -22483,6 +22483,9 @@ input OrderBulkCreateInput {
 
   """List of discounts."""
   discounts: [OrderDiscountCommonInput!]
+
+  """Fulfillments of the order."""
+  fulfillments: [OrderBulkCreateFulfillmentInput!]
 }
 
 input OrderBulkCreateUserInput {
@@ -22610,6 +22613,39 @@ input OrderBulkCreateDeliveryMethodInput {
 
   """Private metadata of the tax class."""
   shippingTaxClassPrivateMetadata: [MetadataInput!]
+}
+
+input OrderBulkCreateFulfillmentInput {
+  """Fulfillments tracking code."""
+  trackingCode: String
+
+  """List of items informing how to fulfill the order."""
+  lines: [OrderBulkCreateFulfillmentLineInput!]
+}
+
+input OrderBulkCreateFulfillmentLineInput {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The sku of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """List of stock items."""
+  stocks: [OrderBulkCreateFulfillStockInput!]
+}
+
+input OrderBulkCreateFulfillStockInput {
+  """The number of line items to be fulfilled from given warehouse."""
+  quantity: Int!
+
+  """ID of the warehouse from which the item will be fulfilled."""
+  warehouseId: ID
+
+  """Name of the warehouse from which the item will be fulfilled."""
+  warehouseName: String
 }
 
 """
