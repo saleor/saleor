@@ -719,11 +719,11 @@ def _create_fulfillment_lines(
             Default value is set to `False`.
 
     Return:
-        List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
+        List[FulfillmentLine]: Unsaved fulfillment lines created for this fulfillment
             based on information form `lines`
 
     Raise:
-        InsufficientStock: If system hasn't containt enough item in stock for any line.
+        InsufficientStock: If system hasn't contained enough item in stock for any line.
 
     """
     lines = [line_data["order_line"] for line_data in lines_data]
