@@ -33,6 +33,10 @@ ORDER_BULK_CREATE = """
                     events {
                         message
                     }
+                    weight {
+                        value
+                    }
+                    displayGrossPrices
                 }
                 errors {
                     field
@@ -98,13 +102,14 @@ def test_order_bulk_create(
     }
     note_1 = {
         "message": "Test message",
-        "date": datetime.today(),
+        "date": datetime.now(),
         "userId": graphene.Node.to_global_id("User", customer_user.id),
         # "appId": graphene.Node.to_global_id("App", app.id),
     }
+
     order_1 = {
         "channel": channel_PLN.slug,
-        "createdAt": datetime.today(),
+        "createdAt": datetime.now(),
         "status": OrderStatus.DRAFT,
         "user": user,
         "billingAddress": graphql_address_data,
@@ -113,6 +118,7 @@ def test_order_bulk_create(
         "deliveryMethod": delivery_method,
         "lines": [line_1],
         "notes": [note_1],
+        "weight": "10.15",
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     variables = {"orders": [order_1]}
@@ -124,9 +130,12 @@ def test_order_bulk_create(
     # then
     assert content["data"]["orderBulkCreate"]["count"] == 1
     data = content["data"]["orderBulkCreate"]["results"]
-    assert data[0]["order"]["lines"]
-    assert data[0]["order"]["events"][0]["message"] == "Test message"
     assert not data[0]["errors"]
+    order = data[0]["order"]
+    assert order["lines"]
+    assert order["events"][0]["message"] == "Test message"
+    assert order["weight"]["value"] == 10.15
+    assert order["displayGrossPrices"]
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
