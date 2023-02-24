@@ -11,6 +11,7 @@ from ....app.models import App
 from ....channel.models import Channel
 from ....order import OrderEvents, OrderOrigin
 from ....order.models import Order, OrderEvent, OrderLine
+from ....order.utils import update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -233,12 +234,10 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     )
     promo_codes = NonNullList(graphene.String, description="List of promo codes.")
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
-    # TODO notes
     # TODO invoices = [OrderBulkCreateInvoiceInput!]
     # TODO transactions: [TransactionCreateInput!]!
     # TODO fulfillments: [OrderBulkCreateFulfillmentInput!]
-    # TODO weight = WeightScalar(description="Weight of the order.")
-    # TODO discounts = NonNullList(OrderDiscountCommonInput, description="List of dis)
+    # TODO discounts (? need to be added calculated if any)
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
@@ -579,6 +578,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     @classmethod
     def create_single_order(cls, order_input) -> OrderWithErrors:
         errors: List[OrderBulkError] = []
+        cls.validate_order_input(order_input, errors)
         order = Order()
 
         # get related instances
@@ -638,11 +638,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.customer_note = order_input.get("customer_note", "")
         order.redirect_url = order_input.get("redirect_url")
         order.origin = OrderOrigin.BULK_CREATE
+        order.weight = order_input.get("weight")
         # TODO charged
         # TODO authourized
         # TODO voucher
         # TODO gift cards
-        # TODO weight
+
+        update_order_display_gross_prices(order)
 
         return OrderWithErrors(
             order=order,
@@ -696,18 +698,23 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return orders_with_errors
 
     @classmethod
-    def validate_input(cls, input):
-        # TODO validate status
-        # TODO validate number
-        # TODO validate date created
-        # TODO validate display gross prices
-        pass
+    def validate_order_input(cls, order_input, errors: List[OrderBulkError]):
+        weight = order_input.get("weight")
+        if weight and weight.value < 0:
+            errors.append(OrderBulkError(message="Product can't have negative weight."))
+
+        date = order_input.get("created_at")
+        if date and not cls.is_datetime_valid(date):
+            errors.append(OrderBulkError(message="Order input contains future date."))
+
+        # TODO validate status (wait for fulfilments)
+        # TODO validate number (?)
+        return errors
 
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         # TODO post save actions
         orders_input = data["orders"]
-        cls.validate_input(orders_input)
         orders_with_errors: List[OrderWithErrors] = []
         for order_input in orders_input:
             orders_with_errors.append(cls.create_single_order(order_input))
