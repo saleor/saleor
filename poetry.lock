@@ -420,14 +420,14 @@ crt = ["awscrt (==0.16.9)"]
 
 [[package]]
 name = "braintree"
-version = "4.17.1"
+version = "4.18.1"
 description = "Braintree Python Library"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "braintree-4.17.1-py2.py3-none-any.whl", hash = "sha256:96410e2d1898cef5bb928b9f9b841e55ff8571ab0eb9b86ec13286ba87aba279"},
-    {file = "braintree-4.17.1.tar.gz", hash = "sha256:97f51631f3cd6b1f40c8fb770fa4d140f9768af25e75473a5ee352b3ed5eb83b"},
+    {file = "braintree-4.18.1-py2.py3-none-any.whl", hash = "sha256:0ef2726521751c7d8ffb2ac77156424157cc6ae34df58fff3ae0cf0e8b8d3bd3"},
+    {file = "braintree-4.18.1.tar.gz", hash = "sha256:41d7b8408b383a9ba419afbf785f1e336a1da56c56822f0e7253f6b6704319a7"},
 ]
 
 [package.dependencies]
@@ -5157,4 +5157,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "71ceac4b6c31f87662573065a1dccd786f4a16b5b3f9c2fe3cf633a374f3cc95"
+content-hash = "4f49d5db57afa345f1a2e35cb0ec8d1bc026a7b8c724e211885b119d88bb466c"
