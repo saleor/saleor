@@ -116,7 +116,7 @@ class PayfastGatewayPlugin(BasePlugin):
     ):
         configuration = plugin_configuration.configuration
         configuration = {item["name"]: item["value"] for item in configuration}
-        required_fields = ["api_endpoint", "merchant_id", "public_api_key",
+        required_fields = ["api_url", "merchant_id", "public_api_key",
                            "merchant_passphrase", "notify_url"]
         all_required_fields_provided = all(
             [configuration.get(field) for field in required_fields]
@@ -161,6 +161,8 @@ class PayfastGatewayPlugin(BasePlugin):
 
     def webhook(self, request: WSGIRequest, path: str, previous_value) -> HttpResponse:
         config = self.config
+        if not self.active:
+            return previous_value
         if not self.channel:
             return HttpResponseNotFound()
         if path.startswith(WEBHOOK_PATH, 1):  # 1 as we don't check the '/'
