@@ -7559,7 +7559,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Attributes that can be assigned to the page type.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   availableAttributes(
     filter: AttributeFilterInput
@@ -7581,7 +7581,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Whether page type has pages assigned.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   hasPages: Boolean
 }
