@@ -59,6 +59,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- [Preview] Add `StocksBulkUpdated` mutation - #12139 by @SzymJ
 - Added support for all attributes types in `BulkAttributeValueInput` - #12095 by @SzymJ
 - Add possibility to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
 - Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
