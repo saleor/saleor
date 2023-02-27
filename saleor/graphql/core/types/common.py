@@ -47,6 +47,7 @@ from ..enums import (
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
+    TransactionInitializeErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -418,6 +419,10 @@ class TransactionRequestActionError(Error):
 
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
+
+
+class TransactionInitializeError(Error):
+    code = TransactionInitializeErrorCode(description="The error code.", required=True)
 
 
 class PaymentGatewayConfigError(Error):

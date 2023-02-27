@@ -324,7 +324,7 @@ def test_parse_transaction_action_data_with_event_only_mandatory_fields():
     response_data = {
         "pspReference": expected_psp_reference,
         "result": TransactionEventType.CHARGE_SUCCESS.upper(),
-        "amount": expected_amount
+        "amount": expected_amount,
     }
 
     # when

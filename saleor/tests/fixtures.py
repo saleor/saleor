@@ -6769,3 +6769,16 @@ def thumbnail_user(customer_user, image_list, media_root):
         size=128,
         image=image_list[1],
     )
+
+
+@pytest.fixture
+def transaction_initialize_response():
+    return {
+        "pspReference": "psp-123",
+        "data": {"some-json": "data"},
+        "result": "CHARGE_SUCCESS",
+        "amount": "10.00",
+        "time": "2023-02-21T13:25:09.973465",
+        "externalUrl": "http://127.0.0.1:9090/external-reference",
+        "message": "Message related to the payment",
+    }

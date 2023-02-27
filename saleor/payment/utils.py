@@ -731,7 +731,7 @@ def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
     error_field_msg: list[str],
-    psp_reference: str,
+    psp_reference: Optional[str],
     request_type: str,
     event_is_optional: bool = True,
 ):
@@ -1043,6 +1043,7 @@ def create_transaction_event_for_transaction_session(
     app: App,
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
+    # FIXME: missing tests
     request_event_type = "session-request"
 
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(

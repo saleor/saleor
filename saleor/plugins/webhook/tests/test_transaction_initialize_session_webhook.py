@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest import mock
 
 import graphene
-import pytest
 from freezegun import freeze_time
 
 from ....channel import TransactionFlowStrategy
@@ -113,19 +112,6 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     assert response == PaymentGatewayData(
         app_identifier=webhook_app.identifier, data=expected_response, error=None
     )
-
-
-@pytest.fixture
-def transaction_initialize_response():
-    return {
-        "pspReference": "psp-123",
-        "data": {"some-json": "data"},
-        "result": "CHARGE_SUCCESS",
-        "amount": "10.00",
-        "time": "2023-02-21T13:25:09.973465",
-        "externalUrl": "http://127.0.0.1:9090/external-reference",
-        "message": "Message related to the payment",
-    }
 
 
 @freeze_time()
@@ -409,10 +395,11 @@ def test_transaction_initialize_session_skips_app_without_identifier(
     checkout,
     permission_manage_payments,
     transaction_item_generator,
+    transaction_initialize_response,
 ):
     # given
     data = {"some": "request-data"}
-    expected_response_data = transaction_initialize_response
+    expected_response_data = transaction_initialize_response.copy()
     mock_request.return_value = expected_response_data
     plugin = webhook_plugin()
 
