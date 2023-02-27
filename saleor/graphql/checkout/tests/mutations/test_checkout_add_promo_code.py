@@ -547,7 +547,6 @@ def test_checkout_add_category_code_checkout_with_sale(
 def test_checkout_add_variant_voucher_code_apply_once_per_order(
     api_client, checkout_with_items, voucher_specific_product_type
 ):
-    # TODO: update third variant price - include the third variant in discount
     # given
     checkout = checkout_with_items
     channel = checkout.channel
@@ -603,7 +602,7 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
         "promoCode": voucher.code,
     }
 
-    # wheng
+    # when
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     # then
