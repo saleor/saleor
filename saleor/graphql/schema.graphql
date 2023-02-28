@@ -23415,9 +23415,9 @@ type Manifest {
   audience: String
 
   """
-  SemVer range of required Saleor version.
+  Determines the app's required Saleor version as semver range.
   
-  Added in Saleor 3.11.
+  Added in Saleor 3.12.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
