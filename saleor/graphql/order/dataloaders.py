@@ -35,6 +35,19 @@ class OrderByIdLoader(DataLoader):
         return [orders.get(order_id) for order_id in keys]
 
 
+class OrderByNumberLoader(DataLoader):
+    context_key = "order_by_number"
+
+    def batch_load(self, keys):
+        orders = Order.objects.using(self.database_connection_name).filter(
+            number__in=keys
+        )
+        orders_by_number = defaultdict(Order)
+        for order in orders:
+            orders_by_number[order.number] = order
+        return [orders_by_number.get(number) for number in keys]
+
+
 class OrdersByUserLoader(DataLoader):
     context_key = "order_by_user"
 
