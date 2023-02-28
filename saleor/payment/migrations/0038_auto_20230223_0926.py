@@ -19,6 +19,14 @@ class Migration(migrations.Migration):
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
         ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionevent
+             ALTER COLUMN amount_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="transactionevent",
             name="app",
@@ -50,6 +58,14 @@ class Migration(migrations.Migration):
             name="include_in_calculations",
             field=models.BooleanField(default=False),
         ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionevent
+             ALTER COLUMN include_in_calculations
+             SET DEFAULT false;
+             """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="transactionevent",
             name="message",
@@ -59,6 +75,14 @@ class Migration(migrations.Migration):
             model_name="transactionevent",
             name="psp_reference",
             field=models.CharField(blank=True, default="", max_length=512),
+        ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionevent
+             ALTER COLUMN psp_reference
+             SET DEFAULT '';
+             """,
+            migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionevent",
@@ -120,12 +144,28 @@ class Migration(migrations.Migration):
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
         ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionitem
+             ALTER COLUMN authorize_pending_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="transactionitem",
             name="cancel_pending_value",
             field=models.DecimalField(
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
+        ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionitem
+             ALTER COLUMN cancel_pending_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionitem",
@@ -134,12 +174,28 @@ class Migration(migrations.Migration):
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
         ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionitem
+             ALTER COLUMN canceled_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="transactionitem",
             name="charge_pending_value",
             field=models.DecimalField(
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
+        ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionitem
+             ALTER COLUMN charge_pending_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionitem",
@@ -167,6 +223,14 @@ class Migration(migrations.Migration):
             field=models.DecimalField(
                 decimal_places=3, default=Decimal("0"), max_digits=12
             ),
+        ),
+        migrations.RunSQL(
+            """
+             ALTER TABLE payment_transactionitem
+             ALTER COLUMN refund_pending_value
+             SET DEFAULT 0;
+             """,
+            migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionitem",
