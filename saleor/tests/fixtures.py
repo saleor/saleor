@@ -4876,6 +4876,24 @@ def discount_info(category, collection, sale, channel_USD):
 
 
 @pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
