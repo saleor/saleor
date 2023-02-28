@@ -72,3 +72,12 @@ class TransactionInitializeErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+
+
+class TransactionProcessErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    TRANSACTION_ALREADY_PROCESSED = "transaction_already_processed"
+    MISSING_PAYMENT_APP_RELATION = "missing_payment_app_relation"
+    MISSING_PAYMENT_APP = "missing_payment_app"

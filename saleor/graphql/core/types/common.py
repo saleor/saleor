@@ -48,6 +48,7 @@ from ..enums import (
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
     TransactionInitializeErrorCode,
+    TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -423,6 +424,10 @@ class TransactionEventReportError(Error):
 
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
+
+
+class TransactionProcessError(Error):
+    code = TransactionProcessErrorCode(description="The error code.", required=True)
 
 
 class PaymentGatewayConfigError(Error):
