@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- Add optional `Manifest.requiredSaleorVersion` field determining required Saleor version as semver range - #12164 by @przlada
 
 ### Other changes
 
