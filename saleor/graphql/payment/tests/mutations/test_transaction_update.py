@@ -2,10 +2,11 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
 
 from .....order import OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionStatus
+from .....payment import TransactionEventType, TransactionStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -722,3 +723,46 @@ def test_creates_transaction_event_for_order(
     assert event.name == event_name
     assert event.status == event_status
     assert event.reference == event_reference
+
+
+def test_updates_transaction_manual_adjustment_event(
+    transaction, order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = order_with_lines.payment_transactions.first()
+    transaction.events.create(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        amount_value=Decimal("10"),
+        currency=transaction.currency,
+        transaction_id=transaction.pk,
+        include_in_calculations=True,
+        app_identifier=None,
+        app=None,
+        user=None,
+        created_at=timezone.now(),
+        message="Manual adjustment of the transaction.",
+    )
+
+    authorized_amount = Decimal("20")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_amount,
+                "currency": transaction.currency,
+            }
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+
+    assert transaction.events.count() == 1
+    event = transaction.events.first()
+    assert event.include_in_calculations
+    assert event.amount_value == authorized_amount

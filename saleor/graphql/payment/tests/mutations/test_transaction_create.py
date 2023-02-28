@@ -609,8 +609,8 @@ def test_creates_transaction_event_for_order(
     assert event_data["status"] == TransactionStatusEnum.FAILURE.name
     assert event_data["reference"] == event_reference
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(include_in_calculations=False).first()
     assert event.name == event_name
     assert event.status == event_status
     assert event.reference == event_reference
@@ -673,8 +673,63 @@ def test_creates_transaction_event_for_checkout(
     assert event_data["status"] == TransactionStatusEnum.FAILURE.name
     assert event_data["reference"] == event_reference
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(include_in_calculations=False).first()
     assert event.name == event_name
     assert event.status == event_status
     assert event.reference == event_reference
+
+
+def test_creates_transaction_manual_adjustment_events(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Failed authorized for 10$"
+    type = "Credit Card"
+    reference = "PSP reference - 123"
+    available_actions = []
+    authorized_value = Decimal("20")
+    charged_value = Decimal("5")
+    refunded_value = Decimal("10")
+    voided_value = Decimal("0")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "reference": reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+            "amountVoided": {
+                "amount": voided_value,
+                "currency": "USD",
+            },
+            "amountRefunded": {
+                "amount": refunded_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    get_graphql_content(response)
+
+    assert transaction.events.filter(include_in_calculations=True).count() == 4

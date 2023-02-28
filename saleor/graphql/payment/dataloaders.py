@@ -10,7 +10,10 @@ class TransactionEventByTransactionIdLoader(DataLoader):
     def batch_load(self, keys):
         events = (
             TransactionEvent.objects.using(self.database_connection_name)
-            .filter(transaction_id__in=keys)
+            .filter(
+                transaction_id__in=keys,
+                include_in_calculations=False,  # zero-downtime compatibilty with 3.12
+            )
             .order_by("pk")
         )
         event_map = defaultdict(list)

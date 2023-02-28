@@ -7,8 +7,10 @@ import graphene
 from babel.numbers import get_currency_precision
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Q
+from django.utils import timezone
 
 from ..account.models import User
+from ..app.models import App
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -22,6 +24,7 @@ from . import (
     GatewayError,
     PaymentError,
     StorePaymentMethod,
+    TransactionEventType,
     TransactionKind,
 )
 from .error_codes import PaymentErrorCode
@@ -36,7 +39,7 @@ from .interface import (
     StorePaymentMethodEnum,
     TransactionData,
 )
-from .models import Payment, Transaction
+from .models import Payment, Transaction, TransactionEvent, TransactionItem
 
 logger = logging.getLogger(__name__)
 
@@ -677,3 +680,80 @@ def payment_owned_by_user(payment_pk: int, user) -> bool:
         ).first()
         is not None
     )
+
+
+def prepare_manual_event(
+    events_to_create: list[TransactionEvent],
+    events_to_update: list[TransactionEvent],
+    amount_field: str,
+    money_data: Dict[str, Decimal],
+    event_type: str,
+    transaction: TransactionItem,
+    user: Optional["User"],
+    app: Optional["App"],
+):
+    """Zero-downtime compatibility with 3.12."""
+
+    amount_value = money_data.get(amount_field)
+    if amount_value is None:
+        return
+    transaction_event = transaction.events.filter(type=event_type).first()
+    transaction_amount = getattr(transaction, amount_field)
+    if not transaction_event:
+        events_to_create.append(
+            TransactionEvent(
+                type=event_type,
+                amount_value=transaction_amount,
+                currency=transaction.currency,
+                transaction_id=transaction.pk,
+                include_in_calculations=True,
+                app_identifier=app.identifier if app else None,
+                app=app,
+                user=user,
+                created_at=timezone.now(),
+                message="Manual adjustment of the transaction.",
+            )
+        )
+    else:
+        transaction_event.amount_value = transaction_amount
+        events_to_update.append(transaction_event)
+
+
+def create_manual_adjustment_events(
+    transaction: TransactionItem,
+    money_data: Dict[str, Decimal],
+    user: Optional["User"],
+    app: Optional["App"],
+):
+    """Create TransactionEvent used to recalculate the transaction amounts.
+
+    The transaction amounts are calculated based on the amounts stored in
+    the TransactionEvents assigned to the given transaction. To properly
+    match the amounts, the manual events are created in case of calling
+    transactionCreate or transactionUpdate
+    """
+    events_to_create: list[TransactionEvent] = []
+    events_to_update: list[TransactionEvent] = []
+    amound_field_to_event_type = {
+        "authorized_value": TransactionEventType.AUTHORIZATION_SUCCESS,
+        "charged_value": TransactionEventType.CHARGE_SUCCESS,
+        "refunded_value": TransactionEventType.REFUND_SUCCESS,
+        "canceled_value": TransactionEventType.CANCEL_SUCCESS,
+    }
+    for field, type in amound_field_to_event_type.items():
+        prepare_manual_event(
+            events_to_create=events_to_create,
+            events_to_update=events_to_update,
+            amount_field=field,
+            money_data=money_data,
+            event_type=type,
+            transaction=transaction,
+            app=app,
+            user=user,
+        )
+    if events_to_create:
+        TransactionEvent.objects.bulk_create(events_to_create)
+    if events_to_update:
+        TransactionEvent.objects.bulk_update(events_to_update, fields=["amount_value"])
+
+    return []
