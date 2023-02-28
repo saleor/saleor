@@ -2,9 +2,10 @@ from copy import deepcopy
 
 import graphene
 
+from .....order import OrderEvents
 from .....order import events as order_events
 from .....order.events import order_replacement_created
-from .....order.models import get_order_number
+from .....order.models import OrderEvent, get_order_number
 from ....tests.utils import get_graphql_content
 
 ORDERS_FULFILLED_EVENTS = """
@@ -230,6 +231,41 @@ def test_related_order_events_query_for_app(
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
+    content = get_graphql_content(response)
+
+    data = content["data"]["orders"]["edges"]
+    for order_data in data:
+        events_data = order_data["node"]["events"]
+        if order_data["node"]["id"] != related_order_id:
+            assert events_data[0]["relatedOrder"]["id"] == related_order_id
+
+
+def test_related_order_eventes_old_order_id(
+    staff_api_client, permission_manage_orders, order, payment_dummy, app
+):
+    # given
+    new_order = deepcopy(order)
+    new_order.id = None
+    new_order.number = get_order_number()
+    new_order.save()
+
+    related_order_id = graphene.Node.to_global_id("Order", new_order.id)
+
+    parameters = {"related_order_pk": new_order.number}
+    OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.ORDER_REPLACEMENT_CREATED,
+        user=None,
+        app=app,
+        parameters=parameters,
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(ORDERS_WITH_EVENTS)
+
+    # then
     content = get_graphql_content(response)
 
     data = content["data"]["orders"]["edges"]
