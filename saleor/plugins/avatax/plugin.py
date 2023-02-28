@@ -424,9 +424,11 @@ class AvataxPlugin(BasePlugin):
             net = Decimal(line["lineAmount"])
 
             if currency == "JPY" and prices_entered_with_tax():
-                base_value._setup()
+                if isinstance(base_value, SimpleLazyObject):
+                    base_value = base_value._setupfunc()  # type: ignore
+
                 line_gross = Money(
-                    base_value._wrapped.amount - discount_amount, currency=currency
+                    base_value.amount - discount_amount, currency=currency
                 )
                 line_net = Money(amount=line_gross.amount - tax, currency=currency)
             else:
@@ -435,8 +437,8 @@ class AvataxPlugin(BasePlugin):
                 line_net = Money(amount=net, currency=currency)
 
             return TaxedMoney(net=line_net, gross=line_gross)
-        base_value._setup()
-        base_value = base_value._wrapped
+        if isinstance(base_value, SimpleLazyObject):
+            base_value = base_value._setupfunc()  # type: ignore
         return TaxedMoney(net=base_value, gross=base_value)
 
     def calculate_order_line_total(
