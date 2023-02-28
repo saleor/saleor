@@ -7,6 +7,7 @@ import requests
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
@@ -96,7 +97,7 @@ def test_install_app_created_app_with_audience(
 def test_install_app_with_required_saleor_version(
     app_manifest, app_installation, monkeypatch
 ):
-    app_manifest["requiredSaleorVersion"] = "*"
+    app_manifest["requiredSaleorVersion"] = f"^{__version__}"
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
 
