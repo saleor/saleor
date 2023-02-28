@@ -23247,6 +23247,7 @@ enum AppErrorCode {
   UNIQUE
   OUT_OF_SCOPE_APP
   OUT_OF_SCOPE_PERMISSION
+  UNSUPPORTED_SALEOR_VERSION
 }
 
 input AppInput {
@@ -23412,6 +23413,15 @@ type Manifest {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   audience: String
+
+  """
+  SemVer range of required Saleor version.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  requiredSaleorVersion: String
 }
 
 type AppManifestExtension {

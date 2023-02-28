@@ -5,7 +5,9 @@ from typing import Dict, Iterable, List
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from semantic_version import NpmSpec, Version
 
+from .. import __version__
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
@@ -109,6 +111,11 @@ def clean_manifest_data(manifest_data):
                 code=AppErrorCode.INVALID_URL_FORMAT.value,
             )
         )
+
+    try:
+        validate_required_saleor_version(manifest_data.get("requiredSaleorVersion"))
+    except ValidationError as e:
+        errors["requiredSaleorVersion"].append(e)
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -291,3 +298,18 @@ def validate_required_fields(manifest_data, errors):
                     code=AppErrorCode.REQUIRED.value,
                 )
             )
+
+
+def validate_required_saleor_version(required_version, saleor_version=__version__):
+    if required_version is None:
+        return True
+    try:
+        version = Version(saleor_version)
+        spec = NpmSpec(required_version)
+    except Exception:
+        msg = "Invalid required Saleor version specification."
+        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
+    if version not in spec:
+        msg = f"Saleor version {saleor_version} is not supported by app."
+        raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
+    return True

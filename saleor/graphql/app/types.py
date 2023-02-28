@@ -16,6 +16,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_38,
+    ADDED_IN_311,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -222,6 +223,11 @@ class Manifest(graphene.ObjectType):
             "The audience that will be included in all JWT tokens for the app."
             + ADDED_IN_38
             + PREVIEW_FEATURE
+        )
+    )
+    required_saleor_version = graphene.String(
+        description=(
+            "SemVer range of required Saleor version." + ADDED_IN_311 + PREVIEW_FEATURE
         )
     )
 
