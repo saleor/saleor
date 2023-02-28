@@ -205,6 +205,7 @@ class TransactionEventType:
     CANCEL_SUCCESS = "cancel_success"
     CANCEL_FAILURE = "cancel_failure"
     CANCEL_REQUEST = "cancel_request"
+    INFO = "info"
 
     CHOICES = [
         (AUTHORIZATION_SUCCESS, "Represents success authorization"),
@@ -222,6 +223,7 @@ class TransactionEventType:
         (CANCEL_SUCCESS, "Represents success cancel"),
         (CANCEL_FAILURE, "Represents failure cancel"),
         (CANCEL_REQUEST, "Represents cancel request"),
+        (INFO, "Represents an info event"),
     ]
 
 

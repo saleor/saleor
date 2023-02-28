@@ -260,7 +260,7 @@ class TransactionEvent(ModelObjectType[models.TransactionEvent]):
     status = graphene.Field(
         TransactionEventStatusEnum,
         description="Status of transaction's event.",
-        required=True,
+        required=False,
         deprecation_reason=(
             f"{PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD} Use `type` instead."
         ),

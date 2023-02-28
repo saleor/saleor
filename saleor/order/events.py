@@ -503,7 +503,7 @@ def transaction_event(
     user: Optional[User],
     app: Optional[App],
     reference: str,
-    status: str,
+    status: Optional[str],
     message: str
 ) -> OrderEvent:
     parameters = {"message": message, "reference": reference, "status": status}

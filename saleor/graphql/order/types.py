@@ -521,7 +521,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
     @staticmethod
     def resolve_status(root: models.OrderEvent, _info):
-        return root.parameters.get("status")
+        return root.parameters.get("status") or ""
 
     @staticmethod
     def resolve_reference(root: models.OrderEvent, _info):

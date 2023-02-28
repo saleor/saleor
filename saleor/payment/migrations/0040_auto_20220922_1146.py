@@ -189,6 +189,7 @@ class Migration(migrations.Migration):
                     ("cancel_success", "Represents success cancel"),
                     ("cancel_failure", "Represents failure cancel"),
                     ("cancel_request", "Represents cancel request"),
+                    ("info", "Represents an info event"),
                 ],
                 max_length=128,
                 null=True,
