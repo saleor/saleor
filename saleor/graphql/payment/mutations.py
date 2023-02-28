@@ -45,19 +45,15 @@ from ...payment.gateway import (
     request_charge_action,
     request_refund_action,
 )
-from ...payment.interface import (
-    PaymentGatewayData,
-    TransactionProcessActionData,
-    TransactionSessionData,
-)
+from ...payment.interface import PaymentGatewayData
 from ...payment.transaction_item_calculations import recalculate_transaction_amounts
 from ...payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
     create_manual_adjustment_events,
     create_payment,
-    create_transaction_event_for_transaction_session,
     get_already_existing_event,
+    handle_transaction_session,
     is_currency_supported,
 )
 from ...permission.auth_filters import AuthorizationFilters
@@ -1784,83 +1780,6 @@ class TransactionInitialize(TransactionSessionBase):
         return app
 
     @classmethod
-    def prepare_manager_input(
-        cls,
-        source_object: Union[checkout_models.Checkout, order_models.Order],
-        payment_gateway: PaymentGatewayData,
-        amount: Decimal,
-        action: str,
-        app: App,
-    ) -> TransactionSessionData:
-        transaction = payment_models.TransactionItem.objects.create(
-            checkout_id=source_object.pk
-            if isinstance(source_object, checkout_models.Checkout)
-            else None,
-            order_id=source_object.pk
-            if isinstance(source_object, order_models.Order)
-            else None,
-            currency=source_object.currency,
-            app=app,
-            app_identifier=app.identifier,
-        )
-
-        return TransactionSessionData(
-            transaction=transaction,
-            source_object=source_object,
-            payment_gateway=payment_gateway,
-            action=TransactionProcessActionData(
-                action_type=action, currency=source_object.currency, amount=amount
-            ),
-        )
-
-    @classmethod
-    def create_request_event(
-        cls, transaction: payment_models.TransactionItem, action: str, amount: Decimal
-    ) -> payment_models.TransactionEvent:
-        if action == TransactionFlowStrategy.CHARGE:
-            event_type = TransactionEventType.CHARGE_REQUEST
-        else:
-            event_type = TransactionEventType.AUTHORIZATION_REQUEST
-
-        event = transaction.events.create(
-            include_in_calculations=False,
-            type=event_type,
-            currency=transaction.currency,
-            amount_value=amount,
-        )
-        return event
-
-    @classmethod
-    def handle_manager_action(
-        cls,
-        info,
-        source_object: Union[checkout_models.Checkout, order_models.Order],
-        payment_gateway: PaymentGatewayData,
-        amount: Decimal,
-        action: str,
-        app: App,
-    ):
-        # FIXME: move logic outside the mutation
-        transaction_session_data = cls.prepare_manager_input(
-            source_object=source_object,
-            payment_gateway=payment_gateway,
-            amount=amount,
-            action=action,
-            app=app,
-        )
-        transaction = transaction_session_data.transaction
-        request_event = cls.create_request_event(transaction, action, amount)
-
-        manager = get_plugin_manager_promise(info.context).get()
-        response = manager.transaction_initialize_session(transaction_session_data)
-
-        created_event = create_transaction_event_for_transaction_session(
-            request_event, app, response.data
-        )
-        data = response.data if response else None
-        return created_event.transaction, created_event, data
-
-    @classmethod
     def perform_mutation(
         cls, root, info, *, id, payment_gateway, amount=None, action=None
     ):
@@ -1876,12 +1795,13 @@ class TransactionInitialize(TransactionSessionBase):
         )
         amount = cls.get_amount(source_object, amount)
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
-        transaction, event, data = cls.handle_manager_action(
-            info,
+        manager = get_plugin_manager_promise(info.context).get()
+        transaction, event, data = handle_transaction_session(
             source_object=source_object,
             payment_gateway=payment_gateway_data,
             amount=amount,
             action=action,
             app=app,
+            manager=manager,
         )
         return cls(transaction=transaction, transaction_event=event, data=data)

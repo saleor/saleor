@@ -21,6 +21,7 @@ from ..utils import (
     create_failed_transaction_event,
     create_manual_adjustment_events,
     create_payment_lines_information,
+    create_transaction_event_for_transaction_session,
     create_transaction_event_from_request_and_webhook_response,
     get_channel_slug_from_payment,
     get_correct_event_types_based_on_request_type,
@@ -910,3 +911,84 @@ def test_create_manual_adjustment_events_additional_cancel(
 def test_get_correct_event_types_based_on_request_type(request_type, expected_events):
     correct_types = get_correct_event_types_based_on_request_type(request_type)
     assert set(correct_types) == set(expected_events)
+
+
+@pytest.mark.parametrize(
+    "response_result, transaction_amount_field_name",
+    [
+        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
+        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
+        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
+        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+    ],
+)
+def test_create_transaction_event_for_transaction_session_success_response(
+    response_result,
+    transaction_amount_field_name,
+    transaction_item_generator,
+    transaction_initialize_response,
+    webhook_app,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_initialize_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event, webhook_app, response
+    )
+
+    # then
+    assert response_event.include_in_calculations
+    assert response_event.amount_value == expected_amount
+    transaction.refresh_from_db()
+    assert getattr(transaction, transaction_amount_field_name) == expected_amount
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.CHARGE_FAILURE,
+        TransactionEventType.REFUND_FAILURE,
+        TransactionEventType.REFUND_SUCCESS,
+    ],
+)
+def test_create_transaction_event_for_transaction_session_not_success_events(
+    response_result,
+    transaction_item_generator,
+    transaction_initialize_response,
+    webhook_app,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_initialize_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        amount_value=expected_amount,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event, webhook_app, response
+    )
+
+    # then
+    assert response_event.amount_value == expected_amount
+    assert response_event.type in [response_result, TransactionEventType.CHARGE_FAILURE]
+    transaction.refresh_from_db()
+    assert transaction.authorized_value == Decimal("0")
+    assert transaction.charged_value == Decimal("0")
+    assert transaction.authorize_pending_value == Decimal("0")
+    assert transaction.charge_pending_value == Decimal("0")

@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional, cast, overload
+from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from ..account.models import User
 from ..app.models import App
+from ..channel import TransactionFlowStrategy
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -41,14 +42,17 @@ from .interface import (
     AddressData,
     GatewayResponse,
     PaymentData,
+    PaymentGatewayData,
     PaymentLineData,
     PaymentLinesData,
     PaymentMethodInfo,
     RefundData,
     StorePaymentMethodEnum,
     TransactionData,
+    TransactionProcessActionData,
     TransactionRequestEventResponse,
     TransactionRequestResponse,
+    TransactionSessionData,
 )
 from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .transaction_item_calculations import recalculate_transaction_amounts
@@ -1043,7 +1047,6 @@ def create_transaction_event_for_transaction_session(
     app: App,
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
-    # FIXME: missing tests
     request_event_type = "session-request"
 
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
@@ -1248,6 +1251,23 @@ def create_manual_adjustment_events(
     return []
 
 
+def create_transaction_item(
+    source_object: Union[Checkout, Order],
+    user: Optional[User],
+    app: Optional[App],
+    psp_reference: Optional[str],
+):
+    return TransactionItem.objects.create(
+        checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
+        order_id=source_object.pk if isinstance(source_object, Order) else None,
+        currency=source_object.currency,
+        app=app,
+        app_identifier=app.identifier if app else None,
+        user=user,
+        psp_reference=psp_reference,
+    )
+
+
 def create_transaction_for_order(
     order: "Order",
     user: Optional["User"],
@@ -1255,13 +1275,8 @@ def create_transaction_for_order(
     psp_reference: Optional[str],
     charged_value: Decimal,
 ) -> TransactionItem:
-    transaction = TransactionItem.objects.create(
-        order_id=order.pk,
-        user=user,
-        app_identifier=app.identifier if app else None,
-        app=app,
-        psp_reference=psp_reference,
-        currency=order.currency,
+    transaction = create_transaction_item(
+        source_object=order, user=user, app=app, psp_reference=psp_reference
     )
     create_manual_adjustment_events(
         transaction=transaction,
@@ -1271,3 +1286,40 @@ def create_transaction_for_order(
     )
     recalculate_transaction_amounts(transaction=transaction)
     return transaction
+
+
+def handle_transaction_session(
+    source_object: Union[Checkout, Order],
+    payment_gateway: PaymentGatewayData,
+    amount: Decimal,
+    action: str,
+    app: App,
+    manager: PluginsManager,
+):
+    transaction_item = create_transaction_item(
+        source_object=source_object, user=None, app=app, psp_reference=None
+    )
+    session_data = TransactionSessionData(
+        transaction=transaction_item,
+        source_object=source_object,
+        payment_gateway=payment_gateway,
+        action=TransactionProcessActionData(
+            action_type=action, currency=source_object.currency, amount=amount
+        ),
+    )
+
+    request_event = transaction_item.events.create(
+        include_in_calculations=False,
+        type=TransactionEventType.CHARGE_REQUEST
+        if action == TransactionFlowStrategy.CHARGE
+        else TransactionEventType.AUTHORIZATION_REQUEST,
+        currency=transaction_item.currency,
+        amount_value=amount,
+    )
+    response = manager.transaction_initialize_session(session_data)
+
+    created_event = create_transaction_event_for_transaction_session(
+        request_event, app, response.data
+    )
+    data = response.data if response else None
+    return created_event.transaction, created_event, data

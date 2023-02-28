@@ -81,6 +81,7 @@ def _assert_fields(
     app_identifier,
     mocked_initialize,
     request_event_type=TransactionEventType.CHARGE_REQUEST,
+    action_type=TransactionFlowStrategy.CHARGE,
     request_event_include_in_calculations=False,
     authorized_value=Decimal(0),
     charged_value=Decimal(0),
@@ -154,7 +155,7 @@ def _assert_fields(
             transaction=transaction,
             source_object=source_object,
             action=TransactionProcessActionData(
-                action_type=TransactionFlowStrategy.CHARGE,
+                action_type=action_type,
                 amount=expected_amount,
                 currency=source_object.currency,
             ),
@@ -260,19 +261,6 @@ def test_for_order_without_payment_gateway_data(
     order.refresh_from_db()
     assert order.total_authorized_amount == Decimal(0)
     assert order.total_charged_amount == expected_amount
-
-
-# @pytest.fixture
-# def transaction_initialize_response():
-#     return {
-#         "pspReference": "psp-123",
-#         "data": {"some-json": "data"},
-#         "result": "CHARGE_SUCCESS",
-#         "amount": "10.00",
-#         "time": "2023-02-21T13:25:09.973465",
-#         "externalUrl": "http://127.0.0.1:9090/external-reference",
-#         "message": "Message related to the payment",
-#     }
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -733,8 +721,9 @@ def test_app_with_action_field_and_handle_payments(
         response_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
-        request_event_type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         authorized_value=checkout.total_gross_amount,
+        action_type=TransactionFlowStrategy.AUTHORIZATION,
     )
 
 
