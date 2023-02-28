@@ -1571,11 +1571,9 @@ class WebhookPlugin(BasePlugin):
             )
         return list(response_gateway.values())
 
-    def transaction_initialize_session(
-        self, transaction_session_data: TransactionSessionData, previous_value
-    ) -> PaymentGatewayData:
-        if not self.active:
-            return previous_value
+    def _transaction_session_base(
+        self, transaction_session_data: TransactionSessionData, webhook_event: str
+    ):
         if not transaction_session_data.payment_gateway.app_identifier:
             error = "Missing app identifier"
             return PaymentGatewayData(
@@ -1583,13 +1581,13 @@ class WebhookPlugin(BasePlugin):
                 error=error,
             )
         webhook = get_webhooks_for_event(
-            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            webhook_event,
             apps_identifier=[transaction_session_data.payment_gateway.app_identifier],
         ).first()
         if not webhook:
             error = (
                 "Unable to find an active webhook for "
-                "`TRANSACTION_INITIALIZE_SESSION` event."
+                f"`{webhook_event.upper()}` event."
             )
             return PaymentGatewayData(
                 app_identifier=transaction_session_data.payment_gateway.app_identifier,
@@ -1604,7 +1602,7 @@ class WebhookPlugin(BasePlugin):
         )
 
         response_data = trigger_webhook_sync(
-            event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            event_type=webhook_event,
             data=payload,
             webhook=webhook,
             subscribable_object=transaction_session_data,
@@ -1616,6 +1614,25 @@ class WebhookPlugin(BasePlugin):
             app_identifier=transaction_session_data.payment_gateway.app_identifier,
             data=response_data,
             error=error_msg,
+        )
+
+    def transaction_initialize_session(
+        self, transaction_session_data: TransactionSessionData, previous_value
+    ) -> PaymentGatewayData:
+        if not self.active:
+            return previous_value
+        return self._transaction_session_base(
+            transaction_session_data,
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+        )
+
+    def transaction_process_session(
+        self, transaction_session_data: TransactionSessionData, previous_value
+    ) -> PaymentGatewayData:
+        if not self.active:
+            return previous_value
+        return self._transaction_session_base(
+            transaction_session_data, WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
         )
 
     def token_is_required_as_payment_input(self, previous_value):

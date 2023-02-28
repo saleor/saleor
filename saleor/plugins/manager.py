@@ -1000,6 +1000,18 @@ class PluginsManager(PaymentInterface):
             channel_slug=transaction_session_data.source_object.channel.slug,
         )
 
+    def transaction_process_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_process_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
+        )
+
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):
         default_value = None
         return self.__run_method_on_plugins(

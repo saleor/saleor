@@ -1098,7 +1098,21 @@ def create_transaction_event_for_transaction_session(
         TransactionEventType.CHARGE_SUCCESS,
     ]:
         transaction = event.transaction
-        recalculate_transaction_amounts(transaction)
+        transaction.psp_reference = event.psp_reference
+        recalculate_transaction_amounts(transaction, save=False)
+        transaction.save(
+            update_fields=[
+                "authorized_value",
+                "charged_value",
+                "refunded_value",
+                "canceled_value",
+                "authorize_pending_value",
+                "charge_pending_value",
+                "refund_pending_value",
+                "cancel_pending_value",
+                "psp_reference",
+            ]
+        )
         update_order_with_transaction_details(transaction)
     return event
 

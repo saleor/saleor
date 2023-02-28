@@ -541,6 +541,7 @@ class WebhookEventSyncType:
 
     PAYMENT_GATEWAY_INITIALIZE_SESSION = "payment_gateway_initialize_session"
     TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
+    TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
@@ -560,6 +561,7 @@ class WebhookEventSyncType:
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
         PAYMENT_GATEWAY_INITIALIZE_SESSION: "Initialize payment gateway session",
         TRANSACTION_INITIALIZE_SESSION: "Initialize transaction session",
+        TRANSACTION_PROCESS_SESSION: "Process transaction session",
     }
 
     CHOICES = [
@@ -595,6 +597,7 @@ class WebhookEventSyncType:
             TRANSACTION_INITIALIZE_SESSION,
             DISPLAY_LABELS[TRANSACTION_INITIALIZE_SESSION],
         ),
+        (TRANSACTION_PROCESS_SESSION, DISPLAY_LABELS[TRANSACTION_PROCESS_SESSION]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -627,4 +630,5 @@ class WebhookEventSyncType:
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
         PAYMENT_GATEWAY_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSACTION_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_PROCESS_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
     }

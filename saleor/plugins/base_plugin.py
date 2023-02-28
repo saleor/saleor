@@ -791,6 +791,10 @@ class BasePlugin:
         ["TransactionSessionData", None], "PaymentGatewayData"
     ]
 
+    transaction_process_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
+    ]
+
     # Trigger when transaction item metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a transaction

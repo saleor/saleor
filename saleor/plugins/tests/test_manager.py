@@ -1241,3 +1241,44 @@ def test_manager_transaction_initialize_session(
 
     # then
     assert isinstance(response, PaymentGatewayData)
+
+
+def test_manager_transaction_process_session(
+    channel_USD, checkout, webhook_app, transaction_item_generator
+):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        app=webhook_app,
+        psp_reference=None,
+        name=None,
+        message=None,
+    )
+    action_type = TransactionFlowStrategy.CHARGE
+
+    transaction_session_data = TransactionSessionData(
+        transaction=transaction,
+        source_object=checkout,
+        action=TransactionProcessActionData(
+            amount=Decimal("10"),
+            currency=transaction.currency,
+            action_type=action_type,
+        ),
+        payment_gateway=PaymentGatewayData(
+            app_identifier=webhook_app.identifier, data=None, error=None
+        ),
+    )
+    # when
+    response = manager.transaction_process_session(
+        transaction_session_data=transaction_session_data
+    )
+
+    # then
+    assert isinstance(response, PaymentGatewayData)

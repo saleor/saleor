@@ -1654,7 +1654,7 @@ class TransactionProcessAction(SubscriptionObjectType, AbstractType):
     action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
 
 
-class TransactionInitializeSession(SubscriptionObjectType):
+class TransactionSessionBase(SubscriptionObjectType, AbstractType):
     transaction = graphene.Field(
         TransactionItem, description="Look up a transaction.", required=True
     )
@@ -1675,14 +1675,7 @@ class TransactionInitializeSession(SubscriptionObjectType):
     )
 
     class Meta:
-        root_type = None
-        enable_dry_run = False
-        interfaces = (Event,)
-        description = (
-            "Event sent when user starts processing the payment."
-            + ADDED_IN_312
-            + PREVIEW_FEATURE
-        )
+        abstract = True
 
     @classmethod
     def resolve_transaction(
@@ -1716,6 +1709,30 @@ class TransactionInitializeSession(SubscriptionObjectType):
     ):
         _, transaction_session_data = root
         return transaction_session_data.action
+
+
+class TransactionInitializeSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user starts processing the payment."
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionProcessSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user has additional payment actionn to process."
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
+        )
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
@@ -2253,4 +2270,5 @@ WEBHOOK_TYPES_MAP = {
         PaymentGatewayInitializeSession
     ),
     WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
+    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
 }

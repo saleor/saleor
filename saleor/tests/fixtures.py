@@ -6772,7 +6772,7 @@ def thumbnail_user(customer_user, image_list, media_root):
 
 
 @pytest.fixture
-def transaction_initialize_response():
+def transaction_session_response():
     return {
         "pspReference": "psp-123",
         "data": {"some-json": "data"},

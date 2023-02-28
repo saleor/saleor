@@ -926,12 +926,12 @@ def test_create_transaction_event_for_transaction_session_success_response(
     response_result,
     transaction_amount_field_name,
     transaction_item_generator,
-    transaction_initialize_response,
+    transaction_session_response,
     webhook_app,
 ):
     # given
     expected_amount = Decimal("15")
-    response = transaction_initialize_response.copy()
+    response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
     transaction = transaction_item_generator()
@@ -964,12 +964,12 @@ def test_create_transaction_event_for_transaction_session_success_response(
 def test_create_transaction_event_for_transaction_session_not_success_events(
     response_result,
     transaction_item_generator,
-    transaction_initialize_response,
+    transaction_session_response,
     webhook_app,
 ):
     # given
     expected_amount = Decimal("15")
-    response = transaction_initialize_response.copy()
+    response = transaction_session_response.copy()
     response["result"] = response_result.upper()
     response["amount"] = expected_amount
     transaction = transaction_item_generator()

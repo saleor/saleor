@@ -299,7 +299,7 @@ def _set_transaction_amounts_to_zero(transaction: TransactionItem):
     transaction.cancel_pending_value = Decimal("0")
 
 
-def recalculate_transaction_amounts(transaction: TransactionItem):
+def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = True):
     """Recalculate transaction amounts.
 
     The function calculates the transaction amounts based on the amounts that
@@ -348,15 +348,16 @@ def recalculate_transaction_amounts(transaction: TransactionItem):
     for cancel_events in action_map.cancel.values():
         _recalculate_cancel_amounts(transaction, cancel_events)
 
-    transaction.save(
-        update_fields=[
-            "authorized_value",
-            "charged_value",
-            "refunded_value",
-            "canceled_value",
-            "authorize_pending_value",
-            "charge_pending_value",
-            "refund_pending_value",
-            "cancel_pending_value",
-        ]
-    )
+    if save:
+        transaction.save(
+            update_fields=[
+                "authorized_value",
+                "charged_value",
+                "refunded_value",
+                "canceled_value",
+                "authorize_pending_value",
+                "charge_pending_value",
+                "refund_pending_value",
+                "cancel_pending_value",
+            ]
+        )
