@@ -801,6 +801,22 @@ def graphql_address_data():
 
 
 @pytest.fixture
+def graphql_address_data_country_area_from_map():
+    return {
+        "firstName": "John Saleor",
+        "lastName": "Doe Mirumee",
+        "companyName": "Mirumee Software",
+        "streetAddress1": "Resgia 99",
+        "streetAddress2": "",
+        "postalCode": "7432",
+        "country": "CH",
+        "city": "Zillis",
+        "countryArea": "Graubünden",
+        "phone": "+41613324386",
+    }
+
+
+@pytest.fixture
 def customer_user(address):  # pylint: disable=W0613
     default_address = address.get_copy()
     user = User.objects.create_user(

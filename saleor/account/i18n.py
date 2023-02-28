@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from typing import List, Tuple
 
 import i18naddress
@@ -37,6 +37,10 @@ AREA_TYPE = {
     "village_township": "Village/township",
     "zip": "ZIP code",
 }
+
+CountryAreaValues = namedtuple("CountryAreaValues", ["value", "choices"])
+
+COUNTRY_AREA_MAP = {"CH": CountryAreaValues("Graubünden", ["Graubünden"])}
 
 
 class PossiblePhoneNumberFormField(forms.CharField):
@@ -182,6 +186,17 @@ class CountryAwareAddressForm(AddressForm):
                     "street_address"
                 ] = f'{data["street_address_1"]}\n{data["street_address_2"]}'
             normalized_data = i18naddress.normalize_address(data)
+
+            if data.get("country_area") and not normalized_data.get("country_area"):
+                country_area = COUNTRY_AREA_MAP.get(data["country_code"])
+                if data["country_area"] in country_area.choices:
+                    normalized_data["country_area"] = country_area.value
+                else:
+                    raise i18naddress.InvalidAddress(
+                        "This value is not valid for the address.",
+                        {"country_area": "invalid"},
+                    )
+
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
                 del data["sorting_code"]

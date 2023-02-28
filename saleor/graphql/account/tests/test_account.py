@@ -4605,6 +4605,66 @@ def test_create_address_validation_fails(
     assert data["address"] is None
 
 
+def test_create_address_mutation_validate_country_area_from_map_success(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data_country_area_from_map,
+):
+    # given
+    address_data = graphql_address_data_country_area_from_map
+    query = ADDRESS_CREATE_MUTATION
+    address_data["city"] = "Dummy"
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"user": user_id, "address": address_data}
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    # then
+    assert content["data"]["addressCreate"]["errors"] == []
+    data = content["data"]["addressCreate"]
+    assert data["address"]["city"] == "Dummy"
+    assert data["address"]["country"]["code"] == "CH"
+    # assert data["address"]["country_area"] == "Graubünden"
+
+    address_obj = Address.objects.get(city="Dummy")
+    assert address_obj.country_area == "Graubünden"
+    assert address_obj.user_addresses.first() == customer_user
+    assert data["user"]["id"] == user_id
+
+    customer_user.refresh_from_db()
+    for field in ["city", "country"]:
+        assert variables["address"][field].lower() in customer_user.search_document
+
+
+def test_create_address_mutation_validate_country_area_from_map_invalid(
+    staff_api_client,
+    customer_user,
+    permission_manage_users,
+    graphql_address_data_country_area_from_map,
+):
+    # given
+    address_data = graphql_address_data_country_area_from_map
+    address_data["countryArea"] = "Invalid CA"
+    query = ADDRESS_CREATE_MUTATION
+    address_data["city"] = "Dummy"
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"user": user_id, "address": address_data}
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    # then
+
+    data = content["data"]["addressCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "countryArea"
+    assert data["address"] is None
+
+
 ADDRESS_UPDATE_MUTATION = """
     mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
         addressUpdate(id: $addressId, input: $address) {
