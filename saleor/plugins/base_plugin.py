@@ -53,7 +53,7 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
-    from ..payment.interface import PaymentGatewayData
+    from ..payment.interface import PaymentGatewayData, TransactionSessionData
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -785,6 +785,10 @@ class BasePlugin:
             None,
         ],
         list["PaymentGatewayData"],
+    ]
+
+    transaction_initialize_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
     ]
 
     # Trigger when transaction item metadata is updated.

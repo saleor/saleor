@@ -15,7 +15,7 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
-from ...payment.interface import PaymentGatewayData
+from ...payment.interface import PaymentGatewayData, TransactionSessionData
 from ...payment.models import Payment, TransactionItem
 from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -45,6 +45,7 @@ from ...webhook.payloads import (
     generate_sale_toggle_payload,
     generate_thumbnail_payload,
     generate_transaction_action_request_payload,
+    generate_transaction_session_payload,
     generate_translation_payload,
 )
 from ...webhook.utils import get_webhooks_for_event
@@ -1493,7 +1494,7 @@ class WebhookPlugin(BasePlugin):
         gateways: dict[str, "PaymentGatewayData"],
         response_gateway: dict[str, "PaymentGatewayData"],
         amount: Decimal,
-        transaction_object: Union["Order", "Checkout"],
+        source_object: Union["Order", "Checkout"],
         request: SaleorContext,
     ):
         if not webhook.app.identifier:
@@ -1514,11 +1515,11 @@ class WebhookPlugin(BasePlugin):
         if gateway:
             gateway_data = gateway.data
 
-        transaction_object_id = graphene.Node.to_global_id(
-            transaction_object.__class__.__name__, transaction_object.pk
+        source_object_id = graphene.Node.to_global_id(
+            source_object.__class__.__name__, source_object.pk
         )
-        payload = {"id": transaction_object_id, "data": gateway_data, "amount": amount}
-        subscribable_object = (transaction_object, gateway_data, amount)
+        payload = {"id": source_object_id, "data": gateway_data, "amount": amount}
+        subscribable_object = (source_object, gateway_data, amount)
         response_data = trigger_webhook_sync(
             event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
             data=json.dumps(payload, cls=CustomJsonEncoder),
@@ -1539,7 +1540,7 @@ class WebhookPlugin(BasePlugin):
         self,
         amount: Decimal,
         payment_gateways: Optional[list[PaymentGatewayData]],
-        transaction_object: Union["Order", "Checkout"],
+        source_object: Union["Order", "Checkout"],
         previous_value,
     ) -> list[PaymentGatewayData]:
         if not self.active:
@@ -1565,10 +1566,57 @@ class WebhookPlugin(BasePlugin):
                 gateways=gateways,
                 response_gateway=response_gateway,
                 amount=amount,
-                transaction_object=transaction_object,
+                source_object=source_object,
                 request=request,
             )
         return list(response_gateway.values())
+
+    def transaction_initialize_session(
+        self, transaction_session_data: TransactionSessionData, previous_value
+    ) -> PaymentGatewayData:
+        if not self.active:
+            return previous_value
+        if not transaction_session_data.payment_gateway.app_identifier:
+            error = "Missing app identifier"
+            return PaymentGatewayData(
+                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+                error=error,
+            )
+        webhook = get_webhooks_for_event(
+            WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            apps_identifier=[transaction_session_data.payment_gateway.app_identifier],
+        ).first()
+        if not webhook:
+            error = (
+                "Unable to find an active webhook for "
+                "`TRANSACTION_INITIALIZE_SESSION` event."
+            )
+            return PaymentGatewayData(
+                app_identifier=transaction_session_data.payment_gateway.app_identifier,
+                error=error,
+            )
+
+        payload = generate_transaction_session_payload(
+            transaction_session_data.action,
+            transaction_session_data.transaction,
+            transaction_session_data.source_object,
+            transaction_session_data.payment_gateway,
+        )
+
+        response_data = trigger_webhook_sync(
+            event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION,
+            data=payload,
+            webhook=webhook,
+            subscribable_object=transaction_session_data,
+        )
+        error_msg = None
+        if response_data is None:
+            error_msg = "Unable to parse a transaction initialize response."
+        return PaymentGatewayData(
+            app_identifier=transaction_session_data.payment_gateway.app_identifier,
+            data=response_data,
+            error=error_msg,
+        )
 
     def token_is_required_as_payment_input(self, previous_value):
         return False

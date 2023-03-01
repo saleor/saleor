@@ -112,7 +112,7 @@ def test_gateway_initialize_checkout_without_request_data_and_static_payload(
     response = plugin.payment_gateway_initialize_session(
         amount=amount,
         payment_gateways=None,
-        transaction_object=checkout,
+        source_object=checkout,
         previous_value=None,
     )
 
@@ -150,7 +150,7 @@ def test_gateway_initialize_checkout_with_request_data_and_static_payload(
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
-        transaction_object=checkout,
+        source_object=checkout,
         previous_value=None,
     )
 
@@ -186,7 +186,7 @@ def test_gateway_initialize_checkout_without_request_data(
     response = plugin.payment_gateway_initialize_session(
         amount=amount,
         payment_gateways=None,
-        transaction_object=checkout,
+        source_object=checkout,
         previous_value=None,
     )
 
@@ -225,7 +225,7 @@ def test_gateway_initialize_checkout_with_request_data(
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
-        transaction_object=checkout,
+        source_object=checkout,
         previous_value=None,
     )
 
@@ -256,7 +256,7 @@ def test_gateway_initialize_session_skips_app_without_identifier(
     response = plugin.payment_gateway_initialize_session(
         amount=amount,
         payment_gateways=None,
-        transaction_object=checkout,
+        source_object=checkout,
         previous_value=None,
     )
 
@@ -291,7 +291,7 @@ def test_gateway_initialize_order_without_request_data_static_payload(
     response = plugin.payment_gateway_initialize_session(
         amount=amount,
         payment_gateways=None,
-        transaction_object=order,
+        source_object=order,
         previous_value=None,
     )
 
@@ -329,7 +329,7 @@ def test_gateway_initialize_order_with_request_data_static_payload(
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
-        transaction_object=order,
+        source_object=order,
         previous_value=None,
     )
 
@@ -366,7 +366,7 @@ def test_gateway_initialize_session_for_order_without_request_data(
     response = plugin.payment_gateway_initialize_session(
         amount=amount,
         payment_gateways=None,
-        transaction_object=order,
+        source_object=order,
         previous_value=None,
     )
 
@@ -406,7 +406,7 @@ def test_gateway_initialize_session_for_order_with_request_data(
         payment_gateways=[
             PaymentGatewayData(app_identifier=webhook_app.identifier, data=data)
         ],
-        transaction_object=order,
+        source_object=order,
         previous_value=None,
     )
 
