@@ -991,7 +991,7 @@ class PluginsManager(PaymentInterface):
     def transaction_initialize_session(
         self,
         transaction_session_data: "TransactionSessionData",
-    ) -> list["PaymentGatewayData"]:
+    ) -> "PaymentGatewayData":
         default_value = None
         return self.__run_method_on_plugins(
             "transaction_initialize_session",

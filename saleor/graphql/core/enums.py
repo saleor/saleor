@@ -167,6 +167,9 @@ TransactionRequestActionErrorCode = graphene.Enum.from_enum(
 TransactionEventReportErrorCode = graphene.Enum.from_enum(
     payment_error_codes.TransactionEventReportErrorCode
 )
+TransactionInitializeErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionInitializeErrorCode
+)
 
 PaymentGatewayConfigErrorCode = graphene.Enum.from_enum(
     payment_error_codes.PaymentGatewayConfigErrorCode

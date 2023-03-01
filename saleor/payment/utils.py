@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional, cast, overload
+from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from ..account.models import User
 from ..app.models import App
+from ..channel import TransactionFlowStrategy
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
@@ -41,14 +42,17 @@ from .interface import (
     AddressData,
     GatewayResponse,
     PaymentData,
+    PaymentGatewayData,
     PaymentLineData,
     PaymentLinesData,
     PaymentMethodInfo,
     RefundData,
     StorePaymentMethodEnum,
     TransactionData,
+    TransactionProcessActionData,
     TransactionRequestEventResponse,
     TransactionRequestResponse,
+    TransactionSessionData,
 )
 from .models import Payment, Transaction, TransactionEvent, TransactionItem
 from .transaction_item_calculations import recalculate_transaction_amounts
@@ -713,6 +717,16 @@ def get_correct_event_types_based_on_request_type(request_type: str) -> list[str
             TransactionEventType.CANCEL_FAILURE,
             TransactionEventType.CANCEL_SUCCESS,
         ],
+        "session-request": [
+            TransactionEventType.AUTHORIZATION_FAILURE,
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_REQUEST,
+            TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+            TransactionEventType.CHARGE_FAILURE,
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.CHARGE_ACTION_REQUIRED,
+        ],
     }
     return type_map.get(request_type, [])
 
@@ -721,10 +735,15 @@ def parse_transaction_event_data(
     event_data: dict,
     parsed_event_data: dict,
     error_field_msg: list[str],
-    psp_reference: str,
+    psp_reference: Optional[str],
     request_type: str,
+    event_is_optional: bool = True,
 ):
-    if event_data.get("amount") is None and not event_data.get("result"):
+    if (
+        event_is_optional
+        and event_data.get("amount") is None
+        and not event_data.get("result")
+    ):
         return
     missing_msg = (
         "Missing value for field: %s in " "response of transaction action webhook."
@@ -764,7 +783,8 @@ def parse_transaction_event_data(
             logger.warning(invalid_msg, "amount", amount_data)
             error_field_msg.append(invalid_msg % ("amount", amount_data))
     else:
-        parsed_event_data["amount"] = None
+        logger.warning(missing_msg, "amount")
+        error_field_msg.append(missing_msg % "amount")
 
     if event_time_data := event_data.get("time"):
         try:
@@ -785,7 +805,7 @@ error_msg = str
 
 
 def parse_transaction_action_data(
-    response_data: Any, request_type: str
+    response_data: Any, request_type: str, event_is_optional: bool = True
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     """Parse response from transaction action webhook.
 
@@ -807,6 +827,7 @@ def parse_transaction_action_data(
         error_field_msg=error_field_msg,
         psp_reference=psp_reference,
         request_type=request_type,
+        event_is_optional=event_is_optional,
     )
 
     if error_field_msg:
@@ -889,6 +910,13 @@ def authorization_success_already_exists(transaction_id: int) -> bool:
 
 
 def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionEvent]:
+    if event.type in [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ]:
+        # We don't need to take into account the events that are only a record of
+        # additional action required from the payment app.
+        return None
     existing_event = (
         TransactionEvent.objects.filter(
             transaction_id=event.transaction_id,
@@ -950,54 +978,56 @@ def deduplicate_event(
     return event, error_message
 
 
-def create_transaction_event_from_request_and_webhook_response(
-    request_event: TransactionEvent,
+def _create_event_from_response(
+    response: TransactionRequestEventResponse,
     app: App,
-    transaction_webhook_response: Optional[Dict[str, Any]] = None,
-):
+    transaction_id: int,
+    currency: str,
+) -> tuple[Optional[TransactionEvent], Optional[error_msg]]:
+    app_identifier = None
+    if app and app.identifier:
+        app_identifier = app.identifier
+    event = TransactionEvent(
+        psp_reference=response.psp_reference,
+        created_at=response.time or timezone.now(),
+        type=response.type,
+        amount_value=response.amount,
+        external_url=response.external_url,
+        currency=currency,
+        transaction_id=transaction_id,
+        message=response.message,
+        app_identifier=app_identifier,
+        app=app,
+        include_in_calculations=True,
+    )
+    with transaction.atomic():
+        event, error_msg = deduplicate_event(event, app)
+        if error_msg:
+            return None, error_msg
+        if not event.pk:
+            event.save()
+    return event, None
+
+
+def _get_parsed_transaction_action_data(
+    transaction_webhook_response: Optional[Dict[str, Any]],
+    event_type: str,
+    event_is_optional: bool = True,
+) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     if transaction_webhook_response is None:
-        return create_failed_transaction_event(
-            request_event, cause="Failed to delivery request."
-        )
-    request_event_type = cast(str, request_event.type)
+        return None, "Failed to delivery request."
+
     transaction_request_response, error_msg = parse_transaction_action_data(
-        transaction_webhook_response, request_event_type
+        transaction_webhook_response, event_type, event_is_optional=event_is_optional
     )
     if not transaction_request_response:
-        return create_failed_transaction_event(request_event, cause=error_msg or "")
+        return None, error_msg or ""
+    return transaction_request_response, None
 
-    psp_reference = transaction_request_response.psp_reference
-    request_event.psp_reference = psp_reference
-    request_event.save()
-    event = None
-    if response_event := transaction_request_response.event:
-        app_identifier = None
-        if app and app.identifier:
-            app_identifier = app.identifier
 
-        event = TransactionEvent(
-            psp_reference=response_event.psp_reference,
-            created_at=response_event.time or timezone.now(),
-            type=response_event.type,
-            amount_value=response_event.amount or request_event.amount_value,
-            external_url=response_event.external_url,
-            currency=request_event.currency,
-            transaction_id=request_event.transaction_id,
-            message=response_event.message,
-            app_identifier=app_identifier,
-            app=app,
-            include_in_calculations=True,
-        )
-        with transaction.atomic():
-            event, error_msg = deduplicate_event(event, app)
-            if error_msg:
-                return create_failed_transaction_event(request_event, cause=error_msg)
-            if not event.pk:
-                event.save()
-    transaction_item = request_event.transaction
-    recalculate_transaction_amounts(transaction_item)
-    if transaction_item.order_id:
-        order = cast(Order, transaction_item.order)
+def update_order_with_transaction_details(transaction: TransactionItem):
+    if transaction.order_id:
+        order = cast(Order, transaction.order)
         update_order_search_vector(order, save=False)
         updates_amounts_for_order(order, save=False)
         order.save(
@@ -1010,6 +1040,99 @@ def create_transaction_event_from_request_and_webhook_response(
                 "search_vector",
             ]
         )
+
+
+def create_transaction_event_for_transaction_session(
+    request_event: TransactionEvent,
+    app: App,
+    transaction_webhook_response: Optional[Dict[str, Any]] = None,
+):
+    request_event_type = "session-request"
+
+    transaction_request_response, error_msg = _get_parsed_transaction_action_data(
+        transaction_webhook_response=transaction_webhook_response,
+        event_type=request_event_type,
+        event_is_optional=False,
+    )
+    if not transaction_request_response or not transaction_request_response.event:
+        return create_failed_transaction_event(request_event, cause=error_msg or "")
+
+    event = None
+    request_event_update_fields = []
+    response_event = transaction_request_response.event
+    if response_event.type in [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_REQUEST,
+    ]:
+        request_event.type = response_event.type
+        request_event.amount_value = response_event.amount
+        request_event.psp_reference = response_event.psp_reference
+        request_event.include_in_calculations = True
+        request_event_update_fields.extend(
+            [
+                "type",
+                "amount_value",
+                "psp_reference",
+                "include_in_calculations",
+            ]
+        )
+        event = request_event
+    else:
+        event, error_msg = _create_event_from_response(
+            response_event,
+            app=app,
+            transaction_id=request_event.transaction_id,
+            currency=request_event.currency,
+        )
+        if not event:
+            return create_failed_transaction_event(request_event, cause=error_msg or "")
+        request_event.psp_reference = event.psp_reference
+        request_event_update_fields.append("psp_reference")
+    if request_event_update_fields:
+        request_event.save(update_fields=request_event_update_fields)
+
+    if event.type in [
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+        TransactionEventType.CHARGE_SUCCESS,
+    ]:
+        transaction = event.transaction
+        recalculate_transaction_amounts(transaction)
+        update_order_with_transaction_details(transaction)
+    return event
+
+
+def create_transaction_event_from_request_and_webhook_response(
+    request_event: TransactionEvent,
+    app: App,
+    transaction_webhook_response: Optional[Dict[str, Any]] = None,
+):
+    request_event_type = cast(str, request_event.type)
+    transaction_request_response, error_msg = _get_parsed_transaction_action_data(
+        transaction_webhook_response=transaction_webhook_response,
+        event_type=request_event_type,
+    )
+    if not transaction_request_response:
+        return create_failed_transaction_event(request_event, cause=error_msg or "")
+
+    psp_reference = transaction_request_response.psp_reference
+    request_event.psp_reference = psp_reference
+    request_event.save()
+    event = None
+    if response_event := transaction_request_response.event:
+        event, error_msg = _create_event_from_response(
+            response_event,
+            app=app,
+            transaction_id=request_event.transaction_id,
+            currency=request_event.currency,
+        )
+        if error_msg:
+            return create_failed_transaction_event(request_event, cause=error_msg)
+
+    transaction_item = request_event.transaction
+    recalculate_transaction_amounts(transaction_item)
+    update_order_with_transaction_details(transaction_item)
     return event
 
 
@@ -1128,6 +1251,23 @@ def create_manual_adjustment_events(
     return []
 
 
+def create_transaction_item(
+    source_object: Union[Checkout, Order],
+    user: Optional[User],
+    app: Optional[App],
+    psp_reference: Optional[str],
+):
+    return TransactionItem.objects.create(
+        checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
+        order_id=source_object.pk if isinstance(source_object, Order) else None,
+        currency=source_object.currency,
+        app=app,
+        app_identifier=app.identifier if app else None,
+        user=user,
+        psp_reference=psp_reference,
+    )
+
+
 def create_transaction_for_order(
     order: "Order",
     user: Optional["User"],
@@ -1135,13 +1275,8 @@ def create_transaction_for_order(
     psp_reference: Optional[str],
     charged_value: Decimal,
 ) -> TransactionItem:
-    transaction = TransactionItem.objects.create(
-        order_id=order.pk,
-        user=user,
-        app_identifier=app.identifier if app else None,
-        app=app,
-        psp_reference=psp_reference,
-        currency=order.currency,
+    transaction = create_transaction_item(
+        source_object=order, user=user, app=app, psp_reference=psp_reference
     )
     create_manual_adjustment_events(
         transaction=transaction,
@@ -1151,3 +1286,40 @@ def create_transaction_for_order(
     )
     recalculate_transaction_amounts(transaction=transaction)
     return transaction
+
+
+def handle_transaction_session(
+    source_object: Union[Checkout, Order],
+    payment_gateway: PaymentGatewayData,
+    amount: Decimal,
+    action: str,
+    app: App,
+    manager: PluginsManager,
+):
+    transaction_item = create_transaction_item(
+        source_object=source_object, user=None, app=app, psp_reference=None
+    )
+    session_data = TransactionSessionData(
+        transaction=transaction_item,
+        source_object=source_object,
+        payment_gateway=payment_gateway,
+        action=TransactionProcessActionData(
+            action_type=action, currency=source_object.currency, amount=amount
+        ),
+    )
+
+    request_event = transaction_item.events.create(
+        include_in_calculations=False,
+        type=TransactionEventType.CHARGE_REQUEST
+        if action == TransactionFlowStrategy.CHARGE
+        else TransactionEventType.AUTHORIZATION_REQUEST,
+        currency=transaction_item.currency,
+        amount_value=amount,
+    )
+    response = manager.transaction_initialize_session(session_data)
+
+    created_event = create_transaction_event_for_transaction_session(
+        request_event, app, response.data
+    )
+    data = response.data if response else None
+    return created_event.transaction, created_event, data

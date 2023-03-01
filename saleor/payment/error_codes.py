@@ -66,3 +66,9 @@ class PaymentGatewayInitializeErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+
+
+class TransactionInitializeErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"

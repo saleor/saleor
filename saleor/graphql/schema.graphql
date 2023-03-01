@@ -13982,6 +13982,31 @@ type Mutation {
   ): PaymentGatewayInitialize
 
   """
+  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionInitialize(
+    """
+    The expected action called for the transaction. By default, the `channel.defaultTransactionFlowStrategy` will be used. The field can be used only by app that has `HANDLE_PAYMENTS` permission.
+    """
+    action: TransactionFlowStrategyEnum
+
+    """
+    The amount requested for initializing the payment gateway. If not provided, the difference between checkout.total - transactions that are already processed will be send.
+    """
+    amount: PositiveDecimal
+
+    """The ID of the checkout or order."""
+    id: ID!
+
+    """Payment gateway used to initialize the transaction."""
+    paymentGateway: PaymentGatewayToInitialize!
+  ): TransactionInitialize
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -20440,11 +20465,14 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 """
 type PaymentGatewayInitialize {
   gatewayConfigs: [PaymentGatewayConfig!]
-  errors: [TransactionEventReportError!]!
+  errors: [PaymentGatewayInitializeError!]!
 }
 
 type PaymentGatewayConfig {
+  """The app identifier."""
   id: String!
+
+  """The JSON data required to initialize the payment gateway."""
   data: JSON
   errors: [PaymentGatewayConfigError!]
 }
@@ -20471,12 +20499,82 @@ enum PaymentGatewayConfigErrorCode {
   NOT_FOUND
 }
 
+type PaymentGatewayInitializeError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentGatewayInitializeErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentGatewayInitializeErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
 input PaymentGatewayToInitialize {
   """The identifier of the payment gateway app to initialize."""
   id: String!
 
   """The data that will be passed to the payment gateway."""
   data: JSON
+}
+
+"""
+Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionInitialize {
+  """The initialized transaction."""
+  transaction: TransactionItem
+
+  """The event created for the initialized transaction."""
+  transactionEvent: TransactionEvent
+
+  """The JSON data required to finalize the payment."""
+  data: JSON
+  errors: [TransactionInitializeError!]!
+}
+
+type TransactionInitializeError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionInitializeErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionInitializeErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum {
+  AUTHORIZATION
+  CHARGE
 }
 
 """
@@ -28408,17 +28506,6 @@ type TransactionProcessAction {
   """Currency of the amount."""
   currency: String!
   actionType: TransactionFlowStrategyEnum!
-}
-
-"""
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum {
-  AUTHORIZATION
-  CHARGE
 }
 
 """_Any value scalar as defined by Federation spec."""
