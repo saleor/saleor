@@ -20472,7 +20472,7 @@ type PaymentGatewayConfig {
   """The app identifier."""
   id: String!
 
-  """The json data required initialize payment gateway."""
+  """The JSON data required to initialize the payment gateway."""
   data: JSON
   errors: [PaymentGatewayConfigError!]
 }
@@ -20541,7 +20541,7 @@ type TransactionInitialize {
   """The event created for the initialized transaction."""
   transactionEvent: TransactionEvent
 
-  """The json data required to finalize the payment."""
+  """The JSON data required to finalize the payment."""
   data: JSON
   errors: [TransactionInitializeError!]!
 }

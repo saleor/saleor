@@ -1510,7 +1510,7 @@ class TransactionEventReport(ModelMutation):
 class PaymentGatewayConfig(graphene.ObjectType):
     id = graphene.String(required=True, description="The app identifier.")
     data = graphene.Field(
-        JSON, description="The json data required initialize payment gateway."
+        JSON, description="The JSON data required to initialize the payment gateway."
     )
     errors = common_types.NonNullList(common_types.PaymentGatewayConfigError)
 
@@ -1714,7 +1714,7 @@ class TransactionInitialize(TransactionSessionBase):
         description="The event created for the initialized transaction.",
     )
     data = graphene.Field(
-        JSON, description="The json data required to finalize the payment."
+        JSON, description="The JSON data required to finalize the payment."
     )
 
     class Arguments:
@@ -1743,7 +1743,6 @@ class TransactionInitialize(TransactionSessionBase):
             description="Payment gateway used to initialize the transaction.",
             required=True,
         )
-        ...
 
     class Meta:
         description = (
