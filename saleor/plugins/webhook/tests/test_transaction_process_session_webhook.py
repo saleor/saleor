@@ -16,10 +16,10 @@ from ....payment.interface import (
 from ....webhook.event_types import WebhookEventSyncType
 from ....webhook.models import Webhook
 
-TRANSACTION_INITIALIZE_SESSION = """
+TRANSACTION_PROCESS_SESSION = """
 subscription {
   event{
-    ...on TransactionInitializeSession{
+    ...on TransactionProcessSession{
       merchantReference
       action{
         amount
@@ -105,7 +105,7 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
     assert json.loads(event_payload.payload) == payload
     delivery = EventDelivery.objects.get()
     assert delivery.status == EventDeliveryStatus.PENDING
-    assert delivery.event_type == WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    assert delivery.event_type == WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     assert delivery.payload == event_payload
     assert delivery.webhook == webhook
     mock_request.assert_called_once_with(webhook_app.name, delivery)
@@ -116,7 +116,7 @@ def _assert_fields(payload, webhook, expected_response, response, mock_request):
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_checkout_without_request_data_and_static_payload(
+def test_transaction_process_checkout_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -137,7 +137,7 @@ def test_transaction_initialize_checkout_without_request_data_and_static_payload
         name="Webhook",
         app=webhook_app,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -151,7 +151,7 @@ def test_transaction_initialize_checkout_without_request_data_and_static_payload
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=checkout,
@@ -183,7 +183,7 @@ def test_transaction_initialize_checkout_without_request_data_and_static_payload
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_checkout_with_request_data_and_static_payload(
+def test_transaction_process_checkout_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -205,7 +205,7 @@ def test_transaction_initialize_checkout_with_request_data_and_static_payload(
         name="Webhook",
         app=webhook_app,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -219,7 +219,7 @@ def test_transaction_initialize_checkout_with_request_data_and_static_payload(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=checkout,
@@ -251,7 +251,7 @@ def test_transaction_initialize_checkout_with_request_data_and_static_payload(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_checkout_without_request_data(
+def test_transaction_process_checkout_without_request_data(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -271,9 +271,9 @@ def test_transaction_initialize_checkout_without_request_data(
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
-        subscription_query=TRANSACTION_INITIALIZE_SESSION,
+        subscription_query=TRANSACTION_PROCESS_SESSION,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -287,7 +287,7 @@ def test_transaction_initialize_checkout_without_request_data(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=checkout,
@@ -319,7 +319,7 @@ def test_transaction_initialize_checkout_without_request_data(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_checkout_with_request_data(
+def test_transaction_process_checkout_with_request_data(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -340,9 +340,9 @@ def test_transaction_initialize_checkout_with_request_data(
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
-        subscription_query=TRANSACTION_INITIALIZE_SESSION,
+        subscription_query=TRANSACTION_PROCESS_SESSION,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -356,7 +356,7 @@ def test_transaction_initialize_checkout_with_request_data(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=checkout,
@@ -388,7 +388,7 @@ def test_transaction_initialize_checkout_with_request_data(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_session_skips_app_without_identifier(
+def test_transaction_process_session_skips_app_without_identifier(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -409,9 +409,9 @@ def test_transaction_initialize_session_skips_app_without_identifier(
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
-        subscription_query=TRANSACTION_INITIALIZE_SESSION,
+        subscription_query=TRANSACTION_PROCESS_SESSION,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -425,7 +425,7 @@ def test_transaction_initialize_session_skips_app_without_identifier(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=checkout,
@@ -452,7 +452,7 @@ def test_transaction_initialize_session_skips_app_without_identifier(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_order_without_request_data_and_static_payload(
+def test_transaction_process_order_without_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -473,7 +473,7 @@ def test_transaction_initialize_order_without_request_data_and_static_payload(
         name="Webhook",
         app=webhook_app,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -487,7 +487,7 @@ def test_transaction_initialize_order_without_request_data_and_static_payload(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=order,
@@ -519,7 +519,7 @@ def test_transaction_initialize_order_without_request_data_and_static_payload(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_order_with_request_data_and_static_payload(
+def test_transaction_process_order_with_request_data_and_static_payload(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -541,7 +541,7 @@ def test_transaction_initialize_order_with_request_data_and_static_payload(
         name="Webhook",
         app=webhook_app,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -555,7 +555,7 @@ def test_transaction_initialize_order_with_request_data_and_static_payload(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=order,
@@ -587,7 +587,7 @@ def test_transaction_initialize_order_with_request_data_and_static_payload(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_order_without_request_data(
+def test_transaction_process_order_without_request_data(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -607,9 +607,9 @@ def test_transaction_initialize_order_without_request_data(
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
-        subscription_query=TRANSACTION_INITIALIZE_SESSION,
+        subscription_query=TRANSACTION_PROCESS_SESSION,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -623,7 +623,7 @@ def test_transaction_initialize_order_without_request_data(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=order,
@@ -655,7 +655,7 @@ def test_transaction_initialize_order_without_request_data(
 
 @freeze_time()
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
-def test_transaction_initialize_order_with_request_data(
+def test_transaction_process_order_with_request_data(
     mock_request,
     webhook_plugin,
     webhook_app,
@@ -676,9 +676,9 @@ def test_transaction_initialize_order_with_request_data(
     webhook = Webhook.objects.create(
         name="Webhook",
         app=webhook_app,
-        subscription_query=TRANSACTION_INITIALIZE_SESSION,
+        subscription_query=TRANSACTION_PROCESS_SESSION,
     )
-    event_type = WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+    event_type = WebhookEventSyncType.TRANSACTION_PROCESS_SESSION
     webhook.events.create(event_type=event_type)
     amount = Decimal("10.00")
 
@@ -692,7 +692,7 @@ def test_transaction_initialize_order_with_request_data(
     action_type = TransactionFlowStrategy.CHARGE
 
     # when
-    response = plugin.transaction_initialize_session(
+    response = plugin.transaction_process_session(
         transaction_session_data=TransactionSessionData(
             transaction=transaction,
             source_object=order,

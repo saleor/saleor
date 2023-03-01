@@ -172,7 +172,7 @@ def test_for_checkout_without_payment_gateway_data(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     checkout = checkout_with_prices
@@ -182,7 +182,7 @@ def test_for_checkout_without_payment_gateway_data(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = "CHARGE_SUCCESS"
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -219,7 +219,7 @@ def test_for_order_without_payment_gateway_data(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     order = order_with_lines
@@ -229,7 +229,7 @@ def test_for_order_without_payment_gateway_data(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = "CHARGE_SUCCESS"
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -269,7 +269,7 @@ def test_checkout_with_pending_amount(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     checkout = checkout_with_prices
@@ -279,7 +279,7 @@ def test_checkout_with_pending_amount(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -317,7 +317,7 @@ def test_order_with_pending_amount(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     order = order_with_lines
@@ -327,7 +327,7 @@ def test_order_with_pending_amount(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_REQUEST.upper()
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -369,7 +369,7 @@ def test_checkout_with_action_required_response(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     checkout = checkout_with_prices
@@ -379,7 +379,7 @@ def test_checkout_with_action_required_response(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -415,7 +415,7 @@ def test_order_with_action_required_response(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     order = order_with_lines
@@ -425,7 +425,7 @@ def test_order_with_action_required_response(
 
     expected_amount = Decimal("10.00")
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -465,7 +465,7 @@ def test_checkout_when_amount_is_not_provided(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     checkout = checkout_with_prices
@@ -474,7 +474,7 @@ def test_checkout_when_amount_is_not_provided(
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["amount"] = str(checkout.total_gross_amount)
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
@@ -512,7 +512,7 @@ def test_order_when_amount_is_not_provided(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
 ):
     # given
     order = order_with_lines
@@ -521,7 +521,7 @@ def test_order_when_amount_is_not_provided(
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["amount"] = str(order.total_gross_amount)
     expected_response["pspReference"] = expected_psp_reference
@@ -563,7 +563,7 @@ def test_order_with_transaction_when_amount_is_not_provided(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
 ):
     # given
@@ -580,7 +580,7 @@ def test_order_with_transaction_when_amount_is_not_provided(
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["amount"] = str(
         order.total_gross_amount - expected_charged_amount
@@ -624,7 +624,7 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
 ):
     # given
@@ -641,7 +641,7 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["amount"] = str(
         checkout.total_gross_amount - expected_charged_amount
@@ -681,7 +681,7 @@ def test_app_with_action_field_and_handle_payments(
     app_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
 ):
@@ -693,7 +693,7 @@ def test_app_with_action_field_and_handle_payments(
     app_api_client.app.permissions.set([permission_manage_payments])
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     expected_response["amount"] = str(checkout.total_gross_amount)
     expected_response["pspReference"] = expected_psp_reference
@@ -733,7 +733,7 @@ def test_app_with_action_field(
     app_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
 ):
@@ -751,7 +751,7 @@ def test_app_with_action_field(
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
-    expected_response = transaction_initialize_response.copy()
+    expected_response = transaction_session_response.copy()
     expected_response["result"] = TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     expected_response["amount"] = str(
         checkout.total_gross_amount - expected_charged_amount
@@ -779,7 +779,7 @@ def test_customer_with_action_field(
     app_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
 ):
@@ -814,7 +814,7 @@ def test_incorrect_source_object_id(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
     product,
@@ -855,7 +855,7 @@ def test_checkout_doesnt_exist(
     user_api_client,
     checkout_with_prices,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
 ):
@@ -890,7 +890,7 @@ def test_order_doesnt_exists(
     user_api_client,
     order_with_lines,
     webhook_app,
-    transaction_initialize_response,
+    transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
 ):

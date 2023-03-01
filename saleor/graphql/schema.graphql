@@ -2022,6 +2022,7 @@ enum WebhookEventTypeEnum {
   CHECKOUT_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
+  TRANSACTION_PROCESS_SESSION
 }
 
 """Synchronous webhook event."""
@@ -2111,6 +2112,7 @@ enum WebhookEventTypeSyncEnum {
   CHECKOUT_FILTER_SHIPPING_METHODS
   PAYMENT_GATEWAY_INITIALIZE_SESSION
   TRANSACTION_INITIALIZE_SESSION
+  TRANSACTION_PROCESS_SESSION
 }
 
 """Asynchronous webhook event."""
@@ -28506,6 +28508,42 @@ type TransactionProcessAction {
   """Currency of the amount."""
   currency: String!
   actionType: TransactionFlowStrategyEnum!
+}
+
+"""
+Event sent when user has additional payment actionn to process.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionProcessSession implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem!
+
+  """Checkout or order"""
+  sourceObject: OrderOrCheckout!
+
+  """Payment gateway data in JSON format, recieved from storefront."""
+  data: JSON
+
+  """Merchant reference assigned to this payment."""
+  merchantReference: String!
+
+  """Action to proceed for the transaction"""
+  action: TransactionProcessAction!
 }
 
 """_Any value scalar as defined by Federation spec."""

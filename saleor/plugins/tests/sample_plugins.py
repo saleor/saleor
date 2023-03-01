@@ -326,6 +326,13 @@ class PluginSample(BasePlugin):
     ):
         return PaymentGatewayData(app_identifier="123", data=None, error="Some error")
 
+    def transaction_process_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+        previous_value: Any,
+    ):
+        return PaymentGatewayData(app_identifier="321", data=None, error="Some error")
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"
