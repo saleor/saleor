@@ -39,13 +39,12 @@ class OrderByNumberLoader(DataLoader):
     context_key = "order_by_number"
 
     def batch_load(self, keys):
-        orders = Order.objects.using(self.database_connection_name).filter(
-            number__in=keys
+        orders = (
+            Order.objects.using(self.database_connection_name)
+            .filter(number__in=keys)
+            .in_bulk(field_name="number")
         )
-        orders_by_number = defaultdict(Order)
-        for order in orders:
-            orders_by_number[order.number] = order
-        return [orders_by_number.get(number) for number in keys]
+        return [orders.get(number) for number in keys]
 
 
 class OrdersByUserLoader(DataLoader):
