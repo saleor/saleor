@@ -16,12 +16,15 @@ from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
 from ....warehouse.models import Warehouse
+from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
 from ...core.enums import ErrorPolicyEnum
+from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import MediaInput, NonNullList, ProductBulkCreateError
+from ...core.scalars import WeightScalar
+from ...core.types import MediaInput, NonNullList, ProductBulkCreateError, SeoInput
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
 from ...core.validators.file import (
@@ -30,6 +33,7 @@ from ...core.validators.file import (
     is_image_url,
     validate_image_url,
 )
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
 from ..types import Product
@@ -92,6 +96,44 @@ class ProductBulkResult(graphene.ObjectType):
 
 
 class ProductBulkCreateInput(ProductCreateInput):
+    attributes = NonNullList(AttributeValueInput, description="List of attributes.")
+    category = graphene.ID(description="ID of the product's category.", name="category")
+    collections = NonNullList(
+        graphene.ID,
+        description="List of IDs of collections that the product belongs to.",
+        name="collections",
+    )
+    description = JSONString(description="Product description." + RICH_CONTENT)
+    name = graphene.String(description="Product name.")
+    slug = graphene.String(description="Product slug.")
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this product. If not provided, product "
+            "will use the tax class which is assigned to the product type."
+        ),
+        required=False,
+    )
+    seo = SeoInput(description="Search engine optimization fields.")
+    weight = WeightScalar(description="Weight of the Product.", required=False)
+    rating = graphene.Float(description="Defines the product rating value.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the product metadata.",
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=("Fields required to update the product private metadata."),
+        required=False,
+    )
+    external_reference = graphene.String(
+        description="External ID of this product.", required=False
+    )
+    product_type = graphene.ID(
+        description="ID of the type that product belongs to.",
+        name="productType",
+        required=True,
+    )
     media = NonNullList(MediaInput, required=False)
     channel_listings = NonNullList(ProductChannelListingCreateInput, required=False)
     variants = NonNullList(
