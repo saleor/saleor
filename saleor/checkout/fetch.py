@@ -383,10 +383,9 @@ def _get_the_cheapest_line(
     discounts: Iterable["DiscountInfo"],
 ):
     channel = checkout.channel
-    cheapest_line_price = None
-    cheapest_line = None
-    for line_info in lines_info:
-        line_price = line_info.variant.get_price(
+
+    def variant_price(line_info):
+        return line_info.variant.get_price(
             product=line_info.product,
             collections=line_info.collections,
             channel=channel,
@@ -394,10 +393,8 @@ def _get_the_cheapest_line(
             discounts=discounts,
             price_override=line_info.line.price_override,
         )
-        if not cheapest_line or cheapest_line_price > line_price:
-            cheapest_line_price = line_price
-            cheapest_line = line_info
-    return cheapest_line
+
+    return min(lines_info, default=None, key=variant_price)
 
 
 def fetch_checkout_info(
