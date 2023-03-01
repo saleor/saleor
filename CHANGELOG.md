@@ -50,6 +50,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
 - Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
 - Introduce custom headers for webhook requests - #11978 by @zedzior
+- Improve GraphQL playground by storing headers in the local storage - #12176 by @zaiste
 
 
 ### Other changes
