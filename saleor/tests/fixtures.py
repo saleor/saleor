@@ -5925,6 +5925,7 @@ def warehouse(address, shipping_zone, channel_USD):
         name="Example Warehouse",
         slug="example-warehouse",
         email="test@example.com",
+        external_reference="example-warehouse",
     )
     warehouse.shipping_zones.add(shipping_zone)
     warehouse.channels.add(channel_USD)
