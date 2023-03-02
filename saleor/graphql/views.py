@@ -245,7 +245,7 @@ class GraphQLView(View):
             return (
                 None,
                 ExecutionResult(
-                    errors=[ValueError("Must provide a query string.")], invalid=True
+                    errors=[GraphQLError("Must provide a query string.")], invalid=True
                 ),
             )
 

@@ -7,6 +7,7 @@ from graphql.execution.base import ExecutionResult
 
 from .... import __version__ as saleor_version
 from ....demo.views import EXAMPLE_QUERY
+from ....graphql.utils import INTERNAL_ERROR_MESSAGE
 from ...tests.fixtures import (
     ACCESS_CONTROL_ALLOW_CREDENTIALS,
     ACCESS_CONTROL_ALLOW_HEADERS,
@@ -230,7 +231,7 @@ def test_graphql_execution_exception(monkeypatch, api_client):
     response = api_client.post_graphql("{ shop { name }}")
     assert response.status_code == 400
     content = get_graphql_content_from_response(response)
-    assert content["errors"][0]["message"] == "Spanish inquisition"
+    assert content["errors"][0]["message"] == INTERNAL_ERROR_MESSAGE
 
 
 def test_invalid_query_graphql_errors_are_logged_in_another_logger(
