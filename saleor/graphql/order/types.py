@@ -131,6 +131,7 @@ from .dataloaders import (
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
+    OrderByNumberLoader,
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
@@ -433,10 +434,19 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
     @staticmethod
     def resolve_related_order(root: models.OrderEvent, info):
-        order_pk = root.parameters.get("related_order_pk")
-        if not order_pk:
+        order_pk_or_number = root.parameters.get("related_order_pk")
+        if not order_pk_or_number:
             return None
-        return OrderByIdLoader(info.context).load(UUID(order_pk))
+
+        try:
+            # Orders that primary_key are not uuid are old int `id's`.
+            # In migration `order_0128`, before migrating old `id's` to uuid,
+            # old `id's` were saved to field `number`.
+            order_pk = UUID(order_pk_or_number)
+        except (AttributeError, ValueError):
+            return OrderByNumberLoader(info.context).load(order_pk_or_number)
+
+        return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
