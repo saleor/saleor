@@ -51,7 +51,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
 - Introduce custom headers for webhook requests - #11978 by @zedzior
 - Improve GraphQL playground by storing headers in the local storage - #12176 by @zaiste
-
+- Include specific products voucher in checkout discount - #12191 by @IKarbowiak
+  - Make the `specific product` and `apply once per order` voucher discounts visible
+  on `checkout.discount` field
 
 ### Other changes
 - Fix saving `metadata` in `ProductVariantBulkCreate` and `ProductVariantBulkupdate` mutations - #12097 by @SzymJ
