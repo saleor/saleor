@@ -1145,6 +1145,89 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
+    (
+        "with_discount, expected_net, expected_gross, voucher_amount, "
+        "prices_entered_with_tax"
+    ),
+    [
+        (True, "3484", "4285", "0.0", True),
+        (True, "4280", "5264", "5.0", False),
+        (False, "4300", "5289", "0.0", False),
+        (False, "3493", "4297", "3.0", True),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_for_JPY(
+    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    channel_JPY,
+    checkout_JPY_with_item,
+    discount_info_JPY,
+    voucher_percentage,
+    shipping_zone_JPY,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    checkout = checkout_JPY_with_item
+    plugin_configuration(channel=channel_JPY)
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout.shipping_address = ship_to_pl_address
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    voucher_amount = Money(voucher_amount, "JPY")
+    checkout.shipping_method = shipping_zone_JPY.shipping_methods.get()
+    checkout.discount = voucher_amount
+    voucher_percentage.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=10,
+        currency=channel_JPY.currency_code,
+    )
+    if voucher_amount != "0.0":
+        checkout.voucher_code = voucher_percentage.code
+    checkout.save()
+    line = checkout.lines.first()
+    product = line.variant.product
+
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    discounts = [discount_info_JPY] if with_discount else None
+    checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+
+    # then
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "JPY"), gross=Money(expected_gross, "JPY")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
     "expected_net, expected_gross, prices_entered_with_tax",
     [
         ("8.13", "10.00", True),
