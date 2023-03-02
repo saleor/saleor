@@ -28,7 +28,12 @@ def test_handle_api_response_auto_capture_order_created_can_refund(
         }
     )
 
-    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+    handle_api_response(
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        adyen_response,
+        plugin.channel.slug,
+    )
 
     payment_adyen_for_checkout.refresh_from_db()
 
@@ -60,7 +65,12 @@ def test_handle_api_response_auto_capture_false_order_created_can_void(
         }
     )
 
-    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+    handle_api_response(
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        adyen_response,
+        plugin.channel.slug,
+    )
 
     payment_adyen_for_checkout.refresh_from_db()
 
@@ -94,7 +104,12 @@ def test_handle_api_response_auto_capture_false_cannot_create_order_void_payment
         }
     )
 
-    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+    handle_api_response(
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        adyen_response,
+        plugin.channel.slug,
+    )
 
     payment_adyen_for_checkout.refresh_from_db()
 
@@ -130,7 +145,12 @@ def test_handle_api_response_auto_capture_cannot_create_order_refund_payment(
         }
     )
 
-    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+    handle_api_response(
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        adyen_response,
+        plugin.channel.slug,
+    )
 
     payment_adyen_for_checkout.refresh_from_db()
 
@@ -169,7 +189,12 @@ def test_handle_api_response_auto_capture_cannot_create_order_variant_deleted(
         }
     )
 
-    handle_api_response(payment_adyen_for_checkout, adyen_response, plugin.channel.slug)
+    handle_api_response(
+        payment_adyen_for_checkout,
+        payment_adyen_for_checkout.checkout,
+        adyen_response,
+        plugin.channel.slug,
+    )
 
     payment_adyen_for_checkout.refresh_from_db()
 
