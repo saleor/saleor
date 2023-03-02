@@ -289,7 +289,7 @@ def prepare_insufficient_stock_order_validation_errors(exc):
         )
         errors.append(
             ValidationError(
-                f"Insufficient product stock: {item.variant}",
+                f"Insufficient product stock: {item.order_line or item.variant}",
                 code=OrderErrorCode.INSUFFICIENT_STOCK,
                 params={
                     "order_lines": [order_line_global_id]

@@ -1,15 +1,26 @@
 import hashlib
+import logging
+import traceback
 from typing import Union
 
 import graphene
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
+from graphql.error import format_error as format_graphql_error
 
+from ...core.exceptions import PermissionDenied, ReadOnlyException
 from ..core.enums import PermissionEnum
 from ..core.types import Permission
 from ..core.utils import from_global_id_or_error
+from ..core.validators.query_cost import QueryCostError
+
+unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
+handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -18,6 +29,17 @@ REVERSED_DIRECTION = {
     "-": "",
     "": "-",
 }
+
+# List of error types of which messages can be returned in the GraphQL API.
+ALLOWED_ERRORS = [
+    GraphQLError,
+    PermissionDenied,
+    ReadOnlyException,
+    ValidationError,
+    QueryCostError,
+]
+
+INTERNAL_ERROR_MESSAGE = "Internal Server Error"
 
 
 def resolve_global_ids_to_primary_keys(
@@ -154,3 +176,39 @@ def query_fingerprint(document: GraphQLDocument) -> str:
             break
     query_hash = hashlib.md5(document.document_string.encode("utf-8")).hexdigest()
     return f"{label}:{query_hash}"
+
+
+def format_error(error, handled_exceptions):
+    if isinstance(error, GraphQLError):
+        result = format_graphql_error(error)
+    else:
+        result = {"message": str(error)}
+
+    if "extensions" not in result:
+        result["extensions"] = {}
+
+    exc = error
+    while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
+        exc = exc.original_error
+    if isinstance(exc, AssertionError):
+        exc = GraphQLError(str(exc))
+    if isinstance(exc, handled_exceptions):
+        handled_errors_logger.info("A query had an error", exc_info=exc)
+    else:
+        unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
+
+    # If DEBUG mode is disabled we allow only certain error messages to be returned in
+    # the API. This prevents from leaking internals that might be included in Python
+    # exceptions' error messages.
+    if type(exc) not in ALLOWED_ERRORS and not settings.DEBUG:
+        result["message"] = INTERNAL_ERROR_MESSAGE
+
+    result["extensions"]["exception"] = {"code": type(exc).__name__}
+    if settings.DEBUG:
+        lines = []
+
+        if isinstance(exc, BaseException):
+            for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
+                lines.extend(line.rstrip().splitlines())
+        result["extensions"]["exception"]["stacktrace"] = lines
+    return result

@@ -14,7 +14,7 @@ from ...account.models import User
 from ...core.jwt import create_access_token
 from ...plugins.manager import get_plugins_manager
 from ...tests.utils import flush_post_commit_hooks
-from ..views import handled_errors_logger, unhandled_errors_logger
+from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
 API_PATH = reverse("api")
@@ -94,7 +94,7 @@ class ApiClient(Client):
 
         if permissions:
             if check_no_permissions:
-                with mock.patch("saleor.graphql.views.handled_errors_logger"):
+                with mock.patch("saleor.graphql.utils.handled_errors_logger"):
                     response = super().post(API_PATH, data, **kwargs)
                 assert_no_permission(response)
             if self.app:

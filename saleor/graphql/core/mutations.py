@@ -4,6 +4,7 @@ from itertools import chain
 from typing import Iterable, Tuple, Union
 
 import graphene
+import jwt
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,

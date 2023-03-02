@@ -9915,6 +9915,7 @@ ASSIGN_VARIANT_QUERY = """
             errors {
                 field
                 message
+                code
             }
             productVariant {
                 id
@@ -9963,12 +9964,11 @@ def test_assign_variant_media_second_time(
     )
 
     # then
-    content = get_graphql_content_from_response(response)
+    content = get_graphql_content_from_response(response)["data"]["variantMediaAssign"]
     assert "errors" in content
-    assert (
-        "duplicate key value violates unique constraint"
-        in content["errors"][0]["message"]
-    )
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == ProductErrorCode.MEDIA_ALREADY_ASSIGNED.name
 
 
 def test_assign_variant_media_from_different_product(
