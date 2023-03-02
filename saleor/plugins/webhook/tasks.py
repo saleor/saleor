@@ -101,7 +101,7 @@ def create_deliveries_for_subscriptions(
             app=webhook.app,
         )
         if not data:
-            logger.warning(
+            logger.info(
                 "No payload was generated with subscription for event: %s" % event_type
             )
             continue
@@ -542,7 +542,7 @@ def send_webhook_request_async(self, event_delivery_id):
                 observability.report_event_delivery_attempt(attempt, next_retry)
                 raise retry_error
             except MaxRetriesExceededError:
-                task_logger.warning(
+                task_logger.info(
                     "[Webhook ID: %r] Failed request to %r: exceeded retry limit."
                     "Delivery id: %r",
                     webhook.id,
@@ -607,7 +607,7 @@ def send_webhook_request_sync(
             response_data = json.loads(response.content)
 
     except JSONDecodeError as e:
-        logger.warning(
+        logger.info(
             "[Webhook] Failed parsing JSON response from %r: %r."
             "ID of failed DeliveryAttempt: %r . ",
             webhook.target_url,
@@ -617,7 +617,7 @@ def send_webhook_request_sync(
         response.status = EventDeliveryStatus.FAILED
     else:
         if response.status == EventDeliveryStatus.FAILED:
-            logger.warning(
+            logger.info(
                 "[Webhook] Failed request to %r: %r. "
                 "ID of failed DeliveryAttempt: %r . ",
                 webhook.target_url,
@@ -681,7 +681,7 @@ def send_observability_events(webhooks: List[WebhookData], events: List[Any]):
             )
             continue
         if failed:
-            logger.warning(
+            logger.info(
                 "Webhook ID: %r failed request to %r (%s/%s events dropped): %r.",
                 webhook.id,
                 webhook.target_url,
