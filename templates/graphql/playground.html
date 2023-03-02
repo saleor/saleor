@@ -8,19 +8,19 @@
 
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-9/dist/umd/index.css"
+    href="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-10/dist/umd/index.css"
     integrity="sha256-ZJCckg9tCLN/1GDFgJUsuVH9o8NGGcFD4kELL6KFAyc="
     crossorigin="anonymous"
   />
   <!-- sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc= is inline css added by the playground when opening settings -->
   <!-- sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c= is the inline code below -->
-  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-9/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-9/dist/umd/index.css 'sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc='; font-src 'self' data:; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
+  <meta http-equiv="content-security-policy" content="default-src 'none'; connect-src {{ api_url }} {{ plugins_url }}; script-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-10/dist/umd/index.js 'sha256-hM8ziVmFsNZhvY3EjvTholqPBoYTMv/3+1nOBhZrL+c='; style-src https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-10/dist/umd/index.css 'sha256-Y/huXlwoYkVyQlxwSVcCi1RCDGDCSVBzDt0hYP9qlTc='; font-src 'self' data:; img-src data: https://cdn.jsdelivr.net/npm/graphql-playground-react@1.7.22/build/favicon.png" />
 </head>
 <body>
   <div id="root" data-endpoint="{{ api_url }}" {% if query %}data-query="{{ query }}"{% endif %}></div>
   <script
-    src="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-9/dist/umd/index.js"
-    integrity="sha256-HIerRbvaWWhqvC3ZBi4+fzqbf0ZORrk28RSx7qYY0SQ="
+    src="https://cdn.jsdelivr.net/npm/@saleor/graphql-playground@2.0.0-10/dist/umd/index.js"
+    integrity="sha256-7NMm/mvIdkuYIRo237M74Lk5JSB9y85AaI+23EfsYtA="
     crossorigin="anonymous">
   </script>
 
