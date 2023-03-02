@@ -5278,6 +5278,7 @@ REQUEST_PASSWORD_RESET_MUTATION = """
             errors {
                 field
                 message
+                code
             }
         }
     }
@@ -5516,12 +5517,10 @@ def test_account_reset_password_user_is_inactive(
         "channel": channel_USD.slug,
     }
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
-    results = response.json()
-    assert "errors" in results
-    assert (
-        results["errors"][0]["message"]
-        == "Invalid token. User does not exist or is inactive."
-    )
+    content = get_graphql_content(response)
+    data = content["data"]["requestPasswordReset"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == AccountErrorCode.JWT_INVALID_TOKEN.name
     assert not mocked_notify.called
 
 
