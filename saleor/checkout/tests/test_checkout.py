@@ -499,7 +499,8 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
     ).gross
 
     # then
-    assert any([line.voucher is not None for line in lines])
+    assert [line.voucher is not None for line in lines].count(True) == 1
+
     for line in lines:
         line.voucher = None
     subtotal_without_voucher = manager.calculate_checkout_subtotal(
@@ -1392,7 +1393,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     assert is_paid
 
 
-def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
+def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
