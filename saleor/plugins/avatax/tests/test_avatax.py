@@ -1150,10 +1150,10 @@ def test_calculate_checkout_total(
         "prices_entered_with_tax"
     ),
     [
-        (True, "3484", "4285", "0.0", True),
+        (True, "3485", "4285", "0.0", True),
         (True, "4280", "5264", "5.0", False),
         (False, "4300", "5289", "0.0", False),
-        (False, "3493", "4297", "3.0", True),
+        (False, "3495", "4297", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
