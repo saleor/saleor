@@ -31,7 +31,7 @@ def test_stocks_bulk_update_queries_count(
     variant,
     variant_with_many_stocks,
     warehouse_no_shipping_zone,
-    warehouse,
+    warehouse_with_external_ref,
     permission_manage_products,
     django_assert_num_queries,
     count_queries,
@@ -41,7 +41,7 @@ def test_stocks_bulk_update_queries_count(
     variant_2 = variant
 
     stock_3 = Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=4
+        warehouse=warehouse_with_external_ref, product_variant=variant, quantity=4
     )
     stock_4 = Stock.objects.create(
         warehouse=warehouse_no_shipping_zone, product_variant=variant, quantity=4

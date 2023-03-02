@@ -5925,7 +5925,21 @@ def warehouse(address, shipping_zone, channel_USD):
         name="Example Warehouse",
         slug="example-warehouse",
         email="test@example.com",
-        external_reference="example-warehouse",
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
+def warehouse_with_external_ref(address, shipping_zone, channel_USD):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse With Ref",
+        slug="example-warehouse-with-ref",
+        email="test@example.com",
+        external_reference="example-warehouse-with-ref",
     )
     warehouse.shipping_zones.add(shipping_zone)
     warehouse.channels.add(channel_USD)
@@ -5956,14 +5970,14 @@ def warehouses(address, address_usa, channel_USD):
                 name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
-                external_reference="externalReference1",
+                external_reference="warehouse1",
             ),
             Warehouse(
                 address=address_usa.get_copy(),
                 name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
-                external_reference="externalReference2",
+                external_reference="warehouse2",
             ),
         ]
     )
