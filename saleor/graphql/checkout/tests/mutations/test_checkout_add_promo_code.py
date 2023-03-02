@@ -371,7 +371,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         expected_discount, "USD"
     )
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount
 
 
 def test_checkout_add_products_voucher_code_checkout_with_sale(
@@ -428,7 +428,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount.amount
 
 
 def test_checkout_add_collection_voucher_code_checkout_with_sale(
@@ -485,7 +485,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_voucher_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_voucher_discount.amount
 
 
 def test_checkout_add_category_code_checkout_with_sale(
@@ -541,7 +541,7 @@ def test_checkout_add_category_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount.amount
 
 
 def test_checkout_add_voucher_code_not_applicable_voucher(
@@ -1037,5 +1037,5 @@ def test_checkout_add_voucher_code_invalidates_price(
     # then
     assert not data["errors"]
     assert data["checkout"]["voucherCode"] == voucher.code
-    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_total
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total

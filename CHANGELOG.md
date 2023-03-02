@@ -38,6 +38,9 @@ All notable, unreleased changes to this project will be documented in this file.
   E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
 
 - Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
+- Include specific products voucher in checkout discount - #12191 by @IKarbowiak
+  - Make the `specific product` and `apply once per order` voucher discounts visible on `checkout.discount` field.
+  Previously, the discount amount for these vouchers was shown as 0.
 
 ### GraphQL API
 - Added support for all attributes types in `BulkAttributeValueInput` - #12095 by @SzymJ

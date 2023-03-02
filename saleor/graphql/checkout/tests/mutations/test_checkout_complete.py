@@ -845,6 +845,7 @@ def test_checkout_with_voucher_complete(
     address,
     shipping_method,
 ):
+    # given
     voucher_used_count = voucher_percentage.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
@@ -887,8 +888,11 @@ def test_checkout_with_voucher_complete(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -949,8 +953,6 @@ def test_checkout_with_voucher_complete_product_on_sale(
     checkout.save()
     checkout.metadata_storage.save()
 
-    discount_amount = checkout.discount
-
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
     checkout_line_variant = checkout_line.variant
@@ -1003,7 +1005,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
     order_line = order.lines.first()
     assert order.total == total
-    assert order.undiscounted_total == total + discount_amount + (
+    assert order.undiscounted_total == total + (
         order_line.undiscounted_total_price - order_line.total_price
     )
 

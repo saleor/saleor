@@ -353,6 +353,16 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
 
 
 @pytest.fixture
+def checkout_with_item_and_voucher(checkout_with_item, voucher):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
 
