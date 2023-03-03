@@ -1617,23 +1617,23 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "fakeredis"
-version = "1.10.1"
+version = "2.9.2"
 description = "Fake implementation of redis API for testing purposes."
 category = "dev"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = ">=3.8,<4.0"
 files = [
-    {file = "fakeredis-1.10.1-py3-none-any.whl", hash = "sha256:054ec109ec2cb4b1f0c6ed8d53603b07504c971bf8865dc6459eb5598e02ef1b"},
-    {file = "fakeredis-1.10.1.tar.gz", hash = "sha256:2d0d9163ce9ea7e3eae44c65d2e4ed168a8a3827a1d3ba430ca6f31ab0e762ff"},
+    {file = "fakeredis-2.9.2-py3-none-any.whl", hash = "sha256:35962e0ded572302c4461ad1a40308259cc10b7c546b13228e6d7880bf7b74bb"},
+    {file = "fakeredis-2.9.2.tar.gz", hash = "sha256:3bcc2b5c10d5e03cc5b46697d77c651f48391b506ff931576d2869c7549e2e25"},
 ]
 
 [package.dependencies]
-redis = "<4.5"
-sortedcontainers = ">=2.4.0,<3.0.0"
+redis = ">=4,<5"
+sortedcontainers = ">=2.4,<3.0"
 
 [package.extras]
-aioredis = ["aioredis (>=2.0.1,<3.0.0)"]
-lua = ["lupa (>=1.13,<2.0)"]
+json = ["jsonpath-ng (>=1.5,<2.0)"]
+lua = ["lupa (>=1.14,<2.0)"]
 
 [[package]]
 name = "filelock"
@@ -5132,4 +5132,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "1b6b12647e70ee74abe486e314e08fed4ebb29f524b0e66243886233edf47412"
+content-hash = "5968cfceb8f12df5018b8691cf3f6ff9820fa4d0c391e8b3a5f8dbbfe3ddc5a4"
