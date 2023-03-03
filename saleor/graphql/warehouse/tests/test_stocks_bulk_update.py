@@ -299,6 +299,36 @@ def test_stocks_bulk_update_when_no_variant_args_provided(
     )
 
 
+def test_stocks_bulk_update_when_invalid_variant_id_provided(
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    stock = variant.stocks.first()
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse_id)
+
+    stocks_input = [
+        {"variantId": "abcd", "warehouseId": warehouse_id, "quantity": 10},
+    ]
+
+    variables = {"stocks": stocks_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["stocksBulkUpdate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["message"] == "Invalid variantId."
+
+
 def test_stocks_bulk_update_when_no_warehouse_args_provided(
     staff_api_client,
     variant_with_many_stocks,
@@ -328,6 +358,34 @@ def test_stocks_bulk_update_when_no_warehouse_args_provided(
         "At least one of arguments is required: 'warehouseId', "
         "'warehouseExternalReference'."
     )
+
+
+def test_stocks_bulk_update_when_invalid_warehouse_id_provided(
+    staff_api_client,
+    variant_with_many_stocks,
+    permission_manage_products,
+):
+    # given
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    stocks_input = [
+        {"variantId": variant_id, "warehouseId": "abcd", "quantity": 10},
+    ]
+
+    variables = {"stocks": stocks_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["stocksBulkUpdate"]
+
+    # then
+    assert data["count"] == 0
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["message"] == "Invalid warehouseId."
 
 
 def test_stocks_bulk_update_when_stock_not_exists(

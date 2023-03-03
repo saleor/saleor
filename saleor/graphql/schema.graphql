@@ -12410,7 +12410,7 @@ type Mutation {
   """
   Updates stocks for a given variant and warehouse.
   
-  Added in Saleor 3.12.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -16838,7 +16838,7 @@ enum TaxExemptionManageErrorCode {
 """
 Updates stocks for a given variant and warehouse.
 
-Added in Saleor 3.12.
+Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 

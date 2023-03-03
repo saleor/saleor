@@ -1,4 +1,3 @@
-import binascii
 from collections import defaultdict
 
 import graphene
@@ -9,7 +8,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
-from ...core.descriptions import ADDED_IN_312, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockBulkUpdateError
@@ -72,7 +71,7 @@ class StocksBulkUpdate(BaseMutation):
     class Meta:
         description = (
             "Updates stocks for a given variant and warehouse."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -114,7 +113,7 @@ class StocksBulkUpdate(BaseMutation):
                     errors_count += 1
                 else:
                     stock_input["variant_id"] = variant_db_id
-            except binascii.Error:
+            except Exception:
                 index_error_map[index].append(
                     StockBulkUpdateError(
                         field="variantId",
@@ -166,7 +165,7 @@ class StocksBulkUpdate(BaseMutation):
                     errors_count += 1
                 else:
                     stock_input["warehouse_id"] = warehouse_db_id
-            except binascii.Error:
+            except Exception:
                 index_error_map[index].append(
                     StockBulkUpdateError(
                         field="warehouseId",
@@ -342,7 +341,6 @@ class StocksBulkUpdate(BaseMutation):
 
     @classmethod
     def post_save_actions(cls, info, instances):
-        pass
         manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
             cls.call_event(manager.product_variant_stock_updated, instance)
