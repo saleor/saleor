@@ -2,49 +2,65 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.12.0 [Unreleased]
+# 3.13.0 [Unreleased]
 
 ### Breaking changes
+
+### GraphQL API
+
+### Other changes
+
+# 3.12.0
+
+### Breaking changes
+
 - `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
-    - `create` input - list of items that should be created
-    - `update` input - list of items that should be updated
-    - `remove` input - list of objects ID's that should be removed
+
+  - `create` input - list of items that should be created
+  - `update` input - list of items that should be updated
+  - `remove` input - list of objects ID's that should be removed
 
   If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
-    ```
-       {
-        "stocks/channelListings": [
+
+  ```
+     {
+      "stocks/channelListings": [
+        {
+          ...
+        }
+      ]
+     }
+  ```
+
+  to:
+
+  ```
+     {
+      "stocks/channelListings": {
+        "create": [
           {
-            ...
+           ...
           }
         ]
-       }
-    ```
-    to:
-    ```
-       {
-        "stocks/channelListings": {
-          "create": [
-            {
-             ...
-            }
-          ]
-        }
-       }
-    ```
+      }
+     }
+  ```
+
 - Change the discount rounding mode - #12041 by @IKarbowiak
+
   - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount and total price of future checkouts and orders with a percentage discount applied.
-  The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
-  E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
+    The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
+    E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
 
 - Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
 - Include specific products voucher in checkout discount - #12191 by @IKarbowiak
   - Make the `specific product` and `apply once per order` voucher discounts visible on `checkout.discount` field.
-  Previously, the discount amount for these vouchers was shown as 0.
+    Previously, the discount amount for these vouchers was shown as 0.
 
 ### GraphQL API
+
 - Added support for all attributes types in `BulkAttributeValueInput` - #12095 by @SzymJ
-- Add possibility  to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
+- Add possibility to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
 - Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
   - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
   - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
@@ -56,8 +72,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Improve GraphQL playground by storing headers in the local storage - #12176 by @zaiste
 - Fixes for GraphiQL playground - #12192 by @zaiste
 
-
 ### Other changes
+
 - Fix saving `metadata` in `ProductVariantBulkCreate` and `ProductVariantBulkupdate` mutations - #12097 by @SzymJ
 - Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
 - Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
@@ -109,6 +125,7 @@ Just so you know, changes mentioned in this section are in a preview state and c
 ### Breaking changes
 
 ### GraphQL API
+
 - Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
   - Add `filter` argument to `Category.products`
   - Add `sortBy` argument to `Category.products`
