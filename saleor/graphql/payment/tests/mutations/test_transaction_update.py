@@ -725,8 +725,85 @@ def test_creates_transaction_event_for_order(
     assert event.reference == event_reference
 
 
+@pytest.mark.parametrize(
+    "amount_field_name, amount_value, db_field, event_type",
+    [
+        (
+            "amountCharged",
+            Decimal("13"),
+            "charged_value",
+            TransactionEventType.CHARGE_SUCCESS,
+        ),
+        (
+            "amountVoided",
+            Decimal("14"),
+            "voided_value",
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            "amountRefunded",
+            Decimal("15"),
+            "refunded_value",
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+    ],
+)
 def test_updates_transaction_manual_adjustment_event(
-    transaction, order_with_lines, permission_manage_payments, app_api_client
+    amount_field_name,
+    amount_value,
+    db_field,
+    event_type,
+    transaction,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = order_with_lines.payment_transactions.first()
+    transaction.events.create(
+        type=event_type,
+        amount_value=Decimal("10"),
+        currency=transaction.currency,
+        transaction_id=transaction.pk,
+        include_in_calculations=True,
+        app_identifier=None,
+        app=None,
+        user=None,
+        created_at=timezone.now(),
+        message="Manual adjustment of the transaction.",
+    )
+    setattr(transaction, db_field, Decimal("10"))
+    transaction.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            amount_field_name: {
+                "amount": amount_value,
+                "currency": transaction.currency,
+            }
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+
+    assert transaction.events.count() == 2
+    event = transaction.events.last()
+    assert event.include_in_calculations
+    assert event.amount_value == amount_value - Decimal(10)
+
+
+def test_updates_transaction_manual_adjustment_event_authorize(
+    transaction,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
 ):
     # given
     transaction = order_with_lines.payment_transactions.first()
@@ -742,13 +819,14 @@ def test_updates_transaction_manual_adjustment_event(
         created_at=timezone.now(),
         message="Manual adjustment of the transaction.",
     )
+    transaction.authorized_value = Decimal("10")
+    transaction.save()
 
-    authorized_amount = Decimal("20")
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {
             "amountAuthorized": {
-                "amount": authorized_amount,
+                "amount": Decimal("20"),
                 "currency": transaction.currency,
             }
         },
@@ -762,7 +840,9 @@ def test_updates_transaction_manual_adjustment_event(
     # then
     get_graphql_content(response)
 
-    assert transaction.events.count() == 1
-    event = transaction.events.first()
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(
+        type=TransactionEventType.AUTHORIZATION_ADJUSTMENT
+    ).get()
     assert event.include_in_calculations
-    assert event.amount_value == authorized_amount
+    assert event.amount_value == Decimal(20)

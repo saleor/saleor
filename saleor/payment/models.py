@@ -158,6 +158,10 @@ class TransactionItem(ModelWithMetadata):
             GinIndex(fields=["order_id", "status"]),
         ]
 
+    def save(self, *args, **kwargs) -> None:
+        self.canceled_value = self.voided_value
+        return super().save(*args, **kwargs)
+
 
 class TransactionEvent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)

@@ -680,18 +680,27 @@ def test_creates_transaction_event_for_checkout(
     assert event.reference == event_reference
 
 
+@pytest.mark.parametrize(
+    "amount_field_name, amount_value",
+    [
+        ("amountAuthorized", Decimal("12")),
+        ("amountCharged", Decimal("13")),
+        ("amountVoided", Decimal("14")),
+        ("amountRefunded", Decimal("15")),
+    ],
+)
 def test_creates_transaction_manual_adjustment_events(
-    order_with_lines, permission_manage_payments, app_api_client
+    amount_field_name,
+    amount_value,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
 ):
     # given
     status = "Failed authorized for 10$"
     type = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = []
-    authorized_value = Decimal("20")
-    charged_value = Decimal("5")
-    refunded_value = Decimal("10")
-    voided_value = Decimal("0")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
@@ -702,20 +711,8 @@ def test_creates_transaction_manual_adjustment_events(
             "type": type,
             "reference": reference,
             "availableActions": available_actions,
-            "amountAuthorized": {
-                "amount": authorized_value,
-                "currency": "USD",
-            },
-            "amountCharged": {
-                "amount": charged_value,
-                "currency": "USD",
-            },
-            "amountVoided": {
-                "amount": voided_value,
-                "currency": "USD",
-            },
-            "amountRefunded": {
-                "amount": refunded_value,
+            amount_field_name: {
+                "amount": amount_value,
                 "currency": "USD",
             },
             "metadata": [metadata],
@@ -732,4 +729,8 @@ def test_creates_transaction_manual_adjustment_events(
     transaction = order_with_lines.payment_transactions.first()
     get_graphql_content(response)
 
-    assert transaction.events.filter(include_in_calculations=True).count() == 4
+    events = transaction.events.filter(include_in_calculations=True)
+    assert len(events) == 1
+    event = events.first()
+    assert event
+    assert event.amount_value == amount_value

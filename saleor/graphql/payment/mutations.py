@@ -899,7 +899,11 @@ class TransactionCreate(BaseMutation):
             user = info.context.user
             app = get_app_promise(info.context).get()
             create_manual_adjustment_events(
-                transaction=new_transaction, money_data=money_data, user=user, app=app
+                transaction=new_transaction,
+                money_data=money_data,
+                user=user,
+                app=app,
+                created_transaction=True,
             )
 
         if order_id := transaction_data.get("order_id"):
@@ -1002,6 +1006,12 @@ class TransactionUpdate(TransactionCreate):
 
             # zero-downtime compatibility with 3.12 version
             money_data = cls.get_money_data_from_input(transaction)
+            if money_data:
+                user = info.context.user
+                app = get_app_promise(info.context).get()
+                create_manual_adjustment_events(
+                    transaction=instance, money_data=money_data, user=user, app=app
+                )
 
             cls.cleanup_money_data(transaction)
             cls.cleanup_metadata_data(transaction)
@@ -1009,14 +1019,6 @@ class TransactionUpdate(TransactionCreate):
                 cls.update_amounts_for_order(instance, instance.order_id, transaction)
             instance = cls.construct_instance(instance, transaction)
             instance.save()
-
-            # zero-downtime compatibility with 3.12 version
-            if money_data:
-                user = info.context.user
-                app = get_app_promise(info.context).get()
-                create_manual_adjustment_events(
-                    transaction=instance, money_data=money_data, user=user, app=app
-                )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, instance)
