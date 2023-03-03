@@ -108,6 +108,14 @@ class ChannelUpdate(ModelMutation):
 
             if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
                 cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+
+            default_transaction_strategy = order_settings.get(
+                "default_transaction_flow_strategy"
+            )
+            if default_transaction_strategy:
+                cleaned_input[
+                    "default_transaction_flow_strategy"
+                ] = default_transaction_strategy
         return cleaned_input
 
     @classmethod

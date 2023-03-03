@@ -17,7 +17,11 @@ from ...core.descriptions import (
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
+from ..enums import (
+    AllocationStrategyEnum,
+    MarkAsPaidStrategyEnum,
+    TransactionFlowStrategyEnum,
+)
 from ..types import Channel
 
 
@@ -52,6 +56,14 @@ class OrderSettingsInput(graphene.InputObjectType):
             "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
             + PREVIEW_FEATURE
+        ),
+    )
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=False,
+        description=(
+            "Determine the transaction flow strategy to be used, and include the "
+            "selected option in the payload sent to the payment app as a requested "
+            "action for the transaction." + PREVIEW_FEATURE + ADDED_IN_312
         ),
     )
 
@@ -143,6 +155,14 @@ class ChannelCreate(ModelMutation):
                 ] = automatically_fulfill_non_shippable_gift_card
             if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
                 cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+
+            default_transaction_strategy = order_settings.get(
+                "default_transaction_flow_strategy"
+            )
+            if default_transaction_strategy:
+                cleaned_input[
+                    "default_transaction_flow_strategy"
+                ] = default_transaction_strategy
 
         return cleaned_input
 

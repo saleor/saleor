@@ -822,6 +822,59 @@ def test_app_with_action_field_and_handle_payments(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_uses_default_channel_action(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    channel = checkout.channel
+    channel.default_transaction_flow_strategy = TransactionFlowStrategy.AUTHORIZATION
+    channel.save()
+
+    expected_amount = Decimal("10.00")
+    expected_psp_reference = "ppp-123"
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = "CHARGE_SUCCESS"
+    expected_response["pspReference"] = expected_psp_reference
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=expected_psp_reference,
+        response_event_type=TransactionEventType.CHARGE_SUCCESS,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+        charged_value=expected_amount,
+        action_type=TransactionFlowStrategy.AUTHORIZATION,
+        request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_app_with_action_field(
     mocked_initialize,
     app_api_client,

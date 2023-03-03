@@ -4914,6 +4914,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
+
+  """
+  Determine the transaction flow strategy to be used, and include the selected option in the payload sent to the payment app as a requested action for the transaction.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Added in Saleor 3.12.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
 
 """
@@ -4928,6 +4937,17 @@ Determine the mark as paid strategy for the channel.
 enum MarkAsPaidStrategyEnum {
   TRANSACTION_FLOW
   PAYMENT_FLOW
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum {
+  AUTHORIZATION
+  CHARGE
 }
 
 """Represents shipping method postal code rule."""
@@ -20584,17 +20604,6 @@ enum TransactionInitializeErrorCode {
 }
 
 """
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum {
-  AUTHORIZATION
-  CHARGE
-}
-
-"""
 Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
 
 Added in Saleor 3.12.
@@ -23630,6 +23639,15 @@ input OrderSettingsInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum
+
+  """
+  Determine the transaction flow strategy to be used, and include the selected option in the payload sent to the payment app as a requested action for the transaction.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Added in Saleor 3.12.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }
 
 """
