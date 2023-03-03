@@ -66,20 +66,6 @@ def order_set_shipping_method(order, shipping_method):
     )
 
 
-@pytest.fixture
-def avatax_config():
-    return AvataxConfiguration(
-        username_or_account="test",
-        password_or_license="test",
-        use_sandbox=True,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
-
 @pytest.mark.vcr()
 @pytest.mark.parametrize(
     "with_discount, expected_net, expected_gross, prices_entered_with_tax",
@@ -2849,6 +2835,7 @@ def test_generate_request_data_from_checkout_for_cc_and_single_location(
     address,
     address_other_country,
     warehouse,
+    avatax_config,
 ):
     # given
     warehouse.address = address_other_country
@@ -2860,22 +2847,20 @@ def test_generate_request_data_from_checkout_for_cc_and_single_location(
     checkout_with_item.save()
 
     address_data = address_other_country.as_data()
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address=address_data.get("street_address_1"),
-        from_city=address_data.get("city"),
-        from_postal_code=address_data.get("postal_code"),
-        from_country=address_data.get("country"),
-    )
+
+    avatax_config.from_street_address = address_data.get("street_address_1")
+    avatax_config.from_city = address_data.get("city")
+    avatax_config.from_postal_code = address_data.get("postal_code")
+    avatax_config.from_country = address_data.get("country")
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
-    request_data = generate_request_data_from_checkout(checkout_info, lines, config)
+    request_data = generate_request_data_from_checkout(
+        checkout_info, lines, avatax_config
+    )
 
     # then
     addresses = request_data["createTransactionModel"]["addresses"]
@@ -2897,6 +2882,7 @@ def test_get_checkout_tax_data_with_single_point(
     mock_cache_set,
     checkout_with_item,
     warehouse,
+    avatax_config,
 ):
     # given
     address = Address.objects.create(
@@ -2912,24 +2898,14 @@ def test_get_checkout_tax_data_with_single_point(
     checkout_with_item.collection_point = warehouse
     checkout_with_item.save()
 
-    address_data = warehouse.address.as_data()
-
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=True,
-        from_street_address=address_data.get("street_address_1"),
-        from_city=address_data.get("city"),
-        from_postal_code=address_data.get("postal_code"),
-        from_country=address_data.get("country"),
-    )
-
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
     # when
-    response = get_checkout_tax_data(checkout_info, lines, discounts=[], config=config)
+    response = get_checkout_tax_data(
+        checkout_info, lines, discounts=[], config=avatax_config
+    )
 
     # then
     assert len(response.get("addresses", [])) == 1
@@ -3909,8 +3885,9 @@ def test_api_post_request_handles_json_errors(product, monkeypatch, avatax_confi
 
 
 def test_get_order_request_data_checks_when_taxes_are_included_to_price(
-    order_with_lines, shipping_zone
+    order_with_lines, shipping_zone, avatax_config
 ):
+    # given
     tax_configuration = order_with_lines.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
@@ -3926,19 +3903,11 @@ def test_get_order_request_data_checks_when_taxes_are_included_to_price(
     order_with_lines.shipping_method = method
     order_with_lines.save()
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-    request_data = get_order_request_data(order_with_lines, config)
+    # when
+    request_data = get_order_request_data(order_with_lines, avatax_config)
     lines_data = request_data["createTransactionModel"]["lines"]
 
+    # then
     assert all([line for line in lines_data if line["taxIncluded"] is True])
 
 
@@ -3948,6 +3917,7 @@ def test_get_order_request_data_uses_correct_address_for_cc(
     address,
     address_other_country,
     warehouse,
+    avatax_config,
 ):
     # given
     site_settings.include_taxes_in_prices = True
@@ -3964,19 +3934,8 @@ def test_get_order_request_data_uses_correct_address_for_cc(
     order_with_lines.shipping_method = None
     order_with_lines.save()
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     expected_address_data = address_other_country.as_data()
@@ -3999,6 +3958,7 @@ def test_get_order_request_data_uses_correct_address_for_cc_with_single_location
     address,
     address_other_country,
     warehouse,
+    avatax_config,
 ):
     # given
     site_settings.include_taxes_in_prices = True
@@ -4017,17 +3977,13 @@ def test_get_order_request_data_uses_correct_address_for_cc_with_single_location
 
     address_data = address_other_country.as_data()
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address=address_data.get("street_address_1"),
-        from_city=address_data.get("city"),
-        from_postal_code=address_data.get("postal_code"),
-        from_country=address_data.get("country"),
-    )
+    avatax_config.from_street_address = address_data.get("street_address_1")
+    avatax_config.from_city = address_data.get("city")
+    avatax_config.from_postal_code = address_data.get("postal_code")
+    avatax_config.from_country = address_data.get("country")
+
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     addresses = request_data["createTransactionModel"]["addresses"]
@@ -4045,7 +4001,7 @@ def test_get_order_request_data_uses_correct_address_for_cc_with_single_location
 
 
 def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
-    order_with_lines, shipping_zone
+    order_with_lines, shipping_zone, avatax_config
 ):
     """Ensure that when line already has calculated taxes, the `taxIncluded` flag
     is set based on site settings, and we are sending the base price of line."""
@@ -4068,19 +4024,8 @@ def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
     order_with_lines.shipping_method = method
     order_with_lines.save()
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -4100,7 +4045,7 @@ def test_get_order_request_data_for_line_with_already_included_taxes_in_price(
 
 
 def test_get_order_request_data_confirmed_order_with_voucher(
-    order_with_lines, shipping_zone, voucher
+    order_with_lines, shipping_zone, voucher, avatax_config
 ):
     tax_configuration = order_with_lines.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
@@ -4137,17 +4082,7 @@ def test_get_order_request_data_confirmed_order_with_voucher(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # extra one from shipping data
@@ -4159,8 +4094,9 @@ def test_get_order_request_data_confirmed_order_with_voucher(
 
 
 def test_get_order_request_data_confirmed_order_with_sale(
-    order_with_lines, shipping_zone, sale
+    order_with_lines, shipping_zone, sale, avatax_config
 ):
+    # given
     tax_configuration = order_with_lines.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = True
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
@@ -4189,17 +4125,10 @@ def test_get_order_request_data_confirmed_order_with_sale(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-    request_data = get_order_request_data(order_with_lines, config)
+    # when
+    request_data = get_order_request_data(order_with_lines, avatax_config)
+
+    # then
     lines_data = request_data["createTransactionModel"]["lines"]
 
     # extra one from shipping data
@@ -4207,7 +4136,7 @@ def test_get_order_request_data_confirmed_order_with_sale(
 
 
 def test_get_order_request_data_draft_order_with_voucher(
-    order_with_lines, shipping_zone, voucher
+    order_with_lines, shipping_zone, voucher, avatax_config
 ):
     # given
     tax_configuration = order_with_lines.channel.tax_configuration
@@ -4246,19 +4175,8 @@ def test_get_order_request_data_draft_order_with_voucher(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -4273,7 +4191,7 @@ def test_get_order_request_data_draft_order_with_voucher(
 
 
 def test_get_order_request_data_draft_order_with_shipping_voucher(
-    order_with_lines, shipping_zone, voucher_free_shipping
+    order_with_lines, shipping_zone, voucher_free_shipping, avatax_config
 ):
     # given
     tax_configuration = order_with_lines.channel.tax_configuration
@@ -4317,19 +4235,8 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -4341,7 +4248,7 @@ def test_get_order_request_data_draft_order_with_shipping_voucher(
 
 
 def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
-    order_with_lines, shipping_zone, voucher_free_shipping
+    order_with_lines, shipping_zone, voucher_free_shipping, avatax_config
 ):
     """Ensure that when order has shipping voucher with price bigger than shipping
     price, the shipping price will not be negative."""
@@ -4387,19 +4294,8 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -4411,7 +4307,7 @@ def test_get_order_request_data_draft_order_shipping_voucher_amount_too_high(
 
 
 def test_get_order_request_data_draft_order_with_sale(
-    order_with_lines, shipping_zone, sale
+    order_with_lines, shipping_zone, sale, avatax_config
 ):
     # given
     tax_configuration = order_with_lines.channel.tax_configuration
@@ -4443,19 +4339,8 @@ def test_get_order_request_data_draft_order_with_sale(
         ]
     )
 
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    request_data = get_order_request_data(order_with_lines, config)
+    request_data = get_order_request_data(order_with_lines, avatax_config)
 
     # then
     lines_data = request_data["createTransactionModel"]["lines"]
@@ -4492,6 +4377,7 @@ def test_get_order_tax_data_with_single_location(
     mock_cache_set,
     order_line,
     warehouse,
+    avatax_config,
 ):
     # given
     address = Address.objects.create(
@@ -4509,19 +4395,13 @@ def test_get_order_tax_data_with_single_location(
     order.save()
 
     address_data = warehouse.address.as_data()
-
-    config = AvataxConfiguration(
-        username_or_account="",
-        password_or_license="",
-        use_sandbox=True,
-        from_street_address=address_data.get("street_address_1"),
-        from_city=address_data.get("city"),
-        from_postal_code=address_data.get("postal_code"),
-        from_country=address_data.get("country"),
-    )
+    avatax_config.from_street_address = address_data.get("street_address_1")
+    avatax_config.from_city = address_data.get("city")
+    avatax_config.from_postal_code = address_data.get("postal_code")
+    avatax_config.from_country = address_data.get("country")
 
     # when
-    response = get_order_tax_data(order, config)
+    response = get_order_tax_data(order, avatax_config)
 
     # then
     assert len(response.get("addresses", [])) == 1
@@ -4886,7 +4766,7 @@ def test_generate_request_data_from_checkout_lines_with_shipping_method(
 
 
 def test_get_order_lines_data_gets_tax_code_from_product_tax_class(
-    settings, channel_USD, plugin_configuration, order_with_lines
+    settings, channel_USD, plugin_configuration, order_with_lines, avatax_config
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
@@ -4900,26 +4780,15 @@ def test_get_order_lines_data_gets_tax_code_from_product_tax_class(
     )
     tax_class.save()
 
-    config = AvataxConfiguration(
-        username_or_account="test",
-        password_or_license="test",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    lines_data = get_order_lines_data(order_with_lines, config, discounted=False)
+    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
 
     # then
     assert lines_data[0]["taxCode"] == tax_code
 
 
 def test_get_order_lines_data_gets_tax_code_from_product_type_tax_class(
-    settings, channel_USD, plugin_configuration, order_with_lines
+    settings, channel_USD, plugin_configuration, order_with_lines, avatax_config
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
@@ -4937,26 +4806,15 @@ def test_get_order_lines_data_gets_tax_code_from_product_type_tax_class(
     )
     tax_class.save()
 
-    config = AvataxConfiguration(
-        username_or_account="test",
-        password_or_license="test",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    lines_data = get_order_lines_data(order_with_lines, config, discounted=False)
+    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
 
     # then
     assert lines_data[0]["taxCode"] == tax_code
 
 
 def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
-    settings, channel_USD, plugin_configuration, order_with_lines
+    settings, channel_USD, plugin_configuration, order_with_lines, avatax_config
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
@@ -4977,19 +4835,8 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
     )
     variant.product.tax_class.save()
 
-    config = AvataxConfiguration(
-        username_or_account="test",
-        password_or_license="test",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    lines_data = get_order_lines_data(order_with_lines, config, discounted=False)
+    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
 
     # then
     assert lines_data[0]["amount"] == "0.000"
@@ -4997,7 +4844,7 @@ def test_get_order_lines_data_sets_different_tax_code_for_zero_amount(
 
 
 def test_get_order_lines_data_with_discounted(
-    settings, channel_USD, plugin_configuration, order, order_line
+    settings, channel_USD, plugin_configuration, order, order_line, avatax_config
 ):
     # given
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
@@ -5019,19 +4866,8 @@ def test_get_order_lines_data_with_discounted(
     )
     variant.product.tax_class.save()
 
-    config = AvataxConfiguration(
-        username_or_account="test",
-        password_or_license="test",
-        use_sandbox=False,
-        from_street_address="Tęczowa 7",
-        from_city="WROCŁAW",
-        from_country_area="",
-        from_postal_code="53-601",
-        from_country="PL",
-    )
-
     # when
-    lines_data = get_order_lines_data(order, config, discounted=True)
+    lines_data = get_order_lines_data(order, avatax_config, discounted=True)
 
     # then
     assert len(lines_data) == 1
