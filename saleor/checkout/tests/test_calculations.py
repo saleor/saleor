@@ -166,6 +166,8 @@ def test_fetch_checkout_prices_if_expired_plugins(
     for tax_line in tax_data.lines:
         total_price = get_taxed_money(tax_line, "total", currency)
         subtotal = subtotal + total_price
+
+    plugins_manager.calculate_checkout_subtotal = Mock(return_value=subtotal)
     plugins_manager.calculate_checkout_total = Mock(
         return_value=shipping_price + subtotal
     )

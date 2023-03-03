@@ -4,7 +4,7 @@ import graphene
 
 from ...attribute import models as attribute_models
 from ...page import models
-from ...permission.enums import PagePermissions
+from ...permission.enums import PagePermissions, PageTypePermissions
 from ..attribute.filters import AttributeFilterInput, AttributeWhereInput
 from ..attribute.types import Attribute, AttributeCountableConnection, SelectedAttribute
 from ..core import ResolveInfo
@@ -44,6 +44,7 @@ class PageType(ModelObjectType[models.PageType]):
         description="Attributes that can be assigned to the page type.",
         permissions=[
             PagePermissions.MANAGE_PAGES,
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         ],
     )
     has_pages = PermissionsField(
@@ -51,6 +52,7 @@ class PageType(ModelObjectType[models.PageType]):
         description="Whether page type has pages assigned.",
         permissions=[
             PagePermissions.MANAGE_PAGES,
+            PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,
         ],
     )
 

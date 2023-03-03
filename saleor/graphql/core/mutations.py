@@ -19,6 +19,7 @@ from typing import (
 from uuid import UUID
 
 import graphene
+import jwt
 from django.core.exceptions import (
     NON_FIELD_ERRORS,
     ImproperlyConfigured,
@@ -32,6 +33,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...account.error_codes import AccountErrorCode
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
@@ -502,7 +504,14 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
-        setup_context_user(info.context)
+        try:
+            setup_context_user(info.context)
+        except jwt.InvalidTokenError:
+            return cls.handle_errors(
+                ValidationError(
+                    "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
+                )
+            )
 
         if not cls.check_permissions(info.context, data=data):
             raise PermissionDenied(permissions=cls._meta.permissions)
@@ -938,7 +947,14 @@ class BaseBulkMutation(BaseMutation):
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
         disallow_replica_in_context(info.context)
-        setup_context_user(info.context)
+        try:
+            setup_context_user(info.context)
+        except jwt.InvalidTokenError:
+            return cls.handle_errors(
+                ValidationError(
+                    "Invalid token", code=AccountErrorCode.JWT_INVALID_TOKEN.value
+                )
+            )
 
         if not cls.check_permissions(info.context):
             raise PermissionDenied(permissions=cls._meta.permissions)

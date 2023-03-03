@@ -16,15 +16,26 @@ from ....product.error_codes import ProductVariantBulkErrorCode
 from ....product.search import update_product_search_vector
 from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
+from ...attribute.types import (
+    AttributeValueDescriptions,
+    AttributeValueSelectableTypeInput,
+)
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
-from ...core.descriptions import ADDED_IN_311, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_311,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ...core.enums import ErrorPolicyEnum
+from ...core.fields import JSONString
 from ...core.mutations import (
     BaseMutation,
     ModelMutation,
     validation_error_to_error_type,
 )
+from ...core.scalars import Date
 from ...core.types import BulkProductError, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
@@ -108,7 +119,51 @@ class BulkAttributeValueInput(InputObjectType):
         description=(
             "The value or slug of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
+            + DEPRECATED_IN_3X_FIELD
         ),
+    )
+    dropdown = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_312,
+    )
+    swatch = AttributeValueSelectableTypeInput(
+        required=False,
+        description="Attribute value ID." + ADDED_IN_312,
+    )
+    multiselect = NonNullList(
+        AttributeValueSelectableTypeInput,
+        required=False,
+        description="List of attribute value IDs." + ADDED_IN_312,
+    )
+    numeric = graphene.String(
+        required=False,
+        description="Numeric value of an attribute." + ADDED_IN_312,
+    )
+    file = graphene.String(
+        required=False,
+        description=(
+            "URL of the file attribute. Every time, a new value is created."
+            + ADDED_IN_312
+        ),
+    )
+    content_type = graphene.String(
+        required=False,
+        description="File content type." + ADDED_IN_312,
+    )
+    references = NonNullList(
+        graphene.ID,
+        description=(
+            "List of entity IDs that will be used as references." + ADDED_IN_312
+        ),
+        required=False,
+    )
+    rich_text = JSONString(
+        required=False,
+        description="Text content in JSON format." + ADDED_IN_312,
+    )
+    plain_text = graphene.String(
+        required=False,
+        description="Plain text content." + ADDED_IN_312,
     )
     boolean = graphene.Boolean(
         required=False,
@@ -116,6 +171,12 @@ class BulkAttributeValueInput(InputObjectType):
             "The boolean value of an attribute to resolve. "
             "If the passed value is non-existent, it will be created."
         ),
+    )
+    date = Date(
+        required=False, description=AttributeValueDescriptions.DATE + ADDED_IN_312
+    )
+    date_time = graphene.DateTime(
+        required=False, description=AttributeValueDescriptions.DATE_TIME + ADDED_IN_312
     )
 
 
