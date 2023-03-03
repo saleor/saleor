@@ -7,6 +7,7 @@ from ....checkout.fetch import CheckoutInfo, get_delivery_method_info
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import convert_to_shipping_method_data
 from ...models import PluginConfiguration
+from .. import AvataxConfiguration
 from ..plugin import AvataxPlugin
 
 
@@ -60,6 +61,20 @@ def plugin_configuration(db, channel_USD):
         return configuration
 
     return set_configuration
+
+
+@pytest.fixture
+def avatax_config():
+    return AvataxConfiguration(
+        username_or_account=os.environ.get("AVALARA_USERNAME", "test"),
+        password_or_license=os.environ.get("AVALARA_PASSWORD", "test"),
+        use_sandbox=True,
+        from_street_address="Tęczowa 7",
+        from_city="WROCŁAW",
+        from_country_area="",
+        from_postal_code="53-601",
+        from_country="PL",
+    )
 
 
 @pytest.fixture
