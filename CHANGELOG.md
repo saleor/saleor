@@ -2,7 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.12.0 [Unreleased]
+# 3.13.0 [Unreleased]
 ### Highlights
 - Improve support for handling transactions - #10350 by @korycins
   - API changes:
@@ -70,34 +70,33 @@ All notable, unreleased changes to this project will be documented in this file.
       - `TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
     - Deprecate object fields:
       - `TransactionItem`:
-        - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.13 (Preview feature).
-        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.13 (Preview feature).
-        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.13 (Preview feature).
+        - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.14 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
       - `TransactionEvent`:
-        - `status` - Use `type` instead. This field will be removed in Saleor 3.13 (Preview feature).
-        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.13 (Preview feature).
-        - `name` - Use `message` instead. This field will be removed in Saleor 3.13 (Preview feature).
+        - `status` - Use `type` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
       - `TransactionActionEnum`
-        - `VOID` - Use `CANCEL` instead. This field will be removed in Saleor 3.13 (Preview feature).
+        - `VOID` - Use `CANCEL` instead. This field will be removed in Saleor 3.14 (Preview feature).
       - `Order`:
         - `totalCaptured` - Use `totalCharged` instead. Will be removed in Saleor 4.0
       - `OrderEvent`:
-        - `status` - Use `TransactionEvent` to track the status of `TransactionItem`. This field will be removed in Saleor 3.13 (Preview feature).
+        - `status` - Use `TransactionEvent` to track the status of `TransactionItem`. This field will be removed in Saleor 3.14 (Preview feature).
       - `OrderEventsEnum`:
-        - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead. This field will be removed in Saleor 3.13 (Preview feature).
-        - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead. This field will be removed in Saleor 3.13 (Preview feature).
+        - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
 
     - Deprecate input fields:
       - `TransactionCreateInput` & `TransactionUpdateInput`:
-        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This input field will be removed in Saleor 3.13 (Preview feature).
-        - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.13 (Preview feature).
-        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.13 (Preview feature).
-        - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.13 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.14 (Preview feature).
       - `TransactionEventInput`:
-        - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.13 (Preview feature).
-        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.13 (Preview feature).
-        - `name` - Use `message` instead. This field will be removed in Saleor 3.13 (Preview feature).
-
+        - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
 
 ### Breaking changes
 - **Feature preview breaking change**:
@@ -106,45 +105,6 @@ All notable, unreleased changes to this project will be documented in this file.
     - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
     - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
     - When calling `transactionUpdate` mutation, the amounts from the previous state should not be reduced.
-  - `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
-      - `create` input - list of items that should be created
-      - `update` input - list of items that should be updated
-      - `remove` input - list of objects ID's that should be removed
-
-    If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
-      ```
-         {
-          "stocks/channelListings": [
-            {
-              ...
-            }
-          ]
-         }
-      ```
-      to:
-      ```
-         {
-          "stocks/channelListings": {
-            "create": [
-              {
-               ...
-              }
-            ]
-          }
-         }
-      ```
-        }
-       }
-    ```
-- Change the discount rounding mode - #12041 by @IKarbowiak
-  - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount and total price of future checkouts and orders with a percentage discount applied.
-  The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
-  E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
-
-- Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
-# 3.13.0 [Unreleased]
-
-### Breaking changes
 
 ### GraphQL API
 

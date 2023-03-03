@@ -70,10 +70,10 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_310,
     ADDED_IN_311,
-    ADDED_IN_312,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD,
+    PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import PermissionsField
@@ -223,7 +223,7 @@ class OrderGrantedRefund(ModelObjectType):
     app = graphene.Field(App, description=("App that performed the action."))
 
     class Meta:
-        description = "The details of granted refund." + ADDED_IN_312 + PREVIEW_FEATURE
+        description = "The details of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
         model = models.OrderGrantedRefund
 
     @staticmethod
@@ -349,7 +349,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
         TransactionEventStatusEnum,
         description="The status of payment's transaction.",
         deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD
+            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
             + "Use `TransactionEvent` to track the status of `TransactionItem`."
         ),
     )
@@ -1153,12 +1153,12 @@ class Order(ModelObjectType[models.Order]):
         required=True,
     )
     total_charged = graphene.Field(
-        Money, description="Amount charged for the order." + ADDED_IN_312, required=True
+        Money, description="Amount charged for the order." + ADDED_IN_313, required=True
     )
 
     total_canceled = graphene.Field(
         Money,
-        description="Amount canceled for the order." + ADDED_IN_312,
+        description="Amount canceled for the order." + ADDED_IN_313,
         required=True,
     )
 
@@ -1253,20 +1253,20 @@ class Order(ModelObjectType[models.Order]):
     granted_refunds = PermissionsField(
         NonNullList(OrderGrantedRefund),
         required=True,
-        description="List of granted refunds." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="List of granted refunds." + ADDED_IN_313 + PREVIEW_FEATURE,
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
     total_granted_refund = PermissionsField(
         Money,
         required=True,
-        description="Total amount of granted refund." + ADDED_IN_312 + PREVIEW_FEATURE,
+        description="Total amount of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE,
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
     total_refunded = graphene.Field(
         Money,
         required=True,
         description="Total refund amount for the order."
-        + ADDED_IN_312
+        + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
     total_refund_pending = PermissionsField(
@@ -1274,7 +1274,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Total amount of ongoing refund requests for the order's transactions."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
@@ -1284,7 +1284,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Total amount of ongoing authorize requests for the order's transactions."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
@@ -1294,7 +1294,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Total amount of ongoing charge requests for the order's transactions."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
@@ -1304,7 +1304,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Total amount of ongoing cancel requests for the order's transactions."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
@@ -1315,7 +1315,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "The difference amount between granted refund and the "
-            "amounts that are pending and refunded." + ADDED_IN_312 + PREVIEW_FEATURE
+            "amounts that are pending and refunded." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
     )
