@@ -14009,6 +14009,21 @@ type Mutation {
   ): TransactionInitialize
 
   """
+  Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionProcess(
+    """The data that will be passed to the payment gateway."""
+    data: JSON
+
+    """The ID of the transaction to process."""
+    id: ID!
+  ): TransactionProcess
+
+  """
   Creates a new page. 
   
   Requires one of the following permissions: MANAGE_PAGES.
@@ -20577,6 +20592,48 @@ Determine the transaction flow strategy.
 enum TransactionFlowStrategyEnum {
   AUTHORIZATION
   CHARGE
+}
+
+"""
+Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionProcess {
+  """The processed transaction."""
+  transaction: TransactionItem
+
+  """The event created for the processed transaction."""
+  transactionEvent: TransactionEvent
+
+  """The json data required to finalize the payment."""
+  data: JSON
+  errors: [TransactionProcessError!]!
+}
+
+type TransactionProcessError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionProcessErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionProcessErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  TRANSACTION_ALREADY_PROCESSED
+  MISSING_PAYMENT_APP_RELATION
+  MISSING_PAYMENT_APP
 }
 
 """

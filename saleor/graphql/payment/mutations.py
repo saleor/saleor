@@ -5,7 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.utils import timezone
 from graphql import GraphQLError
 
@@ -37,6 +37,7 @@ from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
     TransactionCreateErrorCode,
+    TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
 )
@@ -53,7 +54,9 @@ from ...payment.utils import (
     create_manual_adjustment_events,
     create_payment,
     get_already_existing_event,
-    handle_transaction_session,
+    get_final_session_statuses,
+    handle_transaction_initialize_session,
+    handle_transaction_process_session,
     is_currency_supported,
 )
 from ...permission.auth_filters import AuthorizationFilters
@@ -1795,7 +1798,7 @@ class TransactionInitialize(TransactionSessionBase):
         amount = cls.get_amount(source_object, amount)
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
         manager = get_plugin_manager_promise(info.context).get()
-        transaction, event, data = handle_transaction_session(
+        transaction, event, data = handle_transaction_initialize_session(
             source_object=source_object,
             payment_gateway=payment_gateway_data,
             amount=amount,
@@ -1804,3 +1807,162 @@ class TransactionInitialize(TransactionSessionBase):
             manager=manager,
         )
         return cls(transaction=transaction, transaction_event=event, data=data)
+
+
+class TransactionProcess(BaseMutation):
+    transaction = graphene.Field(
+        TransactionItem, description="The processed transaction."
+    )
+    transaction_event = graphene.Field(
+        TransactionEvent,
+        description="The event created for the processed transaction.",
+    )
+    data = graphene.Field(
+        JSON, description="The json data required to finalize the payment."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the transaction to process.",
+            required=True,
+        )
+        data = graphene.Argument(
+            JSON, description="The data that will be passed to the payment gateway."
+        )
+
+    class Meta:
+        description = (
+            "Processes a transaction session. It triggers the webhook "
+            "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "
+            + ADDED_IN_312
+            + PREVIEW_FEATURE
+        )
+        error_type_class = common_types.TransactionProcessError
+
+    @classmethod
+    def get_action(cls, event: payment_models.TransactionEvent):
+        if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
+            return TransactionFlowStrategy.AUTHORIZATION
+        elif event.type == TransactionEventType.CHARGE_REQUEST:
+            return TransactionFlowStrategy.CHARGE
+
+        # FIXME: This will be changed in future PR when we will extend channel to
+        # handle transaction flow
+        return TransactionFlowStrategy.CHARGE
+
+    @classmethod
+    def get_source_object(
+        cls, transaction_item: payment_models.TransactionItem
+    ) -> Union[checkout_models.Checkout, order_models.Order]:
+        if transaction_item.checkout_id:
+            checkout = cast(checkout_models.Checkout, transaction_item.checkout)
+            return checkout
+        if transaction_item.order_id:
+            order = cast(order_models.Order, transaction_item.order)
+            return order
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Transaction doesn't have attached order or checkout.",
+                    code=TransactionProcessErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    @classmethod
+    def get_request_event(cls, events: QuerySet) -> payment_models.TransactionEvent:
+        """Get event with details of requested action.
+
+        This searches for a request event with the appropriate type and
+        include_in_calculations set to false. Request events created from
+        transactionInitialize have their include_in_calculation set to false by default.
+        """
+        for event in events:
+            if (
+                event.type
+                in [
+                    TransactionEventType.AUTHORIZATION_REQUEST,
+                    TransactionEventType.CHARGE_REQUEST,
+                ]
+                and not event.include_in_calculations
+            ):
+                return event
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Missing call of `transactionInitialize` mutation.",
+                    code=TransactionProcessErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    @classmethod
+    def get_already_processed_event(cls, events) -> Optional[TransactionEvent]:
+        for event in events:
+            if (
+                event.type in get_final_session_statuses()
+                and event.include_in_calculations
+            ):
+                return event
+        return None
+
+    @classmethod
+    def clean_payment_app(cls, transaction_item: payment_models.TransactionItem) -> App:
+        if not transaction_item.app_identifier:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Transaction doesn't have attached app that could process the "
+                        "request.",
+                        code=TransactionProcessErrorCode.MISSING_PAYMENT_APP_RELATION.value,
+                    )
+                }
+            )
+        app = App.objects.filter(identifier=transaction_item.app_identifier).first()
+        if not app:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Payment app attached to the transaction, doesn't exist.",
+                        code=TransactionProcessErrorCode.MISSING_PAYMENT_APP.value,
+                    )
+                }
+            )
+        return app
+
+    @classmethod
+    def perform_mutation(cls, root, info, *, id, data=None):
+        transaction_item = cls.get_node_or_error(
+            info,
+            id,
+            only_type="TransactionItem",
+        )
+        transaction_item = cast(payment_models.TransactionItem, transaction_item)
+        events = transaction_item.events.all()
+        if processed_event := cls.get_already_processed_event(events):
+            return cls(
+                transaction=transaction_item,
+                transaction_event=processed_event,
+                data=None,
+            )
+        request_event = cls.get_request_event(events)
+        source_object = cls.get_source_object(transaction_item)
+        app = cls.clean_payment_app(transaction_item)
+        app_identifier = app.identifier
+        app_identifier = cast(str, app_identifier)
+        action = cls.get_action(request_event)
+        manager = get_plugin_manager_promise(info.context).get()
+        event, data = handle_transaction_process_session(
+            transaction_item=transaction_item,
+            source_object=source_object,
+            payment_gateway=PaymentGatewayData(
+                app_identifier=app_identifier, data=data
+            ),
+            app=app,
+            action=action,
+            manager=manager,
+            request_event=request_event,
+        )
+
+        transaction_item.refresh_from_db()
+        return cls(transaction=transaction_item, transaction_event=event, data=data)
