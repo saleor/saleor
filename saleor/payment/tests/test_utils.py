@@ -992,3 +992,89 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     assert transaction.charged_value == Decimal("0")
     assert transaction.authorize_pending_value == Decimal("0")
     assert transaction.charge_pending_value == Decimal("0")
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_FAILURE,
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.AUTHORIZATION_REQUEST,
+        TransactionEventType.CHARGE_FAILURE,
+        TransactionEventType.CHARGE_SUCCESS,
+        TransactionEventType.CHARGE_REQUEST,
+    ],
+)
+def test_create_transaction_event_for_transaction_session_missing_psp_reference(
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    del response["pspReference"]
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        amount_value=expected_amount,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event, webhook_app, response
+    )
+
+    # then
+    assert response_event.amount_value == expected_amount
+    assert response_event.type == TransactionEventType.CHARGE_FAILURE
+    transaction.refresh_from_db()
+    assert transaction.authorized_value == Decimal("0")
+    assert transaction.charged_value == Decimal("0")
+    assert transaction.authorize_pending_value == Decimal("0")
+    assert transaction.charge_pending_value == Decimal("0")
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ],
+)
+def test_create_transaction_event_for_transaction_session_missing_reference_with_action(
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    del response["pspReference"]
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction,
+        include_in_calculations=False,
+        amount_value=expected_amount,
+        type=TransactionEventType.CHARGE_REQUEST,
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event, webhook_app, response
+    )
+
+    # then
+    assert response_event.amount_value == expected_amount
+    assert response_event.type == response_result
+    transaction.refresh_from_db()
+    assert transaction.authorized_value == Decimal("0")
+    assert transaction.charged_value == Decimal("0")
+    assert transaction.authorize_pending_value == Decimal("0")
+    assert transaction.charge_pending_value == Decimal("0")

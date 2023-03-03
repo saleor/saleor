@@ -811,7 +811,10 @@ error_msg = str
 
 
 def parse_transaction_action_data(
-    response_data: Any, request_type: str, event_is_optional: bool = True
+    response_data: Any,
+    request_type: str,
+    event_is_optional: bool = True,
+    psp_reference_is_optional: bool = False,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     """Parse response from transaction action webhook.
 
@@ -820,7 +823,7 @@ def parse_transaction_action_data(
     If unable to parse, None will be returned.
     """
     psp_reference: str = response_data.get("pspReference")
-    if not psp_reference:
+    if not psp_reference and not psp_reference_is_optional:
         msg: str = "Missing `pspReference` field in the response."
         logger.error(msg)
         return None, msg
@@ -1019,12 +1022,16 @@ def _get_parsed_transaction_action_data(
     transaction_webhook_response: Optional[Dict[str, Any]],
     event_type: str,
     event_is_optional: bool = True,
+    psp_reference_is_optional: bool = False,
 ) -> tuple[Optional["TransactionRequestResponse"], Optional[error_msg]]:
     if transaction_webhook_response is None:
         return None, "Failed to delivery request."
 
     transaction_request_response, error_msg = parse_transaction_action_data(
-        transaction_webhook_response, event_type, event_is_optional=event_is_optional
+        transaction_webhook_response,
+        event_type,
+        event_is_optional=event_is_optional,
+        psp_reference_is_optional=psp_reference_is_optional,
     )
     if not transaction_request_response:
         return None, error_msg or ""
@@ -1059,6 +1066,7 @@ def create_transaction_event_for_transaction_session(
         transaction_webhook_response=transaction_webhook_response,
         event_type=request_event_type,
         event_is_optional=False,
+        psp_reference_is_optional=True,
     )
     if not transaction_request_response or not transaction_request_response.event:
         return create_failed_transaction_event(request_event, cause=error_msg or "")
@@ -1066,7 +1074,18 @@ def create_transaction_event_for_transaction_session(
     event = None
     request_event_update_fields = []
     response_event = transaction_request_response.event
-    if response_event.type in [
+    if not response_event.psp_reference and response_event.type not in [
+        TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
+        TransactionEventType.CHARGE_ACTION_REQUIRED,
+    ]:
+        return create_failed_transaction_event(
+            request_event,
+            cause=(
+                f"Providing `pspReference` is required for "
+                f"{response_event.type.upper()}"
+            ),
+        )
+    elif response_event.type in [
         TransactionEventType.AUTHORIZATION_REQUEST,
         TransactionEventType.CHARGE_REQUEST,
     ]:
@@ -1084,14 +1103,16 @@ def create_transaction_event_for_transaction_session(
         )
         event = request_event
     else:
-        event, error_msg = _create_event_from_response(
+        event, error_message = _create_event_from_response(
             response_event,
             app=app,
             transaction_id=request_event.transaction_id,
             currency=request_event.currency,
         )
         if not event:
-            return create_failed_transaction_event(request_event, cause=error_msg or "")
+            return create_failed_transaction_event(
+                request_event, cause=error_message or ""
+            )
         request_event.psp_reference = event.psp_reference
         request_event_update_fields.append("psp_reference")
     if request_event_update_fields:
@@ -1103,10 +1124,10 @@ def create_transaction_event_for_transaction_session(
         TransactionEventType.CHARGE_REQUEST,
         TransactionEventType.CHARGE_SUCCESS,
     ]:
-        transaction = event.transaction
-        transaction.psp_reference = event.psp_reference
-        recalculate_transaction_amounts(transaction, save=False)
-        transaction.save(
+        transaction_item = event.transaction
+        transaction_item.psp_reference = event.psp_reference
+        recalculate_transaction_amounts(transaction_item, save=False)
+        transaction_item.save(
             update_fields=[
                 "authorized_value",
                 "charged_value",
@@ -1119,7 +1140,7 @@ def create_transaction_event_for_transaction_session(
                 "psp_reference",
             ]
         )
-        update_order_with_transaction_details(transaction)
+        update_order_with_transaction_details(transaction_item)
     return event
 
 

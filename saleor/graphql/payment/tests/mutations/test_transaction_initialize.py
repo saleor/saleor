@@ -460,6 +460,100 @@ def test_order_with_action_required_response(
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_checkout_with_action_required_response_and_missing_psp_reference(
+    mocked_initialize,
+    user_api_client,
+    checkout_with_prices,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    checkout = checkout_with_prices
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
+    del expected_response["pspReference"]
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(checkout),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=checkout,
+        expected_amount=expected_amount,
+        expected_psp_reference=None,
+        response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+    )
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
+def test_order_with_action_required_response_and_missing_psp_reference(
+    mocked_initialize,
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    expected_amount = Decimal("10.00")
+    expected_response = transaction_session_response.copy()
+    expected_response["result"] = TransactionEventType.CHARGE_ACTION_REQUIRED.upper()
+    del expected_response["pspReference"]
+    mocked_initialize.return_value = PaymentGatewayData(
+        app_identifier=expected_app_identifier, data=expected_response
+    )
+
+    variables = {
+        "action": None,
+        "amount": expected_amount,
+        "id": to_global_id_or_none(order),
+        "paymentGateway": {"id": expected_app_identifier, "data": None},
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_INITIALIZE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    _assert_fields(
+        content=content,
+        source_object=order,
+        expected_amount=expected_amount,
+        expected_psp_reference=None,
+        response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
+        app_identifier=webhook_app.identifier,
+        mocked_initialize=mocked_initialize,
+    )
+
+    order.refresh_from_db()
+    assert order.total_authorized_amount == Decimal(0)
+    assert order.total_charged_amount == Decimal(0)
+
+
+@mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
 def test_checkout_when_amount_is_not_provided(
     mocked_initialize,
     user_api_client,

@@ -29,7 +29,7 @@ class TransactionActionData:
 
 @dataclass
 class TransactionRequestEventResponse:
-    psp_reference: str
+    psp_reference: Optional[str]
     type: str
     amount: Decimal
     time: Optional[datetime] = None
@@ -39,7 +39,7 @@ class TransactionRequestEventResponse:
 
 @dataclass
 class TransactionRequestResponse:
-    psp_reference: str
+    psp_reference: Optional[str]
     event: Optional["TransactionRequestEventResponse"] = None
 
 
