@@ -612,7 +612,7 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     assert not data["errors"]
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount.amount
     assert checkout.subtotal + expected_discount == subtotal_before_voucher
 
 
