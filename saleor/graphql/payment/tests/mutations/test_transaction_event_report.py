@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.utils import timezone
 
+from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.enums import TransactionEventReportErrorCode
@@ -57,7 +58,9 @@ def test_transaction_event_report_by_app(
     permission_manage_payments,
 ):
     # given
-    transaction = transaction_item_generator(app=app_api_client.app)
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
     event_time = timezone.now()
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
     message = "Sucesfull charge"
@@ -112,7 +115,10 @@ def test_transaction_event_report_by_app(
     transaction_report_data = response["data"]["transactionEventReport"]
     assert transaction_report_data["alreadyProcessed"] is False
 
-    event = TransactionEvent.objects.get()
+    event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert event
     assert event.psp_reference == psp_reference
     assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
     assert event.amount_value == amount

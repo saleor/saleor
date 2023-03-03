@@ -1492,6 +1492,6 @@ class TransactionEventReport(ModelMutation):
         return cls(
             already_processed=already_processed,
             transaction=transaction,
-            transaction_event=payment_models.TransactionEvent.objects.first(),
+            transaction_event=transaction_event,
             errors=[],
         )
