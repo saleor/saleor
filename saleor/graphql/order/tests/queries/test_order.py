@@ -8,6 +8,7 @@ from .....checkout.utils import PRIVATE_META_APP_SHIPPING_ID
 from .....core.prices import quantize_price
 from .....core.taxes import zero_taxed_money
 from .....order import OrderStatus
+from .....order.events import transaction_event
 from .....order.models import Order
 from .....order.utils import (
     get_order_country,
@@ -238,6 +239,24 @@ query OrdersQuery {
                     }
                 }
                 checkoutId
+                events {
+                    id
+                    date
+                    type
+                    user {
+                        id
+                    }
+                    app {
+                        id
+                    }
+                    message
+                    email
+                    reference
+                    discount {
+                        value
+                    }
+                    status
+                }
             }
         }
     }
@@ -646,6 +665,14 @@ def test_order_query_with_transactions_details(
     order.shipping_method.store_value_in_private_metadata({"test": private_value})
     order.shipping_method.save()
     order.save()
+    transaction_event(
+        order=order,
+        user=None,
+        app=None,
+        reference="ref-123",
+        status=None,
+        message="Message",
+    )
     transactions = TransactionItem.objects.bulk_create(
         [
             TransactionItem(
