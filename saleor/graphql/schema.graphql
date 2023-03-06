@@ -1170,6 +1170,24 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput
 
+    """
+    Filtering options for attributes.
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: AttributeWhereInput
+
+    """
+    Search attributes.
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    search: String
+
     """Sorting options for attributes."""
     sortBy: AttributeSortingInput
 
@@ -1717,6 +1735,9 @@ enum WebhookEventTypeEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
+
   """
   A product variant metadata is updated.
   
@@ -2236,6 +2257,9 @@ enum WebhookEventTypeAsyncEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
+
   """
   A product variant metadata is updated.
   
@@ -2535,19 +2559,11 @@ interface ObjectWithMetadata {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -2558,19 +2574,11 @@ interface ObjectWithMetadata {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 }
@@ -2944,6 +2952,7 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_VARIANT_DELETED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
+  PRODUCT_VARIANT_STOCK_UPDATED
   PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
@@ -4624,19 +4633,11 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -4647,19 +4648,11 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -4953,7 +4946,7 @@ type Product implements Node & ObjectWithMetadata {
 
     """SKU of the variant."""
     sku: String
-  ): ProductVariant
+  ): ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Use top-level `variant` query.")
 
   """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -5123,6 +5116,7 @@ type ProductType implements Node & ObjectWithMetadata {
   """
   availableAttributes(
     filter: AttributeFilterInput
+    where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5339,7 +5333,7 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  filterableInStorefront: Boolean!
+  filterableInStorefront: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
@@ -5349,12 +5343,12 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  availableInGrid: Boolean!
+  availableInGrid: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  storefrontSearchPosition: Int!
+  storefrontSearchPosition: Int! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Returns translated attribute fields for the given language code."""
   translation(
@@ -5683,6 +5677,83 @@ input MetadataFilter {
 
   """Value of a metadata item."""
   value: String
+}
+
+"""
+Where filtering options.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input AttributeWhereInput {
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumFilterInput
+  inCollection: ID
+  inCategory: ID
+
+  """List of conditions that must be met."""
+  AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeWhereInput!]
+}
+
+"""
+Define the filtering options for string fields.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+input AttributeInputTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+input MeasurementUnitsEnumFilterInput {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
 }
 
 """
@@ -7334,6 +7405,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   availableAttributes(
     filter: AttributeFilterInput
+    where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -9107,7 +9179,13 @@ type GiftCardTag implements Node {
 type CheckoutLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -9115,7 +9193,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9124,13 +9202,19 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -9138,7 +9222,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9147,7 +9231,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9589,6 +9673,13 @@ type Order implements Node & ObjectWithMetadata {
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """
+  ID of the checkout that the order was created from. 
+  
+  Added in Saleor 3.11.
+  """
+  checkoutId: ID
 }
 
 """An enumeration."""
@@ -9689,7 +9780,13 @@ type FulfillmentLine implements Node {
 type OrderLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -9697,7 +9794,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9706,13 +9803,19 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -9720,7 +9823,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9729,7 +9832,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11091,6 +11194,7 @@ input OrderFilterInput {
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
+  checkoutIds: [ID!]
 }
 
 enum OrderStatusFilter {
@@ -11945,6 +12049,40 @@ type Mutation {
     """ID of the event delivery to retry."""
     id: ID!
   ): EventDeliveryRetry
+
+  """
+  Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookDryRun(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The subscription query that defines the webhook event and its payload."""
+    query: String!
+  ): WebhookDryRun
+
+  """
+  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookTrigger(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The ID of the webhook."""
+    webhookId: ID!
+  ): WebhookTrigger
 
   """
   Creates new warehouse. 
@@ -12885,12 +13023,41 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkCreate(
+    """
+    Policies of error handling. DEFAULT: REJECT_EVERYTHING
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
     """ID of the product to create the variants for."""
     product: ID!
 
     """Input list of product variants to create."""
     variants: [ProductVariantBulkCreateInput!]!
   ): ProductVariantBulkCreate
+
+  """
+  Update multiple product variants.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productVariantBulkUpdate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
+    """ID of the product to update the variants for."""
+    product: ID!
+
+    """Input list of product variants to update."""
+    variants: [ProductVariantBulkUpdateInput!]!
+  ): ProductVariantBulkUpdate
 
   """
   Deletes product variants. 
@@ -15892,6 +16059,82 @@ type EventDeliveryRetry {
 }
 
 """
+Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookDryRun {
+  """JSON payload, that would be sent out to webhook's target URL."""
+  payload: JSONString
+  errors: [WebhookDryRunError!]!
+}
+
+type WebhookDryRunError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookDryRunErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookDryRunErrorCode {
+  GRAPHQL_ERROR
+  UNABLE_TO_PARSE
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  TYPE_NOT_SUPPORTED
+}
+
+"""
+Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookTrigger {
+  delivery: EventDelivery
+  errors: [WebhookTriggerError!]!
+}
+
+type WebhookTriggerError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookTriggerErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookTriggerErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  MISSING_QUERY
+  TYPE_NOT_SUPPORTED
+  UNABLE_TO_PARSE
+}
+
+"""
 Creates new warehouse. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -17089,6 +17332,7 @@ enum ProductErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
+  INVALID_PRICE
   PRODUCT_WITHOUT_CATEGORY
   NOT_PRODUCTS_IMAGE
   NOT_PRODUCTS_VARIANT
@@ -17682,6 +17926,13 @@ input AttributeValueInput {
   Added in Saleor 3.9.
   """
   dropdown: AttributeValueSelectableTypeInput
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  swatch: AttributeValueSelectableTypeInput
 
   """
   List of attribute value IDs.
@@ -18393,10 +18644,66 @@ type ProductVariantBulkCreate {
   """Returns how many objects were created."""
   count: Int!
 
-  """List of the created variants."""
+  """List of the created variants.This field will be removed in Saleor 4.0."""
   productVariants: [ProductVariant!]!
+
+  """
+  List of the created variants.
+  
+  Added in Saleor 3.11.
+  """
+  results: [ProductVariantBulkResult!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
+}
+
+type ProductVariantBulkResult {
+  """Product variant data."""
+  productVariant: ProductVariant
+
+  """List of errors occurred on create attempt."""
+  errors: [ProductVariantBulkError!]
+}
+
+type ProductVariantBulkError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductVariantBulkErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+
+  """List of attribute values IDs which causes the error."""
+  values: [ID!]
+
+  """List of warehouse IDs which causes the error."""
+  warehouses: [ID!]
+
+  """List of channel IDs which causes the error."""
+  channels: [ID!]
+}
+
+"""An enumeration."""
+enum ProductVariantBulkErrorCode {
+  ATTRIBUTE_ALREADY_ASSIGNED
+  ATTRIBUTE_CANNOT_BE_ASSIGNED
+  ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  INVALID_PRICE
+  NOT_PRODUCTS_VARIANT
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  PRODUCT_NOT_ASSIGNED_TO_CHANNEL
 }
 
 type BulkProductError {
@@ -18425,6 +18732,19 @@ type BulkProductError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
+}
+
+enum ErrorPolicyEnum {
+  """
+  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
+  """
+  IGNORE_FAILED
+
+  """Reject all rows if there is at least one error in any of them."""
+  REJECT_EVERYTHING
+
+  """Reject rows with errors."""
+  REJECT_FAILED_ROWS
 }
 
 input ProductVariantBulkCreateInput {
@@ -18524,6 +18844,96 @@ input ProductVariantChannelListingAddInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorderThreshold: Int
+}
+
+"""
+Update multiple product variants.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductVariantBulkUpdate {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated variants."""
+  results: [ProductVariantBulkResult!]!
+  errors: [ProductVariantBulkError!]!
+}
+
+"""
+Input fields to update product variants.
+
+Added in Saleor 3.11.
+"""
+input ProductVariantBulkUpdateInput {
+  """List of attributes specific to this variant."""
+  attributes: [BulkAttributeValueInput!]
+
+  """Stock keeping unit."""
+  sku: String
+
+  """Variant name."""
+  name: String
+
+  """
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  """
+  trackInventory: Boolean
+
+  """Weight of the Product Variant."""
+  weight: WeightScalar
+
+  """
+  Determines if variant is in preorder.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  preorder: PreorderSettingsInput
+
+  """
+  Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  quantityLimitPerCustomer: Int
+
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
+  """Stocks of a product available for sale."""
+  stocks: [StockInput!]
+
+  """List of prices assigned to channels."""
+  channelListings: [ProductVariantChannelListingAddInput!]
+
+  """ID of the product variant to update."""
+  id: ID!
 }
 
 """
@@ -22138,7 +22548,11 @@ input AttributeCreateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -22146,10 +22560,16 @@ input AttributeCreateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
 
   """
@@ -22246,7 +22666,11 @@ input AttributeUpdateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -22254,10 +22678,16 @@ input AttributeUpdateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
 
   """
@@ -24759,6 +25189,36 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantBackInStock implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """Look up a warehouse."""
+  warehouse: Warehouse
+}
+
+"""
+Event sent when product variant stock is updated.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductVariantStockUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

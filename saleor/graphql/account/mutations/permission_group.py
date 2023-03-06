@@ -8,8 +8,8 @@ from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import User
 from ....core.exceptions import PermissionDenied
-from ....core.permissions import AccountPermissions, get_permissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import AccountPermissions, get_permissions
 from ...account.utils import (
     can_user_manage_group,
     get_not_manageable_permissions_after_group_deleting,

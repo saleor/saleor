@@ -8,9 +8,9 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from ....checkout.models import CheckoutLine
-from ....core.permissions import ProductPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.date_time import convert_to_utc_date_time
+from ....permission.enums import ProductPermissions
 from ....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....product.models import CollectionChannelListing
 from ....product.models import Product as ProductModel

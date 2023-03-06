@@ -1,10 +1,10 @@
 from typing import cast
 
-from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.channel import ChannelContext
+from ....permission.enums import DiscountPermissions
 from ...core import ResolveInfo
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise

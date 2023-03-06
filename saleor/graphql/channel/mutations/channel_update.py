@@ -4,8 +4,8 @@ from django.utils.text import slugify
 
 from ....channel import models
 from ....channel.error_codes import ChannelErrorCode
-from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
+from ....permission.enums import ChannelPermissions
 from ....shipping.tasks import (
     drop_invalid_shipping_methods_relations_for_given_channels,
 )

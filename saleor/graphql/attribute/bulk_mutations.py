@@ -2,7 +2,7 @@ import graphene
 from django.db.models import Exists, OuterRef, Q
 
 from ...attribute import models
-from ...core.permissions import PageTypePermissions
+from ...permission.enums import PageTypePermissions
 from ...product import models as product_models
 from ...product.search import update_products_search_vector
 from ..core import ResolveInfo

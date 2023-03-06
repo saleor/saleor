@@ -2,7 +2,7 @@ import graphene
 
 from saleor.discount import models
 
-from ....core.permissions import DiscountPermissions
+from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation

@@ -3,6 +3,10 @@ import jwt
 from ..account.models import User
 from ..graphql.account.dataloaders import UserByEmailLoader
 from ..graphql.plugins.dataloaders import AnonymousPluginManagerLoader
+from ..permission.enums import (
+    get_permissions_from_codenames,
+    get_permissions_from_names,
+)
 from .auth import get_token_from_request
 from .jwt import (
     JWT_ACCESS_TYPE,
@@ -11,7 +15,6 @@ from .jwt import (
     is_saleor_token,
     jwt_decode,
 )
-from .permissions import get_permissions_from_codenames, get_permissions_from_names
 
 
 # Moved from `django.contrib.auth.backends.ModelBackend`

@@ -18,7 +18,7 @@ from ...core.jwt import (
     get_user_from_payload,
     jwt_decode,
 )
-from ...core.permissions import get_permissions_codename, get_permissions_from_names
+from ...permission.enums import get_permissions_codename, get_permissions_from_names
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration

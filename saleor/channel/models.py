@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 
-from ..core.permissions import ChannelPermissions
+from ..permission.enums import ChannelPermissions
 from . import AllocationStrategy
 
 

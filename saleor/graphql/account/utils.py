@@ -12,11 +12,9 @@ from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 from ...account.models import Group, User
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import (
-    AccountPermissions,
-    AuthorizationFilters,
-    has_one_of_permissions,
-)
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AccountPermissions
+from ...permission.utils import has_one_of_permissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo, SaleorContext
 

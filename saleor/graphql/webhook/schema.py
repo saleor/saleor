@@ -1,13 +1,21 @@
 import graphene
 
-from ...core.permissions import AppPermission, AuthorizationFilters
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AppPermission
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import JSONString, PermissionsField
 from ..core.types import NonNullList
 from .enums import WebhookSampleEventTypeEnum
-from .mutations import EventDeliveryRetry, WebhookCreate, WebhookDelete, WebhookUpdate
+from .mutations import (
+    EventDeliveryRetry,
+    WebhookCreate,
+    WebhookDelete,
+    WebhookDryRun,
+    WebhookTrigger,
+    WebhookUpdate,
+)
 from .resolvers import resolve_sample_payload, resolve_webhook, resolve_webhook_events
 from .types import Webhook, WebhookEvent
 
@@ -65,3 +73,5 @@ class WebhookMutations(graphene.ObjectType):
     webhook_delete = WebhookDelete.Field()
     webhook_update = WebhookUpdate.Field()
     event_delivery_retry = EventDeliveryRetry.Field()
+    webhook_dry_run = WebhookDryRun.Field()
+    webhook_trigger = WebhookTrigger.Field()

@@ -6,7 +6,6 @@ from django.db import transaction
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
-from ....core.permissions import OrderPermissions
 from ....core.postgres import FlatConcatSearchVector
 from ....core.taxes import zero_taxed_money
 from ....core.tracing import traced_atomic_transaction
@@ -17,6 +16,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import OrderInfo, OrderLineInfo
 from ....order.search import prepare_order_search_vector_value
 from ....order.utils import get_order_country, update_order_display_gross_prices
+from ....permission.enums import OrderPermissions
 from ....warehouse.management import allocate_preorders, allocate_stocks
 from ....warehouse.reservations import is_reservation_enabled
 from ...app.dataloaders import get_app_promise

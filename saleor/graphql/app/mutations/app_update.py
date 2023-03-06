@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....app import models
 from ....app.error_codes import AppErrorCode
-from ....core.permissions import AppPermission, get_permissions
+from ....permission.enums import AppPermission, get_permissions
 from ...account.utils import can_manage_app
 from ...core.mutations import ModelMutation
 from ...core.types import AppError

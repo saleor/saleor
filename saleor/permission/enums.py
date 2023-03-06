@@ -3,7 +3,7 @@ from typing import Iterable, List
 
 from django.db.models import QuerySet
 
-from ...permission.models import Permission
+from .models import Permission
 
 
 class BasePermissionEnum(Enum):

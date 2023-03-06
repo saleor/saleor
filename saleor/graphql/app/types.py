@@ -6,11 +6,9 @@ from ...app import models
 from ...app.types import AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
-from ...core.permissions import (
-    AppPermission,
-    AuthorizationFilters,
-    message_one_of_permissions_required,
-)
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import AppPermission
+from ...permission.utils import message_one_of_permissions_required
 from ..account.utils import is_owner_or_has_one_of_perms
 from ..core import ResolveInfo, SaleorContext
 from ..core.connection import CountableConnection

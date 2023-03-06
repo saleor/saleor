@@ -1,6 +1,6 @@
 import graphene
 
-from ....core.permissions import CheckoutPermissions
+from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE

@@ -16,9 +16,9 @@ from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
 from ..app.models import App
 from ..core.models import ModelWithExternalReference, ModelWithMetadata
-from ..core.permissions import AccountPermissions, BasePermissionEnum, get_permissions
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..order.models import Order
+from ..permission.enums import AccountPermissions, BasePermissionEnum, get_permissions
 from ..permission.models import Permission, PermissionsMixin, _user_has_perm
 from . import CustomerEvents
 from .validators import validate_possible_number
@@ -144,9 +144,14 @@ class UserManager(BaseUserManager["User"]):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        return self.create_user(
+        user = self.create_user(
             email, password, is_staff=True, is_superuser=True, **extra_fields
         )
+        group, created = Group.objects.get_or_create(name="Full Access")
+        if created:
+            group.permissions.add(*get_permissions())
+        group.user_set.add(user)
+        return user
 
     def customers(self):
         orders = Order.objects.values("user_id")

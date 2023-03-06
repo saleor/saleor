@@ -2,11 +2,11 @@ from typing import Any, Dict
 
 import graphene
 
-from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_fulfillments_for_returned_products
 from ....payment import PaymentError
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.scalars import PositiveDecimal

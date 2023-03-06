@@ -10,8 +10,8 @@ from django_prices.models import MoneyField
 
 from ..app.models import App
 from ..core.models import ModelWithMetadata
-from ..core.permissions import GiftcardPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..permission.enums import GiftcardPermissions
 from . import GiftCardEvents
 
 

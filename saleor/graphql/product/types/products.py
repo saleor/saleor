@@ -9,14 +9,11 @@ from graphene import relay
 from promise import Promise
 
 from ....attribute import models as attribute_models
-from ....core.permissions import (
-    AuthorizationFilters,
-    OrderPermissions,
-    ProductPermissions,
-    has_one_of_permissions,
-)
 from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
+from ....permission.auth_filters import AuthorizationFilters
+from ....permission.enums import OrderPermissions, ProductPermissions
+from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....product.utils import calculate_revenue_for_variant
@@ -34,7 +31,7 @@ from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
-from ...attribute.filters import AttributeFilterInput
+from ...attribute.filters import AttributeFilterInput, AttributeWhereInput
 from ...attribute.resolvers import resolve_attributes
 from ...attribute.types import (
     AssignedVariantAttribute,
@@ -898,6 +895,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         id=graphene.Argument(graphene.ID, description="ID of the variant."),
         sku=graphene.Argument(graphene.String, description="SKU of the variant."),
         description=f"Get a single variant by SKU or ID. {ADDED_IN_39}",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use top-level `variant` query.",
     )
     variants = NonNullList(
         ProductVariant,
@@ -1278,9 +1276,21 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         def sort_media(media) -> list[ProductMedia]:
             reversed = sort_by["direction"] == "-"
+
+            # Nullable first,
+            # achieved by adding the number of nonnull fields as firt element of tuple
+            def key(x):
+                values_tuple = tuple(
+                    getattr(x, field)
+                    for field in sort_by["field"]
+                    if getattr(x, field) is not None
+                )
+                values_tuple = (len(values_tuple),) + values_tuple
+                return values_tuple
+
             media_sorted = sorted(
                 media,
-                key=lambda x: tuple(getattr(x, field) for field in sort_by["field"]),
+                key=key,
                 reverse=reversed,
             )
             return media_sorted
@@ -1603,6 +1613,7 @@ class ProductType(ModelObjectType[models.ProductType]):
     available_attributes = FilterConnectionField(
         AttributeCountableConnection,
         filter=AttributeFilterInput(),
+        where=AttributeWhereInput(),
         description="List of attributes which can be assigned to this product type.",
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )

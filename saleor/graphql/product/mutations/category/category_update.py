@@ -1,6 +1,6 @@
 import graphene
 
-from .....core.permissions import ProductPermissions
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
 from ....core import ResolveInfo

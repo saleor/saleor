@@ -1,7 +1,7 @@
 import graphene
 
 from ....app import models
-from ....core.permissions import AppPermission
+from ....permission.enums import AppPermission
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
 from ...plugins.dataloaders import get_plugin_manager_promise

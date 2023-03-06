@@ -5,11 +5,11 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Model
 
-from ...core.permissions import MenuPermissions, SitePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...menu import models
 from ...menu.error_codes import MenuErrorCode
 from ...page import models as page_models
+from ...permission.enums import MenuPermissions, SitePermissions
 from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core import ResolveInfo

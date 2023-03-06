@@ -4,9 +4,9 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from .....attribute import models as attribute_models
-from .....core.permissions import ProductPermissions
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.editorjs import clean_editor_js
+from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector

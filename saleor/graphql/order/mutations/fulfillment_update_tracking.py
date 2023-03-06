@@ -3,9 +3,9 @@ from typing import cast
 import graphene
 
 from ....account.models import User
-from ....core.permissions import OrderPermissions
 from ....order.actions import fulfillment_tracking_updated
 from ....order.notifications import send_fulfillment_update
+from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import BaseMutation

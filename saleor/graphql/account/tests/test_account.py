@@ -30,13 +30,13 @@ from ....account.search import (
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
-from ....core.permissions import AccountPermissions, OrderPermissions
 from ....core.tests.utils import get_site_context_payload
 from ....core.tokens import account_delete_token_generator
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....core.utils.url import prepare_url
 from ....order import OrderStatus
 from ....order.models import FulfillmentStatus, Order
+from ....permission.enums import AccountPermissions, OrderPermissions
 from ....product.tests.utils import create_image
 from ....thumbnail.models import Thumbnail
 from ....webhook.event_types import WebhookEventAsyncType
@@ -4449,8 +4449,8 @@ def test_password_change_invalid_new_password(user_api_client, settings):
 
 
 ADDRESS_CREATE_MUTATION = """
-    mutation CreateUserAddress($user: ID!, $city: String!, $country: CountryCode!) {
-        addressCreate(userId: $user, input: {city: $city, country: $country}) {
+    mutation CreateUserAddress($user: ID!, $address: AddressInput!) {
+        addressCreate(userId: $user, input: $address) {
             errors {
                 field
                 message
@@ -4471,26 +4471,30 @@ ADDRESS_CREATE_MUTATION = """
 
 
 def test_create_address_mutation(
-    staff_api_client, customer_user, permission_manage_users
+    staff_api_client, customer_user, permission_manage_users, graphql_address_data
 ):
+    # given
     query = ADDRESS_CREATE_MUTATION
+    graphql_address_data["city"] = "Dummy"
     user_id = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"user": user_id, "city": "Dummy", "country": "PL"}
+    variables = {"user": user_id, "address": graphql_address_data}
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
+    # then
     assert content["data"]["addressCreate"]["errors"] == []
     data = content["data"]["addressCreate"]
-    assert data["address"]["city"] == "Dummy"
+    assert data["address"]["city"] == "DUMMY"
     assert data["address"]["country"]["code"] == "PL"
-    address_obj = Address.objects.get(city="Dummy")
+    address_obj = Address.objects.get(city="DUMMY")
     assert address_obj.user_addresses.first() == customer_user
     assert data["user"]["id"] == user_id
 
     customer_user.refresh_from_db()
     for field in ["city", "country"]:
-        assert variables[field].lower() in customer_user.search_document
+        assert variables["address"][field].lower() in customer_user.search_document
 
 
 @freeze_time("2022-05-12 12:00:00")
@@ -4504,13 +4508,14 @@ def test_create_address_mutation_trigger_webhook(
     customer_user,
     permission_manage_users,
     settings,
+    graphql_address_data,
 ):
     # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"user": user_id, "city": "Dummy", "country": "PL"}
+    variables = {"user": user_id, "address": graphql_address_data}
 
     # when
     response = staff_api_client.post_graphql(
@@ -4535,25 +4540,34 @@ def test_create_address_mutation_trigger_webhook(
 
 @override_settings(MAX_USER_ADDRESSES=2)
 def test_create_address_mutation_the_oldest_address_is_deleted(
-    staff_api_client, customer_user, address, permission_manage_users
+    staff_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    graphql_address_data,
 ):
+    # given
     same_address = Address.objects.create(**address.as_data())
     customer_user.addresses.set([address, same_address])
 
     user_addresses_count = customer_user.addresses.count()
-
+    graphql_address_data["city"] = "Dummy"
     query = ADDRESS_CREATE_MUTATION
     user_id = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"user": user_id, "city": "Dummy", "country": "PL"}
+    variables = {"user": user_id, "address": graphql_address_data}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
+
+    # then
     assert content["data"]["addressCreate"]["errors"] == []
     data = content["data"]["addressCreate"]
-    assert data["address"]["city"] == "Dummy"
+    assert data["address"]["city"] == "DUMMY"
     assert data["address"]["country"]["code"] == "PL"
-    address_obj = Address.objects.get(city="Dummy")
+    address_obj = Address.objects.get(city="DUMMY")
     assert address_obj.user_addresses.first() == customer_user
     assert data["user"]["id"] == user_id
 
@@ -4562,6 +4576,33 @@ def test_create_address_mutation_the_oldest_address_is_deleted(
 
     with pytest.raises(address._meta.model.DoesNotExist):
         address.refresh_from_db()
+
+
+def test_create_address_validation_fails(
+    staff_api_client,
+    customer_user,
+    graphql_address_data,
+    permission_manage_users,
+    address,
+):
+    # given
+    query = ADDRESS_CREATE_MUTATION
+    address_data = graphql_address_data
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    address_data["postalCode"] = "wrong postal code"
+    variables = {"user": user_id, "address": graphql_address_data}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["addressCreate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "postalCode"
+    assert data["address"] is None
 
 
 ADDRESS_UPDATE_MUTATION = """

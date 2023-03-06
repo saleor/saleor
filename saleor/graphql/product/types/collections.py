@@ -4,7 +4,7 @@ from typing import List
 import graphene
 from graphene import relay
 
-from ....core.permissions import ProductPermissions
+from ....permission.enums import ProductPermissions
 from ....product import models
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ...channel import ChannelContext, ChannelQsContext

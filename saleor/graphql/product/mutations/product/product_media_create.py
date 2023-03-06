@@ -3,8 +3,8 @@ import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 
-from .....core.permissions import ProductPermissions
 from .....core.utils.validators import get_oembed_data
+from .....permission.enums import ProductPermissions
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext

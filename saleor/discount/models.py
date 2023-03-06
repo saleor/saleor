@@ -17,8 +17,8 @@ from prices import Money, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.permissions import DiscountPermissions
 from ..core.utils.translations import Translation, TranslationProxy
+from ..permission.enums import DiscountPermissions
 from . import DiscountValueType, OrderDiscountType, VoucherType
 
 if TYPE_CHECKING:

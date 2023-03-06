@@ -5,10 +5,8 @@ from django.db import models
 from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
-from saleor.core.permissions.enums import BasePermissionEnum
-
 from ..core.models import Job, ModelWithMetadata
-from ..core.permissions import AppPermission
+from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from .types import AppExtensionMount, AppExtensionTarget, AppType

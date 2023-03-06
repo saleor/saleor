@@ -13,11 +13,11 @@ from prices import Money
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
-from ..core.permissions import ShippingPermissions
 from ..core.units import WeightUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import convert_weight, get_default_weight_unit, zero_weight
+from ..permission.enums import ShippingPermissions
 from ..tax.models import TaxClass
 from . import PostalCodeRuleInclusionType, ShippingMethodType
 from .postal_codes import filter_shipping_methods_by_postal_code_rules

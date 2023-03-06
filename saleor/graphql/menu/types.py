@@ -1,8 +1,9 @@
 import graphene
 from graphene import relay
 
-from ...core.permissions import PagePermissions, has_one_of_permissions
 from ...menu import models
+from ...permission.enums import PagePermissions
+from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.dataloaders import ChannelBySlugLoader
 from ..channel.types import (

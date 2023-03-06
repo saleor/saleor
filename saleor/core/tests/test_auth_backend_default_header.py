@@ -3,6 +3,7 @@ import pytest
 from freezegun import freeze_time
 from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
+from ...permission.enums import get_permissions_from_names
 from ...permission.models import Permission
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
@@ -13,7 +14,6 @@ from ..jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ..permissions import get_permissions_from_names
 
 
 def test_use_default_header_as_a_fallback(rf, staff_user, customer_user):

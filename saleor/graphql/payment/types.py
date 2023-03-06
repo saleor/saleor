@@ -2,8 +2,8 @@ import graphene
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
-from ...core.permissions import OrderPermissions
 from ...payment import models
+from ...permission.enums import OrderPermissions
 from ..checkout.dataloaders import CheckoutByTokenLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, ADDED_IN_34, ADDED_IN_36, PREVIEW_FEATURE

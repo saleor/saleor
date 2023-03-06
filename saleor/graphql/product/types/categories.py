@@ -3,7 +3,7 @@ from typing import List
 import graphene
 from graphene import relay
 
-from ....core.permissions import has_one_of_permissions
+from ....permission.utils import has_one_of_permissions
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size

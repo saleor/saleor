@@ -5,7 +5,7 @@ import requests
 from django.core.management import call_command
 
 from ...core import JobStatus
-from ...core.permissions import get_permissions
+from ...permission.enums import get_permissions
 from ..models import App, AppInstallation
 
 

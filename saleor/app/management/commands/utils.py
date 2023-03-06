@@ -2,7 +2,7 @@ from typing import List
 
 from django.core.management import CommandError
 
-from saleor.core.permissions import get_permissions, get_permissions_enum_list
+from ....permission.enums import get_permissions, get_permissions_enum_list
 
 
 def clean_permissions(required_permissions: List[str]):

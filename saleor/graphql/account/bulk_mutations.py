@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 
 from ...account import models
 from ...account.error_codes import AccountErrorCode
-from ...core.permissions import AccountPermissions
+from ...permission.enums import AccountPermissions
 from ..core import ResolveInfo
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError

@@ -1,9 +1,9 @@
 import graphene
 
-from ....core.permissions import GiftcardPermissions
 from ....csv import models as csv_models
 from ....csv.events import export_started_event
 from ....csv.tasks import export_gift_cards_task
+from ....permission.enums import GiftcardPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
