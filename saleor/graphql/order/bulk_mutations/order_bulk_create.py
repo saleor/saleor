@@ -326,14 +326,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         error_type_field = "bulk_order_errors"
 
     @classmethod
-    def get_instance(cls, input: Dict[str, Any], model, key_map: Dict[str, str]):
-        # TODO move to utils
+    def get_instance(
+        cls,
+        input: Dict[str, Any],
+        model,
+        key_map: Dict[str, str],
+        instance_storage: Dict[str, Any],
+    ):
         """Resolve instance based on input data, model and `key_map` argument provided.
 
         Args:
             input: data from input
             model: database model associated with searched instance
             key_map: mapping between keys from input and keys from database
+            instance_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
+                       and instances as values; it is used to search for already
+                       resolved instances
 
         Return:
             Model instance
@@ -346,24 +354,25 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 - if instance can't be resolved by
 
         """
+        model_name = model.__name__
         if sum((input.get(key) is not None for key in key_map.keys())) > 1:
             args = ", ".join((k for k in key_map.keys()))
             raise ValidationError(
                 f"Only one of [{args}] arguments can be provided "
-                f"to resolve {model.__name__} instance."
+                f"to resolve {model_name} instance."
             )
 
         if all((input.get(key) is None for key in key_map.keys())):
             args = ", ".join((k for k in key_map.keys()))
             raise ValidationError(
                 f"One of [{args}] arguments must be provided "
-                f"to resolve {model.__name__} instance."
+                f"to resolve {model_name} instance."
             )
 
         for data_key, db_key in key_map.items():
             if input.get(data_key) and isinstance(input.get(data_key), str):
                 if db_key == "id":
-                    id = from_global_id_or_none(input.get(data_key), model.__name__)
+                    id = from_global_id_or_none(input.get(data_key), model_name)
                     if not id:
                         raise ValidationError(
                             f"Can't resolve global id: {input.get(data_key)}"
@@ -371,9 +380,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     else:
                         input[data_key] = id
 
-                return model.objects.filter(**{db_key: input.get(data_key)}).first()
+                lookup_key = "_".join((model_name, db_key, input[data_key]))
+                instance = instance_storage.get(lookup_key)
+                if instance:
+                    return instance
 
-        raise ValidationError(f"Can't return {model.__name__} instance.")
+                instance = model.objects.filter(**{db_key: input[data_key]}).first()
+                if not instance:
+                    raise ValidationError(
+                        f"{model_name} instance with {db_key}={input[data_key]} "
+                        f"doesn't exist."
+                    )
+
+                instance_storage[lookup_key] = instance
+                return instance
+
+        raise ValidationError(f"Can't return {model_name} instance.")
 
     @classmethod
     def get_instance_and_errors(
@@ -382,6 +404,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         model,
         key_map: Dict[str, str],
         errors: List[OrderBulkError],
+        instance_storage: Dict[str, Any],
     ):
         """Resolve instance based on input data, model and `key_map` argument provided.
 
@@ -390,6 +413,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model: database model associated with searched instance
             key_map: mapping between keys from input and keys from database
             errors: error list to be updated if an error occur
+            instance_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
+                       and instances as values; it is used to search for already
+                       resolved instances
 
         Return:
             model instance and error list.
@@ -398,14 +424,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO store results to narrow request number
         instance = None
         try:
-            instance = cls.get_instance(input, model, key_map)
+            instance = cls.get_instance(input, model, key_map, instance_storage)
         except ValidationError as err:
             errors.append(OrderBulkError(message=str(err.message)))
         return instance, errors
 
     @classmethod
     def get_delivery_method(
-        cls, input: Dict[str, Any], errors: List[OrderBulkError]
+        cls, input: Dict[str, Any], errors: List[OrderBulkError], instance_storage
     ) -> Tuple[Optional[DeliveryMethod], List[OrderBulkError]]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
         warehouse_key_map = {"warehouse_id": "id", "warehouse_name": "name"}
@@ -432,6 +458,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=Warehouse,
                 key_map=warehouse_key_map,
+                instance_storage=instance_storage,
             )
 
         if is_shipping_delivery:
@@ -440,6 +467,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=ShippingMethod,
                 key_map=shipping_key_map,
+                instance_storage=instance_storage,
             )
             # TODO handle tax class metadata
             shipping_tax_class, errors = cls.get_instance_and_errors(
@@ -450,6 +478,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     "shipping_tax_class_id": "id",
                     "shipping_tax_class_name": "name",
                 },
+                instance_storage=instance_storage,
             )
 
         delivery_method = None
@@ -469,6 +498,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls,
         order_input: Dict[str, Any],
         errors: List[OrderBulkError],
+        instance_storage: Dict[str, Any],
     ) -> Tuple[Optional[InstancesRelatedToOrder], List[OrderBulkError]]:
         """Get all instances of objects needed to create an order."""
 
@@ -481,6 +511,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "email": "email",
                 "external_reference": "external_reference",
             },
+            instance_storage=instance_storage,
         )
 
         billing_address, shipping_address = None, None
@@ -488,21 +519,25 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         try:
             billing_address = cls.validate_address(billing_address_input)
             billing_address.save()
-            # TODO move saving
-        except Exception as e:
-            # TODO error
-            print(e)
-            pass
+            # TODO move saving and consult address validation
+        except Exception as err:
+            errors.append(
+                OrderBulkError(
+                    message=f'Billing address error: {getattr(err, "message", "")}'
+                )
+            )
 
         if shipping_address_input := order_input["shipping_address"]:
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
                 shipping_address.save()
-                # TODO move saving
-            except Exception as e:
-                # TODO error
-                print(e)
-                pass
+                # TODO move saving and consult address validation
+            except Exception as err:
+                errors.append(
+                    OrderBulkError(
+                        message=f'Shipping address error: {getattr(err, "message", "")}'
+                    )
+                )
 
         channel = Channel.objects.get(slug=order_input["channel"])
 
@@ -519,7 +554,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def create_single_order_line(
-        cls, order_line_input: Dict[str, Any], order: Order
+        cls,
+        order_line_input: Dict[str, Any],
+        order: Order,
+        instance_storage,
     ) -> OrderLineWithErrors:
         errors: List[OrderBulkError] = []
 
@@ -532,6 +570,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "variant_external_reference": "external_reference",
                 "variant_sku": "sku",
             },
+            instance_storage=instance_storage,
         )
 
         # TODO handle tax class metadata
@@ -540,6 +579,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
             model=TaxClass,
             key_map={"tax_class_id": "id", "tax_class_name": "name"},
+            instance_storage=instance_storage,
         )
 
         if not all([variant, line_tax_class]):
@@ -551,7 +591,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_line_quantity = order_line_input["quantity"]
 
         # TODO take into account quantity / fulfilled
-        # TODO move to calculations / utils
         order_line_unit_price_net_amount = order_line_net_amount / order_line_quantity
         order_line_unit_price_gross_amount = (
             order_line_gross_amount / order_line_quantity
@@ -582,7 +621,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return OrderLineWithErrors(line=order_line, errors=errors)
 
     @classmethod
-    def make_calculations(
+    def make_order_calculations(
         cls,
         delivery_method: DeliveryMethod,
         order_lines: List[OrderLine],
@@ -630,7 +669,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return date < datetime.now() + timedelta(minutes=MINUTES_DIFF)
 
     @classmethod
-    def create_single_note(cls, note_input, order: Order) -> NoteWithErrors:
+    def create_single_note(
+        cls, note_input, order: Order, instance_storage: Dict[str, Any]
+    ) -> NoteWithErrors:
         errors: List[OrderBulkError] = []
         date = note_input.get("date")
         if date and not cls.is_datetime_valid(date):
@@ -649,6 +690,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=User,
                 key_map={"user_id": "id"},
+                instance_storage=instance_storage,
             )
         elif note_input.get("app_id"):
             app, errors = cls.get_instance_and_errors(
@@ -656,6 +698,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=App,
                 key_map={"app_id": "id"},
+                instance_storage=instance_storage,
             )
         event = OrderEvent(
             date=date,
@@ -669,7 +712,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return NoteWithErrors(note=event, errors=errors)
 
     @classmethod
-    def create_single_order(cls, order_input) -> OrderWithErrors:
+    def create_single_order(
+        cls, order_input, instance_storage: Dict[str, Any]
+    ) -> OrderWithErrors:
         errors: List[OrderBulkError] = []
         cls.validate_order_input(order_input, errors)
         order = Order()
@@ -678,10 +723,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         instances, errors = cls.get_instances_related_to_order(
             order_input=order_input,
             errors=errors,
+            instance_storage=instance_storage,
         )
         delivery_method, errors = cls.get_delivery_method(
             input=order_input["delivery_method"],
             errors=errors,
+            instance_storage=instance_storage,
         )
         if not instances or not delivery_method:
             return OrderWithErrors(order=None, errors=errors, lines=[], notes=[])
@@ -691,7 +738,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_lines_with_errors: List[OrderLineWithErrors] = []
         for order_line_input in order_lines_input:
             order_lines_with_errors.append(
-                cls.create_single_order_line(order_line_input, order)
+                cls.create_single_order_line(order_line_input, order, instance_storage)
             )
         # TODO exit earlier if sth wrong with lines
         # TODO check if multiple order lines contains the same variant
@@ -700,7 +747,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_lines: List[OrderLine] = [
             line.line for line in order_lines_with_errors if line.line is not None
         ]
-        order_amounts = cls.make_calculations(
+        order_amounts = cls.make_order_calculations(
             delivery_method, order_lines, instances.channel
         )
 
@@ -708,7 +755,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         notes_input = order_input.get("notes")
         notes_with_errors: List[NoteWithErrors] = []
         for note_input in notes_input:
-            notes_with_errors.append(cls.create_single_note(note_input, order))
+            notes_with_errors.append(
+                cls.create_single_note(note_input, order, instance_storage)
+            )
 
         # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
@@ -783,7 +832,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # elif policy == ErrorPolicy.IGNORE_FAILED and errors:
         #     pass
 
-        # TODO save addresses
+        # TODO save addresses here
         Order.objects.bulk_create(
             [order.order for order in orders_with_errors if order.order]
         )
@@ -819,8 +868,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO post save actions
         orders_input = data["orders"]
         orders_with_errors: List[OrderWithErrors] = []
+        instance_storage: Dict[str, Any] = {}
         for order_input in orders_input:
-            orders_with_errors.append(cls.create_single_order(order_input))
+            orders_with_errors.append(
+                cls.create_single_order(order_input, instance_storage)
+            )
 
         cls.save_data(orders_with_errors, data["error_policy"])
 
