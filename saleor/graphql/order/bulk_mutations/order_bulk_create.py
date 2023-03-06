@@ -9,8 +9,8 @@ from django.core.exceptions import ValidationError
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
-from ....order import FulfillmentStatus, OrderEvents, OrderOrigin
-from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ....order import OrderEvents, OrderOrigin
+from ....order.models import Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
@@ -58,30 +58,17 @@ class OrderBulkStock:
 
 
 @dataclass
-class FulfillmentWithErrors:
-    fulfillment: Fulfillment
-    lines: List[FulfillmentLine]
-    errors: List[OrderBulkError]
-
-
-@dataclass
 class OrderWithErrors:
     order: Optional[Order]
     errors: List[OrderBulkError]
     lines: List[OrderLineWithErrors]
     notes: List[NoteWithErrors]
-    fulfillments: List[FulfillmentWithErrors]
 
     def get_all_errors(self) -> List[OrderBulkError]:
         return (
             self.errors
             + [error for line in self.lines for error in line.errors]
             + [error for note in self.notes for error in note.errors]
-            + [
-                error
-                for fulfillment in self.fulfillments
-                for error in fulfillment.errors
-            ]
         )
 
 
@@ -288,6 +275,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
     )
+    # TODO fulfillments
     # TODO invoices = [OrderBulkCreateInvoiceInput!]
     # TODO transactions: [TransactionCreateInput!]!
     # TODO discounts (? need to be added/calculated if any ?)
@@ -645,80 +633,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return NoteWithErrors(note=event, errors=errors)
 
     @classmethod
-    def create_single_fulfillment(
-        cls, fulfillment_input, order_lines_with_keys, order
-    ) -> FulfillmentWithErrors:
-        # TODO checks for availability, update stocks
-        # TODO flags: skip checks / fail if not enough stocks / force stocks update
-        # TODO check if multiple fulfillment lines contains the same variant
-        errors: List[OrderBulkError] = []
-        fulfillment = Fulfillment(
-            order=order,
-            # TODO check status
-            status=FulfillmentStatus.FULFILLED,
-            tracking_number=fulfillment_input.get("tracking_code", ""),
-        )
-        # TODO why fulfillment doesn't have id now?
-        lines_input = fulfillment_input["lines"]
-        lines: List[FulfillmentLine] = []
-        for line_input in lines_input:
-            variant, errors = cls.get_instance_and_errors(
-                input=line_input,
-                errors=errors,
-                model=ProductVariant,
-                key_map={
-                    "variant_id": "id",
-                    "variant_external_reference": "external_reference",
-                    "variant_sku": "sku",
-                },
-            )
-            if not variant:
-                continue
-
-            order_line = order_lines_with_keys.get(variant.id)
-            if not order_line:
-                errors.append(
-                    OrderBulkError(
-                        message=f"There is no related order line for given "
-                        f"variant: {variant.id} in fulfillment line."
-                    )
-                )
-
-            stocks = []
-            for stock_input in line_input["stocks"]:
-                warehouse, errors = cls.get_instance_and_errors(
-                    input=stock_input,
-                    errors=errors,
-                    model=Warehouse,
-                    key_map={"warehouse_id": "id", "warehouse_name": "name"},
-                )
-                if not warehouse:
-                    continue
-
-                stocks.append(
-                    OrderBulkStock(
-                        quantity=stock_input["quantity"], warehouse=warehouse
-                    )
-                )
-            lines.append(
-                FulfillmentLine(
-                    fulfillment=fulfillment,
-                    order_line=order_line,
-                    quantity=sum((stock.quantity for stock in stocks)),
-                )
-            )
-
-        breakpoint()
-        # TODO more validation
-        return FulfillmentWithErrors(
-            fulfillment=fulfillment, lines=lines, errors=errors
-        )
-
-    @classmethod
-    def check_availability(cls, lines: List[FulfillmentLine]):
-        pass
-
-    @classmethod
     def create_single_order(cls, order_input) -> OrderWithErrors:
         errors: List[OrderBulkError] = []
         cls.validate_order_input(order_input, errors)
@@ -730,9 +644,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
         )
         if not instances:
-            return OrderWithErrors(
-                order=None, errors=errors, lines=[], notes=[], fulfillments=[]
-            )
+            return OrderWithErrors(order=None, errors=errors, lines=[], notes=[])
 
         # create lines
         order_lines_input = order_input["lines"]
@@ -755,19 +667,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         notes_with_errors: List[NoteWithErrors] = []
         for note_input in notes_input:
             notes_with_errors.append(cls.create_single_note(note_input, order))
-
-        # create fulfillments
-        fulfillments_input = order_input.get("fulfillments")
-        fulfillments_with_errors: List[FulfillmentWithErrors] = []
-        order_lines_with_keys = {
-            line.variant.id: line for line in order_lines if line.variant
-        }
-        for fulfillment_input in fulfillments_input:
-            fulfillments_with_errors.append(
-                cls.create_single_fulfillment(
-                    fulfillment_input, order_lines_with_keys, order
-                )
-            )
 
         # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
@@ -811,7 +710,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
             lines=order_lines_with_errors,
             notes=notes_with_errors,
-            fulfillments=fulfillments_with_errors,
         )
 
     @classmethod
@@ -846,28 +744,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         notes_with_errors = [order.notes for order in orders_with_errors][0]
         OrderEvent.objects.bulk_create(
             [note.note for note in notes_with_errors if note.note]
-        )
-
-        fulfillments_with_errors = [order.fulfillments for order in orders_with_errors][
-            0
-        ]
-        Fulfillment.objects.bulk_create(
-            [
-                fulfillment.fulfillment
-                for fulfillment in fulfillments_with_errors
-                if fulfillment.fulfillment
-            ]
-        )
-        for fulfillment in fulfillments_with_errors:
-            for line in fulfillment.lines:
-                line.fulfillment = fulfillment.fulfillment
-
-        FulfillmentLine.objects.bulk_create(
-            [
-                line
-                for fulfillment in fulfillments_with_errors
-                for line in fulfillment.lines
-            ]
         )
 
         return orders_with_errors
