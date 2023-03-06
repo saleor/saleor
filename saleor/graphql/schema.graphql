@@ -23417,7 +23417,7 @@ type Manifest {
   """
   Determines the app's required Saleor version as semver range.
   
-  Added in Saleor 3.12.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """

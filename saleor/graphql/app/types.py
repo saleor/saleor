@@ -16,7 +16,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_38,
-    ADDED_IN_312,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -234,7 +234,7 @@ class Manifest(graphene.ObjectType):
         ManifestRequiredSaleorVersion,
         description=(
             "Determines the app's required Saleor version as semver range."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
     )
