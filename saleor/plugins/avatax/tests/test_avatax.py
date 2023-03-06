@@ -1879,6 +1879,36 @@ def test_calculate_order_total(
 
 @pytest.mark.vcr
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_order_total_for_JPY(
+    order_line_JPY,
+    shipping_zone_JPY,
+    channel_JPY,
+    site_settings,
+    address,
+    plugin_configuration,
+):
+    # given
+    plugin_configuration(channel=channel_JPY)
+    manager = get_plugins_manager()
+    order = order_line_JPY.order
+    method = shipping_zone_JPY.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.save()
+
+    site_settings.company_address = address
+    site_settings.save()
+
+    # when
+    price = manager.calculate_order_total(order, order.lines.all())
+
+    # then
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("3497", "JPY"), gross=Money("4300", "JPY"))
+
+
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_order_shipping_entire_order_voucher(
     order_line, shipping_zone, voucher, site_settings, address, plugin_configuration
 ):
