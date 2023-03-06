@@ -3,9 +3,9 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
 from ..core.models import ModelWithMetadata, SortableModel
-from ..core.permissions import MenuPermissions
 from ..core.utils.translations import Translation, TranslationProxy
 from ..page.models import Page
+from ..permission.enums import MenuPermissions
 from ..product.models import Category, Collection
 
 
@@ -39,7 +39,7 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
     page = models.ForeignKey(Page, blank=True, null=True, on_delete=models.CASCADE)
 
     objects = models.Manager()
-    tree = TreeManager()
+    tree = TreeManager()  # type: ignore[django-manager-missing]
     translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):

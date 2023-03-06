@@ -29,7 +29,6 @@ def fill_plugins_name(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0002_auto_20200417_0335"),
     ]

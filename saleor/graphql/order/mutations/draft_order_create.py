@@ -3,13 +3,11 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....checkout import AddressType
-from ....core.permissions import OrderPermissions
-from ....core.taxes import TaxError
+from ....core.taxes import TaxError, zero_money
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....order import OrderOrigin, OrderStatus, events, models
@@ -19,19 +17,27 @@ from ....order.utils import (
     create_order_line,
     invalidate_order_prices,
     recalculate_order_weight,
+    update_order_display_gross_prices,
 )
+from ....permission.enums import OrderPermissions
+from ....shipping import models as shipping_models
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
+from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
-from ...core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_36, ADDED_IN_310, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import Order
 from ..utils import (
     OrderLineData,
+    get_shipping_method_availability_error,
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
@@ -82,6 +88,9 @@ class DraftOrderInput(InputObjectType):
             "see the order details. URL in RFC 1808 format."
         ),
     )
+    external_reference = graphene.String(
+        description="External ID of this order." + ADDED_IN_310, required=False
+    )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
@@ -108,12 +117,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         shipping_address = data.pop("shipping_address", None)
         billing_address = data.pop("billing_address", None)
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
-
+        manager = get_plugin_manager_promise(info.context).get()
         shipping_method = get_shipping_model_by_object_id(
             object_id=data.pop("shipping_method", None), raise_error=False
         )
@@ -125,7 +134,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             except User.DoesNotExist:
                 data["user"] = None
 
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
@@ -142,11 +151,9 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
-        display_gross_prices = info.context.site.settings.display_gross_prices
-        cleaned_input["display_gross_prices"] = display_gross_prices
 
         cls.clean_addresses(
-            info, instance, cleaned_input, shipping_address, billing_address
+            info, instance, cleaned_input, shipping_address, billing_address, manager
         )
 
         if redirect_url:
@@ -156,7 +163,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def clean_channel_id(cls, info, instance, cleaned_input, channel_id):
+    def clean_channel_id(cls, info: ResolveInfo, instance, cleaned_input, channel_id):
         if channel_id:
             if hasattr(instance, "channel"):
                 raise ValidationError(
@@ -203,7 +210,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                     {
                         "quantity": ValidationError(
                             "Ensure this value is greater than 0.",
-                            code=OrderErrorCode.ZERO_QUANTITY,
+                            code=OrderErrorCode.ZERO_QUANTITY.value,
                         )
                     }
                 )
@@ -231,7 +238,13 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_addresses(
-        cls, info, instance, cleaned_input, shipping_address, billing_address
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        shipping_address,
+        billing_address,
+        manager,
     ):
         if shipping_address:
             shipping_address = cls.validate_address(
@@ -240,7 +253,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 instance=instance.shipping_address,
                 info=info,
             )
-            shipping_address = info.context.plugins.change_user_address(
+            shipping_address = manager.change_user_address(
                 shipping_address, "shipping", user=instance
             )
             cleaned_input["shipping_address"] = shipping_address
@@ -251,7 +264,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 instance=instance.billing_address,
                 info=info,
             )
-            billing_address = info.context.plugins.change_user_address(
+            billing_address = manager.change_user_address(
                 billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
@@ -265,7 +278,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             raise ValidationError({"redirect_url": error})
 
     @staticmethod
-    def _save_addresses(info, instance: models.Order, cleaned_input):
+    def _save_addresses(instance: models.Order, cleaned_input):
         shipping_address = cleaned_input.get("shipping_address")
         if shipping_address:
             shipping_address.save()
@@ -276,15 +289,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
-    def _save_lines(info, instance, lines_data):
+    def _save_lines(info, instance, lines_data, app, manager):
         if lines_data:
             lines = []
             for line_data in lines_data:
                 new_line = create_order_line(
                     instance,
                     line_data,
-                    info.context.plugins,
-                    info.context.site.settings,
+                    manager,
                 )
                 lines.append(new_line)
 
@@ -292,25 +304,79 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             events.order_added_products_event(
                 order=instance,
                 user=info.context.user,
-                app=info.context.app,
+                app=app,
                 order_lines=lines,
             )
 
     @classmethod
-    def _commit_changes(cls, info, instance, cleaned_input, is_new_instance):
+    def _commit_changes(
+        cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app
+    ):
         if shipping_method := cleaned_input["shipping_method"]:
             instance.shipping_method_name = shipping_method.name
+            tax_class = shipping_method.tax_class
+            if tax_class:
+                instance.shipping_tax_class = tax_class
+                instance.shipping_tax_class_name = tax_class.name
+                instance.shipping_tax_class_private_metadata = tax_class.metadata
+                instance.shipping_tax_class_metadata = tax_class.private_metadata
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
         if is_new_instance:
             events.draft_order_created_event(
-                order=instance, user=info.context.user, app=info.context.app
+                order=instance, user=info.context.user, app=app
             )
 
-        instance.save(
-            update_fields=["billing_address", "shipping_address", "updated_at"]
-        )
+    @classmethod
+    def _update_shipping_price(
+        cls,
+        info: ResolveInfo,
+        instance: models.Order,
+        cleaned_input,
+        shipping_channel_listing,
+    ):
+        if shipping_address := cleaned_input.get("shipping_address"):
+            instance.shipping_address = shipping_address
+        if (
+            instance.shipping_method
+            and instance.shipping_address
+            and instance.is_shipping_required()
+        ):
+            shipping_method_data = convert_to_shipping_method_data(
+                instance.shipping_method,
+                shipping_channel_listing,
+            )
+            manager = get_plugin_manager_promise(info.context).get()
+            error = get_shipping_method_availability_error(
+                instance, shipping_method_data, manager
+            )
+            if error:
+                raise ValidationError({"shipping_method": error})
+
+            instance.base_shipping_price = shipping_channel_listing.price
+        else:
+            instance.base_shipping_price = zero_money(instance.currency)
+
+    @classmethod
+    def _get_shipping_channel_listing(cls, instance, cleaned_input):
+        if shipping_method := cleaned_input["shipping_method"]:
+            shipping_channel_listing = (
+                shipping_models.ShippingMethodChannelListing.objects.filter(
+                    shipping_method=shipping_method, channel__id=instance.channel_id
+                ).first()
+            )
+            if not shipping_channel_listing:
+                raise ValidationError(
+                    {
+                        "shipping_method": ValidationError(
+                            "Shipping method not available in the given channel.",
+                            code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.value,
+                        )
+                    }
+                )
+            return shipping_channel_listing
+        return None
 
     @classmethod
     def should_invalidate_prices(cls, instance, cleaned_input, is_new_instance) -> bool:
@@ -318,45 +384,76 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         return is_new_instance
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
+        app = get_app_promise(info.context).get()
         return cls._save_draft_order(
-            info, instance, cleaned_input, is_new_instance=True
+            info,
+            instance,
+            cleaned_input,
+            is_new_instance=True,
+            app=app,
+            manager=manager,
         )
 
     @classmethod
-    @traced_atomic_transaction()
-    def _save_draft_order(cls, info, instance, cleaned_input, *, is_new_instance):
-        # Process addresses
-        cls._save_addresses(info, instance, cleaned_input)
-
-        # Save any changes create/update the draft
-        cls._commit_changes(info, instance, cleaned_input, is_new_instance)
-
-        try:
-            # Process any lines to add
-            cls._save_lines(info, instance, cleaned_input.get("lines_data"))
-        except TaxError as tax_error:
-            raise ValidationError(
-                "Unable to calculate taxes - %s" % str(tax_error),
-                code=OrderErrorCode.TAX_ERROR.value,
+    def _save_draft_order(
+        cls,
+        info: ResolveInfo,
+        instance,
+        cleaned_input,
+        *,
+        is_new_instance,
+        app,
+        manager
+    ):
+        with traced_atomic_transaction():
+            shipping_channel_listing = cls._get_shipping_channel_listing(
+                instance, cleaned_input
             )
 
-        if is_new_instance:
-            transaction.on_commit(
-                lambda: info.context.plugins.draft_order_created(instance)
-            )
+            # Process addresses
+            cls._save_addresses(instance, cleaned_input)
 
-        else:
-            transaction.on_commit(
-                lambda: info.context.plugins.draft_order_updated(instance)
-            )
+            # Save any changes create/update the draft
+            cls._commit_changes(info, instance, cleaned_input, is_new_instance, app)
 
-        # Post-process the results
-        updated_fields = ["weight", "search_vector", "updated_at"]
-        if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
-            invalidate_order_prices(instance)
-            updated_fields.append("should_refresh_prices")
-        recalculate_order_weight(instance)
-        update_order_search_vector(instance, save=False)
+            try:
+                # Process any lines to add
+                cls._save_lines(
+                    info, instance, cleaned_input.get("lines_data"), app, manager
+                )
+            except TaxError as tax_error:
+                raise ValidationError(
+                    f"Unable to calculate taxes - {str(tax_error)}",
+                    code=OrderErrorCode.TAX_ERROR.value,
+                )
 
-        instance.save(update_fields=updated_fields)
+            update_order_display_gross_prices(instance)
+
+            if is_new_instance:
+                cls.call_event(manager.draft_order_created, instance)
+
+            else:
+                cls.call_event(manager.draft_order_updated, instance)
+
+            # Post-process the results
+            updated_fields = [
+                "weight",
+                "search_vector",
+                "updated_at",
+                "display_gross_prices",
+            ]
+            if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
+                invalidate_order_prices(instance)
+                cls._update_shipping_price(
+                    info, instance, cleaned_input, shipping_channel_listing
+                )
+                updated_fields.extend(
+                    ["should_refresh_prices", "base_shipping_price_amount"]
+                )
+
+            recalculate_order_weight(instance)
+            update_order_search_vector(instance, save=False)
+
+            instance.save(update_fields=updated_fields)

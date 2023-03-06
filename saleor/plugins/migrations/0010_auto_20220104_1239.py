@@ -88,7 +88,6 @@ def revert_changes(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("plugins", "0009_emailtemplate"),
     ]

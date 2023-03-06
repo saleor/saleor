@@ -131,7 +131,7 @@ def reserve_stocks(
         .exclude_checkout_lines(checkout_lines)
         .values("stock")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     quantity_reservation_for_stocks: Dict = defaultdict(int)
     for reservation in quantity_reservation_list:
         quantity_reservation_for_stocks[reservation["stock"]] += reservation[
@@ -223,7 +223,7 @@ def _create_stock_reservations(
             InsufficientStockData(
                 variant=variant,
                 available_quantity=quantity,
-            )  # type: ignore
+            )
         )
         return insufficient_stocks, []
 
@@ -288,7 +288,7 @@ def reserve_preorders(
     )
 
     insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[Reservation] = []
+    reservations: List[PreorderReservation] = []
     for line in checkout_lines_to_reserve:
         insufficient_stocks, reservation = _create_preorder_reservation(
             line,
@@ -391,10 +391,10 @@ def is_reservation_enabled(settings) -> bool:
     )
 
 
-def get_reservation_length(request) -> Optional[int]:
-    if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_authenticated_user
-    return request.site.settings.reserve_stock_duration_anonymous_user
+def get_reservation_length(site, user) -> Optional[int]:
+    if user:
+        return site.settings.reserve_stock_duration_authenticated_user
+    return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(
@@ -410,7 +410,7 @@ def get_listings_reservations(
         .exclude_checkout_lines(checkout_lines)
         .values("product_variant_channel_listing")
         .annotate(quantity_reserved_sum=Sum("quantity_reserved"))
-    )  # type: ignore
+    )
     listings_reservations: Dict = defaultdict(int)
 
     for reservation in quantity_reservation_list:

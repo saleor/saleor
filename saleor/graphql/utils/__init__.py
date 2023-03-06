@@ -1,20 +1,32 @@
 import hashlib
 import logging
 import traceback
-from typing import Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, Union
 from uuid import UUID
 
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
 
+from ...account.models import User
+from ...app.models import App
+from ...core.exceptions import (
+    CircularSubscriptionSyncEvent,
+    PermissionDenied,
+    ReadOnlyException,
+)
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
+from ..core.validators.query_cost import QueryCostError
+
+if TYPE_CHECKING:
+    from ..core import SaleorContext
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
@@ -28,9 +40,21 @@ REVERSED_DIRECTION = {
     "": "-",
 }
 
+# List of error types of which messages can be returned in the GraphQL API.
+ALLOWED_ERRORS = [
+    CircularSubscriptionSyncEvent,
+    GraphQLError,
+    PermissionDenied,
+    ReadOnlyException,
+    ValidationError,
+    QueryCostError,
+]
+
+INTERNAL_ERROR_MESSAGE = "Internal Server Error"
+
 
 def resolve_global_ids_to_primary_keys(
-    ids, graphene_type=None, raise_error: bool = False
+    ids: Iterable[str], graphene_type=None, raise_error: bool = False
 ):
     pks = []
     invalid_ids = []
@@ -71,7 +95,7 @@ def _resolve_graphene_type(schema, type_name):
 
 def get_nodes(
     ids,
-    graphene_type: Union[graphene.ObjectType, str] = None,
+    graphene_type: Union[graphene.ObjectType, str, None] = None,
     model=None,
     qs=None,
     schema=None,
@@ -167,7 +191,7 @@ def format_permissions_for_display(permissions):
     return formatted_permissions
 
 
-def get_user_or_app_from_context(context):
+def get_user_or_app_from_context(context: "SaleorContext") -> Union[App, User, None]:
     # order is important
     # app can be None but user if None then is passed as anonymous
     return context.app or context.user
@@ -176,6 +200,53 @@ def get_user_or_app_from_context(context):
 def requestor_is_superuser(requestor):
     """Return True if requestor is superuser."""
     return getattr(requestor, "is_superuser", False)
+
+
+def query_identifier(document: GraphQLDocument) -> str:
+    """Generate a fingerprint for a GraphQL query.
+
+    For queries identifier is sorted set of all root objects separated by `,`.
+    e.g
+    query AnyQuery {
+        product {
+            id
+        }
+        order {
+            id
+        }
+        Product2: product {
+            id
+        }
+        Myself: me {
+            email
+        }
+    }
+    identifier: me, order, product
+
+    For mutations identifier is mutation type name.
+    e.g.
+    mutation CreateToken{
+        tokenCreate(...){
+            token
+        }
+        deleteWarehouse(...){
+            ...
+        }
+    }
+    identifier: deleteWarehouse, tokenCreate
+    """
+    labels = []
+    for definition in document.document_ast.definitions:
+        if getattr(definition, "operation", None) in {
+            "query",
+            "mutation",
+        }:
+            selections = definition.selection_set.selections
+            for selection in selections:
+                labels.append(selection.name.value)
+    if not labels:
+        return "undefined"
+    return ", ".join(sorted(set(labels)))
 
 
 def query_fingerprint(document: GraphQLDocument) -> str:
@@ -197,6 +268,7 @@ def query_fingerprint(document: GraphQLDocument) -> str:
 
 
 def format_error(error, handled_exceptions):
+    result: Dict[str, Any]
     if isinstance(error, GraphQLError):
         result = format_graphql_error(error)
     else:
@@ -214,6 +286,12 @@ def format_error(error, handled_exceptions):
         handled_errors_logger.info("A query had an error", exc_info=exc)
     else:
         unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
+
+    # If DEBUG mode is disabled we allow only certain error messages to be returned in
+    # the API. This prevents from leaking internals that might be included in Python
+    # exceptions' error messages.
+    if type(exc) not in ALLOWED_ERRORS and not settings.DEBUG:
+        result["message"] = INTERNAL_ERROR_MESSAGE
 
     result["extensions"]["exception"] = {"code": type(exc).__name__}
     if settings.DEBUG:

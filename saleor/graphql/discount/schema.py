@@ -1,14 +1,15 @@
 import graphene
 
-from ...core.permissions import DiscountPermissions
+from ...permission.enums import DiscountPermissions
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
-from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
+from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations.sale_add_catalogues import SaleAddCatalogues
 from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
 from .mutations.sale_create import SaleCreate
@@ -104,19 +105,19 @@ class DiscountQueries(graphene.ObjectType):
         return resolve_sale(id, channel)
 
     @staticmethod
-    def resolve_sales(_root, info, *, channel=None, **kwargs):
+    def resolve_sales(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_sales(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, SaleCountableConnection)
 
     @staticmethod
-    def resolve_voucher(_root, _info, *, id, channel=None):
+    def resolve_voucher(_root, _info: ResolveInfo, *, id, channel=None):
         _, id = from_global_id_or_error(id, Voucher)
         return resolve_voucher(id, channel)
 
     @staticmethod
-    def resolve_vouchers(_root, info, *, channel=None, **kwargs):
+    def resolve_vouchers(_root, info: ResolveInfo, *, channel=None, **kwargs):
         qs = resolve_vouchers(info, channel_slug=channel, **kwargs)
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)

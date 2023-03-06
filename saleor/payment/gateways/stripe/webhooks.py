@@ -1,7 +1,6 @@
 import logging
 from typing import List, Optional
 
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import Prefetch
@@ -54,8 +53,15 @@ def handle_webhook(
 ):
     payload = request.body
     sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
-    endpoint_secret = gateway_config.connection_params["webhook_secret"]
     api_key = gateway_config.connection_params["secret_api_key"]
+    endpoint_secret = gateway_config.connection_params.get("webhook_secret")
+
+    if not endpoint_secret:
+        logger.warning("Missing webhook secret on Saleor side.")
+        response = HttpResponse(status=500)
+        response.content = "Missing webhook secret on Saleor side."
+        return response
+
     try:
         event = construct_stripe_event(
             api_key=api_key,
@@ -158,7 +164,7 @@ def _finalize_checkout(
     transaction = create_transaction(
         payment,
         kind=kind,
-        payment_information=None,  # type: ignore
+        payment_information=None,
         action_required=False,
         gateway_response=gateway_response,
     )
@@ -175,9 +181,7 @@ def _finalize_checkout(
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     if unavailable_variant_pks:
         raise ValidationError("Some of the checkout lines variants are unavailable.")
-    checkout_info = fetch_checkout_info(
-        checkout, lines, discounts, manager  # type: ignore
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     checkout_total = calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
@@ -202,7 +206,7 @@ def _finalize_checkout(
             payment_data={},
             store_source=False,
             discounts=discounts,
-            user=checkout.user or AnonymousUser(),  # type: ignore
+            user=checkout.user or None,
             app=None,
         )
     except ValidationError as e:
@@ -243,7 +247,7 @@ def _update_payment_with_new_transaction(
     transaction = create_transaction(
         payment,
         kind=kind,
-        payment_information=None,  # type: ignore
+        payment_information=None,
         action_required=False,
         gateway_response=gateway_response,
     )
@@ -428,7 +432,7 @@ def handle_successful_payment_intent(
         try_void_or_refund_inactive_payment(payment, transaction, get_plugins_manager())
         return
 
-    if payment.order_id:
+    if payment.order:
         if payment.charge_status in [ChargeStatus.PENDING, ChargeStatus.NOT_CHARGED]:
             capture_transaction = _update_payment_with_new_transaction(
                 payment,
@@ -437,7 +441,7 @@ def handle_successful_payment_intent(
                 payment_intent.amount_received,
                 payment_intent.currency,
             )
-            order_info = fetch_order_info(payment.order)  # type: ignore
+            order_info = fetch_order_info(payment.order)
             order_captured(
                 order_info,
                 None,

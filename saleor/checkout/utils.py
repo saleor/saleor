@@ -9,7 +9,7 @@ from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -40,16 +40,10 @@ from .fetch import (
     update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
 )
-from .models import Checkout, CheckoutLine
+from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from decimal import Decimal
-
-    from prices import TaxedMoney
-
     from ..account.models import Address
-    from ..channel.models import Channel
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -170,7 +164,7 @@ def add_variant_to_checkout(
         if line is not None:
             line.delete()
     elif line is None:
-        checkout.lines.create(  # type: ignore
+        checkout.lines.create(
             variant=variant,
             quantity=new_quantity,
             currency=checkout.currency,
@@ -227,7 +221,9 @@ def add_variants_to_checkout(
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
     if to_update:
-        CheckoutLine.objects.bulk_update(to_update, ["quantity", "price_override"])
+        CheckoutLine.objects.bulk_update(
+            to_update, ["quantity", "price_override", "metadata"]
+        )
     if to_create:
         CheckoutLine.objects.bulk_create(to_create)
 
@@ -262,6 +258,10 @@ def _get_line_if_exist(line_data, lines_by_ids):
 
 
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):
+    if line_data.metadata_list:
+        line.store_value_in_metadata(
+            {data.key: data.value for data in line_data.metadata_list}
+        )
     if line_data.quantity_to_update:
         quantity = line_data.quantity
         if quantity > 0:
@@ -286,15 +286,18 @@ def _append_line_to_delete(to_delete, line_data, line):
 def _append_line_to_create(to_create, checkout, variant, line_data, line):
     if line is None:
         if line_data.quantity > 0:
-            to_create.append(
-                CheckoutLine(
-                    checkout=checkout,
-                    variant=variant,
-                    quantity=line_data.quantity,
-                    currency=checkout.currency,
-                    price_override=line_data.custom_price,
-                )
+            checkout_line = CheckoutLine(
+                checkout=checkout,
+                variant=variant,
+                quantity=line_data.quantity,
+                currency=checkout.currency,
+                price_override=line_data.custom_price,
             )
+            if line_data.metadata_list:
+                checkout_line.store_value_in_metadata(
+                    {data.key: data.value for data in line_data.metadata_list}
+                )
+            to_create.append(checkout_line)
 
 
 def _check_new_checkout_address(checkout, address, address_type):
@@ -360,8 +363,8 @@ def change_shipping_address_in_checkout(
     )
     updated_fields = []
     if changed:
-        if remove:
-            checkout.shipping_address.delete()  # type: ignore
+        if remove and checkout.shipping_address:
+            checkout.shipping_address.delete()
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
             checkout_info, address, lines, discounts, manager, shipping_channel_listings
@@ -391,7 +394,7 @@ def _get_shipping_voucher_discount_for_checkout(
             msg = "This offer is not valid in your country."
             raise NotApplicable(msg)
 
-    shipping_price = base_calculations.base_checkout_delivery_price(
+    shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
     )
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)
@@ -400,7 +403,6 @@ def _get_shipping_voucher_discount_for_checkout(
 def get_discounted_lines(
     lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
 ) -> Iterable["CheckoutLineInfo"]:
-
     discounted_lines = []
     if (
         voucher_info.product_pks
@@ -443,22 +445,33 @@ def get_prices_of_discounted_specific_product(
     Product must be assigned directly to the discounted category, assigning
     product to child category won't work.
     """
-    line_prices = []
     voucher_info = fetch_voucher_info(voucher)
     discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
         lines, voucher_info
     )
-    discounts = discounts or []
+    line_prices = get_base_lines_prices(checkout_info, discounted_lines, discounts)
 
-    for line_info in discounted_lines:
+    return line_prices
+
+
+def get_base_lines_prices(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Optional[Iterable[DiscountInfo]],
+):
+    """Get base total price of checkout lines without voucher discount applied."""
+    line_prices = []
+    for line_info in lines:
         line = line_info.line
-        line_unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info,
+        line_unit_price = line.variant.get_price(
+            line_info.product,
+            line_info.collections,
             checkout_info.channel,
-            discounts,
+            line_info.channel_listing,
+            discounts or [],
+            line_info.line.price_override,
         )
         line_prices.extend([line_unit_price] * line.quantity)
-
     return line_prices
 
 
@@ -476,6 +489,9 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
+        if voucher.apply_once_per_order:
+            prices = get_base_lines_prices(checkout_info, lines, discounts)
+            return voucher.get_discount_amount_for(min(prices), checkout_info.channel)
         subtotal = base_calculations.base_checkout_subtotal(
             lines,
             checkout_info.channel,
@@ -491,9 +507,29 @@ def get_voucher_discount_for_checkout(
             address,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        # The specific product voucher is propagated on specific line's prices
-        return zero_money(checkout_info.checkout.currency)
+        return _get_products_voucher_discount(
+            manager, checkout_info, lines, voucher, discounts
+        )
     raise NotImplementedError("Unknown discount type")
+
+
+def _get_products_voucher_discount(
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    voucher,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+):
+    """Calculate products discount value for a voucher, depending on its type."""
+    prices = None
+    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(
+            manager, checkout_info, lines, voucher, discounts
+        )
+    if not prices:
+        msg = "This offer is only valid for selected items."
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices, checkout_info.channel)
 
 
 def get_voucher_for_checkout(
@@ -789,11 +825,11 @@ def get_valid_internal_shipping_methods_for_checkout(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    internal_methods = []
+    internal_methods: List[ShippingMethodData] = []
     for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
-        shipping_method_data = convert_to_shipping_method_data(method, listing)
-        if shipping_method_data:
+        if listing:
+            shipping_method_data = convert_to_shipping_method_data(method, listing)
             internal_methods.append(shipping_method_data)
 
     return internal_methods
@@ -835,8 +871,12 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         update_fields=[
             "shipping_method",
             "collection_point",
-            "private_metadata",
             "last_change",
+        ]
+    )
+    get_or_create_checkout_metadata(checkout).save(
+        update_fields=[
+            "private_metadata",
         ]
     )
 
@@ -892,12 +932,12 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         }
-        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines with unavailable variants.",
-                    code=error_code,  # type: ignore
+                    code=error_code,
                     params={"variants": not_available_variants_ids},
                 )
             }
@@ -905,14 +945,27 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    checkout.store_value_in_private_metadata(
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    if type(container) == Checkout:
+        container = get_or_create_checkout_metadata(container)
+    return container.get_value_from_private_metadata(  # type:ignore
+        PRIVATE_META_APP_SHIPPING_ID
+    )
 
 
 def delete_external_shipping_id(checkout: Checkout):
-    checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def get_or_create_checkout_metadata(checkout: "Checkout"):
+    if hasattr(checkout, "metadata_storage"):
+        return checkout.metadata_storage
+    else:
+        return CheckoutMetadata.objects.create(checkout=checkout)

@@ -13,13 +13,16 @@ from celery import group
 from celery.exceptions import MaxRetriesExceededError, Retry
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.urls import reverse
 from google.cloud import pubsub_v1
 from requests.exceptions import RequestException
 
+from ...app.headers import AppHeaders, DeprecatedAppHeaders
 from ...celeryconf import app
 from ...core import EventDeliveryStatus
 from ...core.models import EventDelivery, EventPayload
 from ...core.tracing import webhooks_opentracing_trace
+from ...core.utils import build_absolute_uri
 from ...graphql.webhook.subscription_payload import (
     generate_payload_from_subscription,
     initialize_request,
@@ -75,6 +78,7 @@ def create_deliveries_for_subscriptions(
 
     :param event_type: event type which should be triggered.
     :param subscribable_object: subscribable object to process via subscription query.
+    :param webhooks: sequence of async webhooks.
     :param requestor: used in subscription webhooks to generate meta data for payload.
     :return: List of event deliveries to send via webhook tasks.
     """
@@ -118,7 +122,7 @@ def create_deliveries_for_subscriptions(
 
 
 def create_delivery_for_subscription_sync_event(
-    event_type, subscribable_object, webhook, requestor=None
+    event_type, subscribable_object, webhook, requestor=None, request=None
 ) -> Optional[EventDelivery]:
     """Generate webhook payload based on subscription query and create delivery object.
 
@@ -129,6 +133,7 @@ def create_delivery_for_subscription_sync_event(
     :param subscribable_object: subscribable object to process via subscription query.
     :param webhook: webhook object for which delivery will be created.
     :param requestor: used in subscription webhooks to generate meta data for payload.
+    :param request: used to share context between sync event calls
     :return: List of event deliveries to send via webhook tasks.
     """
     if event_type not in WEBHOOK_TYPES_MAP:
@@ -137,11 +142,14 @@ def create_delivery_for_subscription_sync_event(
         )
         return None
 
+    if not request:
+        request = initialize_request(requestor, event_type in WebhookEventSyncType.ALL)
+
     data = generate_payload_from_subscription(
         event_type=event_type,
         subscribable_object=subscribable_object,
         subscription_query=webhook.subscription_query,
-        request=initialize_request(requestor, event_type in WebhookEventSyncType.ALL),
+        request=request,
         app=webhook.app,
     )
     if not data:
@@ -149,7 +157,7 @@ def create_delivery_for_subscription_sync_event(
         # in separate PR to ensure proper handling for all sync events.
         # It was implemented when sync webhooks were handling payment events only.
         raise PaymentError(
-            "No payload was generated with subscription for event: %s" % event_type
+            f"No payload was generated with subscription for event: {event_type}"
         )
     event_payload = EventPayload.objects.create(payload=json.dumps({**data}))
     event_delivery = EventDelivery.objects.create(
@@ -179,7 +187,7 @@ def trigger_webhooks_async(
         payload = EventPayload.objects.create(payload=data)
         deliveries.extend(
             create_event_delivery_list_for_webhooks(
-                webhooks=webhooks,
+                webhooks=regular_webhooks,
                 event_payload=payload,
                 event_type=event_type,
             )
@@ -223,7 +231,6 @@ def trigger_webhook_sync(
         )
         if not delivery:
             return None
-
     else:
         event_payload = EventPayload.objects.create(payload=data)
         delivery = EventDelivery.objects.create(
@@ -245,6 +252,9 @@ def trigger_all_webhooks_sync(
     event_type: str,
     generate_payload: Callable,
     parse_response: Callable[[Any], Optional[R]],
+    subscribable_object=None,
+    requestor=None,
+    allow_replica=True,
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -255,26 +265,49 @@ def trigger_all_webhooks_sync(
     this function returns None.
     """
     webhooks = get_webhooks_for_event(event_type)
+    request_context = None
     event_payload = None
-    if webhooks:
-        event_payload = EventPayload.objects.create(payload=generate_payload())
     for webhook in webhooks:
-        delivery = EventDelivery.objects.create(
-            status=EventDeliveryStatus.PENDING,
-            event_type=event_type,
-            payload=event_payload,
-            webhook=webhook,
-        )
+        if webhook.subscription_query:
+            if request_context is None:
+                request_context = initialize_request(
+                    requestor, event_type in WebhookEventSyncType.ALL, allow_replica
+                )
+
+            delivery = create_delivery_for_subscription_sync_event(
+                event_type=event_type,
+                subscribable_object=subscribable_object,
+                webhook=webhook,
+                request=request_context,
+                requestor=requestor,
+            )
+            if not delivery:
+                return None
+        else:
+            if event_payload is None:
+                event_payload = EventPayload.objects.create(payload=generate_payload())
+            delivery = EventDelivery.objects.create(
+                status=EventDeliveryStatus.PENDING,
+                event_type=event_type,
+                payload=event_payload,
+                webhook=webhook,
+            )
+
         response_data = send_webhook_request_sync(webhook.app.name, delivery)
-        parsed_response = parse_response(response_data)
-        if parsed_response:
+        if parsed_response := parse_response(response_data):
             return parsed_response
     return None
 
 
 def send_webhook_using_http(
-    target_url, message, domain, signature, event_type, timeout=settings.WEBHOOK_TIMEOUT
-):
+    target_url,
+    message,
+    domain,
+    signature,
+    event_type,
+    timeout=settings.WEBHOOK_TIMEOUT,
+    custom_headers: Optional[Dict[str, str]] = None,
+) -> WebhookResponse:
     """Send a webhook request using http / https protocol.
 
     :param target_url: Target URL request will be sent to.
@@ -283,32 +316,45 @@ def send_webhook_using_http(
     :param signature: Webhook secret key checksum.
     :param event_type: Webhook event type.
     :param timeout: Request timeout.
+    :param custom_headers: Custom headers which will be added to request headers.
 
     :return: WebhookResponse object.
     """
     headers = {
         "Content-Type": "application/json",
         # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-        "X-Saleor-Event": event_type,
-        "X-Saleor-Domain": domain,
-        "X-Saleor-Signature": signature,
-        "Saleor-Event": event_type,
-        "Saleor-Domain": domain,
-        "Saleor-Signature": signature,
+        DeprecatedAppHeaders.EVENT_TYPE: event_type,
+        DeprecatedAppHeaders.DOMAIN: domain,
+        DeprecatedAppHeaders.SIGNATURE: signature,
+        AppHeaders.EVENT_TYPE: event_type,
+        AppHeaders.DOMAIN: domain,
+        AppHeaders.SIGNATURE: signature,
+        AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
     }
+
+    if custom_headers:
+        headers.update(custom_headers)
+
     try:
         response = requests.post(
             target_url, data=message, headers=headers, timeout=timeout
         )
-    except (RequestException,) as e:
-        response = WebhookResponse(
-            content=str(e), status=EventDeliveryStatus.FAILED, request_headers=headers
-        )
+    except RequestException as e:
         if e.response:
-            response.content = e.response.text
-            response.response_headers = dict(e.response.headers)
-            response.response_status_code = e.response.status_code
-        return response
+            result = WebhookResponse(
+                content=e.response.text,
+                status=EventDeliveryStatus.FAILED,
+                request_headers=headers,
+                response_headers=dict(e.response.headers),
+                response_status_code=e.response.status_code,
+            )
+        else:
+            result = WebhookResponse(
+                content=str(e),
+                status=EventDeliveryStatus.FAILED,
+                request_headers=headers,
+            )
+        return result
 
     return WebhookResponse(
         content=response.text,
@@ -322,7 +368,9 @@ def send_webhook_using_http(
     )
 
 
-def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_type):
+def send_webhook_using_aws_sqs(
+    target_url, message, domain, signature, event_type, **kwargs
+):
     parts = urlparse(target_url)
     region = "us-east-1"
     hostname_parts = parts.hostname.split(".")
@@ -350,6 +398,10 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
 
     msg_attributes = {
         "SaleorDomain": {"DataType": "String", "StringValue": domain},
+        "SaleorApiUrl": {
+            "DataType": "String",
+            "StringValue": build_absolute_uri(reverse("api"), domain),
+        },
         "EventType": {"DataType": "String", "StringValue": event_type},
     }
     if signature:
@@ -376,7 +428,7 @@ def send_webhook_using_aws_sqs(target_url, message, domain, signature, event_typ
 
 
 def send_webhook_using_google_cloud_pubsub(
-    target_url, message, domain, signature, event_type
+    target_url, message, domain, signature, event_type, **kwargs
 ):
     parts = urlparse(target_url)
     client = pubsub_v1.PublisherClient()
@@ -387,6 +439,7 @@ def send_webhook_using_google_cloud_pubsub(
                 topic_name,
                 message,
                 saleorDomain=domain,
+                saleorApiUrl=build_absolute_uri(reverse("api"), domain),
                 eventType=event_type,
                 signature=signature,
             )
@@ -398,7 +451,12 @@ def send_webhook_using_google_cloud_pubsub(
 
 
 def send_webhook_using_scheme_method(
-    target_url, domain, secret, event_type, data
+    target_url,
+    domain,
+    secret,
+    event_type,
+    data,
+    custom_headers=None,
 ) -> WebhookResponse:
     parts = urlparse(target_url)
     message = data.encode("utf-8")
@@ -409,6 +467,7 @@ def send_webhook_using_scheme_method(
         WebhookSchemes.AWS_SQS: send_webhook_using_aws_sqs,
         WebhookSchemes.GOOGLE_CLOUD_PUBSUB: send_webhook_using_google_cloud_pubsub,
     }
+
     if send_method := scheme_matrix.get(parts.scheme.lower()):
         # try:
         return send_method(
@@ -417,11 +476,13 @@ def send_webhook_using_scheme_method(
             domain,
             signature,
             event_type,
+            custom_headers=custom_headers,
         )
     raise ValueError("Unknown webhook scheme: %r" % (parts.scheme,))
 
 
 @app.task(
+    queue=settings.WEBHOOK_CELERY_QUEUE_NAME,
     bind=True,
     retry_backoff=10,
     retry_kwargs={"max_retries": 5},
@@ -441,11 +502,15 @@ def send_webhook_request_async(self, event_delivery_id):
         return
 
     webhook = delivery.webhook
-    data = delivery.payload.payload
     domain = Site.objects.get_current().domain
     attempt = create_attempt(delivery, self.request.id)
     delivery_status = EventDeliveryStatus.SUCCESS
     try:
+        if not delivery.payload:
+            raise ValueError(
+                "Event delivery id: %r has no payload." % event_delivery_id
+            )
+        data = delivery.payload.payload
         with webhooks_opentracing_trace(
             delivery.event_type, domain, app_name=webhook.app.name
         ):
@@ -455,7 +520,9 @@ def send_webhook_request_async(self, event_delivery_id):
                 webhook.secret_key,
                 delivery.event_type,
                 data,
+                webhook.custom_headers,
             )
+
         attempt_update(attempt, response)
         if response.status == EventDeliveryStatus.FAILED:
             task_logger.info(
@@ -535,6 +602,7 @@ def send_webhook_request_sync(
                 signature,
                 delivery.event_type,
                 timeout=timeout,
+                custom_headers=webhook.custom_headers,
             )
             response_data = json.loads(response.content)
 

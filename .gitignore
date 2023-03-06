@@ -1,23 +1,11 @@
 *.py[cod]
 .*
-!.babelrc
-!.circleci
-!.codeclimate.yml
-!.coveragerc
 !.dockerignore
-!.eslintrc.json
-!.flowconfig
 !.github
 !.gitignore
-!.gqlconfig
-!.npmrc
 !.nvmrc
-!.plop
 !.pylintrc
-!.testcafe
-!.travis*
-!.tx
-*.css
+!.vscode
 *.log
 *.pot
 *.pyc
@@ -31,6 +19,15 @@ dist/
 /media/
 /node_modules/
 /static/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
 
 # Exported results file
 django-queries-results.html

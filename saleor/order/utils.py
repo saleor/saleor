@@ -3,7 +3,6 @@ from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
-from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -29,6 +28,11 @@ from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import (
     convert_to_shipping_method_data,
     initialize_shipping_method_active_status,
+)
+from ..tax.utils import (
+    get_display_gross_prices,
+    get_tax_class_kwargs_for_order_line,
+    get_tax_country,
 )
 from ..warehouse.management import (
     decrease_allocations,
@@ -61,7 +65,7 @@ def get_order_country(order: Order) -> str:
     if order.is_shipping_required():
         address = order.shipping_address
     if address is None:
-        return settings.DEFAULT_COUNTRY
+        return order.channel.default_country.code
     return address.country.code
 
 
@@ -165,7 +169,7 @@ def _calculate_quantity_including_returns(order):
     return total_quantity, quantity_fulfilled, quantity_returned
 
 
-def update_order_status(order):
+def update_order_status(order: Order):
     """Update order status depending on fulfillments."""
     (
         total_quantity,
@@ -203,7 +207,6 @@ def create_order_line(
     order,
     line_data,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -232,6 +235,12 @@ def create_order_line(
     total_price = unit_price * quantity
     undiscounted_total_price = undiscounted_unit_price * quantity
 
+    tax_class = None
+    if product.tax_class_id:
+        tax_class = product.tax_class
+    else:
+        tax_class = product.product_type.tax_class
+
     product_name = str(product)
     variant_name = str(variant)
     translated_product_name = str(product.translated)
@@ -257,9 +266,8 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
+        **get_tax_class_kwargs_for_order_line(tax_class),
     )
-
-    manager.update_taxes_for_order_lines(order, list(order.lines.all()))
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
     if unit_discount.gross:
@@ -271,8 +279,11 @@ def create_order_line(
             channel=channel,
             variant_id=variant.id,
         )
-        taxes_included_in_prices = site_settings.include_taxes_in_prices
-        if taxes_included_in_prices:
+
+        tax_configuration = channel.tax_configuration
+        prices_entered_with_tax = tax_configuration.prices_entered_with_tax
+
+        if prices_entered_with_tax:
             discount_amount = unit_discount.gross
         else:
             discount_amount = unit_discount.net
@@ -316,7 +327,6 @@ def add_variant_to_order(
     user,
     app,
     manager,
-    site_settings,
     discounts=None,
     allocate_stock=False,
 ):
@@ -363,7 +373,6 @@ def add_variant_to_order(
             order,
             line_data,
             manager,
-            site_settings,
             discounts,
             allocate_stock,
         )
@@ -580,8 +589,8 @@ def get_all_shipping_methods_for_order(
 
     for method in shipping_methods:
         listing = listing_map.get(method.id)
-        shipping_method_data = convert_to_shipping_method_data(method, listing)
-        if shipping_method_data:
+        if listing:
+            shipping_method_data = convert_to_shipping_method_data(method, listing)
             all_methods.append(shipping_method_data)
     return all_methods
 
@@ -613,9 +622,9 @@ def get_valid_collection_points_for_order(
         return []
 
     line_ids = [line.id for line in lines]
-    lines = OrderLine.objects.filter(id__in=line_ids)
+    qs = OrderLine.objects.filter(id__in=line_ids)
 
-    return Warehouse.objects.applicable_for_click_and_collect(lines, channel_id)
+    return Warehouse.objects.applicable_for_click_and_collect(qs, channel_id)
 
 
 def get_discounted_lines(lines, voucher):
@@ -661,16 +670,15 @@ def get_prices_of_discounted_specific_product(
     return line_prices
 
 
-def get_products_voucher_discount_for_order(order: Order) -> Money:
+def get_products_voucher_discount_for_order(order: Order, voucher: Voucher) -> Money:
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
-    voucher = order.voucher
     if voucher and voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(order.lines.all(), voucher)
     if not prices:
         msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
-    return get_products_voucher_discount(voucher, prices, order.channel)  # type: ignore
+    return get_products_voucher_discount(voucher, prices, order.channel)
 
 
 def get_voucher_discount_for_order(order: Order) -> Money:
@@ -689,7 +697,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
             order.shipping_price.gross, order.channel
         )
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return get_products_voucher_discount_for_order(order)
+        return get_products_voucher_discount_for_order(order, order.voucher)
     raise NotImplementedError("Unknown discount type")
 
 
@@ -714,7 +722,7 @@ def get_total_order_discount_excluding_shipping(order: Order) -> Money:
     # order discount from the calculation.
     # The calculation is based on assumption that an order can have only one voucher.
     all_discounts = order.discounts.all()
-    if order.voucher_id and order.voucher.type == VoucherType.SHIPPING:  # type: ignore
+    if order.voucher and order.voucher.type == VoucherType.SHIPPING:
         all_discounts = all_discounts.exclude(type=OrderDiscountType.VOUCHER)
     total_order_discount = Money(
         sum([discount.amount_value for discount in all_discounts]),
@@ -768,8 +776,6 @@ def update_discount_for_order_line(
     reason: Optional[str],
     value_type: Optional[str],
     value: Optional[Decimal],
-    manager,
-    tax_included,
 ):
     """Update discount fields for order line. Apply discount to the price."""
     current_value = order_line.unit_discount_value
@@ -825,9 +831,7 @@ def update_discount_for_order_line(
     order_line.save(update_fields=fields_to_update)
 
 
-def remove_discount_from_order_line(
-    order_line: OrderLine, order: "Order", manager, tax_included
-):
+def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     """Drop discount applied to order line. Restore undiscounted price."""
     order_line.unit_price = TaxedMoney(
         net=order_line.undiscounted_base_unit_price,
@@ -884,11 +888,10 @@ def update_order_charge_status(order: Order):
 
 def _update_order_total_charged(order: Order):
     order.total_charged_amount = (
-        sum(order.payments.values_list("captured_amount", flat=True))  # type: ignore
-        or 0
+        sum(order.payments.values_list("captured_amount", flat=True)) or 0
     )
     order.total_charged_amount += sum(
-        order.payment_transactions.values_list("charged_value", flat=True)  # type: ignore # noqa: E501
+        order.payment_transactions.values_list("charged_value", flat=True)
     )
 
 
@@ -903,15 +906,10 @@ def update_order_charge_data(order: Order, with_save=True):
 
 def _update_order_total_authorized(order: Order):
     order.total_authorized_amount = get_total_authorized(
-        order.payments.all(), order.currency  # type: ignore
+        order.payments.all(), order.currency
     ).amount
     order.total_authorized_amount += (
-        sum(
-            order.payment_transactions.values_list(  # type: ignore
-                "authorized_value", flat=True
-            )
-        )
-        or 0
+        sum(order.payment_transactions.values_list("authorized_value", flat=True)) or 0
     )
 
 
@@ -947,3 +945,27 @@ def update_order_authorize_data(order: Order, with_save=True):
         order.save(
             update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
         )
+
+
+def update_order_display_gross_prices(order: "Order"):
+    """Update Order's `display_gross_prices` DB field.
+
+    It gets the appropriate country code based on the current order lines and addresses.
+    Having the country code get the proper tax configuration for this channel and
+    country and determine whether gross prices should be displayed for this order.
+    Doesn't save the value in the database.
+    """
+    channel = order.channel
+    tax_configuration = channel.tax_configuration
+    country_code = get_tax_country(
+        channel,
+        order.is_shipping_required(),
+        order.shipping_address,
+        order.billing_address,
+    )
+    country_tax_configuration = tax_configuration.country_exceptions.filter(
+        country=country_code
+    ).first()
+    order.display_gross_prices = get_display_gross_prices(
+        tax_configuration, country_tax_configuration
+    )

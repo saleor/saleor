@@ -74,3 +74,100 @@ def test_query_payments_filter_by_checkout(
         graphene.Node.to_global_id("Payment", payment.pk)
         for payment in [payment2, payment3]
     }
+
+
+def test_query_payments_filter_by_one_id(
+    payments_dummy, permission_manage_orders, staff_api_client
+):
+    # given
+    search_payment = payments_dummy[0]
+
+    variables = {
+        "filter": {
+            "ids": [graphene.Node.to_global_id("Payment", search_payment.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    result_payments = content["data"]["payments"]["edges"]
+
+    assert len(result_payments) == 1
+    _, id = graphene.Node.from_global_id(result_payments[0]["node"]["id"])
+    assert id == str(search_payment.pk)
+
+
+def test_query_payments_filter_by_multiple_ids(
+    payments_dummy, permission_manage_orders, staff_api_client
+):
+    # given
+    search_payments = payments_dummy[:2]
+    search_payments_ids = [
+        graphene.Node.to_global_id("Payment", payment.pk) for payment in search_payments
+    ]
+
+    variables = {"filter": {"ids": search_payments_ids}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    expected_ids = [str(payment.pk) for payment in search_payments]
+
+    result_payments = content["data"]["payments"]["edges"]
+
+    assert len(result_payments) == len(search_payments)
+    for result_payment in result_payments:
+        _, id = graphene.Node.from_global_id(result_payment["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_payments_filter_by_empty_id_list(
+    payments_dummy, permission_manage_orders, staff_api_client
+):
+    # given
+    variables = {"filter": {"ids": []}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    expected_ids = [str(payment.pk) for payment in payments_dummy]
+
+    result_payments = content["data"]["payments"]["edges"]
+
+    assert len(result_payments) == len(payments_dummy)
+    for result_payment in result_payments:
+        _, id = graphene.Node.from_global_id(result_payment["node"]["id"])
+        assert id in expected_ids
+
+
+def test_query_payments_filter_by_not_existing_id(
+    payments_dummy, permission_manage_orders, staff_api_client
+):
+    # given
+    search_pk = max([payment.pk for payment in payments_dummy]) + 1
+    search_id = graphene.Node.to_global_id("Payment", search_pk)
+    variables = {"filter": {"ids": [search_id]}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    result_payments = content["data"]["payments"]["edges"]
+
+    assert len(result_payments) == 0

@@ -1,8 +1,8 @@
 import graphene
 import pytest
-from django.contrib.auth.models import Group
 
-from .....core.permissions import AccountPermissions, OrderPermissions
+from .....account.models import Group
+from .....permission.enums import AccountPermissions, OrderPermissions
 from ....tests.utils import get_graphql_content
 
 

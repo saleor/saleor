@@ -150,8 +150,9 @@ def test_handle_fully_paid_order_gift_cards_created(
     """Ensure the non shippable gift card are fulfilled when the flag for automatic
     fulfillment non shippable gift card is set."""
     # given
-    site_settings.automatically_fulfill_non_shippable_gift_card = True
-    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+    channel = order_with_lines.channel
+    channel.automatically_fulfill_non_shippable_gift_card = True
+    channel.save()
 
     order = order_with_lines
 
@@ -221,8 +222,9 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     """Ensure the non shippable gift card are not fulfilled when the flag for
     automatic fulfillment non shippable gift card is not set."""
     # given
-    site_settings.automatically_fulfill_non_shippable_gift_card = False
-    site_settings.save(update_fields=["automatically_fulfill_non_shippable_gift_card"])
+    channel = order_with_lines.channel
+    channel.automatically_fulfill_non_shippable_gift_card = False
+    channel.save()
 
     order = order_with_lines
 
@@ -569,6 +571,52 @@ def test_fulfill_digital_lines(
 
     automatically_fulfill_digital_lines(order_info, manager)
 
+    line.refresh_from_db()
+    fulfillment = Fulfillment.objects.get(order=order_with_lines)
+    fulfillment_lines = fulfillment.lines.all()
+
+    assert fulfillment_lines.count() == 1
+    assert line.digital_content_url
+    assert mock_email_fulfillment.called
+
+
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.utils.get_default_digital_content_settings")
+def test_fulfill_digital_lines_no_allocation(
+    mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
+):
+    # given
+    mock_digital_settings.return_value = {"automatic_fulfillment": True}
+    line = order_with_lines.lines.all()[0]
+
+    image_file, image_name = create_image()
+    variant = line.variant
+
+    product_type = variant.product.product_type
+    product_type.is_digital = True
+    product_type.is_shipping_required = False
+    product_type.save(update_fields=["is_digital", "is_shipping_required"])
+
+    digital_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=variant, use_default_settings=True
+    )
+
+    variant.digital_content = digital_content
+    variant.track_inventory = False
+    variant.save()
+
+    line.is_shipping_required = False
+    line.allocations.all().delete()
+    line.save()
+
+    order_with_lines.refresh_from_db()
+    order_info = fetch_order_info(order_with_lines)
+    manager = get_plugins_manager()
+
+    # when
+    automatically_fulfill_digital_lines(order_info, manager)
+
+    # then
     line.refresh_from_db()
     fulfillment = Fulfillment.objects.get(order=order_with_lines)
     fulfillment_lines = fulfillment.lines.all()

@@ -3,6 +3,269 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 # 3.7.0
+# 3.8.0
+# 3.11.0 [Unreleased]
+# 3.12.0
+
+### Breaking changes
+
+- `stocks` and `channelListings` inputs for preview `ProductVariantBulkUpdate` mutation has been changed. Both inputs have been extended by:
+
+  - `create` input - list of items that should be created
+  - `update` input - list of items that should be updated
+  - `remove` input - list of objects ID's that should be removed
+
+  If your platform relies on this [Preview] feature, make sure you update your mutations stocks and channel listings inputs from:
+
+  ```
+     {
+      "stocks/channelListings": [
+        {
+          ...
+        }
+      ]
+     }
+  ```
+
+  to:
+
+  ```
+     {
+      "stocks/channelListings": {
+        "create": [
+          {
+           ...
+          }
+        ]
+      }
+     }
+  ```
+
+- Change the discount rounding mode - #12041 by @IKarbowiak
+
+  - Change the rounding mode from `ROUND_DOWN` to `ROUND_HALF_UP` - it affects the discount amount and total price of future checkouts and orders with a percentage discount applied.
+    The discount amount might be 0.01 greater, and the total price might be 0.01 lower.
+    E.g. if you had an order for $13 and applied a 12.5% discount, you would get $11.38 with a $1.62 discount, but now it will be calculated as $11.37 with $1.63 discount.
+
+- Media and image fields now default to returning 4K thumbnails instead of original uploads - #11996 by @patrys
+- Include specific products voucher in checkout discount - #12191 by @IKarbowiak
+  - Make the `specific product` and `apply once per order` voucher discounts visible on `checkout.discount` field.
+    Previously, the discount amount for these vouchers was shown as 0.
+
+### GraphQL API
+
+- Added support for all attributes types in `BulkAttributeValueInput` - #12095 by @SzymJ
+- Add possibility to remove `stocks` and `channel listings` in `ProductVariantBulkUpdate` mutation.
+- Move `orderSettings` query to `Channel` type - #11417 by @kadewu:
+  - Mutation `Channel.channelCreate` and `Channel.channelUpdate` have new `orderSettings` input.
+  - Deprecate `Shop.orderSettings` query. Use `Channel.orderSettings` query instead.
+  - Deprecate `Shop.orderSettingsUpdate` mutation. Use `Channel.channelUpdate` instead.
+- Add meta fields to `ProductMedia` model - #11894 by @zedzior
+- Make `oldPassword` argument on `passwordChange` mutation optional; support accounts without usable passwords - @11999 by @rafalp
+- Added support for AVIF images, added `AVIF` and `ORIGINAL` to `ThumbnailFormatEnum` - #11998 by @patrys
+- Introduce custom headers for webhook requests - #11978 by @zedzior
+- Improve GraphQL playground by storing headers in the local storage - #12176 by @zaiste
+- Fixes for GraphiQL playground - #12192 by @zaiste
+
+### Other changes
+
+- Fix saving `metadata` in `ProductVariantBulkCreate` and `ProductVariantBulkupdate` mutations - #12097 by @SzymJ
+- Enhance webhook's subscription query validation. Apply the validation and event inheritance to manifest validation - #11797 by @zedzior
+- Fix GraphQL playground when the `operationName` is set across different tabs - #11936 by @zaiste
+- Add new asynchronous events related to media: #11918 by @zedzior
+  - `PRODUCT_MEDIA CREATED`
+  - `PRODUCT_MEDIA_UPDATED`
+  - `PRODUCT_MEDIA_DELETED`
+  - `THUMBNAIL_CREATED`
+- CORS is now handled in the ASGI layer - #11415 by @patrys
+- Added native support for gzip compression - #11833 by @patrys
+- Set flat rates as the default tax calculation strategy - #12069 by @maarcingebala
+  - Enables flat rates for channels in which no tax calculation method was set.
+- Users created by the OIDC plugin now have unusable password set instead of empty string - #12103 by @rafalp
+
+# 3.11.0
+
+### Highlights
+
+Just so you know, changes mentioned in this section are in a preview state and can be subject to changes in the future.
+
+- Bulk mutations for creating and updating multiple product variants in one mutation call - #11392 by @SzymJ
+- Ability to run subscription webhooks in a dry-run mode - #11548 by @zedzior
+- Preview of new `where` filtering API which allows joining multiple filters with `AND`/`OR` operators; currently available only in the `attributes` query - #11737 by @IKarbowiak
+
+### GraphQL API
+
+- [Preview] Add `productVariantBulkUpdate` mutation - #11392 by @SzymJ
+- [Preview] Add new error handling policies in `productVariantBulkCreate` mutation - #11392 by @SzymJ
+- [Preview] Add `webhookDryRun` mutation - #11548 by @zedzior
+- [Preview] Add `webhookTrigger` mutation - #11687 by @zedzior
+- Fix adding an invalid label to meta fields - #11718 by @IKarbowiak
+- Add filter by `checkoutToken` to `Query.orders`. - #11689 by @kadewu
+- [Preview] Attribute filters improvement - #11737 by @IKarbowiak
+  - introduce `where` option on `attributes` query
+  - add `search` option on `attributes` query
+  - deprecate `product.variant` field
+  - deprecate the following `Attribute` fields: `filterableInStorefront`, `storefrontSearchPosition`, `availableInGrid`.
+
+### Other changes
+
+- Allow `webhookCreate` and `webhookUpdate` mutations to inherit events from `query` field - #11736 by @zedzior
+- Add new `PRODUCT_VARIANT_STOCK_UPDATED` event - #11665 by @jakubkuc
+- Disable websocket support by default in `uvicorn` worker configuration - #11785 by @NyanKiyoshi
+- Fix send user email change notification - #11840 by @jakubkuc
+- Fix trigger the `FULFILLMENT_APPPROVED` webhook for partial fulfillments - #11824 by @d-wysocki
+
+# 3.10.0 [Unreleased]
+
+### Highlights:
+# 3.9.0 [Unreleased]
+# 3.10.0
+
+### GraphQL API
+
+- Add ability to filter and sort products of a category - #10917 by @yemeksepeti-cihankarluk, @ogunheper
+  - Add `filter` argument to `Category.products`
+  - Add `sortBy` argument to `Category.products`
+- Extend invoice object types with `Order` references - #11505 by @przlada
+  - Add `Invoice.order` field
+  - Add `InvoiceRequested.order`, `InvoiceDeleted.order` and `InvoiceSent.order` fields
+- Add support for metadata for `Address` model - #11701 by @IKarbowiak
+- Allow to mutate objects, by newly added `externalReference` field, instead of Saleor-assigned ID. Apply to following models: #11410 by @zedzior
+  - `Product`
+  - `ProductVariant`
+  - `Attribute`
+  - `AttributeValue`
+  - `Order`
+  - `User`
+  - `Warehouse`
+
+### Other changes
+
+- Fix fetching the `checkout.availableCollectionPoints` - #11489 by @IKarbowiak
+- Move checkout metadata to separate model - #11264 by @jakubkuc
+- Add ability to set a custom Celery queue for async webhook - #11511 by @NyanKiyoshi
+- Remove `CUSTOMER_UPDATED` webhook trigger from address mutations - #11395 by @jakubkuc
+- Drop `Django.Auth` - #11305 by @fowczarek
+- Add address validation to AddressCreate - #11639 by @jakubkuc
+- Propagate voucher discount between checkout lines when charge_taxes is disabled - #11632 by @maarcingebala
+- Fix stock events triggers - #11714 by @jakubkuc
+- Accept the gift card code provided in the input - by @mociepka
+- Fix `GIFT_CARD_CREATED` event not firing when order with gift cards is fulfilled - #11924 by @rafalp
+
+# 3.9.0
+
+### Highlights
+
+- Flat tax rates - #9784 by @maarcingebala
+
+### Breaking changes
+
+- Drop Vatlayer plugin - #9784 by @maarcingebala
+  - The following fields are no longer used:
+    - `Product.chargeTaxes` - from now on, presence of `Product.taxClass` instance decides whether to charge taxes for a product. As a result, the "Charge Taxes" column in CSV product exports returns empty values.
+    - `Shop.chargeTaxesOnShipping` - from now on, presence of `ShippingMethod.taxClass` decides whether to charge taxes for a shipping method.
+    - `Shop.includeTaxesInPrices`, `Shop.displayGrossPrices` - configuration moved to `Channel.taxConfiguration`.
+  - Removed the following plugin manager methods:
+    - `assign_tax_code_to_object_meta`
+    - `apply_taxes_to_product`
+    - `fetch_taxes_data`
+    - `get_tax_rate_percentage_value`
+    - `update_taxes_for_order_lines`
+
+### GraphQL API
+
+- Add `attribute` field to `AttributeValueTranslatableContent` type - #11028 by @zedzior
+- Add new properties in the `Product` type - #10537 by @kadewu
+  - Add new fields: `Product.attribute`, `Product.variant`
+  - Add `sortBy` argument to `Product.media`
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type - #11206 by @zedzior
+- Add new queries - #10537 by @kadewu
+  - `attribute` - allow fetching the single attribute by `slug`
+  - `variant`- allow fetching the single variant by the product variant `id` or `sku`
+- Allow sorting media of the product - #10537 by @kadewu
+- Allow assigning attribute value using its ID. Add to `AttributeValueInput` dedicated field for each input type. #11206 by @zedzior
+
+### Saleor Apps
+
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps. #11223 by @przlada
+- Add metadata on order line payload notifications. #10954 by @CarlesLopezMagem
+
+### Other changes
+
+- Re-enable 5 minute database connection persistence by default - #11074 + #11100 by @NyanKiyoshi
+  - Set `DB_CONN_MAX_AGE=0` to disable this behavior (adds overhead to requests)
+- Bump cryptography to 38.0.3: use OpenSSL 3.0.7 - #11126 by @NyanKiyoshi
+- Include fully qualified API URL `Saleor-Api-Url` in communication with Apps - #11223 by @przlada
+- Make email authentication case-insensitive. #11284 by @zedzior
+- Fix the observability reporter to obfuscate URLs. #11282 by @przlada
+- Add exif image validation - #11224 by @IKarbowiak
+- Add HTTP headers filtering to observability reporter. #11285 by @przlada
+- Deactivate Webhook before deleting and handle IntegrityErrors - #11239 @jakubkuc
+
+# 3.8.0
+
+### Highlights
+
+- Add tax exemption API for checkouts (`taxExemptionManage` mutation) - #10344 by @SzymJ
+- Switch GraphQL Playground to GraphiQL V2
+
+### Breaking changes
+
+- Verify JWT tokens whenever they are provided with the request. Before, they were only validated when an operation required any permissions. For example: when refreshing a token, the request shouldn't include the expired one.
+
+### Highlights
+### GraphQL API
+
+- Add the ability to filter by slug. #10578 by @kadewu
+  - Affected types: Attribute, Category, Collection, Menu, Page, Product, ProductType, Warehouse
+  - Deprecated `slug` in filter for `menus`. Use `slugs` instead
+- Add new `products` filters. #10784 by @kadewu
+  - `isAvailable`
+  - `publishedFrom`
+  - `availableFrom`
+  - `isVisibleInListing`
+- Add the ability to filter payments by a list of ids. #10821 by @kadewu
+- Add the ability to filter customers by ids. #10694 by @kadewu
+- Add `User.checkouts` field. #10862 by @zedzior
+- Add optional field `audience` to mutation `tokenCreate`. If provided, the created tokens will have key `aud` with value: `custom:{audience-input-value}` - #10845 by @korycins
+- Use `AttributeValue.name` instead of `AttributeValue.slug` to determine uniqueness of a value instance for dropdown and multi-select attributes. - #10881 by @jakubkuc
+- Allow sorting products by `CREATED_AT` field. #10900 by @zedzior
+- Add ability to pass metadata directly in create/update mutations for product app models - #10689 by @SzymJ
+- Add ability to use SKU argument in `productVariantUpdate`, `productVariantDelete`, `productVariantBulkDelete`, `productVariantStocksUpdate`, `productVariantStocksDelete`, `productVariantChannelListingUpdate` mutations - #10861 by @SzymJ
+- Add sorting by `CREATED_AT` field. #10911 by @zedzior
+  - Affected types: GiftCard, Page.
+  - Deprecated `CREATION_DATE` sort field on Page type. Use `CREATED_AT` instead.
+
+### Other changes
+
+- Reference attribute linking to product variants - #10468 by @IKarbowiak
+- Add base shipping price to `Order` - #10771 by @fowczarek
+- GraphQL view no longer generates error logs when the HTTP request doesn't contain a GraphQL query - #10901 by @NyanKiyoshi
+
+### Saleor Apps
+
+- Add `iss` field to JWT tokens - #10842 by @korycins
+- Drop `py` and `tox` dependencies from dev requirements - #11054 by @NyanKiyoshi
+
+### Saleor Apps
+
+- Add `iss` field to JWT tokens - #10842 by @korycins
+- Add new field `audience` to App manifest. If provided, App's JWT access token will have `aud` field. - #10845 by @korycins
+- Add new asynchronous events for objects metadata updates - #10520 by @rafalp
+  - `CHECKOUT_METADATA_UPDATED`
+  - `COLLECTION_METADATA_UPDATED`
+  - `CUSTOMER_METADATA_UPDATED`
+  - `FULFILLMENT_METADATA_UPDATED`
+  - `GIFT_CARD_METADATA_UPDATED`
+  - `ORDER_METADATA_UPDATED`
+  - `PRODUCT_METADATA_UPDATED`
+  - `PRODUCT_VARIANT_METADATA_UPDATED`
+  - `SHIPPING_ZONE_METADATA_UPDATED`
+  - `TRANSACTION_ITEM_METADATA_UPDATED`
+  - `WAREHOUSE_METADATA_UPDATED`
+  - `VOUCHER_METADATA_UPDATED`
+
+# 3.7.0
 
 ### Highlights
 
@@ -145,6 +408,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Expose manifest in the `App` type (#10055) (f0f944066)
 - Deprecate `configurationUrl` and `dataPrivacy` fields in apps (#10046) (68bd7c8a2)
 - Fix `ProductVariant.created` resolver (#10072) (6c77053a9)
+- Add `schemaVersion` field to `Shop` type. #11275 by @zedzior
 
 ### Saleor Apps
 

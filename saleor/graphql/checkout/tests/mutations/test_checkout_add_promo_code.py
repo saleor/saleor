@@ -13,6 +13,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.utils import add_variant_to_checkout, set_external_shipping_id
 from .....discount import VoucherType
 from .....plugins.manager import get_plugins_manager
+from .....product.models import ProductVariantChannelListing
 from .....warehouse.models import Stock
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -185,7 +186,8 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
     checkout = checkout_with_item
     checkout.shipping_address = address
     set_external_shipping_id(checkout, external_shipping_method_id)
-    checkout.save(update_fields=["shipping_address", "private_metadata"])
+    checkout.save(update_fields=["shipping_address"])
+    checkout.metadata_storage.save(update_fields=["private_metadata"])
 
     variables = {
         "id": to_global_id_or_none(checkout_with_item),
@@ -202,8 +204,11 @@ def test_checkout_add_voucher_code_by_token_with_external_shipment(
 def test_checkout_add_voucher_code_with_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = True
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = True
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 
@@ -233,8 +238,11 @@ def test_checkout_add_voucher_code_with_display_gross_prices(
 def test_checkout_add_voucher_code_without_display_gross_prices(
     api_client, checkout_with_item, voucher, site_settings, monkeypatch
 ):
-    site_settings.display_gross_prices = False
-    site_settings.save()
+    channel = checkout_with_item.channel
+    tc = channel.tax_configuration
+    tc.display_gross_prices = False
+    tc.save(update_fields=["display_gross_prices"])
+    tc.country_exceptions.all().delete()
 
     previous_checkout_last_change = checkout_with_item.last_change
 
@@ -364,7 +372,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         expected_discount, "USD"
     )
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount
 
 
 def test_checkout_add_products_voucher_code_checkout_with_sale(
@@ -421,7 +429,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount.amount
 
 
 def test_checkout_add_collection_voucher_code_checkout_with_sale(
@@ -478,7 +486,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_voucher_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_voucher_discount.amount
 
 
 def test_checkout_add_category_code_checkout_with_sale(
@@ -534,7 +542,78 @@ def test_checkout_add_category_code_checkout_with_sale(
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
-    assert checkout.discount_amount == Decimal(0)
+    assert checkout.discount_amount == expected_discount.amount
+
+
+def test_checkout_add_variant_voucher_code_apply_once_per_order(
+    api_client, checkout_with_items, voucher_specific_product_type
+):
+    # given
+    checkout = checkout_with_items
+    channel = checkout.channel
+
+    lines = checkout.lines.all()
+    checkout.lines.last().delete()
+    variant_1, variant_2, variant_3 = [line.variant for line in lines]
+    variant_1_listing = variant_1.channel_listings.get(channel=channel)
+    variant_2_listing = variant_2.channel_listings.get(channel=channel)
+    variant_3_listing = variant_3.channel_listings.get(channel=channel)
+
+    variant_1_price = Decimal(10)
+    variant_2_price = Decimal(25)
+    variant_3_price = Decimal(20)
+    variant_1_listing.price_amount = variant_1_price
+    variant_2_listing.price_amount = variant_2_price
+    variant_3_listing.price_amount = variant_3_price
+
+    ProductVariantChannelListing.objects.bulk_update(
+        [variant_1_listing, variant_2_listing, variant_3_listing], ["price_amount"]
+    )
+
+    voucher = voucher_specific_product_type
+    voucher.apply_once_per_order = True
+    voucher.save(update_fields=["apply_once_per_order"])
+
+    voucher_listing = voucher.channel_listings.get(channel=channel)
+    discount_value = 20
+    voucher_listing.discount_value = discount_value
+    voucher_listing.save(update_fields=["discount_value"])
+
+    voucher.variants.set([variant_2, variant_3])
+    voucher.products.clear()
+
+    expected_discount = Money(
+        variant_3_price * (Decimal(discount_value) / 100), checkout.currency
+    )
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout.price_expiration = timezone.now()
+    subtotal_before_voucher = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout.shipping_address,
+        discounts=[],
+    )
+
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "promoCode": voucher.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount == expected_discount.amount
+    assert checkout.subtotal + expected_discount == subtotal_before_voucher
 
 
 def test_checkout_add_voucher_code_not_applicable_voucher(
@@ -866,9 +945,10 @@ def test_checkout_add_promo_code_invalidate_shipping_method(
     assert shipping_method_id not in data["checkout"]["availableShippingMethods"]
 
 
-def test_checkout_add_promo_code_no_checkout_email(
+def test_checkout_add_promo_code_without_checkout_email(
     api_client, checkout_with_item, voucher
 ):
+    # given
     checkout_with_item.email = None
     checkout_with_item.save(update_fields=["email"])
 
@@ -876,8 +956,34 @@ def test_checkout_add_promo_code_no_checkout_email(
         "id": to_global_id_or_none(checkout_with_item),
         "promoCode": voucher.code,
     }
+
+    # when
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["voucherCode"] == voucher.code
+
+
+def test_checkout_add_gift_card_without_checkout_email(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+
+    gift_card.expiry_date = date.today() - timedelta(days=1)
+    gift_card.save()
+
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
     assert data["errors"]
     assert data["errors"][0]["code"] == CheckoutErrorCode.EMAIL_NOT_SET.name
 
@@ -1003,5 +1109,5 @@ def test_checkout_add_voucher_code_invalidates_price(
     # then
     assert not data["errors"]
     assert data["checkout"]["voucherCode"] == voucher.code
-    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == subtotal.amount
+    assert data["checkout"]["subtotalPrice"]["gross"]["amount"] == expected_total
     assert data["checkout"]["totalPrice"]["gross"]["amount"] == expected_total

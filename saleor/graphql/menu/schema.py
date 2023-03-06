@@ -2,7 +2,9 @@ import graphene
 
 from ..channel import ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import DEPRECATED_IN_3X_FIELD
 from ..core.fields import FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import MenuItemTranslate
@@ -45,7 +47,12 @@ class MenuQueries(graphene.ObjectType):
             description="Slug of a channel for which the data should be returned."
         ),
         sort_by=MenuSortingInput(description="Sort menus."),
-        filter=MenuFilterInput(description="Filtering options for menus."),
+        filter=MenuFilterInput(
+            description=(
+                "Filtering options for menus. "
+                f"\n\n`slug`: {DEPRECATED_IN_3X_FIELD} Use `slugs` instead."
+            )
+        ),
         description="List of the storefront's menus.",
     )
     menu_item = graphene.Field(
@@ -69,7 +76,7 @@ class MenuQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_menu(_root, info, *, channel=None, **data):
+    def resolve_menu(_root, info: ResolveInfo, *, channel=None, **data):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         return resolve_menu(
@@ -77,7 +84,7 @@ class MenuQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_menus(_root, info, *, channel=None, **kwargs):
+    def resolve_menus(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         qs = resolve_menus(info, channel)
@@ -85,14 +92,14 @@ class MenuQueries(graphene.ObjectType):
         return create_connection_slice(qs, info, kwargs, MenuCountableConnection)
 
     @staticmethod
-    def resolve_menu_item(_root, _info, *, channel=None, **data):
+    def resolve_menu_item(_root, _info: ResolveInfo, *, channel=None, id: str):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
-        _, id = from_global_id_or_error(data.get("id"), MenuItem)
+        _, id = from_global_id_or_error(id, MenuItem)
         return resolve_menu_item(id, channel)
 
     @staticmethod
-    def resolve_menu_items(_root, info, *, channel=None, **kwargs):
+    def resolve_menu_items(_root, info: ResolveInfo, *, channel=None, **kwargs):
         if channel is None:
             channel = get_default_channel_slug_or_graphql_error()
         menu_items = resolve_menu_items(info)

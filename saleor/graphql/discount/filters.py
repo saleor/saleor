@@ -45,14 +45,14 @@ def filter_discount_type(
         query = Q()
         if VoucherDiscountType.FIXED in values:
             query |= Q(
-                discount_value_type=VoucherDiscountType.FIXED.value  # type: ignore
+                discount_value_type=VoucherDiscountType.FIXED.value  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
             )
         if VoucherDiscountType.PERCENTAGE in values:
             query |= Q(
-                discount_value_type=VoucherDiscountType.PERCENTAGE.value  # type: ignore
-            )  # type: ignore
+                discount_value_type=VoucherDiscountType.PERCENTAGE.value  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
+            )
         if VoucherDiscountType.SHIPPING in values:
-            query |= Q(type=VoucherDiscountType.SHIPPING.value)  # type: ignore
+            query |= Q(type=VoucherDiscountType.SHIPPING.value)  # type: ignore[attr-defined] # mypy does not understand graphene enums # noqa: E501
         qs = qs.filter(query)
     return qs
 

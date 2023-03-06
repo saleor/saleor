@@ -10,6 +10,7 @@ from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...order.models import Order, OrderLine
 from ...order.search import search_orders
+from ...payment import ChargeStatus
 from ...product.models import ProductVariant
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
@@ -27,7 +28,10 @@ from .enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum, OrderStatusF
 
 def filter_payment_status(qs, _, value):
     if value:
-        qs = qs.filter(payments__is_active=True, payments__charge_status__in=value)
+        lookup = Q(payments__is_active=True, payments__charge_status__in=value)
+        if ChargeStatus.FULLY_REFUNDED in value:
+            lookup |= Q(payments__charge_status=ChargeStatus.FULLY_REFUNDED)
+        qs = qs.filter(lookup)
     return qs
 
 
@@ -97,6 +101,13 @@ def filter_channels(qs, _, values):
     if values:
         _, channels_ids = resolve_global_ids_to_primary_keys(values, "Channel")
         qs = qs.filter(channel_id__in=channels_ids)
+    return qs
+
+
+def filter_checkouts(qs, _, values):
+    if values:
+        _, checkout_ids = resolve_global_ids_to_primary_keys(values, "Checkout")
+        qs = qs.filter(checkout_token__in=checkout_ids)
     return qs
 
 
@@ -201,6 +212,7 @@ class OrderFilter(DraftOrderFilter):
     numbers = ListObjectTypeFilter(
         input_class=graphene.String, method=filter_by_order_number
     )
+    checkout_ids = GlobalIDMultipleChoiceFilter(method=filter_checkouts)
 
     class Meta:
         model = Order

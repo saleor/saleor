@@ -1,12 +1,14 @@
 import graphene
 
-from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout, CheckoutLine
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -37,17 +39,18 @@ class CheckoutLineDelete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, line_id, checkout_id=None, token=None, id=None
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        id=None,
+        line_id,
+        token=None
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         line = cls.get_node_or_error(
             info, line_id, only_type=CheckoutLine, field="line_id"
@@ -56,15 +59,12 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
-        manager = info.context.plugins
+        manager = get_plugin_manager_promise(info.context).get()
         lines, _ = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
-        invalidate_checkout_prices(
-            checkout_info, lines, manager, info.context.discounts, save=True
-        )
-        manager.checkout_updated(checkout)
+        invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLineDelete(checkout=checkout)

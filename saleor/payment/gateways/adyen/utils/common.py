@@ -18,7 +18,7 @@ from .....checkout.calculations import (
 )
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import is_shipping_required
+from .....checkout.utils import get_or_create_checkout_metadata, is_shipping_required
 from .....discount.utils import fetch_active_discounts
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
@@ -352,7 +352,9 @@ def request_data_for_gateway_config(
         country_code = country.code
     else:
         country_code = Country(settings.DEFAULT_COUNTRY).code
-    channel = checkout.get_value_from_metadata("channel", "web")
+    channel = get_or_create_checkout_metadata(checkout).get_value_from_metadata(
+        "channel", "web"
+    )
     return {
         "merchantAccount": merchant_account,
         "countryCode": country_code,
@@ -495,7 +497,7 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
     amount_input = data["card"].get("money")
     security_code = data["card"].get("cvc")
 
-    request_data = {
+    request_data: Dict[str, Any] = {
         "merchantAccount": merchant_account,
         "paymentMethod": {
             "type": data["method"],
@@ -512,6 +514,6 @@ def get_request_data_for_check_payment(data: dict, merchant_account: str) -> dic
         }
 
     if security_code:
-        request_data["paymentMethod"]["securityCode"] = security_code  # type: ignore
+        request_data["paymentMethod"]["securityCode"] = security_code
 
     return request_data

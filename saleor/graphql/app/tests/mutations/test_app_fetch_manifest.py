@@ -24,6 +24,7 @@ mutation AppFetchManifest($manifest_url: String!){
       permissions{
         code
       }
+      audience
       extensions{
         label
         url
@@ -76,6 +77,27 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
         "MANAGE_ORDERS",
         "MANAGE_USERS",
     }
+
+
+@pytest.mark.vcr
+def test_app_fetch_manifest_with_audience(
+    staff_api_client, staff_user, permission_manage_apps
+):
+    manifest_url = "http://localhost:3000/manifest"
+    query = APP_FETCH_MANIFEST_MUTATION
+    variables = {
+        "manifest_url": manifest_url,
+    }
+    staff_user.user_permissions.set([permission_manage_apps])
+    response = staff_api_client.post_graphql(
+        query,
+        variables=variables,
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    assert not errors
+    assert manifest["audience"] == "http://localhost:8888/app"
 
 
 def test_app_fetch_manifest_missing_permission(staff_api_client, staff_user):
@@ -147,7 +169,9 @@ def test_app_fetch_manifest_timeout(
 ):
     mocked_request = Mock()
     mocked_request.side_effect = requests.Timeout()
-    monkeypatch.setattr("saleor.graphql.app.mutations.requests.get", mocked_request)
+    monkeypatch.setattr(
+        "saleor.graphql.app.mutations.app_fetch_manifest.requests.get", mocked_request
+    )
     manifest_url = "http://localhost:3000/manifest-doesnt-exist"
     query = APP_FETCH_MANIFEST_MUTATION
     variables = {

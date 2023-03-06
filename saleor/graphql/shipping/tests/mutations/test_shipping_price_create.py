@@ -27,45 +27,51 @@ PRICE_BASED_SHIPPING_MUTATION = """
         $addPostalCodeRules: [ShippingPostalCodeRulesCreateInputRange!]
         $deletePostalCodeRules: [ID!]
         $inclusionType: PostalCodeRuleInclusionTypeEnum
+        $taxClass: ID
     ) {
-    shippingPriceCreate(
-        input: {
-            name: $name, shippingZone: $shippingZone, type: $type,
-            maximumDeliveryDays: $maximumDeliveryDays,
-            minimumDeliveryDays: $minimumDeliveryDays,
-            addPostalCodeRules: $addPostalCodeRules,
-            deletePostalCodeRules: $deletePostalCodeRules,
-            inclusionType: $inclusionType, description: $description
-        }) {
-        errors {
-            field
-            code
-        }
-        shippingZone {
-            id
-        }
-        shippingMethod {
-            id
-            name
-            description
-            channelListings {
-            price {
-                amount
+        shippingPriceCreate(
+            input: {
+                name: $name, shippingZone: $shippingZone, type: $type,
+                maximumDeliveryDays: $maximumDeliveryDays,
+                minimumDeliveryDays: $minimumDeliveryDays,
+                addPostalCodeRules: $addPostalCodeRules,
+                deletePostalCodeRules: $deletePostalCodeRules,
+                inclusionType: $inclusionType,
+                description: $description,
+                taxClass: $taxClass
+            }) {
+            errors {
+                field
+                code
             }
-            minimumOrderPrice {
-                amount
+            shippingZone {
+                id
             }
-            maximumOrderPrice {
-                amount
-            }
-            }
-            type
-            minimumDeliveryDays
-            maximumDeliveryDays
-            postalCodeRules {
-                start
-                end
-            }
+            shippingMethod {
+                id
+                name
+                description
+                channelListings {
+                    price {
+                        amount
+                    }
+                    minimumOrderPrice {
+                        amount
+                    }
+                    maximumOrderPrice {
+                        amount
+                    }
+                }
+                taxClass {
+                    id
+                }
+                type
+                minimumDeliveryDays
+                maximumDeliveryDays
+                postalCodeRules {
+                    start
+                    end
+                }
             }
         }
     }
@@ -84,12 +90,14 @@ def test_create_shipping_method(
     shipping_zone,
     postal_code_rules,
     permission_manage_shipping,
+    tax_classes,
 ):
     name = "DHL"
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     max_del_days = 10
     min_del_days = 3
     description = dummy_editorjs("description", True)
+    tax_class_id = graphene.Node.to_global_id("TaxClass", tax_classes[0].pk)
     variables = {
         "shippingZone": shipping_zone_id,
         "name": name,
@@ -100,6 +108,7 @@ def test_create_shipping_method(
         "addPostalCodeRules": postal_code_rules,
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
+        "taxClass": tax_class_id,
     }
     response = staff_api_client.post_graphql(
         PRICE_BASED_SHIPPING_MUTATION,
@@ -117,6 +126,7 @@ def test_create_shipping_method(
     assert data["shippingMethod"]["minimumDeliveryDays"] == min_del_days
     assert data["shippingMethod"]["maximumDeliveryDays"] == max_del_days
     assert data["shippingMethod"]["postalCodeRules"] == postal_code_rules
+    assert data["shippingMethod"]["taxClass"]["id"] == tax_class_id
 
 
 @freeze_time("2022-05-12 12:00:00")

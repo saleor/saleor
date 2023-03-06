@@ -10,12 +10,17 @@ from ....checkout.fetch import (
 )
 from ....checkout.utils import add_variants_to_checkout, invalidate_checkout_prices
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutLineInput
 from .utils import (
@@ -79,15 +84,16 @@ class CheckoutLinesAdd(BaseMutation):
         variants, quantities = get_variants_and_total_quantities(
             variants, checkout_lines_data
         )
+        site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
             delivery_method_info=delivery_method_info,
             existing_lines=lines,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod
@@ -136,6 +142,7 @@ class CheckoutLinesAdd(BaseMutation):
             )
 
         if variants and checkout_lines_data:
+            site = get_site_promise(info.context).get()
             checkout = add_variants_to_checkout(
                 checkout,
                 variants,
@@ -143,7 +150,9 @@ class CheckoutLinesAdd(BaseMutation):
                 checkout_info.channel,
                 replace=replace,
                 replace_reservations=True,
-                reservation_length=get_reservation_length(info.context),
+                reservation_length=get_reservation_length(
+                    site=site, user=info.context.user
+                ),
             )
 
         lines, _ = fetch_checkout_lines(checkout)
@@ -161,25 +170,25 @@ class CheckoutLinesAdd(BaseMutation):
         return lines
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, lines, checkout_id=None, token=None, id=None, replace=False
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        lines,
+        checkout_id=None,
+        token=None,
+        id=None,
+        replace=False,
     ):
-        check_permissions_for_custom_prices(info.context.app, lines)
+        app = get_app_promise(info.context).get()
+        check_permissions_for_custom_prices(app, lines)
 
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
-
-        discounts = info.context.discounts
-        manager = info.context.plugins
-
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
         variants = cls._get_variants_from_lines_input(lines)
-
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
             checkout, [], discounts, manager, shipping_channel_listings
@@ -203,7 +212,7 @@ class CheckoutLinesAdd(BaseMutation):
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutLinesAdd(checkout=checkout)
 

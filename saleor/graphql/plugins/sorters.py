@@ -49,12 +49,12 @@ class PluginSortField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            PluginSortField.NAME.name: "name",
+            PluginSortField.NAME.name: "name",  # type: ignore[attr-defined]
             PluginSortField.ACTIVE.name: "activity status",
         }
         if self.name in descriptions:
             return f"Sort plugins by {descriptions[self.name]}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class PluginSortingInput(SortInputObjectType):

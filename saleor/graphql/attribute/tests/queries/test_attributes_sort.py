@@ -1,5 +1,3 @@
-from typing import TYPE_CHECKING, Union
-
 import graphene
 import pytest
 
@@ -7,10 +5,6 @@ from .....attribute import AttributeType
 from .....attribute.models import Attribute
 from .....attribute.utils import associate_attribute_values_to_instance
 from ....tests.utils import get_graphql_content
-
-if TYPE_CHECKING:
-    from .....product.models import Product, ProductVariant
-
 
 ATTRIBUTES_SORT_QUERY = """
     query($sortBy: AttributeSortingInput) {

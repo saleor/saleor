@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0096_raw_html_to_json"),
         ("product", "0099_auto_20190719_0745"),

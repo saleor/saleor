@@ -1,14 +1,21 @@
+from typing import cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....account.models import User
 from ....core.exceptions import InsufficientStock
-from ....core.permissions import OrderPermissions
 from ....order import FulfillmentStatus
 from ....order.actions import approve_fulfillment
 from ....order.error_codes import OrderErrorCode
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill
@@ -34,7 +41,7 @@ class FulfillmentApprove(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, fulfillment):
+    def clean_input(cls, info: ResolveInfo, fulfillment):
         if fulfillment.status != FulfillmentStatus.WAITING_FOR_APPROVAL:
             raise ValidationError(
                 "Invalid fulfillment status, only WAITING_FOR_APPROVAL "
@@ -43,32 +50,45 @@ class FulfillmentApprove(BaseMutation):
             )
 
         OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
-
+        site = get_site_promise(info.context).get()
         if (
-            not info.context.site.settings.fulfillment_allow_unpaid
+            not site.settings.fulfillment_allow_unpaid
             and not fulfillment.order.is_fully_paid()
         ):
             raise ValidationError(
                 "Cannot fulfill unpaid order.",
-                code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER,
+                code=OrderErrorCode.CANNOT_FULFILL_UNPAID_ORDER.value,
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        fulfillment = cls.get_node_or_error(info, data["id"], only_type="Fulfillment")
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        allow_stock_to_be_exceeded,
+        id: str,
+        notify_customer
+    ):
+        user = info.context.user
+        user = cast(User, user)
+        fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         cls.clean_input(info, fulfillment)
 
         order = fulfillment.order
-
+        manager = get_plugin_manager_promise(info.context).get()
+        app = get_app_promise(info.context).get()
+        site = get_site_promise(info.context).get()
         try:
             fulfillment = approve_fulfillment(
                 fulfillment,
-                info.context.user,
-                info.context.app,
-                info.context.plugins,
-                info.context.site.settings,
-                notify_customer=data["notify_customer"],
-                allow_stock_to_be_exceeded=data.get("allow_stock_to_be_exceeded"),
+                user,
+                app,
+                manager,
+                site.settings,
+                notify_customer=notify_customer,
+                allow_stock_to_be_exceeded=allow_stock_to_be_exceeded,
             )
         except InsufficientStock as exc:
             errors = prepare_insufficient_stock_order_validation_errors(exc)

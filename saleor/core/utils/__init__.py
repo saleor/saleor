@@ -1,6 +1,6 @@
 import os
 import socket
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, TypeVar, Union
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
@@ -11,26 +11,25 @@ from django.db.models import Model
 from django.utils.encoding import iri_to_uri
 from django.utils.text import slugify
 from django_prices_openexchangerates import exchange_currency
-from prices import MoneyRange
+from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from text_unidecode import unidecode
 
 task_logger = get_task_logger(__name__)
 
 
 if TYPE_CHECKING:
-    # flake8: noqa: F401
     from django.utils.safestring import SafeText
 
 
-def build_absolute_uri(location: str) -> Optional[str]:
+def build_absolute_uri(location: str, domain: Optional[str] = None) -> str:
     """Create absolute uri from location.
 
     If provided location is absolute uri by itself, it returns unchanged value,
     otherwise if provided location is relative, absolute uri is built and returned.
     """
-    host = Site.objects.get_current().domain
-    protocol = "https" if settings.ENABLE_SSL else "http"
-    current_uri = "%s://%s" % (protocol, host)
+    host = domain or Site.objects.get_current().domain
+    protocol = "https" if settings.ENABLE_SSL else "http"  # type: ignore[misc] # circular import # noqa: E501
+    current_uri = f"{protocol}://{host}"
     location = urljoin(current_uri, location)
     return iri_to_uri(location)
 
@@ -77,15 +76,15 @@ def get_currency_for_country(country_code: str):
     return os.environ.get("DEFAULT_CURRENCY", "USD")
 
 
-def to_local_currency(price, currency):
+M = TypeVar("M", Money, MoneyRange, TaxedMoney, TaxedMoneyRange)
+
+
+def to_local_currency(price: Optional[M], currency: str) -> Optional[M]:
     if price is None:
         return None
-    if not settings.OPENEXCHANGERATES_API_KEY:
+    if not settings.OPENEXCHANGERATES_API_KEY:  # type: ignore[misc] # circular import # noqa: E501
         return None
-    if isinstance(price, MoneyRange):
-        from_currency = price.start.currency
-    else:
-        from_currency = price.currency
+    from_currency = price.currency
     if currency != from_currency:
         try:
             return exchange_currency(price, currency)
@@ -95,7 +94,7 @@ def to_local_currency(price, currency):
 
 
 def generate_unique_slug(
-    instance: Type[Model],
+    instance: Model,
     slugable_value: str,
     slug_field_name: str = "slug",
     *,
@@ -116,10 +115,8 @@ def generate_unique_slug(
 
     """
     slug = slugify(unidecode(slugable_value))
-    unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__
-    extension = 1
 
     search_field = f"{slug_field_name}__iregex"
     pattern = rf"{slug}-\d+$|{slug}$"
@@ -128,10 +125,20 @@ def generate_unique_slug(
         lookup.update(additional_search_lookup)
 
     slug_values = (
-        ModelClass._default_manager.filter(**lookup)  # type: ignore
+        ModelClass._default_manager.filter(**lookup)
         .exclude(pk=instance.pk)
         .values_list(slug_field_name, flat=True)
     )
+
+    unique_slug = prepare_unique_slug(slug, slug_values)
+
+    return unique_slug
+
+
+def prepare_unique_slug(slug: str, slug_values: Iterable):
+    """Prepare unique slug value based on provided list of existing slug values."""
+    unique_slug: Union["SafeText", str] = slug
+    extension = 1
 
     while unique_slug in slug_values:
         extension += 1

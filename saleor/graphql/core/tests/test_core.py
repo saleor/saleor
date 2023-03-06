@@ -1,51 +1,32 @@
 import enum
 import os
-from io import BytesIO
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import django_filters
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
 from graphene import InputField
 from micawber import ProviderException, ProviderRegistry
-from PIL import Image
 
 from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
-from ....product.error_codes import ProductErrorCode
-from ....product.models import Category, Product, ProductChannelListing
+from ....product.models import Product, ProductChannelListing
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
 from ..enums import ReportingPeriod
 from ..filters import EnumFilter
-from ..mutations import BaseMutation
+from ..mutations import BaseMutation, ModelWithExtRefMutation
 from ..types import FilterInputObjectType
 from ..utils import (
     add_hash_to_file_name,
-    clean_seo_fields,
+    ext_ref_to_global_id_or_error,
     get_duplicated_values,
-    get_filename_from_url,
-    is_image_mimetype,
     snake_to_camel_case,
-    validate_image_file,
-    validate_image_url,
-    validate_slug_and_generate_if_needed,
 )
 from . import ErrorTest
-
-
-def test_clean_seo_fields():
-    title = "lady title"
-    description = "fantasy description"
-    data = {"seo": {"title": title, "description": description}}
-    clean_seo_fields(data)
-    assert data["seo_title"] == title
-    assert data["seo_description"] == description
 
 
 def test_user_error_field_name_for_related_object(
@@ -206,228 +187,6 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
 
 
 @pytest.mark.parametrize(
-    "cleaned_input",
-    [
-        {"slug": None, "name": "test"},
-        {"slug": "", "name": "test"},
-        {"slug": ""},
-        {"slug": None},
-    ],
-)
-def test_validate_slug_and_generate_if_needed_raises_errors(category, cleaned_input):
-    with pytest.raises(ValidationError):
-        validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-@pytest.mark.parametrize(
-    "cleaned_input", [{"slug": "test-slug"}, {"slug": "test-slug", "name": "test"}]
-)
-def test_validate_slug_and_generate_if_needed_not_raises_errors(
-    category, cleaned_input
-):
-    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-@pytest.mark.parametrize(
-    "cleaned_input",
-    [
-        {"slug": None, "name": "test"},
-        {"slug": "", "name": "test"},
-        {"slug": ""},
-        {"slug": None},
-        {"slug": "test-slug"},
-        {"slug": "test-slug", "name": "test"},
-    ],
-)
-def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
-    category = Category(name="test")
-    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
-
-
-def test_validate_image_file():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    result = validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert not result
-
-
-def test_validate_image_file_invalid_content_type():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.jpg", img_data.getvalue(), "text/plain")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
-
-
-def test_validate_image_file_no_file():
-    # given
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(None, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "File is required."
-
-
-def test_validate_image_file_no_file_extension():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert exc.value.args[0][field].message == "Lack of file extension."
-
-
-def test_validate_image_file_invalid_file_extension():
-    # given
-    img_data = BytesIO()
-    image = Image.new("RGB", size=(1, 1))
-    image.save(img_data, format="JPEG")
-    img = SimpleUploadedFile("product.txt", img_data.getvalue(), "image/jpeg")
-    field = "image"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_file(img, field, ProductErrorCode)
-
-    # then
-    assert (
-        exc.value.args[0][field].message
-        == "Invalid file extension. Image file required."
-    )
-
-
-def test_get_filename_from_url_unique():
-    # given
-    file_format = "jpg"
-    file_name = "lenna"
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
-
-
-def test_is_image_mimetype_valid_mimetype():
-    # given
-    valid_mimetype = "image/jpeg"
-
-    # when
-    result = is_image_mimetype(valid_mimetype)
-
-    # then
-    assert result
-
-
-def test_is_image_mimetype_invalid_mimetype():
-    # given
-    invalid_mimetype = "application/javascript"
-
-    # when
-    result = is_image_mimetype(invalid_mimetype)
-
-    # then
-    assert not result
-
-
-def test_validate_image_url_valid_image_response(monkeypatch):
-    # given
-    valid_image_response_mock = Mock()
-    valid_image_response_mock.headers = {"content-type": "image/jpeg"}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=valid_image_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/valid_url.jpg"
-
-    # when
-    result = validate_image_url(
-        dummy_url,
-        field,
-        ProductErrorCode.INVALID,
-    )
-
-    # then
-    assert result is None
-
-
-def test_validate_image_url_invalid_mimetype_response(monkeypatch):
-    # given
-    invalid_response_mock = Mock()
-    invalid_response_mock.headers = {"content-type": "application/json"}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=invalid_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/invalid_url.json"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_url(
-            dummy_url,
-            field,
-            ProductErrorCode.INVALID,
-        )
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
-
-
-def test_validate_image_url_response_without_content_headers(monkeypatch):
-    # given
-    invalid_response_mock = Mock()
-    invalid_response_mock.headers = {}
-    monkeypatch.setattr(
-        "saleor.graphql.core.utils.requests.head",
-        Mock(return_value=invalid_response_mock),
-    )
-    field = "image"
-    dummy_url = "http://example.com/broken_url"
-
-    # when
-    with pytest.raises(ValidationError) as exc:
-        validate_image_url(
-            dummy_url,
-            field,
-            ProductErrorCode.INVALID,
-        )
-
-    # then
-    assert exc.value.args[0][field].message == "Invalid file type."
-
-
-@pytest.mark.parametrize(
     "value, count, product_indexes",
     [
         ({"lte": 50, "gte": 25}, 1, [2]),
@@ -444,6 +203,18 @@ def test_filter_range_field(value, count, product_indexes, product_list):
 
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
+    assert list(result) == expected_products
+
+
+def test_filter_products_with_zero_discount(product_list):
+    product_list[0].channel_listings.update(discounted_price_amount=0)
+    qs = ProductChannelListing.objects.all().order_by("pk")
+    field = "discounted_price_amount"
+
+    result = filter_range_field(qs, field, {"lte": 0, "gte": 0})
+
+    expected_products = list(qs.filter(product=product_list[0]))
+    assert result.count() == 1
     assert list(result) == expected_products
 
 
@@ -467,12 +238,6 @@ def test_requestor_is_superuser_for_superuser(superuser):
 
 def test_requestor_is_superuser_for_app(app):
     result = requestor_is_superuser(app)
-    assert result is False
-
-
-def test_requestor_is_superuser_for_anonymous_user():
-    user = AnonymousUser()
-    result = requestor_is_superuser(user)
     assert result is False
 
 
@@ -537,3 +302,40 @@ def test_add_hash_to_file_name(image, media_root):
     file_name, format = os.path.splitext(image._name)
     assert image._name.startswith(file_name)
     assert image._name.endswith(format)
+
+
+def test_external_reference_to_global_id(product):
+    # given
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+    model = product.__class__
+    # when
+    global_id = ext_ref_to_global_id_or_error(model, product.external_reference)
+    # then
+    assert global_id == graphene.Node.to_global_id(model.__name__, product.id)
+
+
+def test_external_reference_to_global_id_non_existing(product):
+    # given
+    product.external_reference = None
+    product.save(update_fields=["external_reference"])
+    non_existing_id = "non-existing-ext-ref"
+    model = product.__class__
+    # when
+    with pytest.raises(ValidationError) as e:
+        ext_ref_to_global_id_or_error(model, non_existing_id)
+    # then
+    assert e.value.messages[0] == f"Couldn't resolve to a node: {non_existing_id}"
+
+
+def test_get_instance_by_both_id_and_external_reference():
+    # given
+    data = {"id": "test-id", "external_reference": "test-ext-id"}
+    # when
+    with pytest.raises(ValidationError) as e:
+        ModelWithExtRefMutation.get_object_id(**data)
+    # then
+    assert (
+        e.value.messages[0]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )

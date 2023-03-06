@@ -27,7 +27,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: python:3.8
+    container: python:3.9
 
     services:
       postgres:
@@ -54,6 +54,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      # To remove once the issue is resolved.
       - name: Install dependencies
         run: |
           python -m pip install wheel
@@ -99,7 +100,9 @@ jobs:
         if: github.event_name == 'push' && github.repository == 'saleor/saleor'
 
       # Run linters and Django related checks
+      # `git config` command is a workaround for https://github.com/actions/runner-images/issues/6775
       - name: Run Linters and Checks
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           pre-commit run --all
         if: ${{ always() }}

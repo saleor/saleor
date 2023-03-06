@@ -3,9 +3,7 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
-from ....core.permissions import OrderPermissions
 from ....core.taxes import TaxError
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
@@ -17,8 +15,13 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
@@ -52,7 +55,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         errors_mapping = {"lines": "input", "channel": "input"}
 
     @classmethod
-    def validate_lines(cls, info, data, existing_lines_info):
+    def validate_lines(cls, info: ResolveInfo, data, existing_lines_info):
         grouped_lines_data: List[OrderLineData] = []
         lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
 
@@ -61,11 +64,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         ]
 
         invalid_ids = []
-        for input_line in data.get("input"):
-            variant_id = input_line["variant_id"]
+        for input_line in data:
+            variant_id: str = input_line["variant_id"]
             force_new_line = input_line["force_new_line"]
             variant = cls.get_node_or_error(
-                info, variant_id, "variant_id", only_type=ProductVariant
+                info, variant_id, field="variant_id", only_type=ProductVariant
             )
             quantity = input_line["quantity"]
 
@@ -99,7 +102,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 {
                     "quantity": ValidationError(
                         "Variants quantity must be greater than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                         params={"variants": invalid_ids},
                     ),
                 }
@@ -119,7 +122,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             raise ValidationError(error)
 
     @staticmethod
-    def add_lines_to_order(order, lines_data, user, app, manager, settings, discounts):
+    def add_lines_to_order(order, lines_data, user, app, manager, discounts):
         added_lines: List[OrderLine] = []
         try:
             for line_data in lines_data:
@@ -129,60 +132,62 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                     user,
                     app,
                     manager,
-                    settings,
                     discounts=discounts,
                     allocate_stock=order.is_unconfirmed(),
                 )
                 added_lines.append(line)
         except TaxError as tax_error:
             raise ValidationError(
-                "Unable to calculate taxes - %s" % str(tax_error),
+                f"Unable to calculate taxes - {str(tax_error)}",
                 code=OrderErrorCode.TAX_ERROR.value,
             )
         return added_lines
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
         cls.validate_order(order)
         existing_lines_info = fetch_order_lines(order)
 
-        lines_to_add = cls.validate_lines(info, data, existing_lines_info)
+        lines_to_add = cls.validate_lines(info, input, existing_lines_info)
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
+        with traced_atomic_transaction():
+            added_lines = cls.add_lines_to_order(
+                order,
+                lines_to_add,
+                info.context.user,
+                app,
+                manager,
+                discounts,
+            )
 
-        added_lines = cls.add_lines_to_order(
-            order,
-            lines_to_add,
-            info.context.user,
-            info.context.app,
-            info.context.plugins,
-            info.context.site.settings,
-            info.context.discounts,
-        )
+            # Create the products added event
+            events.order_added_products_event(
+                order=order,
+                user=info.context.user,
+                app=app,
+                order_lines=added_lines,
+            )
 
-        # Create the products added event
-        events.order_added_products_event(
-            order=order,
-            user=info.context.user,
-            app=info.context.app,
-            order_lines=added_lines,
-        )
-
-        invalidate_order_prices(order)
-        recalculate_order_weight(order)
-        update_order_search_vector(order, save=False)
-        order.save(
-            update_fields=[
-                "should_refresh_prices",
-                "weight",
-                "search_vector",
-                "updated_at",
-            ]
-        )
-        func = get_webhook_handler_by_order_status(order.status, info)
-        transaction.on_commit(lambda: func(order))
+            invalidate_order_prices(order)
+            recalculate_order_weight(order)
+            update_order_search_vector(order, save=False)
+            order.save(
+                update_fields=[
+                    "should_refresh_prices",
+                    "weight",
+                    "search_vector",
+                    "updated_at",
+                ]
+            )
+            func = get_webhook_handler_by_order_status(order.status, manager)
+            cls.call_event(func, order)
 
         return OrderLinesCreate(order=order, order_lines=added_lines)
 

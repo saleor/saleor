@@ -1,17 +1,20 @@
 from collections import defaultdict
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import DiscountPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....discount import DiscountValueType, models
 from ....discount.error_codes import DiscountErrorCode
+from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
+from ...core import ResolveInfo
 from ...core.scalars import PositiveDecimal
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_price_precision
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Voucher
 
 
@@ -96,8 +99,10 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
                     ].append(cleaned_channel["channel_id"])
 
     @classmethod
-    def clean_discount_values(cls, cleaned_input, voucher, errors):
-        error_dict = {
+    def clean_discount_values(
+        cls, cleaned_input, voucher, errors: defaultdict[str, List[ValidationError]]
+    ):
+        error_dict: Dict[str, List[ValidationError]] = {
             "channels_without_value": [],
             "channels_with_invalid_value_precision": [],
             "channels_with_invalid_percentage_value": [],
@@ -177,15 +182,17 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
         voucher.channel_listings.filter(channel_id__in=remove_channels).delete()
 
     @classmethod
-    @traced_atomic_transaction()
     def save(cls, voucher, cleaned_input):
-        cls.add_channels(voucher, cleaned_input.get("add_channels", []))
-        cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
+        with traced_atomic_transaction():
+            cls.add_channels(voucher, cleaned_input.get("add_channels", []))
+            cls.remove_channels(voucher, cleaned_input.get("remove_channels", []))
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         voucher = cls.get_node_or_error(info, id, only_type=Voucher, field="id")
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         cleaned_input = cls.clean_channels(
             info, input, errors, DiscountErrorCode.DUPLICATED_INPUT_ITEM.value
         )
@@ -195,7 +202,8 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(voucher, cleaned_input)
-        info.context.plugins.voucher_updated(voucher)
+        manager = get_plugin_manager_promise(info.context).get()
+        cls.call_event(manager.voucher_updated, voucher)
 
         return VoucherChannelListingUpdate(
             voucher=ChannelContext(node=voucher, channel_slug=None)

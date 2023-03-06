@@ -2,15 +2,18 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models as account_models
+from ...channel import models as channel_models
 from ...core.error_codes import ShopErrorCode
-from ...core.permissions import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...core.utils.url import validate_storefront_url
+from ...permission.enums import GiftcardPermissions, OrderPermissions, SitePermissions
 from ...site import GiftCardSettingsExpiryType
-from ...site.error_codes import GiftCardSettingsErrorCode
+from ...site.error_codes import GiftCardSettingsErrorCode, OrderSettingsErrorCode
 from ...site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..channel.types import OrderSettings
+from ..core import ResolveInfo
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
@@ -19,18 +22,14 @@ from ..core.types import (
     ShopError,
     TimePeriodInputType,
 )
+from ..site.dataloaders import get_site_promise
 from .enums import GiftCardSettingsExpiryTypeEnum
-from .types import GiftCardSettings, OrderSettings, Shop
+from .types import GiftCardSettings, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text.")
     description = graphene.String(description="SEO description.")
-    include_taxes_in_prices = graphene.Boolean(description="Include taxes in prices.")
-    display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store."
-    )
-    charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping.")
     track_inventory_by_default = graphene.Boolean(
         description="Enable inventory tracking."
     )
@@ -83,6 +82,29 @@ class ShopSettingsInput(graphene.InputObjectType):
         )
     )
 
+    # deprecated
+    include_taxes_in_prices = graphene.Boolean(
+        description=(
+            f"Include taxes in prices. {DEPRECATED_IN_3X_INPUT} Use "
+            "`taxConfigurationUpdate` mutation to configure this setting per channel "
+            "or country."
+        )
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            f"Display prices with tax in store. {DEPRECATED_IN_3X_INPUT} Use "
+            "`taxConfigurationUpdate` mutation to configure this setting per channel "
+            "or country."
+        )
+    )
+    charge_taxes_on_shipping = graphene.Boolean(
+        description=(
+            f"Charge taxes on shipping. {DEPRECATED_IN_3X_INPUT} To enable taxes for "
+            "a shipping method, assign a tax class to the shipping method with "
+            "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
+        ),
+    )
+
 
 class SiteDomainInput(graphene.InputObjectType):
     domain = graphene.String(description="Domain name for shop.")
@@ -110,7 +132,8 @@ class ShopSettingsUpdate(BaseMutation):
                 validate_storefront_url(data["customer_set_password_url"])
             except ValidationError as error:
                 raise ValidationError(
-                    {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
+                    {"customer_set_password_url": error},
+                    code=ShopErrorCode.INVALID.value,
                 )
 
         if "reserve_stock_duration_anonymous_user" in data:
@@ -146,8 +169,9 @@ class ShopSettingsUpdate(BaseMutation):
         return instance
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site = get_site_promise(info.context).get()
+        instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
@@ -172,24 +196,24 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        site_settings = info.context.site.settings
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site = get_site_promise(info.context).get()
         data = data.get("input")
 
         if data:
-            if not site_settings.company_address:
+            if not site.settings.company_address:
                 company_address = account_models.Address()
             else:
-                company_address = site_settings.company_address
+                company_address = site.settings.company_address
             company_address = cls.validate_address(
                 data, instance=company_address, info=info
             )
             company_address.save()
-            site_settings.company_address = company_address
-            site_settings.save(update_fields=["company_address"])
+            site.settings.company_address = company_address
+            site.settings.save(update_fields=["company_address"])
         else:
-            if site_settings.company_address:
-                site_settings.company_address.delete()
+            if site.settings.company_address:
+                site.settings.company_address.delete()
         return ShopAddressUpdate(shop=Shop())
 
 
@@ -206,11 +230,12 @@ class ShopDomainUpdate(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        site = info.context.site
-        data = data.get("input")
-        domain = data.get("domain")
-        name = data.get("name")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
+        site = get_site_promise(info.context).get()
+        domain = input.get("domain")
+        name = input.get("name")
         if domain is not None:
             site.domain = domain
         if name is not None:
@@ -230,13 +255,8 @@ class ShopFetchTaxRates(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info):
-        if not info.context.plugins.fetch_taxes_data():
-            raise ValidationError(
-                "Could not fetch tax rates. Make sure you have supplied a "
-                "valid credential for your tax plugin.",
-                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES.value,
-            )
+    def perform_mutation(cls, _root, _info: ResolveInfo, /):
+        # This mutation is deprecated and will be removed in Saleor 4.0.
         return ShopFetchTaxRates(shop=Shop())
 
 
@@ -292,7 +312,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
                     {
                         "staff_notification": ValidationError(
                             "User and email cannot be set empty",
-                            code=ShopErrorCode.INVALID,
+                            code=ShopErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -300,7 +320,8 @@ class StaffNotificationRecipientCreate(ModelMutation):
                 raise ValidationError(
                     {
                         "staff_notification": ValidationError(
-                            "User or email is required", code=ShopErrorCode.REQUIRED
+                            "User or email is required",
+                            code=ShopErrorCode.REQUIRED.value,
                         )
                     }
                 )
@@ -308,7 +329,7 @@ class StaffNotificationRecipientCreate(ModelMutation):
             raise ValidationError(
                 {
                     "user": ValidationError(
-                        "User has to be staff user", code=ShopErrorCode.INVALID
+                        "User has to be staff user", code=ShopErrorCode.INVALID.value
                     )
                 }
             )
@@ -353,12 +374,12 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         required=False,
         description="When disabled, all new orders from checkout "
         "will be marked as unconfirmed. When enabled orders from checkout will "
-        "become unfulfilled immediately.",
+        "become unfulfilled immediately. By default set to True",
     )
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(
         required=False,
         description="When enabled, all non-shippable gift card orders "
-        "will be fulfilled automatically.",
+        "will be fulfilled automatically. By defualt set to True.",
     )
 
 
@@ -371,29 +392,52 @@ class OrderSettingsUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update shop order settings."
+        description = (
+            "Update shop order settings across all channels. "
+            "Returns `orderSettings` for the first `channel` in alphabetical order. "
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         FIELDS = [
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
 
-        instance = info.context.site.settings
-        update_fields = []
+        channel = (
+            channel_models.Channel.objects.filter(is_active=True)
+            .order_by("slug")
+            .first()
+        )
+
+        if channel is None:
+            raise ValidationError(
+                "There is no active channel available",
+                code=OrderSettingsErrorCode.INVALID.value,
+            )
+
+        update_fields = {}
         for field in FIELDS:
-            value = data["input"].get(field)
-            if value is not None:
-                setattr(instance, field, value)
-                update_fields.append(field)
+            if field in data["input"]:
+                update_fields[field] = data["input"][field]
 
         if update_fields:
-            instance.save(update_fields=update_fields)
-        return OrderSettingsUpdate(order_settings=instance)
+            channel_models.Channel.objects.update(**update_fields)
+
+        channel.refresh_from_db()
+
+        order_settings = OrderSettings(
+            automatically_confirm_all_new_orders=(
+                channel.automatically_confirm_all_new_orders
+            ),
+            automatically_fulfill_non_shippable_gift_card=(
+                channel.automatically_fulfill_non_shippable_gift_card
+            ),
+        )
+        return OrderSettingsUpdate(order_settings=order_settings)
 
 
 class GiftCardSettingsUpdateInput(graphene.InputObjectType):
@@ -419,8 +463,9 @@ class GiftCardSettingsUpdate(BaseMutation):
         error_type_class = GiftCardSettingsError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site = get_site_promise(info.context).get()
+        instance = site.settings
         input = data["input"]
         cls.clean_input(input, instance)
 

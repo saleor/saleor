@@ -1,11 +1,10 @@
 from unittest.mock import patch
 
 import graphene
-from django.contrib.auth.models import AnonymousUser, Group
 
 from ....account.error_codes import AccountErrorCode
-from ....account.models import User
-from ....core.permissions import AccountPermissions, OrderPermissions
+from ....account.models import Group, User
+from ....permission.enums import AccountPermissions, OrderPermissions
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 CUSTOMER_BULK_DELETE_MUTATION = """
@@ -126,7 +125,7 @@ def test_delete_customers_by_app(
     ).count() == len(saved_customers)
 
     mocked_deletion_event.assert_called_once_with(
-        staff_user=AnonymousUser(),
+        staff_user=None,
         app=app_api_client.app,
         deleted_count=len(deleted_customers),
     )

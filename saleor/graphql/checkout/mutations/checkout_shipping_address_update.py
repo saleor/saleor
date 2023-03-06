@@ -16,7 +16,6 @@ from ....checkout.utils import (
     is_shipping_required,
 )
 from ....core.tracing import traced_atomic_transaction
-from ....product import models as product_models
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
@@ -29,6 +28,9 @@ from ...core.descriptions import (
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
 from .utils import (
@@ -87,25 +89,24 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         channel_slug: str,
         delivery_method_info: "DeliveryMethodBase",
     ) -> None:
-        variant_ids = [line_info.variant.id for line_info in lines]
-        variants = list(
-            product_models.ProductVariant.objects.filter(
-                id__in=variant_ids
-            ).prefetch_related("product__product_type")
-        )  # FIXME: is this prefetch needed?
-        quantities = [line_info.line.quantity for line_info in lines]
+        variants = []
+        quantities = []
+        for line_info in lines:
+            variants.append(line_info.variant)
+            quantities.append(line_info.line.quantity)
+        site = get_site_promise(info.context).get()
         check_lines_quantity(
             variants,
             quantities,
             country,
             channel_slug,
-            info.context.site.settings.limit_quantity_per_checkout,
+            site.settings.limit_quantity_per_checkout,
             delivery_method_info=delivery_method_info,
             # Set replace=True to avoid existing_lines and quantities from
             # being counted twice by the check_stock_quantity_bulk
             replace=True,
             existing_lines=lines,
-            check_reservations=is_reservation_enabled(info.context.site.settings),
+            check_reservations=is_reservation_enabled(site.settings),
         )
 
     @classmethod
@@ -113,6 +114,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         cls,
         _root,
         info,
+        /,
         shipping_address,
         validation_rules=None,
         checkout_id=None,
@@ -125,7 +127,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout_id=checkout_id,
             token=token,
             id=id,
-            error_class=CheckoutErrorCode,
             qs=models.Checkout.objects.prefetch_related(
                 "lines__variant__product__product_type"
             ),
@@ -137,7 +138,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 {
                     "shipping_address": ValidationError(
                         ERROR_DOES_NOT_SHIP,
-                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
                     )
                 }
             )
@@ -153,9 +154,8 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 "enable_fields_normalization", True
             ),
         )
-
-        discounts = info.context.discounts
-        manager = info.context.plugins
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
             checkout, lines, discounts, manager, shipping_channel_listings
@@ -195,6 +195,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             + invalidate_prices_updated_fields
         )
 
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)

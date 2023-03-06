@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0027_customerevent"),
         ("site", "0021_auto_20190326_0521"),

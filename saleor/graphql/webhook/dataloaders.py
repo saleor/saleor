@@ -5,14 +5,18 @@ from ...webhook.models import WebhookEvent
 from ..core.dataloaders import DataLoader
 
 
-class PayloadByIdLoader(DataLoader):
+class PayloadByIdLoader(DataLoader[str, str]):
     context_key = "payload_by_id"
 
     def batch_load(self, keys):
         payload = EventPayload.objects.using(self.database_connection_name).in_bulk(
             keys
         )
-        return [payload.get(payload_id).payload for payload_id in keys]
+
+        return [
+            payload[payload_id].payload if payload.get(payload_id) else None
+            for payload_id in keys
+        ]
 
 
 class WebhookEventsByWebhookIdLoader(DataLoader):

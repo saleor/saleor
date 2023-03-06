@@ -5,9 +5,9 @@ interactions:
       true, "itemCode": "123", "discounted": false, "description": "Test product",
       "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
-      "75071540-ceff-4abd-9bd3-f317858d5071", "date": "2022-06-10", "customerCode":
+      "9d07cb7b-a4ef-4a89-b64f-c72b94e69c04", "date": "2023-02-16", "customerCode":
       0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
-      null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
+      "", "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
       "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
       "", "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
       "USD", "email": "user@email.com"}}'
@@ -21,11 +21,11 @@ interactions:
       Connection:
       - keep-alive
       Content-Length:
-      - '845'
+      - '843'
       User-Agent:
-      - python-requests/2.27.1
+      - python-requests/2.28.2
     method: POST
-    uri: https://rest.avatax.com/api/v2/transactions/createoradjust
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
       string: '{"error": {"code": "AuthenticationException","message": "Authentication
@@ -40,13 +40,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Fri, 10 Jun 2022 12:09:21 GMT
+      - Thu, 16 Feb 2023 12:53:48 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - ba50d016-7003-411c-b2ec-75466f242d47
+      - c672b840-55d0-49a9-bd0b-f7e56bf16bdc
       x-correlation-id:
-      - ba50d016-7003-411c-b2ec-75466f242d47
+      - c672b840-55d0-49a9-bd0b-f7e56bf16bdc
     status:
       code: 401
       message: Unauthorized

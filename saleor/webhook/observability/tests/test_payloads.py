@@ -9,7 +9,6 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 from ....core import EventDeliveryStatus
-from ....tests.consts import TEST_SERVER_DOMAIN
 from ....webhook.event_types import WebhookEventAsyncType
 from ..exceptions import TruncationError
 from ..obfuscation import MASK
@@ -220,8 +219,16 @@ def test_serialize_gql_operation_results_when_too_low_bytes_limit(
         ({}, []),
         (None, []),
         (
-            {"Content-Length": "19", "Content-Type": "application/json"},
-            [("Content-Length", "19"), ("Content-Type", "application/json")],
+            {
+                "Authorization": "secret",
+                "Content-Length": "19",
+                "Content-Type": "application/json",
+            },
+            [
+                ("Authorization", MASK),
+                ("Content-Length", "19"),
+                ("Content-Type", "application/json"),
+            ],
         ),
     ],
 )
@@ -229,7 +236,7 @@ def test_serialize_headers(headers, expected):
     assert serialize_headers(headers) == expected
 
 
-def test_generate_api_call_payload(app, rf, gql_operation_factory):
+def test_generate_api_call_payload(app, rf, gql_operation_factory, site_settings):
     request = rf.post(
         "/graphql", data={"request": "data"}, content_type="application/json"
     )
@@ -254,7 +261,7 @@ def test_generate_api_call_payload(app, rf, gql_operation_factory):
         request=ApiCallRequest(
             id=request_id,
             method="POST",
-            url=f"http://{TEST_SERVER_DOMAIN}/graphql",
+            url=f"http://{site_settings.site.domain}/graphql",
             time=request.request_time.timestamp(),
             content_length=19,
             headers=[
@@ -433,9 +440,7 @@ def test_generate_event_delivery_attempt_payload_with_next_retry_date(
     assert payload["next_retry"] == next_retry_date
 
 
-def test_generate_event_delivery_attempt_payload_with_non_empty_headers(
-    event_attempt,
-):
+def test_generate_event_delivery_attempt_payload_with_non_empty_headers(event_attempt):
     headers = {"Content-Length": "19", "Content-Type": "application/json"}
     headers_list = [("Content-Length", "19"), ("Content-Type", "application/json")]
     event_attempt.request_headers = json.dumps(headers)
@@ -461,3 +466,15 @@ def test_generate_event_delivery_attempt_payload_with_subscription_query(
 
     assert payload["webhook"]["subscription_query"].text == query
     assert payload["event_delivery"]["payload"]["body"].text == pretty_json(MASK)
+
+
+def test_generate_event_delivery_attempt_payload_target_url_obfuscated(
+    webhook, event_attempt
+):
+    webhook.target_url = "http://user:password@example.com/webhooks"
+
+    payload = generate_event_delivery_attempt_payload(event_attempt, None, 1024)
+
+    assert (
+        payload["webhook"]["target_url"] == f"http://user:{MASK}@example.com/webhooks"
+    )

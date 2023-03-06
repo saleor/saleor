@@ -15,7 +15,6 @@ def update_empty_content_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0019_auto_20210125_0905"),
     ]

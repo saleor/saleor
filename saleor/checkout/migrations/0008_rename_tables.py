@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("checkout", "0007_merge_cart_with_checkout")]
 
     operations = [

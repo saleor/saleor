@@ -28,7 +28,6 @@ def update_empty_description_field(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0140_auto_20210125_0905"),
     ]

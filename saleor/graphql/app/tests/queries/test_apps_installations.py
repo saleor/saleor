@@ -12,7 +12,6 @@ APPS_INSTALLATION_QUERY = """
 
 
 def test_apps_installation(app_installation, staff_api_client, permission_manage_apps):
-
     response = staff_api_client.post_graphql(
         APPS_INSTALLATION_QUERY, permissions=[permission_manage_apps]
     )

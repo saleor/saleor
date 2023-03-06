@@ -35,7 +35,6 @@ def decrease_order_lines_quantity_for_waiting_fulfillments(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0117_merge_20210903_1013"),
     ]

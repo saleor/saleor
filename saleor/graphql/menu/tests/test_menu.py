@@ -176,7 +176,13 @@ QUERY_MENU_WITH_FILTER = """
 
 
 @pytest.mark.parametrize(
-    "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
+    "menu_filter, count",
+    [
+        ({"search": "Menu1"}, 1),
+        ({"search": "Menu"}, 2),
+        ({"slugs": ["Menu1", "Menu2"]}, 2),
+        ({"slugs": []}, 4),
+    ],
 )
 def test_menus_query_with_filter(
     menu_filter, count, staff_api_client, permission_manage_menus
@@ -1301,7 +1307,6 @@ mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput!]!) {
 
 
 def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list):
-
     menu_item_list = list(menu_item_list)
     menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
 
@@ -1389,7 +1394,6 @@ def test_menu_reorder_trigger_webhook(
 def test_menu_reorder_move_the_same_item_multiple_times(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-
     menu_item_list = list(menu_item_list)
     menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
 
@@ -1433,7 +1437,6 @@ def test_menu_reorder_move_the_same_item_multiple_times(
 def test_menu_reorder_move_without_effect(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-
     menu_item_list = list(menu_item_list)
     menu_global_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
 
@@ -1758,7 +1761,6 @@ def test_menu_reorder_assign_parent_to_top_level(
 def test_menu_reorder_cannot_assign_to_ancestor(
     staff_api_client, permission_manage_menus, menu_item_list
 ):
-
     menu_item_list = list(menu_item_list)
     menu_id = graphene.Node.to_global_id("Menu", menu_item_list[0].menu_id)
 
@@ -1800,7 +1802,6 @@ def test_menu_reorder_cannot_assign_to_ancestor(
 def test_menu_reorder_cannot_assign_to_itself(
     staff_api_client, permission_manage_menus, menu_item
 ):
-
     menu_id = graphene.Node.to_global_id("Menu", menu_item.menu_id)
     node_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     moves = [{"itemId": node_id, "parentId": node_id, "sortOrder": None}]

@@ -1,9 +1,10 @@
 import jwt
 import pytest
-from django.contrib.auth.models import Permission
 from freezegun import freeze_time
 from jwt import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
 
+from ...permission.enums import get_permissions_from_names
+from ...permission.models import Permission
 from ..auth_backend import JSONWebTokenBackend
 from ..jwt import (
     JWT_ACCESS_TYPE,
@@ -13,7 +14,6 @@ from ..jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ..permissions import get_permissions_from_names
 
 
 def test_use_default_header_as_a_fallback(rf, staff_user, customer_user):
@@ -77,7 +77,7 @@ def test_owner_field_is_missing(prefix, rf, staff_user, settings):
         staff_user,
         JWT_ACCESS_TYPE,
         settings.JWT_TTL_ACCESS,
-        token_owner=None,  # type: ignore
+        token_owner=None,
     )
     token = jwt_encode(payload)
     request = rf.request(HTTP_AUTHORIZATION=f"{prefix} {token}")

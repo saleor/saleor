@@ -17,7 +17,6 @@ def populate_orders_shipping_price_net(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0037_auto_20180228_0450")]
 
     operations = [

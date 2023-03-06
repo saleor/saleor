@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
 
-from ..core.permissions import ChannelPermissions
+from ..permission.enums import ChannelPermissions
 from . import AllocationStrategy
 
 
@@ -16,6 +16,11 @@ class Channel(models.Model):
         max_length=255,
         choices=AllocationStrategy.CHOICES,
         default=AllocationStrategy.PRIORITIZE_SORTING_ORDER,
+    )
+    automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
+    automatically_fulfill_non_shippable_gift_card = models.BooleanField(
+        default=True,
+        null=True,
     )
 
     class Meta:

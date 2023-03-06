@@ -8,11 +8,10 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
-from typing import Type, Union
+from typing import Any, Dict, Type, Union, cast
 from unittest.mock import patch
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission
 from django.core.files import File
 from django.db import connection
 from django.db.models import F
@@ -23,7 +22,7 @@ from faker.providers import BaseProvider
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from ...account.models import Address, User
+from ...account.models import Address, Group, User
 from ...account.search import (
     generate_address_search_document_value,
     generate_user_fields_search_document_value,
@@ -46,13 +45,6 @@ from ...checkout import AddressType
 from ...checkout.fetch import fetch_checkout_info
 from ...checkout.models import Checkout
 from ...checkout.utils import add_variant_to_checkout
-from ...core.permissions import (
-    AccountPermissions,
-    CheckoutPermissions,
-    GiftcardPermissions,
-    OrderPermissions,
-    get_permissions,
-)
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherChannelListing
@@ -67,6 +59,14 @@ from ...order.utils import update_order_status
 from ...page.models import Page, PageType
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...permission.enums import (
+    AccountPermissions,
+    CheckoutPermissions,
+    GiftcardPermissions,
+    OrderPermissions,
+    get_permissions,
+)
+from ...permission.models import Permission
 from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     Category,
@@ -90,12 +90,14 @@ from ...shipping.models import (
     ShippingMethodType,
     ShippingZone,
 )
+from ...tax.models import TaxClass, TaxConfiguration
+from ...tax.utils import get_tax_class_kwargs_for_order_line
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.management import increase_stock
 from ...warehouse.models import PreorderAllocation, Stock, Warehouse
 from ..postgres import FlatConcatSearchVector
 
-fake = Factory.create()
+fake = cast(Any, Factory.create())
 fake.seed(0)
 
 PRODUCTS_LIST_DIR = "products-list/"
@@ -349,7 +351,7 @@ def assign_attributes_to_product_types(
 
 
 def assign_attributes_to_page_types(
-    association_model: AttributePage,
+    association_model: Type[AttributePage],
     attributes: list,
 ):
     for value in attributes:
@@ -485,16 +487,15 @@ class SaleorProvider(BaseProvider):
         return Weight(kg=fake.pydecimal(1, 2, positive=True))
 
 
-fake.add_provider(SaleorProvider)  # type: ignore
+fake.add_provider(SaleorProvider)
 
 
 def get_email(first_name, last_name):
     _first = unicodedata.normalize("NFD", first_name).encode("ascii", "ignore")
     _last = unicodedata.normalize("NFD", last_name).encode("ascii", "ignore")
-    return "%s.%s@example.com" % (
-        _first.lower().decode("utf-8"),
-        _last.lower().decode("utf-8"),
-    )
+    decoded_first = _first.lower().decode("utf-8")
+    decoded_last = _last.lower().decode("utf-8")
+    return f"{decoded_first}.{decoded_last}@example.com"
 
 
 def create_product_image(product, placeholder_dir, image_name):
@@ -518,7 +519,7 @@ def create_address(save=True, **kwargs):
     )
 
     if address.country == "US":
-        state = fake.state_abbr()
+        state = fake.state_abbr(include_territories=False)
         address.country_area = state
         address.postal_code = fake.postalcode_in_state(state)
     else:
@@ -540,7 +541,7 @@ def create_fake_user(user_password, save=True):
         pass
 
     _, max_user_id = connection.ops.integer_field_range(
-        User.id.field.get_internal_type()
+        User.id.field.get_internal_type()  # type: ignore # raw access to field
     )
     user = User(
         id=fake.random_int(min=1, max=max_user_id),
@@ -618,7 +619,7 @@ def create_order_lines(order, discounts, how_many=10):
     ).order_by("?")
     warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
-        variant = line.variant
+        variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
@@ -635,7 +636,6 @@ def create_order_lines(order, discounts, how_many=10):
         )
         warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
-    manager.update_taxes_for_order_lines(order, lines)
     OrderLine.objects.bulk_update(
         lines,
         [
@@ -673,7 +673,7 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
 
     preorder_allocations = []
     for line in lines:
-        variant = line.variant
+        variant = cast(ProductVariant, line.variant)
         unit_price_data = manager.calculate_order_line_unit(
             order, line, variant, variant.product
         )
@@ -696,7 +696,6 @@ def create_order_lines_with_preorder(order, discounts, how_many=1):
                 quantity=line.quantity,
             )
         )
-    manager.update_taxes_for_order_lines(order, lines)
     PreorderAllocation.objects.bulk_create(preorder_allocations)
 
     OrderLine.objects.bulk_update(
@@ -733,7 +732,7 @@ def _get_new_order_line(order, variant, channel, discounts):
     )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     total_price = unit_price * quantity
-    return OrderLine(
+    return OrderLine(  # type: ignore[misc] # see below:
         order=order,
         product_name=str(product),
         variant_name=str(variant),
@@ -743,13 +742,14 @@ def _get_new_order_line(order, variant, channel, discounts):
         is_gift_card=variant.is_gift_card(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price,
-        total_price=total_price,
-        undiscounted_unit_price=unit_price,
-        undiscounted_total_price=total_price,
-        base_unit_price=untaxed_unit_price,
-        undiscounted_base_unit_price=untaxed_unit_price,
+        unit_price=unit_price,  # money field not supported by mypy_django_plugin
+        total_price=total_price,  # money field not supported by mypy_django_plugin
+        undiscounted_unit_price=unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_total_price=total_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
+        undiscounted_base_unit_price=untaxed_unit_price,  # money field not supported by mypy_django_plugin # noqa: E501
         tax_rate=0,
+        **get_tax_class_kwargs_for_order_line(product.tax_class),
     )
 
 
@@ -777,6 +777,8 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
         .order_by("?")
         .first()
     )
+    if not channel:
+        raise ValueError("No channel found.")
     customers = (
         User.objects.filter(is_superuser=False)
         .exclude(default_billing_address=None)
@@ -789,26 +791,27 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
         random.choice([0, 0, 0, 0, 1]) if not create_preorder_lines else True
     )
 
-    if customer:
+    if customer and customer.default_shipping_address:
         address = customer.default_shipping_address
-        order_data = {
-            "user": customer,
-            "billing_address": customer.default_billing_address,
-            "shipping_address": address,
-        }
     else:
         address = create_address()
-        order_data = {
-            "billing_address": address,
-            "shipping_address": address,
-            "user_email": get_email(address.first_name, address.last_name),
-        }
+    if customer and customer.default_billing_address:
+        billing_address = customer.default_billing_address
+    else:
+        billing_address = address
+    order_data: Dict[str, Any] = {
+        "billing_address": billing_address or address,
+        "shipping_address": address,
+        "user_email": get_email(address.first_name, address.last_name),
+    }
 
     shipping_method_channel_listing = (
         ShippingMethodChannelListing.objects.filter(channel=channel)
         .order_by("?")
         .first()
     )
+    if not shipping_method_channel_listing:
+        raise Exception(f"No shipping method found for channel {channel.slug}")
     shipping_method = shipping_method_channel_listing.shipping_method
     shipping_price = shipping_method_channel_listing.price
     shipping_price = TaxedMoney(net=shipping_price, gross=shipping_price)
@@ -818,6 +821,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
             "shipping_method": shipping_method,
             "shipping_method_name": shipping_method.name,
             "shipping_price": shipping_price,
+            "base_shipping_price": shipping_method_channel_listing.price,
         }
     )
     if will_be_unconfirmed:
@@ -833,7 +837,8 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     order.total = sum([line.total_price for line in lines], shipping_price)
     weight = Weight(kg=0)
     for line in order.lines.all():
-        weight += line.variant.get_weight()
+        if line.variant:
+            weight += line.variant.get_weight()
     order.weight = weight
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
@@ -850,7 +855,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
 
 def create_fake_sale():
     sale = Sale.objects.create(
-        name="Happy %s day!" % fake.word(),
+        name=f"Happy {fake.word()} day!",
         type=DiscountValueType.PERCENTAGE,
     )
     for channel in Channel.objects.all():
@@ -871,7 +876,7 @@ def create_fake_sale():
 def create_users(user_password, how_many=10):
     for _ in range(how_many):
         user = create_fake_user(user_password)
-        yield "User: %s" % (user.email,)
+        yield f"User: {user.email}"
 
 
 def create_permission_groups(staff_password):
@@ -946,6 +951,7 @@ def _create_staff_user(staff_password, email=None, superuser=False):
             User(email=email, first_name=first_name, last_name=last_name), address
         ),
     )
+    staff_user.addresses.add(address)
     return staff_user
 
 
@@ -967,14 +973,14 @@ def create_orders(how_many=10):
     discounts = fetch_discounts(timezone.now())
     for _ in range(how_many):
         order = create_fake_order(discounts)
-        yield "Order: %s" % (order,)
+        yield f"Order: {order}"
 
 
 def create_product_sales(how_many=5):
     for _ in range(how_many):
         sale = create_fake_sale()
         update_products_discounted_prices_of_discount_task.delay(sale.pk)
-        yield "Sale: %s" % (sale,)
+        yield f"Sale: {sale}"
 
 
 def create_channel(channel_name, currency_code, slug=None, country=None):
@@ -989,6 +995,7 @@ def create_channel(channel_name, currency_code, slug=None, country=None):
             "default_country": country,
         },
     )
+    TaxConfiguration.objects.get_or_create(channel=channel)
     return f"Channel: {channel}"
 
 
@@ -1339,7 +1346,11 @@ def create_shipping_zones():
 
 def create_additional_cc_warehouse():
     channel = Channel.objects.first()
+    if not channel:
+        raise Exception("No channels found")
     shipping_zone = ShippingZone.objects.first()
+    if not shipping_zone:
+        raise Exception("No shipping zones found")
     warehouse_name = f"{shipping_zone.name} for click and collect"
     warehouse, _ = Warehouse.objects.update_or_create(
         name=warehouse_name,
@@ -1485,6 +1496,8 @@ def create_gift_cards(how_many=5):
             },
         )
         order = Order.objects.order_by("?").first()
+        if not order:
+            raise Exception("No orders found")
         gift_card_events.gift_cards_bought_event([gift_card], order, user, None)
         if created:
             yield "Gift card #%d" % gift_card.id
@@ -1509,7 +1522,7 @@ def create_page_type():
         pk = page_type_data.pop("pk")
         defaults = dict(page_type_data["fields"])
         page_type, _ = PageType.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Page type %s created" % page_type.slug
+        yield f"Page type {page_type.slug} created"
 
 
 def create_pages():
@@ -1522,7 +1535,7 @@ def create_pages():
         defaults = dict(page_data["fields"])
         defaults["page_type_id"] = defaults.pop("page_type")
         page, _ = Page.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Page %s created" % page.slug
+        yield f"Page {page.slug} created"
 
 
 def create_menus():
@@ -1534,7 +1547,7 @@ def create_menus():
         pk = menu["pk"]
         defaults = menu["fields"]
         menu, _ = Menu.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "Menu %s created" % menu.name
+        yield f"Menu {menu.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]
         defaults = dict(menu_item["fields"])
@@ -1544,7 +1557,7 @@ def create_menus():
         defaults["page_id"] = defaults.pop("page")
         defaults.pop("parent")
         menu_item, _ = MenuItem.objects.update_or_create(pk=pk, defaults=defaults)
-        yield "MenuItem %s created" % menu_item.name
+        yield f"MenuItem {menu_item.name} created"
     for menu_item in menu_item_data:
         pk = menu_item["pk"]
         defaults = dict(menu_item["fields"])
@@ -1612,3 +1625,12 @@ def create_checkout_with_same_variant_in_multiple_lines():
         "Created checkout with four lines and same variant in multiple lines "
         f"Checkout token: {checkout_info.checkout.token}."
     )
+
+
+def create_tax_classes():
+    names = ["Groceries", "Books"]
+    tax_classes = []
+    for name in names:
+        tax_classes.append(TaxClass(name=name))
+    TaxClass.objects.bulk_create(tax_classes)
+    yield f"Created tax classes: {names}"

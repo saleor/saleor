@@ -25,7 +25,6 @@ def get_product_costs_data(
     has_variants: bool,
     currency: str,
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
-
     purchase_costs_range = MoneyRange(
         start=zero_money(currency), stop=zero_money(currency)
     )
@@ -77,7 +76,7 @@ def get_margin_for_variant_channel_listing(
 ) -> Optional[float]:
     if variant_channel_listing.cost_price is None:
         return None
-    base_price = variant_channel_listing.price  # type: ignore
+    base_price = variant_channel_listing.price
     if not base_price:
         return None
     margin = base_price - variant_channel_listing.cost_price

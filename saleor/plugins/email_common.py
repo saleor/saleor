@@ -5,7 +5,7 @@ import re
 from dataclasses import asdict, dataclass
 from decimal import Decimal, InvalidOperation
 from email.headerregistry import Address
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
 
 import dateutil.parser
 import html2text
@@ -18,14 +18,7 @@ from django.core.mail.backends.smtp import EmailBackend
 from django.core.validators import EmailValidator
 from django_prices.utils.locale import get_locale_data
 
-from ..product.models import ProductMedia
-from ..product.product_images import get_product_image_placeholder
-from ..thumbnail.models import Thumbnail
-from ..thumbnail.utils import (
-    get_thumbnail_size,
-    prepare_image_proxy_url,
-    prepare_thumbnail_file_name,
-)
+from ..thumbnail.utils import get_thumbnail_size
 from .base_plugin import ConfigurationTypeField
 from .error_codes import PluginErrorCode
 
@@ -149,24 +142,17 @@ def format_datetime(this, date, date_format=None):
     return date.strftime(date_format)
 
 
-def get_product_image_thumbnail(this, size, image):
+def get_product_image_thumbnail(this, size: int, image_data):
     """Use provided size to get a correct image."""
-    size = get_thumbnail_size(size)
-    thumbnail_file_name = prepare_thumbnail_file_name(image.name, size, None)
-    thumbnail = Thumbnail.objects.filter(image__name=thumbnail_file_name).first()
-    if thumbnail:
-        return thumbnail.image.url
-    media = ProductMedia.objects.filter(image__name=image.name).first()
-    if not media:
-        return get_product_image_placeholder(size)
-    return prepare_image_proxy_url(media.id, "ProductMedia", size, None)
+    expected_size = get_thumbnail_size(size)
+    return image_data["original"][str(expected_size)]
 
 
 def compare(this, val1, compare_operator, val2):
     """Compare two values based on the provided operator."""
-    operators = {
+    operators: Dict[str, Callable[[Any, Any], Any]] = {
         "==": operator.eq,
-        "!=": operator.neg,
+        "!=": operator.ne,
         "<": operator.lt,
         "<=": operator.le,
         ">=": operator.ge,
@@ -300,7 +286,7 @@ def validate_default_email_configuration(
         )
 
     EmailValidator(
-        message={
+        message={  # type: ignore[arg-type] # the code below is a hack
             "sender_address": ValidationError(
                 "Invalid email", code=PluginErrorCode.INVALID.value
             )
@@ -337,9 +323,9 @@ def validate_format_of_provided_templates(
     if not plugin_configuration.active:
         return
     compiler = pybars.Compiler()
-    errors = {}
+    errors: Dict[str, ValidationError] = {}
     for email_data in email_templates_data:
-        field = email_data.get("name")
+        field: str = email_data["name"]
         template_str = email_data.get("value")
         if not template_str or template_str == DEFAULT_EMAIL_VALUE:
             continue

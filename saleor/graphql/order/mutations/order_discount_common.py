@@ -2,7 +2,9 @@ import graphene
 from django.core.exceptions import ValidationError
 from prices import Money
 
+from ....order import models
 from ....order.error_codes import OrderErrorCode
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...discount.enums import DiscountValueTypeEnum
@@ -28,7 +30,7 @@ class OrderDiscountCommon(BaseMutation):
         abstract = True
 
     @classmethod
-    def validate_order(cls, info, order):
+    def validate_order(cls, _info: ResolveInfo, order: models.Order) -> models.Order:
         if not (order.is_draft() or order.is_unconfirmed()):
             error_msg = "Only draft and unconfirmed order can be modified."
             raise ValidationError(
@@ -38,6 +40,7 @@ class OrderDiscountCommon(BaseMutation):
                     )
                 }
             )
+        return order
 
     @classmethod
     def _validation_error_for_input_value(

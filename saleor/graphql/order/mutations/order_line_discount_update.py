@@ -2,10 +2,12 @@ import copy
 
 import graphene
 
-from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....order.utils import invalidate_order_prices, update_discount_for_order_line
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.types import OrderError
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -35,7 +37,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         error_type_field = "order_errors"
 
     @classmethod
-    def validate(cls, info, order, order_line, input):
+    def validate(cls, info: ResolveInfo, order, order_line, input):
         cls.validate_order(info, order)
         input["value"] = input.get("value") or order_line.unit_discount_value
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
@@ -45,42 +47,36 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         )
 
     @classmethod
-    @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, **data):
-
-        order_line = cls.get_node_or_error(
-            info, data.get("order_line_id"), only_type=OrderLine
-        )
-        input = data.get("input")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, order_line_id, input
+    ):
+        order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
         cls.validate(info, order, order_line, input)
         reason = input.get("reason")
         value_type = input.get("value_type")
         value = input.get("value")
-
         order_line_before_update = copy.deepcopy(order_line)
-        tax_included = info.context.site.settings.include_taxes_in_prices
-
-        update_discount_for_order_line(
-            order_line,
-            order=order,
-            reason=reason,
-            value_type=value_type,
-            value=value,
-            manager=info.context.plugins,
-            tax_included=tax_included,
-        )
-        if (
-            order_line_before_update.unit_discount_value != value
-            or order_line_before_update.unit_discount_type != value_type
-        ):
-            # Create event only when we change type or value of the discount
-            events.order_line_discount_updated_event(
+        app = get_app_promise(info.context).get()
+        with traced_atomic_transaction():
+            update_discount_for_order_line(
+                order_line,
                 order=order,
-                user=info.context.user,
-                app=info.context.app,
-                line=order_line,
-                line_before_update=order_line_before_update,
+                reason=reason,
+                value_type=value_type,
+                value=value,
             )
-            invalidate_order_prices(order, save=True)
+            if (
+                order_line_before_update.unit_discount_value != value
+                or order_line_before_update.unit_discount_type != value_type
+            ):
+                # Create event only when we change type or value of the discount
+                events.order_line_discount_updated_event(
+                    order=order,
+                    user=info.context.user,
+                    app=app,
+                    line=order_line,
+                    line_before_update=order_line_before_update,
+                )
+                invalidate_order_prices(order, save=True)
         return OrderLineDiscountUpdate(order_line=order_line, order=order)

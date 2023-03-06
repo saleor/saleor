@@ -15,7 +15,6 @@ def add_relations_between_existing_channels_and_shipping_zones(apps, schema_edit
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("shipping", "0028_auto_20210308_1135"),

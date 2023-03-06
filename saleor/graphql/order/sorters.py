@@ -19,10 +19,10 @@ class OrderSortField(graphene.Enum):
     @property
     def description(self):
         descriptions = {
-            OrderSortField.RANK.name: (
+            OrderSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "rank. Note: This option is available only with the `search` filter."
             ),
-            OrderSortField.CREATION_DATE.name: (
+            OrderSortField.CREATION_DATE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 f"creation date. {DEPRECATED_IN_3X_INPUT}"
             ),
         }
@@ -34,7 +34,7 @@ class OrderSortField(graphene.Enum):
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort orders by {sort_name}."
 
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:

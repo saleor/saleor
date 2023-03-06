@@ -221,9 +221,12 @@ def test_send_request_email_change_email_task_custom_template(
     )
 
 
+@mock.patch(
+    "saleor.plugins.user_email.tasks.account_events.customer_email_changed_event"
+)
 @mock.patch("saleor.plugins.email_common.send_mail")
 def test_send_user_change_email_notification_task_default_template(
-    mocked_send_mail, user_email_dict_config, customer_user
+    mocked_send_mail, mocked_email_changed_task, user_email_dict_config, customer_user
 ):
     recipient_email = "user@example.com"
     payload = {
@@ -238,9 +241,16 @@ def test_send_user_change_email_notification_task_default_template(
     send_user_change_email_notification_task(
         recipient_email, payload, user_email_dict_config, "subject", "template"
     )
-
+    expected_task_payload = {
+        "old_email": payload["old_email"],
+        "new_email": payload["new_email"],
+    }
     # confirm that mail has correct structure and email was sent
     assert mocked_send_mail.called
+    # confirm that email changed task was triggered
+    assert mocked_email_changed_task.called_once_with(
+        customer_user.id, expected_task_payload
+    )
 
 
 @mock.patch("saleor.plugins.user_email.tasks.send_email")
@@ -1223,7 +1233,6 @@ def test_send_gift_card_email_task_by_user_resending(
         "requester_app_id": None,
         "recipient_email": recipient_email,
         "resending": True,
-        "recipient_email": recipient_email,
         "gift_card": {
             "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
@@ -1276,14 +1285,12 @@ def test_send_gift_card_email_task_by_app(
         "requester_app_id": to_global_id_or_none(app),
         "recipient_email": recipient_email,
         "resending": False,
-        "recipient_email": recipient_email,
         "gift_card": {
             "id": to_global_id_or_none(gift_card),
             "code": gift_card.code,
             "balance": gift_card.current_balance_amount,
             "currency": gift_card.currency,
         },
-        "recipient_email": recipient_email,
     }
 
     user_email_plugin(

@@ -3,14 +3,13 @@ from unittest.mock import patch
 
 import graphene
 import pytest
-from django.contrib.auth.models import Group
 from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....account.error_codes import PermissionGroupErrorCode
-from ....account.models import User
-from ....core.permissions import AccountPermissions, AppPermission, OrderPermissions
+from ....account.models import Group, User
 from ....core.utils.json_serializer import CustomJsonEncoder
+from ....permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
 from ...tests.utils import (

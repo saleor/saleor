@@ -1,6 +1,7 @@
 from collections import defaultdict
 from datetime import date
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, DefaultDict, Iterable, List, Optional
+from uuid import UUID
 
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
@@ -10,9 +11,9 @@ from django.utils import timezone
 from ..checkout.models import Checkout
 from ..core.exceptions import GiftCardNotApplicable
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.events import call_event
 from ..core.utils.promo_code import InvalidPromoCode, generate_promo_code
-from ..core.utils.validators import user_is_valid
-from ..order.actions import create_fulfillments
+from ..order.actions import OrderFulfillmentLineInfo, create_fulfillments
 from ..order.models import OrderLine
 from ..site import GiftCardSettingsExpiryType
 from . import GiftCardEvents, GiftCardLineData, events
@@ -34,8 +35,13 @@ def add_gift_card_code_to_checkout(
 ):
     """Add gift card data to checkout by code.
 
+    Raise ValidationError if email is not provided.
     Raise InvalidPromoCode if gift card cannot be applied.
     """
+    from ..checkout.checkout_cleaner import validate_checkout_email
+
+    validate_checkout_email(checkout)
+
     try:
         # only active gift card with currency the same as channel currency can be used
         gift_card = (
@@ -90,8 +96,6 @@ def fulfill_non_shippable_gift_cards(
     app: Optional["App"],
     manager: "PluginsManager",
 ):
-    if not user_is_valid(requestor_user):
-        requestor_user = None
     gift_card_lines = get_non_shippable_gift_card_lines(order_lines)
     if not gift_card_lines:
         return
@@ -121,7 +125,9 @@ def fulfill_gift_card_lines(
     settings: "SiteSettings",
     manager: "PluginsManager",
 ):
-    lines_for_warehouses = defaultdict(list)
+    lines_for_warehouses: DefaultDict[
+        UUID, List[OrderFulfillmentLineInfo]
+    ] = defaultdict(list)
     channel_slug = order.channel.slug
     for line in gift_card_lines.prefetch_related(
         "allocations__stock", "variant__stocks"
@@ -130,7 +136,7 @@ def fulfill_gift_card_lines(
             for allocation in allocations:
                 quantity = allocation.quantity_allocated
                 if quantity > 0:
-                    warehouse_pk = str(allocation.stock.warehouse_id)
+                    warehouse_pk = allocation.stock.warehouse_id
                     lines_for_warehouses[warehouse_pk].append(
                         {"order_line": line, "quantity": quantity}
                     )
@@ -140,7 +146,7 @@ def fulfill_gift_card_lines(
                 raise GiftCardNotApplicable(
                     message="Lack of gift card stock for checkout channel.",
                 )
-            warehouse_pk = str(stock.warehouse_id)
+            warehouse_pk = stock.warehouse_id
             lines_for_warehouses[warehouse_pk].append(
                 {"order_line": line, "quantity": line.quantity}
             )
@@ -175,10 +181,10 @@ def gift_cards_create(
         order_line = line_data.order_line
         price = order_line.unit_price_gross
         line_gift_cards = [
-            GiftCard(  # type: ignore
+            GiftCard(  # type: ignore[misc] # see below:
                 code=generate_promo_code(),
-                initial_balance=price,
-                current_balance=price,
+                initial_balance=price,  # money field not supported by mypy_django_plugin # noqa: E501
+                current_balance=price,  # money field not supported by mypy_django_plugin # noqa: E501
                 created_by=customer_user,
                 created_by_email=user_email,
                 product=line_data.variant.product if line_data.variant else None,
@@ -193,6 +199,9 @@ def gift_cards_create(
 
     gift_cards = GiftCard.objects.bulk_create(gift_cards)
     events.gift_cards_bought_event(gift_cards, order, requestor_user, app)
+
+    for gift_card in gift_cards:
+        call_event(manager.gift_card_created, gift_card)
 
     channel_slug = order.channel.slug
     # send to customer all non-shippable gift cards
@@ -217,7 +226,7 @@ def calculate_expiry_date(settings):
     if settings.gift_card_expiry_type == GiftCardSettingsExpiryType.EXPIRY_PERIOD:
         expiry_period_type = settings.gift_card_expiry_period_type
         time_delta = {f"{expiry_period_type}s": settings.gift_card_expiry_period}
-        expiry_date = today + relativedelta(**time_delta)  # type: ignore
+        expiry_date = today + relativedelta(**time_delta)
     return expiry_date
 
 
@@ -244,7 +253,7 @@ def send_gift_cards_to_customer(
 
 
 def deactivate_order_gift_cards(
-    order_id: int, user: Optional["User"], app: Optional["App"]
+    order_id: UUID, user: Optional["User"], app: Optional["App"]
 ):
     gift_card_events = GiftCardEvent.objects.filter(
         type=GiftCardEvents.BOUGHT, order_id=order_id

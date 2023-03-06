@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0116_auto_20211207_0705"),
         ("order", "0121_order_search_document"),

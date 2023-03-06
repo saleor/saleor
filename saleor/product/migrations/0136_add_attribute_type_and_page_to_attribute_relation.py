@@ -10,7 +10,6 @@ def set_product_type_to_all_existing_attributes(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("page", "0017_pagetype"),
         ("product", "0135_collection_channel_listing"),

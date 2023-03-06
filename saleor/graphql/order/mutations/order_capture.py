@@ -1,30 +1,40 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
 from ....order.actions import order_captured
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, TransactionKind, gateway
+from ....payment import models as payment_models
 from ....payment.gateway import request_charge_action
+from ....permission.enums import OrderPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
 
-def clean_order_capture(payment):
-    clean_payment(payment)
+def clean_order_capture(
+    payment: Optional[payment_models.Payment],
+) -> payment_models.Payment:
+    payment = clean_payment(payment)
     if not payment.is_active:
         raise ValidationError(
             {
                 "payment": ValidationError(
                     "Only pre-authorized payments can be captured",
-                    code=OrderErrorCode.CAPTURE_INACTIVE_PAYMENT,
+                    code=OrderErrorCode.CAPTURE_INACTIVE_PAYMENT.value,
                 )
             }
         )
+    return payment
 
 
 class OrderCapture(BaseMutation):
@@ -43,19 +53,23 @@ class OrderCapture(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, amount, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, amount, id: str
+    ):
         if amount <= 0:
             raise ValidationError(
                 {
                     "amount": ValidationError(
                         "Amount should be a positive number.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
 
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+        order = cls.get_node_or_error(info, id, only_type=Order)
 
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -63,43 +77,44 @@ class OrderCapture(BaseMutation):
                 payment_transaction = payment_transactions[-1]
                 request_charge_action(
                     transaction=payment_transaction,
-                    manager=info.context.plugins,
+                    manager=manager,
                     charge_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
                     str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK,
+                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
                 )
         else:
             order_info = fetch_order_info(order)
             payment = order_info.payment
-            clean_order_capture(payment)
+            payment = clean_order_capture(payment)
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.capture,
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
             )
-            order_info.payment.refresh_from_db()
+            payment.refresh_from_db()
             # Confirm that we changed the status to capture. Some payment can receive
             # asynchronous webhook with update status
             if transaction.kind == TransactionKind.CAPTURE:
+                site = get_site_promise(info.context).get()
                 order_captured(
                     order_info,
                     info.context.user,
-                    info.context.app,
+                    app,
                     amount,
                     payment,
-                    info.context.plugins,
-                    info.context.site.settings,
+                    manager,
+                    site.settings,
                 )
         return OrderCapture(order=order)

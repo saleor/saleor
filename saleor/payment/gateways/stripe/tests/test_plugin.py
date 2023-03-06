@@ -20,7 +20,6 @@ from ..consts import (
     AUTOMATIC_CAPTURE_METHOD,
     MANUAL_CAPTURE_METHOD,
     PROCESSING_STATUS,
-    STRIPE_API_VERSION,
     SUCCESS_STATUS,
 )
 
@@ -211,7 +210,6 @@ def test_process_payment(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
     assert not mocked_customer.called
 
@@ -279,13 +277,11 @@ def test_process_payment_with_customer(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -379,13 +375,11 @@ def test_process_payment_with_customer_and_future_usage(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -458,13 +452,11 @@ def test_process_payment_with_customer_and_future_usage_no_store(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -557,13 +549,11 @@ def test_process_payment_with_customer_and_payment_method(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -656,13 +646,11 @@ def test_process_payment_with_payment_method_types(
         },
         payment_method_types=["p24", "card"],
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -756,13 +744,11 @@ def test_process_payment_offline(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -861,13 +847,11 @@ def test_process_payment_with_customer_and_payment_method_raises_authentication_
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -941,13 +925,11 @@ def test_process_payment_with_customer_and_payment_method_raises_error(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
     mocked_customer_create.assert_called_once_with(
         api_key="secret_key",
         email=customer_user.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -956,9 +938,11 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     mocked_payment_intent,
     stripe_plugin,
     payment_stripe_for_checkout,
-    site_settings,
     channel_USD,
 ):
+    channel_USD.automatically_confirm_all_new_orders = False
+    channel_USD.save()
+
     payment_intent = Mock()
     mocked_payment_intent.return_value = payment_intent
     client_secret = "client-secret"
@@ -976,8 +960,7 @@ def test_process_payment_with_disabled_order_auto_confirmation(
     payment_info = create_payment_information(
         payment_stripe_for_checkout,
     )
-    site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save()
+
     response = plugin.process_payment(payment_info, None)
 
     assert response.is_success is True
@@ -1004,7 +987,6 @@ def test_process_payment_with_disabled_order_auto_confirmation(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -1060,7 +1042,6 @@ def test_process_payment_with_manual_capture(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -1101,7 +1082,6 @@ def test_process_payment_with_error(
             "payment_id": payment_info.graphql_payment_id,
         },
         receipt_email=payment_stripe_for_checkout.checkout.email,
-        stripe_version=STRIPE_API_VERSION,
     )
 
 
@@ -1266,7 +1246,6 @@ def test_confirm_payment_intent_with_details(
 def test_confirm_payment_incorrect_payment_intent(
     mocked_intent_retrieve, stripe_plugin, payment_stripe_for_checkout
 ):
-
     gateway_response = {
         "id": "evt_1Ip9ANH1Vac4G4dbE9ch7zGS",
     }

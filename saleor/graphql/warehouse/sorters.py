@@ -11,7 +11,7 @@ class WarehouseSortField(graphene.Enum):
         if self.name in WarehouseSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort warehouses by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class WarehouseSortingInput(SortInputObjectType):

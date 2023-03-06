@@ -2,13 +2,12 @@
 from datetime import date
 from decimal import Decimal
 from operator import attrgetter
-from typing import TYPE_CHECKING, Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models.deletion import SET_NULL
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django_countries.fields import Country, CountryField
@@ -17,16 +16,16 @@ from prices import Money
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.permissions import CheckoutPermissions
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
+from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django_measurement import Weight
 
+    from ..order.fetch import OrderLineInfo
     from ..payment.models import Payment
     from ..product.models import ProductVariant
     from .fetch import CheckoutLineInfo
@@ -36,7 +35,7 @@ def get_default_country():
     return settings.DEFAULT_COUNTRY
 
 
-class Checkout(ModelWithMetadata):
+class Checkout(models.Model):
     """A shopping checkout."""
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -159,12 +158,15 @@ class Checkout(ModelWithMetadata):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
 
-    class Meta(ModelWithMetadata.Meta):
+    tax_exemption = models.BooleanField(default=False)
+
+    class Meta:
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
+            (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
 
     def __iter__(self):
@@ -179,18 +181,28 @@ class Checkout(ModelWithMetadata):
 
     def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.active(date=date.today()).aggregate(  # type: ignore
+        balance = self.gift_cards.active(  # type: ignore[attr-defined] # problem with django-stubs detecting the correct manager # noqa: E501
+            date=date.today()
+        ).aggregate(
             models.Sum("current_balance_amount")
-        )["current_balance_amount__sum"]
+        )[
+            "current_balance_amount__sum"
+        ]
         if balance is None:
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_total_weight(self, lines: Iterable["CheckoutLineInfo"]) -> "Weight":
+    def get_total_weight(
+        self, lines: Union[Iterable["CheckoutLineInfo"], Iterable["OrderLineInfo"]]
+    ) -> "Weight":
+        # FIXME: it does not make sense for this method to live in the Checkout model
+        # since it's used in the Order model as well. We should move it to a separate
+        # helper.
         weights = zero_weight()
         for checkout_line_info in lines:
             line = checkout_line_info.line
-            weights += line.variant.get_weight() * line.quantity
+            if line.variant:
+                weights += line.variant.get_weight() * line.quantity
         return weights
 
     def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:
@@ -298,3 +310,11 @@ class CheckoutLine(ModelWithMetadata):
     def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()
+
+
+# Checkout metadata is moved to separate model so it can be used when checkout model is
+# locked by select_for_update during complete_checkout.
+class CheckoutMetadata(ModelWithMetadata):
+    checkout = models.OneToOneField(
+        Checkout, related_name="metadata_storage", on_delete=models.CASCADE
+    )

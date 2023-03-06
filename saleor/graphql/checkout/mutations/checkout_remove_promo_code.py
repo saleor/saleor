@@ -12,14 +12,17 @@ from ....checkout.utils import (
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...discount.dataloaders import load_discounts
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -62,6 +65,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         cls,
         _root,
         info,
+        /,
         checkout_id=None,
         token=None,
         id=None,
@@ -69,24 +73,16 @@ class CheckoutRemovePromoCode(BaseMutation):
         promo_code_id=None,
     ):
         validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "promo_code", promo_code, "promo_code_id", promo_code_id
+            "promo_code", promo_code, "promo_code_id", promo_code_id
         )
 
         object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
 
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
-        manager = info.context.plugins
-        checkout_info = fetch_checkout_info(
-            checkout, [], info.context.discounts, manager
-        )
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
         removed = False
         if promo_code:
@@ -102,11 +98,11 @@ class CheckoutRemovePromoCode(BaseMutation):
                 checkout_info,
                 lines,
                 manager,
-                info.context.discounts,
+                discounts,
                 recalculate_discount=False,
                 save=True,
             )
-            manager.checkout_updated(checkout)
+            cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutRemovePromoCode(checkout=checkout)
 
@@ -141,7 +137,11 @@ class CheckoutRemovePromoCode(BaseMutation):
 
     @classmethod
     def remove_promo_code_by_id(
-        cls, info, checkout: models.Checkout, object_type: str, promo_code_pk: int
+        cls,
+        info: ResolveInfo,
+        checkout: models.Checkout,
+        object_type: str,
+        promo_code_pk: int,
     ) -> bool:
         """Detach promo code from the checkout based on the id.
 

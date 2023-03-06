@@ -1,9 +1,11 @@
+from typing import Union
+
 import graphene
+from django.db.models import QuerySet
 from graphene import relay
 
-from ...core.permissions import ShippingPermissions
-from ...core.tracing import traced_resolver
 from ...core.weight import convert_weight_to_default_weight_unit
+from ...permission.enums import CheckoutPermissions, ShippingPermissions
 from ...product import models as product_models
 from ...shipping import models
 from ...shipping.interface import ShippingMethodData
@@ -25,6 +27,7 @@ from ..core.descriptions import (
     RICH_CONTENT,
 )
 from ..core.fields import ConnectionField, JSONString, PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import (
     CountryDisplay,
     ModelObjectType,
@@ -35,6 +38,8 @@ from ..core.types import (
 )
 from ..meta.types import ObjectWithMetadata
 from ..shipping.resolvers import resolve_price_range, resolve_shipping_translation
+from ..tax.dataloaders import TaxClassByIdLoader
+from ..tax.types import TaxClass
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from ..warehouse.types import Warehouse
@@ -49,7 +54,9 @@ from .dataloaders import (
 from .enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 
-class ShippingMethodChannelListing(ModelObjectType):
+class ShippingMethodChannelListing(
+    ModelObjectType[models.ShippingMethodChannelListing]
+):
     id = graphene.GlobalID(required=True)
     channel = graphene.Field(Channel, required=True)
     maximum_order_price = graphene.Field(Money)
@@ -73,7 +80,9 @@ class ShippingMethodChannelListing(ModelObjectType):
             return root.minimum_order_price
 
 
-class ShippingMethodPostalCodeRule(ModelObjectType):
+class ShippingMethodPostalCodeRule(
+    ModelObjectType[models.ShippingMethodPostalCodeRule]
+):
     start = graphene.String(description="Start address range.")
     end = graphene.String(description="End address range.")
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
@@ -137,6 +146,15 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     )
     minimum_delivery_days = graphene.Int(
         description="Minimal number of days for delivery."
+    )
+    tax_class = PermissionsField(
+        TaxClass,
+        description="Tax class assigned to this shipping method.",
+        required=False,
+        permissions=[
+            CheckoutPermissions.MANAGE_TAXES,
+            ShippingPermissions.MANAGE_SHIPPING,
+        ],
     )
 
     class Meta:
@@ -214,17 +232,27 @@ class ShippingMethodType(ChannelContextTypeWithMetadataForObjectType):
     ):
         from ..product.types import ProductCountableConnection
 
+        qs: Union[QuerySet[product_models.Product], ChannelQsContext]
+
         if not root.node.excluded_products:
             qs = product_models.Product.objects.none()
         else:
             qs = ChannelQsContext(
-                qs=root.node.excluded_products.all(), channel_slug=None  # type: ignore
+                qs=root.node.excluded_products.all(), channel_slug=None
             )
 
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)
 
+    @staticmethod
+    def resolve_tax_class(root: ChannelContext[models.ShippingMethod], info):
+        return (
+            TaxClassByIdLoader(info.context).load(root.node.tax_class_id)
+            if root.node.tax_class_id
+            else None
+        )
 
-class ShippingZone(ChannelContextTypeWithMetadata, ModelObjectType):
+
+class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     default = graphene.Boolean(required=True)

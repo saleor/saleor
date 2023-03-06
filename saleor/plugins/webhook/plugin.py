@@ -11,7 +11,8 @@ from ...core.notify_events import NotifyEventType
 from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
-from ...payment.models import Payment
+from ...payment.models import Payment, TransactionItem
+from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -24,17 +25,20 @@ from ...webhook.payloads import (
     generate_invoice_payload,
     generate_list_gateways_payload,
     generate_meta,
+    generate_metadata_updated_payload,
     generate_order_payload,
     generate_order_payload_for_tax_calculation,
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
+    generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
     generate_sale_toggle_payload,
+    generate_thumbnail_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
 )
@@ -82,11 +86,13 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
     from ...shipping.interface import ShippingMethodData
     from ...shipping.models import ShippingMethod, ShippingZone
+    from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
 
@@ -117,6 +123,15 @@ class WebhookPlugin(BasePlugin):
 
     def _generate_meta(self):
         return generate_meta(requestor_data=generate_requestor(self.requestor))
+
+    def _trigger_metadata_updated_event(self, event_type, instance):
+        if webhooks := get_webhooks_for_event(event_type):
+            metadata_updated_data = generate_metadata_updated_payload(
+                instance, self.requestor
+            )
+            trigger_webhooks_async(
+                metadata_updated_data, event_type, webhooks, instance, self.requestor
+            )
 
     def _trigger_address_event(self, event_type, address):
         if webhooks := get_webhooks_for_event(event_type):
@@ -356,6 +371,15 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_gift_card_event(
             WebhookEventAsyncType.GIFT_CARD_DELETED, gift_card
+        )
+
+    def gift_card_metadata_updated(
+        self, gift_card: "GiftCard", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED, gift_card
         )
 
     def gift_card_status_changed(
@@ -598,6 +622,13 @@ class WebhookPlugin(BasePlugin):
                 order_data, event_type, webhooks, order, self.requestor
             )
 
+    def order_metadata_updated(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.ORDER_METADATA_UPDATED, order
+        )
+
     def draft_order_created(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -658,6 +689,13 @@ class WebhookPlugin(BasePlugin):
                 fulfillment_data, event_type, webhooks, fulfillment, self.requestor
             )
 
+    def fulfillment_metadata_updated(self, fulfillment: "Fulfillment", previous_value):
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.FULFILLMENT_METADATA_UPDATED, fulfillment
+        )
+
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -687,6 +725,13 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 customer_data, event_type, webhooks, customer, self.requestor
             )
+
+    def customer_metadata_updated(self, customer: "User", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED, customer
+        )
 
     def collection_created(self, collection: "Collection", previous_value: Any) -> Any:
         if not self.active:
@@ -718,6 +763,15 @@ class WebhookPlugin(BasePlugin):
                 collection_data, event_type, webhooks, collection, self.requestor
             )
 
+    def collection_metadata_updated(
+        self, collection: "Collection", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.COLLECTION_METADATA_UPDATED, collection
+        )
+
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -738,6 +792,13 @@ class WebhookPlugin(BasePlugin):
                 product_data, event_type, webhooks, product, self.requestor
             )
 
+    def product_metadata_updated(self, product: "Product", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.PRODUCT_METADATA_UPDATED, product
+        )
+
     def product_deleted(
         self, product: "Product", variants: List[int], previous_value: Any
     ) -> Any:
@@ -753,6 +814,48 @@ class WebhookPlugin(BasePlugin):
                 event_type,
                 webhooks,
                 product,
+                self.requestor,
+            )
+
+    def product_media_created(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_updated(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_deleted(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
                 self.requestor,
             )
 
@@ -810,6 +913,15 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    def product_variant_metadata_updated(
+        self, product_variant: "ProductVariant", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.PRODUCT_VARIANT_METADATA_UPDATED, product_variant
+        )
+
     def product_variant_out_of_stock(self, stock: "Stock", previous_value: Any) -> Any:
         if not self.active:
             return previous_value
@@ -824,6 +936,18 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         event_type = WebhookEventAsyncType.PRODUCT_VARIANT_BACK_IN_STOCK
+        if webhooks := get_webhooks_for_event(event_type):
+            product_variant_data = generate_product_variant_with_stock_payload(
+                [stock], self.requestor
+            )
+            trigger_webhooks_async(
+                product_variant_data, event_type, webhooks, stock, self.requestor
+            )
+
+    def product_variant_stock_updated(self, stock: "Stock", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_VARIANT_STOCK_UPDATED
         if webhooks := get_webhooks_for_event(event_type):
             product_variant_data = generate_product_variant_with_stock_payload(
                 [stock], self.requestor
@@ -851,6 +975,15 @@ class WebhookPlugin(BasePlugin):
             trigger_webhooks_async(
                 checkout_data, event_type, webhooks, checkout, self.requestor
             )
+
+    def checkout_metadata_updated(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED, checkout
+        )
 
     def notify(
         self, event: Union[NotifyEventType, str], payload: dict, previous_value
@@ -1049,6 +1182,15 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.SHIPPING_ZONE_DELETED, shipping_zone
         )
 
+    def shipping_zone_metadata_updated(
+        self, shipping_zone: "ShippingZone", previous_value: Any
+    ) -> Any:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.SHIPPING_ZONE_METADATA_UPDATED, shipping_zone
+        )
+
     def _trigger_staff_event(self, event_type, staff_user):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
@@ -1076,6 +1218,23 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
+
+    def thumbnail_created(
+        self,
+        thumbnail: Thumbnail,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            thumbnail_data = generate_thumbnail_payload(thumbnail)
+            trigger_webhooks_async(
+                data=thumbnail_data,
+                event_type=event_type,
+                webhooks=webhooks,
+                subscribable_object=thumbnail,
+            )
 
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
@@ -1130,6 +1289,15 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.WAREHOUSE_DELETED, warehouse
         )
 
+    def warehouse_metadata_updated(
+        self, warehouse: "Warehouse", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED, warehouse
+        )
+
     def _trigger_voucher_event(self, event_type, voucher):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
@@ -1158,6 +1326,15 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         self._trigger_voucher_event(WebhookEventAsyncType.VOUCHER_DELETED, voucher)
+
+    def voucher_metadata_updated(
+        self, voucher: "Voucher", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.VOUCHER_METADATA_UPDATED, voucher
+        )
 
     def event_delivery_retry(self, delivery: "EventDelivery", previous_value: Any):
         if not self.active:
@@ -1189,7 +1366,7 @@ class WebhookPlugin(BasePlugin):
         transaction_kind: str,
         payment_information: "PaymentData",
         previous_value,
-        **kwargs
+        **kwargs,
     ) -> "GatewayResponse":
         """Trigger payment webhook event.
 
@@ -1278,6 +1455,15 @@ class WebhookPlugin(BasePlugin):
                 gateways.extend(app_gateways)
         return gateways
 
+    def transaction_item_metadata_updated(
+        self, transaction_item: "TransactionItem", previous_value: None
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_metadata_updated_event(
+            WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED, transaction_item
+        )
+
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value, **kwargs
     ) -> "GatewayResponse":
@@ -1354,6 +1540,9 @@ class WebhookPlugin(BasePlugin):
                 lines,
             ),
             parse_tax_data,
+            checkout_info.checkout,
+            self.requestor,
+            self.allow_replica,
         )
 
     def get_taxes_for_order(
@@ -1363,6 +1552,9 @@ class WebhookPlugin(BasePlugin):
             WebhookEventSyncType.ORDER_CALCULATE_TAXES,
             lambda: generate_order_payload_for_tax_calculation(order),
             parse_tax_data,
+            order,
+            self.requestor,
+            self.allow_replica,
         )
 
     def get_shipping_methods_for_checkout(
@@ -1388,7 +1580,7 @@ class WebhookPlugin(BasePlugin):
         return methods
 
     def get_tax_code_from_object_meta(
-        self, obj: Union["Product", "ProductType"], previous_value: Any
+        self, obj: Union["Product", "ProductType", "TaxClass"], previous_value: Any
     ):
         """Get tax code and description for a product or product type.
 

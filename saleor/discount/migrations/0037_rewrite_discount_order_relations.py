@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0131_change_pk_to_uuid"),
         ("discount", "0036_save_discocunt_order_token"),

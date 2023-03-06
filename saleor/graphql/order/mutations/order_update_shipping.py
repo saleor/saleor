@@ -1,16 +1,17 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....core.permissions import OrderPermissions
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import zero_money, zero_taxed_money
 from ....order import models
-from ....order.actions import order_shipping_updated
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
+from ....permission.enums import OrderPermissions
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
 from .utils import EditableOrderValidationMixin, clean_order_update_shipping
@@ -49,10 +50,12 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
         order = cls.get_node_or_error(
             info,
-            data.get("id"),
+            id,
             only_type=Order,
             qs=models.Order.objects.prefetch_related(
                 "lines", "channel__shipping_method_listings"
@@ -60,43 +63,46 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         )
         cls.validate_order(order)
 
-        data = data.get("input")
-
-        if "shipping_method" not in data:
+        if "shipping_method" not in input:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
                         "Shipping method must be provided to perform mutation.",
-                        code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                        code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                     )
                 }
             )
 
-        if not data.get("shipping_method"):
+        if not input.get("shipping_method"):
             if not order.is_draft() and order.is_shipping_required():
                 raise ValidationError(
                     {
                         "shipping_method": ValidationError(
                             "Shipping method is required for this order.",
-                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                         )
                     }
                 )
 
             # Shipping method is detached only when null is passed in input.
-            if data["shipping_method"] == "":
+            if input["shipping_method"] == "":
                 raise ValidationError(
                     {
                         "shipping_method": ValidationError(
                             "Shipping method cannot be empty.",
-                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                         )
                     }
                 )
 
             order.shipping_method = None
+            order.base_shipping_price = zero_money(order.currency)
             order.shipping_price = zero_taxed_money(order.currency)
             order.shipping_method_name = None
+            order.shipping_tax_class = None
+            order.shipping_tax_class_name = None
+            order.shipping_tax_class_private_metadata = {}
+            order.shipping_tax_class_metadata = {}
             invalidate_order_prices(order)
             order.save(
                 update_fields=[
@@ -104,16 +110,23 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                     "shipping_method",
                     "shipping_price_net_amount",
                     "shipping_price_gross_amount",
+                    "base_shipping_price_amount",
                     "shipping_method_name",
+                    "shipping_tax_class",
+                    "shipping_tax_class_name",
+                    "shipping_tax_class_private_metadata",
+                    "shipping_tax_class_metadata",
+                    "shipping_tax_rate",
                     "should_refresh_prices",
                     "updated_at",
                 ]
             )
             return OrderUpdateShipping(order=order)
 
-        method = cls.get_node_or_error(
+        method_id: str = input["shipping_method"]
+        method: shipping_models.ShippingMethod = cls.get_node_or_error(
             info,
-            data["shipping_method"],
+            method_id,
             field="shipping_method",
             only_type=ShippingMethod,
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
@@ -139,21 +152,35 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             method,
             shipping_channel_listing,
         )
-        clean_order_update_shipping(order, shipping_method_data, info.context.plugins)
+        manager = get_plugin_manager_promise(info.context).get()
+        clean_order_update_shipping(order, shipping_method_data, manager)
 
         order.shipping_method = method
-
         order.shipping_method_name = method.name
+
+        tax_class = method.tax_class
+        if tax_class:
+            order.shipping_tax_class = tax_class
+            order.shipping_tax_class_name = tax_class.name
+            order.shipping_tax_class_private_metadata = tax_class.private_metadata
+            order.shipping_tax_class_metadata = tax_class.metadata
+
+        order.base_shipping_price = shipping_method_data.price
         invalidate_order_prices(order)
         order.save(
             update_fields=[
                 "currency",
                 "shipping_method",
                 "shipping_method_name",
+                "shipping_tax_class",
+                "shipping_tax_class_name",
+                "shipping_tax_class_private_metadata",
+                "shipping_tax_class_metadata",
+                "base_shipping_price_amount",
                 "should_refresh_prices",
                 "updated_at",
             ]
         )
         # Post-process the results
-        order_shipping_updated(order, info.context.plugins)
+        cls.call_event(manager.order_updated, order)
         return OrderUpdateShipping(order=order)

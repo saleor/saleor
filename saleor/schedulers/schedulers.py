@@ -1,7 +1,7 @@
 import copy
 import logging
 import time
-from typing import List, NamedTuple
+from typing import Any, List, NamedTuple, Optional
 
 import celery.beat
 import celery.schedules
@@ -50,17 +50,17 @@ class CustomModelEntry(ModelEntry):
     @classmethod
     def from_entry(cls, name, app=None, **entry):
         # Super method has 'PeriodicTask' hardcoded
-        return cls(
-            models.CustomPeriodicTask._default_manager.update_or_create(
-                name=name,
-                defaults=cls._unpack_fields(**entry),
-            ),
-            app=app,
+        obj, created = models.CustomPeriodicTask._default_manager.update_or_create(
+            name=name,
+            defaults=cls._unpack_fields(**entry),
         )
+        return cls(obj, app=app)
 
 
 class BaseScheduler(celery.beat.Scheduler):
     """Define the base scheduler for Celery beat."""
+
+    old_schedulers: Optional[Any]
 
     def tick(
         self,
@@ -92,8 +92,7 @@ class BaseScheduler(celery.beat.Scheduler):
             self.old_schedulers = copy.copy(self.schedule)
             self.populate_heap()
 
-        H: List[HeapEventType] = self._heap
-
+        H: Optional[List[HeapEventType]] = self._heap
         if not H:
             return max_interval
 

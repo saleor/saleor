@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0066_auto_20180803_0528"),
         ("site", "0018_sitesettings_homepage_collection"),

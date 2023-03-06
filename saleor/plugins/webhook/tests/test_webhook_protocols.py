@@ -63,6 +63,10 @@ def test_trigger_webhooks_with_aws_sqs(
         "QueueUrl": f"https://sqs.us-east-1.amazonaws.com/account_id/{queue_name}",
         "MessageAttributes": {
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorApiUrl": {
+                "DataType": "String",
+                "StringValue": "http://mirumee.com/graphql/",
+            },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
@@ -128,6 +132,10 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         QueueUrl="https://sqs.us-east-1.amazonaws.com/account_id/queue_name",
         MessageAttributes={
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorApiUrl": {
+                "DataType": "String",
+                "StringValue": "http://mirumee.com/graphql/",
+            },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
@@ -162,6 +170,7 @@ def test_trigger_webhooks_with_google_pub_sub(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
         saleorDomain="mirumee.com",
+        saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -198,6 +207,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
         "projects/saleor/topics/test",
         message.encode("utf-8"),
         saleorDomain="mirumee.com",
+        saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -241,6 +251,7 @@ def test_trigger_webhooks_with_http(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -284,6 +295,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -325,6 +337,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     signature_headers = jwt.get_unverified_header(expected_signature)
@@ -339,3 +352,38 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         headers=expected_headers,
         timeout=10,
     )
+
+
+@patch("saleor.plugins.webhook.tasks.requests.post")
+def test_trigger_webhooks_with_http_and_custom_headers(
+    mock_request, webhook, order_with_lines, permission_manage_orders
+):
+    # given
+    webhook.app.permissions.add(permission_manage_orders)
+    webhook.custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    webhook.secret_key = ""
+    webhook.save()
+
+    expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
+    expected_headers = {
+        "Content-Type": "application/json",
+        "X-Saleor-Event": "order_created",
+        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Signature": expected_signature,
+        "Saleor-Event": "order_created",
+        "Saleor-Domain": "mirumee.com",
+        "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "X-Key": "Value",
+        "Authorization-Key": "Value",
+    }
+
+    # when
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
+
+    # then
+    mock_request.assert_called_once()
+    assert mock_request.call_args[1]["headers"] == expected_headers

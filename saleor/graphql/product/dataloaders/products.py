@@ -18,13 +18,14 @@ from ....product.models import (
     VariantMedia,
 )
 from ....thumbnail.models import Thumbnail
+from ....thumbnail.utils import get_thumbnail_format
 from ...core.dataloaders import DataLoader
 
 ProductIdAndChannelSlug = Tuple[int, str]
 VariantIdAndChannelSlug = Tuple[int, str]
 
 
-class CategoryByIdLoader(DataLoader):
+class CategoryByIdLoader(DataLoader[int, Category]):
     context_key = "category_by_id"
 
     def batch_load(self, keys):
@@ -32,7 +33,7 @@ class CategoryByIdLoader(DataLoader):
         return [categories.get(category_id) for category_id in keys]
 
 
-class ProductByIdLoader(DataLoader):
+class ProductByIdLoader(DataLoader[int, Product]):
     context_key = "product_by_id"
 
     def batch_load(self, keys):
@@ -40,7 +41,7 @@ class ProductByIdLoader(DataLoader):
         return [products.get(product_id) for product_id in keys]
 
 
-class ProductByVariantIdLoader(DataLoader):
+class ProductByVariantIdLoader(DataLoader[int, Product]):
     context_key = "product_by_variant_id"
 
     def batch_load(self, keys):
@@ -86,7 +87,7 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
 ):
     context_key = "productchannelisting_by_product_and_channel"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[ProductIdAndChannelSlug]):
         # Split the list of keys by channel first. A typical query will only touch
         # a handful of unique countries but may access thousands of product variants
         # so it's cheaper to execute one query per channel.
@@ -130,7 +131,7 @@ class ProductChannelListingByProductIdAndChannelSlugLoader(
         ]
 
 
-class ProductTypeByIdLoader(DataLoader):
+class ProductTypeByIdLoader(DataLoader[int, ProductType]):
     context_key = "product_type_by_id"
 
     def batch_load(self, keys):
@@ -140,7 +141,7 @@ class ProductTypeByIdLoader(DataLoader):
         return [product_types.get(product_type_id) for product_type_id in keys]
 
 
-class MediaByProductIdLoader(DataLoader):
+class MediaByProductIdLoader(DataLoader[int, List[ProductMedia]]):
     context_key = "media_by_product"
 
     def batch_load(self, keys):
@@ -153,7 +154,7 @@ class MediaByProductIdLoader(DataLoader):
         return [media_map[product_id] for product_id in keys]
 
 
-class ImagesByProductIdLoader(DataLoader):
+class ImagesByProductIdLoader(DataLoader[int, List[ProductMedia]]):
     context_key = "images_by_product"
 
     def batch_load(self, keys):
@@ -167,7 +168,7 @@ class ImagesByProductIdLoader(DataLoader):
         return [images_map[product_id] for product_id in keys]
 
 
-class ProductVariantByIdLoader(DataLoader):
+class ProductVariantByIdLoader(DataLoader[int, ProductVariant]):
     context_key = "productvariant_by_id"
 
     def batch_load(self, keys):
@@ -177,7 +178,7 @@ class ProductVariantByIdLoader(DataLoader):
         return [variants.get(key) for key in keys]
 
 
-class ProductVariantsByProductIdLoader(DataLoader):
+class ProductVariantsByProductIdLoader(DataLoader[int, List[ProductVariant]]):
     context_key = "productvariants_by_product"
 
     def batch_load(self, keys):
@@ -192,10 +193,12 @@ class ProductVariantsByProductIdLoader(DataLoader):
         return [variant_map.get(product_id, []) for product_id in keys]
 
 
-class ProductVariantsByProductIdAndChannel(DataLoader):
+class ProductVariantsByProductIdAndChannel(
+    DataLoader[Tuple[int, str], List[ProductVariant]]
+):
     context_key = "productvariant_by_product_and_channel"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, str]]):
         product_ids, channel_slugs = zip(*keys)
         variants_filter = self.get_variants_filter(product_ids, channel_slugs)
 
@@ -204,9 +207,13 @@ class ProductVariantsByProductIdAndChannel(DataLoader):
             .filter(**variants_filter)
             .annotate(channel_slug=F("channel_listings__channel__slug"))
         )
-        variant_map = defaultdict(list)
+        variant_map: DefaultDict[Tuple[int, str], List[ProductVariant]] = defaultdict(
+            list
+        )
         for variant in variants.iterator():
-            variant_map[(variant.product_id, variant.channel_slug)].append(variant)
+            variant_map[
+                (variant.product_id, getattr(variant, "channel_slug", ""))  # annotation
+            ].append(variant)
 
         return [variant_map.get(key, []) for key in keys]
 
@@ -303,7 +310,8 @@ class VariantChannelListingByVariantIdAndChannelLoader(
             "price_amount__isnull": False,
         }
         variant_channel_listings = (
-            ProductVariantChannelListing.objects.using(self.database_connection_name)
+            ProductVariantChannelListing.objects.all()
+            .using(self.database_connection_name)
             .filter(**filter)
             .annotate_preorder_quantity_allocated()
         )
@@ -370,7 +378,8 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
         self, channel_slug: str, products_ids: Iterable[int]
     ) -> Iterable[Tuple[int, Optional[List[ProductVariantChannelListing]]]]:
         variants_channel_listings = (
-            ProductVariantChannelListing.objects.using(self.database_connection_name)
+            ProductVariantChannelListing.objects.all()
+            .using(self.database_connection_name)
             .filter(
                 channel__slug=channel_slug,
                 variant__product_id__in=products_ids,
@@ -383,9 +392,9 @@ class VariantsChannelListingByProductIdAndChannelSlugLoader(
             int, List[ProductVariantChannelListing]
         ] = defaultdict(list)
         for variant_channel_listing in variants_channel_listings.iterator():
-            variants_channel_listings_map[variant_channel_listing.product_id].append(
-                variant_channel_listing
-            )
+            variants_channel_listings_map[
+                getattr(variant_channel_listing, "product_id")  # annotation
+            ].append(variant_channel_listing)
 
         return [
             (products_id, variants_channel_listings_map.get(products_id, []))
@@ -640,19 +649,23 @@ class CategoryChildrenByCategoryIdLoader(DataLoader):
         return [parent_to_children_mapping.get(key, []) for key in keys]
 
 
-class BaseThumbnailBySizeAndFormatLoader(DataLoader):
-    model_name = None
+class BaseThumbnailBySizeAndFormatLoader(
+    DataLoader[Tuple[int, int, Optional[str]], Thumbnail]
+):
+    model_name: str
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, int, Optional[str]]]):
         model_name = self.model_name.lower()
         instance_ids = [id for id, _, _ in keys]
         lookup = {f"{model_name}_id__in": instance_ids}
         thumbnails = Thumbnail.objects.using(self.database_connection_name).filter(
             **lookup
         )
-        thumbnails_by_instance_id_size_and_format_map = defaultdict()
+        thumbnails_by_instance_id_size_and_format_map: DefaultDict[
+            Tuple[int, int, Optional[str]], Thumbnail
+        ] = defaultdict()
         for thumbnail in thumbnails:
-            format = thumbnail.format.lower() if thumbnail.format else None
+            format = get_thumbnail_format(thumbnail.format)
             thumbnails_by_instance_id_size_and_format_map[
                 (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
             ] = thumbnail

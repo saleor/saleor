@@ -9,7 +9,6 @@ import saleor.core.weight
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0010_auto_20180822_0720"),
         ("order", "0052_auto_20180822_0720"),

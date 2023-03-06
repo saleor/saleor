@@ -59,6 +59,21 @@ class ObjectTypeFilter(django_filters.Filter):
         super().__init__(*args, **kwargs)
 
 
+class DefaultOperationField(Field):
+    def validate(self, value):
+        if value and len(value) > 1:
+            raise ValidationError("Only one option can be specified.", code="invalid")
+        return super().validate(value)
+
+
+class OperationObjectTypeFilter(django_filters.Filter):
+    field_class = DefaultOperationField
+
+    def __init__(self, input_class, *args, **kwargs):
+        self.input_class = input_class
+        super().__init__(*args, **kwargs)
+
+
 def filter_created_at(qs, _, value):
     return filter_range_field(qs, "created_at", value)
 
@@ -80,6 +95,10 @@ def filter_metadata(qs, _, value):
         else:
             qs = qs.filter(metadata__has_key=metadata_item.key)
     return qs
+
+
+def filter_slug_list(qs, _, values):
+    return qs.filter(slug__in=values)
 
 
 class BaseJobFilter(django_filters.FilterSet):

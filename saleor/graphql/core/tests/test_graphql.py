@@ -1,10 +1,10 @@
 from functools import partial
+from unittest import mock
 from unittest.mock import Mock
 
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
-from django.shortcuts import reverse
+from django.urls import reverse
 from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
@@ -52,7 +52,7 @@ def test_jwt_middleware(client, admin_user):
     response = api_client_post(data={"query": user_details_query})
     repl_data = response.json()
     assert response.status_code == 200
-    assert isinstance(response.wsgi_request.user, AnonymousUser)
+    assert not response.wsgi_request.user
     assert repl_data["data"]["me"] is None
 
     # test creating a token for admin user
@@ -364,3 +364,27 @@ def test_from_global_id_or_error_wth_type(product):
 
     assert product_id == str(product.id)
     assert product_type == expected_product_type
+
+
+@mock.patch("saleor.graphql.order.schema.create_connection_slice")
+def test_query_allow_replica(
+    mocked_resolver, staff_api_client, order, permission_manage_orders
+):
+    # given
+    query = """
+        query {
+          orders(first: 5){
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+    """
+
+    # when
+    staff_api_client.post_graphql(query, permissions=[permission_manage_orders])
+
+    # then
+    assert mocked_resolver.call_args[0][1].context.allow_replica

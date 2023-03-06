@@ -12,17 +12,7 @@ from promise import Promise
 from ...account.models import Address
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
-from ...core.permissions import (
-    AccountPermissions,
-    AppPermission,
-    AuthorizationFilters,
-    OrderPermissions,
-    PaymentPermissions,
-    ProductPermissions,
-    has_one_of_permissions,
-)
 from ...core.prices import quantize_price
-from ...core.tracing import traced_resolver
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
@@ -36,17 +26,27 @@ from ...order.utils import (
 )
 from ...payment import ChargeStatus
 from ...payment.dataloaders import PaymentsByOrderIdLoader
-from ...payment.model_helpers import (
-    get_last_payment,
-    get_subtotal,
-    get_total_authorized,
+from ...payment.model_helpers import get_last_payment, get_total_authorized
+from ...permission.auth_filters import AuthorizationFilters
+from ...permission.enums import (
+    AccountPermissions,
+    AppPermission,
+    OrderPermissions,
+    PaymentPermissions,
+    ProductPermissions,
 )
+from ...permission.utils import has_one_of_permissions
 from ...product import ProductMediaTypes
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
-from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ...tax.utils import get_display_gross_prices
+from ...thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -63,6 +63,11 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_35,
+    ADDED_IN_38,
+    ADDED_IN_39,
+    ADDED_IN_310,
+    ADDED_IN_311,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -70,6 +75,7 @@ from ..core.enums import LanguageCodeEnum
 from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
+from ..core.tracing import traced_resolver
 from ..core.types import (
     Image,
     ModelObjectType,
@@ -89,9 +95,14 @@ from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
-from ..meta.types import ObjectWithMetadata
+from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
+from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
+from ..plugins.dataloaders import (
+    get_plugin_manager_promise,
+    plugin_manager_promise_callback,
+)
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -107,6 +118,12 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
+from ..tax.dataloaders import (
+    TaxClassByIdLoader,
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
+from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -114,6 +131,7 @@ from .dataloaders import (
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
+    OrderByNumberLoader,
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
@@ -205,7 +223,7 @@ class OrderEventOrderLineObject(graphene.ObjectType):
     )
 
 
-class OrderEvent(ModelObjectType):
+class OrderEvent(ModelObjectType[models.OrderEvent]):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -270,8 +288,12 @@ class OrderEvent(ModelObjectType):
 
     @staticmethod
     def resolve_user(root: models.OrderEvent, info):
+        user_or_app = get_user_or_app_from_context(info.context)
+        if not user_or_app:
+            return None
+        requester = user_or_app
+
         def _resolve_user(event_user):
-            requester = get_user_or_app_from_context(info.context)
             if (
                 requester == event_user
                 or requester.has_perm(AccountPermissions.MANAGE_USERS)
@@ -412,10 +434,19 @@ class OrderEvent(ModelObjectType):
 
     @staticmethod
     def resolve_related_order(root: models.OrderEvent, info):
-        order_pk = root.parameters.get("related_order_pk")
-        if not order_pk:
+        order_pk_or_number = root.parameters.get("related_order_pk")
+        if not order_pk_or_number:
             return None
-        return OrderByIdLoader(info.context).load(UUID(order_pk))
+
+        try:
+            # Orders that primary_key are not uuid are old int `id's`.
+            # In migration `order_0128`, before migrating old `id's` to uuid,
+            # old `id's` were saved to field `number`.
+            order_pk = UUID(order_pk_or_number)
+        except (AttributeError, ValueError):
+            return OrderByNumberLoader(info.context).load(order_pk_or_number)
+
+        return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -438,7 +469,7 @@ class OrderEventCountableConnection(CountableConnection):
         node = OrderEvent
 
 
-class FulfillmentLine(ModelObjectType):
+class FulfillmentLine(ModelObjectType[models.FulfillmentLine]):
     id = graphene.GlobalID(required=True)
     quantity = graphene.Int(required=True)
     order_line = graphene.Field(lambda: OrderLine)
@@ -453,7 +484,7 @@ class FulfillmentLine(ModelObjectType):
         return OrderLineByIdLoader(info.context).load(root.order_line_id)
 
 
-class Fulfillment(ModelObjectType):
+class Fulfillment(ModelObjectType[models.Fulfillment]):
     id = graphene.GlobalID(required=True)
     fulfillment_order = graphene.Int(required=True)
     status = FulfillmentStatusEnum(required=True)
@@ -511,7 +542,7 @@ class Fulfillment(ModelObjectType):
         )
 
 
-class OrderLine(ModelObjectType):
+class OrderLine(ModelObjectType[models.OrderLine]):
     id = graphene.GlobalID(required=True)
     product_name = graphene.String(required=True)
     variant_name = graphene.String(required=True)
@@ -582,19 +613,52 @@ class OrderLine(ModelObjectType):
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class of the product in this order line."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    tax_class_name = graphene.Field(
+        graphene.String,
+        description="Denormalized name of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+    )
+    tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description="Denormalized public metadata of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+    )
+    tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the tax class. Requires staff "
+            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         description = "Represents order line of particular order."
         model = models.OrderLine
         interfaces = [relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_35
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
+    def resolve_thumbnail(
+        root: models.OrderLine, info, *, size: int = 256, format: Optional[str] = None
+    ):
         if not root.variant_id:
             return None
 
-        format = format.lower() if format else None
+        format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
 
         def _get_image_from_media(image):
@@ -602,7 +666,7 @@ class OrderLine(ModelObjectType):
                 url = get_image_or_proxy_url(
                     thumbnail, image.id, "ProductMedia", size, format
                 )
-                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+                return Image(alt=image.alt, url=url)
 
             return (
                 ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -645,16 +709,18 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_unit_price(root: models.OrderLine, info):
         def _resolve_unit_price(data):
-            order, lines = data
+            order, lines, manager = data
             return calculations.order_line_unit(
-                order, root, info.context.plugins, lines
+                order, root, manager, lines
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
-        return Promise.all([order, lines]).then(_resolve_unit_price)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_unit_price)
 
     @staticmethod
     def resolve_quantity_to_fulfill(root: models.OrderLine, info):
@@ -662,16 +728,20 @@ class OrderLine(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_unit_price(root: models.OrderLine, info):
         def _resolve_undiscounted_unit_price(data):
-            order, lines = data
+            order, lines, manager = data
             return calculations.order_line_unit(
-                order, root, info.context.plugins, lines
+                order, root, manager, lines
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
-        return Promise.all([order, lines]).then(_resolve_undiscounted_unit_price)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(
+            _resolve_undiscounted_unit_price
+        )
 
     @staticmethod
     def resolve_unit_discount_type(root: models.OrderLine, _info):
@@ -689,40 +759,47 @@ class OrderLine(ModelObjectType):
     @traced_resolver
     def resolve_tax_rate(root: models.OrderLine, info):
         def _resolve_tax_rate(data):
-            order, lines = data
+            order, lines, manager = data
             return calculations.order_line_tax_rate(
-                order, root, info.context.plugins, lines
-            )
+                order, root, manager, lines
+            ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
-        return Promise.all([order, lines]).then(_resolve_tax_rate)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_tax_rate)
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_total_price(root: models.OrderLine, info):
         def _resolve_total_price(data):
-            order, lines = data
+            order, lines, manager = data
             return calculations.order_line_total(
-                order, root, info.context.plugins, lines
+                order, root, manager, lines
             ).price_with_discounts
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
-        return Promise.all([order, lines]).then(_resolve_total_price)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(_resolve_total_price)
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total_price(root: models.OrderLine, info):
         def _resolve_undiscounted_total_price(data):
-            order, lines = data
+            order, lines, manager = data
             return calculations.order_line_total(
-                order, root, info.context.plugins, lines
+                order, root, manager, lines
             ).undiscounted_price
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
-        return Promise.all([order, lines]).then(_resolve_undiscounted_total_price)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([order, lines, manager]).then(
+            _resolve_undiscounted_total_price
+        )
 
     @staticmethod
     def resolve_translated_product_name(root: models.OrderLine, _info):
@@ -769,8 +846,25 @@ class OrderLine(ModelObjectType):
     def resolve_allocations(root: models.OrderLine, info):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
 
+    @staticmethod
+    def resolve_tax_class(root: models.OrderLine, info):
+        return (
+            TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            if root.tax_class_id
+            else None
+        )
 
-class Order(ModelObjectType):
+    @staticmethod
+    def resolve_tax_class_metadata(root: models.OrderLine, _info):
+        return resolve_metadata(root.tax_class_metadata)
+
+    @staticmethod
+    def resolve_tax_class_private_metadata(root: models.OrderLine, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.tax_class_private_metadata)
+
+
+class Order(ModelObjectType[models.Order]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
@@ -876,6 +970,14 @@ class Order(ModelObjectType):
         description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
         required=True,
     )
+    tax_exemption = graphene.Boolean(
+        description=(
+            "Returns True if order has to be exempt from taxes."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
     transactions = NonNullList(
         TransactionItem,
         description=(
@@ -895,20 +997,51 @@ class Order(ModelObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
-
-    shipping_price = graphene.Field(
-        TaxedMoney, description="Total price of shipping.", required=True
-    )
     shipping_method = graphene.Field(
         ShippingMethod,
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
-    shipping_tax_rate = graphene.Float(required=True)
+    shipping_tax_rate = graphene.Float(
+        required=True, description="The shipping tax rate value."
+    )
+    shipping_tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class assigned to the shipping method."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    shipping_tax_class_name = graphene.Field(
+        graphene.String,
+        description=(
+            "Denormalized name of the tax class assigned to the shipping method."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+        required=False,
+    )
+    shipping_tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized public metadata of the shipping method's tax class."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+    )
+    shipping_tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the shipping method's tax class. "
+            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
     token = graphene.String(
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
@@ -917,7 +1050,6 @@ class Order(ModelObjectType):
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
-    display_gross_prices = graphene.Boolean(required=True)
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
     weight = graphene.Field(Weight, required=True)
@@ -969,7 +1101,7 @@ class Order(ModelObjectType):
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
-            "The delivery method selected for this checkout."
+            "The delivery method selected for this order."
             + ADDED_IN_31
             + PREVIEW_FEATURE
         ),
@@ -997,14 +1129,12 @@ class Order(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
         ),
     )
-
     translated_discount_name = graphene.String(
         description="Translated discount name.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
         ),
     )
-
     discounts = NonNullList(
         "saleor.graphql.discount.types.OrderDiscount",
         description="List of all discounts assigned to the order.",
@@ -1015,6 +1145,22 @@ class Order(ModelObjectType):
         description="List of errors that occurred during order validation.",
         default_value=[],
         required=True,
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether checkout prices should include taxes when displayed "
+            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
+    external_reference = graphene.String(
+        description=f"External ID of this order. {ADDED_IN_310}", required=False
+    )
+    checkout_id = graphene.ID(
+        description=(
+            f"ID of the checkout that the order was created from. {ADDED_IN_311}"
+        ),
+        required=False,
     )
 
     class Meta:
@@ -1146,29 +1292,29 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Order, info):
-        def _resolve_shipping_price(lines):
-            return calculations.order_shipping(root, info.context.plugins, lines)
+        def _resolve_shipping_price(data):
+            lines, manager = data
+            return calculations.order_shipping(root, manager, lines)
 
-        return (
-            OrderLinesByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_shipping_price)
-        )
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([lines, manager]).then(_resolve_shipping_price)
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_shipping_tax_rate(root: models.Order, info):
-        def _resolve_shipping_tax_rate(lines):
+        def _resolve_shipping_tax_rate(data):
+            lines, manager = data
             return calculations.order_shipping_tax_rate(
-                root, info.context.plugins, lines
-            )
+                root, manager, lines
+            ) or Decimal(0)
 
-        return (
-            OrderLinesByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_shipping_tax_rate)
-        )
+        lines = OrderLinesByOrderIdLoader(info.context)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 
     @staticmethod
     def resolve_actions(root: models.Order, info):
@@ -1192,20 +1338,22 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     def resolve_subtotal(root: models.Order, info):
-        def _resolve_subtotal(order_lines):
-            return get_subtotal(order_lines, root.currency)
+        def _resolve_subtotal(data):
+            order_lines, manager = data
+            return calculations.order_subtotal(root, manager, order_lines)
 
-        return (
-            OrderLinesByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_subtotal)
-        )
+        order_lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+        manager = get_plugin_manager_promise(info.context)
+
+        return Promise.all([order_lines, manager]).then(_resolve_subtotal)
 
     @staticmethod
     @traced_resolver
-    def resolve_total(root: models.Order, info):
+    @prevent_sync_event_circular_query
+    @plugin_manager_promise_callback
+    def resolve_total(root: models.Order, info, manager):
         def _resolve_total(lines):
-            return calculations.order_total(root, info.context.plugins, lines)
+            return calculations.order_total(root, manager, lines)
 
         return (
             OrderLinesByOrderIdLoader(info.context).load(root.id).then(_resolve_total)
@@ -1213,17 +1361,15 @@ class Order(ModelObjectType):
 
     @staticmethod
     @traced_resolver
+    @prevent_sync_event_circular_query
     def resolve_undiscounted_total(root: models.Order, info):
-        def _resolve_undiscounted_total(lines):
-            return calculations.order_undiscounted_total(
-                root, info.context.plugins, lines
-            )
+        def _resolve_undiscounted_total(lines_and_manager):
+            lines, manager = lines_and_manager
+            return calculations.order_undiscounted_total(root, manager, lines)
 
-        return (
-            OrderLinesByOrderIdLoader(info.context)
-            .load(root.id)
-            .then(_resolve_undiscounted_total)
-        )
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
+        manager = get_plugin_manager_promise(info.context)
+        return Promise.all([lines, manager]).then(_resolve_undiscounted_total)
 
     @staticmethod
     def resolve_total_authorized(root: models.Order, info):
@@ -1278,7 +1424,7 @@ class Order(ModelObjectType):
     def resolve_fulfillments(root: models.Order, info):
         def _resolve_fulfillments(fulfillments):
             user = info.context.user
-            if user.is_staff:
+            if user and user.is_staff:
                 return fulfillments
             return filter(
                 lambda fulfillment: fulfillment.status != FulfillmentStatus.CANCELED,
@@ -1415,11 +1561,16 @@ class Order(ModelObjectType):
     @traced_resolver
     def resolve_can_finalize(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
-            country = get_order_country(root)
-            try:
-                validate_draft_order(root, country, info.context.plugins)
-            except ValidationError:
-                return False
+
+            def _validate_draft_order(manager):
+                country = get_order_country(root)
+                try:
+                    validate_draft_order(root, country, manager)
+                except ValidationError:
+                    return False
+                return True
+
+            return get_plugin_manager_promise(info.context).then(_validate_draft_order)
         return True
 
     @staticmethod
@@ -1463,13 +1614,22 @@ class Order(ModelObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            keep_gross = info.context.site.settings.include_taxes_in_prices
-            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
-            return ShippingMethodData(
-                id=external_app_shipping_id,
-                name=root.shipping_method_name,
-                price=price,
-            )
+            tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+
+            def with_tax_config(tax_config):
+                prices_entered_with_tax = tax_config.prices_entered_with_tax
+                price = (
+                    root.shipping_price_gross
+                    if prices_entered_with_tax
+                    else root.shipping_price_net
+                )
+                return ShippingMethodData(
+                    id=external_app_shipping_id,
+                    name=root.shipping_method_name,
+                    price=price,
+                )
+
+            return tax_config.then(with_tax_config)
 
         if not root.shipping_method_id:
             return None
@@ -1482,7 +1642,11 @@ class Order(ModelObjectType):
                 ).load((shipping_method.id, channel.slug))
             )
 
-            def calculate_price(listing: Optional[ShippingMethodChannelListing]):
+            def calculate_price(
+                listing: Optional[ShippingMethodChannelListing],
+            ) -> Optional[ShippingMethodData]:
+                if not listing:
+                    return None
                 return convert_to_shipping_method_data(shipping_method, listing)
 
             return listing.then(calculate_price)
@@ -1512,10 +1676,12 @@ class Order(ModelObjectType):
     @prevent_sync_event_circular_query
     # TODO: We should optimize it in/after PR#5819
     def resolve_shipping_methods(cls, root: models.Order, info):
-        def with_channel(channel):
+        def with_channel(data):
+            channel, manager = data
+
             def with_listings(channel_listings):
                 return get_valid_shipping_methods_for_order(
-                    root, channel_listings, info.context.plugins
+                    root, channel_listings, manager
                 )
 
             return (
@@ -1524,7 +1690,10 @@ class Order(ModelObjectType):
                 .then(with_listings)
             )
 
-        return ChannelByIdLoader(info.context).load(root.channel_id).then(with_channel)
+        channel = ChannelByIdLoader(info.context).load(root.channel_id)
+        manager = get_plugin_manager_promise(info.context)
+
+        return Promise.all([channel, manager]).then(with_channel)
 
     @classmethod
     @traced_resolver
@@ -1588,12 +1757,70 @@ class Order(ModelObjectType):
     @traced_resolver
     def resolve_errors(root: models.Order, info):
         if root.status == OrderStatus.DRAFT:
-            country = get_order_country(root)
-            try:
-                validate_draft_order(root, country, info.context.plugins)
-            except ValidationError as e:
-                return validation_error_to_error_type(e, OrderError)
+
+            def _validate_order(manager):
+                country = get_order_country(root)
+                try:
+                    validate_draft_order(root, country, manager)
+                except ValidationError as e:
+                    return validation_error_to_error_type(e, OrderError)
+                return []
+
+            return get_plugin_manager_promise(info.context).then(_validate_order)
+
         return []
+
+    @staticmethod
+    def resolve_display_gross_prices(root: models.Order, info):
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        country_code = get_order_country(root)
+
+        def load_tax_country_exceptions(tax_config):
+            tax_configs_per_country = (
+                TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
+                    tax_config.id
+                )
+            )
+
+            def calculate_display_gross_prices(tax_configs_per_country):
+                tax_config_country = next(
+                    (
+                        tc
+                        for tc in tax_configs_per_country
+                        if tc.country.code == country_code
+                    ),
+                    None,
+                )
+                return get_display_gross_prices(tax_config, tax_config_country)
+
+            return tax_configs_per_country.then(calculate_display_gross_prices)
+
+        return tax_config.then(load_tax_country_exceptions)
+
+    @classmethod
+    def resolve_shipping_tax_class(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info).then(
+                lambda shipping_method_data: shipping_method_data.tax_class
+                if shipping_method_data
+                else None
+            )
+        return None
+
+    @staticmethod
+    def resolve_shipping_tax_class_metadata(root: models.Order, _info):
+        return resolve_metadata(root.shipping_tax_class_metadata)
+
+    @staticmethod
+    def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.shipping_tax_class_private_metadata)
+
+    @staticmethod
+    def resolve_checkout_id(root: models.Order, _info):
+        if root.checkout_token:
+            return graphene.Node.to_global_id("Checkout", root.checkout_token)
+        return None
 
 
 class OrderCountableConnection(CountableConnection):

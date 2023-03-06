@@ -101,6 +101,7 @@ FRAGMENT_ORDER_DETAILS = (
         shippingPrice {
           ...Price
         }
+        displayGrossPrices
       }
     """
 )

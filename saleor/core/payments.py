@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ..checkout.models import Checkout
     from ..payment.interface import (
         CustomerSource,

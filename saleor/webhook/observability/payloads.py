@@ -10,13 +10,15 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case as str_to_camel_case
 from graphql import get_operation_ast
 
+from ...core.utils import build_absolute_uri
 from .. import traced_payload_generator
 from ..event_types import WebhookEventSyncType
 from .exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationError
 from .obfuscation import (
     anonymize_event_payload,
     anonymize_gql_operation_response,
-    hide_sensitive_headers,
+    filter_and_hide_headers,
+    obfuscate_url,
 )
 from .payload_schema import (
     ApiCallPayload,
@@ -83,7 +85,7 @@ GQL_OPERATION_PLACEHOLDER_SIZE = len(dump_payload(GQL_OPERATION_PLACEHOLDER))
 
 def serialize_headers(headers: Optional[Dict[str, str]]) -> HttpHeaders:
     if headers:
-        return list(hide_sensitive_headers(headers).items())
+        return list(filter_and_hide_headers(headers).items())
     return []
 
 
@@ -154,7 +156,7 @@ def generate_api_call_payload(
         request=ApiCallRequest(
             id=str(uuid.uuid4()),
             method=request.method or "",
-            url=request.build_absolute_uri(request.get_full_path()),
+            url=build_absolute_uri(request.get_full_path()),
             time=getattr(request, "request_time", timezone.now()).timestamp(),
             headers=serialize_headers(dict(request.headers)),
             content_length=int(request.headers.get("Content-Length") or 0),
@@ -229,7 +231,7 @@ def generate_event_delivery_attempt_payload(
         webhook=Webhook(
             id=graphene.Node.to_global_id("Webhook", attempt.delivery.webhook.pk),
             name=attempt.delivery.webhook.name or "",
-            target_url=attempt.delivery.webhook.target_url,
+            target_url=obfuscate_url(attempt.delivery.webhook.target_url),
             subscription_query=TRUNC_PLACEHOLDER,
         ),
         app=App(

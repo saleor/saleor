@@ -14,7 +14,6 @@ from .product_headers import get_product_export_fields_and_headers_info
 from .products_data import get_products_data
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from django.db.models import QuerySet
 
     from ..models import ExportFile
@@ -110,7 +109,10 @@ def get_queryset(model, filter, scope: Dict[str, Union[str, dict]]) -> "QuerySet
 
 
 def parse_input(data: Any) -> Dict[str, Union[str, dict]]:
-    """Parse input to correct data types, since scope coming from celery will be parsed to strings."""
+    """Parse input into correct data types.
+
+    Scope coming from Celery will be passed as strings.
+    """
     if "attributes" in data:
         serialized_attributes = []
 

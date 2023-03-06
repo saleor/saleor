@@ -34,8 +34,15 @@ type Query {
   Requires one of the following permissions: MANAGE_PRODUCTS, MANAGE_ORDERS, MANAGE_SHIPPING.
   """
   warehouse(
-    """ID of an warehouse"""
-    id: ID!
+    """ID of a warehouse."""
+    id: ID
+
+    """
+    External ID of a warehouse. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Warehouse
 
   """
@@ -96,6 +103,102 @@ type Query {
   ): TranslatableItem
 
   """
+  Look up a tax configuration.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfiguration(
+    """ID of a tax configuration."""
+    id: ID!
+  ): TaxConfiguration
+
+  """
+  List of tax configurations.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfigurations(
+    """Filtering options for tax configurations."""
+    filter: TaxConfigurationFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): TaxConfigurationCountableConnection
+
+  """
+  Look up a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass(
+    """ID of a tax class."""
+    id: ID!
+  ): TaxClass
+
+  """
+  List of tax classes.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClasses(
+    """Sort tax classes."""
+    sortBy: TaxClassSortingInput
+
+    """Filtering options for tax classes."""
+    filter: TaxClassFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): TaxClassCountableConnection
+
+  """
+  Tax class rates grouped by country.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxCountryConfiguration(
+    """Country for which to return tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfiguration
+
+  "\\n\\nRequires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP."
+  taxCountryConfigurations: [TaxCountryConfiguration!]
+
+  """
   Look up a stock by ID
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -130,11 +233,11 @@ type Query {
   shop: Shop!
 
   """
-  Order related settings from site settings.
+  Order related settings from site settings. Returns `orderSettings` for the first `channel` in alphabetical order.
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings
+  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` query to fetch the `orderSettings` field instead.")
 
   """
   Gift card related settings from site settings.
@@ -293,6 +396,13 @@ type Query {
     """Slug of the product."""
     slug: String
 
+    """
+    External ID of the product. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Product
@@ -359,6 +469,13 @@ type Query {
 
     """Sku of the product variant."""
     sku: String
+
+    """
+    External ID of the product. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -540,10 +657,17 @@ type Query {
     last: Int
   ): OrderEventCountableConnection
 
-  """Look up an order by ID."""
+  """Look up an order by ID or external reference."""
   order(
     """ID of an order."""
-    id: ID!
+    id: ID
+
+    """
+    External ID of an order. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Order
 
   """
@@ -641,7 +765,11 @@ type Query {
     """Sort menus."""
     sortBy: MenuSortingInput
 
-    """Filtering options for menus."""
+    """
+    Filtering options for menus. 
+    
+    `slug`: This field will be removed in Saleor 4.0. Use `slugs` instead.
+    """
     filter: MenuFilterInput
 
     """Return the elements in the list that come before the specified cursor."""
@@ -1042,6 +1170,24 @@ type Query {
     """Filtering options for attributes."""
     filter: AttributeFilterInput
 
+    """
+    Filtering options for attributes.
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: AttributeWhereInput
+
+    """
+    Search attributes.
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    search: String
+
     """Sorting options for attributes."""
     sortBy: AttributeSortingInput
 
@@ -1061,13 +1207,20 @@ type Query {
     last: Int
   ): AttributeCountableConnection
 
-  """Look up an attribute by ID."""
+  """Look up an attribute by ID, slug or external reference."""
   attribute(
     """ID of the attribute."""
     id: ID
 
     """Slug of the attribute."""
     slug: String
+
+    """
+    External ID of the attribute. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): Attribute
 
   """
@@ -1272,6 +1425,13 @@ type Query {
 
     """Email address of the user."""
     email: String
+
+    """
+    External ID of the user. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
   ): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
@@ -1324,6 +1484,15 @@ type Webhook implements Node {
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
+
+  """
+  Custom headers, which will be added to HTTP request.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """An object with an ID"""
@@ -1418,6 +1587,15 @@ enum WebhookEventTypeEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_METADATA_UPDATED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1458,6 +1636,15 @@ enum WebhookEventTypeEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1497,6 +1684,15 @@ enum WebhookEventTypeEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CUSTOMER_METADATA_UPDATED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1506,6 +1702,15 @@ enum WebhookEventTypeEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  COLLECTION_METADATA_UPDATED
+
   """A new product is created."""
   PRODUCT_CREATED
 
@@ -1514,6 +1719,36 @@ enum WebhookEventTypeEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -1530,6 +1765,18 @@ enum WebhookEventTypeEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A new checkout is created."""
   CHECKOUT_CREATED
 
@@ -1537,6 +1784,15 @@ enum WebhookEventTypeEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
@@ -1546,6 +1802,15 @@ enum WebhookEventTypeEnum {
 
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -1595,6 +1860,15 @@ enum WebhookEventTypeEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  SHIPPING_ZONE_METADATA_UPDATED
+
   """A new staff user is created."""
   STAFF_CREATED
 
@@ -1606,6 +1880,15 @@ enum WebhookEventTypeEnum {
 
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
   TRANSLATION_CREATED
@@ -1622,6 +1905,15 @@ enum WebhookEventTypeEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  WAREHOUSE_METADATA_UPDATED
+
   """A new voucher created."""
   VOUCHER_CREATED
 
@@ -1631,8 +1923,24 @@ enum WebhookEventTypeEnum {
   """A voucher is deleted."""
   VOUCHER_DELETED
 
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  VOUCHER_METADATA_UPDATED
+
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 
   """Authorize payment."""
   PAYMENT_AUTHORIZE
@@ -1829,6 +2137,15 @@ enum WebhookEventTypeAsyncEnum {
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
+  """
+  A gift card metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_METADATA_UPDATED
+
   """A new menu created."""
   MENU_CREATED
 
@@ -1869,6 +2186,15 @@ enum WebhookEventTypeAsyncEnum {
   """An order is fulfilled."""
   ORDER_FULFILLED
 
+  """
+  An order metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_METADATA_UPDATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -1908,6 +2234,15 @@ enum WebhookEventTypeAsyncEnum {
   """A customer account is deleted."""
   CUSTOMER_DELETED
 
+  """
+  A customer account metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CUSTOMER_METADATA_UPDATED
+
   """A new collection is created."""
   COLLECTION_CREATED
 
@@ -1917,6 +2252,15 @@ enum WebhookEventTypeAsyncEnum {
   """A collection is deleted."""
   COLLECTION_DELETED
 
+  """
+  A collection metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  COLLECTION_METADATA_UPDATED
+
   """A new product is created."""
   PRODUCT_CREATED
 
@@ -1925,6 +2269,36 @@ enum WebhookEventTypeAsyncEnum {
 
   """A product is deleted."""
   PRODUCT_DELETED
+
+  """
+  A new product media is created.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_CREATED
+
+  """
+  A product media is updated.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_UPDATED
+
+  """
+  A product media is deleted.
+  
+  Added in Saleor 3.12.
+  """
+  PRODUCT_MEDIA_DELETED
+
+  """
+  A product metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_METADATA_UPDATED
 
   """A new product variant is created."""
   PRODUCT_VARIANT_CREATED
@@ -1941,6 +2315,18 @@ enum WebhookEventTypeAsyncEnum {
   """A product variant is back in stock."""
   PRODUCT_VARIANT_BACK_IN_STOCK
 
+  """A product variant stock is updated"""
+  PRODUCT_VARIANT_STOCK_UPDATED
+
+  """
+  A product variant metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  PRODUCT_VARIANT_METADATA_UPDATED
+
   """A new checkout is created."""
   CHECKOUT_CREATED
 
@@ -1948,6 +2334,15 @@ enum WebhookEventTypeAsyncEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+
+  """
+  A checkout metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  CHECKOUT_METADATA_UPDATED
 
   """A new fulfillment is created."""
   FULFILLMENT_CREATED
@@ -1957,6 +2352,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """A fulfillment is approved."""
   FULFILLMENT_APPROVED
+
+  """
+  A fulfillment metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  FULFILLMENT_METADATA_UPDATED
 
   """User notification triggered."""
   NOTIFY_USER
@@ -2006,6 +2410,15 @@ enum WebhookEventTypeAsyncEnum {
   """A shipping zone is deleted."""
   SHIPPING_ZONE_DELETED
 
+  """
+  A shipping zone metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  SHIPPING_ZONE_METADATA_UPDATED
+
   """A new staff user is created."""
   STAFF_CREATED
 
@@ -2017,6 +2430,15 @@ enum WebhookEventTypeAsyncEnum {
 
   """An action requested for transaction."""
   TRANSACTION_ACTION_REQUEST
+
+  """
+  Transaction item metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_ITEM_METADATA_UPDATED
 
   """A new translation is created."""
   TRANSLATION_CREATED
@@ -2033,6 +2455,15 @@ enum WebhookEventTypeAsyncEnum {
   """A warehouse is deleted."""
   WAREHOUSE_DELETED
 
+  """
+  A warehouse metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  WAREHOUSE_METADATA_UPDATED
+
   """A new voucher created."""
   VOUCHER_CREATED
 
@@ -2042,8 +2473,24 @@ enum WebhookEventTypeAsyncEnum {
   """A voucher is deleted."""
   VOUCHER_DELETED
 
+  """
+  A voucher metadata is updated.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  VOUCHER_METADATA_UPDATED
+
   """An observability event is created."""
   OBSERVABILITY
+
+  """
+  A thumbnail is created.
+  
+  Added in Saleor 3.12.
+  """
+  THUMBNAIL_CREATED
 }
 
 """Represents app data."""
@@ -2177,19 +2624,11 @@ interface ObjectWithMetadata {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -2200,19 +2639,11 @@ interface ObjectWithMetadata {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 }
@@ -2254,23 +2685,24 @@ enum PermissionEnum {
   IMPERSONATE_USER
   MANAGE_APPS
   MANAGE_OBSERVABILITY
+  MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
+  HANDLE_TAXES
+  MANAGE_TAXES
   MANAGE_CHANNELS
   MANAGE_DISCOUNTS
-  MANAGE_PLUGINS
   MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
   MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   HANDLE_PAYMENTS
+  MANAGE_PLUGINS
   MANAGE_PRODUCTS
   MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
-  MANAGE_CHECKOUTS
-  HANDLE_CHECKOUTS
-  HANDLE_TAXES
 }
 
 """
@@ -2544,6 +2976,7 @@ enum WebhookSampleEventTypeEnum {
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
   GIFT_CARD_STATUS_CHANGED
+  GIFT_CARD_METADATA_UPDATED
   MENU_CREATED
   MENU_UPDATED
   MENU_DELETED
@@ -2556,6 +2989,7 @@ enum WebhookSampleEventTypeEnum {
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_FULFILLED
+  ORDER_METADATA_UPDATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -2569,22 +3003,32 @@ enum WebhookSampleEventTypeEnum {
   CUSTOMER_CREATED
   CUSTOMER_UPDATED
   CUSTOMER_DELETED
+  CUSTOMER_METADATA_UPDATED
   COLLECTION_CREATED
   COLLECTION_UPDATED
   COLLECTION_DELETED
+  COLLECTION_METADATA_UPDATED
   PRODUCT_CREATED
   PRODUCT_UPDATED
   PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
+  PRODUCT_METADATA_UPDATED
   PRODUCT_VARIANT_CREATED
   PRODUCT_VARIANT_UPDATED
   PRODUCT_VARIANT_DELETED
   PRODUCT_VARIANT_OUT_OF_STOCK
   PRODUCT_VARIANT_BACK_IN_STOCK
+  PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_METADATA_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
   FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
   NOTIFY_USER
   PAGE_CREATED
   PAGE_UPDATED
@@ -2601,19 +3045,24 @@ enum WebhookSampleEventTypeEnum {
   SHIPPING_ZONE_CREATED
   SHIPPING_ZONE_UPDATED
   SHIPPING_ZONE_DELETED
+  SHIPPING_ZONE_METADATA_UPDATED
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
   TRANSACTION_ACTION_REQUEST
+  TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
   WAREHOUSE_CREATED
   WAREHOUSE_UPDATED
   WAREHOUSE_DELETED
+  WAREHOUSE_METADATA_UPDATED
   VOUCHER_CREATED
   VOUCHER_UPDATED
   VOUCHER_DELETED
+  VOUCHER_METADATA_UPDATED
   OBSERVABILITY
+  THUMBNAIL_CREATED
 }
 
 """Represents warehouse."""
@@ -2695,11 +3144,76 @@ type Warehouse implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ShippingZoneCountableConnection!
+
+  """
+  External ID of this warehouse. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents user address data."""
-type Address implements Node {
+type Address implements Node & ObjectWithMetadata {
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.10.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   firstName: String!
   lastName: String!
   companyName: String!
@@ -2729,7 +3243,7 @@ type CountryDisplay {
   country: String!
 
   """Country tax."""
-  vat: VAT
+  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Use `TaxClassCountryRate` type to manage tax rates per country.")
 }
 
 """Represents a VAT rate for a country."""
@@ -2990,6 +3504,13 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
 
   """Minimal number of days for delivery."""
   minimumDeliveryDays: Int
+
+  """
+  Tax class assigned to this shipping method.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
+  """
+  taxClass: TaxClass
 }
 
 """An enumeration."""
@@ -3896,6 +4417,15 @@ type Channel implements Node {
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   stockSettings: StockSettings!
+
+  """
+  Channel-specific order settings.
+  
+  Added in Saleor 3.12.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
+  """
+  orderSettings: OrderSettings!
 }
 
 """
@@ -4181,19 +4711,11 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -4204,19 +4726,11 @@ type ShippingMethod implements Node & ObjectWithMetadata {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -4310,6 +4824,19 @@ Determine the allocation strategy for the channel.
 enum AllocationStrategyEnum {
   PRIORITIZE_SORTING_ORDER
   PRIORITIZE_HIGH_STOCK
+}
+
+"""Represents the channel-specific order settings."""
+type OrderSettings {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  """
+  automaticallyConfirmAllNewOrders: Boolean!
+
+  """
+  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean!
 }
 
 """Represents shipping method postal code rule."""
@@ -4414,7 +4941,7 @@ type Product implements Node & ObjectWithMetadata {
   category: Category
   created: DateTime!
   updatedAt: DateTime!
-  chargeTaxes: Boolean!
+  chargeTaxes: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
   weight: Weight
   defaultVariant: ProductVariant
   rating: Float
@@ -4432,18 +4959,18 @@ type Product implements Node & ObjectWithMetadata {
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -4465,7 +4992,17 @@ type Product implements Node & ObjectWithMetadata {
   ): Boolean
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
+
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.9.
+  """
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute
 
   """List of attributes assigned to this product."""
   attributes: [SelectedAttribute!]!
@@ -4490,12 +5027,32 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
   """
+  Get a single variant by SKU or ID. 
+  
+  Added in Saleor 3.9.
+  """
+  variant(
+    """ID of the variant."""
+    id: ID
+
+    """SKU of the variant."""
+    sku: String
+  ): ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Use top-level `variant` query.")
+
+  """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   variants: [ProductVariant!]
 
   """List of media for the product."""
-  media: [ProductMedia!]
+  media(
+    """
+    Sort media. 
+    
+    Added in Saleor 3.9.
+    """
+    sortBy: MediaSortingInput
+  ): [ProductMedia!]
 
   """List of images for the product."""
   images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
@@ -4519,6 +5076,20 @@ type Product implements Node & ObjectWithMetadata {
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
+
+  """
+  External ID of this product. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -4601,7 +5172,14 @@ type ProductType implements Node & ObjectWithMetadata {
   ): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
 
   """Variant attributes of that product type."""
   variantAttributes(
@@ -4629,6 +5207,7 @@ type ProductType implements Node & ObjectWithMetadata {
   """
   availableAttributes(
     filter: AttributeFilterInput
+    where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -4657,6 +5236,88 @@ type TaxType {
 
   """External tax code used to identify given tax group."""
   taxCode: String
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClass implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClassCountryRate {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass
 }
 
 """
@@ -4763,7 +5424,7 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be filtered in storefront. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  filterableInStorefront: Boolean!
+  filterableInStorefront: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Whether the attribute can be filtered in dashboard. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
@@ -4773,12 +5434,12 @@ type Attribute implements Node & ObjectWithMetadata {
   """
   Whether the attribute can be displayed in the admin product list. Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  availableInGrid: Boolean!
+  availableInGrid: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   The position of the attribute in the storefront navigation (0 by default). Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES, MANAGE_PRODUCTS, MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
-  storefrontSearchPosition: Int!
+  storefrontSearchPosition: Int! @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Returns translated attribute fields for the given language code."""
   translation(
@@ -4814,6 +5475,13 @@ type Attribute implements Node & ObjectWithMetadata {
     """Return the last n elements from the list."""
     last: Int
   ): ProductTypeCountableConnection!
+
+  """
+  External ID of this attribute. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """An enumeration."""
@@ -4835,6 +5503,7 @@ enum AttributeInputTypeEnum {
 enum AttributeEntityTypeEnum {
   PAGE
   PRODUCT
+  PRODUCT_VARIANT
 }
 
 """An enumeration."""
@@ -4944,6 +5613,13 @@ type AttributeValue implements Node {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+
+  """
+  External ID of this attribute value. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 type AttributeValueTranslation implements Node {
@@ -5076,6 +5752,7 @@ input AttributeFilterInput {
   type: AttributeTypeEnum
   inCollection: ID
   inCategory: ID
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -5091,6 +5768,83 @@ input MetadataFilter {
 
   """Value of a metadata item."""
   value: String
+}
+
+"""
+Where filtering options.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input AttributeWhereInput {
+  valueRequired: Boolean
+  visibleInStorefront: Boolean
+  filterableInDashboard: Boolean
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+  slug: StringFilterInput
+  withChoices: Boolean
+  inputType: AttributeInputTypeEnumFilterInput
+  entityType: AttributeEntityTypeEnumFilterInput
+  type: AttributeTypeEnumFilterInput
+  unit: MeasurementUnitsEnumFilterInput
+  inCollection: ID
+  inCategory: ID
+
+  """List of conditions that must be met."""
+  AND: [AttributeWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [AttributeWhereInput!]
+}
+
+"""
+Define the filtering options for string fields.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input StringFilterInput {
+  """The value equal to."""
+  eq: String
+
+  """The value included in."""
+  oneOf: [String!]
+}
+
+input AttributeInputTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeInputTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeInputTypeEnum!]
+}
+
+input AttributeEntityTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeEntityTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeEntityTypeEnum!]
+}
+
+input AttributeTypeEnumFilterInput {
+  """The value equal to."""
+  eq: AttributeTypeEnum
+
+  """The value included in."""
+  oneOf: [AttributeTypeEnum!]
+}
+
+input MeasurementUnitsEnumFilterInput {
+  """The value equal to."""
+  eq: MeasurementUnitsEnum
+
+  """The value included in."""
+  oneOf: [MeasurementUnitsEnum!]
 }
 
 """
@@ -5184,6 +5938,20 @@ type Category implements Node & ObjectWithMetadata {
   List of products in the category. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   products(
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.10.
+    """
+    filter: ProductFilterInput
+
+    """
+    Sort products.
+    
+    Added in Saleor 3.10.
+    """
+    sortBy: ProductOrder
+
     """Slug of a channel for which the data should be returned."""
     channel: String
 
@@ -5216,18 +5984,18 @@ type Category implements Node & ObjectWithMetadata {
   ): CategoryCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -5254,6 +6022,228 @@ type CategoryCountableEdge {
   cursor: String!
 }
 
+input ProductFilterInput {
+  isPublished: Boolean
+  collections: [ID!]
+  categories: [ID!]
+  hasCategory: Boolean
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+  stocks: ProductStockFilterInput
+  search: String
+  metadata: [MetadataFilter!]
+
+  """
+  Filter by the publication date. 
+  
+  Added in Saleor 3.8.
+  """
+  publishedFrom: DateTime
+
+  """
+  Filter by availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  isAvailable: Boolean
+
+  """
+  Filter by the date of availability for purchase. 
+  
+  Added in Saleor 3.8.
+  """
+  availableFrom: DateTime
+
+  """
+  Filter by visibility in product listings. 
+  
+  Added in Saleor 3.8.
+  """
+  isVisibleInListing: Boolean
+  price: PriceRangeInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: PriceRangeInput
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+  productTypes: [ID!]
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+  ids: [ID!]
+  hasPreorderedVariants: Boolean
+  slugs: [String!]
+
+  """
+  Specifies the channel by which the data should be filtered. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
+  """
+  channel: String
+}
+
+input AttributeInput {
+  """Internal representation of an attribute name."""
+  slug: String!
+
+  """Internal representation of a value (unique per attribute)."""
+  values: [String!]
+
+  """The range that the returned values should be in."""
+  valuesRange: IntRangeInput
+
+  """The date/time range that the returned values should be in."""
+  dateTime: DateTimeRangeInput
+
+  """
+  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
+  """
+  date: DateRangeInput
+
+  """The boolean value of the attribute."""
+  boolean: Boolean
+}
+
+input IntRangeInput {
+  """Value greater than or equal to."""
+  gte: Int
+
+  """Value less than or equal to."""
+  lte: Int
+}
+
+input DateTimeRangeInput {
+  """Start date."""
+  gte: DateTime
+
+  """End date."""
+  lte: DateTime
+}
+
+input DateRangeInput {
+  """Start date."""
+  gte: Date
+
+  """End date."""
+  lte: Date
+}
+
+enum StockAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+}
+
+input ProductStockFilterInput {
+  warehouseIds: [ID!]
+  quantity: IntRangeInput
+}
+
+input PriceRangeInput {
+  """Price greater than or equal to."""
+  gte: Float
+
+  """Price less than or equal to."""
+  lte: Float
+}
+
+input ProductOrder {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """
+  Specifies the channel in which to sort the data.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
+  """
+  channel: String
+
+  """
+  Sort product by the selected attribute's values.
+  Note: this doesn't take translations into account yet.
+  """
+  attributeId: ID
+
+  """Sort products by the selected field."""
+  field: ProductOrderField
+}
+
+enum ProductOrderField {
+  """Sort products by name."""
+  NAME
+
+  """
+  Sort products by rank. Note: This option is available only with the `search` filter.
+  """
+  RANK
+
+  """
+  Sort products by price.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PRICE
+
+  """
+  Sort products by a minimal price of a product's variant.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  MINIMAL_PRICE
+
+  """Sort products by update date."""
+  LAST_MODIFIED
+
+  """Sort products by update date."""
+  DATE
+
+  """Sort products by type."""
+  TYPE
+
+  """
+  Sort products by publication status.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLICATION_DATE
+
+  """
+  Sort products by publication date.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  PUBLISHED_AT
+
+  """Sort products by update date."""
+  LAST_MODIFIED_AT
+
+  """
+  Sort products by collection. Note: This option is available only for the `Collection.products` query.
+  
+  This option requires a channel filter to work as the values can vary between channels.
+  """
+  COLLECTION
+
+  """Sort products by rating."""
+  RATING
+
+  """
+  Sort products by creation date.
+  
+  Added in Saleor 3.8.
+  """
+  CREATED_AT
+}
+
 """Represents an image."""
 type Image {
   """The URL of the image."""
@@ -5265,6 +6255,8 @@ type Image {
 
 """An enumeration."""
 enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
   WEBP
 }
 
@@ -5458,6 +6450,13 @@ type ProductVariant implements Node & ObjectWithMetadata {
   preorder: PreorderData
   created: DateTime!
   updatedAt: DateTime!
+
+  """
+  External ID of this product. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """Represents product varaint channel listing."""
@@ -5596,43 +6595,108 @@ type ProductImage {
   sortOrder: Int
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 }
 
 """Represents a product media."""
-type ProductMedia implements Node {
+type ProductMedia implements Node & ObjectWithMetadata {
   id: ID!
+
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
   sortOrder: Int
   alt: String!
   type: ProductMediaType!
   oembedData: JSONString!
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
+
+  """
+  Product id the media refers to.
+  
+  Added in Saleor 3.12.
+  """
+  productId: ID
 }
 
 """An enumeration."""
@@ -5794,6 +6858,15 @@ type ProductPricingInfo {
   The discounted price range of the product variants in the local currency.
   """
   priceRangeLocalCurrency: TaxedMoneyRange
+
+  """
+  Determines whether this product's price displayed in a storefront should include taxes.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """Represents a range of monetary values."""
@@ -5862,6 +6935,19 @@ type ProductChannelListing implements Node {
 type Margin {
   start: Int
   stop: Int
+}
+
+input MediaSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort media by the selected field."""
+  field: MediaChoicesSortField!
+}
+
+enum MediaChoicesSortField {
+  """Sort media by ID."""
+  ID
 }
 
 """Represents a collection of products."""
@@ -5959,18 +7045,18 @@ type Collection implements Node & ObjectWithMetadata {
   ): ProductCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -5985,192 +7071,6 @@ type Collection implements Node & ObjectWithMetadata {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   channelListings: [CollectionChannelListing!]
-}
-
-input ProductFilterInput {
-  isPublished: Boolean
-  collections: [ID!]
-  categories: [ID!]
-  hasCategory: Boolean
-  attributes: [AttributeInput!]
-
-  """Filter by variants having specific stock status."""
-  stockAvailability: StockAvailability
-  stocks: ProductStockFilterInput
-  search: String
-  metadata: [MetadataFilter!]
-  price: PriceRangeInput
-
-  """Filter by the lowest variant price after discounts."""
-  minimalPrice: PriceRangeInput
-
-  """Filter by when was the most recent update."""
-  updatedAt: DateTimeRangeInput
-  productTypes: [ID!]
-
-  """Filter on whether product is a gift card or not."""
-  giftCard: Boolean
-  ids: [ID!]
-  hasPreorderedVariants: Boolean
-
-  """
-  Specifies the channel by which the data should be filtered. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
-  """
-  channel: String
-}
-
-input AttributeInput {
-  """Internal representation of an attribute name."""
-  slug: String!
-
-  """Internal representation of a value (unique per attribute)."""
-  values: [String!]
-
-  """The range that the returned values should be in."""
-  valuesRange: IntRangeInput
-
-  """The date/time range that the returned values should be in."""
-  dateTime: DateTimeRangeInput
-
-  """
-  The date range that the returned values should be in. In case of date/time attributes, the UTC midnight of the given date is used.
-  """
-  date: DateRangeInput
-
-  """The boolean value of the attribute."""
-  boolean: Boolean
-}
-
-input IntRangeInput {
-  """Value greater than or equal to."""
-  gte: Int
-
-  """Value less than or equal to."""
-  lte: Int
-}
-
-input DateTimeRangeInput {
-  """Start date."""
-  gte: DateTime
-
-  """End date."""
-  lte: DateTime
-}
-
-input DateRangeInput {
-  """Start date."""
-  gte: Date
-
-  """End date."""
-  lte: Date
-}
-
-enum StockAvailability {
-  IN_STOCK
-  OUT_OF_STOCK
-}
-
-input ProductStockFilterInput {
-  warehouseIds: [ID!]
-  quantity: IntRangeInput
-}
-
-input PriceRangeInput {
-  """Price greater than or equal to."""
-  gte: Float
-
-  """Price less than or equal to."""
-  lte: Float
-}
-
-input ProductOrder {
-  """Specifies the direction in which to sort products."""
-  direction: OrderDirection!
-
-  """
-  Specifies the channel in which to sort the data.
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
-  """
-  channel: String
-
-  """
-  Sort product by the selected attribute's values.
-  Note: this doesn't take translations into account yet.
-  """
-  attributeId: ID
-
-  """Sort products by the selected field."""
-  field: ProductOrderField
-}
-
-enum ProductOrderField {
-  """Sort products by name."""
-  NAME
-
-  """
-  Sort products by rank. Note: This option is available only with the `search` filter.
-  """
-  RANK
-
-  """
-  Sort products by price.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PRICE
-
-  """
-  Sort products by a minimal price of a product's variant.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  MINIMAL_PRICE
-
-  """Sort products by update date."""
-  LAST_MODIFIED
-
-  """Sort products by update date."""
-  DATE
-
-  """Sort products by type."""
-  TYPE
-
-  """
-  Sort products by publication status.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLICATION_DATE
-
-  """
-  Sort products by publication date.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  PUBLISHED_AT
-
-  """Sort products by update date."""
-  LAST_MODIFIED_AT
-
-  """
-  Sort products by collection. Note: This option is available only for the `Collection.products` query.
-  
-  This option requires a channel filter to work as the values can vary between channels.
-  """
-  COLLECTION
-
-  """Sort products by rating."""
-  RATING
 }
 
 type CollectionTranslation implements Node {
@@ -6259,6 +7159,7 @@ input WarehouseFilterInput {
   ids: [ID!]
   isPrivate: Boolean
   channels: [ID!]
+  slugs: [String!]
 }
 
 input WarehouseSortingInput {
@@ -6348,6 +7249,27 @@ type AttributeValueTranslatableContent implements Node {
 
   """Represents a value of an attribute."""
   attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """
+  Associated attribute that can be translated.
+  
+  Added in Saleor 3.9.
+  """
+  attribute: AttributeTranslatableContent
+}
+
+type AttributeTranslatableContent implements Node {
+  id: ID!
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type CollectionTranslatableContent implements Node {
@@ -6408,20 +7330,6 @@ type CategoryTranslatableContent implements Node {
 
   """Represents a single category of products."""
   category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-type AttributeTranslatableContent implements Node {
-  id: ID!
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type ProductVariantTranslatableContent implements Node {
@@ -6651,10 +7559,11 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Attributes that can be assigned to the page type.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   availableAttributes(
     filter: AttributeFilterInput
+    where: AttributeWhereInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -6672,7 +7581,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Whether page type has pages assigned.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   hasPages: Boolean
 }
@@ -7313,6 +8222,189 @@ enum TranslatableKinds {
   VOUCHER
 }
 
+"""
+Channel-specific tax configuration.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfiguration implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean!
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+}
+
+enum TaxCalculationStrategy {
+  FLAT_RATES
+  TAX_APP
+}
+
+"""
+Country-specific exceptions of a channel's tax configuration.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfigurationPerCountry {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+type TaxConfigurationCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxConfigurationCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxConfigurationCountableEdge {
+  """The item at the end of the edge."""
+  node: TaxConfiguration!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxConfigurationFilterInput {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+}
+
+type TaxClassCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxClassCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxClassCountableEdge {
+  """The item at the end of the edge."""
+  node: TaxClass!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxClassSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort tax classes by the selected field."""
+  field: TaxClassSortField!
+}
+
+enum TaxClassSortField {
+  """Sort tax classes by name."""
+  NAME
+}
+
+input TaxClassFilterInput {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  countries: [CountryCode!]
+}
+
+"""
+Tax class rates grouped by country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxCountryConfiguration {
+  """A country for which tax class rates are grouped."""
+  country: CountryDisplay!
+
+  """List of tax class rates."""
+  taxClassCountryRates: [TaxClassCountryRate!]!
+}
+
 type StockCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -7424,9 +8516,6 @@ type Shop {
   """Header text."""
   headerText: String
 
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean!
-
   """
   Automatically approve all new fulfillments.
   
@@ -7440,12 +8529,6 @@ type Shop {
   Added in Saleor 3.1.
   """
   fulfillmentAllowUnpaid: Boolean!
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean!
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean!
 
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
@@ -7535,6 +8618,22 @@ type Shop {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   version: String!
+
+  """
+  Minor Saleor API version.
+  
+  Added in Saleor 3.5.
+  """
+  schemaVersion: String!
+
+  """Include taxes in prices."""
+  includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
+
+  """Display prices with tax in store."""
+  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
+
+  """Charge taxes on shipping."""
+  chargeTaxesOnShipping: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
 }
 
 """
@@ -7688,6 +8787,28 @@ type User implements Node & ObjectWithMetadata {
     channel: String
   ): [ID!]
 
+  """
+  Returns checkouts assigned to this user.
+  
+  Added in Saleor 3.8.
+  """
+  checkouts(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): CheckoutCountableConnection
+
   """List of the user gift cards."""
   giftCards(
     """Return the elements in the list that come before the specified cursor."""
@@ -7737,18 +8858,18 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
   avatar(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -7768,6 +8889,13 @@ type User implements Node & ObjectWithMetadata {
   languageCode: LanguageCodeEnum!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
+
+  """
+  External ID of this user. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
   lastLogin: DateTime
   dateJoined: DateTime!
   updatedAt: DateTime!
@@ -7894,6 +9022,15 @@ type Checkout implements Node & ObjectWithMetadata {
   """The price of the checkout before shipping, with taxes included."""
   subtotalPrice: TaxedMoney!
 
+  """
+  Returns True if checkout has to be exempt from taxes.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxExemption: Boolean!
+
   """The checkout's token."""
   token: UUID!
 
@@ -7913,6 +9050,15 @@ type Checkout implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """
@@ -8191,7 +9337,13 @@ type GiftCardTag implements Node {
 type CheckoutLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -8199,7 +9351,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8208,13 +9360,19 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -8222,7 +9380,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8231,7 +9389,7 @@ type CheckoutLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8514,6 +9672,15 @@ type Order implements Node & ObjectWithMetadata {
   chargeStatus: OrderChargeStatusEnum!
 
   """
+  Returns True if order has to be exempt from taxes.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxExemption: Boolean!
+
+  """
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
@@ -8536,13 +9703,52 @@ type Order implements Node & ObjectWithMetadata {
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
+
+  """The shipping tax rate value."""
   shippingTaxRate: Float!
+
+  """
+  Denormalized tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  shippingTaxClass: TaxClass
+
+  """
+  Denormalized name of the tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassName: String
+
+  """
+  Denormalized public metadata of the shipping method's tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
   """List of user gift cards."""
   giftCards: [GiftCard!]!
-  displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight!
   redirectUrl: String
@@ -8583,7 +9789,7 @@ type Order implements Node & ObjectWithMetadata {
   isShippingRequired: Boolean!
 
   """
-  The delivery method selected for this checkout.
+  The delivery method selected for this order.
   
   Added in Saleor 3.1.
   
@@ -8609,6 +9815,29 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
+
+  """
+  External ID of this order. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
+  """
+  ID of the checkout that the order was created from. 
+  
+  Added in Saleor 3.11.
+  """
+  checkoutId: ID
 }
 
 """An enumeration."""
@@ -8709,7 +9938,13 @@ type FulfillmentLine implements Node {
 type OrderLine implements Node & ObjectWithMetadata {
   id: ID!
 
-  """List of private metadata items. Requires staff permissions to access."""
+  """
+  List of private metadata items. Requires staff permissions to access.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   privateMetadata: [MetadataItem!]!
 
   """
@@ -8717,7 +9952,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8726,13 +9961,19 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
-  """List of public metadata items. Can be accessed without permissions."""
+  """
+  List of public metadata items. Can be accessed without permissions.
+  
+  Added in Saleor 3.5.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   metadata: [MetadataItem!]!
 
   """
@@ -8740,7 +9981,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Tip: Use GraphQL aliases to fetch multiple keys.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8749,7 +9990,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
-  Added in Saleor 3.3.
+  Added in Saleor 3.5.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8766,18 +10007,18 @@ type OrderLine implements Node & ObjectWithMetadata {
   digitalContentUrl: DigitalContentUrl
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Price of the single item in the order line."""
@@ -8824,12 +10065,50 @@ type OrderLine implements Node & ObjectWithMetadata {
 
   """Type of the discount: fixed or percent"""
   unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Denormalized tax class of the product in this order line.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
+
+  """
+  Denormalized name of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassName: String
+
+  """
+  Denormalized public metadata of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassPrivateMetadata: [MetadataItem!]!
 }
 
 """
-Positive Decimal scalar implementation.
+Nonnegative Decimal scalar implementation.
 
-Should be used in places where value must be positive.
+Should be used in places where value must be nonnegative (0 or greater).
 """
 scalar PositiveDecimal
 
@@ -8927,6 +10206,13 @@ type Invoice implements ObjectWithMetadata & Job & Node {
 
   """URL to download an invoice."""
   url: String
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 interface Job {
@@ -9462,6 +10748,23 @@ type TransactionEvent implements Node {
   name: String
 }
 
+type CheckoutCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CheckoutCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CheckoutCountableEdge {
+  """The item at the end of the edge."""
+  node: Checkout!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
 type GiftCardCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -9618,12 +10921,6 @@ type Limits {
   warehouses: Int
 }
 
-"""Order related settings from site settings."""
-type OrderSettings {
-  automaticallyConfirmAllNewOrders: Boolean!
-  automaticallyFulfillNonShippableGiftCard: Boolean!
-}
-
 """Gift card related settings from site settings."""
 type GiftCardSettings {
   """The gift card expiry type settings."""
@@ -9681,6 +10978,7 @@ input CategoryFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 input CategorySortingInput {
@@ -9714,6 +11012,7 @@ input CollectionFilterInput {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
+  slugs: [String!]
 
   """
   Specifies the channel by which the data should be filtered. 
@@ -9779,6 +11078,7 @@ input ProductTypeFilterInput {
   metadata: [MetadataFilter!]
   kind: ProductTypeKindEnum
   ids: [ID!]
+  slugs: [String!]
 }
 
 enum ProductTypeConfigurable {
@@ -9849,6 +11149,12 @@ type PaymentCountableEdge {
 }
 
 input PaymentFilterInput {
+  """
+  Filter by ids. 
+  
+  Added in Saleor 3.8.
+  """
+  ids: [ID!]
   checkouts: [ID!]
 }
 
@@ -9887,7 +11193,11 @@ enum PageSortField {
   """Sort pages by visibility."""
   VISIBILITY
 
-  """Sort pages by creation date."""
+  """
+  Sort pages by creation date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   CREATION_DATE
 
   """
@@ -9903,6 +11213,13 @@ enum PageSortField {
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   PUBLISHED_AT
+
+  """
+  Sort pages by creation date.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  CREATED_AT
 }
 
 input PageFilterInput {
@@ -9910,6 +11227,7 @@ input PageFilterInput {
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
   ids: [ID!]
+  slugs: [String!]
 }
 
 type PageTypeCountableConnection {
@@ -9947,6 +11265,7 @@ enum PageTypeSortField {
 
 input PageTypeFilterInput {
   search: String
+  slugs: [String!]
 }
 
 type OrderEventCountableConnection {
@@ -10027,6 +11346,7 @@ input OrderFilterInput {
   giftCardUsed: Boolean
   giftCardBought: Boolean
   numbers: [String!]
+  checkoutIds: [ID!]
 }
 
 enum OrderStatusFilter {
@@ -10084,6 +11404,7 @@ input MenuFilterInput {
   search: String
   slug: [String!]
   metadata: [MetadataFilter!]
+  slugs: [String!]
 }
 
 type MenuItemCountableConnection {
@@ -10130,14 +11451,21 @@ input GiftCardSortingInput {
 }
 
 enum GiftCardSortField {
-  """Sort orders by product."""
+  """Sort gift cards by product."""
   PRODUCT
 
-  """Sort orders by used by."""
+  """Sort gift cards by used by."""
   USED_BY
 
-  """Sort orders by current balance."""
+  """Sort gift cards by current balance."""
   CURRENT_BALANCE
+
+  """
+  Sort gift cards by created at.
+  
+  Added in Saleor 3.8.
+  """
+  CREATED_AT
 }
 
 input GiftCardFilterInput {
@@ -10532,23 +11860,6 @@ enum ExportFileSortField {
   LAST_MODIFIED_AT
 }
 
-type CheckoutCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [CheckoutCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type CheckoutCountableEdge {
-  """The item at the end of the edge."""
-  node: Checkout!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
 input CheckoutSortingInput {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
@@ -10760,6 +12071,13 @@ input CustomerFilterInput {
   placedOrders: DateRangeInput
   search: String
   metadata: [MetadataFilter!]
+
+  """
+  Filter by ids. 
+  
+  Added in Saleor 3.8.
+  """
+  ids: [ID!]
   updatedAt: DateTimeRangeInput
 }
 
@@ -10852,7 +12170,7 @@ type Mutation {
   ): WebhookCreate
 
   """
-  Deletes a webhook subscription. 
+  Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
   
   Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
@@ -10883,6 +12201,40 @@ type Mutation {
     """ID of the event delivery to retry."""
     id: ID!
   ): EventDeliveryRetry
+
+  """
+  Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookDryRun(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The subscription query that defines the webhook event and its payload."""
+    query: String!
+  ): WebhookDryRun
+
+  """
+  Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  webhookTrigger(
+    """The ID of an object to serialize."""
+    objectId: ID!
+
+    """The ID of the webhook."""
+    webhookId: ID!
+  ): WebhookTrigger
 
   """
   Creates new warehouse. 
@@ -10944,6 +12296,118 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
+  Create a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassCreate(
+    """Fields required to create a tax class."""
+    input: TaxClassCreateInput!
+  ): TaxClassCreate
+
+  """
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassDelete(
+    """ID of a tax class to delete."""
+    id: ID!
+  ): TaxClassDelete
+
+  """
+  Update a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassUpdate(
+    """ID of the tax class."""
+    id: ID!
+
+    """Fields required to update a tax class."""
+    input: TaxClassUpdateInput!
+  ): TaxClassUpdate
+
+  """
+  Update tax configuration for a channel.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfigurationUpdate(
+    """ID of the tax configuration."""
+    id: ID!
+
+    """Fields required to update the tax configuration."""
+    input: TaxConfigurationUpdateInput!
+  ): TaxConfigurationUpdate
+
+  """
+  Update tax class rates for a specific country.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationUpdate(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+
+    """
+    List of tax rates per tax class to update. When `{taxClass: id, rate: null`} is passed, it deletes the rate object for given taxClass ID. When `{rate: Int}` is passed without a tax class, it updates the default tax class for this country.
+    """
+    updateTaxClassRates: [TaxClassRateInput!]!
+  ): TaxCountryConfigurationUpdate
+
+  """
+  Remove all tax class rates for a specific country.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationDelete(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfigurationDelete
+
+  """
+  Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxExemptionManage(
+    """ID of the Checkout or Order object."""
+    id: ID!
+
+    """Determines if a taxes should be exempt."""
+    taxExemption: Boolean!
+  ): TaxExemptionManage
+
+  """
   Creates a new staff notification recipient. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -11001,7 +12465,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  shopFetchTaxRates: ShopFetchTaxRates
+  shopFetchTaxRates: ShopFetchTaxRates @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates/updates translations for shop settings. 
@@ -11027,14 +12491,14 @@ type Mutation {
   ): ShopAddressUpdate
 
   """
-  Update shop order settings. 
+  Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderSettingsUpdate(
     """Fields required to update shop order settings."""
     input: OrderSettingsUpdateInput!
-  ): OrderSettingsUpdate
+  ): OrderSettingsUpdate @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0. Use `channelUpdate` mutation instead.")
 
   """
   Update gift card settings. 
@@ -11413,8 +12877,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productDelete(
+    """
+    External ID of a product to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product to delete."""
-    id: ID!
+    id: ID
   ): ProductDelete
 
   """
@@ -11433,8 +12904,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productUpdate(
+    """
+    External ID of a product to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a product."""
     input: ProductInput!
@@ -11673,8 +13151,22 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantDelete(
+    """
+    External ID of a product variant to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a product variant to delete."""
-    id: ID!
+    id: ID
+
+    """
+    SKU of a product variant to delete.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantDelete
 
   """
@@ -11683,6 +13175,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkCreate(
+    """
+    Policies of error handling. DEFAULT: REJECT_EVERYTHING
+    
+    Added in Saleor 3.11.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
     """ID of the product to create the variants for."""
     product: ID!
 
@@ -11691,13 +13192,40 @@ type Mutation {
   ): ProductVariantBulkCreate
 
   """
+  Update multiple product variants.
+  
+  Added in Saleor 3.11.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  productVariantBulkUpdate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
+    """ID of the product to update the variants for."""
+    product: ID!
+
+    """Input list of product variants to update."""
+    variants: [ProductVariantBulkUpdateInput!]!
+  ): ProductVariantBulkUpdate
+
+  """
   Deletes product variants. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantBulkDelete(
     """List of product variant IDs to delete."""
-    ids: [ID!]!
+    ids: [ID!]
+
+    """
+    List of product variant SKUs to delete.
+    
+    Added in Saleor 3.8.
+    """
+    skus: [String!]
   ): ProductVariantBulkDelete
 
   """
@@ -11719,8 +13247,13 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantStocksDelete(
+    """SKU of product variant for which stocks will be deleted."""
+    sku: String
+
     """ID of product variant for which stocks will be deleted."""
-    variantId: ID!
+    variantId: ID
+
+    """Input list of warehouse IDs."""
     warehouseIds: [ID!]
   ): ProductVariantStocksDelete
 
@@ -11730,11 +13263,14 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantStocksUpdate(
-    """Input list of stocks to create."""
+    """SKU of product variant for which stocks will be updated."""
+    sku: String
+
+    """Input list of stocks to create or update."""
     stocks: [StockInput!]!
 
-    """ID of a product variant for which stocks will be created."""
-    variantId: ID!
+    """ID of a product variant for which stocks will be updated."""
+    variantId: ID
   ): ProductVariantStocksUpdate
 
   """
@@ -11743,11 +13279,25 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
   productVariantUpdate(
-    """ID of a product variant to update."""
-    id: ID!
+    """
+    External ID of a product variant to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
+    """ID of a product to update."""
+    id: ID
 
     """Fields required to update a product variant."""
     input: ProductVariantInput!
+
+    """
+    SKU of a product variant to update.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantUpdate
 
   """
@@ -11784,12 +13334,19 @@ type Mutation {
   """
   productVariantChannelListingUpdate(
     """ID of a product variant to update."""
-    id: ID!
+    id: ID
 
     """
     List of fields required to create or upgrade product variant channel listings.
     """
     input: [ProductVariantChannelListingAddInput!]!
+
+    """
+    SKU of a product variant to update.
+    
+    Added in Saleor 3.8.
+    """
+    sku: String
   ): ProductVariantChannelListingUpdate
 
   """
@@ -12154,8 +13711,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderDelete(
-    """ID of a draft order to delete."""
-    id: ID!
+    """
+    External ID of a product to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
+    """ID of a product to delete."""
+    id: ID
   ): DraftOrderDelete
 
   """
@@ -12184,8 +13748,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   draftOrderUpdate(
+    """
+    External ID of a draft order to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a draft order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: DraftOrderInput!
@@ -12447,8 +14018,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_ORDERS.
   """
   orderUpdate(
+    """
+    External ID of an order to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an order to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an order."""
     input: OrderUpdateInput!
@@ -13215,6 +14793,13 @@ type Mutation {
     """
     id: ID
 
+    """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
     """Client-side generated data required to finalize the payment."""
     paymentData: JSONString
 
@@ -13624,6 +15209,20 @@ type Mutation {
     id: ID!
 
     """
+    Fields required to update the checkout metadata.
+    
+    Added in Saleor 3.8.
+    """
+    metadata: [MetadataInput!]
+
+    """
+    Fields required to update the checkout private metadata.
+    
+    Added in Saleor 3.8.
+    """
+    privateMetadata: [MetadataInput!]
+
+    """
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
@@ -13640,9 +15239,10 @@ type Mutation {
   ): ChannelCreate
 
   """
-  Update a channel. 
+  Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -13714,8 +15314,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeDelete(
+    """
+    External ID of an attribute to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an attribute to delete."""
-    id: ID!
+    id: ID
   ): AttributeDelete
 
   """
@@ -13724,8 +15331,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeUpdate(
+    """
+    External ID of an attribute to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an attribute to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an attribute."""
     input: AttributeUpdateInput!
@@ -13784,8 +15398,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueDelete(
+    """
+    External ID of a value to delete. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a value to delete."""
-    id: ID!
+    id: ID
   ): AttributeValueDelete
 
   """
@@ -13794,8 +15415,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   """
   attributeValueUpdate(
+    """
+    External ID of an AttributeValue to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of an AttributeValue to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
@@ -13945,6 +15573,15 @@ type Mutation {
 
   """Create JWT token."""
   tokenCreate(
+    """
+    The audience that will be included to JWT tokens with prefix `custom:`.
+    
+    Added in Saleor 3.8.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    audience: String
+
     """Email of a user."""
     email: String!
 
@@ -14072,7 +15709,7 @@ type Mutation {
     newPassword: String!
 
     """Current user password."""
-    oldPassword: String!
+    oldPassword: String
   ): PasswordChange
 
   """
@@ -14273,8 +15910,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerUpdate(
+    """
+    External ID of a customer to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a customer to update."""
-    id: ID!
+    id: ID
 
     """Fields required to update a customer."""
     input: CustomerInput!
@@ -14286,8 +15930,15 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   customerDelete(
+    """
+    External ID of a customer to update. 
+    
+    Added in Saleor 3.10.
+    """
+    externalReference: String
+
     """ID of a customer to delete."""
-    id: ID!
+    id: ID
   ): CustomerDelete
 
   """
@@ -14438,6 +16089,12 @@ enum WebhookErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  DELETE_FAILED
+  SYNTAX
+  MISSING_SUBSCRIPTION
+  UNABLE_TO_PARSE
+  MISSING_EVENT
+  INVALID_CUSTOM_HEADERS
 }
 
 input WebhookCreateInput {
@@ -14481,10 +16138,19 @@ input WebhookCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
-Deletes a webhook subscription. 
+Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
@@ -14546,6 +16212,15 @@ input WebhookUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
@@ -14557,6 +16232,88 @@ type EventDeliveryRetry {
   """Event delivery."""
   delivery: EventDelivery
   errors: [WebhookError!]!
+}
+
+"""
+Performs a dry run of a webhook event. Supports a single event (the first, if multiple provided in the `query`). Requires permission relevant to processed event.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookDryRun {
+  """JSON payload, that would be sent out to webhook's target URL."""
+  payload: JSONString
+  errors: [WebhookDryRunError!]!
+}
+
+type WebhookDryRunError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookDryRunErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookDryRunErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  TYPE_NOT_SUPPORTED
+  SYNTAX
+  MISSING_SUBSCRIPTION
+  UNABLE_TO_PARSE
+  MISSING_EVENT
+}
+
+"""
+Trigger a webhook event. Supports a single event (the first, if multiple provided in the `webhook.subscription_query`). Requires permission relevant to processed event. Successfully delivered webhook returns `delivery` with status='PENDING' and empty payload.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+"""
+type WebhookTrigger {
+  delivery: EventDelivery
+  errors: [WebhookTriggerError!]!
+}
+
+type WebhookTriggerError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: WebhookTriggerErrorCode!
+}
+
+"""An enumeration."""
+enum WebhookTriggerErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INVALID_ID
+  MISSING_PERMISSION
+  TYPE_NOT_SUPPORTED
+  SYNTAX
+  MISSING_SUBSCRIPTION
+  UNABLE_TO_PARSE
+  MISSING_QUERY
+  MISSING_EVENT
 }
 
 """
@@ -14603,6 +16360,13 @@ input WarehouseCreateInput {
   """The email address of the warehouse."""
   email: String
 
+  """
+  External ID of the warehouse.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Warehouse name."""
   name: String!
 
@@ -14634,6 +16398,13 @@ input WarehouseUpdateInput {
 
   """The email address of the warehouse."""
   email: String
+
+  """
+  External ID of the warehouse.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Warehouse name."""
   name: String
@@ -14691,6 +16462,360 @@ type WarehouseShippingZoneUnassign {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
+}
+
+"""
+Create a tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassCreate {
+  errors: [TaxClassCreateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassCreateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassCreateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassCreateInput {
+  """Name of the tax class."""
+  name: String!
+
+  """List of country-specific tax rates to create for this tax class."""
+  createCountryRates: [CountryRateInput!]
+}
+
+input CountryRateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate.
+  """
+  rate: Float!
+}
+
+"""
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassDelete {
+  errors: [TaxClassDeleteError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxClassDeleteErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Update a tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassUpdate {
+  errors: [TaxClassUpdateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassUpdateInput {
+  """Name of the tax class."""
+  name: String
+
+  """
+  List of country-specific tax rates to create or update for this tax class.
+  """
+  updateCountryRates: [CountryRateUpdateInput!]
+
+  """
+  List of country codes for which to remove the tax class rates. Note: It removes all rates for given country code.
+  """
+  removeCountryRates: [CountryCode!]
+}
+
+input CountryRateUpdateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate. Provide `null` to remove the particular rate.
+  """
+  rate: Float
+}
+
+"""
+Update tax configuration for a channel.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxConfigurationUpdate {
+  errors: [TaxConfigurationUpdateError!]!
+  taxConfiguration: TaxConfiguration
+}
+
+type TaxConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxConfigurationUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxConfigurationUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxConfigurationUpdateInput {
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean
+
+  """
+  List of tax country configurations to create or update (identified by a country code).
+  """
+  updateCountriesConfiguration: [TaxConfigurationPerCountryInput!]
+
+  """List of country codes for which to remove the tax configuration."""
+  removeCountriesConfiguration: [CountryCode!]
+}
+
+input TaxConfigurationPerCountryInput {
+  """Country in which this configuration applies."""
+  countryCode: CountryCode!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+"""
+Update tax class rates for a specific country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationUpdate {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationUpdateError!]!
+}
+
+type TaxCountryConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationUpdateErrorCode!
+
+  """List of tax class IDs for which the update failed."""
+  taxClassIds: [String!]!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
+  CANNOT_CREATE_NEGATIVE_RATE
+}
+
+input TaxClassRateInput {
+  """ID of a tax class for which to update the tax rate"""
+  taxClassId: ID
+
+  """Tax rate value."""
+  rate: Float
+}
+
+"""
+Remove all tax class rates for a specific country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationDelete {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationDeleteError!]!
+}
+
+type TaxCountryConfigurationDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationDeleteErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxExemptionManage {
+  taxableObject: TaxSourceObject
+  errors: [TaxExemptionManageError!]!
+}
+
+union TaxSourceObject = Checkout | Order
+
+type TaxExemptionManageError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxExemptionManageErrorCode!
+}
+
+"""An enumeration."""
+enum TaxExemptionManageErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  NOT_EDITABLE_ORDER
 }
 
 """
@@ -14800,15 +16925,6 @@ input ShopSettingsInput {
   """SEO description."""
   description: String
 
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean
-
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
 
@@ -14869,6 +16985,27 @@ input ShopSettingsInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   limitQuantityPerCheckout: Int
+
+  """
+  Include taxes in prices. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  includeTaxesInPrices: Boolean
+
+  """
+  Display prices with tax in store. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  displayGrossPrices: Boolean
+
+  """
+  Charge taxes on shipping. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
+  """
+  chargeTaxesOnShipping: Boolean
 }
 
 """
@@ -14934,7 +17071,7 @@ type ShopAddressUpdate {
 }
 
 """
-Update shop order settings. 
+Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -14965,12 +17102,12 @@ enum OrderSettingsErrorCode {
 
 input OrderSettingsUpdateInput {
   """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
   """
   automaticallyConfirmAllNewOrders: Boolean
 
   """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
 }
@@ -15133,6 +17270,11 @@ input ShippingPriceInput {
 
   """Inclusion type for currently assigned postal code rules."""
   inclusionType: PostalCodeRuleInclusionTypeEnum
+
+  """
+  ID of a tax class to assign to this shipping method. If not provided, the default tax class will be used.
+  """
+  taxClass: ID
 }
 
 scalar WeightScalar
@@ -15372,6 +17514,7 @@ enum ProductErrorCode {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
+  INVALID_PRICE
   PRODUCT_WITHOUT_CATEGORY
   NOT_PRODUCTS_IMAGE
   NOT_PRODUCTS_VARIANT
@@ -15476,6 +17619,20 @@ input CategoryInput {
 
   """Alt text for a product media."""
   backgroundImageAlt: String
+
+  """
+  Fields required to update the category metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the category private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 input SeoInput {
@@ -15490,6 +17647,14 @@ input SeoInput {
 Variables of this type must be set to null in mutations. They will be replaced with a filename from a following multipart part containing a binary file. See: https://github.com/jaydenseric/graphql-multipart-request-spec.
 """
 scalar Upload
+
+input MetadataInput {
+  """Key of a metadata item."""
+  key: String!
+
+  """Value of a metadata item."""
+  value: String!
+}
 
 """
 Deletes a category. 
@@ -15632,6 +17797,20 @@ input CollectionCreateInput {
   """
   publicationDate: Date
 
+  """
+  Fields required to update the collection metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the collection private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
   """List of products to be added to the collection."""
   products: [ID!]
 }
@@ -15736,6 +17915,20 @@ input CollectionInput {
   DEPRECATED: this field will be removed in Saleor 4.0.
   """
   publicationDate: Date
+
+  """
+  Fields required to update the collection metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the collection private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
@@ -15831,7 +18024,11 @@ input ProductCreateInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -15850,7 +18047,16 @@ input ProductCreateInput {
   """Product slug."""
   slug: String
 
-  """Tax rate for enabled tax gateway."""
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -15862,6 +18068,27 @@ input ProductCreateInput {
   """Defines the product rating value."""
   rating: Float
 
+  """
+  Fields required to update the product metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """ID of the type that product belongs to."""
   productType: ID!
 }
@@ -15871,9 +18098,37 @@ input AttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  swatch: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.9.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.9.
+  """
+  numeric: String
 
   """URL of the file attribute. Every time, a new value is created."""
   file: String
@@ -15898,6 +18153,21 @@ input AttributeValueInput {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+}
+
+"""
+Represents attribute value. If no ID provided, value will be resolved. 
+
+Added in Saleor 3.9.
+"""
+input AttributeValueSelectableTypeInput {
+  """ID of an attribute value."""
+  id: ID
+
+  """
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  """
+  value: String
 }
 
 """
@@ -15941,7 +18211,11 @@ input ProductInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -15960,7 +18234,16 @@ input ProductInput {
   """Product slug."""
   slug: String
 
-  """Tax rate for enabled tax gateway."""
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -15971,6 +18254,27 @@ input ProductInput {
 
   """Defines the product rating value."""
   rating: Float
+
+  """
+  Fields required to update the product metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -16222,8 +18526,17 @@ input ProductTypeInput {
   """Weight of the ProductType items."""
   weight: WeightScalar
 
-  """Tax rate for enabled tax gateway."""
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type.
+  """
   taxCode: String
+
+  """
+  ID of a tax class to assign to this product type. All products of this product type would use this tax class, unless it's overridden in the `Product` type.
+  """
+  taxClass: ID
 }
 
 """
@@ -16313,6 +18626,20 @@ input DigitalContentUploadInput {
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
 
+  """
+  Fields required to update the digital content metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the digital content private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
   """Represents an file in a multipart request."""
   contentFile: Upload!
 }
@@ -16356,6 +18683,20 @@ input DigitalContentInput {
 
   """Overwrite default automatic_fulfillment setting for variant."""
   automaticFulfillment: Boolean
+
+  """
+  Fields required to update the digital content metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the digital content private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
@@ -16421,6 +18762,27 @@ input ProductVariantCreateInput {
   """
   quantityLimitPerCustomer: Int
 
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Product ID of which type is the variant."""
   product: ID!
 
@@ -16464,10 +18826,80 @@ type ProductVariantBulkCreate {
   """Returns how many objects were created."""
   count: Int!
 
-  """List of the created variants."""
+  """List of the created variants.This field will be removed in Saleor 4.0."""
   productVariants: [ProductVariant!]!
+
+  """
+  List of the created variants.
+  
+  Added in Saleor 3.11.
+  """
+  results: [ProductVariantBulkResult!]!
   bulkProductErrors: [BulkProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [BulkProductError!]!
+}
+
+type ProductVariantBulkResult {
+  """Product variant data."""
+  productVariant: ProductVariant
+
+  """List of errors occurred on create attempt."""
+  errors: [ProductVariantBulkError!]
+}
+
+type ProductVariantBulkError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductVariantBulkErrorCode!
+
+  """List of attributes IDs which causes the error."""
+  attributes: [ID!]
+
+  """List of attribute values IDs which causes the error."""
+  values: [ID!]
+
+  """List of warehouse IDs which causes the error."""
+  warehouses: [ID!]
+
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  stocks: [ID!]
+
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  channels: [ID!]
+
+  """List of channel listings IDs which causes the error."""
+  channelListings: [ID!]
+}
+
+"""An enumeration."""
+enum ProductVariantBulkErrorCode {
+  ATTRIBUTE_ALREADY_ASSIGNED
+  ATTRIBUTE_CANNOT_BE_ASSIGNED
+  ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  INVALID_PRICE
+  NOT_PRODUCTS_VARIANT
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  PRODUCT_NOT_ASSIGNED_TO_CHANNEL
 }
 
 type BulkProductError {
@@ -16496,6 +18928,19 @@ type BulkProductError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
+}
+
+enum ErrorPolicyEnum {
+  """
+  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
+  """
+  IGNORE_FAILED
+
+  """Reject all rows if there is at least one error in any of them."""
+  REJECT_EVERYTHING
+
+  """Reject rows with errors."""
+  REJECT_FAILED_ROWS
 }
 
 input ProductVariantBulkCreateInput {
@@ -16534,6 +18979,27 @@ input ProductVariantBulkCreateInput {
   """
   quantityLimitPerCustomer: Int
 
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Stocks of a product available for sale."""
   stocks: [StockInput!]
 
@@ -16546,14 +19012,91 @@ input BulkAttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  swatch: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.12.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.12.
+  """
+  numeric: String
+
+  """
+  URL of the file attribute. Every time, a new value is created.
+  
+  Added in Saleor 3.12.
+  """
+  file: String
+
+  """
+  File content type.
+  
+  Added in Saleor 3.12.
+  """
+  contentType: String
+
+  """
+  List of entity IDs that will be used as references.
+  
+  Added in Saleor 3.12.
+  """
+  references: [ID!]
+
+  """
+  Text content in JSON format.
+  
+  Added in Saleor 3.12.
+  """
+  richText: JSONString
+
+  """
+  Plain text content.
+  
+  Added in Saleor 3.12.
+  """
+  plainText: String
 
   """
   The boolean value of an attribute to resolve. If the passed value is non-existent, it will be created.
   """
   boolean: Boolean
+
+  """
+  Represents the date value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  date: Date
+
+  """
+  Represents the date/time value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  dateTime: DateTime
 }
 
 input ProductVariantChannelListingAddInput {
@@ -16573,6 +19116,152 @@ input ProductVariantChannelListingAddInput {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
+  preorderThreshold: Int
+}
+
+"""
+Update multiple product variants.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type ProductVariantBulkUpdate {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated variants."""
+  results: [ProductVariantBulkResult!]!
+  errors: [ProductVariantBulkError!]!
+}
+
+"""
+Input fields to update product variants.
+
+Added in Saleor 3.11.
+"""
+input ProductVariantBulkUpdateInput {
+  """List of attributes specific to this variant."""
+  attributes: [BulkAttributeValueInput!]
+
+  """Stock keeping unit."""
+  sku: String
+
+  """Variant name."""
+  name: String
+
+  """
+  Determines if the inventory of this variant should be tracked. If false, the quantity won't change when customers buy this item.
+  """
+  trackInventory: Boolean
+
+  """Weight of the Product Variant."""
+  weight: WeightScalar
+
+  """
+  Determines if variant is in preorder.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  preorder: PreorderSettingsInput
+
+  """
+  Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
+  
+  Added in Saleor 3.1.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  quantityLimitPerCustomer: Int
+
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stocks: ProductVariantStocksUpdateInput
+
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  channelListings: ProductVariantChannelListingUpdateInput
+
+  """ID of the product variant to update."""
+  id: ID!
+}
+
+input ProductVariantStocksUpdateInput {
+  """List of warehouses to create stocks."""
+  create: [StockInput!]
+
+  """List of stocks to update."""
+  update: [StockUpdateInput!]
+
+  """List of stocks to remove."""
+  remove: [ID!]
+}
+
+input StockUpdateInput {
+  """Stock."""
+  stock: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingUpdateInput {
+  """List of channels to create variant channel listings."""
+  create: [ProductVariantChannelListingAddInput!]
+
+  """List of channel listings to update."""
+  update: [ChannelListingUpdateInput!]
+
+  """List of channel listings to remove."""
+  remove: [ID!]
+}
+
+input ChannelListingUpdateInput {
+  """ID of a channel listing."""
+  channelListing: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """The threshold for preorder variant in channel."""
   preorderThreshold: Int
 }
 
@@ -16715,6 +19404,27 @@ input ProductVariantInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   quantityLimitPerCustomer: Int
+
+  """
+  Fields required to update the product variant metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the product variant private metadata.
+  
+  Added in Saleor 3.8.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
+  External ID of this product variant.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -17007,14 +19717,6 @@ input TransactionCreateInput {
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
-}
-
-input MetadataInput {
-  """Key of a metadata item."""
-  key: String!
-
-  """Value of a metadata item."""
-  value: String!
 }
 
 input TransactionEventInput {
@@ -17493,6 +20195,13 @@ input DraftOrderCreateInput {
   """
   redirectUrl: String
 
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
   """Variant line input consisting of variant ID and quantity of products."""
   lines: [OrderLineCreateInput!]
 }
@@ -17592,6 +20301,13 @@ input DraftOrderInput {
   URL of a view where users should be redirected to see the order details. URL in RFC 1808 format.
   """
   redirectUrl: String
+
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -18038,6 +20754,13 @@ input OrderUpdateInput {
 
   """Shipping address of the customer."""
   shippingAddress: AddressInput
+
+  """
+  External ID of this order.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -19496,6 +22219,7 @@ enum CheckoutErrorCode {
   UNAVAILABLE_VARIANT_IN_CHANNEL
   EMAIL_NOT_SET
   NO_LINES
+  INACTIVE_PAYMENT
 }
 
 """Update billing address in the existing checkout."""
@@ -19609,6 +22333,13 @@ input CheckoutLineInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
+
+  """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.8.
+  """
+  metadata: [MetadataInput!]
 }
 
 input CheckoutValidationRules {
@@ -19942,6 +22673,13 @@ input ChannelCreateInput {
   """
   addWarehouses: [ID!]
 
+  """
+  The channel order settings
+  
+  Added in Saleor 3.12.
+  """
+  orderSettings: OrderSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -19968,10 +22706,23 @@ input StockSettingsInput {
   allocationStrategy: AllocationStrategyEnum!
 }
 
+input OrderSettingsInput {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
+  """
+  automaticallyConfirmAllNewOrders: Boolean
+
+  """
+  When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean
+}
+
 """
-Update a channel. 
+Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
 """
 type ChannelUpdate {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20003,6 +22754,13 @@ input ChannelUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addWarehouses: [ID!]
+
+  """
+  The channel order settings
+  
+  Added in Saleor 3.12.
+  """
+  orderSettings: OrderSettingsInput
 
   """Name of the channel."""
   name: String
@@ -20146,7 +22904,11 @@ input AttributeCreateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -20154,11 +22916,24 @@ input AttributeCreateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 input AttributeValueCreateInput {
@@ -20171,11 +22946,15 @@ input AttributeValueCreateInput {
   Represents the text of the attribute value, includes formatting.
   
   Rich text format. For reference see https://editorjs.io/
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The rich text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   richText: JSONString
 
   """
   Represents the text of the attribute value, plain text without formating.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   plainText: String
 
@@ -20184,6 +22963,13 @@ input AttributeValueCreateInput {
 
   """File content type."""
   contentType: String
+
+  """
+  External ID of this attribute value.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Name of a value displayed in the interface."""
   name: String!
@@ -20236,7 +23022,11 @@ input AttributeUpdateInput {
   """Whether the attribute should be visible or not in storefront."""
   visibleInStorefront: Boolean
 
-  """Whether the attribute can be filtered in storefront."""
+  """
+  Whether the attribute can be filtered in storefront.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   filterableInStorefront: Boolean
 
   """Whether the attribute can be filtered in dashboard."""
@@ -20244,11 +23034,24 @@ input AttributeUpdateInput {
 
   """
   The position of the attribute in the storefront navigation (0 by default).
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
   """
   storefrontSearchPosition: Int
 
-  """Whether the attribute can be displayed in the admin product list."""
+  """
+  Whether the attribute can be displayed in the admin product list.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   availableInGrid: Boolean
+
+  """
+  External ID of this product.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 input AttributeValueUpdateInput {
@@ -20261,11 +23064,15 @@ input AttributeValueUpdateInput {
   Represents the text of the attribute value, includes formatting.
   
   Rich text format. For reference see https://editorjs.io/
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The rich text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   richText: JSONString
 
   """
   Represents the text of the attribute value, plain text without formating.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.The plain text attribute hasn't got predefined value, so can be specified only from instance that supports the given attribute.
   """
   plainText: String
 
@@ -20274,6 +23081,13 @@ input AttributeValueUpdateInput {
 
   """File content type."""
   contentType: String
+
+  """
+  External ID of this attribute value.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 
   """Name of a value displayed in the interface."""
   name: String
@@ -20426,6 +23240,7 @@ enum AppErrorCode {
   INVALID_PERMISSION
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
+  INVALID_CUSTOM_HEADERS
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED
@@ -20588,6 +23403,15 @@ type Manifest {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   webhooks: [AppManifestWebhook!]!
+
+  """
+  The audience that will be included in all JWT tokens for the app.
+  
+  Added in Saleor 3.8.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  audience: String
 }
 
 type AppManifestExtension {
@@ -21114,6 +23938,13 @@ input UserCreateInput {
   languageCode: LanguageCodeEnum
 
   """
+  External ID of the customer.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -21159,6 +23990,13 @@ input CustomerInput {
 
   """User language code."""
   languageCode: LanguageCodeEnum
+
+  """
+  External ID of the customer.
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
 }
 
 """
@@ -22071,6 +24909,30 @@ type GiftCardStatusChanged implements Event {
 }
 
 """
+Event sent when gift card metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type GiftCardMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The gift card the event relates to."""
+  giftCard: GiftCard
+}
+
+"""
 Event sent when new menu is created.
 
 Added in Saleor 3.4.
@@ -22377,6 +25239,30 @@ type OrderCancelled implements Event {
 }
 
 """
+Event sent when order metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
 Event sent when new draft order is created.
 
 Added in Saleor 3.2.
@@ -22539,6 +25425,102 @@ type ProductDeleted implements Event {
 }
 
 """
+Event sent when product metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product the event relates to."""
+  product(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Product
+
+  """The category of the product."""
+  category: Category
+}
+
+"""
+Event sent when new product media is created.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is updated.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
+Event sent when product media is deleted.
+
+Added in Saleor 3.12.
+"""
+type ProductMediaDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product media the event relates to."""
+  productMedia: ProductMedia
+}
+
+"""
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
@@ -22653,6 +25635,36 @@ type ProductVariantBackInStock implements Event {
 }
 
 """
+Event sent when product variant stock is updated.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductVariantStockUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+
+  """Look up a warehouse."""
+  warehouse: Warehouse
+}
+
+"""
 Event sent when product variant is deleted.
 
 Added in Saleor 3.2.
@@ -22660,6 +25672,33 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The product variant the event relates to."""
+  productVariant(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ProductVariant
+}
+
+"""
+Event sent when product variant metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ProductVariantMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -22815,6 +25854,13 @@ type InvoiceRequested implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order!
 }
 
 """
@@ -22839,6 +25885,13 @@ type InvoiceDeleted implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 """
@@ -22863,6 +25916,13 @@ type InvoiceSent implements Event {
 
   """The invoice the event relates to."""
   invoice: Invoice
+
+  """
+  Order related to the invoice.
+  
+  Added in Saleor 3.10.
+  """
+  order: Order
 }
 
 """
@@ -22947,6 +26007,33 @@ type FulfillmentApproved implements Event {
 }
 
 """
+Event sent when fulfillment metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type FulfillmentMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The fulfillment the event relates to."""
+  fulfillment: Fulfillment
+
+  """The order the fulfillment belongs to."""
+  order: Order
+}
+
+"""
 Event sent when new customer user is created.
 
 Added in Saleor 3.2.
@@ -22978,6 +26065,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The user the event relates to."""
+  user: User
+}
+
+"""
+Event sent when customer user metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CustomerMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23076,6 +26187,33 @@ type CollectionDeleted implements Event {
 }
 
 """
+Event sent when collection metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CollectionMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The collection the event relates to."""
+  collection(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Collection
+}
+
+"""
 Event sent when new checkout is created.
 
 Added in Saleor 3.2.
@@ -23107,6 +26245,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when checkout metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutMetadataUpdated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -23520,6 +26682,33 @@ type ShippingZoneDeleted implements Event {
 }
 
 """
+Event sent when shipping zone metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type ShippingZoneMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The shipping zone the event relates to."""
+  shippingZone(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): ShippingZone
+}
+
+"""
 Event sent when new staff user is created.
 
 Added in Saleor 3.5.
@@ -23636,6 +26825,34 @@ type TransactionAction {
 
   """Transaction request amount. Null when action type is VOID."""
   amount: PositiveDecimal
+}
+
+"""
+Event sent when transaction item metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionItemMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Look up a transaction.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transaction: TransactionItem
 }
 
 """
@@ -23770,6 +26987,33 @@ type VoucherDeleted implements Event {
 }
 
 """
+Event sent when voucher metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type VoucherMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The voucher the event relates to."""
+  voucher(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Voucher
+}
+
+"""
 Event sent when new warehouse is created.
 
 Added in Saleor 3.4.
@@ -23839,6 +27083,77 @@ type WarehouseDeleted implements Event {
 
   """The warehouse the event relates to."""
   warehouse: Warehouse
+}
+
+"""
+Event sent when warehouse metadata is updated.
+
+Added in Saleor 3.8.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type WarehouseMetadataUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The warehouse the event relates to."""
+  warehouse: Warehouse
+}
+
+"""
+Event sent when thumbnail is created.
+
+Added in Saleor 3.12.
+"""
+type ThumbnailCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """
+  Thumbnail id.
+  
+  Added in Saleor 3.12.
+  """
+  id: ID
+
+  """
+  Thumbnail url.
+  
+  Added in Saleor 3.12.
+  """
+  url: String
+
+  """
+  Object the thumbnail refers to.
+  
+  Added in Saleor 3.12.
+  """
+  objectId: ID
+
+  """
+  Original media url.
+  
+  Added in Saleor 3.12.
+  """
+  mediaUrl: String
 }
 
 """
@@ -24108,11 +27423,95 @@ type ShippingListMethodsForCheckout implements Event {
   shippingMethods: [ShippingMethod!]
 }
 
+"""
+Synchronous webhook for calculating checkout/order taxes.
+
+Added in Saleor 3.7.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CalculateTaxes implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+  taxBase: TaxableObject!
+}
+
+"""Taxable object."""
+type TaxableObject {
+  """The source object related to this tax object."""
+  sourceObject: TaxSourceObject!
+
+  """Determines if prices contain entered tax.."""
+  pricesEnteredWithTax: Boolean!
+
+  """The currency of the object."""
+  currency: String!
+
+  """The price of shipping method."""
+  shippingPrice: Money!
+
+  """The address data."""
+  address: Address
+
+  """List of discounts."""
+  discounts: [TaxableObjectDiscount!]!
+
+  """List of lines assigned to the object."""
+  lines: [TaxableObjectLine!]!
+  channel: Channel!
+}
+
+"""Taxable object discount."""
+type TaxableObjectDiscount {
+  """The name of the discount."""
+  name: String
+
+  """The amount of the discount."""
+  amount: Money!
+}
+
+type TaxableObjectLine {
+  """The source line related to this tax line."""
+  sourceLine: TaxSourceLine!
+
+  """Number of items."""
+  quantity: Int!
+
+  """Determines if taxes are being charged for the product."""
+  chargeTaxes: Boolean!
+
+  """The product name."""
+  productName: String!
+
+  """The variant name."""
+  variantName: String!
+
+  """The product sku."""
+  productSku: String
+
+  """Price of the single item in the order line."""
+  unitPrice: Money!
+
+  """Price of the order line."""
+  totalPrice: Money!
+}
+
+union TaxSourceLine = CheckoutLine | OrderLine
+
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {

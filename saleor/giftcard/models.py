@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
+from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField, Q
 from django.utils import timezone
@@ -9,8 +10,8 @@ from django_prices.models import MoneyField
 
 from ..app.models import App
 from ..core.models import ModelWithMetadata
-from ..core.permissions import GiftcardPermissions
 from ..core.utils.json_serializer import CustomJsonEncoder
+from ..permission.enums import GiftcardPermissions
 from . import GiftCardEvents
 
 
@@ -37,8 +38,13 @@ class GiftCardQueryset(models.QuerySet):
         )
 
 
+GiftCardManager = models.Manager.from_queryset(GiftCardQueryset)
+
+
 class GiftCard(ModelWithMetadata):
-    code = models.CharField(max_length=16, unique=True, db_index=True)
+    code = models.CharField(
+        max_length=16, unique=True, validators=[MinLengthValidator(8)], db_index=True
+    )
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -67,7 +73,7 @@ class GiftCard(ModelWithMetadata):
     expiry_date = models.DateField(null=True, blank=True)
 
     tags = models.ManyToManyField(GiftCardTag, "gift_cards")
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
     product = models.ForeignKey(
         "product.Product",
@@ -105,9 +111,9 @@ class GiftCard(ModelWithMetadata):
         amount_field="current_balance_amount", currency_field="currency"
     )
 
-    objects = models.Manager.from_queryset(GiftCardQueryset)()
+    objects = GiftCardManager()
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("code",)
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),

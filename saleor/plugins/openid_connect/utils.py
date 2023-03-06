@@ -7,13 +7,11 @@ import requests
 from authlib.jose import JWTClaims, jwt
 from authlib.jose.errors import DecodeError, JoseError
 from authlib.oidc.core import CodeIDToken
-from django.contrib.auth.models import Permission
+from django.contrib.auth.hashers import make_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db.models import QuerySet
-from django.middleware.csrf import _compare_masked_tokens  # type: ignore
-from django.middleware.csrf import _get_new_csrf_token
 from django.utils.timezone import make_aware
 from jwt import PyJWTError
 
@@ -27,7 +25,12 @@ from ...core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ...core.permissions import get_permission_names, get_permissions_from_codenames
+from ...graphql.account.mutations.authentication import (
+    _does_token_match,
+    _get_new_csrf_token,
+)
+from ...permission.enums import get_permission_names, get_permissions_from_codenames
+from ...permission.models import Permission
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
 from . import PLUGIN_ID
@@ -165,7 +168,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     user_info = get_user_info_from_cache_or_fetch(
         user_info_url,
         access_token,
-        token_payload["exp"],
+        token_payload.get("exp"),
     )
     if not user_info:
         logger.info(
@@ -330,6 +333,7 @@ def get_or_create_user_from_payload(
         "first_name": payload.get("given_name", ""),
         "last_name": payload.get("family_name", ""),
         "private_metadata": {oidc_metadata_key: sub},
+        "password": make_password(None),
     }
     try:
         user = User.objects.get(**get_kwargs)
@@ -469,7 +473,7 @@ def validate_refresh_token(refresh_token, data):
                     )
                 }
             )
-        is_valid = _compare_masked_tokens(csrf_token, refresh_payload[CSRF_FIELD])
+        is_valid = _does_token_match(csrf_token, refresh_payload[CSRF_FIELD])
         if not is_valid:
             raise ValidationError(
                 {

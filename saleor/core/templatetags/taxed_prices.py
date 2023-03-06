@@ -1,18 +1,30 @@
-from django import template
-from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
+from typing import Union
 
-from ..taxes import get_display_price
+from django import template
+from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 register = template.Library()
 
 
-@register.inclusion_tag("price.html", takes_context=True)
-def price(context, base, display_gross=None, html=True):
-    if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
-        if display_gross is None:
-            display_gross = context["site"].settings.display_gross_prices
+def _get_display_price(
+    base: Union[TaxedMoney, TaxedMoneyRange], display_gross: bool
+) -> Money:
+    """Return the price amount that should be displayed based on settings."""
+    if isinstance(base, TaxedMoneyRange):
+        if display_gross:
+            base = MoneyRange(start=base.start.gross, stop=base.stop.gross)
+        else:
+            base = MoneyRange(start=base.start.net, stop=base.stop.net)
 
-        base = get_display_price(base, display_gross)
+    if isinstance(base, TaxedMoney):
+        base = base.gross if display_gross else base.net
+    return base
+
+
+@register.inclusion_tag("price.html")
+def price(base, display_gross, html=True):
+    if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
+        base = _get_display_price(base, display_gross)
 
     is_range = isinstance(base, MoneyRange)
     return {"price": base, "is_range": is_range, "html": html}

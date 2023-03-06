@@ -43,6 +43,7 @@ def test_get_products_data(product, product_with_image, collection, image, chann
         value
         for mapping in ProductExportFields.HEADERS_TO_FIELDS_MAPPING.values()
         for value in mapping.values()
+        if value
     )
     warehouse_ids = [str(warehouse.pk) for warehouse in Warehouse.objects.all()]
     attribute_ids = [str(attr.pk) for attr in Attribute.objects.all()]
@@ -78,7 +79,6 @@ def test_get_products_data(product, product_with_image, collection, image, chann
             "description_as_str": json.dumps(product.description),
             "category__slug": product.category.slug,
             "product_type__name": product.product_type.name,
-            "charge_taxes": product.charge_taxes,
             "collections__slug": (
                 ""
                 if not product.collections.all()
@@ -245,8 +245,10 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     file_attribute,
     page_list,
     product,
+    variant,
     product_type_page_reference_attribute,
     product_type_product_reference_attribute,
+    product_type_variant_reference_attribute,
     numeric_attribute,
     product_with_image,
     product_with_variant_with_two_attributes,
@@ -264,6 +266,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
         swatch_attribute,
@@ -275,6 +278,7 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
         file_attribute,
         product_type_page_reference_attribute,
         product_type_product_reference_attribute,
+        product_type_variant_reference_attribute,
         numeric_attribute,
         rich_text_attribute,
         swatch_attribute,
@@ -372,6 +376,28 @@ def test_get_products_data_for_specified_warehouses_channels_and_attributes(
     )
     associate_attribute_values_to_instance(
         product, product_type_product_reference_attribute, product_product_ref_value
+    )
+
+    # add variant reference attribute
+    variant_variant_ref_value = AttributeValue.objects.create(
+        attribute=product_type_variant_reference_attribute,
+        reference_variant=variant,
+        slug=(f"{variant_with_many_stocks.pk}" f"_{variant.pk}"),
+        name=variant.name,
+    )
+    product_variant_ref_value = AttributeValue.objects.create(
+        attribute=product_type_variant_reference_attribute,
+        reference_variant=variant,
+        slug=f"{product.pk}_{variant.pk}",
+        name=variant.name,
+    )
+    associate_attribute_values_to_instance(
+        variant_with_many_stocks,
+        product_type_variant_reference_attribute,
+        variant_variant_ref_value,
+    )
+    associate_attribute_values_to_instance(
+        product, product_type_variant_reference_attribute, product_variant_ref_value
     )
 
     # add numeric attribute

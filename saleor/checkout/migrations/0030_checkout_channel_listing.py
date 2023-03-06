@@ -29,7 +29,6 @@ def add_channel_slug(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("checkout", "0029_auto_20200904_0529"),

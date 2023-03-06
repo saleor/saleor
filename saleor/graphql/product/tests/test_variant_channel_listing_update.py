@@ -13,10 +13,11 @@ from ...tests.utils import (
 
 PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateProductVariantChannelListing(
-    $id: ID!,
+    $id: ID,
+    $sku: String,
     $input: [ProductVariantChannelListingAddInput!]!
 ) {
-    productVariantChannelListingUpdate(id: $id, input: $input) {
+    productVariantChannelListingUpdate(id: $id, sku: $sku, input: $input) {
         errors {
             field
             message
@@ -198,6 +199,66 @@ def test_variant_channel_listing_update_as_staff_user(
     second_price = 20
     variables = {
         "id": variant_id,
+        "input": [
+            {"channelId": channel_usd_id, "price": price, "costPrice": price},
+            {
+                "channelId": channel_pln_id,
+                "price": second_price,
+                "costPrice": second_price,
+            },
+        ],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_CHANNEL_LISTING_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_products,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["productVariantChannelListingUpdate"]
+    variant_data = data["variant"]
+    assert not data["errors"]
+    assert variant_data["id"] == variant_id
+    channel_usd_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_usd_id
+    )
+    channel_pln_data = next(
+        channel_data
+        for channel_data in variant_data["channelListings"]
+        if channel_data["channel"]["id"] == channel_pln_id
+    )
+    assert channel_usd_data["price"]["currency"] == "USD"
+    assert channel_usd_data["price"]["amount"] == price
+    assert channel_usd_data["costPrice"]["amount"] == price
+    assert channel_usd_data["channel"]["slug"] == channel_USD.slug
+    assert channel_pln_data["price"]["currency"] == "PLN"
+    assert channel_pln_data["price"]["amount"] == second_price
+    assert channel_pln_data["costPrice"]["amount"] == second_price
+    assert channel_pln_data["channel"]["slug"] == channel_PLN.slug
+
+
+def test_variant_channel_listing_update_by_sku(
+    staff_api_client, product, permission_manage_products, channel_USD, channel_PLN
+):
+    # given
+    ProductChannelListing.objects.create(
+        product=product,
+        channel=channel_PLN,
+        is_published=True,
+    )
+    variant = product.variants.get()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    channel_usd_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    channel_pln_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    price = 1
+    second_price = 20
+    variables = {
+        "sku": variant.sku,
         "input": [
             {"channelId": channel_usd_id, "price": price, "costPrice": price},
             {

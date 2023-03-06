@@ -80,7 +80,7 @@ def get_payment_billing_fullname(payment_information: PaymentData) -> str:
     payment_billing = payment_information.billing
     if not payment_billing:
         return ""
-    return "%s %s" % (payment_billing.last_name, payment_billing.first_name)
+    return f"{payment_billing.last_name} {payment_billing.first_name}"
 
 
 def shipping_to_stripe_dict(shipping: AddressData) -> Dict:

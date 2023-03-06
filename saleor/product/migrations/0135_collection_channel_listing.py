@@ -20,7 +20,6 @@ def create_collection_channel_listing(apps, schema_editor):
             defaults={"name": name, "slug": slugify(name)},
         )
         for collection in Collection.objects.iterator():
-
             CollectionChannelListing.objects.create(
                 collection=collection,
                 channel=channel,
@@ -30,7 +29,6 @@ def create_collection_channel_listing(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("product", "0134_product_channel_listing"),

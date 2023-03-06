@@ -1,13 +1,17 @@
 import itertools
 
+import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, InputObjectType, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import DEPRECATED_IN_3X_INPUT
+from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
+from ..scalars import Date
+from . import NonNullList
+from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from .converter import convert_form_field
 
 GLOBAL_ID_FILTERS = {
@@ -35,7 +39,7 @@ def get_filterset_class(filterset_class=None):
 
 
 class FilterInputObjectType(InputObjectType):
-    """Class for storing and serving django-filtres as graphQL input.
+    """Class for storing and serving django-filters as graphQL input.
 
     FilterSet class which inherits from django-filters.FilterSet should be
     provided with using fitlerset_class argument.
@@ -99,3 +103,114 @@ class ChannelFilterInputObjectType(FilterInputObjectType):
 
     class Meta:
         abstract = True
+
+
+class WhereInputObjectType(FilterInputObjectType):
+    """Class for storing and serving django-filters with additional operators input.
+
+    FilterSet class which inherits from django-filters.FilterSet should be
+    provided with using fitlerset_class argument.
+
+    AND, OR, and NOT class type fields are automatically added to available input
+    fields, allowing to create complex filter statements.
+    """
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, _meta=None, **options):
+        super().__init_subclass_with_meta__(_meta=_meta, **options)
+        cls._meta.fields.update(
+            {
+                "AND": graphene.Field(
+                    NonNullList(
+                        cls,
+                    ),
+                    description="List of conditions that must be met.",
+                ),
+                "OR": graphene.Field(
+                    NonNullList(
+                        cls,
+                    ),
+                    description=(
+                        "A list of conditions of which at least one must be met."
+                    ),
+                ),
+                # TODO: needs optimization
+                # "NOT": graphene.Field(
+                #     cls, description="A condition that cannot be met."
+                # ),
+            }
+        )
+
+
+class FilterInputDescriptions:
+    EQ = "The value equal to."
+    ONE_OF = "The value included in."
+    RANGE = "The value in range."
+
+
+class StringFilterInput(graphene.InputObjectType):
+    eq = graphene.String(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.String,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for string fields."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class IntFilterInput(graphene.InputObjectType):
+    eq = graphene.Int(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.Int, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    range = IntRangeInput(description=FilterInputDescriptions.RANGE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for integer fields."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class DateFilterInput(graphene.InputObjectType):
+    eq = Date(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        Date, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    range = DateRangeInput(description=FilterInputDescriptions.RANGE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for date fields."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class DateTimeFilterInput(graphene.InputObjectType):
+    eq = graphene.DateTime(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.DateTime,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+    range = DateTimeRangeInput(
+        description=FilterInputDescriptions.RANGE, required=False
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for date time fields."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )

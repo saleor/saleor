@@ -41,6 +41,31 @@ def test_filter_page_types(
 
 
 @pytest.mark.parametrize(
+    "filter_by, pages_count",
+    [
+        ({"slugs": ["page-type-2", "page-type-3"]}, 2),
+        ({"slugs": []}, 3),
+    ],
+)
+def test_filter_page_types_filtering(
+    filter_by, pages_count, staff_api_client, page_type_list
+):
+    # given
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        PAGE_TYPES_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["pageTypes"]["edges"]
+    assert len(pages_nodes) == pages_count
+
+
+@pytest.mark.parametrize(
     "direction, order_direction",
     (("ASC", "name"), ("DESC", "-name")),
 )

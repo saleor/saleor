@@ -47,7 +47,6 @@ ADDRESS_DELETED = (
 """
 )
 
-
 APP_INSTALLED = (
     fragments.APP_DETAILS
     + """
@@ -269,6 +268,20 @@ GIFT_CARD_STATUS_CHANGED = (
 """
 )
 
+GIFT_CARD_METADATA_UPDATED = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardMetadataUpdated{
+          giftCard{
+            ...GiftCardDetails
+          }
+        }
+      }
+    }
+"""
+)
 
 VOUCHER_CREATED = (
     fragments.VOUCHER_DETAILS
@@ -341,6 +354,21 @@ VOUCHER_DELETED = (
     subscription{
       event{
         ...on VoucherDeleted{
+          voucher{
+            ...VoucherDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+VOUCHER_METADATA_UPDATED = (
+    fragments.VOUCHER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on VoucherMetadataUpdated{
           voucher{
             ...VoucherDetails
           }
@@ -546,6 +574,25 @@ SHIPPING_ZONE_DELETED = """
     }
 """
 
+SHIPPING_ZONE_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ShippingZoneMetadataUpdated{
+          shippingZone{
+            id
+            name
+            countries {
+                code
+            }
+            channels {
+                name
+            }
+          }
+        }
+      }
+    }
+"""
+
 STAFF_CREATED = (
     fragments.STAFF_DETAILS
     + """
@@ -629,6 +676,60 @@ PRODUCT_DELETED = """
     }
 """
 
+PRODUCT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMetadataUpdated{
+          product{
+            id
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_CREATED = """
+    subscription{
+      event{
+        ...on ProductMediaCreated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMediaUpdated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_DELETED = """
+    subscription{
+      event{
+        ...on ProductMediaDeleted{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
@@ -666,6 +767,18 @@ PRODUCT_VARIANT_DELETED = """
     }
 """
 
+PRODUCT_VARIANT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantMetadataUpdated{
+          productVariant{
+            id
+          }
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_OUT_OF_STOCK = """
     subscription{
       event{
@@ -683,6 +796,21 @@ PRODUCT_VARIANT_BACK_IN_STOCK = """
       event{
         ...on ProductVariantBackInStock{
           productVariant{
+            id
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_VARIANT_STOCK_UPDATED = """
+    subscription{
+      event{
+        ...on ProductVariantStockUpdated{
+          productVariant{
+            id
+          }
+          warehouse{
             id
           }
         }
@@ -754,6 +882,18 @@ ORDER_FULFILLED = """
     subscription{
       event{
         ...on OrderFulfilled{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on OrderMetadataUpdated{
           order{
             id
           }
@@ -861,12 +1001,16 @@ SALE_TOGGLE = (
 
 INVOICE_REQUESTED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceRequested{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -876,12 +1020,16 @@ INVOICE_REQUESTED = (
 
 INVOICE_DELETED = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceDeleted{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -891,12 +1039,16 @@ INVOICE_DELETED = (
 
 INVOICE_SENT = (
     fragments.INVOICE_DETAILS
+    + fragments.INVOICE_ORDER_DETAILS
     + """
     subscription{
       event{
         ...on InvoiceSent{
           invoice{
             ...InvoiceDetails
+          }
+          order {
+            ...InvoiceOrderDetails
           }
         }
       }
@@ -958,6 +1110,26 @@ FULFILLMENT_APPROVED = (
 """
 )
 
+
+FULFILLMENT_METADATA_UPDATED = (
+    fragments.FULFILLMENT_DETAILS
+    + """
+    subscription{
+      event{
+        ...on FulfillmentMetadataUpdated{
+          fulfillment{
+            ...FulfillmentDetails
+          }
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+)
+
+
 CUSTOMER_CREATED = (
     fragments.CUSTOMER_DETAILS
     + """
@@ -995,6 +1167,22 @@ CUSTOMER_DELETED = (
     subscription{
       event{
         ...on CustomerDeleted{
+          user{
+            ...CustomerDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+CUSTOMER_METADATA_UPDATED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on CustomerMetadataUpdated{
           user{
             ...CustomerDetails
           }
@@ -1052,6 +1240,22 @@ COLLECTION_DELETED = (
 )
 
 
+COLLECTION_METADATA_UPDATED = (
+    fragments.COLLECTION
+    + """
+    subscription{
+      event{
+        ...on CollectionMetadataUpdated{
+          collection(channel: "main"){
+            ...CollectionDetails
+          }
+        }
+      }
+    }
+    """
+)
+
+
 CHECKOUT_CREATED = """
     subscription{
       event{
@@ -1071,6 +1275,18 @@ CHECKOUT_UPDATED = """
     subscription{
       event{
         ...on CheckoutUpdated{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHECKOUT_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on CheckoutMetadataUpdated{
           checkout{
             id
           }
@@ -1214,6 +1430,19 @@ PERMISSION_GROUP_DELETED = (
     }
 """
 )
+
+
+TRANSACTION_ITEM_METADATA_UPDATED = """
+    subscription{
+      event{
+        ...on TransactionItemMetadataUpdated{
+          transaction {
+            id
+          }
+        }
+      }
+    }
+    """
 
 
 MULTIPLE_EVENTS = """
@@ -1571,6 +1800,21 @@ WAREHOUSE_DELETED = (
 """
 )
 
+WAREHOUSE_METADATA_UPDATED = (
+    fragments.WAREHOUSE_DETAILS
+    + """
+    subscription{
+      event{
+        ...on WarehouseMetadataUpdated{
+          warehouse{
+            ...WarehouseDetails
+          }
+        }
+      }
+    }
+"""
+)
+
 PAYMENT_AUTHORIZE = (
     fragments.PAYMENT_DETAILS
     + """
@@ -1832,20 +2076,24 @@ INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
-            }
-            ...CategoryDetails
+              variants{
+                ...ProductVariant
+                }
+              category {
+                ...CategoryDetails
+              }
           }
         }
       }
       event{
         ...on ProductCreated{
           product{
-          variants{
+            variants{
                 ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
@@ -1862,13 +2110,49 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
+            variants{
+              ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
     }
     """
 )
+
+THUMBNAIL_CREATED = """
+    subscription {
+      event {
+        ... on ThumbnailCreated {
+          url
+          id
+          objectId
+          mediaUrl
+        }
+      }
+    }
+"""
+
+
+ORDER_CALCULATE_TAXES = """
+    subscription {
+      event {
+        ... on CalculateTaxes {
+          taxBase {
+            sourceObject {
+              ...on Order{
+                discounts {
+                  amount {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+"""

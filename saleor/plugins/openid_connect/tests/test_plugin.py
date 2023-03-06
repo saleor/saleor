@@ -5,7 +5,6 @@ import pytest
 from authlib.jose.errors import JoseError
 from django.core import signing
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import _get_new_csrf_token
 from freezegun import freeze_time
 
 from ....core.jwt import (
@@ -16,6 +15,7 @@ from ....core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
+from ....graphql.account.mutations.authentication import _get_new_csrf_token
 from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
 from ..utils import (
@@ -310,7 +310,6 @@ def test_external_refresh_when_plugin_is_disabled(openid_plugin, rf):
 def test_external_refresh_raises_error(
     openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
 ):
-
     plugin = openid_plugin()
     csrf_token = _get_new_csrf_token()
     oauth_refresh_token = "refresh"
@@ -911,6 +910,7 @@ def test_authenticate_user_with_jwt_access_token(
     decoded_access_token["scope"] = ""
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
+    decoded_token.get.side_effect = decoded_access_token.get
 
     # mock get token from request
     monkeypatch.setattr(
@@ -1151,6 +1151,7 @@ def test_authenticate_user_with_jwt_access_token_unable_to_fetch_user_info(
 
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
+    decoded_token.get.side_effect = decoded_access_token.get
 
     # mock get token from request
     monkeypatch.setattr(
@@ -1193,6 +1194,7 @@ def test_authenticate_user_with_jwt_invalid_access_token(
 
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
+    decoded_token.get.side_effect = decoded_access_token.get
     decoded_token.validate.side_effect = JoseError()
 
     # mock get token from request

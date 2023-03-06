@@ -18,7 +18,7 @@ from ...core.jwt import (
     get_user_from_payload,
     jwt_decode,
 )
-from ...core.permissions import get_permissions_codename, get_permissions_from_names
+from ...permission.enums import get_permissions_codename, get_permissions_from_names
 from ..base_plugin import BasePlugin, ConfigurationTypeField, ExternalAccessTokens
 from ..error_codes import PluginErrorCode
 from ..models import PluginConfiguration
@@ -417,9 +417,7 @@ class OpenIDConnectPlugin(BasePlugin):
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
         if permissions is not None:
-            user.effective_permissions = get_permissions_from_names(  # type: ignore
-                permissions
-            )
+            user.effective_permissions = get_permissions_from_names(permissions)
             user.is_staff = True
         return user, payload
 

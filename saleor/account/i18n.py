@@ -1,9 +1,11 @@
 from collections import defaultdict
+from typing import List, Tuple
 
 import i18naddress
 from django import forms
 from django.core.exceptions import ValidationError
-from django.forms import BoundField  # type: ignore
+from django.forms import BoundField
+from django.forms.models import ModelFormMetaclass
 from django_countries import countries
 
 from .models import Address
@@ -46,31 +48,24 @@ class PossiblePhoneNumberFormField(forms.CharField):
 
 
 class CountryAreaChoiceField(forms.ChoiceField):
-    widget = DatalistTextWidget  # type: ignore
+    widget = DatalistTextWidget
 
     def valid_value(self, value):
         return True
 
 
 class AddressMetaForm(forms.ModelForm):
-    # This field is never visible in UI
-    preview = forms.BooleanField(initial=False, required=False)
-
     class Meta:
         model = Address
-        fields = ["country", "preview"]
+        fields = ["country"]
         labels = {"country": "Country"}
 
     def clean(self):
         data = super().clean()
-        if data.get("preview"):
-            self.data = self.data.copy()
-            self.data["preview"] = False
         return data
 
 
 class AddressForm(forms.ModelForm):
-
     AUTOCOMPLETE_MAPPING = [
         ("first_name", "given-name"),
         ("last_name", "family-name"),
@@ -115,16 +110,13 @@ class AddressForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # countries order was taken as defined in the model,
         # not being sorted accordingly to the selected language
-        self.fields["country"].choices = sorted(
-            COUNTRY_CHOICES, key=lambda choice: choice[1]
+        self.fields["country"].choices = sorted(  # type: ignore[attr-defined] # raw access to fields # noqa: E501
+            COUNTRY_CHOICES, key=lambda choice: str(choice[1])
         )
         autocomplete_dict = defaultdict(lambda: "off", self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
             if autocomplete_type:
-                autocomplete = "%s %s" % (
-                    autocomplete_type,
-                    autocomplete_dict[field_name],
-                )
+                autocomplete = f"{autocomplete_type} {autocomplete_dict[field_name]}"
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs["autocomplete"] = autocomplete
@@ -134,6 +126,8 @@ class AddressForm(forms.ModelForm):
 
     def clean(self):
         data = super().clean()
+        if not data:
+            return
         phone = data.get("phone")
         country = data.get("country")
         if phone:
@@ -145,8 +139,7 @@ class AddressForm(forms.ModelForm):
 
 
 class CountryAwareAddressForm(AddressForm):
-
-    I18N_MAPPING = [
+    I18N_MAPPING: List[Tuple[str, List[str]]] = [
         ("name", ["first_name", "last_name"]),
         ("street_address", ["street_address_1", "street_address_2"]),
         ("city_area", ["city_area"]),
@@ -169,7 +162,6 @@ class CountryAwareAddressForm(AddressForm):
         for field_name, error_code in errors.items():
             local_fields = field_mapping[field_name]
             for field in local_fields:
-
                 if field in self.NOT_REQUIRED_FIELDS:
                     continue
 
@@ -183,10 +175,9 @@ class CountryAwareAddressForm(AddressForm):
         try:
             data["country_code"] = data.get("country", "")
             if data["street_address_1"] or data["street_address_2"]:
-                data["street_address"] = "%s\n%s" % (
-                    data["street_address_1"],
-                    data["street_address_2"],
-                )
+                data[
+                    "street_address"
+                ] = f'{data["street_address_1"]}\n{data["street_address_2"]}'
             normalized_data = i18naddress.normalize_address(data)
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
@@ -261,16 +252,16 @@ def update_base_fields(form_class, i18n_rules):
 
 
 def construct_address_form(country_code, i18n_rules):
-    class_name = "AddressForm%s" % country_code
+    class_name = f"AddressForm{country_code}"
     base_class = CountryAwareAddressForm
     form_kwargs = {
         "Meta": type(str("Meta"), (base_class.Meta, object), {}),
         "formfield_callback": None,
+        "i18n_country_code": country_code,
+        "i18n_fields_order": property(get_form_i18n_lines),
     }
-    class_ = type(base_class)(str(class_name), (base_class,), form_kwargs)
+    class_ = ModelFormMetaclass(str(class_name), (base_class,), form_kwargs)
     update_base_fields(class_, i18n_rules)
-    class_.i18n_country_code = country_code
-    class_.i18n_fields_order = property(get_form_i18n_lines)
     return class_
 
 
@@ -287,7 +278,7 @@ COUNTRY_CHOICES = [
     if code not in UNKNOWN_COUNTRIES
 ]
 # Sort choices list by country name
-COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: choice[1])  # type: ignore
+COUNTRY_CHOICES = sorted(COUNTRY_CHOICES, key=lambda choice: str(choice[1]))
 
 for country, label in COUNTRY_CHOICES:
     country_rules = i18naddress.get_validation_rules({"country_code": country})

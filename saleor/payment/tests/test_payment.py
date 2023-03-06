@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
 
 from ...checkout.calculations import checkout_total
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -263,8 +262,8 @@ def test_create_payment_information_for_empty_payment(payment_dummy):
 
 def test_create_payment_information_for_checkout_metadata(payment_dummy, checkout):
     metadata = {"test_key": "test_val"}
-    checkout.metadata = metadata
-    checkout.save(update_fields=["metadata"])
+    checkout.metadata_storage.metadata = metadata
+    checkout.metadata_storage.save(update_fields=["metadata"])
     payment_dummy.order = None
     payment_dummy.checkout = checkout
     payment_dummy.save(update_fields=["order", "checkout"])
@@ -772,7 +771,7 @@ def test_payment_is_not_owned_by_user_for_checkout(payment, checkout, customer_u
 
 def test_payment_owned_by_user_anonymous_user(payment):
     # given
-    user = AnonymousUser()
+    user = None
 
     # when
     is_owned = payment_owned_by_user(payment.pk, user)

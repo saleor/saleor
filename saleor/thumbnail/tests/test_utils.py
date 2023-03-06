@@ -47,7 +47,9 @@ def test_prepare_thumbnail_file_name(file_name, size, format, expected_name):
     assert thumbnail_name == expected_name
 
 
-@pytest.mark.parametrize("size, format", [(100, "WEBP"), (1, None), (200, "")])
+@pytest.mark.parametrize(
+    "size, format", [(100, "WEBP"), (1, None), (200, ""), (64, "AVIF")]
+)
 def test_prepare_image_proxy_url(size, format, collection):
     # given
     instance_id = graphene.Node.to_global_id("Collection", collection.id)

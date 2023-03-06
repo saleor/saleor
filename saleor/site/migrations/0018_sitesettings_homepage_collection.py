@@ -33,7 +33,6 @@ def copy_featured_products_to_homepade_collection(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0066_auto_20180803_0528"),
         ("site", "0017_auto_20180803_0528"),

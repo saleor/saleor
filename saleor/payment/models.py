@@ -7,14 +7,14 @@ from django.contrib.postgres.indexes import GinIndex
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import JSONField  # type: ignore
+from django.db.models import JSONField
 from django_prices.models import MoneyField
 from prices import Money
 
 from ..checkout.models import Checkout
 from ..core.models import ModelWithMetadata
-from ..core.permissions import PaymentPermissions
 from ..core.taxes import zero_money
+from ..permission.enums import PaymentPermissions
 from . import (
     ChargeStatus,
     CustomPaymentChoices,
@@ -207,11 +207,9 @@ class Payment(ModelWithMetadata):
         ]
 
     def __repr__(self):
-        return "Payment(gateway=%s, is_active=%s, created=%s, charge_status=%s)" % (
-            self.gateway,
-            self.is_active,
-            self.created_at,
-            self.charge_status,
+        return (
+            f"Payment(gateway={self.gateway}, is_active={self.is_active}, "
+            f"created={self.created_at}, charge_status={self.charge_status})"
         )
 
     def get_last_transaction(self):
@@ -335,10 +333,9 @@ class Transaction(models.Model):
         ordering = ("pk",)
 
     def __repr__(self):
-        return "Transaction(type=%s, is_success=%s, created=%s)" % (
-            self.kind,
-            self.is_success,
-            self.created_at,
+        return (
+            f"Transaction(type={self.kind}, is_success={self.is_success}, "
+            f"created={self.created_at})"
         )
 
     def get_amount(self):
