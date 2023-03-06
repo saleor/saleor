@@ -11046,7 +11046,7 @@ type TransactionEvent implements Node {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionStatus! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `type` instead.")
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
   reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
@@ -11118,6 +11118,7 @@ Represents possible event types.
     CANCEL_SUCCESS - represents success cancel.
     CANCEL_FAILURE - represents failure cancel.
     CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
 """
 enum TransactionEventTypeEnum {
   AUTHORIZATION_SUCCESS
@@ -11135,6 +11136,7 @@ enum TransactionEventTypeEnum {
   CANCEL_SUCCESS
   CANCEL_FAILURE
   CANCEL_REQUEST
+  INFO
 }
 
 union UserOrApp = User | App

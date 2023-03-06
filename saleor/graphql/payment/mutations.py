@@ -921,13 +921,14 @@ class TransactionCreate(BaseMutation):
         if app and app.identifier:
             app_identifier = app.identifier
         return transaction.events.create(
-            status=transaction_event_input["status"],
+            status=transaction_event_input.get("status"),
             psp_reference=psp_reference,
             message=cls.create_event_message(transaction_event_input),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
             app=app,
+            type=TransactionEventType.INFO,
         )
 
     @classmethod
@@ -975,7 +976,7 @@ class TransactionCreate(BaseMutation):
                     user=user,
                     app=app,
                     reference=psp_reference,
-                    status=transaction_event["status"],
+                    status=transaction_event.get("status"),
                     message=cls.create_event_message(transaction_event),
                 )
         money_data = cls.get_money_data_from_input(transaction_data)

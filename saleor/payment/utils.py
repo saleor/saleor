@@ -959,7 +959,7 @@ def create_transaction_event_from_request_and_webhook_response(
         return create_failed_transaction_event(
             request_event, cause="Failed to delivery request."
         )
-    request_event_type = cast(str, request_event.type)
+    request_event_type = request_event.type
     transaction_request_response, error_msg = parse_transaction_action_data(
         transaction_webhook_response, request_event_type
     )
