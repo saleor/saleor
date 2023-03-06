@@ -158,8 +158,11 @@ class TransactionItem(ModelWithMetadata):
             GinIndex(fields=["order_id", "status"]),
         ]
 
-    def save(self, *args, **kwargs) -> None:
+    def save(self, *args, **kwargs):
+        # zero-downtime compatibility
         self.canceled_value = self.voided_value
+        self.name = self.type
+        self.psp_reference = self.reference
         return super().save(*args, **kwargs)
 
 
@@ -221,6 +224,12 @@ class TransactionEvent(models.Model):
 
     class Meta:
         ordering = ("pk",)
+
+    def save(self, *args, **kwargs):
+        # zero-downtime compatibility
+        self.message = self.name
+        self.psp_reference = self.reference
+        return super().save(*args, **kwargs)
 
 
 class Payment(ModelWithMetadata):
