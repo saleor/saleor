@@ -3,7 +3,7 @@ repos:
     rev: 22.6.0
     hooks:
       - id: black
-        language_version: python3.8
+        language_version: python3.9
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0

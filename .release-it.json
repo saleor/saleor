@@ -1,0 +1,24 @@
+{
+  "github": {
+    "release": true,
+    "draft": true,
+    "releaseName": "${version}"
+  },
+  "npm": {
+    "publish": false
+  },
+  "plugins": {
+    "@release-it/bumper": {
+      "out": [
+        {
+          "file": "pyproject.toml",
+          "path": "tool.poetry.version"
+        },
+        {
+          "file": "./saleor/__init__.py",
+          "type": "text/plain"
+        }
+      ]
+    }
+  }
+}
