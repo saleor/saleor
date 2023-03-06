@@ -73,11 +73,15 @@ class OrderWithErrors:
 
 
 @dataclass
+class DeliveryMethod:
+    warehouse: Optional[Warehouse]
+    shipping_method: Optional[ShippingMethod]
+    shipping_tax_class: Optional[TaxClass]
+
+
+@dataclass
 class InstancesRelatedToOrder:
     user: User
-    warehouse: Warehouse
-    shipping_method: ShippingMethod
-    shipping_tax_class: TaxClass
     billing_address: Address
     channel: Channel
     shipping_address: Optional[Address] = None
@@ -117,9 +121,7 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
     shipping_price = graphene.Field(
         TaxedMoneyInput, description="The price of the shipping."
     )
-    shipping_tax_rate = graphene.Float(
-        required=True, description="Tax rate of the shipping."
-    )
+    shipping_tax_rate = graphene.Float(description="Tax rate of the shipping.")
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
     shipping_tax_class_metadata = NonNullList(
@@ -344,7 +346,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 - if instance can't be resolved by
 
         """
-        # TODO replace model with query set if additional filters needed
         if sum((input.get(key) is not None for key in key_map.keys())) > 1:
             args = ", ".join((k for k in key_map.keys()))
             raise ValidationError(
@@ -403,6 +404,67 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return instance, errors
 
     @classmethod
+    def get_delivery_method(
+        cls, input: Dict[str, Any], errors: List[OrderBulkError]
+    ) -> Tuple[Optional[DeliveryMethod], List[OrderBulkError]]:
+        warehouse, shipping_method, shipping_tax_class = None, None, None
+        warehouse_key_map = {"warehouse_id": "id", "warehouse_name": "name"}
+        shipping_key_map = {"shipping_method_id": "id", "shipping_method_name": "name"}
+        is_warehouse_delivery = (
+            sum((input.get(key) is not None for key in warehouse_key_map.keys())) > 0
+        )
+        is_shipping_delivery = (
+            sum((input.get(key) is not None for key in shipping_key_map.keys())) > 0
+        )
+
+        if is_warehouse_delivery and is_shipping_delivery:
+            errors.append(
+                OrderBulkError(
+                    message="Can't provide both warehouse and shipping method info "
+                    "in deliveryMethod field."
+                )
+            )
+
+        if is_warehouse_delivery:
+            # TODO check if zones etc needed
+            warehouse, errors = cls.get_instance_and_errors(
+                input=input,
+                errors=errors,
+                model=Warehouse,
+                key_map=warehouse_key_map,
+            )
+
+        if is_shipping_delivery:
+            shipping_method, errors = cls.get_instance_and_errors(
+                input=input,
+                errors=errors,
+                model=ShippingMethod,
+                key_map=shipping_key_map,
+            )
+            # TODO handle tax class metadata
+            shipping_tax_class, errors = cls.get_instance_and_errors(
+                input=input,
+                errors=errors,
+                model=TaxClass,
+                key_map={
+                    "shipping_tax_class_id": "id",
+                    "shipping_tax_class_name": "name",
+                },
+            )
+
+        delivery_method = None
+        if not warehouse and not shipping_method:
+            errors.append(OrderBulkError(message="No delivery method provided."))
+        else:
+            delivery_method = DeliveryMethod(
+                warehouse=warehouse,
+                shipping_method=shipping_method,
+                shipping_tax_class=shipping_tax_class,
+            )
+
+        return delivery_method, errors
+
+    @classmethod
     def get_instances_related_to_order(
         cls,
         order_input: Dict[str, Any],
@@ -420,28 +482,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "external_reference": "external_reference",
             },
         )
-        # TODO check if zones etc needed
-        warehouse, errors = cls.get_instance_and_errors(
-            input=order_input["delivery_method"],
-            errors=errors,
-            model=Warehouse,
-            key_map={"warehouse_id": "id", "warehouse_name": "name"},
-        )
-        # TODO check if zones etc needed
-        shipping_method, errors = cls.get_instance_and_errors(
-            input=order_input["delivery_method"],
-            errors=errors,
-            model=ShippingMethod,
-            key_map={"shipping_method_id": "id", "shipping_method_name": "name"},
-        )
-        # TODO handle tax class metadata
-        # TODO check if zones etc needed
-        shipping_tax_class, errors = cls.get_instance_and_errors(
-            input=order_input["delivery_method"],
-            errors=errors,
-            model=TaxClass,
-            key_map={"shipping_tax_class_id": "id", "shipping_tax_class_name": "name"},
-        )
+
         billing_address, shipping_address = None, None
         billing_address_input = order_input["billing_address"]
         try:
@@ -466,21 +507,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         channel = Channel.objects.get(slug=order_input["channel"])
 
         instances = None
-        if all(
-            [
-                user,
-                warehouse,
-                shipping_method,
-                shipping_tax_class,
-                billing_address,
-                channel,
-            ]
-        ):
+        if all([user, billing_address, channel]):
             instances = InstancesRelatedToOrder(
                 user=user,
-                warehouse=warehouse,
-                shipping_method=shipping_method,
-                shipping_tax_class=shipping_tax_class,
                 billing_address=billing_address,
                 shipping_address=shipping_address,
                 channel=channel,
@@ -554,20 +583,27 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def make_calculations(
-        cls, instances: InstancesRelatedToOrder, order_lines: List[OrderLine]
+        cls,
+        delivery_method: DeliveryMethod,
+        order_lines: List[OrderLine],
+        channel: Channel,
     ) -> OrderAmounts:
         """Calculate all order amount fields based on associated order lines."""
 
-        shipping_price_net_amount = (
-            ShippingMethodChannelListing.objects.values_list("price_amount", flat=True)
-            .filter(
-                shipping_method_id=instances.shipping_method.id,
-                channel_id=instances.channel.id,
+        shipping_price_net_amount = Decimal("0.0")
+        if delivery_method.shipping_method:
+            shipping_price_net_amount = (
+                ShippingMethodChannelListing.objects.values_list(
+                    "price_amount", flat=True
+                )
+                .filter(
+                    shipping_method_id=delivery_method.shipping_method.id,
+                    channel_id=channel.id,
+                )
+                .first()
             )
-            .first()
-        )
-        if not shipping_price_net_amount:
-            shipping_price_net_amount = Decimal("0.0")
+            if not shipping_price_net_amount:
+                shipping_price_net_amount = Decimal("0.0")
 
         order_total_gross_amount = Decimal(
             sum((line.total_price_gross_amount for line in order_lines))
@@ -638,12 +674,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls.validate_order_input(order_input, errors)
         order = Order()
 
-        # get related instances
+        # get order related instances
         instances, errors = cls.get_instances_related_to_order(
             order_input=order_input,
             errors=errors,
         )
-        if not instances:
+        delivery_method, errors = cls.get_delivery_method(
+            input=order_input["delivery_method"],
+            errors=errors,
+        )
+        if not instances or not delivery_method:
             return OrderWithErrors(order=None, errors=errors, lines=[], notes=[])
 
         # create lines
@@ -660,7 +700,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_lines: List[OrderLine] = [
             line.line for line in order_lines_with_errors if line.line is not None
         ]
-        order_amounts = cls.make_calculations(instances, order_lines)
+        order_amounts = cls.make_calculations(
+            delivery_method, order_lines, instances.channel
+        )
 
         # create notes
         notes_input = order_input.get("notes")
@@ -678,18 +720,27 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.shipping_address = instances.shipping_address
         order.language_code = order_input.get("language_code")
         order.user_email = instances.user.email
-        order.shipping_method = instances.shipping_method
-        order.shipping_method_name = instances.shipping_method.name
-        order.collection_point = instances.warehouse
-        order.collection_point_name = instances.warehouse.name
-        order.shipping_price_gross_amount = order_amounts.shipping_price_gross
-        # TODO handle gross/net
-        order.shipping_price_net_amount = order_amounts.shipping_price_gross
-        order.shipping_tax_class = instances.shipping_tax_class
-        order.shipping_tax_class_name = instances.shipping_tax_class.name
-        order.shipping_tax_rate = Decimal(
-            order_input["delivery_method"]["shipping_tax_rate"]
+        order.shipping_method = delivery_method.shipping_method
+        order.shipping_method_name = (
+            delivery_method.shipping_method.name
+            if delivery_method.shipping_method
+            else None
         )
+        order.collection_point = delivery_method.warehouse
+        order.collection_point_name = (
+            delivery_method.warehouse.name if delivery_method.warehouse else None
+        )
+        order.shipping_price_gross_amount = order_amounts.shipping_price_gross
+        order.shipping_price_net_amount = order_amounts.shipping_price_net
+        order.shipping_tax_class = delivery_method.shipping_tax_class
+        order.shipping_tax_class_name = (
+            delivery_method.shipping_tax_class.name
+            if delivery_method.shipping_tax_class
+            else None
+        )
+        # order.shipping_tax_rate = Decimal(
+        #     order_input["delivery_method"]["shipping_tax_rate"]
+        # )
         order.total_gross_amount = order_amounts.total_gross
         order.undiscounted_total_gross_amount = order_amounts.undiscounted_total_gross
         order.total_net_amount = order_amounts.total_net

@@ -82,11 +82,10 @@ def test_order_bulk_create(
         "email": None,
     }
     delivery_method = {
-        "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
+        # "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
         "shippingMethodId": graphene.Node.to_global_id(
             "ShippingMethod", shipping_method.id
         ),
-        "shippingTaxRate": 0.1,
         "shippingTaxClassId": graphene.Node.to_global_id(
             "TaxClass", default_tax_class.id
         ),
