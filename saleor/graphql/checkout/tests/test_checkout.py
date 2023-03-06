@@ -1539,9 +1539,8 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_line_info=line_info,
         discounts=[discount_info],
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1644,9 +1643,8 @@ def test_checkout_prices_with_specific_voucher(
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1675,6 +1673,72 @@ def test_checkout_prices_with_voucher_once_per_order(
 ):
     # given
     checkout = checkout_with_item_and_voucher_once_per_order
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_voucher):
+    # given
+    checkout = checkout_with_item_and_voucher
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
 

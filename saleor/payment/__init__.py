@@ -150,7 +150,7 @@ class TransactionAction:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
     VOID - Represents a void action. This field will be removed
-    in Saleor 3.13 (Preview Feature). Use `CANCEL` instead.
+    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
     CANCEL - Represents a cancel action. Added in Saleor 3.12.
     """
 

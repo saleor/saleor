@@ -355,6 +355,16 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
 
 
 @pytest.fixture
+def checkout_with_item_and_voucher(checkout_with_item, voucher):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
 
@@ -4873,6 +4883,24 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
         variants_ids=set(),
     )
 
