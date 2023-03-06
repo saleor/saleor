@@ -26,7 +26,10 @@ mutation AppFetchManifest($manifest_url: String!){
         code
       }
       audience
-      requiredSaleorVersion
+      requiredSaleorVersion{
+        constraint
+        satisfied
+      }
       extensions{
         label
         url
@@ -79,6 +82,7 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
         "MANAGE_ORDERS",
         "MANAGE_USERS",
     }
+    assert manifest["requiredSaleorVersion"] is None
 
 
 @pytest.mark.vcr
@@ -631,10 +635,38 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["target"] == AppExtensionTargetEnum.POPUP.name
 
 
-@pytest.mark.vcr
-def test_app_fetch_manifest_with_unsupported_saleor_version(
-    staff_api_client, permission_manage_apps
+def test_app_fetch_manifest_with_required_saleor_version(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
 ):
+    required_saleor_version = "<3.11"
+    app_manifest["requiredSaleorVersion"] = required_saleor_version
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    content = get_graphql_content(response)
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+
+    assert len(content["data"]["appFetchManifest"]["errors"]) == 0
+    assert manifest["requiredSaleorVersion"] == {
+        "constraint": required_saleor_version,
+        "satisfied": False,
+    }
+
+
+def test_app_fetch_manifest_with_invalid_required_saleor_version(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    required_saleor_version = "3.wrong.1"
+    app_manifest["requiredSaleorVersion"] = required_saleor_version
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     response = staff_api_client.post_graphql(
         APP_FETCH_MANIFEST_MUTATION,
         variables={"manifest_url": "http://localhost:3000/manifest"},
@@ -646,4 +678,4 @@ def test_app_fetch_manifest_with_unsupported_saleor_version(
 
     assert len(errors) == 1
     assert errors[0]["field"] == "requiredSaleorVersion"
-    assert errors[0]["code"] == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.name
+    assert errors[0]["code"] == AppErrorCode.INVALID.name

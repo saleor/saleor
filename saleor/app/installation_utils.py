@@ -9,7 +9,7 @@ from ..core.utils import build_absolute_uri
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..webhook.models import Webhook, WebhookEvent
-from .manifest_validations import clean_manifest_data
+from .manifest_validations import clean_manifest_data, validate_required_saleor_version
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
@@ -56,6 +56,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
     clean_manifest_data(manifest_data)
+    validate_required_saleor_version(manifest_data.get("requiredSaleorVersion"))
 
     app = App.objects.create(
         name=app_installation.app_name,

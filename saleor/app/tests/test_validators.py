@@ -1,11 +1,14 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+from ... import __version__
 from ...app.validators import AppURLValidator
 from ..error_codes import AppErrorCode
-from ..manifest_validations import validate_required_saleor_version
-
-SALEOR_VERSION = "3.12.1"
+from ..manifest_validations import (
+    VersionConstraint,
+    parse_version,
+    validate_required_saleor_version,
+)
 
 
 def test_validate_url():
@@ -21,31 +24,37 @@ def test_validate_invalid_url():
         url_validator(url)
 
 
+def test_parse_version():
+    assert str(parse_version(__version__)) == __version__
+
+
 @pytest.mark.parametrize(
-    "required_version",
+    "required_version,version,satisfied",
     [
-        None,
-        "*",
-        "^3.11",
-        "3.*",
-        "3.12.x",
-        ">3.12.0-a+build.1",
-        "<=3.12",
-        "^3.10 || ^3.12",
-        "3.10 - 3.12",
+        ("*", "3.12.1", True),
+        ("3.8 - 3.9 || ~3.10.2 || 3.11.* || 3.12.x", "3.12.1", True),
+        ("^3.12.0-0 <=3.14", "3.12.0-a", True),
+        ("3.10.x || 3.12.*", "3.11.5", False),
+        ("^3.12", "4.0.0", False),
+        ("^3.12", "3.12.0-a", False),
     ],
 )
-def test_validate_required_saleor_version(required_version):
-    assert validate_required_saleor_version(required_version, SALEOR_VERSION) is True
+def test_version_constraint(required_version, version, satisfied):
+    constraint = VersionConstraint(required_version, version)
+    assert constraint.constraint == required_version
+    assert constraint.satisfied == satisfied
 
 
-def test_validate_required_saleor_version_when_unsupported():
+@pytest.mark.parametrize(
+    "required_version", ["3.8-3.9", "^3w.11", {"wrong", "data type"}, 12, 0.5, None]
+)
+def test_version_constraint_with_invalid_range(required_version):
+    with pytest.raises(ValueError):
+        VersionConstraint(required_version, "3.12.1")
+
+
+def test_validate_required_saleor_version():
     with pytest.raises(ValidationError) as error:
-        validate_required_saleor_version("~3.11 || >=3.13", SALEOR_VERSION)
+        validate_required_saleor_version(VersionConstraint("^3.13", "3.12.1"))
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
-
-
-def test_validate_required_saleor_version_with_invalid_specification():
-    with pytest.raises(ValidationError) as error:
-        validate_required_saleor_version("invalid_range")
-    assert error.value.code == AppErrorCode.INVALID.value
+    assert validate_required_saleor_version(None) is True

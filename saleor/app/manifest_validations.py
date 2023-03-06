@@ -1,6 +1,7 @@
+import functools
 import logging
 from collections import defaultdict
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
@@ -113,9 +114,16 @@ def clean_manifest_data(manifest_data):
         )
 
     try:
-        validate_required_saleor_version(manifest_data.get("requiredSaleorVersion"))
-    except ValidationError as e:
-        errors["requiredSaleorVersion"].append(e)
+        if required_version := manifest_data.get("requiredSaleorVersion"):
+            constraint = VersionConstraint(required_version, __version__)
+            manifest_data["requiredSaleorVersion"] = constraint
+    except ValueError:
+        errors["requiredSaleorVersion"].append(
+            ValidationError(
+                "Incorrect value for required Saleor version.",
+                code=AppErrorCode.INVALID.value,
+            )
+        )
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -300,16 +308,27 @@ def validate_required_fields(manifest_data, errors):
             )
 
 
-def validate_required_saleor_version(required_version, saleor_version=__version__):
-    if required_version is None:
-        return True
-    try:
-        version = Version(saleor_version)
-        spec = NpmSpec(required_version)
-    except Exception:
-        msg = "Invalid required Saleor version specification."
-        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
-    if version not in spec:
-        msg = f"Saleor version {saleor_version} is not supported by app."
-        raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
+@functools.lru_cache
+def parse_version(version_str: str) -> Version:
+    return Version(version_str)
+
+
+class VersionConstraint:
+    def __init__(self, required_version, version_str: str):
+        version = parse_version(version_str)
+        try:
+            spec = NpmSpec(required_version)
+        except Exception:
+            raise ValueError("Invalid required version string")
+        self.constraint = required_version
+        self.satisfied = spec.match(version)
+        self.version = version_str
+
+
+def validate_required_saleor_version(constraint: Optional[VersionConstraint]) -> bool:
+    if constraint and not constraint.satisfied:
+        raise ValidationError(
+            f"Saleor version {constraint.version} is not supported by the app.",
+            code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value,
+        )
     return True

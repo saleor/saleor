@@ -23421,7 +23421,7 @@ type Manifest {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  requiredSaleorVersion: String
+  requiredSaleorVersion: ManifestRequiredSaleorVersion
 }
 
 type AppManifestExtension {
@@ -23456,6 +23456,11 @@ type AppManifestWebhook {
 
   """The url to receive the payload."""
   targetUrl: String!
+}
+
+type ManifestRequiredSaleorVersion {
+  constraint: String!
+  satisfied: Boolean!
 }
 
 """

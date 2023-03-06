@@ -11,6 +11,7 @@ from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
+from ..error_codes import AppErrorCode
 from ..installation_utils import (
     AppInstallationError,
     install_app,
@@ -107,6 +108,21 @@ def test_install_app_with_required_saleor_version(
     app, _ = install_app(app_installation, activate=True)
 
     assert App.objects.get().id == app.id
+
+
+def test_install_app_when_saleor_version_unsupported(
+    app_manifest, app_installation, monkeypatch
+):
+    app_manifest["requiredSaleorVersion"] = "<3.11"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    with pytest.raises(ValidationError) as error:
+        install_app(app_installation, activate=True)
+    assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
 
 
 @freeze_time("2022-05-12 12:00:00")
