@@ -35,7 +35,6 @@ SALE_BULK_DELETE_MUTATION = """
 
 
 def test_delete_sales(staff_api_client, sale_list, permission_manage_discounts):
-
     variables = {
         "ids": [graphene.Node.to_global_id("Sale", sale.id) for sale in sale_list]
     }

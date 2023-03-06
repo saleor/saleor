@@ -31,7 +31,6 @@ def parse_description_json_field(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0148_producttype_product_type_search_gin"),
     ]

@@ -766,6 +766,39 @@ def test_fetch_order_prices_if_expired_use_base_shipping_price(
     )
 
 
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_fetch_order_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
+    order_with_lines,
+    fetch_kwargs,
+    prices_entered_with_tax,
+):
+    # given
+    order = order_with_lines
+    tc = order.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.prices_entered_with_tax = prices_entered_with_tax
+    tc.tax_calculation_strategy = None
+    tc.save(update_fields=["prices_entered_with_tax", "tax_calculation_strategy"])
+
+    country_code = order.shipping_address.country.code
+    for line in order.lines.all():
+        line.variant.product.tax_class.country_rates.update_or_create(
+            country=country_code, rate=23
+        )
+
+    order.shipping_method.tax_class.country_rates.update_or_create(
+        country=country_code, rate=23
+    )
+
+    # when
+    calculations.fetch_order_prices_if_expired(**fetch_kwargs)
+    order.refresh_from_db()
+    line = order.lines.first()
+
+    assert line.tax_rate == Decimal("0.2300")
+    assert order.shipping_tax_rate == Decimal("0.2300")
+
+
 @patch("saleor.order.calculations.fetch_order_prices_if_expired")
 def test_order_line_unit(mocked_fetch_order_prices_if_expired):
     # given

@@ -5,7 +5,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0041_fulfill_orderdiscount_token_created_at_old_id"),
     ]

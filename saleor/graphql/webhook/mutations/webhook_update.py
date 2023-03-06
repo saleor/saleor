@@ -1,17 +1,20 @@
 import graphene
-from django.core.exceptions import ValidationError
 
 from ....permission.enums import AppPermission
 from ....webhook import models
-from ....webhook.error_codes import WebhookErrorCode
+from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
-from ...core.mutations import ModelMutation
+from ...core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
+from ...core.fields import JSONString
 from ...core.types import NonNullList, WebhookError
 from .. import enums
-from ..subscription_payload import validate_query
 from ..types import Webhook
-from .webhook_create import clean_webhook_events
+from . import WebhookCreate
 
 
 class WebhookUpdateInput(graphene.InputObjectType):
@@ -52,13 +55,20 @@ class WebhookUpdateInput(graphene.InputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        required=False,
+    )
+    custom_headers = JSONString(
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
+        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
         required=False,
     )
 
 
-class WebhookUpdate(ModelMutation):
+class WebhookUpdate(WebhookCreate):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to update.")
         input = WebhookUpdateInput(
@@ -74,34 +84,6 @@ class WebhookUpdate(ModelMutation):
         error_type_field = "webhook_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_data = super().clean_input(info, instance, data)
-        app = cleaned_data.get("app")
-
-        if not instance.app_id and not app:
-            raise ValidationError(
-                "Missing token or app", code=WebhookErrorCode.INVALID.value
-            )
-
-        if instance.app_id:
-            # Let's skip app id in case when context has
-            # app instance
-            app = instance.app
-            cleaned_data.pop("app", None)
-
-        if not app or not app.is_active:
-            raise ValidationError(
-                "App doesn't exist or is disabled",
-                code=WebhookErrorCode.NOT_FOUND.value,
-            )
-        clean_webhook_events(info, instance, cleaned_data)
-
-        if query := cleaned_data.get("query"):
-            validate_query(query)
-            instance.subscription_query = query
-        return cleaned_data
-
-    @classmethod
     def save(cls, _info: ResolveInfo, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
@@ -113,3 +95,7 @@ class WebhookUpdate(ModelMutation):
                     for event in events
                 ]
             )
+
+    @classmethod
+    def get_instance(cls, info: ResolveInfo, **data):
+        return super(WebhookCreate, cls).get_instance(info, **data)

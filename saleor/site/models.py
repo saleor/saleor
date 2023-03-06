@@ -65,7 +65,6 @@ class SiteSettings(models.Model):
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
-    automatically_confirm_all_new_orders = models.BooleanField(default=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)
 
@@ -92,7 +91,6 @@ class SiteSettings(models.Model):
         max_length=32, choices=TimePeriodType.CHOICES, null=True, blank=True
     )
     gift_card_expiry_period = models.PositiveIntegerField(null=True, blank=True)
-    automatically_fulfill_non_shippable_gift_card = models.BooleanField(default=True)
 
     # deprecated
     charge_taxes_on_shipping = models.BooleanField(default=True)
@@ -107,16 +105,13 @@ class SiteSettings(models.Model):
             (SitePermissions.MANAGE_TRANSLATIONS.codename, "Manage translations."),
         )
 
-    def __str__(self):
-        return self.site.name
-
     @property
     def default_from_email(self) -> str:
         sender_name: str = self.default_mail_sender_name
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:
-            sender_address = settings.DEFAULT_FROM_EMAIL  # type: ignore[misc]
+            sender_address = settings.DEFAULT_FROM_EMAIL
 
             if not sender_address:
                 raise ImproperlyConfigured("No sender email address has been set-up")
@@ -149,9 +144,6 @@ class SiteSettingsTranslation(Translation):
             self.pk,
             self.site_settings_id,
         )
-
-    def __str__(self):
-        return self.site_settings.site.name
 
     def get_translated_object_id(self):
         return "Shop", self.site_settings_id

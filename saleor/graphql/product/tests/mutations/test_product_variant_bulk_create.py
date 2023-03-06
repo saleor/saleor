@@ -1,13 +1,17 @@
+import json
 from datetime import datetime, timedelta
 from unittest.mock import ANY, patch
 from uuid import uuid4
 
 import graphene
+import pytz
+from django.conf import settings
+from freezegun import freeze_time
 
 from .....attribute import AttributeInputType
 from .....product.error_codes import ProductVariantBulkErrorCode
 from .....product.models import ProductChannelListing, ProductVariant
-from .....tests.utils import flush_post_commit_hooks
+from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
@@ -22,9 +26,29 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
             ) {
                 results{
                     productVariant{
+                        metadata {
+                            key
+                            value
+                        }
                         id
                         name
                         sku
+                        attributes{
+                            values {
+                                name
+                                slug
+                                reference
+                                richText
+                                plainText
+                                boolean
+                                date
+                                dateTime
+                                file {
+                                    url
+                                    contentType
+                                }
+                            }
+                        }
                         stocks {
                             warehouse {
                                 slug
@@ -81,7 +105,10 @@ def test_product_variant_bulk_create_by_name(
     attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     attribute_value = size_attribute.values.last()
     sku = str(uuid4())[:12]
-    name = "new-variant-anem"
+    name = "new-variant-name"
+    metadata_key = "md key"
+    metadata_value = "md value"
+
     variants = [
         {
             "sku": sku,
@@ -89,6 +116,7 @@ def test_product_variant_bulk_create_by_name(
             "trackInventory": True,
             "name": name,
             "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
         }
     ]
 
@@ -106,7 +134,10 @@ def test_product_variant_bulk_create_by_name(
     # then
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
-    assert data["results"][0]["productVariant"]["name"] == name
+    variant_data = data["results"][0]["productVariant"]
+    assert variant_data["name"] == name
+    assert variant_data["metadata"][0]["key"] == metadata_key
+    assert variant_data["metadata"][0]["value"] == metadata_value
     assert product_variant_count + 1 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
     product_variant = ProductVariant.objects.get(sku=sku)
@@ -214,6 +245,400 @@ def test_product_variant_bulk_create_with_swatch_attribute(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
+
+
+def test_product_variant_bulk_create_with_plain_text_attribute(
+    staff_api_client, product, plain_text_attribute, permission_manage_products
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(plain_text_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", plain_text_attribute.pk)
+    plain_text = "Test Text"
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "plainText": plain_text}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["plainText"] == plain_text
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+def test_product_variant_bulk_create_with_date_attribute(
+    staff_api_client, product, date_attribute, permission_manage_products
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(date_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", date_attribute.pk)
+    date_time_value = datetime.now(tz=pytz.utc)
+    date_value = date_time_value.date()
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "date": date_value}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["date"] == str(date_value)
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_file_attribute(
+    staff_api_client, product, file_attribute, permission_manage_products, site_settings
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(file_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", file_attribute.pk)
+    existing_value = file_attribute.values.first()
+    domain = site_settings.site.domain
+    file_url = f"http://{domain}{settings.MEDIA_URL}{existing_value.file_url}"
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "file": file_url}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["file"]["url"] == file_url
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+@freeze_time(datetime(2020, 5, 5, 5, 5, 5, tzinfo=pytz.utc))
+def test_product_variant_bulk_create_with_datetime_attribute(
+    staff_api_client,
+    product,
+    date_time_attribute,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(date_time_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", date_time_attribute.pk)
+    date_time_value = datetime.now(tz=pytz.utc)
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "dateTime": date_time_value}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["dateTime"] == date_time_value.isoformat()
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_rich_text_attribute(
+    staff_api_client,
+    product,
+    rich_text_attribute,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(rich_text_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", rich_text_attribute.pk)
+    rich_text = json.dumps(dummy_editorjs("Sample text"))
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "richText": rich_text}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["richText"] == rich_text
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_numeric_attribute(
+    staff_api_client,
+    product,
+    numeric_attribute,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(numeric_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", numeric_attribute.pk)
+    existing_value = numeric_attribute.values.first()
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": attribute_id, "values": [existing_value.name]}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["name"] == existing_value.name
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_page_reference_attribute(
+    staff_api_client,
+    product,
+    product_type_page_reference_attribute,
+    permission_manage_products,
+    site_settings,
+    page,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(product_type_page_reference_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    reference_attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type_page_reference_attribute.id
+    )
+    reference = graphene.Node.to_global_id("Page", page.pk)
+
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [{"id": reference_attr_id, "references": [reference]}],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["reference"] == reference
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_dropdown_attribute(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(size_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.pk
+    )
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {
+                    "id": attribute_id,
+                    "dropdown": {
+                        "id": attribute_value_id,
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["name"] == attribute_value.name
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+def test_product_variant_bulk_create_with_multiselect_attribute(
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    size_attribute.input_type = AttributeInputType.MULTISELECT
+    size_attribute.save(update_fields=["input_type"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", attribute_value.pk
+    )
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {"id": attribute_id, "multiselect": [{"id": attribute_value_id}]},
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    attributes = data["results"][0]["productVariant"]["attributes"]
+    assert attributes[-1]["values"][0]["name"] == attribute_value.name
+    assert product_variant_count + 1 == ProductVariant.objects.count()
 
 
 def test_product_variant_bulk_create_only_not_variant_selection_attributes(
@@ -392,6 +817,37 @@ def test_product_variant_bulk_create_variant_selection_and_other_attributes(
     product_variant = ProductVariant.objects.get(sku=sku)
     product.refresh_from_db()
     assert product.default_variant == product_variant
+
+
+def test_product_variant_bulk_create_attribute_with_blank_value(
+    staff_api_client,
+    product_with_single_variant,
+    size_attribute,
+    permission_manage_products,
+):
+    # given
+    product = product_with_single_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variants = [
+        {"sku": str(uuid4())[:12], "attributes": [{"id": attribute_id, "values": [""]}]}
+    ]
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["code"] == ProductVariantBulkErrorCode.REQUIRED.name
+    assert error["field"] == "attributes"
 
 
 def test_product_variant_bulk_create_stocks_input(

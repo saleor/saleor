@@ -3,6 +3,7 @@
 from django.db import migrations, models
 import saleor.account.models
 
+
 # Forward helpers
 def rename_group_tables(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
@@ -101,7 +102,6 @@ ALTER TABLE app_appinstallation_permissions
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0071_user_external_reference"),
         ("app", "0017_app_audience"),

@@ -25,7 +25,6 @@ def set_default_country_for_channels(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0002_channel_default_country"),
         ("shipping", "0029_shippingzone_channels"),

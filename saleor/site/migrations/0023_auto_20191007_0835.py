@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("site", "0022_sitesettings_company_address")]
 
     operations = [

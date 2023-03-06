@@ -2,76 +2,25 @@ from typing import Any, Dict, List, Optional
 
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
-from graphql import GraphQLDocument, get_default_backend, parse
-from graphql.error import GraphQLError, GraphQLSyntaxError
-from graphql.language.ast import FragmentDefinition, OperationDefinition
+from graphql import get_default_backend, parse
+from graphql.error import GraphQLError
 from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
 from ...plugins.manager import PluginsManager
 from ...settings import get_host
-from ...webhook.error_codes import WebhookErrorCode
 from ..core import SaleorContext
 from ..utils import format_error
 
 logger = get_task_logger(__name__)
 
 
-def validate_subscription_query(query: str) -> bool:
-    from ..api import schema
-
-    graphql_backend = get_default_backend()
-    try:
-        document = graphql_backend.document_from_string(schema, query)
-    except (ValueError, GraphQLSyntaxError):
-        return False
-    if not check_document_is_single_subscription(document):
-        return False
-    return True
-
-
-def validate_query(query):
-    if not query:
-        return
-    is_valid = validate_subscription_query(query)
-    if not is_valid:
-        raise ValidationError(
-            {
-                "query": ValidationError(
-                    "Subscription query is not valid",
-                    code=WebhookErrorCode.INVALID.value,
-                )
-            }
-        )
-
-
-def check_document_is_single_subscription(document: GraphQLDocument) -> bool:
-    """Check if document contains only a single subscription definition.
-
-    Only fragments and single subscription definition are allowed.
-    """
-    subscriptions = []
-    for definition in document.document_ast.definitions:
-        if isinstance(definition, FragmentDefinition):
-            pass
-        elif isinstance(definition, OperationDefinition):
-            if definition.operation == "subscription":
-                if len(definition.selection_set.selections) != 1:
-                    return False
-                subscriptions.append(definition)
-
-            else:
-                return False
-        else:
-            return False
-    return len(subscriptions) == 1
-
-
-def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
+def initialize_request(
+    requestor=None, sync_event=False, allow_replica=True
+) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
     It creates a dummy request object.
@@ -83,7 +32,6 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
         return PluginsManager(settings.PLUGINS, requestor_getter)
 
     request_time = timezone.now()
-
     request = SaleorContext()
     request.path = "/graphql/"
     request.path_info = "/graphql/"
@@ -96,6 +44,7 @@ def initialize_request(requestor=None, sync_event=False) -> SaleorContext:
     setattr(request, "sync_event", sync_event)
     request.requestor = requestor
     request.request_time = request_time
+    request.allow_replica = allow_replica
 
     return request
 
@@ -141,9 +90,7 @@ def generate_payload_from_subscription(
         ast,
     )
     app_id = app.pk if app else None
-
     request.app = app
-
     results = document.execute(
         allow_subscriptions=True,
         root=(event_type, subscribable_object),

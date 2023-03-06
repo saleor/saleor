@@ -114,7 +114,6 @@ def migrate_vatlayer(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("tax", "0004_migrate_tax_classes"),
     ]

@@ -64,12 +64,14 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
     from ..shipping.interface import ShippingMethodData
     from ..shipping.models import ShippingMethod, ShippingZone
     from ..tax.models import TaxClass
+    from ..thumbnail.models import Thumbnail
     from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
@@ -90,6 +92,7 @@ class PluginsManager(PaymentInterface):
         db_configs_map: dict,
         channel: Optional["Channel"] = None,
         requestor_getter=None,
+        allow_replica=True,
     ) -> "BasePlugin":
         db_config = None
         if PluginClass.PLUGIN_ID in db_configs_map:
@@ -107,9 +110,10 @@ class PluginsManager(PaymentInterface):
             channel=channel,
             requestor_getter=requestor_getter,
             db_config=db_config,
+            allow_replica=allow_replica,
         )
 
-    def __init__(self, plugins: List[str], requestor_getter=None):
+    def __init__(self, plugins: List[str], requestor_getter=None, allow_replica=True):
         with opentracing.global_tracer().start_active_span("PluginsManager.__init__"):
             self.all_plugins = []
             self.global_plugins = []
@@ -126,6 +130,7 @@ class PluginsManager(PaymentInterface):
                             PluginClass,
                             global_db_configs,
                             requestor_getter=requestor_getter,
+                            allow_replica=allow_replica,
                         )
                         self.global_plugins.append(plugin)
                         self.all_plugins.append(plugin)
@@ -133,7 +138,11 @@ class PluginsManager(PaymentInterface):
                         for channel in channels:
                             channel_configs = channel_db_configs.get(channel, {})
                             plugin = self._load_plugin(
-                                PluginClass, channel_configs, channel, requestor_getter
+                                PluginClass,
+                                channel_configs,
+                                channel,
+                                requestor_getter,
+                                allow_replica,
                             )
                             self.plugins_per_channel[channel.slug].append(plugin)
                             self.all_plugins.append(plugin)
@@ -223,7 +232,7 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
 
-        default_value = base_calculations.base_checkout_total(
+        default_value = base_calculations.checkout_total(
             checkout_info,
             discounts,
             lines,
@@ -377,6 +386,15 @@ class PluginsManager(PaymentInterface):
             checkout_info.channel,
             discounts,
         )
+        # apply entire order discount
+        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            discounts,
+            default_value,
+        )
+        default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
         line_total = self.__run_method_on_plugins(
             "calculate_checkout_line_total",
@@ -427,10 +445,21 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
+        quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
             checkout_line_info, checkout_info.channel, discounts
         )
-        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
+        # apply entire order discount
+        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            discounts,
+            default_value * quantity,
+        )
+        default_taxed_value = TaxedMoney(
+            net=total_value / quantity, gross=default_value
+        )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
             default_taxed_value,
@@ -609,6 +638,24 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "product_deleted", default_value, product, variants
+        )
+
+    def product_media_created(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_created", default_value, media
+        )
+
+    def product_media_updated(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_updated", default_value, media
+        )
+
+    def product_media_deleted(self, media: "ProductMedia"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "product_media_deleted", default_value, media
         )
 
     def product_metadata_updated(self, product: "Product"):
@@ -1123,6 +1170,15 @@ class PluginsManager(PaymentInterface):
     def staff_deleted(self, staff_user: "User"):
         default_value = None
         return self.__run_method_on_plugins("staff_deleted", default_value, staff_user)
+
+    def thumbnail_created(
+        self,
+        thumbnail: "Thumbnail",
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "thumbnail_created", default_value, thumbnail
+        )
 
     def warehouse_created(self, warehouse: "Warehouse"):
         default_value = None
@@ -1654,7 +1710,8 @@ class PluginsManager(PaymentInterface):
 
 
 def get_plugins_manager(
-    requestor_getter: Optional[Callable[[], "Requestor"]] = None
+    requestor_getter: Optional[Callable[[], "Requestor"]] = None,
+    allow_replica=True,
 ) -> PluginsManager:
     with opentracing.global_tracer().start_active_span("get_plugins_manager"):
-        return PluginsManager(settings.PLUGINS, requestor_getter)
+        return PluginsManager(settings.PLUGINS, requestor_getter, allow_replica)

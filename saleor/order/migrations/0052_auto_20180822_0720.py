@@ -8,7 +8,6 @@ import saleor.core.weight
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("order", "0051_merge_20180807_0704")]
 
     operations = [

@@ -7,7 +7,6 @@ import saleor.account.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0052_customerevent_app"),
     ]

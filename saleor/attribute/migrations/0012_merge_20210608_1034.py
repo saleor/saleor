@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0011_attributevalue_attribute_a_name_9f3448_gin"),
         ("attribute", "0011_update_values_file_urls"),

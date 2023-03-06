@@ -44,5 +44,6 @@ class ProductMediaUpdate(BaseMutation):
             media.save(update_fields=["alt"])
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_media_updated, media)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaUpdate(product=product, media=media)

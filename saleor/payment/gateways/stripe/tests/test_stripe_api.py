@@ -375,7 +375,6 @@ def test_get_or_create_customer_retrieve(mocked_customer):
     "saleor.payment.gateways.stripe.stripe_api.stripe.Customer",
 )
 def test_get_or_create_customer_failed_retrieve(mocked_customer):
-
     expected_error = StripeError(message="stripe-error")
     mocked_customer.retrieve.side_effect = expected_error
 

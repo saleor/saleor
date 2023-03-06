@@ -7,7 +7,7 @@ from django.db.models import Value
 from django.db.models.functions import Concat
 
 from ..graphql.core.utils import str_to_enum
-from ..graphql.webhook.subscription_payload import validate_subscription_query
+from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
     get_permissions,
     get_permissions_enum_list,
@@ -15,6 +15,7 @@ from ..permission.enums import (
 )
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 from .validators import AppURLValidator
@@ -200,14 +201,6 @@ def clean_webhooks(manifest_data, errors):
     )
 
     for webhook in webhooks:
-        if not validate_subscription_query(webhook["query"]):
-            errors["webhooks"].append(
-                ValidationError(
-                    "Subscription query is not valid.",
-                    code=AppErrorCode.INVALID.value,
-                )
-            )
-
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
             try:
@@ -230,6 +223,18 @@ def clean_webhooks(manifest_data, errors):
                     )
                 )
 
+        subscription_query = SubscriptionQuery(webhook["query"])
+        if not subscription_query.is_valid:
+            errors["webhooks"].append(
+                ValidationError(
+                    "Subscription query is not valid: " + subscription_query.error_msg,
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
+        if not webhook["events"]:
+            webhook["events"] = subscription_query.events
+
         try:
             target_url_validator(webhook["targetUrl"])
         except ValidationError:
@@ -239,6 +244,17 @@ def clean_webhooks(manifest_data, errors):
                     code=AppErrorCode.INVALID_URL_FORMAT.value,
                 )
             )
+
+        if custom_headers := webhook.get("customHeaders"):
+            try:
+                webhook["customHeaders"] = custom_headers_validator(custom_headers)
+            except ValidationError as err:
+                errors["webhooks"].append(
+                    ValidationError(
+                        f"Invalid custom headers: {err.message}",
+                        code=AppErrorCode.INVALID_CUSTOM_HEADERS.value,
+                    )
+                )
 
 
 def validate_required_fields(manifest_data, errors):

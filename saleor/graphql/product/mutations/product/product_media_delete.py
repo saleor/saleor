@@ -37,5 +37,6 @@ class ProductMediaDelete(BaseMutation):
         )
         manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
+        cls.call_event(manager.product_media_deleted, media_obj)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaDelete(product=product, media=media_obj)

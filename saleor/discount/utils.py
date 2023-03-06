@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from functools import partial
 from typing import (
     TYPE_CHECKING,
@@ -406,7 +406,7 @@ def apply_discount_to_value(
         discount_kwargs = {"discount": Money(value, currency)}
     else:
         discount_method = percentage_discount
-        discount_kwargs = {"percentage": value}
+        discount_kwargs = {"percentage": value, "rounding": ROUND_HALF_UP}
     discount = partial(
         discount_method,
         **discount_kwargs,

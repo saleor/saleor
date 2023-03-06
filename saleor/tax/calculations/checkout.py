@@ -129,16 +129,18 @@ def _calculate_checkout_line_unit_price(
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ):
+    quantity = checkout_line_info.line.quantity
     unit_price = base_calculations.calculate_base_line_unit_price(
         checkout_line_info,
         channel,
         discounts,
     )
-    unit_price = base_calculations.apply_checkout_discount_on_checkout_line(
+    total_price = base_calculations.apply_checkout_discount_on_checkout_line(
         checkout_info,
         lines,
         checkout_line_info,
         discounts,
-        unit_price,
+        unit_price * quantity,
     )
+    unit_price = total_price / quantity
     return calculate_flat_rate_tax(unit_price, tax_rate, prices_entered_with_tax)

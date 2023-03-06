@@ -1,3 +1,5 @@
+from typing import Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -5,15 +7,26 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.error_codes import WebhookErrorCode
+from ....webhook.validators import (
+    HEADERS_LENGTH_LIMIT,
+    HEADERS_NUMBER_LIMIT,
+    custom_headers_validator,
+)
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ...core.descriptions import (
+    ADDED_IN_32,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
+from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
 from ...core.types import NonNullList, WebhookError
+from ...core.utils import raise_validation_error
 from .. import enums
-from ..subscription_payload import validate_query
+from ..subscription_query import SubscriptionQuery
 from ..types import Webhook
-from ..utils import get_event_type_from_subscription
 
 
 class WebhookCreateInput(graphene.InputObjectType):
@@ -49,27 +62,17 @@ class WebhookCreateInput(graphene.InputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        + ADDED_IN_32
-        + PREVIEW_FEATURE,
+        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
         required=False,
     )
-
-
-def clean_webhook_events(_info, _instance, data):
-    # if `events` field is not empty, use this field. Otherwise get event types
-    # from `async_events` and `sync_events`. If the fields are also empty, parse events
-    # from `query`.
-    events = data.get("events", [])
-    if not events:
-        events += data.pop("async_events", [])
-        events += data.pop("sync_events", [])
-
-    query = data.get("query", [])
-    if not events and query:
-        events = get_event_type_from_subscription(query)
-
-    data["events"] = events
-    return data
+    custom_headers = JSONString(
+        description=f"Custom headers, which will be added to HTTP request. "
+        f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
+        f"and {HEADERS_LENGTH_LIMIT} characters per header."
+        f'Only "X-*" and "Authorization*" keys are allowed.'
+        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
+        required=False,
+    )
 
 
 class WebhookCreate(ModelMutation):
@@ -113,11 +116,47 @@ class WebhookCreate(ModelMutation):
                 "App doesn't exist or is disabled",
                 code=WebhookErrorCode.NOT_FOUND.value,
             )
-        clean_webhook_events(info, instance, cleaned_data)
+
+        subscription_query = None
         if query := cleaned_data.get("query"):
-            validate_query(query)
+            subscription_query = SubscriptionQuery(query)
+            if not subscription_query.is_valid:
+                raise_validation_error(
+                    field="query",
+                    message=subscription_query.error_msg,
+                    code=subscription_query.error_code,
+                )
             instance.subscription_query = query
+
+        if headers := cleaned_data.get("custom_headers"):
+            try:
+                cleaned_data["custom_headers"] = custom_headers_validator(headers)
+            except ValidationError as err:
+                raise_validation_error(
+                    field="customHeaders",
+                    message=err.message,
+                    code=WebhookErrorCode.INVALID_CUSTOM_HEADERS,
+                )
+
+        cls._clean_webhook_events(cleaned_data, subscription_query)
+
         return cleaned_data
+
+    @staticmethod
+    def _clean_webhook_events(data, subscription_query: Optional[SubscriptionQuery]):
+        # if `events` field is not empty, use this field. Otherwise get event types
+        # from `async_events` and `sync_events`. If the fields are also empty,
+        # parse events from `query`.
+        events = data.get("events", [])
+        if not events:
+            events += data.pop("async_events", [])
+            events += data.pop("sync_events", [])
+
+        if not events and subscription_query:
+            events = subscription_query.events
+
+        data["events"] = events
+        return data
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):

@@ -390,7 +390,7 @@ def _apply_tax_data(
         return
 
     currency = checkout.currency
-    for (line_info, tax_line_data) in zip(lines, tax_data.lines):
+    for line_info, tax_line_data in zip(lines, tax_data.lines):
         line = line_info.line
 
         line.total_price = quantize_price(
@@ -487,10 +487,10 @@ def _get_checkout_base_prices(
         unit_price = base_calculations.calculate_base_line_unit_price(
             line_info, checkout_info.channel, discounts
         )
-        unit_price = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info, lines, line_info, discounts, unit_price
+        total_price = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info, lines, line_info, discounts, unit_price * quantity
         )
-        line_total_price = quantize_price(unit_price * quantity, currency)
+        line_total_price = quantize_price(total_price, currency)
         subtotal += line_total_price
 
         line.total_price = TaxedMoney(net=line_total_price, gross=line_total_price)

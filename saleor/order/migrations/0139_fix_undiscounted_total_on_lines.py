@@ -1,89 +1,65 @@
 from functools import partial
 
 from django.apps import apps as registry
-from django.db import migrations
-from django.db.models import F, Q
+from django.db import connection, migrations
 from django.db.models.signals import post_migrate
 
 from saleor.order.tasks import send_order_updated
 
-BATCH_SIZE = 500
+# 3500 results in 187344 bytes (base64(json(list of ids)))
+# leave safe margin for rest of the payload
+SEND_ORDER_UPDATED_BATCH_SIZE = 3500
 
 
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
+RAW_SQL = """
+    UPDATE "order_orderline"
+    SET
+        "undiscounted_total_price_gross_amount" = CASE
+            WHEN NOT (
+                ("order_orderline"."undiscounted_unit_price_gross_amount" * "order_orderline"."quantity") =
+                                                    "order_orderline"."undiscounted_total_price_gross_amount")
+            THEN ("order_orderline"."undiscounted_unit_price_gross_amount" * "order_orderline"."quantity")
+            ELSE "order_orderline"."undiscounted_total_price_gross_amount" END,
 
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
+        "undiscounted_total_price_net_amount"   = CASE
+            WHEN NOT (
+                ("order_orderline"."undiscounted_unit_price_net_amount" * "order_orderline"."quantity") =
+                                                    "order_orderline"."undiscounted_total_price_net_amount")
+            THEN ("order_orderline"."undiscounted_unit_price_net_amount" * "order_orderline"."quantity")
+            ELSE "order_orderline"."undiscounted_total_price_net_amount" END
 
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
+    WHERE (
+        NOT ("order_orderline"."undiscounted_total_price_gross_amount" =
+                ("order_orderline"."undiscounted_unit_price_gross_amount" *
+                "order_orderline"."quantity")) OR
+        NOT ("order_orderline"."undiscounted_total_price_net_amount" =
+                ("order_orderline"."undiscounted_unit_price_net_amount" *
+                "order_orderline"."quantity")))
+    RETURNING "order_orderline"."order_id";
+"""  # noqa: E501
 
-        if not pks:
-            break
 
-        yield pks
+def on_migrations_complete(sender=None, **kwargs):
+    order_ids = list(kwargs.get("updated_orders_pks"))
 
-        start_pk = pks[-1]
+    for index in range(0, len(order_ids), SEND_ORDER_UPDATED_BATCH_SIZE):
+        send_order_updated.delay(
+            order_ids[index : index + SEND_ORDER_UPDATED_BATCH_SIZE]
+        )
 
 
 def set_order_line_base_prices(apps, schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        order_ids = list(kwargs.get("updated_orders_pks"))
-        send_order_updated.delay(order_ids)
+    with connection.cursor() as cursor:
+        cursor.execute(RAW_SQL)
+        records = cursor.fetchall()
 
-    OrderLine = apps.get_model("order", "OrderLine")
-    order_lines_to_update = OrderLine.objects.filter(
-        ~Q(
-            undiscounted_total_price_gross_amount=F(
-                "undiscounted_unit_price_gross_amount"
-            )
-            * F("quantity")
-        )
-        | ~Q(
-            undiscounted_total_price_net_amount=F("undiscounted_unit_price_net_amount")
-            * F("quantity")
-        )
-    ).order_by("pk")
-    updated_orders_pks = []
-    for batch_pks in queryset_in_batches(order_lines_to_update):
-        order_lines = OrderLine.objects.filter(pk__in=batch_pks)
-        for order_line in order_lines:
-            old_undiscounted_total_price_gross_amount = (
-                order_line.undiscounted_total_price_gross_amount
-            )
-            old_undiscounted_total_price_net_amount = (
-                order_line.undiscounted_total_price_net_amount
-            )
-            order_line.undiscounted_total_price_gross_amount = (
-                order_line.undiscounted_unit_price_gross_amount * order_line.quantity
-            )
-            order_line.undiscounted_total_price_net_amount = (
-                order_line.undiscounted_unit_price_net_amount * order_line.quantity
-            )
-            if (
-                order_line.undiscounted_total_price_gross_amount
-                != old_undiscounted_total_price_gross_amount
-                or order_line.undiscounted_total_price_net_amount
-                != old_undiscounted_total_price_net_amount
-            ):
-                updated_orders_pks.append(order_line.order_id)
-        OrderLine.objects.bulk_update(
-            order_lines,
-            [
-                "undiscounted_total_price_gross_amount",
-                "undiscounted_total_price_net_amount",
-            ],
-        )
-
-    # If we updated any order we should trigger `order_updated` after migrations
-    if updated_orders_pks:
-        updated_orders_pks = set(updated_orders_pks)
+    if records:
         sender = registry.get_app_config("order")
         post_migrate.connect(
-            partial(on_migrations_complete, updated_orders_pks=updated_orders_pks),
+            partial(
+                on_migrations_complete,
+                updated_orders_pks=[record[0] for record in records],
+            ),
             weak=False,
             dispatch_uid="send_order_updated",
             sender=sender,
@@ -91,7 +67,6 @@ def set_order_line_base_prices(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0138_orderline_base_price"),
     ]

@@ -688,6 +688,48 @@ PRODUCT_METADATA_UPDATED = """
     }
 """
 
+PRODUCT_MEDIA_CREATED = """
+    subscription{
+      event{
+        ...on ProductMediaCreated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_UPDATED = """
+    subscription{
+      event{
+        ...on ProductMediaUpdated{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
+PRODUCT_MEDIA_DELETED = """
+    subscription{
+      event{
+        ...on ProductMediaDeleted{
+          productMedia{
+            id
+            url(size: 0)
+            productId
+          }
+        }
+      }
+    }
+"""
+
 PRODUCT_VARIANT_CREATED = """
     subscription{
       event{
@@ -2034,20 +2076,24 @@ INVALID_MULTIPLE_EVENTS_WITH_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
-            }
-            ...CategoryDetails
+              variants{
+                ...ProductVariant
+                }
+              category {
+                ...CategoryDetails
+              }
           }
         }
       }
       event{
         ...on ProductCreated{
           product{
-          variants{
+            variants{
                 ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
@@ -2064,13 +2110,49 @@ QUERY_WITH_MULTIPLE_FRAGMENTS = (
       event{
         ...on ProductUpdated{
           product{
-          variants{
-            ...ProductVariant
+            variants{
+              ...ProductVariant
             }
-            ...CategoryDetails
+            category{
+              ...CategoryDetails
+            }
           }
         }
       }
     }
     """
 )
+
+THUMBNAIL_CREATED = """
+    subscription {
+      event {
+        ... on ThumbnailCreated {
+          url
+          id
+          objectId
+          mediaUrl
+        }
+      }
+    }
+"""
+
+
+ORDER_CALCULATE_TAXES = """
+    subscription {
+      event {
+        ... on CalculateTaxes {
+          taxBase {
+            sourceObject {
+              ...on Order{
+                discounts {
+                  amount {
+                    amount
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+"""

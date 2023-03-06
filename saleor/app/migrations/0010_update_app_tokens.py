@@ -38,7 +38,6 @@ def queryset_in_batches(queryset):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("app", "0009_apptoken_token_last_4"),
     ]

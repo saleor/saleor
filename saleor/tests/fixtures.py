@@ -123,6 +123,7 @@ from ..shipping.models import (
 from ..shipping.utils import convert_to_shipping_method_data
 from ..site.models import SiteSettings
 from ..tax.utils import calculate_tax_rate, get_tax_class_kwargs_for_order_line
+from ..thumbnail.models import Thumbnail
 from ..warehouse import WarehouseClickAndCollectOption
 from ..warehouse.models import (
     Allocation,
@@ -343,6 +344,16 @@ def checkout_with_item_and_voucher_specific_products(
 def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     voucher.apply_once_per_order = True
     voucher.save()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
@@ -4033,6 +4044,7 @@ def order_with_lines(
         slug="test-product-9",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -4869,6 +4881,24 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
         variants_ids=set(),
     )
 
@@ -6569,4 +6599,52 @@ def action_required_gateway_response():
         currency="usd",
         transaction_id="1234",
         error=None,
+    )
+
+
+@pytest.fixture
+def product_media_image(product, image, media_root):
+    return ProductMedia.objects.create(
+        product=product,
+        image=image,
+        alt="image",
+        type=ProductMediaTypes.IMAGE,
+        oembed_data="{}",
+    )
+
+
+@pytest.fixture
+def thumbnail_product_media(product_media_image, image_list, media_root):
+    return Thumbnail.objects.create(
+        product_media=product_media_image,
+        size=128,
+        image=image_list[1],
+    )
+
+
+@pytest.fixture
+def thumbnail_category(category_with_image, image_list, media_root):
+    return Thumbnail.objects.create(
+        category=category_with_image,
+        size=128,
+        image=image_list[1],
+    )
+
+
+@pytest.fixture
+def thumbnail_collection(collection_with_image, image_list, media_root):
+    return Thumbnail.objects.create(
+        collection=collection_with_image,
+        size=128,
+        image=image_list[1],
+    )
+
+
+@pytest.fixture
+def thumbnail_user(customer_user, image_list, media_root):
+    customer_user.avatar = image_list[0]
+    return Thumbnail.objects.create(
+        user=customer_user,
+        size=128,
+        image=image_list[1],
     )

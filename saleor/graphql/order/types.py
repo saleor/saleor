@@ -42,7 +42,11 @@ from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
 from ...tax.utils import get_display_gross_prices
-from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ...thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
 from ..account.utils import (
@@ -127,6 +131,7 @@ from .dataloaders import (
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
+    OrderByNumberLoader,
     OrderEventsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
@@ -429,10 +434,19 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
     @staticmethod
     def resolve_related_order(root: models.OrderEvent, info):
-        order_pk = root.parameters.get("related_order_pk")
-        if not order_pk:
+        order_pk_or_number = root.parameters.get("related_order_pk")
+        if not order_pk_or_number:
             return None
-        return OrderByIdLoader(info.context).load(UUID(order_pk))
+
+        try:
+            # Orders that primary_key are not uuid are old int `id's`.
+            # In migration `order_0128`, before migrating old `id's` to uuid,
+            # old `id's` were saved to field `number`.
+            order_pk = UUID(order_pk_or_number)
+        except (AttributeError, ValueError):
+            return OrderByNumberLoader(info.context).load(order_pk_or_number)
+
+        return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -638,11 +652,13 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
     @staticmethod
     @traced_resolver
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=256, format=None):
+    def resolve_thumbnail(
+        root: models.OrderLine, info, *, size: int = 256, format: Optional[str] = None
+    ):
         if not root.variant_id:
             return None
 
-        format = format.lower() if format else None
+        format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
 
         def _get_image_from_media(image):
@@ -980,9 +996,6 @@ class Order(ModelObjectType[models.Order]):
     )
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
-    )
-    shipping_price = graphene.Field(
-        TaxedMoney, description="Total price of shipping.", required=True
     )
     shipping_method = graphene.Field(
         ShippingMethod,

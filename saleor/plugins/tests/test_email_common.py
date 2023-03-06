@@ -38,7 +38,6 @@ def test_validate_default_email_configuration_bad_email(
 def test_validate_default_email_configuration_correct_email(
     mock_email_config, plugin_configuration, email_configuration
 ):
-
     email_configuration["sender_address"] = "this_is@correct.email"
     validate_default_email_configuration(plugin_configuration, email_configuration)
 

@@ -19,6 +19,7 @@ from ...product.models import (
     ProductVariantTranslation,
 )
 from ...shipping.models import ShippingMethodTranslation
+from ...thumbnail.views import TYPE_TO_MODEL_DATA_MAPPING
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..account.types import User as UserType
 from ..app.types import App as AppType
@@ -34,6 +35,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
     ADDED_IN_311,
+    ADDED_IN_312,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -723,6 +725,42 @@ class ProductMetadataUpdated(SubscriptionObjectType, ProductBase):
         )
 
 
+class ProductMediaBase(AbstractType):
+    product_media = graphene.Field(
+        "saleor.graphql.product.types.ProductMedia",
+        description="The product media the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_product_media(root, info: ResolveInfo):
+        _, media = root
+        return media
+
+
+class ProductMediaCreated(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when new product media is created." + ADDED_IN_312
+
+
+class ProductMediaUpdated(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product media is updated." + ADDED_IN_312
+
+
+class ProductMediaDeleted(SubscriptionObjectType, ProductMediaBase):
+    class Meta:
+        root_type = "ProductMedia"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "Event sent when product media is deleted." + ADDED_IN_312
+
+
 class ProductVariantBase(AbstractType):
     product_variant = graphene.Field(
         "saleor.graphql.product.types.ProductVariant",
@@ -846,6 +884,8 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
     )
 
     class Meta:
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when product variant stock is updated."
@@ -1879,6 +1919,45 @@ class Subscription(SubscriptionObjectType):
         return Observable.from_([root])
 
 
+class ThumbnailCreated(SubscriptionObjectType):
+    id = graphene.ID(description="Thumbnail id." + ADDED_IN_312)
+    url = graphene.String(description="Thumbnail url." + ADDED_IN_312)
+    object_id = graphene.ID(
+        description="Object the thumbnail refers to." + ADDED_IN_312
+    )
+    media_url = graphene.String(description="Original media url." + ADDED_IN_312)
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when thumbnail is created." + ADDED_IN_312
+
+    @staticmethod
+    def resolve_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        return graphene.Node.to_global_id("Thumbnail", thumbnail.id)
+
+    @staticmethod
+    def resolve_url(root, info: ResolveInfo):
+        _, thumbnail = root
+        return thumbnail.image.url
+
+    @staticmethod
+    def resolve_object_id(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        return graphene.Node.to_global_id(type, thumbnail.instance.id)
+
+    @staticmethod
+    def resolve_media_url(root, info: ResolveInfo):
+        _, thumbnail = root
+        type = thumbnail.instance.__class__.__name__
+        image_field = TYPE_TO_MODEL_DATA_MAPPING[type].image_field
+        image = getattr(thumbnail.instance, image_field, None)
+        return image.url if image else None
+
+
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
@@ -1925,6 +2004,9 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PRODUCT_UPDATED: ProductUpdated,
     WebhookEventAsyncType.PRODUCT_DELETED: ProductDeleted,
     WebhookEventAsyncType.PRODUCT_METADATA_UPDATED: ProductMetadataUpdated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_CREATED: ProductMediaCreated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED: ProductMediaUpdated,
+    WebhookEventAsyncType.PRODUCT_MEDIA_DELETED: ProductMediaDeleted,
     WebhookEventAsyncType.PRODUCT_VARIANT_CREATED: ProductVariantCreated,
     WebhookEventAsyncType.PRODUCT_VARIANT_UPDATED: ProductVariantUpdated,
     WebhookEventAsyncType.PRODUCT_VARIANT_OUT_OF_STOCK: ProductVariantOutOfStock,
@@ -1988,6 +2070,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.WAREHOUSE_UPDATED: WarehouseUpdated,
     WebhookEventAsyncType.WAREHOUSE_DELETED: WarehouseDeleted,
     WebhookEventAsyncType.WAREHOUSE_METADATA_UPDATED: WarehouseMetadataUpdated,
+    WebhookEventAsyncType.THUMBNAIL_CREATED: ThumbnailCreated,
     WebhookEventSyncType.PAYMENT_AUTHORIZE: PaymentAuthorize,
     WebhookEventSyncType.PAYMENT_CAPTURE: PaymentCaptureEvent,
     WebhookEventSyncType.PAYMENT_REFUND: PaymentRefundEvent,

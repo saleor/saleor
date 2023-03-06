@@ -30,7 +30,6 @@ def create_default_product_type(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0172_merge_20220802_0817"),
         ("warehouse", "0031_create_default_warehouse"),

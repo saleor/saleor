@@ -6,7 +6,12 @@ from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
-from ..descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_312,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -336,9 +341,19 @@ class ProductVariantBulkError(Error):
         description="List of warehouse IDs which causes the error.",
         required=False,
     )
+    stocks = NonNullList(
+        graphene.ID,
+        description="List of stocks IDs which causes the error." + ADDED_IN_312,
+        required=False,
+    )
     channels = NonNullList(
         graphene.ID,
-        description="List of channel IDs which causes the error.",
+        description="List of channel IDs which causes the error." + ADDED_IN_312,
+        required=False,
+    )
+    channel_listings = NonNullList(
+        graphene.ID,
+        description="List of channel listings IDs which causes the error.",
         required=False,
     )
 
@@ -555,16 +570,17 @@ class TimePeriod(graphene.ObjectType):
 class ThumbnailField(graphene.Field):
     size = graphene.Int(
         description=(
-            "Size of the image. If not provided, the original image "
-            "will be returned."
-        )
+            "Desired longest side the image in pixels. Defaults to 4096. "
+            "Images are never cropped. "
+            "Pass 0 to retrieve the original size (not recommended)."
+        ),
     )
     format = ThumbnailFormatEnum(
+        default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used. Must be provided together with the size value, "
-            "otherwise original image will be returned." + ADDED_IN_36 + PREVIEW_FEATURE
-        )
+            "image will be used." + ADDED_IN_36 + PREVIEW_FEATURE
+        ),
     )
 
     def __init__(self, of_type=Image, *args, **kwargs):

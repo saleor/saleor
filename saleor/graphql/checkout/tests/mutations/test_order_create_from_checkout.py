@@ -111,7 +111,6 @@ def test_order_from_checkout(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_gift_card
@@ -145,8 +144,9 @@ def test_order_from_checkout(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -240,8 +240,9 @@ def test_order_from_checkout_with_metadata(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
 
     orders_count = Order.objects.count()
     variables = {
@@ -352,9 +353,10 @@ def test_order_from_checkout_gift_card_bought(
     txn.amount = amount
     txn.save(update_fields=["amount"])
 
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.automatically_fulfill_non_shippable_gift_card = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.automatically_fulfill_non_shippable_gift_card = True
+    channel.save()
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -447,8 +449,9 @@ def test_order_from_checkout_with_variant_without_sku(
     checkout_line_variant.sku = None
     checkout_line_variant.save()
 
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -482,7 +485,6 @@ def test_order_from_checkout_with_variant_without_price(
     address,
     shipping_method,
 ):
-
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
@@ -523,8 +525,9 @@ def test_order_from_checkout_requires_confirmation(
     site_settings,
     checkout_ready_to_complete,
 ):
-    site_settings.automatically_confirm_all_new_orders = False
-    site_settings.save()
+    channel = checkout_ready_to_complete.channel
+    channel.automatically_confirm_all_new_orders = False
+    channel.save()
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_ready_to_complete.pk),
@@ -720,8 +723,9 @@ def test_order_from_checkout_checkout_without_lines(
     lines, _ = fetch_checkout_lines(checkout)
     assert not lines
 
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
 
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
     response = app_api_client.post_graphql(
@@ -912,7 +916,6 @@ def test_order_from_checkout_0_total_value(
     address,
     shipping_method,
 ):
-
     assert not gift_card.last_used_on
 
     checkout = checkout_with_item
@@ -1199,8 +1202,9 @@ def test_order_from_draft_create_with_preorder_variant(
     total = calculations.calculate_checkout_total_with_gift_cards(
         manager, checkout_info, lines, address
     )
-    site_settings.automatically_confirm_all_new_orders = True
-    site_settings.save()
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
 
     orders_count = Order.objects.count()
     variables = {"id": graphene.Node.to_global_id("Checkout", checkout.pk)}
@@ -1310,7 +1314,6 @@ def test_order_from_draft_create_variant_channel_listing_does_not_exist(
     app_api_client,
     permission_handle_checkouts,
 ):
-
     # given
     checkout = checkout_with_items
     checkout.shipping_address = address

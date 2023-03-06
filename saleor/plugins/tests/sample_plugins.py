@@ -34,7 +34,6 @@ if TYPE_CHECKING:
 
 
 def sample_tax_data(obj_with_lines: Union["Order", "Checkout"]) -> TaxData:
-
     unit = Decimal("10.00")
     unit_gross = Decimal("12.30")
     lines = [

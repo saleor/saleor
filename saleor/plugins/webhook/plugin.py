@@ -12,6 +12,7 @@ from ...core.taxes import TaxData, TaxType
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...payment import PaymentError, TransactionKind
 from ...payment.models import Payment, TransactionItem
+from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...webhook.payloads import (
     generate_checkout_payload,
@@ -30,12 +31,14 @@ from ...webhook.payloads import (
     generate_page_payload,
     generate_payment_payload,
     generate_product_deleted_payload,
+    generate_product_media_payload,
     generate_product_payload,
     generate_product_variant_payload,
     generate_product_variant_with_stock_payload,
     generate_requestor,
     generate_sale_payload,
     generate_sale_toggle_payload,
+    generate_thumbnail_payload,
     generate_transaction_action_request_payload,
     generate_translation_payload,
 )
@@ -83,6 +86,7 @@ if TYPE_CHECKING:
         Category,
         Collection,
         Product,
+        ProductMedia,
         ProductType,
         ProductVariant,
     )
@@ -813,6 +817,48 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
             )
 
+    def product_media_created(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_updated(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_UPDATED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
+    def product_media_deleted(self, media: "ProductMedia", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.PRODUCT_MEDIA_DELETED
+        if webhooks := get_webhooks_for_event(event_type):
+            media_data = generate_product_media_payload(media)
+            trigger_webhooks_async(
+                media_data,
+                event_type,
+                webhooks,
+                media,
+                self.requestor,
+            )
+
     def product_variant_created(
         self, product_variant: "ProductVariant", previous_value: Any
     ) -> Any:
@@ -1173,6 +1219,23 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         self._trigger_staff_event(WebhookEventAsyncType.STAFF_DELETED, staff_user)
 
+    def thumbnail_created(
+        self,
+        thumbnail: Thumbnail,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.THUMBNAIL_CREATED
+        if webhooks := get_webhooks_for_event(event_type):
+            thumbnail_data = generate_thumbnail_payload(thumbnail)
+            trigger_webhooks_async(
+                data=thumbnail_data,
+                event_type=event_type,
+                webhooks=webhooks,
+                subscribable_object=thumbnail,
+            )
+
     def translation_created(self, translation: "Translation", previous_value: Any):
         if not self.active:
             return previous_value
@@ -1303,7 +1366,7 @@ class WebhookPlugin(BasePlugin):
         transaction_kind: str,
         payment_information: "PaymentData",
         previous_value,
-        **kwargs
+        **kwargs,
     ) -> "GatewayResponse":
         """Trigger payment webhook event.
 
@@ -1479,6 +1542,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             checkout_info.checkout,
             self.requestor,
+            self.allow_replica,
         )
 
     def get_taxes_for_order(
@@ -1490,6 +1554,7 @@ class WebhookPlugin(BasePlugin):
             parse_tax_data,
             order,
             self.requestor,
+            self.allow_replica,
         )
 
     def get_shipping_methods_for_checkout(

@@ -105,6 +105,27 @@ def test_generate_sample_payload_fulfillment_created(fulfillment):
     assert sample_fulfillment_payload == fulfillment_payload
 
 
+def test_generate_sample_payload_order_removed_channel_listing_from_shipping(
+    fulfilled_order, payment_txn_captured
+):
+    # given
+    event_name = WebhookEventAsyncType.ORDER_UPDATED
+    order_status = OrderStatus.CANCELED
+    order = fulfilled_order
+    order.status = order_status
+    order.shipping_method.channel_listings.all().delete()
+    order.save()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+
+    # when
+    payload = generate_sample_payload(event_name)
+    order_payload = json.loads(generate_order_payload(order))
+    # then
+    assert order_id == payload[0]["id"]
+    assert order.user_email != payload[0]["user_email"]
+    assert order_payload[0]["shipping_method"] is None
+
+
 @pytest.mark.parametrize(
     "event_name",
     [
@@ -159,7 +180,6 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     "user_checkouts", ["regular", "click_and_collect"], indirect=True
 )
 def test_generate_sample_checkout_payload(user_checkouts):
-
     with mock.patch(
         "saleor.webhook.payloads._get_sample_object", return_value=user_checkouts
     ):

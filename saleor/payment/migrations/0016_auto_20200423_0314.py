@@ -25,7 +25,6 @@ def change_plugin_name_to_plugin_identifier(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("payment", "0015_auto_20200203_1116"),
         ("plugins", "0002_auto_20200417_0335"),

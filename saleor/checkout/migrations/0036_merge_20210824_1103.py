@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0035_alter_checkout_language_code"),
         ("checkout", "0035_checkout_collection_point"),

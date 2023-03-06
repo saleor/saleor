@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("site", "0033_sitesettings_reserve_stock_duration_minutes"),
     ]

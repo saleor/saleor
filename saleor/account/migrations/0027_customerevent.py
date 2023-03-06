@@ -10,7 +10,6 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0070_drop_update_event_and_rename_events"),
         ("account", "0026_user_avatar"),

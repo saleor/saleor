@@ -153,7 +153,6 @@ def transfer_payments_to_payment_methods(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("payment", "0001_initial")]
 
     operations = [

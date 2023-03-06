@@ -40,7 +40,6 @@ def create_shipping_method_channel_listing(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("channel", "0001_initial"),
         ("shipping", "0021_auto_20201021_2158"),

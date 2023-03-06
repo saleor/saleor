@@ -31,7 +31,6 @@ def set_undiscounted_values(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0108_origin_not_null"),
     ]

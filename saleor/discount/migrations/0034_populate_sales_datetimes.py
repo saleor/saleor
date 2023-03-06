@@ -12,7 +12,6 @@ def populate_sales_datetimes(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("discount", "0033_auto_20220209_1543"),
     ]

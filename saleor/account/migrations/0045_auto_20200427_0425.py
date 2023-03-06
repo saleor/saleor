@@ -38,7 +38,6 @@ def convert_user_payments_customer_id(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0044_unmount_app_and_app_token"),
         ("plugins", "0002_auto_20200417_0335"),

@@ -10,8 +10,6 @@ RUN apt-get -y update \
 # Install Python dependencies
 COPY requirements_dev.txt /app/
 WORKDIR /app
-## sphinxcontrib-applehelp installed due to https://github.com/saleor/saleor/issues/11664
-RUN pip install sphinxcontrib-applehelp==1.0.2
 RUN pip install -r requirements_dev.txt
 
 ### Final image
@@ -38,6 +36,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 RUN echo 'image/webp webp' >> /etc/mime.types
+RUN echo 'image/avif avif' >> /etc/mime.types
 
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/

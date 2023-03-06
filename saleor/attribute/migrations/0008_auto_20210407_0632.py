@@ -7,7 +7,6 @@ import saleor.core.utils.editorjs
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("attribute", "0007_auto_20210308_1135"),
     ]

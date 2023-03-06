@@ -270,7 +270,6 @@ def check_stock_quantity_bulk(
         line.variant.pk: line.line.quantity for line in existing_lines or []
     }
     for variant, quantity in zip(variants, quantities):
-
         if not replace:
             quantity += variants_quantities.get(variant.pk, 0)
 
@@ -442,7 +441,6 @@ def check_preorder_threshold_bulk(
         line.variant.pk: line.line.quantity for line in existing_lines or []
     }
     for variant, quantity in zip(variants, quantities):
-
         cumulative_quantity = quantity
         if not replace:
             cumulative_quantity = quantity + variants_quantities.get(variant.pk, 0)

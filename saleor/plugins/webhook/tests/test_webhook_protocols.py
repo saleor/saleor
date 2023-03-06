@@ -352,3 +352,38 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         headers=expected_headers,
         timeout=10,
     )
+
+
+@patch("saleor.plugins.webhook.tasks.requests.post")
+def test_trigger_webhooks_with_http_and_custom_headers(
+    mock_request, webhook, order_with_lines, permission_manage_orders
+):
+    # given
+    webhook.app.permissions.add(permission_manage_orders)
+    webhook.custom_headers = {"X-Key": "Value", "Authorization-Key": "Value"}
+    webhook.secret_key = ""
+    webhook.save()
+
+    expected_data = serialize("json", [order_with_lines])
+    expected_signature = signature_for_payload(expected_data.encode("utf-8"), "")
+    expected_headers = {
+        "Content-Type": "application/json",
+        "X-Saleor-Event": "order_created",
+        "X-Saleor-Domain": "mirumee.com",
+        "X-Saleor-Signature": expected_signature,
+        "Saleor-Event": "order_created",
+        "Saleor-Domain": "mirumee.com",
+        "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        "X-Key": "Value",
+        "Authorization-Key": "Value",
+    }
+
+    # when
+    trigger_webhooks_async(
+        expected_data, WebhookEventAsyncType.ORDER_CREATED, [webhook]
+    )
+
+    # then
+    mock_request.assert_called_once()
+    assert mock_request.call_args[1]["headers"] == expected_headers

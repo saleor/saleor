@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("giftcard", "0009_giftcard_fulfillment_line"),
     ]

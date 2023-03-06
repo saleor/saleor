@@ -94,7 +94,6 @@ class StripeGatewayPlugin(BasePlugin):
     }
 
     def __init__(self, *, configuration, **kwargs):
-
         # Webhook details are not listed in CONFIG_STRUCTURE as user input is not
         # required here
         raw_configuration = {item["name"]: item["value"] for item in configuration}
@@ -138,8 +137,9 @@ class StripeGatewayPlugin(BasePlugin):
 
     @property
     def order_auto_confirmation(self):
-        site_settings = Site.objects.get_current().settings
-        return site_settings.automatically_confirm_all_new_orders
+        if not self.channel:
+            return False
+        return self.channel.automatically_confirm_all_new_orders
 
     def _get_transaction_details_for_stripe_status(
         self, status: str

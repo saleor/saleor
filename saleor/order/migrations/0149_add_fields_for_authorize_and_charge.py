@@ -52,7 +52,6 @@ def set_total_authorized_amount(apps, _schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0148_auto_20220519_1118"),
         ("payment", "0036_auto_20220518_0732"),

@@ -48,7 +48,6 @@ def jwt_user_payload(
     additional_payload: Optional[Dict[str, Any]] = None,
     token_owner: str = JWT_SALEOR_OWNER_NAME,
 ) -> Dict[str, Any]:
-
     payload = jwt_base_payload(exp_delta, token_owner)
     payload.update(
         {

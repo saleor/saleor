@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("product", "0150_auto_20211001_1004"),
         ("order", "0120_orderline_optional_sku"),

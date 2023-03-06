@@ -53,6 +53,9 @@ from ..plugin import AvataxPlugin
 
 
 def order_set_shipping_method(order, shipping_method):
+    order.base_shipping_price = shipping_method.channel_listings.get(
+        channel=order.channel
+    ).price
     order.shipping_method = shipping_method
     order.shipping_method_name = shipping_method.name
     order.shipping_tax_class = shipping_method.tax_class
@@ -1142,6 +1145,89 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
+    (
+        "with_discount, expected_net, expected_gross, voucher_amount, "
+        "prices_entered_with_tax"
+    ),
+    [
+        (True, "3485", "4285", "0.0", True),
+        (True, "4280", "5264", "5.0", False),
+        (False, "4300", "5289", "0.0", False),
+        (False, "3495", "4297", "3.0", True),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_for_JPY(
+    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    channel_JPY,
+    checkout_JPY_with_item,
+    discount_info_JPY,
+    voucher_percentage,
+    shipping_zone_JPY,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    checkout = checkout_JPY_with_item
+    plugin_configuration(channel=channel_JPY)
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout.shipping_address = ship_to_pl_address
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    voucher_amount = Money(voucher_amount, "JPY")
+    checkout.shipping_method = shipping_zone_JPY.shipping_methods.get()
+    checkout.discount = voucher_amount
+    voucher_percentage.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=10,
+        currency=channel_JPY.currency_code,
+    )
+    if voucher_amount != "0.0":
+        checkout.voucher_code = voucher_percentage.code
+    checkout.save()
+    line = checkout.lines.first()
+    product = line.variant.product
+
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    discounts = [discount_info_JPY] if with_discount else None
+    checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, discounts
+    )
+
+    # then
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "JPY"), gross=Money(expected_gross, "JPY")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
     "expected_net, expected_gross, prices_entered_with_tax",
     [
         ("8.13", "10.00", True),
@@ -1865,10 +1951,11 @@ def test_calculate_order_shipping_free_shipping_voucher(
     method = shipping_zone.shipping_methods.get()
     shipping_channel_listings = method.channel_listings.get(channel=channel)
 
+    discount_amount = Decimal("10.0")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10.0"),
+        value=discount_amount,
         name=voucher_free_shipping.code,
         currency="USD",
         amount_value=shipping_channel_listings.price.amount,
@@ -1879,6 +1966,10 @@ def test_calculate_order_shipping_free_shipping_voucher(
     order.total = total
     order.undiscounted_total = total
     order.voucher = voucher_free_shipping
+    order.discount_amount = discount_amount
+    order.base_shipping_price_amount = (
+        order.base_shipping_price.amount - discount_amount
+    )
     order.save()
 
     site_settings.company_address = address
@@ -1919,19 +2010,23 @@ def test_calculate_order_shipping_voucher_on_shipping(
     method = shipping_zone.shipping_methods.get()
     shipping_channel_listings = method.channel_listings.get(channel=channel)
 
+    discount_amount = shipping_channel_listings.price.amount - Decimal("5")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
-        value=Decimal("10.0"),
+        value=discount_amount,
         name=voucher_shipping_type.code,
         currency="USD",
-        amount_value=shipping_channel_listings.price.amount - Decimal("5"),
+        amount_value=discount_amount,
     )
 
     order.shipping_address = order.billing_address.get_copy()
     order_set_shipping_method(order, method)
     order.total = total
     order.undiscounted_total = total
+    order.base_shipping_price_amount = (
+        order.base_shipping_price.amount - discount_amount
+    )
     order.voucher = voucher_shipping_type
     order.save()
 
@@ -1956,12 +2051,13 @@ def test_calculate_order_shipping_zero_shipping_amount(
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
-    order_set_shipping_method(order, method)
-    order.save()
 
     channel_listing = method.channel_listings.get(channel=order.channel)
     channel_listing.price_amount = 0
     channel_listing.save(update_fields=["price_amount"])
+
+    order_set_shipping_method(order, method)
+    order.save()
 
     site_settings.company_address = address
     site_settings.save()
@@ -1972,7 +2068,7 @@ def test_calculate_order_shipping_zero_shipping_amount(
 
 
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
-def test_calculate_order_shipping_no_channel_listing(
+def test_calculate_order_shipping_base_shipping_price_0(
     order_line, shipping_zone, site_settings, address, plugin_configuration
 ):
     plugin_configuration()
@@ -1981,6 +2077,7 @@ def test_calculate_order_shipping_no_channel_listing(
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
     order_set_shipping_method(order, method)
+    order.base_shipping_price = zero_money(order.currency)
     order.save()
 
     method.channel_listings.all().delete()
@@ -2542,7 +2639,6 @@ def test_preprocess_order_creation(
     discount_info,
     plugin_configuration,
 ):
-
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -2573,7 +2669,6 @@ def test_preprocess_order_creation_no_lines_data(
     discount_info,
     plugin_configuration,
 ):
-
     plugin_configuration()
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -2841,7 +2936,6 @@ def test_get_checkout_tax_data_with_single_point(
 
 
 def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
-
     checkout_with_item.shipping_address = address
     config = AvataxConfiguration(
         username_or_account="wrong_data",

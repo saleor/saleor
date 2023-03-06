@@ -280,7 +280,6 @@ M2M_UNIQUE_TOGETHER = [
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("product", "0102_migrate_data_enterprise_grade_attributes")]
 
     operations = (

@@ -143,7 +143,6 @@ class OrderQueries(graphene.ObjectType):
         validate_one_of_args_is_in_query(
             "id", id, "external_reference", external_reference
         )
-
         if not id:
             id = ext_ref_to_global_id_or_error(models.Order, external_reference)
         _, id = from_global_id_or_error(id, Order)

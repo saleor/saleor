@@ -361,31 +361,41 @@ def apply_voucher_to_checkout_line(
 
     voucher = voucher_info.voucher
     discounted_lines_by_voucher: List[CheckoutLineInfo] = []
-    if voucher.apply_once_per_order:
-        channel = checkout.channel
-        cheapest_line_price = None
-        cheapest_line = None
-        for line_info in lines_info:
-            line_price = line_info.variant.get_price(
-                product=line_info.product,
-                collections=line_info.collections,
-                channel=channel,
-                channel_listing=line_info.channel_listing,
-                discounts=discounts,
-                price_override=line_info.line.price_override,
-            )
-            if not cheapest_line or cheapest_line_price > line_price:
-                cheapest_line_price = line_price
-                cheapest_line = line_info
-        if cheapest_line:
-            discounted_lines_by_voucher.append(cheapest_line)
-    else:
+    lines_included_in_discount = lines_info
+    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         discounted_lines_by_voucher.extend(
             get_discounted_lines(lines_info, voucher_info)
         )
+        lines_included_in_discount = discounted_lines_by_voucher
+    if voucher.apply_once_per_order:
+        cheapest_line = _get_the_cheapest_line(
+            checkout, lines_included_in_discount, discounts
+        )
+        if cheapest_line:
+            discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
         if line_info in discounted_lines_by_voucher:
             line_info.voucher = voucher
+
+
+def _get_the_cheapest_line(
+    checkout: "Checkout",
+    lines_info: Iterable[CheckoutLineInfo],
+    discounts: Iterable["DiscountInfo"],
+):
+    channel = checkout.channel
+
+    def variant_price(line_info):
+        return line_info.variant.get_price(
+            product=line_info.product,
+            collections=line_info.collections,
+            channel=channel,
+            channel_listing=line_info.channel_listing,
+            discounts=discounts,
+            price_override=line_info.line.price_override,
+        )
+
+    return min(lines_info, default=None, key=variant_price)
 
 
 def fetch_checkout_info(
@@ -559,7 +569,6 @@ def get_valid_external_shipping_method_list_for_checkout_info(
     discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
 ) -> List["ShippingMethodData"]:
-
     return manager.list_shipping_methods_for_checkout(
         checkout=checkout_info.checkout, channel_slug=checkout_info.channel.slug
     )

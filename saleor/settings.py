@@ -86,19 +86,20 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # TODO: For local envs will be activated in separate PR.
 # We need to update docs an saleor platform.
 # This variable should be set to `replica`
-DATABASE_CONNECTION_REPLICA_NAME = "default"
+DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
         default="postgres://saleor:saleor@localhost:5432/saleor",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
-    # TODO: We need to add read only user to saleor platfrom, and we need to update
-    # docs.
-    # DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-    #     default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
-    #     conn_max_age=DB_CONN_MAX_AGE,
-    # ),
+    DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
+        default="postgres://saleor:saleor@localhost:5432/saleor",
+        # TODO: We need to add read only user to saleor platform,
+        # and we need to update docs.
+        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+        conn_max_age=DB_CONN_MAX_AGE,
+    ),
 }
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
@@ -128,14 +129,14 @@ email_config = dj_email_url.parse(
     EMAIL_URL or "console://demo@example.com:console@example/"
 )
 
-EMAIL_FILE_PATH = email_config["EMAIL_FILE_PATH"]
-EMAIL_HOST_USER = email_config["EMAIL_HOST_USER"]
-EMAIL_HOST_PASSWORD = email_config["EMAIL_HOST_PASSWORD"]
-EMAIL_HOST = email_config["EMAIL_HOST"]
-EMAIL_PORT = email_config["EMAIL_PORT"]
-EMAIL_BACKEND = email_config["EMAIL_BACKEND"]
-EMAIL_USE_TLS = email_config["EMAIL_USE_TLS"]
-EMAIL_USE_SSL = email_config["EMAIL_USE_SSL"]
+EMAIL_FILE_PATH: str = email_config["EMAIL_FILE_PATH"]
+EMAIL_HOST_USER: str = email_config["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD: str = email_config["EMAIL_HOST_PASSWORD"]
+EMAIL_HOST: str = email_config["EMAIL_HOST"]
+EMAIL_PORT: int = email_config["EMAIL_PORT"]
+EMAIL_BACKEND: str = email_config["EMAIL_BACKEND"]
+EMAIL_USE_TLS: bool = email_config["EMAIL_USE_TLS"]
+EMAIL_USE_SSL: bool = email_config["EMAIL_USE_SSL"]
 
 # If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
 ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
@@ -147,13 +148,13 @@ ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL: str = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
 
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, "media")
-MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
+MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
+MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
-STATIC_URL = os.environ.get("STATIC_URL", "/static/")
+STATIC_ROOT: str = os.path.join(PROJECT_ROOT, "static")
+STATIC_URL: str = os.environ.get("STATIC_URL", "/static/")
 STATICFILES_DIRS = [
     ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images"))
 ]
@@ -436,7 +437,9 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_GRAPHQL_ORIGINS = get_list(os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*"))
+ALLOWED_GRAPHQL_ORIGINS: List[str] = get_list(
+    os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
+)
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 

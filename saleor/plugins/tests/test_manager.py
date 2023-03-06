@@ -653,7 +653,6 @@ def test_plugin_updates_configuration_shape(
     plugin_configuration,
     monkeypatch,
 ):
-
     config_structure = PluginSample.CONFIG_STRUCTURE.copy()
     config_structure["Foo"] = new_config_structure
     monkeypatch.setattr(PluginSample, "CONFIG_STRUCTURE", config_structure)
@@ -1122,7 +1121,7 @@ def test_manager_delivery_retry(event_delivery):
 @mock.patch(
     "saleor.plugins.manager.PluginsManager._PluginsManager__run_method_on_single_plugin"
 )
-@mock.patch("saleor.plugins.manager.base_calculations.base_checkout_total")
+@mock.patch("saleor.plugins.manager.base_calculations.checkout_total")
 def test_calculate_checkout_total_zero_default_value(
     mocked_base_checkout_total,
     mocked_run_method,

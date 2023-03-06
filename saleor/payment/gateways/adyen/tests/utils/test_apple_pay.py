@@ -117,7 +117,6 @@ def test_initialize_payment_for_apple_pay(mocked_request, mocked_tmp_file):
 
 @mock.patch("saleor.payment.gateways.adyen.utils.apple_pay.requests.post")
 def test_initialize_payment_for_apple_pay_request_failed(mocked_request):
-
     mocked_response = mock.Mock()
     mocked_response.ok = False
     mocked_response.json.return_value = {}

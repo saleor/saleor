@@ -33,7 +33,6 @@ def assign_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0054_alter_user_language_code"),
     ]

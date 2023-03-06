@@ -9,7 +9,7 @@ from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
-from ..core.taxes import zero_money, zero_taxed_money
+from ..core.taxes import zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -18,7 +18,10 @@ from ..core.utils.promo_code import (
 from ..discount import DiscountInfo, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
-from ..discount.utils import validate_voucher_for_checkout
+from ..discount.utils import (
+    get_products_voucher_discount,
+    validate_voucher_for_checkout,
+)
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
@@ -400,7 +403,6 @@ def _get_shipping_voucher_discount_for_checkout(
 def get_discounted_lines(
     lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
 ) -> Iterable["CheckoutLineInfo"]:
-
     discounted_lines = []
     if (
         voucher_info.product_pks
@@ -443,22 +445,33 @@ def get_prices_of_discounted_specific_product(
     Product must be assigned directly to the discounted category, assigning
     product to child category won't work.
     """
-    line_prices = []
     voucher_info = fetch_voucher_info(voucher)
     discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
         lines, voucher_info
     )
-    discounts = discounts or []
+    line_prices = get_base_lines_prices(checkout_info, discounted_lines, discounts)
 
-    for line_info in discounted_lines:
+    return line_prices
+
+
+def get_base_lines_prices(
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Optional[Iterable[DiscountInfo]],
+):
+    """Get base total price of checkout lines without voucher discount applied."""
+    line_prices = []
+    for line_info in lines:
         line = line_info.line
-        line_unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info,
+        line_unit_price = line.variant.get_price(
+            line_info.product,
+            line_info.collections,
             checkout_info.channel,
-            discounts,
+            line_info.channel_listing,
+            discounts or [],
+            line_info.line.price_override,
         )
         line_prices.extend([line_unit_price] * line.quantity)
-
     return line_prices
 
 
@@ -476,6 +489,9 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
+        if voucher.apply_once_per_order:
+            prices = get_base_lines_prices(checkout_info, lines, discounts)
+            return voucher.get_discount_amount_for(min(prices), checkout_info.channel)
         subtotal = base_calculations.base_checkout_subtotal(
             lines,
             checkout_info.channel,
@@ -491,9 +507,29 @@ def get_voucher_discount_for_checkout(
             address,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        # The specific product voucher is propagated on specific line's prices
-        return zero_money(checkout_info.checkout.currency)
+        return _get_products_voucher_discount(
+            manager, checkout_info, lines, voucher, discounts
+        )
     raise NotImplementedError("Unknown discount type")
+
+
+def _get_products_voucher_discount(
+    manager: PluginsManager,
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    voucher,
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+):
+    """Calculate products discount value for a voucher, depending on its type."""
+    prices = None
+    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        prices = get_prices_of_discounted_specific_product(
+            manager, checkout_info, lines, voucher, discounts
+        )
+    if not prices:
+        msg = "This offer is only valid for selected items."
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices, checkout_info.channel)
 
 
 def get_voucher_for_checkout(
