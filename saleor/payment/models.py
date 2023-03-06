@@ -159,7 +159,7 @@ class TransactionItem(ModelWithMetadata):
         ]
 
     def save(self, *args, **kwargs):
-        # zero-downtime compatibility
+        # zero-downtime compatibility with 3.13 version
         self.canceled_value = self.voided_value
         self.name = self.type
         self.psp_reference = self.reference
@@ -225,7 +225,7 @@ class TransactionEvent(models.Model):
         ordering = ("pk",)
 
     def save(self, *args, **kwargs):
-        # zero-downtime compatibility
+        # zero-downtime compatibility with 3.13 version
         self.message = self.name
         self.psp_reference = self.reference
         return super().save(*args, **kwargs)

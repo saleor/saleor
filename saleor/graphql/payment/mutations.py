@@ -723,7 +723,7 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
-        """Zero-downtime compatibility with 3.12 version."""
+        """Zero-downtime compatibility with 3.13 version."""
 
         money_data = {}
         if amount_authorized := cleaned_data.get("amount_authorized", None):
@@ -889,12 +889,12 @@ class TransactionCreate(BaseMutation):
                     status=transaction_event["status"],
                     name=transaction_event.get("name", ""),
                 )
-        # zero-downtime compatibility with 3.12 version
+        # zero-downtime compatibility with 3.13 version
         money_data = cls.get_money_data_from_input(transaction_data)
 
         new_transaction = cls.create_transaction(transaction_data)
 
-        # zero-downtime compatibility with 3.12 version
+        # zero-downtime compatibility with 3.13 version
         if money_data:
             user = info.context.user
             app = get_app_promise(info.context).get()
@@ -1004,7 +1004,7 @@ class TransactionUpdate(TransactionCreate):
         if transaction:
             cls.validate_transaction_input(instance, transaction)
 
-            # zero-downtime compatibility with 3.12 version
+            # zero-downtime compatibility with 3.13 version
             money_data = cls.get_money_data_from_input(transaction)
             if money_data:
                 user = info.context.user
