@@ -3513,6 +3513,38 @@ def test_get_order_shipping_tax_rate(
     assert tax_rate == Decimal("0.23")
 
 
+@pytest.mark.vcr
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_get_order_shipping_tax_rate_shipping_with_tax_class(
+    order_line, shipping_zone, plugin_configuration, site_settings, address
+):
+    # given
+    site_settings.company_address = address
+    site_settings.save()
+    order = order_line.order
+    plugin_configuration()
+    shipping_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
+
+    manager = get_plugins_manager()
+
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order_set_shipping_method(order, method)
+    order.shipping_tax_class = method.tax_class
+    order.shipping_tax_class_name = method.tax_class.name
+    order.shipping_tax_class_metadata = method.tax_class.metadata
+    order.shipping_tax_class_private_metadata = (
+        method.tax_class.private_metadata
+    )  # noqa: E501
+    order.save()
+
+    # when
+    tax_rate = manager.get_order_shipping_tax_rate(order, shipping_price)
+
+    # then
+    assert tax_rate == Decimal("0.23")
+
+
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_get_order_shipping_tax_rate_order_not_valid_default_value_returned(
     order_line, shipping_zone, plugin_configuration
