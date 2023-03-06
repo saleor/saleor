@@ -4,7 +4,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("account", "0075_add_address_metadata"),
         ("app", "0019_fix_constraint_names_in_app_app_permisons"),
@@ -21,10 +20,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionevent
-             ALTER COLUMN amount_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionevent
+            ALTER COLUMN amount_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -60,10 +59,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionevent
-             ALTER COLUMN include_in_calculations
-             SET DEFAULT false;
-             """,
+            ALTER TABLE payment_transactionevent
+            ALTER COLUMN include_in_calculations
+            SET DEFAULT false;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -78,17 +77,16 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionevent
-             ALTER COLUMN psp_reference
-             SET DEFAULT '';
-             """,
+            ALTER TABLE payment_transactionevent
+            ALTER COLUMN psp_reference
+            SET DEFAULT '';
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionevent",
             name="type",
             field=models.CharField(
-                blank=True,
                 choices=[
                     ("authorization_success", "Represents success authorization"),
                     ("authorization_failure", "Represents failure authorization"),
@@ -105,10 +103,19 @@ class Migration(migrations.Migration):
                     ("cancel_success", "Represents success cancel"),
                     ("cancel_failure", "Represents failure cancel"),
                     ("cancel_request", "Represents cancel request"),
+                    ("info", "Represents an info event"),
                 ],
                 max_length=128,
-                null=True,
+                default="info",
             ),
+        ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE payment_transactionevent
+            ALTER COLUMN type
+            SET DEFAULT 'info';
+            """,
+            migrations.RunSQL.noop,
         ),
         migrations.AddField(
             model_name="transactionevent",
@@ -146,10 +153,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionitem
-             ALTER COLUMN authorize_pending_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN authorize_pending_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -161,10 +168,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionitem
-             ALTER COLUMN cancel_pending_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN cancel_pending_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -176,10 +183,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionitem
-             ALTER COLUMN canceled_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN canceled_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -191,10 +198,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionitem
-             ALTER COLUMN charge_pending_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN charge_pending_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
@@ -226,10 +233,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-             ALTER TABLE payment_transactionitem
-             ALTER COLUMN refund_pending_value
-             SET DEFAULT 0;
-             """,
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN refund_pending_value
+            SET DEFAULT 0;
+            """,
             migrations.RunSQL.noop,
         ),
         migrations.AddField(
