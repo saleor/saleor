@@ -15,6 +15,7 @@ from ...core.permissions import (
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
 from ...shipping.interface import ShippingMethodData
+from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
@@ -27,6 +28,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_38,
+    ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -46,7 +48,11 @@ from ..product.dataloaders import (
     ProductVariantByIdLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site
+from ..site.dataloaders import load_site_callback
+from ..tax.dataloaders import (
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
 from ..utils import get_user_or_app_from_context
 from ..warehouse.dataloaders import StocksReservationsByCheckoutTokenLoader
 from ..warehouse.types import Warehouse
@@ -233,10 +239,9 @@ class CheckoutLine(ModelObjectType):
             lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
-            site = load_site(info.context)
 
             def calculate_line_total_price(data):
-                (discounts, checkout_info, lines, site) = data
+                (discounts, checkout_info, lines) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -245,11 +250,10 @@ class CheckoutLine(ModelObjectType):
                             lines=lines,
                             checkout_line_info=line_info,
                             discounts=discounts,
-                            site_settings=site.settings,
                         )
                 return None
 
-            return Promise.all([discounts, checkout_info, lines, site]).then(
+            return Promise.all([discounts, checkout_info, lines]).then(
                 calculate_line_total_price
             )
 
@@ -402,7 +406,6 @@ class Checkout(ModelObjectType):
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
-
     delivery_method = graphene.Field(
         DeliveryMethod,
         description=(
@@ -411,7 +414,6 @@ class Checkout(ModelObjectType):
             + PREVIEW_FEATURE
         ),
     )
-
     subtotal_price = graphene.Field(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
@@ -437,7 +439,6 @@ class Checkout(ModelObjectType):
     language_code = graphene.Field(
         LanguageCodeEnum, description="Checkout language code.", required=True
     )
-
     transactions = NonNullList(
         TransactionItem,
         description=(
@@ -446,6 +447,13 @@ class Checkout(ModelObjectType):
             + ADDED_IN_34
             + PREVIEW_FEATURE
         ),
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether checkout prices should include taxes when displayed "
+            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+        required=True,
     )
 
     class Meta:
@@ -541,14 +549,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_total_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -561,8 +568,7 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_total_price
         )
 
@@ -573,14 +579,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
 
         address_id = root.shipping_address_id or root.billing_address_id
@@ -592,9 +597,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_subtotal_price
         )
 
@@ -605,14 +609,13 @@ class Checkout(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def calculate_shipping_price(data):
-            address, lines, checkout_info, discounts, site = data
+            address, lines, checkout_info, discounts = data
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
                 discounts=discounts,
-                site_settings=site.settings,
             )
 
         address = (
@@ -625,9 +628,8 @@ class Checkout(ModelObjectType):
         discounts = DiscountsByDateTimeLoader(info.context).load(
             info.context.request_time
         )
-        site = load_site(info.context)
 
-        return Promise.all([address, lines, checkout_info, discounts, site]).then(
+        return Promise.all([address, lines, checkout_info, discounts]).then(
             calculate_shipping_price
         )
 
@@ -695,8 +697,8 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_stock_reservation_expires(root: models.Checkout, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_stock_reservation_expires(root: models.Checkout, info, site):
         if not is_reservation_enabled(site.settings):
             return None
 
@@ -718,6 +720,33 @@ class Checkout(ModelObjectType):
     )
     def resolve_transactions(root: models.Checkout, info):
         return TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+
+    @staticmethod
+    def resolve_display_gross_prices(root: models.Checkout, info):
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        country_code = root.get_country()
+
+        def load_tax_country_exceptions(tax_config):
+            tax_configs_per_country = (
+                TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
+                    tax_config.id
+                )
+            )
+
+            def calculate_display_gross_prices(tax_configs_per_country):
+                tax_config_country = next(
+                    (
+                        tc
+                        for tc in tax_configs_per_country
+                        if tc.country.code == country_code
+                    ),
+                    None,
+                )
+                return get_display_gross_prices(tax_config, tax_config_country)
+
+            return tax_configs_per_country.then(calculate_display_gross_prices)
+
+        return tax_config.then(load_tax_country_exceptions)
 
 
 class CheckoutCountableConnection(CountableConnection):

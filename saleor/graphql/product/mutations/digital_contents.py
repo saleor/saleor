@@ -232,7 +232,7 @@ class DigitalContentUpdate(BaseMutation):
         )
 
         if not hasattr(variant, "digital_content"):
-            msg = "Variant %s doesn't have any digital content" % variant.id
+            msg = f"Variant {variant.id} doesn't have any digital content"
             raise ValidationError(
                 {
                     "variantId": ValidationError(

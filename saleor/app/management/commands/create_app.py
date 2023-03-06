@@ -5,8 +5,11 @@ import requests
 from django.contrib.sites.models import Site
 from django.core.management import BaseCommand, CommandError
 from django.core.management.base import CommandParser
+from django.urls import reverse
 from requests.exceptions import RequestException
 
+from ....app.headers import AppHeaders, DeprecatedAppHeaders
+from ....core.utils import build_absolute_uri
 from ...models import App
 from .utils import clean_permissions
 
@@ -42,8 +45,9 @@ class Command(BaseCommand):
         domain = Site.objects.get_current().domain
         headers = {
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
-            "x-saleor-domain": domain,
-            "saleor-domain": domain,
+            DeprecatedAppHeaders.DOMAIN: domain,
+            AppHeaders.DOMAIN: domain,
+            AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
         }
         try:
             response = requests.post(target_url, json=data, headers=headers, timeout=15)

@@ -13,7 +13,7 @@ class MenuSortField(graphene.Enum):
         if self.name in MenuSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort menus by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_items_count(queryset: QuerySet, **_kwargs) -> QuerySet:
@@ -34,7 +34,7 @@ class MenuItemsSortField(graphene.Enum):
         if self.name in MenuItemsSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort menu items by {sort_name}."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class MenuItemSortingInput(SortInputObjectType):

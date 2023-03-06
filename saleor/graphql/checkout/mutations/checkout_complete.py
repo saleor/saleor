@@ -19,7 +19,6 @@ from ....checkout.fetch import (
 from ....checkout.utils import is_shipping_required
 from ....core import analytics
 from ....core.permissions import AccountPermissions
-from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
 from ...app.dataloaders import load_app
@@ -33,7 +32,7 @@ from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -172,108 +171,109 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         validate_one_of_args_is_in_mutation(
             CheckoutErrorCode, "checkout_id", checkout_id, "token", token, "id", id
         )
-
         tracking_code = analytics.get_client_id(info.context)
-        with transaction_with_commit_on_errors():
-            try:
-                checkout = get_checkout(
-                    cls,
-                    info,
-                    checkout_id=checkout_id,
-                    token=token,
-                    id=id,
-                    error_class=CheckoutErrorCode,
-                )
-            except ValidationError as e:
-                # DEPRECATED
-                if id or checkout_id:
-                    id = id or checkout_id
-                    token = cls.get_global_id_or_error(
-                        id, only_type=Checkout, field="id" if id else "checkout_id"
-                    )
 
-                order = order_models.Order.objects.get_by_checkout_token(token)
-                if order:
-                    if not order.channel.is_active:
-                        raise ValidationError(
-                            {
-                                "channel": ValidationError(
-                                    "Cannot complete checkout with inactive channel.",
-                                    code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
-                                )
-                            }
-                        )
-                    # The order is already created. We return it as a success
-                    # checkoutComplete response. Order is anonymized for not logged in
-                    # user
-                    return CheckoutComplete(
-                        order=order, confirmation_needed=False, confirmation_data={}
-                    )
-                raise e
-
-            metadata = data.get("metadata")
-            if metadata is not None:
-                cls.check_metadata_permissions(
-                    info,
-                    id or checkout_id or graphene.Node.to_global_id("Checkout", token),
-                )
-                cls.validate_metadata_keys(metadata)
-
-            validate_checkout_email(checkout)
-
-            manager = load_plugin_manager(info.context)
-            lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-            if unavailable_variant_pks:
-                not_available_variants_ids = {
-                    graphene.Node.to_global_id("ProductVariant", pk)
-                    for pk in unavailable_variant_pks
-                }
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            "Some of the checkout lines variants are unavailable.",
-                            code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
-                            params={"variants": not_available_variants_ids},
-                        )
-                    }
-                )
-            if not lines:
-                raise ValidationError(
-                    {
-                        "lines": ValidationError(
-                            "Cannot complete checkout without lines.",
-                            code=CheckoutErrorCode.NO_LINES.value,
-                        )
-                    }
-                )
-            discounts = load_discounts(info.context)
-            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
-
-            cls.validate_checkout_addresses(checkout_info, lines)
-
-            requestor = get_user_or_app_from_context(info.context)
-            if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
-                # Allow impersonating user and process a checkout by using user details
-                # assigned to checkout.
-                customer = checkout.user
-            else:
-                customer = info.context.user
-
-            site = load_site(info.context)
-            order, action_required, action_data = complete_checkout(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                payment_data=data.get("payment_data", {}),
-                store_source=store_source,
-                discounts=discounts,
-                user=customer,
-                app=load_app(info.context),
-                site_settings=site.settings,
-                tracking_code=tracking_code,
-                redirect_url=data.get("redirect_url"),
-                metadata_list=data.get("metadata"),
+        try:
+            checkout = get_checkout(
+                cls,
+                info,
+                checkout_id=checkout_id,
+                token=token,
+                id=id,
+                error_class=CheckoutErrorCode,
             )
+        except ValidationError as e:
+            # DEPRECATED
+            if id or checkout_id:
+                id = id or checkout_id
+                token = cls.get_global_id_or_error(
+                    id, only_type=Checkout, field="id" if id else "checkout_id"
+                )
+
+            order = order_models.Order.objects.get_by_checkout_token(token)
+            if order:
+                if not order.channel.is_active:
+                    raise ValidationError(
+                        {
+                            "channel": ValidationError(
+                                "Cannot complete checkout with inactive channel.",
+                                code=CheckoutErrorCode.CHANNEL_INACTIVE.value,
+                            )
+                        }
+                    )
+                # The order is already created. We return it as a success
+                # checkoutComplete response. Order is anonymized for not logged in
+                # user
+                return CheckoutComplete(
+                    order=order, confirmation_needed=False, confirmation_data={}
+                )
+            raise e
+
+        metadata = data.get("metadata")
+        if metadata is not None:
+            cls.check_metadata_permissions(
+                info,
+                id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+            )
+            cls.validate_metadata_keys(metadata)
+
+        validate_checkout_email(checkout)
+
+        manager = load_plugin_manager(info.context)
+        lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
+        if unavailable_variant_pks:
+            not_available_variants_ids = {
+                graphene.Node.to_global_id("ProductVariant", pk)
+                for pk in unavailable_variant_pks
+            }
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Some of the checkout lines variants are unavailable.",
+                        code=CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
+                        params={"variants": not_available_variants_ids},
+                    )
+                }
+            )
+        if not lines:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Cannot complete checkout without lines.",
+                        code=CheckoutErrorCode.NO_LINES.value,
+                    )
+                }
+            )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+
+        cls.validate_checkout_addresses(checkout_info, lines)
+
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            # Allow impersonating user and process a checkout by using user details
+            # assigned to checkout.
+            customer = checkout.user
+        else:
+            customer = info.context.user
+
+        site = get_site_promise(info.context).get()
+
+        order, action_required, action_data = complete_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            payment_data=data.get("payment_data", {}),
+            store_source=store_source,
+            discounts=discounts,
+            user=customer,
+            app=load_app(info.context),
+            site_settings=site.settings,
+            tracking_code=tracking_code,
+            redirect_url=data.get("redirect_url"),
+            metadata_list=data.get("metadata"),
+        )
+
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data
         return CheckoutComplete(

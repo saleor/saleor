@@ -42,6 +42,7 @@ from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ...shipping.interface import ShippingMethodData
 from ...shipping.models import ShippingMethodChannelListing
 from ...shipping.utils import convert_to_shipping_method_data
+from ...tax.utils import get_display_gross_prices
 from ...thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..account.types import User
@@ -60,6 +61,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_38,
+    ADDED_IN_39,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -86,10 +88,11 @@ from ..giftcard.dataloaders import GiftCardsByOrderIdLoader
 from ..giftcard.types import GiftCard
 from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
-from ..meta.types import ObjectWithMetadata
+from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
+from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.enums import OrderAction, TransactionStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import load_plugin_manager, plugin_manager_promise_callback
 from ..product.dataloaders import (
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
@@ -105,7 +108,12 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByShippingMethodIdAndChannelSlugLoader,
 )
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site
+from ..tax.dataloaders import (
+    TaxClassByIdLoader,
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
+)
+from ..tax.types import TaxClass
 from ..warehouse.types import Allocation, Stock, Warehouse
 from .dataloaders import (
     AllocationsByOrderLineIdLoader,
@@ -581,6 +589,36 @@ class OrderLine(ModelObjectType):
         DiscountValueTypeEnum,
         description="Type of the discount: fixed or percent",
     )
+    tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class of the product in this order line."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    tax_class_name = graphene.Field(
+        graphene.String,
+        description="Denormalized name of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+    )
+    tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description="Denormalized public metadata of the tax class."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+    )
+    tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the tax class. Requires staff "
+            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -697,7 +735,9 @@ class OrderLine(ModelObjectType):
 
         def _resolve_tax_rate(data):
             order, lines = data
-            return calculations.order_line_tax_rate(order, root, manager, lines)
+            return calculations.order_line_tax_rate(
+                order, root, manager, lines
+            ) or Decimal(0)
 
         order = OrderByIdLoader(info.context).load(root.order_id)
         lines = OrderLinesByOrderIdLoader(info.context).load(root.order_id)
@@ -779,6 +819,23 @@ class OrderLine(ModelObjectType):
     @staticmethod
     def resolve_allocations(root: models.OrderLine, info):
         return AllocationsByOrderLineIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_tax_class(root: models.OrderLine, info):
+        return (
+            TaxClassByIdLoader(info.context).load(root.tax_class_id)
+            if root.tax_class_id
+            else None
+        )
+
+    @staticmethod
+    def resolve_tax_class_metadata(root: models.OrderLine, _info):
+        return resolve_metadata(root.tax_class_metadata)
+
+    @staticmethod
+    def resolve_tax_class_private_metadata(root: models.OrderLine, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.tax_class_private_metadata)
 
 
 class Order(ModelObjectType):
@@ -914,7 +971,6 @@ class Order(ModelObjectType):
     undiscounted_total = graphene.Field(
         TaxedMoney, description="Undiscounted total amount of the order.", required=True
     )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
@@ -923,11 +979,46 @@ class Order(ModelObjectType):
         description="Shipping method for this order.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
     )
-
     shipping_price = graphene.Field(
         TaxedMoney, description="Total price of shipping.", required=True
     )
-    shipping_tax_rate = graphene.Float(required=True)
+    shipping_tax_rate = graphene.Float(
+        required=True, description="The shipping tax rate value."
+    )
+    shipping_tax_class = PermissionsField(
+        TaxClass,
+        description="Denormalized tax class assigned to the shipping method."
+        + ADDED_IN_39
+        + PREVIEW_FEATURE,
+        required=False,
+        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+    )
+    shipping_tax_class_name = graphene.Field(
+        graphene.String,
+        description=(
+            "Denormalized name of the tax class assigned to the shipping method."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+        required=False,
+    )
+    shipping_tax_class_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized public metadata of the shipping method's tax class."
+            + ADDED_IN_39
+            + PREVIEW_FEATURE
+        ),
+    )
+    shipping_tax_class_private_metadata = NonNullList(
+        MetadataItem,
+        required=True,
+        description=(
+            "Denormalized private metadata of the shipping method's tax class. "
+            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+    )
     token = graphene.String(
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `id` instead."),
@@ -936,7 +1027,6 @@ class Order(ModelObjectType):
     gift_cards = NonNullList(
         GiftCard, description="List of user gift cards.", required=True
     )
-    display_gross_prices = graphene.Boolean(required=True)
     customerNote = graphene.Boolean(required=True)
     customer_note = graphene.String(required=True)
     weight = graphene.Field(Weight, required=True)
@@ -1016,14 +1106,12 @@ class Order(ModelObjectType):
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead."
         ),
     )
-
     translated_discount_name = graphene.String(
         description="Translated discount name.",
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} Use the `discounts` field instead. "
         ),
     )
-
     discounts = NonNullList(
         "saleor.graphql.discount.types.OrderDiscount",
         description="List of all discounts assigned to the order.",
@@ -1033,6 +1121,13 @@ class Order(ModelObjectType):
         OrderError,
         description="List of errors that occurred during order validation.",
         default_value=[],
+        required=True,
+    )
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether checkout prices should include taxes when displayed "
+            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
         required=True,
     )
 
@@ -1185,7 +1280,9 @@ class Order(ModelObjectType):
         manager = load_plugin_manager(info.context)
 
         def _resolve_shipping_tax_rate(lines):
-            return calculations.order_shipping_tax_rate(root, manager, lines)
+            return calculations.order_shipping_tax_rate(
+                root, manager, lines
+            ) or Decimal(0)
 
         return (
             OrderLinesByOrderIdLoader(info.context)
@@ -1229,9 +1326,8 @@ class Order(ModelObjectType):
     @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_total(root: models.Order, info):
-        manager = load_plugin_manager(info.context)
-
+    @plugin_manager_promise_callback
+    def resolve_total(root: models.Order, info, manager):
         def _resolve_total(lines):
             return calculations.order_total(root, manager, lines)
 
@@ -1493,14 +1589,22 @@ class Order(ModelObjectType):
         external_app_shipping_id = get_external_shipping_id(root)
 
         if external_app_shipping_id:
-            site = load_site(info.context)
-            keep_gross = site.settings.include_taxes_in_prices
-            price = root.shipping_price_gross if keep_gross else root.shipping_price_net
-            return ShippingMethodData(
-                id=external_app_shipping_id,
-                name=root.shipping_method_name,
-                price=price,
-            )
+            tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+
+            def with_tax_config(tax_config):
+                prices_entered_with_tax = tax_config.prices_entered_with_tax
+                price = (
+                    root.shipping_price_gross
+                    if prices_entered_with_tax
+                    else root.shipping_price_net
+                )
+                return ShippingMethodData(
+                    id=external_app_shipping_id,
+                    name=root.shipping_method_name,
+                    price=price,
+                )
+
+            return tax_config.then(with_tax_config)
 
         if not root.shipping_method_id:
             return None
@@ -1628,6 +1732,52 @@ class Order(ModelObjectType):
             except ValidationError as e:
                 return validation_error_to_error_type(e, OrderError)
         return []
+
+    @staticmethod
+    def resolve_display_gross_prices(root: models.Order, info):
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        country_code = get_order_country(root)
+
+        def load_tax_country_exceptions(tax_config):
+            tax_configs_per_country = (
+                TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
+                    tax_config.id
+                )
+            )
+
+            def calculate_display_gross_prices(tax_configs_per_country):
+                tax_config_country = next(
+                    (
+                        tc
+                        for tc in tax_configs_per_country
+                        if tc.country.code == country_code
+                    ),
+                    None,
+                )
+                return get_display_gross_prices(tax_config, tax_config_country)
+
+            return tax_configs_per_country.then(calculate_display_gross_prices)
+
+        return tax_config.then(load_tax_country_exceptions)
+
+    @classmethod
+    def resolve_shipping_tax_class(cls, root: models.Order, info):
+        if root.shipping_method_id:
+            return cls.resolve_shipping_method(root, info).then(
+                lambda shipping_method_data: shipping_method_data.tax_class
+                if shipping_method_data
+                else None
+            )
+        return None
+
+    @staticmethod
+    def resolve_shipping_tax_class_metadata(root: models.Order, _info):
+        return resolve_metadata(root.shipping_tax_class_metadata)
+
+    @staticmethod
+    def resolve_shipping_tax_class_private_metadata(root: models.Order, info):
+        check_private_metadata_privilege(root, info)
+        return resolve_metadata(root.shipping_tax_class_private_metadata)
 
 
 class OrderCountableConnection(CountableConnection):

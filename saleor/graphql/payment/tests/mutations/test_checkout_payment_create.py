@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import before_after
 import graphene
 import pytest
 
@@ -661,3 +662,46 @@ def test_checkout_add_payment_checkout_without_lines(
     assert len(errors) == 1
     assert errors[0]["field"] == "lines"
     assert errors[0]["code"] == PaymentErrorCode.NO_CHECKOUT_LINES.name
+
+
+def test_checkout_add_payment_run_multiple_times(
+    user_api_client, checkout_without_shipping_required, address
+):
+    # given
+    checkout = checkout_without_shipping_required
+    checkout.billing_address = address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "input": {
+            "gateway": DUMMY_GATEWAY,
+            "token": "sample-token",
+            "amount": total.gross.amount,
+        },
+    }
+
+    # call CheckoutPaymentCreate mutation during the first mutation call processing
+    def call_payment_create_mutation(*args, **kwargs):
+        user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # when
+    with before_after.before(
+        "saleor.graphql.payment.mutations.cancel_active_payments",
+        call_payment_create_mutation,
+    ):
+        response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutPaymentCreate"]
+    assert not data["errors"]
+    payments = Payment.objects.filter(checkout=checkout)
+    assert payments.count() == 2
+    assert payments.filter(is_active=True).count() == 1

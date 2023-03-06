@@ -11,7 +11,7 @@ from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Fulfillment, Order
 from ..utils import prepare_insufficient_stock_order_validation_errors
 from .order_fulfill import OrderFulfill
@@ -46,7 +46,7 @@ class FulfillmentApprove(BaseMutation):
             )
 
         OrderFulfill.check_lines_for_preorder([line.order_line for line in fulfillment])
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         if (
             not site.settings.fulfillment_allow_unpaid
             and not fulfillment.order.is_fully_paid()
@@ -64,7 +64,7 @@ class FulfillmentApprove(BaseMutation):
         order = fulfillment.order
         manager = load_plugin_manager(info.context)
         app = load_app(info.context)
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         try:
             fulfillment = approve_fulfillment(
                 fulfillment,

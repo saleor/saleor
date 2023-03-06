@@ -53,11 +53,10 @@ def test_get_currency_from_stripe():
 
 def test_get_payment_billing_fullname(payment_dummy):
     payment_info = create_payment_information(payment_dummy)
+    billing_last_name = payment_dummy.billing_last_name
+    billing_first_name = payment_dummy.billing_first_name
+    expected_fullname = f"{billing_last_name} {billing_first_name}"
 
-    expected_fullname = "%s %s" % (
-        payment_dummy.billing_last_name,
-        payment_dummy.billing_first_name,
-    )
     assert get_payment_billing_fullname(payment_info) == expected_fullname
 
 

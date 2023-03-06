@@ -63,6 +63,10 @@ def test_trigger_webhooks_with_aws_sqs(
         "QueueUrl": f"https://sqs.us-east-1.amazonaws.com/account_id/{queue_name}",
         "MessageAttributes": {
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorApiUrl": {
+                "DataType": "String",
+                "StringValue": "http://mirumee.com/graphql/",
+            },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
@@ -128,6 +132,10 @@ def test_trigger_webhooks_with_aws_sqs_and_secret_key(
         QueueUrl="https://sqs.us-east-1.amazonaws.com/account_id/queue_name",
         MessageAttributes={
             "SaleorDomain": {"DataType": "String", "StringValue": "mirumee.com"},
+            "SaleorApiUrl": {
+                "DataType": "String",
+                "StringValue": "http://mirumee.com/graphql/",
+            },
             "EventType": {"DataType": "String", "StringValue": "order_created"},
             "Signature": {"DataType": "String", "StringValue": expected_signature},
         },
@@ -162,6 +170,7 @@ def test_trigger_webhooks_with_google_pub_sub(
         "projects/saleor/topics/test",
         expected_data.encode("utf-8"),
         saleorDomain="mirumee.com",
+        saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -198,6 +207,7 @@ def test_trigger_webhooks_with_google_pub_sub_and_secret_key(
         "projects/saleor/topics/test",
         message.encode("utf-8"),
         saleorDomain="mirumee.com",
+        saleorApiUrl="http://mirumee.com/graphql/",
         eventType=WebhookEventAsyncType.ORDER_CREATED,
         signature=expected_signature,
     )
@@ -241,6 +251,7 @@ def test_trigger_webhooks_with_http(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -284,6 +295,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     mock_request.assert_called_once_with(
@@ -325,6 +337,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         "Saleor-Event": "order_created",
         "Saleor-Domain": "mirumee.com",
         "Saleor-Signature": expected_signature,
+        "Saleor-Api-Url": "http://mirumee.com/graphql/",
     }
 
     signature_headers = jwt.get_unverified_header(expected_signature)

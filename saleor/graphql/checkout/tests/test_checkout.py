@@ -6,7 +6,6 @@ import graphene
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
-from django.test import override_settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django_countries.fields import Country
@@ -1308,7 +1307,8 @@ def test_fetch_checkout_invalid_token(user_api_client, channel_USD, checkout):
 QUERY_CHECKOUT_PRICES = """
     query getCheckout($id: ID) {
         checkout(id: $id) {
-           token,
+           displayGrossPrices
+           token
            totalPrice {
                 currency
                 gross {
@@ -1533,6 +1533,42 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         data["lines"][0]["undiscountedTotalPrice"]["amount"]
         == undiscounted_unit_price.amount * line_info.line.quantity
     )
+
+
+def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):
+    # given
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    tax_config = checkout_with_item.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_config.display_gross_prices
+
+
+def test_checkout_display_gross_prices_use_country_exception(
+    user_api_client, checkout_with_item
+):
+    # given
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    tax_config = checkout_with_item.channel.tax_configuration
+    tax_config.country_exceptions.all().delete()
+    country_code = checkout_with_item.get_country()
+    tax_country_config = tax_config.country_exceptions.create(
+        country=country_code, display_gross_prices=False
+    )
+
+    # when
+    response = user_api_client.post_graphql(QUERY_CHECKOUT_PRICES, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["displayGrossPrices"] == tax_country_config.display_gross_prices
 
 
 def test_checkout_prices_with_specific_voucher(
@@ -1976,31 +2012,6 @@ def test_get_variant_data_from_checkout_line_variant_hidden_in_listings(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["lines"][0]["variant"]["id"]
-
-
-@override_settings(PLUGINS=["saleor.plugins.vatlayer.plugin.VatlayerPlugin"])
-def test_get_checkout_with_vatlayer_set(
-    checkout_with_item, api_client, vatlayer, site_settings, shipping_zone
-):
-    # given
-    site_settings.include_taxes_in_prices = True
-    site_settings.save()
-
-    query = QUERY_CHECKOUT
-    checkout = checkout_with_item
-    checkout.shipping_method = shipping_zone.shipping_methods.get()
-    checkout.save()
-
-    variant = checkout.lines.get().variant
-    variant.product.channel_listings.update(visible_in_listings=False)
-    variables = {"id": to_global_id_or_none(checkout)}
-
-    # when
-    response = api_client.post_graphql(query, variables)
-
-    # then
-    content = get_graphql_content(response)
-    assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
 QUERY_CHECKOUT_TRANSACTIONS = """

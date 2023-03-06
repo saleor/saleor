@@ -28,6 +28,8 @@ from ....product.utils import delete_categories
 from ....product.utils.variants import generate_and_set_variant_name
 from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErrorCode
+from ...app.dataloaders import load_app
+from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...channel.types import Channel
 from ...core.descriptions import ADDED_IN_38
@@ -51,11 +53,10 @@ from ...warehouse.dataloaders import (
 )
 from ...warehouse.types import Warehouse
 from ..mutations.channels import ProductVariantChannelListingAddInput
-from ..mutations.products import (
-    AttributeAssignmentMixin,
+from ..mutations.product.product_create import StockInput
+from ..mutations.product_variant.product_variant_create import (
     ProductVariantCreate,
     ProductVariantInput,
-    StockInput,
 )
 from ..types import (
     Category,
@@ -169,10 +170,11 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = load_app(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_product_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -373,7 +375,7 @@ class ProductVariantBulkCreate(BaseMutation):
             )
         )
         for channel_listing_data in channels_data:
-            if not channel_listing_data["channel"].id in channels_assigned_to_product:
+            if channel_listing_data["channel"].id not in channels_assigned_to_product:
                 channels_not_assigned_to_product.append(
                     channel_listing_data["channel_id"]
                 )
@@ -645,10 +647,11 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
             pk__in=draft_order_lines_data.line_pks
         ).delete()
 
+        app = load_app(info.context)
         # run order event for deleted lines
         for order, order_lines in draft_order_lines_data.order_to_lines_mapping.items():
             order_events.order_line_variant_removed_event(
-                order, info.context.user, info.context.app, order_lines
+                order, info.context.user, app, order_lines
             )
 
         order_pks = draft_order_lines_data.order_pks
@@ -847,7 +850,7 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                            f"Couldn't resolve to a node: {sku}", code="not_found"
                         )
                     }
                 )
@@ -940,7 +943,7 @@ class ProductVariantStocksDelete(BaseMutation):
                 raise ValidationError(
                     {
                         "sku": ValidationError(
-                            "Couldn't resolve to a node: %s" % sku, code="not_found"
+                            f"Couldn't resolve to a node: {sku}", code="not_found"
                         )
                     }
                 )

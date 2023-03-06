@@ -23,8 +23,7 @@ from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEA
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import PositiveDecimal
 from ..core.types import GiftCardError, NonNullList, PriceInput
-from ..core.utils import validate_required_string_field
-from ..core.validators import validate_price_precision
+from ..core.validators import validate_price_precision, validate_required_string_field
 from ..plugins.dataloaders import load_plugin_manager
 from ..utils.validators import check_for_duplicates
 from .types import GiftCard, GiftCardEvent

@@ -10,21 +10,21 @@ def reporting_period_to_date(period):
     elif period == ReportingPeriod.THIS_MONTH:
         start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     else:
-        raise ValueError("Unknown period: %s" % period)
+        raise ValueError(f"Unknown period: {period}")
     return start_date
 
 
 def filter_by_period(queryset, period, field_name):
     start_date = reporting_period_to_date(period)
-    return queryset.filter(**{"%s__gte" % field_name: start_date})
+    return queryset.filter(**{f"{field_name}__gte": start_date})
 
 
 def filter_range_field(qs, field, value):
     gte, lte = value.get("gte"), value.get("lte")
-    if gte:
+    if gte is not None:
         lookup = {f"{field}__gte": gte}
         qs = qs.filter(**lookup)
-    if lte:
+    if lte is not None:
         lookup = {f"{field}__lte": lte}
         qs = qs.filter(**lookup)
     return qs

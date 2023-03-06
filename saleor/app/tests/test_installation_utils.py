@@ -1,5 +1,5 @@
 import json
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
@@ -49,7 +49,8 @@ def test_install_app_created_app(
     mocked_get_response.json.return_value = app_manifest
 
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
-    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+    mocked_post = Mock()
+    monkeypatch.setattr(requests, "post", mocked_post)
 
     app_installation.permissions.set([permission_manage_products])
 
@@ -57,6 +58,18 @@ def test_install_app_created_app(
     app, _ = install_app(app_installation, activate=True)
 
     # then
+    mocked_post.assert_called_once_with(
+        app_manifest["tokenTargetUrl"],
+        headers={
+            "Content-Type": "application/json",
+            # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
+            "X-Saleor-Domain": "mirumee.com",
+            "Saleor-Domain": "mirumee.com",
+            "Saleor-Api-Url": "http://mirumee.com/graphql/",
+        },
+        json={"auth_token": ANY},
+        timeout=ANY,
+    )
     assert App.objects.get().id == app.id
     assert list(app.permissions.all()) == [permission_manage_products]
 
@@ -394,3 +407,28 @@ def test_install_app_webhook_incorrect_query(
     error_dict = excinfo.value.error_dict
     assert "webhooks" in error_dict
     assert error_dict["webhooks"][0].message == "Subscription query is not valid."
+
+
+def test_install_app_lack_of_token_target_url_in_manifest_data(
+    app_manifest, app_installation, monkeypatch, permission_manage_products
+):
+    # given
+    app_manifest.pop("tokenTargetUrl")
+
+    app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    mocked_post = Mock()
+    monkeypatch.setattr(requests, "post", mocked_post)
+
+    app_installation.permissions.set([permission_manage_products])
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "tokenTargetUrl" in error_dict
+    assert error_dict["tokenTargetUrl"][0].message == "Field required."

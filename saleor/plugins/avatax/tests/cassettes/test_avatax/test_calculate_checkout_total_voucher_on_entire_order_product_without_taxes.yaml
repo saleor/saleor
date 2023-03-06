@@ -6,8 +6,8 @@ interactions:
       "taxOverride": {"type": "taxAmount", "taxAmount": 0, "reason": "Charge taxes
       for this product are turned off."}, "ref1": "123"}, {"quantity": 1, "amount":
       "10.000", "taxCode": "FR000000", "taxIncluded": true, "itemCode": "Shipping",
-      "discounted": false, "description": null}], "code": "39834d8a-b220-47eb-b346-eaa85427caa1",
-      "date": "2022-09-08", "customerCode": 0, "discount": "2.0", "addresses": {"shipFrom":
+      "discounted": false, "description": null}], "code": "254e5ec6-d4af-4b84-9dd8-3b5d2254972d",
+      "date": "2022-09-09", "customerCode": 0, "discount": "2.0", "addresses": {"shipFrom":
       {"line1": "Teczowa 7", "line2": null, "city": "Wroclaw", "region": "", "country":
       "PL", "postalCode": "53-601"}, "shipTo": {"line1": "O\u0142awska 10", "line2":
       "", "city": "WROC\u0141AW", "region": "", "country": "PL", "postalCode": "53-105"}},
@@ -29,10 +29,10 @@ interactions:
     uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
   response:
     body:
-      string: '{"id":0,"code":"39834d8a-b220-47eb-b346-eaa85427caa1","companyId":7799660,"date":"2022-09-08","paymentDate":"2022-09-08","status":"Temporary","type":"SalesOrder","batchCode":"","currencyCode":"USD","exchangeRateCurrencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","totalAmount":38.13,"totalExempt":28.0,"totalDiscount":2.0,"totalTax":1.87,"totalTaxable":8.13,"totalTaxCalculated":8.31,"adjustmentReason":"NotAdjusted","locked":false,"version":1,"exchangeRateEffectiveDate":"2022-09-08","exchangeRate":1.0,"email":"user@email.com","modifiedDate":"2022-09-08T10:53:20.2561232Z","modifiedUserId":6479978,"taxDate":"2022-09-08","lines":[{"id":0,"transactionId":0,"lineNumber":"1","customerUsageType":"","entityUseCode":"","description":"Test
-        product","discountAmount":2.0,"exemptAmount":28.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":false,"itemCode":"123","lineAmount":30.0,"quantity":3.0,"ref1":"123","ref2":"","reportingDate":"2022-09-08","tax":0.0,"taxableAmount":0.0,"taxCalculated":6.44,"taxCode":"O9999999","taxCodeId":9111,"taxDate":"2022-09-08","taxOverrideType":"TaxAmount","taxOverrideAmount":0.0,"taxOverrideReason":"Charge
+      string: '{"id":0,"code":"254e5ec6-d4af-4b84-9dd8-3b5d2254972d","companyId":7799660,"date":"2022-09-09","paymentDate":"2022-09-09","status":"Temporary","type":"SalesOrder","batchCode":"","currencyCode":"USD","exchangeRateCurrencyCode":"USD","customerUsageType":"","entityUseCode":"","customerVendorCode":"0","customerCode":"0","exemptNo":"","reconciled":false,"locationCode":"","reportingLocationCode":"","purchaseOrderNo":"","referenceCode":"","salespersonCode":"","totalAmount":38.13,"totalExempt":28.0,"totalDiscount":2.0,"totalTax":1.87,"totalTaxable":8.13,"totalTaxCalculated":8.31,"adjustmentReason":"NotAdjusted","locked":false,"version":1,"exchangeRateEffectiveDate":"2022-09-09","exchangeRate":1.0,"email":"user@email.com","modifiedDate":"2022-09-09T08:59:01.5611744Z","modifiedUserId":6479978,"taxDate":"2022-09-09","lines":[{"id":0,"transactionId":0,"lineNumber":"1","customerUsageType":"","entityUseCode":"","description":"Test
+        product","discountAmount":2.0,"exemptAmount":28.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":false,"itemCode":"123","lineAmount":30.0,"quantity":3.0,"ref1":"123","ref2":"","reportingDate":"2022-09-09","tax":0.0,"taxableAmount":0.0,"taxCalculated":6.44,"taxCode":"O9999999","taxCodeId":9111,"taxDate":"2022-09-09","taxOverrideType":"TaxAmount","taxOverrideAmount":0.0,"taxOverrideReason":"Charge
         taxes for this product are turned off.","taxIncluded":true,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":28.0,"rate":0.230000,"tax":0.0,"taxableAmount":0.0,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
-        Rate","taxAuthorityTypeId":45,"taxCalculated":6.44,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":0.0,"reportingNonTaxableUnits":28.0,"reportingExemptUnits":0.0,"reportingTax":0.0,"reportingTaxCalculated":6.44,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230C","vatNumberTypeId":0},{"id":0,"transactionId":0,"lineNumber":"2","customerUsageType":"","entityUseCode":"","discountAmount":0.0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"itemCode":"Shipping","lineAmount":8.1300,"quantity":1.0,"ref1":"","ref2":"","reportingDate":"2022-09-08","tax":1.87,"taxableAmount":8.13,"taxCalculated":1.87,"taxCode":"FR000000","taxCodeId":8550,"taxDate":"2022-09-08","taxIncluded":true,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"rate":0.230000,"tax":1.87,"taxableAmount":8.13,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
+        Rate","taxAuthorityTypeId":45,"taxCalculated":6.44,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":0.0,"reportingNonTaxableUnits":28.0,"reportingExemptUnits":0.0,"reportingTax":0.0,"reportingTaxCalculated":6.44,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230C","vatNumberTypeId":0},{"id":0,"transactionId":0,"lineNumber":"2","customerUsageType":"","entityUseCode":"","discountAmount":0.0,"exemptAmount":0.0,"exemptCertId":0,"exemptNo":"","isItemTaxable":true,"itemCode":"Shipping","lineAmount":8.1300,"quantity":1.0,"ref1":"","ref2":"","reportingDate":"2022-09-09","tax":1.87,"taxableAmount":8.13,"taxCalculated":1.87,"taxCode":"FR000000","taxCodeId":8550,"taxDate":"2022-09-09","taxIncluded":true,"details":[{"id":0,"transactionLineId":0,"transactionId":0,"country":"PL","region":"PL","exemptAmount":0.0,"jurisCode":"PL","jurisName":"POLAND","stateAssignedNo":"","jurisType":"CNT","jurisdictionType":"Country","nonTaxableAmount":0.0,"rate":0.230000,"tax":1.87,"taxableAmount":8.13,"taxType":"Output","taxSubTypeId":"O","taxName":"Standard
         Rate","taxAuthorityTypeId":45,"taxCalculated":1.87,"rateType":"Standard","rateTypeCode":"S","unitOfBasis":"PerCurrencyUnit","isNonPassThru":false,"isFee":false,"reportingTaxableUnits":8.13,"reportingNonTaxableUnits":0.0,"reportingExemptUnits":0.0,"reportingTax":1.87,"reportingTaxCalculated":1.87,"liabilityType":"Seller"}],"nonPassthroughDetails":[],"hsCode":"","costInsuranceFreight":0.0,"vatCode":"PLS-230D","vatNumberTypeId":0}],"addresses":[{"id":0,"transactionId":0,"boundaryLevel":"Zip5","line1":"Olawska
         10","line2":"","line3":"","city":"WROCLAW","region":"","postalCode":"53-105","country":"PL","taxRegionId":205102,"latitude":"","longitude":""},{"id":0,"transactionId":0,"boundaryLevel":"Zip5","line1":"Teczowa
         7","line2":"","line3":"","city":"Wroclaw","region":"","postalCode":"53-601","country":"PL","taxRegionId":205102,"latitude":"","longitude":""}],"summary":[{"country":"PL","region":"PL","jurisType":"Country","jurisCode":"PL","jurisName":"POLAND","taxAuthorityType":45,"stateAssignedNo":"","taxType":"Output","taxSubType":"O","taxName":"Standard
@@ -43,11 +43,11 @@ interactions:
       Content-Type:
       - application/json; charset=utf-8
       Date:
-      - Thu, 08 Sep 2022 10:53:20 GMT
+      - Fri, 09 Sep 2022 08:59:01 GMT
       Location:
       - /api/v2/companies/7799660/transactions/0
       ServerDuration:
-      - '00:00:00.0153001'
+      - '00:00:00.0227216'
       Transfer-Encoding:
       - chunked
       X-Content-Type-Options:
@@ -61,9 +61,9 @@ interactions:
       strict-transport-security:
       - max-age=31536000; includeSubdomains
       x-avalara-uid:
-      - 18586c9d-af07-46d9-a8e6-ee1a4cd9d5a6
+      - 4722130d-4e0f-49aa-8565-84a81d79f72d
       x-correlation-id:
-      - 18586c9d-af07-46d9-a8e6-ee1a4cd9d5a6
+      - 4722130d-4e0f-49aa-8565-84a81d79f72d
       x-frame-options:
       - sameorigin
       x-permitted-cross-domain-policies:

@@ -613,7 +613,12 @@ def test_validate_voucher_not_applicable_once_per_customer(
     total_price = TaxedMoney(net=price, gross=price)
     with pytest.raises(NotApplicable):
         validate_voucher(
-            voucher, total_price, 0, customer_user.email, channel_USD, customer_user
+            voucher,
+            total_price,
+            0,
+            customer_user.email,
+            channel_USD,
+            customer_user,
         )
 
 

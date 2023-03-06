@@ -95,7 +95,6 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     product_translation_fr,
     settings,
     anonymous_plugins,
-    site_settings,
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -109,7 +108,6 @@ def test_add_variant_to_order_adds_line_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
 
     line = order.lines.last()
@@ -134,7 +132,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     discount_info,
     settings,
     anonymous_plugins,
-    site_settings,
 ):
     order = order_with_lines
     variant = product.variants.first()
@@ -150,7 +147,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
         discounts=[discount_info],
     )
 
@@ -181,7 +177,6 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     product_translation_fr,
     settings,
     anonymous_plugins,
-    site_settings,
 ):
     order = order_with_lines
     variant = product.variants.get()
@@ -199,7 +194,6 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
 
     line = order.lines.last()
@@ -216,7 +210,6 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
-    site_settings,
 ):
     variant = product.variants.get()
     stock = Stock.objects.get(product_variant=variant)
@@ -230,7 +223,6 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -238,7 +230,7 @@ def test_add_variant_to_order_not_allocates_stock_for_new_variant(
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(
-    order_with_lines, anonymous_plugins, site_settings
+    order_with_lines, anonymous_plugins
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -254,7 +246,6 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
 
     existing_line.refresh_from_db()
@@ -265,7 +256,7 @@ def test_add_variant_to_order_edits_line_for_existing_variant(
 
 
 def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
-    order_with_lines, anonymous_plugins, site_settings
+    order_with_lines, anonymous_plugins
 ):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
@@ -283,7 +274,6 @@ def test_add_variant_to_order_not_allocates_stock_for_existing_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
 
     stock.refresh_from_db()
@@ -555,9 +545,7 @@ def test_calculate_order_weight(order_with_lines):
     assert calculated_weight == order_weight
 
 
-def test_order_weight_add_more_variant(
-    order_with_lines, anonymous_plugins, site_settings
-):
+def test_order_weight_add_more_variant(order_with_lines, anonymous_plugins):
     variant = order_with_lines.lines.first().variant
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
 
@@ -567,7 +555,6 @@ def test_order_weight_add_more_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -580,7 +567,6 @@ def test_order_weight_add_new_variant(
     order_with_lines,
     product,
     anonymous_plugins,
-    site_settings,
 ):
     variant = product.variants.first()
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=2)
@@ -591,7 +577,6 @@ def test_order_weight_add_new_variant(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
     order_with_lines.refresh_from_db()
 
@@ -628,7 +613,6 @@ def test_get_order_weight_non_existing_product(
     order_with_lines,
     product,
     anonymous_plugins,
-    site_settings,
 ):
     # Removing product should not affect order's weight
     order = order_with_lines
@@ -641,7 +625,6 @@ def test_get_order_weight_non_existing_product(
         user=None,
         app=None,
         manager=anonymous_plugins,
-        site_settings=site_settings,
     )
     old_weight = order.get_total_weight()
 
@@ -702,6 +685,7 @@ def test_value_voucher_order_discount(
     min_spent_amount,
     expected_value,
     channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -717,7 +701,11 @@ def test_value_voucher_order_discount(
     subtotal = Money(subtotal, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
     order = Mock(
-        get_subtotal=Mock(return_value=subtotal), voucher=voucher, channel=channel_USD
+        get_subtotal=Mock(return_value=subtotal),
+        voucher=voucher,
+        shipping_address=address_usa,
+        billing_address=address_usa,
+        channel=channel_USD,
     )
     discount = get_voucher_discount_for_order(order)
     assert discount == Money(expected_value, "USD")
@@ -728,7 +716,12 @@ def test_value_voucher_order_discount(
     [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
 )
 def test_shipping_voucher_order_discount(
-    shipping_cost, discount_value, discount_type, expected_value, channel_USD
+    shipping_cost,
+    discount_value,
+    discount_type,
+    expected_value,
+    channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -748,6 +741,8 @@ def test_shipping_voucher_order_discount(
     order = Mock(
         get_subtotal=Mock(return_value=subtotal),
         shipping_price=shipping_total,
+        shipping_address=address_usa,
+        billing_address=address_usa,
         voucher=voucher,
         channel=channel_USD,
     )
@@ -777,6 +772,7 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     min_checkout_items_quantity,
     voucher_type,
     channel_USD,
+    address_usa,
 ):
     voucher = Voucher.objects.create(
         code="unique",
@@ -795,6 +791,8 @@ def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
     order = Mock(
         get_subtotal=Mock(return_value=price),
         get_total_quantity=Mock(return_value=total_quantity),
+        shipping_address=address_usa,
+        billing_address=address_usa,
         shipping_price=price,
         voucher=voucher,
         channel=channel_USD,

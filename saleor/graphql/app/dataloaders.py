@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from django.contrib.auth.hashers import check_password
+from promise import Promise
 
 from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
@@ -82,3 +83,14 @@ def load_app(context):
         return context.app
     promise = promise_app(context)
     return None if promise is None else promise.get()
+
+
+def get_app_promise(context):
+    if hasattr(context, "app"):
+        return Promise.resolve(context.app)
+
+    promise = promise_app(context)
+    if promise is None:
+        return Promise.resolve(None)
+
+    return promise

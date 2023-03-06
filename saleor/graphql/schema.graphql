@@ -96,6 +96,102 @@ type Query {
   ): TranslatableItem
 
   """
+  Look up a tax configuration.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfiguration(
+    """ID of a tax configuration."""
+    id: ID!
+  ): TaxConfiguration
+
+  """
+  List of tax configurations.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxConfigurations(
+    """Filtering options for tax configurations."""
+    filter: TaxConfigurationFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): TaxConfigurationCountableConnection
+
+  """
+  Look up a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClass(
+    """ID of a tax class."""
+    id: ID!
+  ): TaxClass
+
+  """
+  List of tax classes.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxClasses(
+    """Sort tax classes."""
+    sortBy: TaxClassSortingInput
+
+    """Filtering options for tax classes."""
+    filter: TaxClassFilterInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """Return the first n elements from the list."""
+    first: Int
+
+    """Return the last n elements from the list."""
+    last: Int
+  ): TaxClassCountableConnection
+
+  """
+  Tax class rates grouped by country.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  taxCountryConfiguration(
+    """Country for which to return tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfiguration
+
+  "\\n\\nRequires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP."
+  taxCountryConfigurations: [TaxCountryConfiguration!]
+
+  """
   Look up a stock by ID
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -2480,13 +2576,13 @@ enum PermissionEnum {
   MANAGE_TAXES
   MANAGE_CHANNELS
   MANAGE_DISCOUNTS
-  MANAGE_PLUGINS
   MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
   MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   HANDLE_PAYMENTS
+  MANAGE_PLUGINS
   MANAGE_PRODUCTS
   MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
   MANAGE_SHIPPING
@@ -2962,7 +3058,7 @@ type CountryDisplay {
   country: String!
 
   """Country tax."""
-  vat: VAT
+  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Use `TaxClassCountryRate` type to manage tax rates per country.")
 }
 
 """Represents a VAT rate for a country."""
@@ -3223,6 +3319,13 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
 
   """Minimal number of days for delivery."""
   minimumDeliveryDays: Int
+
+  """
+  Tax class assigned to this shipping method.
+  
+  Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
+  """
+  taxClass: TaxClass
 }
 
 """An enumeration."""
@@ -4647,7 +4750,7 @@ type Product implements Node & ObjectWithMetadata {
   category: Category
   created: DateTime!
   updatedAt: DateTime!
-  chargeTaxes: Boolean!
+  chargeTaxes: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
   weight: Weight
   defaultVariant: ProductVariant
   rating: Float
@@ -4698,7 +4801,17 @@ type Product implements Node & ObjectWithMetadata {
   ): Boolean
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
+
+  """
+  Get a single attribute attached to product by attribute slug.
+  
+  Added in Saleor 3.9.
+  """
+  attribute(
+    """Slug of the attribute"""
+    slug: String!
+  ): SelectedAttribute
 
   """List of attributes assigned to this product."""
   attributes: [SelectedAttribute!]!
@@ -4723,12 +4836,32 @@ type Product implements Node & ObjectWithMetadata {
   ): ProductImage @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `mediaById` field instead.")
 
   """
+  Get a single variant by SKU or ID. 
+  
+  Added in Saleor 3.9.
+  """
+  variant(
+    """ID of the variant."""
+    id: ID
+
+    """SKU of the variant."""
+    sku: String
+  ): ProductVariant
+
+  """
   List of variants for the product. Requires the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
   """
   variants: [ProductVariant!]
 
   """List of media for the product."""
-  media: [ProductMedia!]
+  media(
+    """
+    Sort media. 
+    
+    Added in Saleor 3.9.
+    """
+    sortBy: MediaSortingInput
+  ): [ProductMedia!]
 
   """List of images for the product."""
   images: [ProductImage!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `media` field instead.")
@@ -4752,6 +4885,13 @@ type Product implements Node & ObjectWithMetadata {
 
   """Whether the product is available for purchase."""
   isAvailableForPurchase: Boolean
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
 }
 
 """
@@ -4834,7 +4974,14 @@ type ProductType implements Node & ObjectWithMetadata {
   ): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
 
   """A type of tax. Assigned by enabled tax gateway"""
-  taxType: TaxType
+  taxType: TaxType @deprecated(reason: "This field will be removed in Saleor 4.0. Use `taxClass` field instead.")
+
+  """
+  Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
 
   """Variant attributes of that product type."""
   variantAttributes(
@@ -4890,6 +5037,88 @@ type TaxType {
 
   """External tax code used to identify given tax group."""
   taxCode: String
+}
+
+"""
+Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClass implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the tax class."""
+  name: String!
+
+  """Country-specific tax rates for this tax class."""
+  countries: [TaxClassCountryRate!]!
+}
+
+"""
+Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxClassCountryRate {
+  """Country in which this tax rate applies."""
+  country: CountryDisplay!
+
+  """Tax rate value."""
+  rate: Float!
+
+  """Related tax class."""
+  taxClass: TaxClass
 }
 
 """
@@ -6029,6 +6258,15 @@ type ProductPricingInfo {
   The discounted price range of the product variants in the local currency.
   """
   priceRangeLocalCurrency: TaxedMoneyRange
+
+  """
+  Determines whether this product's price displayed in a storefront should include taxes.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """Represents a range of monetary values."""
@@ -6097,6 +6335,19 @@ type ProductChannelListing implements Node {
 type Margin {
   start: Int
   stop: Int
+}
+
+input MediaSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort media by the selected field."""
+  field: MediaChoicesSortField!
+}
+
+enum MediaChoicesSortField {
+  """Sort media by ID."""
+  ID
 }
 
 """Represents a collection of products."""
@@ -6620,6 +6871,27 @@ type AttributeValueTranslatableContent implements Node {
 
   """Represents a value of an attribute."""
   attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """
+  Associated attribute that can be translated.
+  
+  Added in Saleor 3.9.
+  """
+  attribute: AttributeTranslatableContent
+}
+
+type AttributeTranslatableContent implements Node {
+  id: ID!
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type CollectionTranslatableContent implements Node {
@@ -6680,20 +6952,6 @@ type CategoryTranslatableContent implements Node {
 
   """Represents a single category of products."""
   category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-type AttributeTranslatableContent implements Node {
-  id: ID!
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
 type ProductVariantTranslatableContent implements Node {
@@ -7585,6 +7843,189 @@ enum TranslatableKinds {
   VOUCHER
 }
 
+"""
+Channel-specific tax configuration.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfiguration implements Node & ObjectWithMetadata {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean!
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+}
+
+enum TaxCalculationStrategy {
+  FLAT_RATES
+  TAX_APP
+}
+
+"""
+Country-specific exceptions of a channel's tax configuration.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxConfigurationPerCountry {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+type TaxConfigurationCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxConfigurationCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxConfigurationCountableEdge {
+  """The item at the end of the edge."""
+  node: TaxConfiguration!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxConfigurationFilterInput {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+}
+
+type TaxClassCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxClassCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxClassCountableEdge {
+  """The item at the end of the edge."""
+  node: TaxClass!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxClassSortingInput {
+  """Specifies the direction in which to sort products."""
+  direction: OrderDirection!
+
+  """Sort tax classes by the selected field."""
+  field: TaxClassSortField!
+}
+
+enum TaxClassSortField {
+  """Sort tax classes by name."""
+  NAME
+}
+
+input TaxClassFilterInput {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  countries: [CountryCode!]
+}
+
+"""
+Tax class rates grouped by country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TaxCountryConfiguration {
+  """A country for which tax class rates are grouped."""
+  country: CountryDisplay!
+
+  """List of tax class rates."""
+  taxClassCountryRates: [TaxClassCountryRate!]!
+}
+
 type StockCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -7696,9 +8137,6 @@ type Shop {
   """Header text."""
   headerText: String
 
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean!
-
   """
   Automatically approve all new fulfillments.
   
@@ -7712,12 +8150,6 @@ type Shop {
   Added in Saleor 3.1.
   """
   fulfillmentAllowUnpaid: Boolean!
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean!
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean!
 
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
@@ -7807,6 +8239,22 @@ type Shop {
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   version: String!
+
+  """
+  Minor Saleor API version.
+  
+  Added in Saleor 3.5.
+  """
+  schemaVersion: String!
+
+  """Include taxes in prices."""
+  includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
+
+  """Display prices with tax in store."""
+  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
+
+  """Charge taxes on shipping."""
+  chargeTaxesOnShipping: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
 }
 
 """
@@ -8216,6 +8664,15 @@ type Checkout implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """
@@ -8848,13 +9305,52 @@ type Order implements Node & ObjectWithMetadata {
 
   """Total price of shipping."""
   shippingPrice: TaxedMoney!
+
+  """The shipping tax rate value."""
   shippingTaxRate: Float!
+
+  """
+  Denormalized tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  shippingTaxClass: TaxClass
+
+  """
+  Denormalized name of the tax class assigned to the shipping method.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassName: String
+
+  """
+  Denormalized public metadata of the shipping method's tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
   voucher: Voucher
 
   """List of user gift cards."""
   giftCards: [GiftCard!]!
-  displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight!
   redirectUrl: String
@@ -8921,6 +9417,15 @@ type Order implements Node & ObjectWithMetadata {
 
   """List of errors that occurred during order validation."""
   errors: [OrderError!]!
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  displayGrossPrices: Boolean!
 }
 
 """An enumeration."""
@@ -9136,6 +9641,44 @@ type OrderLine implements Node & ObjectWithMetadata {
 
   """Type of the discount: fixed or percent"""
   unitDiscountType: DiscountValueTypeEnum
+
+  """
+  Denormalized tax class of the product in this order line.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  taxClass: TaxClass
+
+  """
+  Denormalized name of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassName: String
+
+  """
+  Denormalized public metadata of the tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassMetadata: [MetadataItem!]!
+
+  """
+  Denormalized private metadata of the tax class. Requires staff permissions to access.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  taxClassPrivateMetadata: [MetadataItem!]!
 }
 
 """
@@ -11293,6 +11836,101 @@ type Mutation {
   ): WarehouseShippingZoneUnassign
 
   """
+  Create a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassCreate(
+    """Fields required to create a tax class."""
+    input: TaxClassCreateInput!
+  ): TaxClassCreate
+
+  """
+  Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassDelete(
+    """ID of a tax class to delete."""
+    id: ID!
+  ): TaxClassDelete
+
+  """
+  Update a tax class.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxClassUpdate(
+    """ID of the tax class."""
+    id: ID!
+
+    """Fields required to update a tax class."""
+    input: TaxClassUpdateInput!
+  ): TaxClassUpdate
+
+  """
+  Update tax configuration for a channel.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxConfigurationUpdate(
+    """ID of the tax configuration."""
+    id: ID!
+
+    """Fields required to update the tax configuration."""
+    input: TaxConfigurationUpdateInput!
+  ): TaxConfigurationUpdate
+
+  """
+  Update tax class rates for a specific country.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationUpdate(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+
+    """
+    List of tax rates per tax class to update. When `{taxClass: id, rate: null`} is passed, it deletes the rate object for given taxClass ID. When `{rate: Int}` is passed without a tax class, it updates the default tax class for this country.
+    """
+    updateTaxClassRates: [TaxClassRateInput!]!
+  ): TaxCountryConfigurationUpdate
+
+  """
+  Remove all tax class rates for a specific country.
+  
+  Added in Saleor 3.9.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TAXES.
+  """
+  taxCountryConfigurationDelete(
+    """Country in which to update the tax class rates."""
+    countryCode: CountryCode!
+  ): TaxCountryConfigurationDelete
+
+  """
   Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
   
   Added in Saleor 3.8.
@@ -11367,7 +12005,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  shopFetchTaxRates: ShopFetchTaxRates
+  shopFetchTaxRates: ShopFetchTaxRates @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates/updates translations for shop settings. 
@@ -15126,6 +15764,323 @@ type WarehouseShippingZoneUnassign {
 }
 
 """
+Create a tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassCreate {
+  errors: [TaxClassCreateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassCreateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassCreateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassCreateInput {
+  """Name of the tax class."""
+  name: String!
+
+  """List of country-specific tax rates to create for this tax class."""
+  createCountryRates: [CountryRateInput!]
+}
+
+input CountryRateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate.
+  """
+  rate: Float!
+}
+
+"""
+Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassDelete {
+  errors: [TaxClassDeleteError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxClassDeleteErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Update a tax class.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxClassUpdate {
+  errors: [TaxClassUpdateError!]!
+  taxClass: TaxClass
+}
+
+type TaxClassUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxClassUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxClassUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxClassUpdateInput {
+  """Name of the tax class."""
+  name: String
+
+  """
+  List of country-specific tax rates to create or update for this tax class.
+  """
+  updateCountryRates: [CountryRateUpdateInput!]
+
+  """
+  List of country codes for which to remove the tax class rates. Note: It removes all rates for given country code.
+  """
+  removeCountryRates: [CountryCode!]
+}
+
+input CountryRateUpdateInput {
+  """Country in which this rate applies."""
+  countryCode: CountryCode!
+
+  """
+  Tax rate value provided as percentage. Example: provide `23` to represent `23%` tax rate. Provide `null` to remove the particular rate.
+  """
+  rate: Float
+}
+
+"""
+Update tax configuration for a channel.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxConfigurationUpdate {
+  errors: [TaxConfigurationUpdateError!]!
+  taxConfiguration: TaxConfiguration
+}
+
+type TaxConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxConfigurationUpdateErrorCode!
+
+  """List of country codes for which the configuration is invalid."""
+  countryCodes: [String!]!
+}
+
+"""An enumeration."""
+enum TaxConfigurationUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input TaxConfigurationUpdateInput {
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean
+
+  """
+  List of tax country configurations to create or update (identified by a country code).
+  """
+  updateCountriesConfiguration: [TaxConfigurationPerCountryInput!]
+
+  """List of country codes for which to remove the tax configuration."""
+  removeCountriesConfiguration: [CountryCode!]
+}
+
+input TaxConfigurationPerCountryInput {
+  """Country in which this configuration applies."""
+  countryCode: CountryCode!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+"""
+Update tax class rates for a specific country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationUpdate {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationUpdateError!]!
+}
+
+type TaxCountryConfigurationUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationUpdateErrorCode!
+
+  """List of tax class IDs for which the update failed."""
+  taxClassIds: [String!]!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  ONLY_ONE_DEFAULT_COUNTRY_RATE_ALLOWED
+  CANNOT_CREATE_NEGATIVE_RATE
+}
+
+input TaxClassRateInput {
+  """ID of a tax class for which to update the tax rate"""
+  taxClassId: ID
+
+  """Tax rate value."""
+  rate: Float
+}
+
+"""
+Remove all tax class rates for a specific country.
+
+Added in Saleor 3.9.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TAXES.
+"""
+type TaxCountryConfigurationDelete {
+  """Updated tax class rates grouped by a country."""
+  taxCountryConfiguration: TaxCountryConfiguration
+  errors: [TaxCountryConfigurationDeleteError!]!
+}
+
+type TaxCountryConfigurationDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TaxCountryConfigurationDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum TaxCountryConfigurationDeleteErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
 Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
 
 Added in Saleor 3.8.
@@ -15269,15 +16224,6 @@ input ShopSettingsInput {
   """SEO description."""
   description: String
 
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean
-
   """Enable inventory tracking."""
   trackInventoryByDefault: Boolean
 
@@ -15338,6 +16284,27 @@ input ShopSettingsInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   limitQuantityPerCheckout: Int
+
+  """
+  Include taxes in prices. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  includeTaxesInPrices: Boolean
+
+  """
+  Display prices with tax in store. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
+  """
+  displayGrossPrices: Boolean
+
+  """
+  Charge taxes on shipping. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
+  """
+  chargeTaxesOnShipping: Boolean
 }
 
 """
@@ -15602,6 +16569,11 @@ input ShippingPriceInput {
 
   """Inclusion type for currently assigned postal code rules."""
   inclusionType: PostalCodeRuleInclusionTypeEnum
+
+  """
+  ID of a tax class to assign to this shipping method. If not provided, the default tax class will be used.
+  """
+  taxClass: ID
 }
 
 scalar WeightScalar
@@ -16350,7 +17322,11 @@ input ProductCreateInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -16369,7 +17345,16 @@ input ProductCreateInput {
   """Product slug."""
   slug: String
 
-  """Tax rate for enabled tax gateway."""
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -16404,9 +17389,30 @@ input AttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.9.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.9.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.9.
+  """
+  numeric: String
 
   """URL of the file attribute. Every time, a new value is created."""
   file: String
@@ -16431,6 +17437,21 @@ input AttributeValueInput {
 
   """Represents the date/time value of the attribute value."""
   dateTime: DateTime
+}
+
+"""
+Represents attribute value. If no ID provided, value will be resolved. 
+
+Added in Saleor 3.9.
+"""
+input AttributeValueSelectableTypeInput {
+  """ID of an attribute value."""
+  id: ID
+
+  """
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  """
+  value: String
 }
 
 """
@@ -16474,7 +17495,11 @@ input ProductInput {
   """ID of the product's category."""
   category: ID
 
-  """Determine if taxes are being charged for the product."""
+  """
+  Determine if taxes are being charged for the product. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to configure whether tax collection is enabled.
+  """
   chargeTaxes: Boolean
 
   """List of IDs of collections that the product belongs to."""
@@ -16493,7 +17518,16 @@ input ProductInput {
   """Product slug."""
   slug: String
 
-  """Tax rate for enabled tax gateway."""
+  """
+  ID of a tax class to assign to this product. If not provided, product will use the tax class which is assigned to the product type.
+  """
+  taxClass: ID
+
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  """
   taxCode: String
 
   """Search engine optimization fields."""
@@ -16769,8 +17803,17 @@ input ProductTypeInput {
   """Weight of the ProductType items."""
   weight: WeightScalar
 
-  """Tax rate for enabled tax gateway."""
+  """
+  Tax rate for enabled tax gateway. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type.
+  """
   taxCode: String
+
+  """
+  ID of a tax class to assign to this product type. All products of this product type would use this tax class, unless it's overridden in the `Product` type.
+  """
+  taxClass: ID
 }
 
 """
@@ -20105,6 +21148,7 @@ enum CheckoutErrorCode {
   UNAVAILABLE_VARIANT_IN_CHANNEL
   EMAIL_NOT_SET
   NO_LINES
+  INACTIVE_PAYMENT
 }
 
 """Update billing address in the existing checkout."""
@@ -25142,7 +26186,7 @@ union TaxSourceLine = CheckoutLine | OrderLine
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductMedia | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {

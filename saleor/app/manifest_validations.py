@@ -99,7 +99,8 @@ def clean_manifest_data(manifest_data):
 
     validate_required_fields(manifest_data, errors)
     try:
-        _clean_app_url(manifest_data["tokenTargetUrl"])
+        if "tokenTargetUrl" in manifest_data:
+            _clean_app_url(manifest_data["tokenTargetUrl"])
     except (ValidationError, AttributeError):
         errors["tokenTargetUrl"].append(
             ValidationError(
@@ -255,8 +256,8 @@ def validate_required_fields(manifest_data, errors):
         if missing_fields := extension_required_fields.difference(extension_fields):
             errors["extensions"].append(
                 ValidationError(
-                    "Missing required fields for app extension: %s."
-                    % ", ".join(missing_fields),
+                    "Missing required fields for app extension: "
+                    f'{", ".join(missing_fields)}.',
                     code=AppErrorCode.REQUIRED.value,
                 )
             )
@@ -267,8 +268,8 @@ def validate_required_fields(manifest_data, errors):
         if missing_fields := webhook_required_fields.difference(webhook_fields):
             errors["webhooks"].append(
                 ValidationError(
-                    "Missing required fields for webhook: %s."
-                    % ", ".join(missing_fields),
+                    f"Missing required fields for webhook: "
+                    f'{", ".join(missing_fields)}.',
                     code=AppErrorCode.REQUIRED.value,
                 )
             )

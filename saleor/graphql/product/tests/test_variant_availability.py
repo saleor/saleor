@@ -9,7 +9,7 @@ from django_countries import countries
 from ....channel.utils import DEPRECATION_WARNING_MESSAGE
 from ....shipping.models import ShippingZone
 from ....warehouse import WarehouseClickAndCollectOption
-from ....warehouse.models import PreorderReservation, Reservation, Stock
+from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...tests.utils import get_graphql_content
 
 COUNTRY_CODE = "US"
@@ -290,6 +290,28 @@ QUERY_VARIANT_AVAILABILITY = """
 def test_variant_quantity_available_with_country_code(
     api_client, variant_with_many_stocks, channel_USD
 ):
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
+        "address": {"country": COUNTRY_CODE},
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(QUERY_VARIANT_AVAILABILITY, variables)
+    content = get_graphql_content(response)
+    variant_data = content["data"]["productVariant"]
+    assert variant_data["deprecatedByCountry"] == 7
+    assert variant_data["byAddress"] == 7
+
+
+def test_variant_quantity_available_with_country_code_warehouse_in_many_shipping_zones(
+    api_client, variant_with_many_stocks, channel_USD, shipping_zone_JPY
+):
+    shipping_zone = ShippingZone.objects.create(
+        name="Test",
+        countries=[code for code, name in countries],
+    )
+    shipping_zone.channels.add(channel_USD)
+    warehouse = Warehouse.objects.get(slug="warehouse2")
+    warehouse.shipping_zones.add(shipping_zone)
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant_with_many_stocks.pk),
         "address": {"country": COUNTRY_CODE},

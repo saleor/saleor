@@ -121,6 +121,8 @@ class AccountRegister(ModelMutation):
             data.get("channel"), error_class=AccountErrorCode
         ).slug
 
+        data["email"] = data["email"].lower()
+
         password = data["password"]
         try:
             password_validation.validate_password(password, instance)
@@ -429,7 +431,7 @@ class RequestEmailChange(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
         password = data["password"]
-        new_email = data["new_email"]
+        new_email = data["new_email"].lower()
         redirect_url = data["redirect_url"]
 
         if not user.check_password(password):
@@ -519,7 +521,7 @@ class ConfirmEmailChange(BaseMutation):
         token = data["token"]
 
         payload = cls.get_token_payload(token)
-        new_email = payload["new_email"]
+        new_email = payload["new_email"].lower()
         old_email = payload["old_email"]
 
         if models.User.objects.filter(email=new_email).exists():

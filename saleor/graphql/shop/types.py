@@ -15,7 +15,13 @@ from ...core.utils import build_absolute_uri
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_35,
+    DEPRECATED_IN_3X_FIELD,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.types import (
@@ -29,7 +35,7 @@ from ..core.types import (
 from ..core.utils import str_to_enum
 from ..plugins.dataloaders import load_plugin_manager
 from ..shipping.types import ShippingMethod
-from ..site.dataloaders import load_site
+from ..site.dataloaders import load_site_callback
 from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -206,9 +212,6 @@ class Shop(graphene.ObjectType):
         graphene.String, description="List of possible phone prefixes.", required=True
     )
     header_text = graphene.String(description="Header text.")
-    include_taxes_in_prices = graphene.Boolean(
-        description="Include taxes in prices.", required=True
-    )
     fulfillment_auto_approve = graphene.Boolean(
         description="Automatically approve all new fulfillments." + ADDED_IN_31,
         required=True,
@@ -216,12 +219,6 @@ class Shop(graphene.ObjectType):
     fulfillment_allow_unpaid = graphene.Boolean(
         description="Allow to approve fulfillments which are unpaid." + ADDED_IN_31,
         required=True,
-    )
-    display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store.", required=True
-    )
-    charge_taxes_on_shipping = graphene.Boolean(
-        description="Charge taxes on shipping.", required=True
     )
     track_inventory_by_default = graphene.Boolean(
         description="Enable inventory tracking."
@@ -297,6 +294,38 @@ class Shop(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
     )
+    schema_version = graphene.String(
+        description="Minor Saleor API version." + ADDED_IN_35,
+        required=True,
+    )
+
+    # deprecated
+    include_taxes_in_prices = graphene.Boolean(
+        description="Include taxes in prices.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use "
+            "`Channel.taxConfiguration.pricesEnteredWithTax` to determine whether "
+            "prices are entered with tax."
+        ),
+        required=True,
+    )
+    display_gross_prices = graphene.Boolean(
+        description="Display prices with tax in store.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `Channel.taxConfiguration` to determine "
+            "whether to display gross or net prices."
+        ),
+        required=True,
+    )
+    charge_taxes_on_shipping = graphene.Boolean(
+        description="Charge taxes on shipping.",
+        deprecation_reason=(
+            f"{DEPRECATED_IN_3X_FIELD} Use `ShippingMethodType.taxClass` to determine "
+            "whether taxes are calculated for shipping methods; if a tax class is set, "
+            "the taxes will be calculated, otherwise no tax rate will be applied."
+        ),
+        required=True,
+    )
 
     class Meta:
         description = (
@@ -334,8 +363,8 @@ class Shop(graphene.ObjectType):
         return resolve_countries(**kwargs)
 
     @staticmethod
-    def resolve_domain(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_domain(_, _info, site):
         return Domain(
             host=site.domain,
             ssl_enabled=settings.ENABLE_SSL,
@@ -343,8 +372,8 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_description(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_description(_, _info, site):
         return site.settings.description
 
     @staticmethod
@@ -357,8 +386,8 @@ class Shop(graphene.ObjectType):
         ]
 
     @staticmethod
-    def resolve_name(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_name(_, _info, site):
         return site.name
 
     @staticmethod
@@ -372,43 +401,33 @@ class Shop(graphene.ObjectType):
         return list(COUNTRY_CODE_TO_REGION_CODE.keys())
 
     @staticmethod
-    def resolve_header_text(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_header_text(_, _info, site):
         return site.settings.header_text
 
     @staticmethod
-    def resolve_include_taxes_in_prices(_, info):
-        site = load_site(info.context)
-        return site.settings.include_taxes_in_prices
-
-    @staticmethod
-    def resolve_fulfillment_auto_approve(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_fulfillment_auto_approve(_, _info, site):
         return site.settings.fulfillment_auto_approve
 
     @staticmethod
-    def resolve_fulfillment_allow_unpaid(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_fulfillment_allow_unpaid(_, info, site):
         return site.settings.fulfillment_allow_unpaid
 
     @staticmethod
-    def resolve_display_gross_prices(_, info):
-        site = load_site(info.context)
-        return site.settings.display_gross_prices
-
-    @staticmethod
-    def resolve_charge_taxes_on_shipping(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_charge_taxes_on_shipping(_, _info, site):
         return site.settings.charge_taxes_on_shipping
 
     @staticmethod
-    def resolve_track_inventory_by_default(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_track_inventory_by_default(_, _info, site):
         return site.settings.track_inventory_by_default
 
     @staticmethod
-    def resolve_default_weight_unit(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_default_weight_unit(_, _info, site):
         return site.settings.default_weight_unit
 
     @staticmethod
@@ -426,62 +445,62 @@ class Shop(graphene.ObjectType):
         return default_country
 
     @staticmethod
-    def resolve_default_mail_sender_name(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_default_mail_sender_name(_, _info, site):
         return site.settings.default_mail_sender_name
 
     @staticmethod
-    def resolve_default_mail_sender_address(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_default_mail_sender_address(_, _info, site):
         return site.settings.default_mail_sender_address
 
     @staticmethod
-    def resolve_company_address(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_company_address(_, _info, site):
         return site.settings.company_address
 
     @staticmethod
-    def resolve_customer_set_password_url(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_customer_set_password_url(_, _info, site):
         return site.settings.customer_set_password_url
 
     @staticmethod
-    def resolve_translation(_, info, *, language_code):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_translation(_, info, site, *, language_code):
         return resolve_translation(site.settings, info, language_code=language_code)
 
     @staticmethod
-    def resolve_automatic_fulfillment_digital_products(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_automatic_fulfillment_digital_products(_, _info, site):
         return site.settings.automatic_fulfillment_digital_products
 
     @staticmethod
-    def resolve_reserve_stock_duration_anonymous_user(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_reserve_stock_duration_anonymous_user(_, _info, site):
         return site.settings.reserve_stock_duration_anonymous_user
 
     @staticmethod
-    def resolve_reserve_stock_duration_authenticated_user(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_reserve_stock_duration_authenticated_user(_, _info, site):
         return site.settings.reserve_stock_duration_authenticated_user
 
     @staticmethod
-    def resolve_limit_quantity_per_checkout(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_limit_quantity_per_checkout(_, _info, site):
         return site.settings.limit_quantity_per_checkout
 
     @staticmethod
-    def resolve_default_digital_max_downloads(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_default_digital_max_downloads(_, _info, site):
         return site.settings.default_digital_max_downloads
 
     @staticmethod
-    def resolve_default_digital_url_valid_days(_, info):
-        site = load_site(info.context)
+    @load_site_callback
+    def resolve_default_digital_url_valid_days(_, _info, site):
         return site.settings.default_digital_url_valid_days
 
     @staticmethod
-    def resolve_staff_notification_recipients(_, info):
+    def resolve_staff_notification_recipients(_, _info):
         return account_models.StaffNotificationRecipient.objects.all()
 
     @staticmethod
@@ -491,3 +510,20 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_version(_, _info):
         return __version__
+
+    @staticmethod
+    def resolve_schema_version(_, _info):
+        major, minor, _ = __version__.split(".", 2)
+        return f"{major}.{minor}"
+
+    # deprecated
+
+    @staticmethod
+    @load_site_callback
+    def resolve_include_taxes_in_prices(_, _info, site):
+        return site.settings.include_taxes_in_prices
+
+    @staticmethod
+    @load_site_callback
+    def resolve_display_gross_prices(_, _info, site):
+        return site.settings.display_gross_prices

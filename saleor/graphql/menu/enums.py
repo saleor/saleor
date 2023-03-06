@@ -11,4 +11,4 @@ class NavigationType(graphene.Enum):
             return "Main storefront navigation."
         if self == NavigationType.SECONDARY:
             return "Secondary storefront navigation."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")

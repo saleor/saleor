@@ -121,10 +121,7 @@ class AddressForm(forms.ModelForm):
         autocomplete_dict = defaultdict(lambda: "off", self.AUTOCOMPLETE_MAPPING)
         for field_name, field in self.fields.items():
             if autocomplete_type:
-                autocomplete = "%s %s" % (
-                    autocomplete_type,
-                    autocomplete_dict[field_name],
-                )
+                autocomplete = f"{autocomplete_type} {autocomplete_dict[field_name]}"
             else:
                 autocomplete = autocomplete_dict[field_name]
             field.widget.attrs["autocomplete"] = autocomplete
@@ -183,10 +180,9 @@ class CountryAwareAddressForm(AddressForm):
         try:
             data["country_code"] = data.get("country", "")
             if data["street_address_1"] or data["street_address_2"]:
-                data["street_address"] = "%s\n%s" % (
-                    data["street_address_1"],
-                    data["street_address_2"],
-                )
+                data[
+                    "street_address"
+                ] = f'{data["street_address_1"]}\n{data["street_address_2"]}'
             normalized_data = i18naddress.normalize_address(data)
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
@@ -261,7 +257,7 @@ def update_base_fields(form_class, i18n_rules):
 
 
 def construct_address_form(country_code, i18n_rules):
-    class_name = "AddressForm%s" % country_code
+    class_name = f"AddressForm{country_code}"
     base_class = CountryAwareAddressForm
     form_kwargs = {
         "Meta": type(str("Meta"), (base_class.Meta, object), {}),

@@ -5,9 +5,9 @@ from prices import Money, TaxedMoney
 from ...discount import DiscountValueType, VoucherType
 from ...discount.utils import get_product_discount_on_sale
 from ...plugins.manager import get_plugins_manager
+from ...tax.utils import calculate_tax_rate
 from ..base_calculations import (
     base_checkout_total,
-    base_tax_rate,
     calculate_base_line_total_price,
     calculate_base_line_unit_price,
 )
@@ -736,12 +736,12 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
 
 def test_base_tax_rate_net_price_zero():
     price = TaxedMoney(net=Money(0, "USD"), gross=Money(3, "USD"))
-    assert base_tax_rate(price) == Decimal("0.0")
+    assert calculate_tax_rate(price) == Decimal("0.0")
 
 
 def test_base_tax_rate_gross_price_zero():
     price = TaxedMoney(net=Money(3, "USD"), gross=Money(0, "USD"))
-    assert base_tax_rate(price) == Decimal("0.0")
+    assert calculate_tax_rate(price) == Decimal("0.0")
 
 
 def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percentage):

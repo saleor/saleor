@@ -34,7 +34,7 @@ class OrderSortField(graphene.Enum):
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort orders by {sort_name}."
 
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet, **_kwargs) -> QuerySet:

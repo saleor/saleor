@@ -8,7 +8,7 @@ from ....order.error_codes import OrderErrorCode
 from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...core.utils import validate_required_string_field
+from ...core.validators import validate_required_string_field
 from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order, OrderEvent
 from .utils import get_webhook_handler_by_order_status

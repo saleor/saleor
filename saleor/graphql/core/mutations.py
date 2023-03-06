@@ -251,7 +251,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id, code=code
+                            f"Couldn't resolve to a node: {node_id}", code=code
                         )
                     }
                 )
@@ -831,6 +831,11 @@ class FileUpload(BaseMutation):
 
         # add unique text fragment to the file name to prevent file overriding
         file_name, format = os.path.splitext(file_data._name)
+
+        # replace spaced with an underscore to prevent replacing the spaces with encoded
+        # values by storage
+        file_name = file_name.replace(" ", "_")
+
         hash = secrets.token_hex(nbytes=4)
         new_name = f"file_upload/{file_name}_{hash}{format}"
 

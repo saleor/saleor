@@ -16,7 +16,7 @@ def get_shipping_model_by_object_id(
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Couldn't resolve to a node: %s" % object_id, code="not_found"
+                        f"Couldn't resolve to a node: {object_id}", code="not_found"
                     )
                 }
             )

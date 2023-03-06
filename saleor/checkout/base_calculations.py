@@ -1,15 +1,14 @@
-"""Contain functions which are base for calculating checkout properties.
+"""Contains functions which are base for calculating checkout properties.
 
 It's recommended to use functions from calculations.py module to take in account
 plugin manager. Functions from this module return price without
-taxes(Money instead of TaxedMoney). If you don't need pre-taxed prices use functions
+taxes (Money instead of TaxedMoney). If you don't need pre-taxed prices use functions
 from calculations.py.
 """
 
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional
 
-from prices import Money, TaxedMoney
+from prices import Money
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
@@ -236,11 +235,3 @@ def base_checkout_subtotal(
     ]
 
     return sum(line_totals, zero_money(currency))
-
-
-def base_tax_rate(price: TaxedMoney):
-    tax_rate = Decimal("0.0")
-    # The condition will return False when unit_price.gross or unit_price.net is 0.0
-    if not isinstance(price, Decimal) and all((price.gross, price.net)):
-        tax_rate = price.tax / price.net
-    return tax_rate

@@ -69,6 +69,13 @@ class ShippingPriceInput(graphene.InputObjectType):
     inclusion_type = PostalCodeRuleInclusionTypeEnum(
         description="Inclusion type for currently assigned postal code rules.",
     )
+    tax_class = graphene.ID(
+        description=(
+            "ID of a tax class to assign to this shipping method. If not provided, "
+            "the default tax class will be used."
+        ),
+        required=False,
+    )
 
 
 class ShippingZoneCreateInput(graphene.InputObjectType):
@@ -480,7 +487,6 @@ class ShippingPriceMixin:
                     )
                 }
             )
-
         return cleaned_input
 
     @classmethod

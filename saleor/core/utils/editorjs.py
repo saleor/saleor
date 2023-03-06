@@ -55,14 +55,14 @@ def clean_editor_js(definitions: Optional[Dict], *, to_string: bool = False):
     return " ".join(plain_text_list) if to_string else definitions
 
 
-def clean_text_data(text: str):
+def clean_text_data(text: str) -> str:
     """Look for url in text, check if URL is allowed and return the cleaned URL.
 
     By default, only the protocol ``javascript`` is denied.
     """
 
     if not text:
-        return
+        return text
 
     end_of_match = 0
     new_text = ""

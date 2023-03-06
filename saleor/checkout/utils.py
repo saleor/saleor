@@ -18,10 +18,7 @@ from ..core.utils.promo_code import (
 from ..discount import DiscountInfo, VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
-from ..discount.utils import (
-    get_products_voucher_discount,
-    validate_voucher_for_checkout,
-)
+from ..discount.utils import validate_voucher_for_checkout
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
@@ -43,13 +40,9 @@ from .fetch import (
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from decimal import Decimal
 
-    from prices import TaxedMoney
-
     from ..account.models import Address
-    from ..channel.models import Channel
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
 

@@ -11,6 +11,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
+from ...account.models import User
 from ...core.exceptions import PermissionDenied
 from ...core.permissions import (
     AccountPermissions,
@@ -21,7 +22,6 @@ from ...core.permissions import (
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-    from ...account.models import User
     from ...app.models import App
 
 

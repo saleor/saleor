@@ -8,7 +8,7 @@
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
                 <span class="header-item">
-                    {% price order.get_subtotal.gross %}
+                    {% price order.get_subtotal.gross display_gross=order.display_gross_prices %}
                 </span>
             </td>
         </tr>
@@ -19,7 +19,7 @@
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
                 <span class="header-item">
-                    {% price order.shipping_price.gross %}
+                    {% price order.shipping_price.gross display_gross=order.display_gross_prices %}
                 </span>
             </td>
         </tr>
@@ -30,7 +30,7 @@
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
                 <span class="header-item">
-                    {% price order.total.tax %}
+                    {% price order.total.tax display_gross=order.display_gross_prices %}
                 </span>
             </td>
         </tr>
@@ -42,7 +42,7 @@
                 <td class="cell-quantity"></td>
                 <td class="cell-total-price">
                     <span class="header-item">
-                        -{% price gift_cards_payment %}
+                        -{% price gift_cards_payment display_gross=order.display_gross_prices %}
                     </span>
                 </td>
             </tr>
@@ -54,7 +54,7 @@
             <td class="cell-quantity"></td>
             <td class="cell-total-price">
                 <span class="header-item">
-                    {% price order.total.gross %}
+                    {% price order.total.gross display_gross=order.display_gross_prices %}
                 </span>
             </td>
         </tr>

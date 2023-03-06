@@ -277,7 +277,7 @@ def get_checkout(
     )
     if qs is None:
         qs = models.Checkout.objects.select_related(
-            "channel",
+            "channel__tax_configuration",
             "shipping_method",
             "collection_point",
             "billing_address",

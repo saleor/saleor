@@ -3587,6 +3587,12 @@ PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                             richText
                             plainText
                         }
+                        attribute {
+                            name
+                            translation(languageCode: $languageCode) {
+                                name
+                            }
+                        }
                     }
                 }
             }
@@ -3671,6 +3677,46 @@ def test_product_attribute_value_plain_text_translation(
     assert attribute_value_response["translation"]["plainText"] == text
 
 
+def test_nested_product_attribute_translation(
+    staff_api_client,
+    plain_text_attribute,
+    product,
+    permission_manage_translations,
+):
+    # given
+    product_type = product.product_type
+    product_type.product_attributes.set([plain_text_attribute])
+
+    product_attr_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        product, plain_text_attribute, product_attr_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    query = PRODUCT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": product_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute.name
+    assert attribute_response["translation"]["name"] == text
+
+
 PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
     query translation(
         $kind: TranslatableKinds!
@@ -3688,6 +3734,12 @@ PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                         name
                         richText
                         plainText
+                    }
+                    attribute {
+                        name
+                        translation(languageCode: $languageCode) {
+                            name
+                        }
                     }
                 }
             }
@@ -3774,6 +3826,46 @@ def test_product_variant_attribute_value_plain_text_translation(
     assert translations_response["translation"]["plainText"] == text
 
 
+def test_nested_product_variant_attribute_translation(
+    staff_api_client,
+    variant,
+    plain_text_attribute,
+    permission_manage_translations,
+):
+    # given
+    product_type = variant.product.product_type
+    product_type.variant_attributes.set([plain_text_attribute])
+
+    attribute_value = plain_text_attribute.values.first()
+    associate_attribute_values_to_instance(
+        variant, plain_text_attribute, attribute_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute.translations.create(language_code="pl", name=text)
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    query = PRODUCT_VARIANT_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": variant_id,
+        "kind": TranslatableKinds.VARIANT.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute.name
+    assert attribute_response["translation"]["name"] == text
+
+
 PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
     query translation(
         $kind: TranslatableKinds!
@@ -3790,6 +3882,12 @@ PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY = """
                         name
                         richText
                         plainText
+                    }
+                    attribute {
+                        name
+                        translation(languageCode: $languageCode) {
+                            name
+                        }
                     }
                 }
             }
@@ -3871,3 +3969,44 @@ def test_page_attribute_value_plain_text_translation(
     assert attribute_value_response["name"] == attribute_value.name
     assert attribute_value_response["plainText"] == attribute_value.plain_text
     assert attribute_value_response["translation"]["plainText"] == text
+
+
+def test_nested_page_attribute_translation(
+    staff_api_client,
+    plain_text_attribute_page_type,
+    page,
+    permission_manage_translations,
+    permission_manage_pages,
+):
+    # given
+    page_type = page.page_type
+    page_type.page_attributes.set([plain_text_attribute_page_type])
+    attribute_value = plain_text_attribute_page_type.values.first()
+
+    associate_attribute_values_to_instance(
+        page, plain_text_attribute_page_type, attribute_value
+    )
+
+    text = "Test attribute translation"
+    plain_text_attribute_page_type.translations.create(language_code="pl", name=text)
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+
+    query = PAGE_ATTRIBUTE_VALUES_TRANSLATION_QUERY
+    variables = {
+        "id": page_id,
+        "kind": TranslatableKinds.PAGE.name,
+        "languageCode": LanguageCodeEnum.PL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_translations]
+    )
+
+    # then
+    data = get_graphql_content(response)["data"]
+
+    attribute_response = data["translation"]["attributeValues"][0]["attribute"]
+    assert attribute_response["name"] == plain_text_attribute_page_type.name
+    assert attribute_response["translation"]["name"] == text

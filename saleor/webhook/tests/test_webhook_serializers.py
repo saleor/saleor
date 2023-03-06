@@ -117,9 +117,12 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-@pytest.mark.parametrize("taxes_included", [True, False])
+@pytest.mark.parametrize(
+    "charge_taxes, prices_entered_with_tax",
+    [(False, False), (False, True), (True, False), (True, True)],
+)
 def test_serialize_checkout_lines_for_tax_calculation(
-    checkout_with_prices, taxes_included, site_settings
+    checkout_with_prices, charge_taxes, prices_entered_with_tax
 ):
     # We should be sure that we always sends base prices to tax app.
     # We shouldn't use previously calculated prices because they can be
@@ -133,8 +136,12 @@ def test_serialize_checkout_lines_for_tax_calculation(
     manager = get_plugins_manager()
     discounts_info = fetch_active_discounts()
     checkout_info = fetch_checkout_info(checkout, lines, discounts_info, manager)
-    site_settings.include_taxes_in_prices = taxes_included
-    site_settings.save()
+
+    tax_configuration = checkout_info.tax_configuration
+    tax_configuration.charge_taxes = charge_taxes
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
 
     # when
     checkout_lines_data = serialize_checkout_lines_for_tax_calculation(
@@ -158,7 +165,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
             "id": graphene.Node.to_global_id("CheckoutLine", line.pk),
             "sku": variant.sku,
             "quantity": line.quantity,
-            "charge_taxes": product.charge_taxes,
+            "charge_taxes": charge_taxes,
             "full_name": variant.display_product(),
             "product_name": product.name,
             "variant_name": variant.name,

@@ -14,7 +14,7 @@ from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import get_graphql_content
-from ...mutations import validate_value_is_unique
+from ...mutations.validators import validate_value_is_unique
 
 
 def test_validate_value_is_unique(color_attribute):

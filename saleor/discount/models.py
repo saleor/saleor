@@ -284,10 +284,7 @@ class Sale(ModelWithMetadata):
         )
 
     def __repr__(self):
-        return "Sale(name=%r, type=%s)" % (
-            str(self.name),
-            self.get_type_display(),
-        )
+        return f"Sale(name={str(self.name)}, type={self.get_type_display()})"
 
     def __str__(self):
         return self.name

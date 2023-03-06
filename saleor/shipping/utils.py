@@ -51,6 +51,7 @@ def convert_to_shipping_method_data(
         metadata=shipping_method.metadata,
         private_metadata=shipping_method.private_metadata,
         price=price,
+        tax_class=shipping_method.tax_class,
         minimum_order_price=minimum_order_price,
         maximum_order_price=maximum_order_price,
     )

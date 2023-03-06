@@ -19,6 +19,7 @@ pytest_plugins = [
     "saleor.graphql.giftcard.tests.benchmark.fixtures",
     "saleor.graphql.webhook.tests.benchmark.fixtures",
     "saleor.plugins.webhook.tests.subscription_webhooks.fixtures",
+    "saleor.tax.tests.fixtures",
 ]
 
 if os.environ.get("PYTEST_DB_URL"):

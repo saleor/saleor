@@ -23,7 +23,7 @@ class SaleSortField(graphene.Enum):
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_value(queryset: QuerySet, channel_slug: str) -> QuerySet:
@@ -62,7 +62,7 @@ class VoucherSortField(graphene.Enum):
             if extras := descrption_extras.get(self.name):
                 description += "".join(extras)
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
     @staticmethod
     def qs_with_minimum_spent_amount(queryset: QuerySet, channel_slug: str) -> QuerySet:

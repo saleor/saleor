@@ -56,7 +56,8 @@ def get_product_export_fields_and_headers(
 
     for field in fields:
         lookup_field = fields_mapping[field]
-        export_fields.append(lookup_field)
+        if lookup_field:
+            export_fields.append(lookup_field)
         file_headers.append(field)
 
     return export_fields, file_headers

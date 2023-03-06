@@ -47,7 +47,7 @@ class OrderDirection(graphene.Enum):
             return "Specifies an ascending sort order."
         if self == OrderDirection.DESC:
             return "Specifies a descending sort order."
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class ReportingPeriod(graphene.Enum):

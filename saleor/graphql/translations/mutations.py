@@ -29,7 +29,7 @@ from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection, Product, ProductVariant
 from ..shipping.types import ShippingMethodType
 from ..shop.types import Shop
-from ..site.dataloaders import load_site
+from ..site.dataloaders import get_site_promise
 from . import types as translation_types
 
 TRANSLATABLE_CONTENT_TO_MODEL = {
@@ -501,7 +501,7 @@ class ShopSettingsTranslate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, language_code, **data):
-        site = load_site(info.context)
+        site = get_site_promise(info.context).get()
         instance = site.settings
         validate_input_against_model(SiteSettings, data["input"])
         manager = load_plugin_manager(info.context)

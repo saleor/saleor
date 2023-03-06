@@ -16,7 +16,6 @@ from . import (
 GATEWAY_NAME = "Stripe (Deprecated)"
 
 if TYPE_CHECKING:
-    # flake8: noqa
     from ....interface import CustomerSource
     from . import GatewayResponse, PaymentData
 

@@ -149,10 +149,8 @@ class ProcessedImage:
         # Ensure any embedded ICC profile is preserved
         save_kwargs["icc_profile"] = image.info.get("icc_profile")
 
-        if hasattr(self, "preprocess_%s" % format):
-            image, addl_save_kwargs = getattr(self, "preprocess_%s" % format)(
-                image=image
-            )
+        if hasattr(self, f"preprocess_{format}"):
+            image, addl_save_kwargs = getattr(self, f"preprocess_{format}")(image=image)
             save_kwargs.update(addl_save_kwargs)
 
         return image, save_kwargs

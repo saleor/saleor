@@ -18,7 +18,7 @@ class GiftCardSortField(graphene.Enum):
             if self.name == "CREATED_AT":
                 description += ADDED_IN_38
             return description
-        raise ValueError("Unsupported enum value: %s" % self.value)
+        raise ValueError(f"Unsupported enum value: {self.value}")
 
 
 class GiftCardSortingInput(SortInputObjectType):

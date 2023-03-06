@@ -8,13 +8,14 @@ from ....order import OrderStatus, models
 from ....order.actions import order_captured, order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
+from ....order.utils import update_order_display_gross_prices
 from ....payment import PaymentError, gateway
 from ....payment.gateway import request_charge_action
 from ...app.dataloaders import load_app
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import load_plugin_manager
-from ...site.dataloaders import load_site
+from ...site.dataloaders import get_site_promise
 from ..types import Order
 
 
@@ -60,7 +61,8 @@ class OrderConfirm(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         order = cls.get_instance(info, **data)
         order.status = OrderStatus.UNFULFILLED
-        order.save(update_fields=["status", "updated_at"])
+        update_order_display_gross_prices(order)
+        order.save(update_fields=["status", "updated_at", "display_gross_prices"])
         order_info = fetch_order_info(order)
         payment = order_info.payment
         manager = load_plugin_manager(info.context)
@@ -86,7 +88,7 @@ class OrderConfirm(ModelMutation):
                     )
             elif payment and payment.is_authorized and payment.can_capture():
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
-                site = load_site(info.context)
+                site = get_site_promise(info.context).get()
                 transaction.on_commit(
                     lambda: order_captured(
                         order_info,

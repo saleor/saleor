@@ -5,7 +5,7 @@ interactions:
       true, "itemCode": "123", "discounted": false, "description": "Test product",
       "ref1": "123"}, {"quantity": 1, "amount": "10.000", "taxCode": "FR000000", "taxIncluded":
       true, "itemCode": "Shipping", "discounted": false, "description": null}], "code":
-      "aa47aeb1-94c6-49e4-a05a-8ef59066021e", "date": "2022-09-08", "customerCode":
+      "7537c2e1-57f9-4222-a08f-057f3fc2f705", "date": "2022-09-09", "customerCode":
       0, "discount": null, "addresses": {"shipFrom": {"line1": "Teczowa 7", "line2":
       null, "city": "Wroclaw", "region": "", "country": "PL", "postalCode": "53-601"},
       "shipTo": {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region":
@@ -40,13 +40,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 08 Sep 2022 10:53:26 GMT
+      - Fri, 09 Sep 2022 08:59:46 GMT
       X-Content-Type-Options:
       - nosniff
       x-avalara-uid:
-      - b077b5e5-5c80-4c04-a1d7-59bb3606fd66
+      - 622c1559-4ab7-49fc-89ef-8f76f80cf0c1
       x-correlation-id:
-      - b077b5e5-5c80-4c04-a1d7-59bb3606fd66
+      - 622c1559-4ab7-49fc-89ef-8f76f80cf0c1
     status:
       code: 401
       message: Unauthorized

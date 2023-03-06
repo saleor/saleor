@@ -17,7 +17,7 @@ class NoValidationSearchVectorCombinable(SearchVectorCombinable):
         if not isinstance(other, NoValidationSearchVectorCombinable):
             raise TypeError(
                 "SearchVector can only be combined with other SearchVector "
-                "instances, got %s." % type(other).__name__
+                f"instances, got {type(other).__name__}."
             )
         if reversed:
             return NoValidationCombinedSearchVector(other, connector, self, self.config)

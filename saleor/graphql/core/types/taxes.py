@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Union
 
 import graphene
@@ -6,9 +7,10 @@ from promise import Promise
 from ....checkout import base_calculations
 from ....checkout.models import Checkout, CheckoutLine
 from ....core.prices import quantize_price
-from ....core.taxes import include_taxes_in_prices
 from ....discount import VoucherType
 from ....order.models import Order, OrderLine
+from ....order.utils import get_order_country
+from ....tax.utils import get_charge_taxes
 from ...account.dataloaders import AddressByIdLoader
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
@@ -24,10 +26,14 @@ from ...discount.dataloaders import (
     OrderDiscountsByOrderIDLoader,
 )
 from ...order import types as order_types
-from ...order.dataloaders import OrderLinesByOrderIdLoader
+from ...order.dataloaders import OrderByIdLoader, OrderLinesByOrderIdLoader
 from ...product.dataloaders.products import (
     ProductByVariantIdLoader,
     ProductVariantByIdLoader,
+)
+from ...tax.dataloaders import (
+    TaxConfigurationByChannelId,
+    TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from .common import NonNullList
 from .money import Money
@@ -135,19 +141,61 @@ class TaxableObjectLine(graphene.ObjectType):
 
     @staticmethod
     def resolve_charge_taxes(root: Union[CheckoutLine, OrderLine], info):
+        def load_tax_configuration(channel, country_code):
+            tax_config = TaxConfigurationByChannelId(info.context).load(channel.pk)
 
-        if not root.variant_id:
-            # By default charge taxes are set to True
-            return True
+            def load_tax_country_exceptions(tax_config):
+                tax_configs_per_country = (
+                    TaxConfigurationPerCountryByTaxConfigurationIDLoader(
+                        info.context
+                    ).load(tax_config.id)
+                )
 
-        def get_charge_taxes(product):
-            return product.charge_taxes
+                def calculate_charge_taxes(tax_configs_per_country):
+                    tax_config_country = next(
+                        (
+                            tc
+                            for tc in tax_configs_per_country
+                            if tc.country.code == country_code
+                        ),
+                        None,
+                    )
+                    return get_charge_taxes(tax_config, tax_config_country)
 
-        return (
-            ProductByVariantIdLoader(info.context)
-            .load(root.variant_id)
-            .then(get_charge_taxes)
-        )
+                return tax_configs_per_country.then(calculate_charge_taxes)
+
+            return tax_config.then(load_tax_country_exceptions)
+
+        if isinstance(root, CheckoutLine):
+            checkout = CheckoutByTokenLoader(info.context).load(root.checkout_id)
+
+            def load_channel(checkout):
+                country_code = checkout.get_country()
+                load_tax_config_with_country = partial(
+                    load_tax_configuration, country_code=country_code
+                )
+                return (
+                    ChannelByIdLoader(info.context)
+                    .load(checkout.channel_id)
+                    .then(load_tax_config_with_country)
+                )
+
+            return checkout.then(load_channel)
+        else:
+            order = OrderByIdLoader(info.context).load(root.order_id)
+
+            def load_channel(order):  # type: ignore
+                country_code = get_order_country(order)
+                load_tax_config_with_country = partial(
+                    load_tax_configuration, country_code=country_code
+                )
+                return (
+                    ChannelByIdLoader(info.context)
+                    .load(order.channel_id)
+                    .then(load_tax_config_with_country)
+                )
+
+            return order.then(load_channel)
 
     @staticmethod
     def resolve_unit_price(root: Union[CheckoutLine, OrderLine], info):
@@ -297,7 +345,8 @@ class TaxableObject(graphene.ObjectType):
 
     @staticmethod
     def resolve_prices_entered_with_tax(root: Union[Checkout, Order], info):
-        return include_taxes_in_prices()
+        tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
+        return tax_config.then(lambda tc: tc.prices_entered_with_tax)
 
     @staticmethod
     def resolve_currency(root: Union[Checkout, Order], info):
