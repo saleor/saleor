@@ -1,7 +1,6 @@
 from typing import Iterable
 
 import graphene
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ValidationError
 
 from ....checkout import AddressType
@@ -23,13 +22,18 @@ from ....core.permissions import AccountPermissions
 from ....core.transactions import transaction_with_commit_on_errors
 from ....order import models as order_models
 from ...account.i18n import I18nMixin
-from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...app.dataloaders import load_app
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
-from ...core.types import CheckoutError
+from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...discount.dataloaders import load_discounts
+from ...meta.mutations import MetadataInput
 from ...order.types import Order
+from ...plugins.dataloaders import load_plugin_manager
+from ...site.dataloaders import load_site
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -86,6 +90,13 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             description=(
                 "Client-side generated data required to finalize the payment."
             ),
+        )
+        metadata = NonNullList(
+            MetadataInput,
+            description=(
+                "Fields required to update the checkout metadata." + ADDED_IN_38
+            ),
+            required=False,
         )
 
     class Meta:
@@ -200,9 +211,17 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 raise e
 
+            metadata = data.get("metadata")
+            if metadata is not None:
+                cls.check_metadata_permissions(
+                    info,
+                    id or checkout_id or graphene.Node.to_global_id("Checkout", token),
+                )
+                cls.validate_metadata_keys(metadata)
+
             validate_checkout_email(checkout)
 
-            manager = info.context.plugins
+            manager = load_plugin_manager(info.context)
             lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
             if unavailable_variant_pks:
                 not_available_variants_ids = {
@@ -227,32 +246,33 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                         )
                     }
                 )
-            checkout_info = fetch_checkout_info(
-                checkout, lines, info.context.discounts, manager
-            )
+            discounts = load_discounts(info.context)
+            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
             cls.validate_checkout_addresses(checkout_info, lines)
 
             requestor = get_user_or_app_from_context(info.context)
-            if requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            if requestor and requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
                 # Allow impersonating user and process a checkout by using user details
                 # assigned to checkout.
-                customer = checkout.user or AnonymousUser()
+                customer = checkout.user
             else:
                 customer = info.context.user
 
+            site = load_site(info.context)
             order, action_required, action_data = complete_checkout(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 payment_data=data.get("payment_data", {}),
                 store_source=store_source,
-                discounts=info.context.discounts,
+                discounts=discounts,
                 user=customer,
-                app=info.context.app,
-                site_settings=info.context.site.settings,
+                app=load_app(info.context),
+                site_settings=site.settings,
                 tracking_code=tracking_code,
                 redirect_url=data.get("redirect_url"),
+                metadata_list=data.get("metadata"),
             )
         # If gateway returns information that additional steps are required we need
         # to inform the frontend and pass all required data

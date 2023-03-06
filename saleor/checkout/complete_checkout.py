@@ -54,6 +54,7 @@ from ..warehouse.management import allocate_preorders, allocate_stocks
 from ..warehouse.reservations import is_reservation_enabled
 from . import AddressType
 from .base_calculations import (
+    base_checkout_delivery_price,
     calculate_base_line_unit_price,
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
@@ -68,7 +69,6 @@ from .fetch import CheckoutInfo, CheckoutLineInfo
 from .utils import get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
-    from ..account.models import Address
     from ..app.models import App
     from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
@@ -106,6 +106,7 @@ def _process_voucher_data_for_order(checkout_info: "CheckoutInfo") -> dict:
 
 def _process_shipping_data_for_order(
     checkout_info: "CheckoutInfo",
+    base_shipping_price: Money,
     shipping_price: TaxedMoney,
     manager: "PluginsManager",
     lines: Iterable["CheckoutLineInfo"],
@@ -127,6 +128,7 @@ def _process_shipping_data_for_order(
 
     result: Dict[str, Any] = {
         "shipping_address": shipping_address,
+        "base_shipping_price": base_shipping_price,
         "shipping_price": shipping_price,
         "weight": checkout_info.checkout.get_total_weight(lines),
     }
@@ -397,6 +399,7 @@ def _prepare_order_data(
     )
     undiscounted_total = taxed_total + checkout.discount
 
+    base_shipping_price = base_checkout_delivery_price(checkout_info, lines)
     shipping_total = calculations.checkout_shipping_price(
         manager=manager,
         checkout_info=checkout_info,
@@ -412,7 +415,9 @@ def _prepare_order_data(
         discounts=discounts,
     )
     order_data.update(
-        _process_shipping_data_for_order(checkout_info, shipping_total, manager, lines)
+        _process_shipping_data_for_order(
+            checkout_info, base_shipping_price, shipping_total, manager, lines
+        )
     )
     order_data.update(_process_user_data_for_order(checkout_info, manager))
     order_data.update(
@@ -469,7 +474,9 @@ def _create_order(
     user: User,
     app: Optional["App"],
     manager: "PluginsManager",
-    site_settings=None
+    site_settings: Optional["SiteSettings"] = None,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None
 ) -> Order:
     """Create an order from the checkout.
 
@@ -502,11 +509,12 @@ def _create_order(
     )
     order = Order.objects.create(
         **order_data,
-        checkout_token=checkout.token,
+        checkout_token=str(checkout.token),
         status=status,
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
     )
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
@@ -566,8 +574,17 @@ def _create_order(
 
     # copy metadata from the checkout into the new order
     order.metadata = checkout.metadata
+    if metadata_list:
+        order.store_value_in_metadata({data.key: data.value for data in metadata_list})
+
     order.redirect_url = checkout.redirect_url
+
     order.private_metadata = checkout.private_metadata
+    if private_metadata_list:
+        order.store_value_in_private_metadata(
+            {data.key: data.value for data in private_metadata_list}
+        )
+
     update_order_charge_data(order, with_save=False)
     update_order_authorize_data(order, with_save=False)
     order.search_vector = FlatConcatSearchVector(
@@ -736,6 +753,8 @@ def complete_checkout(
     site_settings=None,
     tracking_code=None,
     redirect_url=None,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:
     """Logic required to finalize the checkout and convert it to order.
 
@@ -743,24 +762,29 @@ def complete_checkout(
     for thread race.
     :raises ValidationError
     """
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts)
+    fetch_checkout_prices_if_expired(
+        checkout_info, manager, lines, discounts=discounts, site_settings=site_settings
+    )
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
     payment = checkout.get_last_active_payment()
-    _prepare_checkout(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        discounts=discounts,
-        tracking_code=tracking_code,
-        redirect_url=redirect_url,
-        payment=payment,
-    )
-
-    if site_settings is None:
-        site_settings = Site.objects.get_current().settings
+    try:
+        _prepare_checkout(
+            manager=manager,
+            checkout_info=checkout_info,
+            lines=lines,
+            discounts=discounts,
+            tracking_code=tracking_code,
+            redirect_url=redirect_url,
+            payment=payment,
+        )
+    except ValidationError as exc:
+        gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
+        raise exc
 
     try:
         order_data = _get_order_data(
@@ -771,7 +795,7 @@ def complete_checkout(
         raise exc
 
     customer_id = None
-    if payment and user.is_authenticated:
+    if payment and user:
         customer_id = fetch_customer_id(user=user, gateway=payment.gateway)
 
     action_required = False
@@ -787,7 +811,7 @@ def complete_checkout(
             channel_slug=channel_slug,
         )
 
-        if txn.customer_id and user.is_authenticated:
+        if txn.customer_id and user:
             store_customer_id(user, payment.gateway, txn.customer_id)  # type: ignore
 
         action_required = txn.action_required
@@ -808,6 +832,8 @@ def complete_checkout(
                 app=app,
                 manager=manager,
                 site_settings=site_settings,
+                metadata_list=metadata_list,
+                private_metadata_list=private_metadata_list,
             )
             # remove checkout after order is successfully created
             checkout.delete()
@@ -841,28 +867,6 @@ def _is_refund_ongoing(payment):
         if payment
         else False
     )
-
-
-def _get_order_total(
-    checkout_info: CheckoutInfo,
-    lines: List[CheckoutLineInfo],
-    discounts: List["DiscountInfo"],
-    manager: "PluginsManager",
-    address: Optional["Address"],
-) -> TaxedMoney:
-    """Calculate a taxed total for order."""
-    taxed_total = calculations.checkout_total(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=address,
-        discounts=discounts,
-    )
-    cards_total = checkout_info.checkout.get_total_gift_cards_balance()
-    taxed_total.gross -= cards_total
-    taxed_total.net -= cards_total
-    taxed_total = max(taxed_total, zero_taxed_money(checkout_info.checkout.currency))
-    return taxed_total
 
 
 def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
@@ -1004,6 +1008,8 @@ def _create_order_from_checkout(
     user: User,
     app: Optional["App"],
     tracking_code: Optional[str] = None,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None,
 ):
     from ..order.utils import add_gift_cards_to_order
 
@@ -1015,12 +1021,12 @@ def _create_order_from_checkout(
     taxes_included_in_prices = site_settings.include_taxes_in_prices
 
     # total
-    taxed_total = _get_order_total(
-        checkout_info,
-        checkout_lines_info,
-        discounts,
-        manager,
-        address,
+    taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
     )
     undiscounted_total = taxed_total + checkout_info.checkout.discount
 
@@ -1028,11 +1034,22 @@ def _create_order_from_checkout(
     voucher = checkout_info.voucher
 
     # shipping
-    shipping_total = manager.calculate_checkout_shipping(
-        checkout_info, checkout_lines_info, address, discounts
+    base_shipping_price = base_checkout_delivery_price(
+        checkout_info, checkout_lines_info
     )
-    shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_info, checkout_lines_info, address, discounts, shipping_total
+    shipping_total = calculations.checkout_shipping_price(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
+    )
+    shipping_tax_rate = calculations.checkout_shipping_tax_rate(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=checkout_lines_info,
+        address=address,
+        discounts=discounts,
     )
 
     # status
@@ -1042,24 +1059,39 @@ def _create_order_from_checkout(
         else OrderStatus.UNCONFIRMED
     )
 
+    # update metadata
+    if metadata_list:
+        checkout_info.checkout.store_value_in_metadata(
+            {data.key: data.value for data in metadata_list}
+        )
+    if private_metadata_list:
+        checkout_info.checkout.store_value_in_private_metadata(
+            {data.key: data.value for data in private_metadata_list}
+        )
+
     # order
     order = Order.objects.create(
         status=status,
         language_code=checkout_info.checkout.language_code,
         tracking_client_id=tracking_code or "",
-        total=taxed_total,
-        undiscounted_total=undiscounted_total,
+        total=taxed_total,  # type: ignore
+        undiscounted_total=undiscounted_total,  # type: ignore
         shipping_tax_rate=shipping_tax_rate,
         voucher=voucher,
-        checkout_token=checkout_info.checkout.token,
+        checkout_token=str(checkout_info.checkout.token),
         origin=OrderOrigin.CHECKOUT,
         channel=checkout_info.channel,
         metadata=checkout_info.checkout.metadata,
         private_metadata=checkout_info.checkout.private_metadata,
         redirect_url=checkout_info.checkout.redirect_url,
         should_refresh_prices=False,
+        tax_exemption=checkout_info.checkout.tax_exemption,
         **_process_shipping_data_for_order(
-            checkout_info, shipping_total, manager, checkout_lines_info
+            checkout_info,
+            base_shipping_price,
+            shipping_total,
+            manager,
+            checkout_lines_info,
         ),
         **_process_user_data_for_order(checkout_info, manager),
     )
@@ -1130,6 +1162,8 @@ def create_order_from_checkout(
     app: Optional["App"],
     tracking_code: str,
     delete_checkout: bool = True,
+    metadata_list: Optional[List] = None,
+    private_metadata_list: Optional[List] = None,
 ) -> Order:
     """Crate order from checkout.
 
@@ -1163,6 +1197,8 @@ def create_order_from_checkout(
                 user=user,
                 app=app,
                 tracking_code=tracking_code,
+                metadata_list=metadata_list,
+                private_metadata_list=private_metadata_list,
             )
             if delete_checkout:
                 checkout_info.checkout.delete()

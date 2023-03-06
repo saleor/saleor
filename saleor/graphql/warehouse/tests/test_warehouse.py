@@ -624,6 +624,32 @@ def test_query_warehouses_with_filters_by_channels_no_warehouse_returned(
     assert not warehouses_data
 
 
+@pytest.mark.parametrize(
+    "filter_by, pages_count",
+    [
+        ({"slugs": ["warehouse1", "warehouse2"]}, 2),
+        ({"slugs": []}, 2),
+    ],
+)
+def test_query_warehouses_with_filtering(
+    filter_by, pages_count, staff_api_client, permission_manage_products, warehouses
+):
+    # given
+    variables = {"filter": filter_by}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    pages_nodes = content["data"]["warehouses"]["edges"]
+    assert len(pages_nodes) == pages_count
+
+
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):

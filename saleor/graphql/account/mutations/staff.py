@@ -3,7 +3,6 @@ from copy import copy
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account import events as account_events
 from ....account import models, utils
@@ -27,6 +26,7 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.utils import add_hash_to_file_name, validate_image_file
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..utils import (
     CustomerDeleteMixin,
@@ -191,7 +191,8 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.customer_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.customer_deleted, instance)
 
 
 class StaffCreate(ModelMutation):
@@ -287,25 +288,27 @@ class StaffCreate(ModelMutation):
             )
         user.save()
         if cleaned_input.get("redirect_url") and send_notification:
+            manager = load_plugin_manager(info.context)
             send_set_password_notification(
                 redirect_url=cleaned_input.get("redirect_url"),
                 user=user,
-                manager=info.context.plugins,
+                manager=manager,
                 channel_slug=None,
                 staff=True,
             )
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        groups = cleaned_data.get("add_groups")
-        if groups:
-            instance.groups.add(*groups)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            groups = cleaned_data.get("add_groups")
+            if groups:
+                instance.groups.add(*groups)
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.staff_created(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.staff_created, instance)
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -456,15 +459,15 @@ class StaffUpdate(StaffCreate):
             errors["is_active"].append(error)
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
-        add_groups = cleaned_data.get("add_groups")
-        if add_groups:
-            instance.groups.add(*add_groups)
-        remove_groups = cleaned_data.get("remove_groups")
-        if remove_groups:
-            instance.groups.remove(*remove_groups)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
+            add_groups = cleaned_data.get("add_groups")
+            if add_groups:
+                instance.groups.add(*add_groups)
+            remove_groups = cleaned_data.get("remove_groups")
+            if remove_groups:
+                instance.groups.remove(*remove_groups)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -479,7 +482,8 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.staff_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.staff_updated, instance)
 
 
 class StaffDelete(StaffDeleteMixin, UserDelete):
@@ -509,7 +513,8 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         instance.id = db_id
 
         response = cls.success_response(instance)
-        info.context.plugins.staff_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.staff_deleted, instance)
 
         return response
 
@@ -536,25 +541,25 @@ class AddressCreate(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         user_id = data["user_id"]
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
-        response = super().perform_mutation(root, info, **data)
-        if not response.errors:
-            address = info.context.plugins.change_user_address(
-                response.address, None, user
-            )
-            remove_the_oldest_user_address_if_address_limit_is_reached(user)
-            user.addresses.add(address)
-            response.user = user
-            user.search_document = prepare_user_search_document_value(user)
-            user.save(update_fields=["search_document", "updated_at"])
-        return response
+        with traced_atomic_transaction():
+            response = super().perform_mutation(root, info, **data)
+            if not response.errors:
+                manager = load_plugin_manager(info.context)
+                address = manager.change_user_address(response.address, None, user)
+                remove_the_oldest_user_address_if_address_limit_is_reached(user)
+                user.addresses.add(address)
+                response.user = user
+                user.search_document = prepare_user_search_document_value(user)
+                user.save(update_fields=["search_document", "updated_at"])
+            return response
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.address_created(instance))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.address_created, instance)
 
 
 class AddressUpdate(BaseAddressUpdate):
@@ -614,11 +619,9 @@ class AddressSetDefault(BaseMutation):
             address_type = AddressType.BILLING
         else:
             address_type = AddressType.SHIPPING
-
-        utils.change_user_default_address(
-            user, address, address_type, info.context.plugins
-        )
-        info.context.plugins.customer_updated(user)
+        manager = load_plugin_manager(info.context)
+        utils.change_user_default_address(user, address, address_type, manager)
+        cls.call_event(manager.customer_updated, user)
         return cls(user=user)
 
 

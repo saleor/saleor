@@ -203,6 +203,37 @@ def test_update_empty_attribute_and_add_values(
     assert attribute.values.filter(name=attribute_value_name).exists()
 
 
+def test_update_empty_attribute_and_add_values_name_not_given(
+    staff_api_client,
+    color_attribute_without_values,
+    permission_manage_product_types_and_attributes,
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = color_attribute_without_values
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "id": node_id,
+        "input": {
+            "addValues": [{"value": "abc"}],
+            "removeValues": [],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == AttributeErrorCode.REQUIRED.name
+    assert data["errors"][0]["field"] == "addValues"
+
+
 def test_update_attribute_with_file_input_type(
     staff_api_client,
     file_attribute_with_file_input_type_without_values,
@@ -345,6 +376,31 @@ def test_update_attribute_with_file_input_type_invalid_settings(
         "storefrontSearchPosition",
     }
     assert {error["code"] for error in errors} == {AttributeErrorCode.INVALID.name}
+
+
+def test_update_attribute_provide_existing_value_name(
+    staff_api_client, color_attribute, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = color_attribute
+    value = color_attribute.values.first()
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "input": {"addValues": [{"name": value.name}], "removeValues": []},
+        "id": node_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert len(data["errors"]) == 1
 
 
 UPDATE_ATTRIBUTE_SLUG_MUTATION = """

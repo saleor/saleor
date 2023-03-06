@@ -227,7 +227,9 @@ def add_variants_to_checkout(
     if to_delete:
         CheckoutLine.objects.filter(pk__in=[line.pk for line in to_delete]).delete()
     if to_update:
-        CheckoutLine.objects.bulk_update(to_update, ["quantity", "price_override"])
+        CheckoutLine.objects.bulk_update(
+            to_update, ["quantity", "price_override", "metadata"]
+        )
     if to_create:
         CheckoutLine.objects.bulk_create(to_create)
 
@@ -262,6 +264,10 @@ def _get_line_if_exist(line_data, lines_by_ids):
 
 
 def _append_line_to_update(to_update, to_delete, line_data, replace, line):
+    if line_data.metadata_list:
+        line.store_value_in_metadata(
+            {data.key: data.value for data in line_data.metadata_list}
+        )
     if line_data.quantity_to_update:
         quantity = line_data.quantity
         if quantity > 0:
@@ -286,15 +292,18 @@ def _append_line_to_delete(to_delete, line_data, line):
 def _append_line_to_create(to_create, checkout, variant, line_data, line):
     if line is None:
         if line_data.quantity > 0:
-            to_create.append(
-                CheckoutLine(
-                    checkout=checkout,
-                    variant=variant,
-                    quantity=line_data.quantity,
-                    currency=checkout.currency,
-                    price_override=line_data.custom_price,
-                )
+            checkout_line = CheckoutLine(
+                checkout=checkout,
+                variant=variant,
+                quantity=line_data.quantity,
+                currency=checkout.currency,
+                price_override=line_data.custom_price,
             )
+            if line_data.metadata_list:
+                checkout_line.store_value_in_metadata(
+                    {data.key: data.value for data in line_data.metadata_list}
+                )
+            to_create.append(checkout_line)
 
 
 def _check_new_checkout_address(checkout, address, address_type):
@@ -391,7 +400,7 @@ def _get_shipping_voucher_discount_for_checkout(
             msg = "This offer is not valid in your country."
             raise NotApplicable(msg)
 
-    shipping_price = base_calculations.base_checkout_delivery_price(
+    shipping_price = base_calculations.base_checkout_undiscounted_delivery_price(
         checkout_info=checkout_info, lines=lines
     )
     return voucher.get_discount_amount_for(shipping_price, checkout_info.channel)

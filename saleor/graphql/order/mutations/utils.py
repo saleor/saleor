@@ -44,11 +44,11 @@ def clean_order_update_shipping(
         raise ValidationError({"shipping_method": error})
 
 
-def get_webhook_handler_by_order_status(status, info):
+def get_webhook_handler_by_order_status(status, manager):
     if status == OrderStatus.DRAFT:
-        return info.context.plugins.draft_order_updated
+        return manager.draft_order_updated
     else:
-        return info.context.plugins.order_updated
+        return manager.order_updated
 
 
 def try_payment_action(order, user, app, payment, func, *args, **kwargs):

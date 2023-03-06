@@ -98,11 +98,17 @@ jobs:
 
       - name: Cache Docker layers
         uses: actions/cache@v2
+        # This condition is a temporary fix until
+        # https://github.com/docker/buildx/issues/1044 is resolved, as it
+        # prevents usage of image registry.
+        # Due to limitation of local cache size we are skipping main branch and
+        # prioritize local cache for other branches e.g 3.x.
+        if: github.ref != 'refs/heads/main'
         with:
           path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          key: ${{ runner.os }}-buildx-${{ hashFiles('requirements_dev.txt') }}
           restore-keys: |
-            ${{ runner.os }}-buildx-${{ hashFiles('requirements_dev.txt') }}
+            ${{ runner.os }}-buildx-
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1

@@ -4,7 +4,7 @@ from freezegun import freeze_time
 
 from .....app.models import App
 from .....app.types import AppType
-from .....core.jwt import create_access_token_for_app
+from .....core.jwt import create_access_token_for_app, jwt_decode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
@@ -394,6 +394,37 @@ def test_app_query_for_staff_without_manage_apps(
         )
     else:
         assert app_data["accessToken"] is None
+
+
+@freeze_time("2012-01-14 11:00:00")
+def test_app_query_access_token_with_audience(
+    staff_api_client,
+    permission_manage_staff,
+    external_app,
+    webhook,
+    site_settings,
+):
+    app = external_app
+    app.permissions.add(permission_manage_staff)
+    app.audience = f"https://{site_settings.site.domain}.com/app-123"
+    app.save()
+
+    webhook = webhook
+    webhook.app = app
+    webhook.save()
+
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    app_data = content["data"]["app"]
+
+    decoded_token = jwt_decode(app_data["accessToken"])
+    assert decoded_token["aud"] == app.audience
 
 
 def test_app_query_for_normal_user(

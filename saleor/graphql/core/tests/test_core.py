@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 import django_filters
 import graphene
 import pytest
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils import timezone
@@ -467,12 +466,6 @@ def test_requestor_is_superuser_for_superuser(superuser):
 
 def test_requestor_is_superuser_for_app(app):
     result = requestor_is_superuser(app)
-    assert result is False
-
-
-def test_requestor_is_superuser_for_anonymous_user():
-    user = AnonymousUser()
-    result = requestor_is_superuser(user)
     assert result is False
 
 

@@ -1,4 +1,5 @@
 import django_filters
+import graphene
 from django.db.models import Q
 
 from ...attribute.models import Attribute, AttributeValue
@@ -11,7 +12,9 @@ from ..core.filters import (
     EnumFilter,
     GlobalIDFilter,
     GlobalIDMultipleChoiceFilter,
+    ListObjectTypeFilter,
     MetadataFilterBase,
+    filter_slug_list,
 )
 from ..core.types import ChannelFilterInputObjectType, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -82,6 +85,7 @@ class AttributeFilter(MetadataFilterBase):
 
     in_collection = GlobalIDFilter(method="filter_in_collection")
     in_category = GlobalIDFilter(method="filter_in_category")
+    slugs = ListObjectTypeFilter(input_class=graphene.String, method=filter_slug_list)
 
     class Meta:
         model = Attribute

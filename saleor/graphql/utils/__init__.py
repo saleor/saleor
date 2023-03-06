@@ -178,6 +178,53 @@ def requestor_is_superuser(requestor):
     return getattr(requestor, "is_superuser", False)
 
 
+def query_identifier(document: GraphQLDocument) -> str:
+    """Generate a fingerprint for a GraphQL query.
+
+    For queries identifier is sorted set of all root objects separated by `,`.
+    e.g
+    query AnyQuery {
+        product {
+            id
+        }
+        order {
+            id
+        }
+        Product2: product {
+            id
+        }
+        Myself: me {
+            email
+        }
+    }
+    identifier: me, order, product
+
+    For mutations identifier is mutation type name.
+    e.g.
+    mutation CreateToken{
+        tokenCreate(...){
+            token
+        }
+        deleteWarehouse(...){
+            ...
+        }
+    }
+    identifier: deleteWarehouse, tokenCreate
+    """
+    labels = []
+    for definition in document.document_ast.definitions:
+        if getattr(definition, "operation", None) in {
+            "query",
+            "mutation",
+        }:
+            selections = definition.selection_set.selections
+            for selection in selections:
+                labels.append(selection.name.value)
+    if not labels:
+        return "undefined"
+    return ", ".join(sorted(set(labels)))
+
+
 def query_fingerprint(document: GraphQLDocument) -> str:
     """Generate a fingerprint for a GraphQL query."""
     label = "unknown"

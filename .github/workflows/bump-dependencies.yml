@@ -17,7 +17,7 @@ jobs:
 
       - run: python -m pip install poetry pre-commit
       - run: poetry lock
-      - run: poetry export --without-hashes --dev -f requirements.txt -o requirements_dev.txt -E python
+      - run: poetry export --without-hashes --with dev -f requirements.txt -o requirements_dev.txt
       - run: poetry export -f requirements.txt --without-hashes -o requirements.txt
       - run: pre-commit autoupdate
       - run: git status

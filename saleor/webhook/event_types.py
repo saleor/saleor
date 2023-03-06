@@ -49,6 +49,7 @@ class WebhookEventAsyncType:
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
+    GIFT_CARD_METADATA_UPDATED = "gift_card_metadata_updated"
 
     MENU_CREATED = "menu_created"
     MENU_UPDATED = "menu_updated"
@@ -63,10 +64,12 @@ class WebhookEventAsyncType:
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
     ORDER_FULFILLED = "order_fulfilled"
+    ORDER_METADATA_UPDATED = "order_metadata_updated"
 
     FULFILLMENT_CREATED = "fulfillment_created"
     FULFILLMENT_CANCELED = "fulfillment_canceled"
     FULFILLMENT_APPROVED = "fulfillment_approved"
+    FULFILLMENT_METADATA_UPDATED = "fulfillment_metadata_updated"
 
     DRAFT_ORDER_CREATED = "draft_order_created"
     DRAFT_ORDER_UPDATED = "draft_order_updated"
@@ -84,24 +87,29 @@ class WebhookEventAsyncType:
     CUSTOMER_CREATED = "customer_created"
     CUSTOMER_UPDATED = "customer_updated"
     CUSTOMER_DELETED = "customer_deleted"
+    CUSTOMER_METADATA_UPDATED = "customer_metadata_updated"
 
     COLLECTION_CREATED = "collection_created"
     COLLECTION_UPDATED = "collection_updated"
     COLLECTION_DELETED = "collection_deleted"
+    COLLECTION_METADATA_UPDATED = "collection_metadata_updated"
 
     PRODUCT_CREATED = "product_created"
     PRODUCT_UPDATED = "product_updated"
     PRODUCT_DELETED = "product_deleted"
+    PRODUCT_METADATA_UPDATED = "product_metadata_updated"
 
     PRODUCT_VARIANT_CREATED = "product_variant_created"
     PRODUCT_VARIANT_UPDATED = "product_variant_updated"
     PRODUCT_VARIANT_DELETED = "product_variant_deleted"
+    PRODUCT_VARIANT_METADATA_UPDATED = "product_variant_metadata_updated"
 
     PRODUCT_VARIANT_OUT_OF_STOCK = "product_variant_out_of_stock"
     PRODUCT_VARIANT_BACK_IN_STOCK = "product_variant_back_in_stock"
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
+    CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
     NOTIFY_USER = "notify_user"
 
@@ -124,12 +132,14 @@ class WebhookEventAsyncType:
     SHIPPING_ZONE_CREATED = "shipping_zone_created"
     SHIPPING_ZONE_UPDATED = "shipping_zone_updated"
     SHIPPING_ZONE_DELETED = "shipping_zone_deleted"
+    SHIPPING_ZONE_METADATA_UPDATED = "shipping_zone_metadata_updated"
 
     STAFF_CREATED = "staff_created"
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
 
     TRANSACTION_ACTION_REQUEST = "transaction_action_request"
+    TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
     TRANSLATION_CREATED = "translation_created"
     TRANSLATION_UPDATED = "translation_updated"
@@ -137,10 +147,12 @@ class WebhookEventAsyncType:
     WAREHOUSE_CREATED = "warehouse_created"
     WAREHOUSE_UPDATED = "warehouse_updated"
     WAREHOUSE_DELETED = "warehouse_deleted"
+    WAREHOUSE_METADATA_UPDATED = "warehouse_metadata_updated"
 
     VOUCHER_CREATED = "voucher_created"
     VOUCHER_UPDATED = "voucher_updated"
     VOUCHER_DELETED = "voucher_deleted"
+    VOUCHER_METADATA_UPDATED = "voucher_metadata_updated"
 
     OBSERVABILITY = "observability"
 
@@ -170,6 +182,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_UPDATED: "Gift card updated",
         GIFT_CARD_DELETED: "Gift card deleted",
         GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
+        GIFT_CARD_METADATA_UPDATED: "Gift card metadata updated",
         MENU_CREATED: "Menu created",
         MENU_UPDATED: "Menu updated",
         MENU_DELETED: "Menu deleted",
@@ -182,6 +195,7 @@ class WebhookEventAsyncType:
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_FULFILLED: "Order fulfilled",
+        ORDER_METADATA_UPDATED: "Order metadata updated",
         DRAFT_ORDER_CREATED: "Draft order created",
         DRAFT_ORDER_UPDATED: "Draft order updated",
         DRAFT_ORDER_DELETED: "Draft order deleted",
@@ -195,22 +209,28 @@ class WebhookEventAsyncType:
         CUSTOMER_CREATED: "Customer created",
         CUSTOMER_UPDATED: "Customer updated",
         CUSTOMER_DELETED: "Customer deleted",
+        CUSTOMER_METADATA_UPDATED: "Customer metadata updated",
         COLLECTION_CREATED: "Collection created",
         COLLECTION_UPDATED: "Collection updated",
         COLLECTION_DELETED: "Collection deleted",
+        COLLECTION_METADATA_UPDATED: "Collection metadata updated",
         PRODUCT_CREATED: "Product created",
         PRODUCT_UPDATED: "Product updated",
         PRODUCT_DELETED: "Product deleted",
+        PRODUCT_METADATA_UPDATED: "Product metadata updated",
         PRODUCT_VARIANT_CREATED: "Product variant created",
         PRODUCT_VARIANT_UPDATED: "Product variant updated",
         PRODUCT_VARIANT_DELETED: "Product variant deleted",
+        PRODUCT_VARIANT_METADATA_UPDATED: "Product variant metadata updated",
         PRODUCT_VARIANT_OUT_OF_STOCK: "Product variant stock changed",
         PRODUCT_VARIANT_BACK_IN_STOCK: "Product variant back in stock",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
+        CHECKOUT_METADATA_UPDATED: "Checkout metadata updated",
         FULFILLMENT_CREATED: "Fulfillment created",
         FULFILLMENT_CANCELED: "Fulfillment cancelled",
         FULFILLMENT_APPROVED: "Fulfillment approved",
+        FULFILLMENT_METADATA_UPDATED: "Fulfillment metadata updated",
         NOTIFY_USER: "Notify user",
         PAGE_CREATED: "Page Created",
         PAGE_UPDATED: "Page Updated",
@@ -227,18 +247,22 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: "Shipping zone created",
         SHIPPING_ZONE_UPDATED: "Shipping zone updated",
         SHIPPING_ZONE_DELETED: "Shipping zone deleted",
+        SHIPPING_ZONE_METADATA_UPDATED: "Shipping zone metadata updated",
         STAFF_CREATED: "Staff created",
         STAFF_UPDATED: "Staff updated",
         STAFF_DELETED: "Staff deleted",
         TRANSACTION_ACTION_REQUEST: "Payment action request",
+        TRANSACTION_ITEM_METADATA_UPDATED: "Transaction item metadata updated",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
         WAREHOUSE_CREATED: "Warehouse created",
         WAREHOUSE_UPDATED: "Warehouse updated",
         WAREHOUSE_DELETED: "Warehouse deleted",
+        WAREHOUSE_METADATA_UPDATED: "Warehouse metadata updated",
         VOUCHER_CREATED: "Voucher created",
         VOUCHER_UPDATED: "Voucher updated",
         VOUCHER_DELETED: "Voucher deleted",
+        VOUCHER_METADATA_UPDATED: "Voucher metadata updated",
         OBSERVABILITY: "Observability",
     }
 
@@ -268,6 +292,7 @@ class WebhookEventAsyncType:
         (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
         (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
         (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
+        (GIFT_CARD_METADATA_UPDATED, DISPLAY_LABELS[GIFT_CARD_METADATA_UPDATED]),
         (MENU_CREATED, DISPLAY_LABELS[MENU_CREATED]),
         (MENU_UPDATED, DISPLAY_LABELS[MENU_UPDATED]),
         (MENU_DELETED, DISPLAY_LABELS[MENU_DELETED]),
@@ -280,6 +305,7 @@ class WebhookEventAsyncType:
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (ORDER_METADATA_UPDATED, DISPLAY_LABELS[ORDER_METADATA_UPDATED]),
         (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
         (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
         (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
@@ -293,22 +319,31 @@ class WebhookEventAsyncType:
         (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
         (CUSTOMER_UPDATED, DISPLAY_LABELS[CUSTOMER_UPDATED]),
         (CUSTOMER_DELETED, DISPLAY_LABELS[CUSTOMER_DELETED]),
+        (CUSTOMER_METADATA_UPDATED, DISPLAY_LABELS[CUSTOMER_METADATA_UPDATED]),
         (COLLECTION_CREATED, DISPLAY_LABELS[COLLECTION_CREATED]),
         (COLLECTION_UPDATED, DISPLAY_LABELS[COLLECTION_UPDATED]),
         (COLLECTION_DELETED, DISPLAY_LABELS[COLLECTION_DELETED]),
+        (COLLECTION_METADATA_UPDATED, DISPLAY_LABELS[COLLECTION_METADATA_UPDATED]),
         (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
         (PRODUCT_UPDATED, DISPLAY_LABELS[PRODUCT_UPDATED]),
         (PRODUCT_DELETED, DISPLAY_LABELS[PRODUCT_DELETED]),
+        (PRODUCT_METADATA_UPDATED, DISPLAY_LABELS[PRODUCT_METADATA_UPDATED]),
         (PRODUCT_VARIANT_CREATED, DISPLAY_LABELS[PRODUCT_VARIANT_CREATED]),
         (PRODUCT_VARIANT_UPDATED, DISPLAY_LABELS[PRODUCT_VARIANT_UPDATED]),
         (PRODUCT_VARIANT_DELETED, DISPLAY_LABELS[PRODUCT_VARIANT_DELETED]),
         (PRODUCT_VARIANT_OUT_OF_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_OUT_OF_STOCK]),
         (PRODUCT_VARIANT_BACK_IN_STOCK, DISPLAY_LABELS[PRODUCT_VARIANT_BACK_IN_STOCK]),
+        (
+            PRODUCT_VARIANT_METADATA_UPDATED,
+            DISPLAY_LABELS[PRODUCT_VARIANT_METADATA_UPDATED],
+        ),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
+        (CHECKOUT_METADATA_UPDATED, DISPLAY_LABELS[CHECKOUT_METADATA_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
         (FULFILLMENT_CANCELED, DISPLAY_LABELS[FULFILLMENT_CANCELED]),
         (FULFILLMENT_APPROVED, DISPLAY_LABELS[FULFILLMENT_APPROVED]),
+        (FULFILLMENT_METADATA_UPDATED, DISPLAY_LABELS[FULFILLMENT_METADATA_UPDATED]),
         (NOTIFY_USER, DISPLAY_LABELS[NOTIFY_USER]),
         (PAGE_CREATED, DISPLAY_LABELS[PAGE_CREATED]),
         (PAGE_UPDATED, DISPLAY_LABELS[PAGE_UPDATED]),
@@ -325,18 +360,28 @@ class WebhookEventAsyncType:
         (SHIPPING_ZONE_CREATED, DISPLAY_LABELS[SHIPPING_ZONE_CREATED]),
         (SHIPPING_ZONE_UPDATED, DISPLAY_LABELS[SHIPPING_ZONE_UPDATED]),
         (SHIPPING_ZONE_DELETED, DISPLAY_LABELS[SHIPPING_ZONE_DELETED]),
+        (
+            SHIPPING_ZONE_METADATA_UPDATED,
+            DISPLAY_LABELS[SHIPPING_ZONE_METADATA_UPDATED],
+        ),
         (STAFF_CREATED, DISPLAY_LABELS[STAFF_CREATED]),
         (STAFF_UPDATED, DISPLAY_LABELS[STAFF_UPDATED]),
         (STAFF_DELETED, DISPLAY_LABELS[STAFF_DELETED]),
         (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
+        (
+            TRANSACTION_ITEM_METADATA_UPDATED,
+            DISPLAY_LABELS[TRANSACTION_ITEM_METADATA_UPDATED],
+        ),
         (TRANSLATION_CREATED, DISPLAY_LABELS[TRANSLATION_CREATED]),
         (TRANSLATION_UPDATED, DISPLAY_LABELS[TRANSLATION_UPDATED]),
         (WAREHOUSE_CREATED, DISPLAY_LABELS[WAREHOUSE_CREATED]),
         (WAREHOUSE_UPDATED, DISPLAY_LABELS[WAREHOUSE_UPDATED]),
         (WAREHOUSE_DELETED, DISPLAY_LABELS[WAREHOUSE_DELETED]),
+        (WAREHOUSE_METADATA_UPDATED, DISPLAY_LABELS[WAREHOUSE_METADATA_UPDATED]),
         (VOUCHER_CREATED, DISPLAY_LABELS[VOUCHER_CREATED]),
         (VOUCHER_UPDATED, DISPLAY_LABELS[VOUCHER_UPDATED]),
         (VOUCHER_DELETED, DISPLAY_LABELS[VOUCHER_DELETED]),
+        (VOUCHER_METADATA_UPDATED, DISPLAY_LABELS[VOUCHER_METADATA_UPDATED]),
         (OBSERVABILITY, DISPLAY_LABELS[OBSERVABILITY]),
     ]
 
@@ -367,6 +412,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_METADATA_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         MENU_CREATED: MenuPermissions.MANAGE_MENUS,
         MENU_UPDATED: MenuPermissions.MANAGE_MENUS,
         MENU_DELETED: MenuPermissions.MANAGE_MENUS,
@@ -379,6 +425,7 @@ class WebhookEventAsyncType:
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_METADATA_UPDATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
@@ -392,22 +439,28 @@ class WebhookEventAsyncType:
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         CUSTOMER_UPDATED: AccountPermissions.MANAGE_USERS,
         CUSTOMER_DELETED: AccountPermissions.MANAGE_USERS,
+        CUSTOMER_METADATA_UPDATED: AccountPermissions.MANAGE_USERS,
         COLLECTION_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         COLLECTION_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         COLLECTION_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        COLLECTION_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        PRODUCT_VARIANT_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_BACK_IN_STOCK: ProductPermissions.MANAGE_PRODUCTS,
         PRODUCT_VARIANT_OUT_OF_STOCK: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_METADATA_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
         FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
         FULFILLMENT_APPROVED: OrderPermissions.MANAGE_ORDERS,
+        FULFILLMENT_METADATA_UPDATED: OrderPermissions.MANAGE_ORDERS,
         NOTIFY_USER: AccountPermissions.MANAGE_USERS,
         PAGE_CREATED: PagePermissions.MANAGE_PAGES,
         PAGE_UPDATED: PagePermissions.MANAGE_PAGES,
@@ -424,18 +477,22 @@ class WebhookEventAsyncType:
         SHIPPING_ZONE_CREATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         SHIPPING_ZONE_DELETED: ShippingPermissions.MANAGE_SHIPPING,
+        SHIPPING_ZONE_METADATA_UPDATED: ShippingPermissions.MANAGE_SHIPPING,
         STAFF_CREATED: AccountPermissions.MANAGE_STAFF,
         STAFF_UPDATED: AccountPermissions.MANAGE_STAFF,
         STAFF_DELETED: AccountPermissions.MANAGE_STAFF,
         TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_ITEM_METADATA_UPDATED: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,
         VOUCHER_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         VOUCHER_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
+        VOUCHER_METADATA_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         WAREHOUSE_CREATED: ProductPermissions.MANAGE_PRODUCTS,
         WAREHOUSE_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         WAREHOUSE_DELETED: ProductPermissions.MANAGE_PRODUCTS,
+        WAREHOUSE_METADATA_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         OBSERVABILITY: AppPermission.MANAGE_OBSERVABILITY,
     }
 

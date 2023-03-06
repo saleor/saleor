@@ -680,6 +680,7 @@ def test_shop_customer_set_password_url_update(
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]
     assert not data["errors"]
+    Site.objects.clear_cache()
     site_settings = Site.objects.get_current().settings
     assert site_settings.customer_set_password_url == customer_set_password_url
 

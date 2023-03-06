@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from ...attribute import AttributeType
 
@@ -35,7 +35,7 @@ def generate_and_set_variant_name(
 
 
 def get_variant_selection_attributes(
-    attributes: Sequence[Tuple["Attribute", bool]]
+    attributes: Iterable[Tuple["Attribute", bool]]
 ) -> List[Tuple["Attribute", bool]]:
     """Return attributes that can be used in variant selection.
 

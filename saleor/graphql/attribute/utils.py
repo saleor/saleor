@@ -1,12 +1,10 @@
 import re
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Union
-from urllib.parse import urlparse
 
 import graphene
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import truncatechars
@@ -18,13 +16,14 @@ from text_unidecode import unidecode
 from ...attribute import AttributeEntityType, AttributeInputType, AttributeType
 from ...attribute import models as attribute_models
 from ...attribute.utils import associate_attribute_values_to_instance
-from ...core.utils import generate_unique_slug
+from ...core.utils import generate_unique_slug, prepare_unique_slug
 from ...core.utils.editorjs import clean_editor_js
+from ...core.utils.url import get_default_storage_root_url
 from ...page import models as page_models
 from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
-from ..core.utils import from_global_id_or_error
+from ..core.utils import from_global_id_or_error, get_duplicated_values
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 class AttrValuesInput:
     global_id: str
     values: List[str]
-    references: Union[List[str], List[page_models.Page]]
+    references: Union[List[str], List[page_models.Page], None] = None
     file_url: Optional[str] = None
     content_type: Optional[str] = None
     rich_text: Optional[dict] = None
@@ -52,6 +51,8 @@ T_INSTANCE = Union[
 ]
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 T_ERROR_DICT = Dict[Tuple[str, str], List[str]]
+
+EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
 
 
 class AttributeAssignmentMixin:
@@ -70,14 +71,19 @@ class AttributeAssignmentMixin:
     be unable to build or might only be partially built.
     """
 
-    REFERENCE_VALUE_NAME_MAPPING = {
-        AttributeEntityType.PAGE: "title",
-        AttributeEntityType.PRODUCT: "name",
-    }
-
-    ENTITY_TYPE_TO_MODEL_MAPPING = {
-        AttributeEntityType.PAGE: page_models.Page,
-        AttributeEntityType.PRODUCT: product_models.Product,
+    # Defines the entity type corresponding model, the model field that should be used
+    # to create the value name, and relation field responsible for reference.
+    # Should be updated every time, the new `AttributeEntityType` value is added.
+    ENTITY_TYPE_MAPPING = {
+        AttributeEntityType.PAGE: EntityTypeData(
+            page_models.Page, "title", "reference_page"
+        ),
+        AttributeEntityType.PRODUCT: EntityTypeData(
+            product_models.Product, "name", "reference_product"
+        ),
+        AttributeEntityType.PRODUCT_VARIANT: EntityTypeData(
+            product_models.ProductVariant, "name", "reference_variant"
+        ),
     }
 
     @classmethod
@@ -88,38 +94,25 @@ class AttributeAssignmentMixin:
         *,
         global_ids: List[str],
         pks: Iterable[int],
-        slugs: Iterable[str],
     ):
-        """Retrieve attributes nodes from given global IDs and/or slugs."""
-        qs = qs.filter(Q(pk__in=pks) | Q(slug__in=slugs))
+        """Retrieve attributes nodes from given global IDs."""
+        qs = qs.filter(pk__in=pks)
         nodes: List[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
-                (
-                    f"Could not resolve to a node: ids={global_ids}"
-                    f" and slugs={list(slugs)}"
-                ),
+                (f"Could not resolve to a node: ids={global_ids}."),
                 code=error_class.NOT_FOUND.value,
             )
 
         nodes_pk_list = set()
-        nodes_slug_list = set()
         for node in nodes:
             nodes_pk_list.add(node.pk)
-            nodes_slug_list.add(node.slug)
 
         for pk, global_id in zip(pks, global_ids):
             if pk not in nodes_pk_list:
                 raise ValidationError(
                     f"Could not resolve {global_id!r} to Attribute",
-                    code=error_class.NOT_FOUND.value,
-                )
-
-        for slug in slugs:
-            if slug not in nodes_slug_list:
-                raise ValidationError(
-                    f"Could not resolve slug {slug!r} to Attribute",
                     code=error_class.NOT_FOUND.value,
                 )
 
@@ -182,56 +175,40 @@ class AttributeAssignmentMixin:
 
         # Mapping to associate the input values back to the resolved attribute nodes
         pks = {}
-        slugs = {}
 
         # Temporary storage of the passed ID for error reporting
         global_ids = []
 
         for attribute_input in raw_input:
-            global_id = attribute_input.get("id")
-            slug = attribute_input.get("slug")
-            values = AttrValuesInput(
-                global_id=global_id,
-                values=attribute_input.get("values", []),
-                file_url=cls._clean_file_url(attribute_input.get("file")),
-                content_type=attribute_input.get("content_type"),
-                references=attribute_input.get("references", []),
-                rich_text=attribute_input.get("rich_text"),
-                plain_text=attribute_input.get("plain_text"),
-                boolean=attribute_input.get("boolean"),
-                date=attribute_input.get("date"),
-                date_time=attribute_input.get("date_time"),
-            )
-
-            if global_id:
-                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
-                global_ids.append(global_id)
-                pks[internal_id] = values
-            elif slug:
-                slugs[slug] = values
-            else:
+            global_id = attribute_input.pop("id", None)
+            if global_id is None:
                 raise ValidationError(
-                    "You must whether supply an ID or a slug",
+                    "The attribute ID is required.",
                     code=error_class.REQUIRED.value,  # type: ignore
                 )
+            values = AttrValuesInput(
+                global_id=global_id,
+                values=attribute_input.pop("values", []),
+                file_url=cls._clean_file_url(
+                    attribute_input.pop("file", None), error_class
+                ),
+                **attribute_input,
+            )
+
+            internal_id = cls._resolve_attribute_global_id(error_class, global_id)
+            global_ids.append(global_id)
+            pks[internal_id] = values
 
         attributes = cls._resolve_attribute_nodes(
             attributes_qs,
             error_class,
             global_ids=global_ids,
             pks=pks.keys(),
-            slugs=slugs.keys(),
         )
         attr_with_invalid_references = []
         cleaned_input = []
         for attribute in attributes:
-            key = pks.get(attribute.pk, None)
-
-            # Retrieve the primary key by slug if it
-            # was not resolved through a global ID but a slug
-            if key is None:
-                key = slugs[attribute.slug]
-
+            key = pks[attribute.pk]
             if attribute.input_type == AttributeInputType.REFERENCE:
                 try:
                     key = cls._validate_references(error_class, attribute, key)
@@ -258,12 +235,16 @@ class AttributeAssignmentMixin:
         return cleaned_input
 
     @staticmethod
-    def _clean_file_url(file_url: Optional[str]):
+    def _clean_file_url(file_url: Optional[str], error_class):
         # extract storage path from file URL
+        storage_root_url = get_default_storage_root_url()
+        if file_url and not file_url.startswith(storage_root_url):  # type: ignore
+            raise ValidationError(
+                "The file_url must be the path to the default storage.",
+                code=error_class.INVALID.value,
+            )
         return (
-            re.sub(f"^{settings.MEDIA_URL}", "", urlparse(file_url).path)
-            if file_url is not None
-            else file_url
+            re.sub(storage_root_url, "", file_url) if file_url is not None else file_url
         )
 
     @classmethod
@@ -274,9 +255,9 @@ class AttributeAssignmentMixin:
         if not references:
             return values
 
-        entity_model = cls.ENTITY_TYPE_TO_MODEL_MAPPING[
+        entity_model = cls.ENTITY_TYPE_MAPPING[
             attribute.entity_type  # type: ignore
-        ]
+        ].model
         try:
             ref_instances = get_nodes(
                 references, attribute.entity_type, model=entity_model
@@ -356,21 +337,11 @@ class AttributeAssignmentMixin:
         cls, attribute: attribute_models.Attribute, attr_values: AttrValuesInput
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values."""
-        result = []
         if not attr_values.values:
             return tuple()
-        for value in attr_values.values:
-            value_obj = attribute.values.filter(name=value).first()
-            if value_obj:
-                result.append(value_obj)
-            else:
-                instance = attribute_models.AttributeValue(
-                    attribute=attribute, name=value
-                )
-                slug = generate_unique_slug(instance, value)  # type: ignore
-                instance.slug = slug
-                instance.save()
-                result.append(instance)
+
+        result = prepare_attribute_values(attribute, attr_values)
+
         return tuple(result)
 
     @classmethod
@@ -493,31 +464,25 @@ class AttributeAssignmentMixin:
 
         Slug value is generated based on instance and reference entity id.
         """
-        if not attr_values.references:
+        if not attr_values.references or not attribute.entity_type:
             return tuple()
 
-        field_name = cls.REFERENCE_VALUE_NAME_MAPPING[
-            attribute.entity_type  # type: ignore
-        ]
+        entity_data = cls.ENTITY_TYPE_MAPPING[attribute.entity_type]  # type: ignore
+        field_name = entity_data.name_field
         get_or_create = attribute.values.get_or_create
 
         reference_list = []
+        attr_value_field = entity_data.value_field
         for ref in attr_values.references:
-            reference_page = None
-            reference_product = None
-
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_page = ref
-            else:
-                reference_product = ref
-
+            name = getattr(ref, field_name)
+            if attribute.entity_type == AttributeEntityType.PRODUCT_VARIANT:
+                name = f"{ref.product.name}: {name}"  # type: ignore
             reference_list.append(
                 get_or_create(
                     attribute=attribute,
-                    reference_product=reference_product,
-                    reference_page=reference_page,
                     slug=slugify(unidecode(f"{instance.id}_{ref.id}")),  # type: ignore
-                    defaults={"name": getattr(ref, field_name)},
+                    defaults={"name": name},
+                    **{attr_value_field: ref},
                 )[0]
             )
         return tuple(reference_list)
@@ -560,6 +525,54 @@ def get_variant_selection_attributes(qs: "QuerySet") -> "QuerySet":
     )
 
 
+def prepare_attribute_values(
+    attribute: attribute_models.Attribute, attr_values: AttrValuesInput
+):
+    values = attr_values.values
+    slug_to_value_map = {}
+    name_to_value_map = {}
+    for val in attribute.values.filter(Q(name__in=values) | Q(slug__in=values)):
+        slug_to_value_map[val.slug] = val
+        name_to_value_map[val.name] = val
+
+    existing_slugs = get_existing_slugs(attribute, values)
+
+    result = []
+    values_to_create = []
+    for value in values:
+        # match the value firstly by slug then by name
+        value_obj = slug_to_value_map.get(value) or name_to_value_map.get(value)
+        if value_obj:
+            result.append(value_obj)
+        else:
+            slug = prepare_unique_slug(slugify(unidecode(value)), existing_slugs)
+            instance = attribute_models.AttributeValue(
+                attribute=attribute, name=value, slug=slug
+            )
+            result.append(instance)
+
+            values_to_create.append(instance)
+
+            # the set of existing slugs must be updated to not generate accidentally
+            # the same slug for two or more values
+            existing_slugs.add(slug)
+
+            # extend name to slug value to not create two elements with the same name
+            name_to_value_map[instance.name] = instance
+
+    attribute_models.AttributeValue.objects.bulk_create(values_to_create)
+    return result
+
+
+def get_existing_slugs(attribute: attribute_models.Attribute, values: List[str]):
+    lookup = Q()
+    for value in values:
+        lookup |= Q(slug__startswith=slugify(unidecode(value)))
+
+    existing_slugs = set(attribute.values.filter(lookup).values_list("slug", flat=True))
+    return existing_slugs
+
+
 class AttributeInputErrors:
     """Define error message and error code for given error.
 
@@ -577,6 +590,10 @@ class AttributeInputErrors:
     ERROR_BLANK_VALUE = (
         "Attribute values cannot be blank.",
         "REQUIRED",
+    )
+    ERROR_DUPLICATED_VALUES = (
+        "Duplicated attribute values are provided.",
+        "DUPLICATED_INPUT_ITEM",
     )
 
     # file errors
@@ -784,6 +801,10 @@ def validate_values(
 ):
     name_field = attribute.values.model.name.field  # type: ignore
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
+    if get_duplicated_values(values):
+        attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
+            attribute_id
+        )
     for value in values:
         if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(

@@ -3,10 +3,13 @@ from typing import Optional
 import graphene
 import jwt
 from django.core.exceptions import ValidationError
-from django.middleware.csrf import _compare_masked_tokens  # type: ignore
-from django.middleware.csrf import _get_new_csrf_token
+from django.middleware.csrf import (  # type: ignore
+    _get_new_csrf_string,
+    _mask_cipher_secret,
+    _unmask_cipher_token,
+)
 from django.utils import timezone
-from django.utils.crypto import get_random_string
+from django.utils.crypto import constant_time_compare, get_random_string
 from graphene.types.generic import GenericScalar
 
 from ....account import models
@@ -21,9 +24,11 @@ from ....core.jwt import (
     jwt_decode,
 )
 from ....core.permissions import AuthorizationFilters, get_permissions_from_names
+from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import User
 
 
@@ -60,12 +65,30 @@ def get_user(payload):
     return user
 
 
+def _does_token_match(token: str, csrf_token: str) -> bool:
+    return constant_time_compare(
+        _unmask_cipher_token(token),
+        _unmask_cipher_token(csrf_token),
+    )
+
+
+def _get_new_csrf_token() -> str:
+    return _mask_cipher_secret(_get_new_csrf_string())
+
+
 class CreateToken(BaseMutation):
     """Mutation that authenticates a user and returns token and user data."""
 
     class Arguments:
         email = graphene.String(required=True, description="Email of a user.")
         password = graphene.String(required=True, description="Password of a user.")
+        audience = graphene.String(
+            required=False,
+            description=(
+                "The audience that will be included to JWT tokens with "
+                "prefix `custom:`." + ADDED_IN_38 + PREVIEW_FEATURE
+            ),
+        )
 
     class Meta:
         description = "Create JWT token."
@@ -124,10 +147,22 @@ class CreateToken(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = cls.get_user(info, data)
-        access_token = create_access_token(user)
+        additional_paylod = {}
+
         csrf_token = _get_new_csrf_token()
-        refresh_token = create_refresh_token(user, {"csrfToken": csrf_token})
+        refresh_additional_payload = {
+            "csrfToken": csrf_token,
+        }
+        if audience := data.get("audience"):
+            additional_paylod["aud"] = f"custom:{audience}"
+            refresh_additional_payload["aud"] = f"custom:{audience}"
+
+        access_token = create_access_token(user, additional_payload=additional_paylod)
+        refresh_token = create_refresh_token(
+            user, additional_payload=refresh_additional_payload
+        )
         info.context.refresh_token = refresh_token
+        info.context.user = user
         info.context._cached_user = user
         user.last_login = timezone.now()
         user.save(update_fields=["last_login", "updated_at"])
@@ -216,7 +251,7 @@ class RefreshToken(BaseMutation):
                     )
                 }
             )
-        is_valid = _compare_masked_tokens(csrf_token, payload["csrfToken"])
+        is_valid = _does_token_match(csrf_token, payload["csrfToken"])
         if not is_valid:
             raise ValidationError(
                 {
@@ -246,7 +281,10 @@ class RefreshToken(BaseMutation):
             cls.clean_csrf_token(csrf_token, payload)
 
         user = get_user(payload)
-        token = create_access_token(user)
+        additional_payload = {}
+        if audience := payload.get("aud"):
+            additional_payload["aud"] = audience
+        token = create_access_token(user, additional_payload=additional_payload)
         return cls(errors=[], user=user, token=token)
 
 
@@ -303,7 +341,7 @@ class DeactivateAllUserTokens(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
-        user.jwt_token_key = get_random_string()
+        user.jwt_token_key = get_random_string(length=12)
         user.save(update_fields=["jwt_token_key", "updated_at"])
         return cls()
 
@@ -336,7 +374,7 @@ class ExternalAuthenticationUrl(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         return cls(
             authentication_data=manager.external_authentication_url(
                 plugin_id, input_data, request
@@ -375,7 +413,7 @@ class ExternalObtainAccessTokens(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         access_tokens_response = manager.external_obtain_access_tokens(
             plugin_id, input_data, request
         )
@@ -425,7 +463,7 @@ class ExternalRefresh(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         access_tokens_response = manager.external_refresh(
             plugin_id, input_data, request
         )
@@ -465,7 +503,7 @@ class ExternalLogout(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         return cls(logout_data=manager.external_logout(plugin_id, input_data, request))
 
 
@@ -497,6 +535,6 @@ class ExternalVerify(BaseMutation):
         request = info.context
         plugin_id = data["plugin_id"]
         input_data = data["input"]
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         user, data = manager.external_verify(plugin_id, input_data, request)
         return cls(user=user, is_valid=bool(user), verify_data=data)

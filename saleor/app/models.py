@@ -3,6 +3,7 @@ from typing import Collection, Set, Union
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Permission
 from django.db import models
+from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
 from saleor.core.permissions.enums import BasePermissionEnum
@@ -55,7 +56,7 @@ class App(ModelWithMetadata):
     app_url = models.URLField(blank=True, null=True)
     manifest_url = models.URLField(blank=True, null=True)
     version = models.CharField(max_length=60, blank=True, null=True)
-
+    audience = models.CharField(blank=True, null=True, max_length=256)
     objects = models.Manager.from_queryset(AppQueryset)()
 
     class Meta(ModelWithMetadata.Meta):
@@ -158,3 +159,9 @@ class AppInstallation(Job):
         related_name="app_installation_set",
         related_query_name="app_installation",
     )
+
+    def set_message(self, message: str, truncate=True):
+        if truncate:
+            max_length = self._meta.get_field("message").max_length
+            message = Truncator(message).chars(max_length)
+        self.message = message

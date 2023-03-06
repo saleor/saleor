@@ -7,9 +7,12 @@ from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_charge_action
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
+from ...site.dataloaders import load_site
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -56,6 +59,8 @@ class OrderCapture(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
+        app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             try:
                 # We use the last transaction as we don't have a possibility to
@@ -63,11 +68,11 @@ class OrderCapture(BaseMutation):
                 payment_transaction = payment_transactions[-1]
                 request_charge_action(
                     transaction=payment_transaction,
-                    manager=info.context.plugins,
+                    manager=manager,
                     charge_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -81,11 +86,11 @@ class OrderCapture(BaseMutation):
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.capture,
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
             )
@@ -93,13 +98,14 @@ class OrderCapture(BaseMutation):
             # Confirm that we changed the status to capture. Some payment can receive
             # asynchronous webhook with update status
             if transaction.kind == TransactionKind.CAPTURE:
+                site = load_site(info.context)
                 order_captured(
                     order_info,
                     info.context.user,
-                    info.context.app,
+                    app,
                     amount,
                     payment,
-                    info.context.plugins,
-                    info.context.site.settings,
+                    manager,
+                    site.settings,
                 )
         return OrderCapture(order=order)

@@ -279,12 +279,11 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
     product,
     permission_manage_products,
     channel_USD,
-    channel_PLN,
 ):
     # given
     publication_date = datetime.datetime.now(pytz.utc)
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     available_for_purchase_date = datetime.datetime(2007, 1, 1, tzinfo=pytz.utc)
     variables = {
         "id": product_id,
@@ -312,6 +311,10 @@ def test_product_channel_listing_update_trigger_webhook_product_updated(
 
     # then
     mock_product_updated.assert_called_once_with(product)
+    listings = mock_product_updated.call_args.args[0].channel_listings.all()
+    for listing in listings:
+        if listing.channel == channel_USD:
+            assert listing.available_for_purchase_at == available_for_purchase_date
 
 
 def test_product_channel_listing_update_as_app(

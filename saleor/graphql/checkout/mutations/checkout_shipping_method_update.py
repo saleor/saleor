@@ -20,6 +20,8 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
+from ...discount.dataloaders import load_discounts
+from ...plugins.dataloaders import load_plugin_manager
 from ...shipping.types import ShippingMethod
 from ..types import Checkout
 from .utils import ERROR_DOES_NOT_SHIP, clean_delivery_method, get_checkout
@@ -84,7 +86,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             error_class=CheckoutErrorCode,
         )
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
 
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
@@ -101,10 +103,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         if not is_shipping_required(lines):
             raise ValidationError(
                 {
@@ -174,8 +174,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         delete_external_shipping_id(checkout=checkout)
         checkout.shipping_method = shipping_method
+        discounts = load_discounts(info.context)
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout_info, lines, manager, info.context.discounts, save=False
+            checkout_info, lines, manager, discounts, save=False
         )
         checkout.save(
             update_fields=[
@@ -185,7 +186,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             + invalidate_prices_updated_fields
         )
 
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
     @classmethod
@@ -204,8 +205,9 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         set_external_shipping_id(checkout=checkout, app_shipping_id=delivery_method.id)
         checkout.shipping_method = None
+        discounts = load_discounts(info.context)
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout_info, lines, manager, info.context.discounts, save=False
+            checkout_info, lines, manager, discounts, save=False
         )
         checkout.save(
             update_fields=[
@@ -214,6 +216,6 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        manager.checkout_updated(checkout)
+        cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)

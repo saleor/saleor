@@ -36,11 +36,15 @@ def resolve_checkout(info, token, id):
             return checkout
 
         # resolve checkout for logged-in customer
-        if checkout.user == info.context.user:
+        user = info.context.user
+        if user and checkout.user == user:
             return checkout
 
     # resolve checkout for staff user
     requester = get_user_or_app_from_context(info.context)
+
+    if not requester:
+        return None
 
     has_manage_checkout = requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     has_impersonate_user = requester.has_perm(AccountPermissions.IMPERSONATE_USER)

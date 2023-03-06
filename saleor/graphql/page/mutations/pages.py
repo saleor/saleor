@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Dict, List
 import graphene
 import pytz
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....attribute import AttributeInputType, AttributeType
 from ....attribute import models as attribute_models
@@ -20,6 +19,7 @@ from ...core.fields import JSONString
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PageError, SeoInput
 from ...core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils.validators import check_for_duplicates
 from ..types import Page, PageType
 
@@ -69,7 +69,7 @@ class PageCreate(ModelMutation):
 
     @classmethod
     def clean_attributes(cls, attributes: dict, page_type: models.PageType):
-        attributes_qs = page_type.page_attributes
+        attributes_qs = page_type.page_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, is_page_attributes=True
         )
@@ -123,18 +123,19 @@ class PageCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    @traced_atomic_transaction()
     def _save_m2m(cls, info, instance, cleaned_data):
-        super()._save_m2m(info, instance, cleaned_data)
+        with traced_atomic_transaction():
+            super()._save_m2m(info, instance, cleaned_data)
 
-        attributes = cleaned_data.get("attributes")
-        if attributes:
-            AttributeAssignmentMixin.save(instance, attributes)
+            attributes = cleaned_data.get("attributes")
+            if attributes:
+                AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
-        info.context.plugins.page_created(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.page_created, instance)
 
 
 class PageUpdate(PageCreate):
@@ -154,7 +155,7 @@ class PageUpdate(PageCreate):
 
     @classmethod
     def clean_attributes(cls, attributes: dict, page_type: models.PageType):
-        attributes_qs = page_type.page_attributes
+        attributes_qs = page_type.page_attributes.all()
         attributes = AttributeAssignmentMixin.clean_input(
             attributes, attributes_qs, creation=False, is_page_attributes=True
         )
@@ -163,7 +164,8 @@ class PageUpdate(PageCreate):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         super(PageCreate, cls).save(info, instance, cleaned_input)
-        info.context.plugins.page_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.page_updated, instance)
 
 
 class PageDelete(ModelDeleteMutation):
@@ -179,12 +181,13 @@ class PageDelete(ModelDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         page = cls.get_instance(info, **data)
-        cls.delete_assigned_attribute_values(page)
-        response = super().perform_mutation(_root, info, **data)
-        transaction.on_commit(lambda: info.context.plugins.page_deleted(page))
+        manager = load_plugin_manager(info.context)
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(page)
+            response = super().perform_mutation(_root, info, **data)
+            cls.call_event(manager.page_deleted, page)
         return response
 
     @staticmethod
@@ -282,7 +285,8 @@ class PageTypeCreate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_created(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.page_type_created, instance)
 
 
 class PageTypeUpdate(PageTypeMixin, ModelMutation):
@@ -342,7 +346,8 @@ class PageTypeUpdate(PageTypeMixin, ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.page_type_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.page_type_updated, instance)
 
 
 class PageTypeDelete(ModelDeleteMutation):
@@ -358,14 +363,14 @@ class PageTypeDelete(ModelDeleteMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         node_id = data.get("id")
         page_type_pk = cls.get_global_id_or_error(
             node_id, only_type=PageType, field="pk"
         )
-        cls.delete_assigned_attribute_values(page_type_pk)
-        return super().perform_mutation(_root, info, **data)
+        with traced_atomic_transaction():
+            cls.delete_assigned_attribute_values(page_type_pk)
+            return super().perform_mutation(_root, info, **data)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pk):
@@ -376,4 +381,5 @@ class PageTypeDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        transaction.on_commit(lambda: info.context.plugins.page_type_deleted(instance))
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.page_type_deleted, instance)

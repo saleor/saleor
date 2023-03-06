@@ -8,9 +8,11 @@ from ....order.actions import order_refunded
 from ....order.error_codes import OrderErrorCode
 from ....payment import PaymentError, TransactionKind, gateway
 from ....payment.gateway import request_refund_action
+from ...app.dataloaders import load_app
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
+from ...plugins.dataloaders import load_plugin_manager
 from ..types import Order
 from .utils import clean_payment, try_payment_action
 
@@ -69,18 +71,19 @@ class OrderRefund(BaseMutation):
 
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_refund(order)
-
+        app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         if payment_transactions := list(order.payment_transactions.all()):
             # We use the last transaction as we don't have a possibility to
             # provide way of handling multiple transaction here
             try:
                 request_refund_action(
                     payment_transactions[-1],
-                    info.context.plugins,
+                    manager,
                     refund_value=amount,
                     channel_slug=order.channel.slug,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                 )
             except PaymentError as e:
                 raise ValidationError(
@@ -94,11 +97,11 @@ class OrderRefund(BaseMutation):
             transaction = try_payment_action(
                 order,
                 info.context.user,
-                info.context.app,
+                app,
                 payment,
                 gateway.refund,
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=order.channel.slug,
             )
@@ -108,10 +111,10 @@ class OrderRefund(BaseMutation):
                 order_refunded(
                     order,
                     info.context.user,
-                    info.context.app,
+                    app,
                     amount,
                     payment,
-                    info.context.plugins,
+                    manager,
                 )
 
         order.fulfillments.create(

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union
 
-import opentracing
 from django.conf import settings
 from django_countries.fields import Country
 from prices import MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -238,54 +237,53 @@ def get_variant_availability(
     country: Country,
     local_currency: Optional[str] = None,
 ) -> VariantAvailability:
-    with opentracing.global_tracer().start_active_span("get_variant_availability"):
-        channel_slug = channel.slug
-        discounted = plugins.apply_taxes_to_product(
-            product,
-            get_variant_price(
-                variant=variant,
-                variant_channel_listing=variant_channel_listing,
-                product=product,
-                collections=collections,
-                discounts=discounts,
-                channel=channel,
-            ),
-            country,
-            channel_slug=channel_slug,
-        )
-        undiscounted = plugins.apply_taxes_to_product(
-            product,
-            get_variant_price(
-                variant=variant,
-                variant_channel_listing=variant_channel_listing,
-                product=product,
-                collections=collections,
-                discounts=[],
-                channel=channel,
-            ),
-            country,
-            channel_slug=channel_slug,
-        )
+    channel_slug = channel.slug
+    discounted = plugins.apply_taxes_to_product(
+        product,
+        get_variant_price(
+            variant=variant,
+            variant_channel_listing=variant_channel_listing,
+            product=product,
+            collections=collections,
+            discounts=discounts,
+            channel=channel,
+        ),
+        country,
+        channel_slug=channel_slug,
+    )
+    undiscounted = plugins.apply_taxes_to_product(
+        product,
+        get_variant_price(
+            variant=variant,
+            variant_channel_listing=variant_channel_listing,
+            product=product,
+            collections=collections,
+            discounts=[],
+            channel=channel,
+        ),
+        country,
+        channel_slug=channel_slug,
+    )
 
-        discount = _get_total_discount(undiscounted, discounted)
+    discount = _get_total_discount(undiscounted, discounted)
 
-        if local_currency:
-            price_local_currency = to_local_currency(discounted, local_currency)
-            discount_local_currency = to_local_currency(discount, local_currency)
-        else:
-            price_local_currency = None
-            discount_local_currency = None
+    if local_currency:
+        price_local_currency = to_local_currency(discounted, local_currency)
+        discount_local_currency = to_local_currency(discount, local_currency)
+    else:
+        price_local_currency = None
+        discount_local_currency = None
 
-        is_visible = (
-            product_channel_listing is not None and product_channel_listing.is_visible
-        )
-        is_on_sale = is_visible and discount is not None
+    is_visible = (
+        product_channel_listing is not None and product_channel_listing.is_visible
+    )
+    is_on_sale = is_visible and discount is not None
 
-        return VariantAvailability(
-            on_sale=is_on_sale,
-            price=discounted,
-            price_undiscounted=undiscounted,
-            discount=discount,
-            price_local_currency=price_local_currency,
-            discount_local_currency=discount_local_currency,
-        )
+    return VariantAvailability(
+        on_sale=is_on_sale,
+        price=discounted,
+        price_undiscounted=undiscounted,
+        discount=discount,
+        price_local_currency=price_local_currency,
+        discount_local_currency=discount_local_currency,
+    )

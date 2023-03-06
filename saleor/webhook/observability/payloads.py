@@ -10,6 +10,7 @@ from django.utils import timezone
 from graphene.utils.str_converters import to_camel_case as str_to_camel_case
 from graphql import get_operation_ast
 
+from ...core.utils import build_absolute_uri
 from .. import traced_payload_generator
 from ..event_types import WebhookEventSyncType
 from .exceptions import ApiCallTruncationError, EventDeliveryAttemptTruncationError
@@ -154,7 +155,7 @@ def generate_api_call_payload(
         request=ApiCallRequest(
             id=str(uuid.uuid4()),
             method=request.method or "",
-            url=request.build_absolute_uri(request.get_full_path()),
+            url=build_absolute_uri(request.get_full_path()),  # type: ignore
             time=getattr(request, "request_time", timezone.now()).timestamp(),
             headers=serialize_headers(dict(request.headers)),
             content_length=int(request.headers.get("Content-Length") or 0),

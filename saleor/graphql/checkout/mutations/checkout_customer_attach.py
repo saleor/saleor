@@ -8,6 +8,7 @@ from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
+from ...plugins.dataloaders import load_plugin_manager
 from ...utils import get_user_or_app_from_context
 from ..types import Checkout
 from .utils import get_checkout
@@ -73,19 +74,19 @@ class CheckoutCustomerAttach(BaseMutation):
             )
 
         user_id_from_request = None
-        if not info.context.user.is_anonymous:
-            user_id_from_request = graphene.Node.to_global_id(
-                "User", info.context.user.id
-            )
+        if user := info.context.user:
+            user_id_from_request = graphene.Node.to_global_id("User", user.id)
 
         if customer_id and customer_id != user_id_from_request:
             requestor = get_user_or_app_from_context(info.context)
-            if not requestor.has_perm(AccountPermissions.IMPERSONATE_USER):
+            if not requestor or not requestor.has_perm(
+                AccountPermissions.IMPERSONATE_USER
+            ):
                 raise PermissionDenied(
                     permissions=[AccountPermissions.IMPERSONATE_USER]
                 )
             customer = cls.get_node_or_error(info, customer_id, only_type="User")
-        elif info.context.user.is_anonymous:
+        elif not info.context.user:
             raise ValidationError(
                 {
                     "customer_id": ValidationError(
@@ -101,6 +102,6 @@ class CheckoutCustomerAttach(BaseMutation):
         checkout.user = customer
         checkout.email = customer.email
         checkout.save(update_fields=["email", "user", "last_change"])
-
-        info.context.plugins.checkout_updated(checkout)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.checkout_updated, checkout)
         return CheckoutCustomerAttach(checkout=checkout)

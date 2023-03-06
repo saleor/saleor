@@ -2,6 +2,7 @@ from unittest import mock
 
 from ...account.notifications import get_default_user_payload
 from ...core.notify_events import NotifyEventType
+from ...core.tests.utils import get_site_context_payload
 from ...graphql.core.utils import to_global_id_or_none
 from ...plugins.manager import get_plugins_manager
 from ..notifications import get_default_gift_card_payload, send_gift_card_notification
@@ -19,7 +20,7 @@ def test_get_default_gift_card_payload(gift_card):
 
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_send_gift_card_notification(
-    mocked_notify, staff_user, customer_user, gift_card, channel_USD
+    mocked_notify, staff_user, customer_user, gift_card, channel_USD, site_settings
 ):
     manager = get_plugins_manager()
     resending = False
@@ -46,8 +47,7 @@ def test_send_gift_card_notification(
         "requester_app_id": None,
         "recipient_email": customer_user.email,
         "resending": resending,
-        "site_name": "mirumee.com",
-        "domain": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     mocked_notify.assert_called_once_with(

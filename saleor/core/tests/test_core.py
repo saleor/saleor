@@ -223,6 +223,18 @@ def test_build_absolute_uri(site_settings, settings):
     assert logo_url == logo_location
 
 
+def test_build_absolute_uri_with_host(site_settings, settings):
+    # given
+    host = "test.com"
+    location = "images/close.svg"
+
+    # when
+    url = build_absolute_uri(location, host)
+
+    # then
+    assert url == f"http://{host}/{location}"
+
+
 def test_delete_sort_order_with_null_value(menu_item):
     """Ensures there is no error when trying to delete a sortable item,
     which triggers a shifting of the sort orders--which can be null."""

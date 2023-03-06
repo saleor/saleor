@@ -15,7 +15,12 @@ from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..core.dataloaders import DataLoader
-from ..discount.dataloaders import VoucherByCodeLoader, VoucherInfoByVoucherCodeLoader
+from ..discount.dataloaders import (
+    VoucherByCodeLoader,
+    VoucherInfoByVoucherCodeLoader,
+    load_discounts,
+)
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
@@ -103,11 +108,12 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader):
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
+                        discounts = load_discounts(self.context)
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
                             checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
-                            discounts=self.context.discounts,
+                            discounts=discounts,
                         )
                 return [lines_info_map[key] for key in keys]
 
@@ -164,7 +170,7 @@ class CheckoutByUserLoader(DataLoader):
         checkout_by_user_map = defaultdict(list)
         for checkout in checkouts:
             checkout_by_user_map[checkout.user_id].append(checkout)
-        return [checkout_by_user_map.get(user_id) for user_id in keys]
+        return [checkout_by_user_map[user_id] for user_id in keys]
 
 
 class CheckoutByUserAndChannelLoader(DataLoader):
@@ -186,7 +192,7 @@ class CheckoutByUserAndChannelLoader(DataLoader):
         for checkout in checkouts:
             key = (checkout.user_id, checkout.channel_slug)
             checkout_by_user_and_channel_map[key].append(checkout)
-        return [checkout_by_user_and_channel_map.get(key) for key in keys]
+        return [checkout_by_user_and_channel_map[key] for key in keys]
 
 
 class CheckoutInfoByCheckoutTokenLoader(DataLoader):
@@ -296,9 +302,8 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader):
                             all_shipping_methods=[],
                             voucher=voucher,
                         )
-
-                        manager = self.context.plugins
-                        discounts = self.context.discounts
+                        manager = load_plugin_manager(self.context)
+                        discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing
                             for channel_listings in listings_for_channels

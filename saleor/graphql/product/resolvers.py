@@ -1,7 +1,6 @@
 from django.db.models import Exists, OuterRef, Sum
 
 from ...channel.models import Channel
-from ...core.db.utils import get_database_connection_name
 from ...core.permissions import has_one_of_permissions
 from ...core.tracing import traced_resolver
 from ...order import OrderStatus
@@ -9,6 +8,7 @@ from ...order.models import Order
 from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel import ChannelQsContext
+from ..core.context import get_database_connection_name
 from ..core.utils import from_global_id_or_error
 from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
@@ -83,8 +83,10 @@ def resolve_product_by_slug(info, product_slug, channel_slug, requestor):
 @traced_resolver
 def resolve_products(info, requestor, channel_slug=None) -> ChannelQsContext:
     database_connection_name = get_database_connection_name(info.context)
-    qs = models.Product.objects.using(database_connection_name).visible_to_user(
-        requestor, channel_slug
+    qs = (
+        models.Product.objects.all()
+        .using(database_connection_name)
+        .visible_to_user(requestor, channel_slug)
     )
     if not has_one_of_permissions(requestor, ALL_PRODUCTS_PERMISSIONS):
         channels = Channel.objects.filter(slug=str(channel_slug))

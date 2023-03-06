@@ -37,8 +37,9 @@ class ProductExportFields:
         "entity_type": "attributes__assignment__attribute__entity_type",
         "unit": "attributes__assignment__attribute__unit",
         "attribute_pk": "attributes__assignment__attribute__pk",
-        "value_reference_page": "attributes__values__reference_page",
-        "value_reference_product": "attributes__values__reference_product",
+        "reference_page": "attributes__values__reference_page",
+        "reference_product": "attributes__values__reference_product",
+        "reference_variant": "attributes__values__reference_variant",
     }
 
     PRODUCT_CHANNEL_LISTING_FIELDS = {
@@ -71,8 +72,9 @@ class ProductExportFields:
         "entity_type": "variants__attributes__assignment__attribute__entity_type",
         "unit": "variants__attributes__assignment__attribute__unit",
         "attribute_pk": "variants__attributes__assignment__attribute__pk",
-        "value_reference_page": "variants__attributes__values__reference_page",
-        "value_reference_product": "variants__attributes__values__reference_product",
+        "reference_page": "variants__attributes__values__reference_page",
+        "reference_product": "variants__attributes__values__reference_product",
+        "reference_variant": "variants__attributes__values__reference_variant",
     }
 
     VARIANT_CHANNEL_LISTING_FIELDS = {

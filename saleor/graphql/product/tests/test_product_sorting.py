@@ -152,6 +152,7 @@ query Products($sortBy: ProductOrder, $channel: String) {
       edges {
         node {
           id
+          created
         }
       }
     }
@@ -199,6 +200,27 @@ def test_sort_products_by_published_at(
     assert [node["node"]["id"] for node in data] == [
         graphene.Node.to_global_id("Product", product.pk) for product in product_list
     ]
+
+
+@pytest.mark.parametrize("direction", ("ASC", "DESC"))
+def test_sort_products_by_created_at(direction, api_client, product_list, channel_USD):
+    variables = {
+        "sortBy": {
+            "direction": direction,
+            "field": "CREATED_AT",
+        },
+        "channel": channel_USD.slug,
+    }
+
+    response = api_client.post_graphql(GET_SORTED_PRODUCTS_QUERY, variables)
+
+    content = get_graphql_content(response)
+    creation_dates = [
+        p["node"]["created"] for p in content["data"]["products"]["edges"]
+    ]
+    if direction == "DESC":
+        creation_dates.reverse()
+    assert creation_dates[0] < creation_dates[1] < creation_dates[2]
 
 
 @pytest.mark.parametrize(

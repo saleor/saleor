@@ -34,6 +34,7 @@ from ...payment.gateway import (
 )
 from ...payment.utils import create_payment, is_currency_supported
 from ..account.i18n import I18nMixin
+from ..app.dataloaders import load_app
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
@@ -47,7 +48,9 @@ from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import common as common_types
+from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import get_user_or_app_from_context
 from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
 from .types import Payment, PaymentInitialized, TransactionItem
@@ -243,7 +246,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data["input"]
         gateway = data["gateway"]
 
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         cls.validate_gateway(manager, gateway, checkout)
         cls.validate_return_url(data)
 
@@ -271,9 +274,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
-        checkout_info = fetch_checkout_info(
-            checkout, lines, info.context.discounts, manager
-        )
+        discounts = load_discounts(info.context)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         cls.validate_token(
             manager, gateway, data, channel_slug=checkout_info.channel.slug
@@ -287,7 +289,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             checkout_info=checkout_info,
             lines=lines,
             address=address,
-            discounts=info.context.discounts,
+            discounts=discounts,
         )
         amount = data.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
@@ -351,10 +353,11 @@ class PaymentCapture(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
             gateway.capture(
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=channel_slug,
             )
@@ -381,10 +384,11 @@ class PaymentRefund(PaymentCapture):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
             gateway.refund(
                 payment,
-                info.context.plugins,
+                manager,
                 amount=amount,
                 channel_slug=channel_slug,
             )
@@ -416,8 +420,9 @@ class PaymentVoid(BaseMutation):
             if payment.order
             else payment.checkout.channel.slug
         )
+        manager = load_plugin_manager(info.context)
         try:
-            gateway.void(payment, info.context.plugins, channel_slug=channel_slug)
+            gateway.void(payment, manager, channel_slug=channel_slug)
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
@@ -474,9 +479,9 @@ class PaymentInitialize(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, gateway, channel, payment_data):
         cls.validate_channel(channel_slug=channel)
-
+        manager = load_plugin_manager(info.context)
         try:
-            response = info.context.plugins.initialize_payment(
+            response = manager.initialize_payment(
                 gateway, payment_data, channel_slug=channel
             )
         except PaymentError as e:
@@ -536,7 +541,7 @@ class PaymentCheckBalance(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        manager = info.context.plugins
+        manager = load_plugin_manager(info.context)
         gateway_id = data["input"]["gateway_id"]
         money = data["input"]["card"].get("money", {})
 
@@ -664,7 +669,9 @@ class TransactionCreate(BaseMutation):
         return False
 
     @classmethod
-    def validate_metadata_keys(cls, metadata_list: List[dict], field_name, error_code):
+    def validate_metadata_keys(  # type: ignore
+        cls, metadata_list: List[dict], field_name, error_code
+    ):
         if metadata_contains_empty_key(metadata_list):
             raise ValidationError(
                 {
@@ -810,10 +817,11 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event_data:
+                app = load_app(info.context)
                 transaction_event(
                     order=order_or_checkout_instance,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -921,10 +929,11 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event_data := data.get("transaction_event"):
             cls.create_transaction_event(transaction_event_data, instance)
             if instance.order_id:
+                app = load_app(info.context)
                 transaction_event(
                     order=instance.order,
                     user=info.context.user,
-                    app=info.context.app,
+                    app=app,
                     reference=transaction_event_data.get("reference", ""),
                     status=transaction_event_data["status"],
                     name=transaction_event_data.get("name", ""),
@@ -969,7 +978,7 @@ class TransactionRequestAction(BaseMutation):
         for required_permission in required_permissions:
             # We want to allow to call this mutation for requestor with one of following
             # permission: manage_orders, handle_payments
-            if requestor.has_perm(required_permission):
+            if requestor and requestor.has_perm(required_permission):
                 return True
         return False
 
@@ -1001,12 +1010,14 @@ class TransactionRequestAction(BaseMutation):
             if transaction.order_id
             else transaction.checkout.channel.slug
         )
+        app = load_app(info.context)
+        manager = load_plugin_manager(info.context)
         action_kwargs = {
             "channel_slug": channel_slug,
             "user": info.context.user,
-            "app": info.context.app,
+            "app": app,
             "transaction": transaction,
-            "manager": info.context.plugins,
+            "manager": manager,
         }
 
         try:

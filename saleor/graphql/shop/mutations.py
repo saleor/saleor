@@ -19,6 +19,8 @@ from ..core.types import (
     ShopError,
     TimePeriodInputType,
 )
+from ..plugins.dataloaders import load_plugin_manager
+from ..site.dataloaders import load_site
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .types import GiftCardSettings, OrderSettings, Shop
 
@@ -147,7 +149,8 @@ class ShopSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
@@ -173,23 +176,23 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site_settings = info.context.site.settings
+        site = load_site(info.context)
         data = data.get("input")
 
         if data:
-            if not site_settings.company_address:
+            if not site.settings.company_address:
                 company_address = account_models.Address()
             else:
-                company_address = site_settings.company_address
+                company_address = site.settings.company_address
             company_address = cls.validate_address(
                 data, instance=company_address, info=info
             )
             company_address.save()
-            site_settings.company_address = company_address
-            site_settings.save(update_fields=["company_address"])
+            site.settings.company_address = company_address
+            site.settings.save(update_fields=["company_address"])
         else:
-            if site_settings.company_address:
-                site_settings.company_address.delete()
+            if site.settings.company_address:
+                site.settings.company_address.delete()
         return ShopAddressUpdate(shop=Shop())
 
 
@@ -207,7 +210,7 @@ class ShopDomainUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        site = info.context.site
+        site = load_site(info.context)
         data = data.get("input")
         domain = data.get("domain")
         name = data.get("name")
@@ -231,7 +234,8 @@ class ShopFetchTaxRates(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info):
-        if not info.context.plugins.fetch_taxes_data():
+        manager = load_plugin_manager(info.context)
+        if not manager.fetch_taxes_data():
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
                 "valid credential for your tax plugin.",
@@ -382,8 +386,8 @@ class OrderSettingsUpdate(BaseMutation):
             "automatically_confirm_all_new_orders",
             "automatically_fulfill_non_shippable_gift_card",
         ]
-
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         update_fields = []
         for field in FIELDS:
             value = data["input"].get(field)
@@ -420,7 +424,8 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
+        site = load_site(info.context)
+        instance = site.settings
         input = data["input"]
         cls.clean_input(input, instance)
 

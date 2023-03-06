@@ -1,6 +1,6 @@
 import os
 import socket
-from typing import TYPE_CHECKING, Optional, Type, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Type, Union
 from urllib.parse import urljoin
 
 from babel.numbers import get_territory_currencies
@@ -22,13 +22,13 @@ if TYPE_CHECKING:
     from django.utils.safestring import SafeText
 
 
-def build_absolute_uri(location: str) -> Optional[str]:
+def build_absolute_uri(location: str, domain: Optional[str] = None) -> str:
     """Create absolute uri from location.
 
     If provided location is absolute uri by itself, it returns unchanged value,
     otherwise if provided location is relative, absolute uri is built and returned.
     """
-    host = Site.objects.get_current().domain
+    host = domain or Site.objects.get_current().domain
     protocol = "https" if settings.ENABLE_SSL else "http"
     current_uri = "%s://%s" % (protocol, host)
     location = urljoin(current_uri, location)
@@ -116,10 +116,8 @@ def generate_unique_slug(
 
     """
     slug = slugify(unidecode(slugable_value))
-    unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__
-    extension = 1
 
     search_field = f"{slug_field_name}__iregex"
     pattern = rf"{slug}-\d+$|{slug}$"
@@ -132,6 +130,16 @@ def generate_unique_slug(
         .exclude(pk=instance.pk)
         .values_list(slug_field_name, flat=True)
     )
+
+    unique_slug = prepare_unique_slug(slug, slug_values)
+
+    return unique_slug
+
+
+def prepare_unique_slug(slug: str, slug_values: Iterable):
+    """Prepare unique slug value based on provided list of existing slug values."""
+    unique_slug: Union["SafeText", str] = slug
+    extension = 1
 
     while unique_slug in slug_values:
         extension += 1

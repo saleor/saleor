@@ -3,14 +3,13 @@ from typing import cast
 import graphene
 from django.db.models import QuerySet
 
-from ...attribute import AttributeEntityType, AttributeInputType, models
+from ...attribute import AttributeInputType, models
 from ...core.permissions import (
     PagePermissions,
     PageTypePermissions,
     ProductPermissions,
     ProductTypePermissions,
 )
-from ...core.tracing import traced_resolver
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -36,6 +35,7 @@ from .descriptions import AttributeDescriptions, AttributeValueDescriptions
 from .enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from .filters import AttributeValueFilterInput
 from .sorters import AttributeChoicesSortingInput
+from .utils import AttributeAssignmentMixin
 
 
 class AttributeValue(ModelObjectType):
@@ -71,7 +71,6 @@ class AttributeValue(ModelObjectType):
         model = models.AttributeValue
 
     @staticmethod
-    @traced_resolver
     def resolve_input_type(root: models.AttributeValue, info):
         return (
             AttributesByAttributeId(info.context)
@@ -90,11 +89,11 @@ class AttributeValue(ModelObjectType):
         def prepare_reference(attribute):
             if attribute.input_type != AttributeInputType.REFERENCE:
                 return
-            if attribute.entity_type == AttributeEntityType.PAGE:
-                reference_pk = root.reference_page_id
-            elif attribute.entity_type == AttributeEntityType.PRODUCT:
-                reference_pk = root.reference_product_id
-            else:
+            reference_field = AttributeAssignmentMixin.ENTITY_TYPE_MAPPING[
+                attribute.entity_type
+            ].value_field
+            reference_pk = getattr(root, f"{reference_field}_id", None)
+            if reference_pk is None:
                 return
             reference_id = graphene.Node.to_global_id(
                 attribute.entity_type, reference_pk

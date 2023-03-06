@@ -11,7 +11,7 @@ from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
-from ....core.taxes import zero_taxed_money
+from ....core.taxes import zero_money, zero_taxed_money
 from ....discount import DiscountValueType, OrderDiscountType
 from ....product.models import Product
 from ...manager import get_plugins_manager
@@ -748,6 +748,7 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
     order.shipping_method = method
+    order.base_shipping_price = method.channel_listings.get(channel=order.channel).price
     order.save()
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
@@ -766,6 +767,7 @@ def test_calculate_order_shipping_from_origin_country(
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
+    order.base_shipping_price = method.channel_listings.get(channel=order.channel).price
     order.shipping_method = method
     order.save()
 
@@ -790,6 +792,7 @@ def test_calculate_order_shipping_with_excluded_country(
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
     order.shipping_method = method
+    order.base_shipping_price = method.channel_listings.get(channel=order.channel).price
     order.save()
 
     price = manager.calculate_order_shipping(order)
@@ -817,15 +820,19 @@ def test_calculate_order_shipping_voucher_on_shipping(
     # given
     manager = get_plugins_manager()
     order = order_line.order
+    currency = order.currency
+    discount_amount = Decimal("5.0")
+
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
     order.shipping_method = method
+    order.base_shipping_price = method.channel_listings.get(
+        channel=order.channel
+    ).price - Money(discount_amount, currency)
     order.voucher = voucher_shipping_type
     order.save()
 
-    currency = order.currency
-    discount_amount = Decimal("5.0")
     order.discounts.create(
         type=OrderDiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
@@ -863,6 +870,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     order.shipping_address = order.billing_address.get_copy()
     order.shipping_method_name = method.name
     order.shipping_method = method
+    order.base_shipping_price = zero_money(order.currency)
     order.voucher = voucher_shipping_type
     order.save()
 

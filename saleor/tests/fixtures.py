@@ -324,6 +324,13 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_and_tax_exemption(checkout_with_item):
+    checkout_with_item.tax_exemption = True
+    checkout_with_item.save(update_fields=["tax_exemption"])
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_same_items_in_multiple_lines(checkout, product):
     variant = product.variants.first()
     checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
@@ -631,6 +638,19 @@ def checkout_with_voucher_percentage(checkout, product, voucher_percentage):
 
 
 @pytest.fixture
+def checkout_with_voucher_free_shipping(
+    checkout_with_items_and_shipping, voucher_free_shipping
+):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_items_and_shipping)
+    checkout_info = fetch_checkout_info(
+        checkout_with_items_and_shipping, lines, [], manager
+    )
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping, [])
+    return checkout_with_items_and_shipping
+
+
+@pytest.fixture
 def checkout_with_gift_card(checkout_with_item, gift_card):
     checkout_with_item.gift_cards.add(gift_card)
     checkout_with_item.save()
@@ -821,6 +841,23 @@ def customer_user2(address):
     user.addresses.add(default_address)
     user._password = "password"
     return user
+
+
+@pytest.fixture
+def customer_users(address, customer_user, customer_user2):
+    default_address = address.get_copy()
+    customer_user3 = User.objects.create_user(
+        "test3@example.com",
+        "password",
+        default_billing_address=default_address,
+        default_shipping_address=default_address,
+        first_name="Chris",
+        last_name="Duck",
+    )
+    customer_user3.addresses.add(default_address)
+    customer_user3._password = "password"
+
+    return [customer_user, customer_user2, customer_user3]
 
 
 @pytest.fixture
@@ -1688,6 +1725,28 @@ def page_type_product_reference_attribute(db):
 
 
 @pytest.fixture
+def product_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PRODUCT_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
+def page_type_variant_reference_attribute(db):
+    return Attribute.objects.create(
+        slug="variant-reference",
+        name="Variant reference",
+        type=AttributeType.PAGE_TYPE,
+        input_type=AttributeInputType.REFERENCE,
+        entity_type=AttributeEntityType.PRODUCT_VARIANT,
+    )
+
+
+@pytest.fixture
 def size_page_attribute(db):
     attribute = Attribute.objects.create(
         slug="page-size",
@@ -1936,6 +1995,11 @@ def permission_handle_taxes():
 @pytest.fixture
 def permission_manage_observability():
     return Permission.objects.get(codename="manage_observability")
+
+
+@pytest.fixture
+def permission_manage_taxes():
+    return Permission.objects.get(codename="manage_taxes")
 
 
 @pytest.fixture
@@ -3720,6 +3784,32 @@ def gift_card_event(gift_card, order, app, staff_user):
     )
 
 
+@pytest.fixture
+def gift_card_list():
+    gift_cards = list(
+        GiftCard.objects.bulk_create(
+            [
+                GiftCard(
+                    code="code-test-1",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+                GiftCard(
+                    code="code-test-2",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+                GiftCard(
+                    code="code-test-3",
+                    initial_balance=Money(10, "USD"),
+                    current_balance=Money(10, "USD"),
+                ),
+            ]
+        )
+    )
+    return gift_cards
+
+
 def recalculate_order(order):
     lines = OrderLine.objects.filter(order_id=order.pk)
     prices = [line.total_price for line in lines]
@@ -3863,6 +3953,7 @@ def order_with_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
@@ -4135,6 +4226,7 @@ def order_with_lines_channel_PLN(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
@@ -4246,6 +4338,7 @@ def order_with_preorder_lines(
     net = shipping_price.get_total()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.shipping_price = TaxedMoney(net=net, gross=gross)
+    order.base_shipping_price = net
     order.save()
 
     recalculate_order(order)
@@ -5142,6 +5235,37 @@ def payment_dummy(db, order_with_lines):
         billing_country_code=order_with_lines.billing_address.country.code,
         billing_country_area=order_with_lines.billing_address.country_area,
         billing_email=order_with_lines.user_email,
+    )
+
+
+@pytest.fixture
+def payments_dummy(order_with_lines):
+    return Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="mirumee.payments.dummy",
+                order=order_with_lines,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="visa",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order_with_lines.total.gross.amount,
+                currency=order_with_lines.currency,
+                billing_first_name=order_with_lines.billing_address.first_name,
+                billing_last_name=order_with_lines.billing_address.last_name,
+                billing_company_name=order_with_lines.billing_address.company_name,
+                billing_address_1=order_with_lines.billing_address.street_address_1,
+                billing_address_2=order_with_lines.billing_address.street_address_2,
+                billing_city=order_with_lines.billing_address.city,
+                billing_postal_code=order_with_lines.billing_address.postal_code,
+                billing_country_code=order_with_lines.billing_address.country.code,
+                billing_country_area=order_with_lines.billing_address.country_area,
+                billing_email=order_with_lines.user_email,
+            )
+            for _ in range(3)
+        ]
     )
 
 

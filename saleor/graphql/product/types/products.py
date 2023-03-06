@@ -15,7 +15,7 @@ from ....core.permissions import (
     has_one_of_permissions,
 )
 from ....core.tracing import traced_resolver
-from ....core.utils import get_currency_for_country
+from ....core.utils import build_absolute_uri, get_currency_for_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....product import models
 from ....product.models import ALL_PRODUCTS_PERMISSIONS
@@ -78,10 +78,12 @@ from ...order.dataloaders import (
     OrderByIdLoader,
     OrderLinesByVariantIdAndChannelIdLoader,
 )
+from ...plugins.dataloaders import load_plugin_manager
 from ...product.dataloaders.products import (
     AvailableProductVariantsByProductIdAndChannel,
     ProductVariantsByProductIdAndChannel,
 )
+from ...site.dataloaders import load_site
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -386,12 +388,10 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
     ):
         if address is not None:
             country_code = address.country
-
+        site = load_site(info.context)
         channel_slug = str(root.channel_slug) if root.channel_slug else None
 
-        global_quantity_limit_per_checkout = (
-            info.context.site.settings.limit_quantity_per_checkout
-        )
+        global_quantity_limit_per_checkout = site.settings.limit_quantity_per_checkout
 
         if root.node.is_preorder_active():
             variant = root.node
@@ -404,7 +404,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                     channel_listing
                     and channel_listing.preorder_quantity_threshold is not None
                 ):
-                    if is_reservation_enabled(info.context.site.settings):
+                    if is_reservation_enabled(site.settings):
                         quantity_reserved = (
                             PreorderQuantityReservedByVariantChannelListingIdLoader(
                                 info.context
@@ -449,7 +449,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                         available_quantity = variant.preorder_global_threshold
                         available_quantity -= global_sold_units
 
-                        if is_reservation_enabled(info.context.site.settings):
+                        if is_reservation_enabled(site.settings):
                             quantity_reserved = (
                                 PreorderQuantityReservedByVariantChannelListingIdLoader(
                                     info.context
@@ -558,6 +558,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
+        manager = load_plugin_manager(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -592,7 +593,7 @@ class ProductVariant(ChannelContextTypeWithMetadata, ModelObjectType):
                                     channel=channel,
                                     country=Country(country_code),
                                     local_currency=local_currency,
-                                    plugins=context.plugins,
+                                    plugins=manager,
                                 )
                                 return VariantPricingInfo(**asdict(availability))
 
@@ -900,11 +901,11 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: ChannelContext[models.Product], info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root.node)
+        manager = load_plugin_manager(info.context)
+        tax_data = manager.get_tax_code_from_object_meta(root.node)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    @traced_resolver
     def resolve_thumbnail(
         root: ChannelContext[models.Product], info, *, size=256, format=None
     ):
@@ -925,7 +926,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                 url = get_image_or_proxy_url(
                     thumbnail, image.id, "ProductMedia", size, format
                 )
-                return Image(alt=image.alt, url=info.context.build_absolute_uri(url))
+                return Image(alt=image.alt, url=build_absolute_uri(url))
 
             return (
                 ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -964,6 +965,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         channel = ChannelBySlugLoader(context).load(channel_slug)
 
         address_country = address.country if address is not None else None
+        manager = load_plugin_manager(info.context)
 
         def calculate_pricing_info(discounts):
             def calculate_pricing_with_channel(channel):
@@ -992,7 +994,7 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
                                     collections=collections,
                                     discounts=discounts,
                                     channel=channel,
-                                    manager=context.plugins,
+                                    manager=manager,
                                     country=Country(country_code),
                                     local_currency=local_currency,
                                 )
@@ -1184,7 +1186,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         return convert_weight_to_default_weight_unit(root.node.weight)
 
     @staticmethod
-    @traced_resolver
     def resolve_is_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1202,7 +1203,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_for_purchase(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1220,7 +1220,6 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    @traced_resolver
     def resolve_available_for_purchase_at(root: ChannelContext[models.Product], info):
         if not root.channel_slug:
             return None
@@ -1337,7 +1336,8 @@ class ProductType(ModelObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
+        manager = load_plugin_manager(info.context)
+        tax_data = manager.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -1725,7 +1725,7 @@ class ProductMedia(ModelObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1734,7 +1734,7 @@ class ProductMedia(ModelObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
@@ -1775,7 +1775,7 @@ class ProductImage(graphene.ObjectType):
             return
 
         if not size:
-            return info.context.build_absolute_uri(root.image.url)
+            return build_absolute_uri(root.image.url)
 
         format = format.lower() if format else None
         size = get_thumbnail_size(size)
@@ -1784,7 +1784,7 @@ class ProductImage(graphene.ObjectType):
             url = get_image_or_proxy_url(
                 thumbnail, root.id, "ProductMedia", size, format
             )
-            return info.context.build_absolute_uri(url)
+            return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)

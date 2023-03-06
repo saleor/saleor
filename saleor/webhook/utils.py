@@ -1,9 +1,7 @@
-from decimal import Decimal
 from typing import TYPE_CHECKING, Optional
 
 from django.db.models import Q
 from django.db.models.expressions import Exists, OuterRef
-from prices import TaxedMoney
 
 from ..app.models import App
 from .event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -41,9 +39,3 @@ def get_webhooks_for_event(
         .select_related("app")
         .prefetch_related("app__permissions__content_type")
     )
-
-
-def get_base_price(price: TaxedMoney, include_taxes_in_prices: bool) -> Decimal:
-    if include_taxes_in_prices:
-        return price.gross.amount
-    return price.net.amount

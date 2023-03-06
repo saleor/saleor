@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.db.models import Model
 
 from ...core.permissions import MenuPermissions, SitePermissions
@@ -18,7 +17,9 @@ from ..core.types import MenuError, NonNullList
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..core.utils.reordering import perform_reordering
 from ..page.types import Page
+from ..plugins.dataloaders import load_plugin_manager
 from ..product.types import Category, Collection
+from ..site.dataloaders import load_site
 from .dataloaders import MenuItemsByParentMenuLoader
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
@@ -132,7 +133,8 @@ class MenuCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_created(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -162,7 +164,8 @@ class MenuUpdate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_updated, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -184,7 +187,8 @@ class MenuDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -232,7 +236,8 @@ class MenuItemCreate(ModelMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_created(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_item_created, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -293,7 +298,8 @@ class MenuItemUpdate(MenuItemCreate):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_updated(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_item_updated, instance)
 
 
 class MenuItemDelete(ModelDeleteMutation):
@@ -310,7 +316,8 @@ class MenuItemDelete(ModelDeleteMutation):
 
     @classmethod
     def post_save_action(cls, info, instance, cleaned_input):
-        info.context.plugins.menu_item_deleted(instance)
+        manager = load_plugin_manager(info.context)
+        cls.call_event(manager.menu_item_deleted, instance)
 
     @classmethod
     def success_response(cls, instance):
@@ -458,7 +465,6 @@ class MenuItemMove(BaseMutation):
         menu_item.save()
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         menu: str = data["menu"]
         moves: List[MenuItemMoveInput] = data["moves"]
@@ -466,22 +472,21 @@ class MenuItemMove(BaseMutation):
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
         operations = cls.clean_moves(info, menu, moves)
+        manager = load_plugin_manager(info.context)
+        with traced_atomic_transaction():
+            for operation in operations:
+                cls.perform_change_parent_operation(operation)
 
-        for operation in operations:
-            cls.perform_change_parent_operation(operation)
+                menu_item = operation.menu_item
 
-            menu_item = operation.menu_item
+                if operation.sort_order:
+                    perform_reordering(
+                        menu_item.get_ordering_queryset(),
+                        {menu_item.pk: operation.sort_order},
+                    )
 
-            if operation.sort_order:
-                perform_reordering(
-                    menu_item.get_ordering_queryset(),
-                    {menu_item.pk: operation.sort_order},
-                )
-
-            if operation.sort_order or operation.parent_changed:
-                transaction.on_commit(
-                    lambda: info.context.plugins.menu_item_updated(menu_item)
-                )
+                if operation.sort_order or operation.parent_changed:
+                    cls.call_event(manager.menu_item_updated, menu_item)
 
         menu = qs.get(pk=menu.pk)
         MenuItemsByParentMenuLoader(info.context).clear(menu.id)
@@ -506,16 +511,16 @@ class AssignNavigation(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, navigation_type, menu=None):
-        site_settings = info.context.site.settings
+        site = load_site(info.context)
         if menu is not None:
             menu = cls.get_node_or_error(info, menu, field="menu", only_type=Menu)
 
         if navigation_type == NavigationType.MAIN:
-            site_settings.top_menu = menu
-            site_settings.save(update_fields=["top_menu"])
+            site.settings.top_menu = menu
+            site.settings.save(update_fields=["top_menu"])
         elif navigation_type == NavigationType.SECONDARY:
-            site_settings.bottom_menu = menu
-            site_settings.save(update_fields=["bottom_menu"])
+            site.settings.bottom_menu = menu
+            site.settings.save(update_fields=["bottom_menu"])
 
         if menu is None:
             return AssignNavigation(menu=None)

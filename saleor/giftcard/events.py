@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
 
 from ..account.models import User
 from ..app.models import App
-from ..core.utils.validators import user_is_valid
 from . import GiftCardEvents
 from .models import GiftCard, GiftCardEvent
 
@@ -18,8 +17,6 @@ def gift_card_issued_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     balance_data = {
         "currency": gift_card.currency,
         "initial_balance": gift_card.initial_balance_amount,
@@ -37,8 +34,6 @@ def gift_card_issued_event(
 def gift_cards_issued_event(
     gift_cards: Iterable[GiftCard], user: UserType, app: AppType, balance: dict
 ):
-    if not user_is_valid(user):
-        user = None
     balance_data = {
         "currency": balance["currency"],
         "initial_balance": balance["amount"],
@@ -87,8 +82,6 @@ def gift_card_balance_reset_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     balance_data = {
         "currency": gift_card.currency,
         "initial_balance": gift_card.initial_balance_amount,
@@ -112,8 +105,6 @@ def gift_card_expiry_date_updated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
@@ -132,8 +123,6 @@ def gift_card_tags_updated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
@@ -153,8 +142,6 @@ def gift_card_activated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
@@ -168,8 +155,6 @@ def gift_card_deactivated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
@@ -183,8 +168,6 @@ def gift_cards_activated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     events = [
         GiftCardEvent(
             gift_card_id=gift_card_id,
@@ -202,8 +185,6 @@ def gift_cards_deactivated_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     events = [
         GiftCardEvent(
             gift_card_id=gift_card_id,
@@ -219,8 +200,6 @@ def gift_cards_deactivated_event(
 def gift_card_note_added_event(
     gift_card: GiftCard, user: UserType, app: AppType, message: str
 ) -> GiftCardEvent:
-    if not user_is_valid(user):
-        user = None
     return GiftCardEvent.objects.create(
         gift_card=gift_card,
         user=user,
@@ -236,8 +215,6 @@ def gift_cards_used_in_order_event(
     user: UserType,
     app: AppType,
 ):
-    if not user_is_valid(user):
-        user = None
     events = [
         GiftCardEvent(
             gift_card=gift_card,
@@ -261,8 +238,6 @@ def gift_cards_used_in_order_event(
 def gift_cards_bought_event(
     gift_cards: Iterable[GiftCard], order: "Order", user: UserType, app: AppType
 ):
-    if not user_is_valid(user):
-        user = None
     events = [
         GiftCardEvent(
             gift_card=gift_card,

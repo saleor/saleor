@@ -4,6 +4,7 @@ import graphene
 
 from ....core import JobStatus
 from ....core.notify_events import NotifyEventType
+from ....core.tests.utils import get_site_context_payload
 from ....graphql.tests.utils import get_graphql_content
 from ....invoice.models import Invoice
 from ....invoice.notifications import get_invoice_payload
@@ -26,7 +27,7 @@ INVOICE_SEND_EMAIL_MUTATION = """
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_invoice_send_notification_by_user(
-    mock_notify, staff_api_client, permission_manage_orders, order
+    mock_notify, staff_api_client, permission_manage_orders, order, site_settings
 ):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -43,8 +44,7 @@ def test_invoice_send_notification_by_user(
         "requester_app_id": None,
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
-        "domain": "mirumee.com",
-        "site_name": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     mock_notify.assert_called_once_with(
@@ -57,7 +57,7 @@ def test_invoice_send_notification_by_user(
 
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_invoice_send_notification_by_app(
-    mock_notify, app_api_client, permission_manage_orders, order
+    mock_notify, app_api_client, permission_manage_orders, order, site_settings
 ):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
@@ -74,8 +74,7 @@ def test_invoice_send_notification_by_app(
         "requester_app_id": to_global_id_or_none(app_api_client.app),
         "invoice": get_invoice_payload(invoice),
         "recipient_email": invoice.order.get_customer_email(),
-        "domain": "mirumee.com",
-        "site_name": "mirumee.com",
+        **get_site_context_payload(site_settings.site),
     }
 
     mock_notify.assert_called_once_with(

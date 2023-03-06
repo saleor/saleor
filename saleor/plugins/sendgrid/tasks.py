@@ -1,5 +1,6 @@
 import logging
 
+from python_http_client import exceptions
 from sendgrid import SendGridAPIClient, SendGridException
 from sendgrid.helpers.mail import Mail
 
@@ -24,7 +25,10 @@ def send_email(configuration: SendgridConfiguration, template_id, payload):
     message = Mail(from_email=from_email, to_emails=recipient_email)
     message.dynamic_template_data = payload
     message.template_id = template_id
-    sendgrid_client.send(message)
+    try:
+        sendgrid_client.send(message)
+    except exceptions.BadRequestsError as e:
+        logger.warning("Bad request to Sendgrid, response: %s" % e.body)
 
 
 @app.task(

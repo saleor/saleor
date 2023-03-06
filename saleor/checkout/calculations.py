@@ -5,15 +5,18 @@ from django.conf import settings
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_taxed_money
 from ..discount import DiscountInfo
+from ..site.models import Site
 from .models import Checkout
 
 if TYPE_CHECKING:
 
     from ..account.models import Address
     from ..plugins.manager import PluginsManager
+    from ..site.models import SiteSettings
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
 
@@ -24,6 +27,7 @@ def checkout_shipping_price(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
@@ -36,6 +40,7 @@ def checkout_shipping_price(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -69,6 +74,7 @@ def checkout_subtotal(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
@@ -81,6 +87,7 @@ def checkout_subtotal(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -91,6 +98,7 @@ def calculate_checkout_total_with_gift_cards(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None,
 ) -> "TaxedMoney":
     total = (
         checkout_total(
@@ -99,6 +107,7 @@ def calculate_checkout_total_with_gift_cards(
             lines=lines,
             address=address,
             discounts=discounts,
+            site_settings=site_settings,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
@@ -113,6 +122,7 @@ def checkout_total(
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
     discounts: Optional[Iterable[DiscountInfo]] = None,
+    site_settings: Optional["SiteSettings"] = None
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -128,6 +138,7 @@ def checkout_total(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -154,6 +165,7 @@ def checkout_line_total(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     discounts: Iterable[DiscountInfo] = [],
+    site_settings: Optional["SiteSettings"] = None
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
@@ -167,6 +179,7 @@ def checkout_line_total(
         lines=lines,
         address=address,
         discounts=discounts,
+        site_settings=site_settings,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     return quantize_price(checkout_line.total_price, currency)
@@ -229,6 +242,7 @@ def fetch_checkout_prices_if_expired(
     address: Optional["Address"] = None,
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
+    site_settings: "SiteSettings" = None,
 ) -> Tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
 
@@ -239,20 +253,30 @@ def fetch_checkout_prices_if_expired(
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
     checkout = checkout_info.checkout
+
+    if site_settings is None:
+        site_settings = Site.objects.get_current().settings
+
     if not force_update and checkout.price_expiration > timezone.now():
         return checkout_info, lines
 
-    # Taxes are applied to the discounted prices
-    _apply_tax_data_from_plugins(
-        checkout, manager, checkout_info, lines, address, discounts
-    )
+    if checkout.tax_exemption and not site_settings.include_taxes_in_prices:
+        _get_checkout_base_prices(checkout, checkout_info, lines, discounts)
+    else:
+        # Taxes are applied to the discounted prices
+        _apply_tax_data_from_plugins(
+            checkout, manager, checkout_info, lines, address, discounts
+        )
 
-    tax_data = manager.get_taxes_for_checkout(
-        checkout_info,
-        lines,
-    )
-    if tax_data:
-        _apply_tax_data_from_app(checkout, lines, tax_data)
+        tax_data = manager.get_taxes_for_checkout(
+            checkout_info,
+            lines,
+        )
+        if tax_data:
+            _apply_tax_data_from_app(checkout, lines, tax_data)
+
+    if checkout.tax_exemption and site_settings.include_taxes_in_prices:
+        _exempt_taxes_in_checkout(checkout, lines)
 
     checkout.price_expiration = (
         timezone.now() + settings.CHECKOUT_PRICES_TTL  # type: ignore
@@ -286,6 +310,18 @@ def fetch_checkout_prices_if_expired(
     )
 
     return checkout_info, lines
+
+
+def _exempt_taxes_in_checkout(checkout, lines_info):
+    checkout.total_gross_amount = checkout.total_net_amount
+    checkout.subtotal_gross_amount = checkout.subtotal_net_amount
+    checkout.shipping_price_gross_amount = checkout.shipping_price_net_amount
+    checkout.shipping_tax_rate = Decimal("0.00")
+
+    for line_info in lines_info:
+        total_price_net_amount = line_info.line.total_price_net_amount
+        line_info.line.total_price_gross_amount = total_price_net_amount
+        line_info.line.tax_rate = Decimal("0.00")
 
 
 def _calculate_checkout_total(checkout, currency):
@@ -389,4 +425,60 @@ def _apply_tax_data_from_plugins(
     )
     checkout.total = manager.calculate_checkout_total(
         checkout_info, lines, address, discounts
+    )
+
+
+def _get_checkout_base_prices(
+    checkout: "Checkout",
+    checkout_info: "CheckoutInfo",
+    lines: Iterable["CheckoutLineInfo"],
+    discounts: Optional[Iterable[DiscountInfo]] = None,
+) -> None:
+    if not discounts:
+        discounts = []
+
+    currency = checkout_info.checkout.currency
+
+    for line_info in lines:
+        line = line_info.line
+
+        total_price_default = base_calculations.calculate_base_line_total_price(
+            line_info,
+            checkout_info.channel,
+            discounts,
+        )
+        line.total_price = quantize_price(
+            TaxedMoney(net=total_price_default, gross=total_price_default), currency
+        )
+
+        unit_price_default = base_calculations.calculate_base_line_unit_price(
+            line_info, checkout_info.channel, discounts
+        )
+        unit_price = quantize_price(
+            TaxedMoney(net=unit_price_default, gross=unit_price_default), currency
+        )
+
+        line.tax_rate = base_calculations.base_tax_rate(unit_price)
+
+    shipping_price_default = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines
+    )
+    checkout.shipping_price = quantize_price(
+        TaxedMoney(shipping_price_default, shipping_price_default), currency
+    )
+
+    checkout.shipping_tax_rate = base_calculations.base_tax_rate(
+        checkout.shipping_price
+    )
+
+    subtotal_default = sum(
+        [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
+    )
+    checkout.subtotal = subtotal_default
+
+    total_default = base_calculations.base_checkout_total(
+        checkout_info, discounts, lines
+    )
+    checkout.total = quantize_price(
+        TaxedMoney(net=total_default, gross=total_default), currency
     )

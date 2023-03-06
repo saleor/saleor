@@ -101,7 +101,7 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
         raise PermissionDenied()
 
     requester = get_user_or_app_from_context(info.context)
-    if not requester.has_perms(required_permissions):
+    if not requester or not requester.has_perms(required_permissions):
         raise PermissionDenied()
 
 

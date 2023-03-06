@@ -76,7 +76,7 @@ def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]
     return products
 
 
-def get_products_ids_without_variants(products_list: "List[Product]") -> "List[str]":
+def get_products_ids_without_variants(products_list: List["Product"]) -> List[int]:
     """Return list of product's ids without variants."""
     products_ids = [product.id for product in products_list]
     products_ids_without_variants = Product.objects.filter(

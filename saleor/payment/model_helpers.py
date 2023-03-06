@@ -1,5 +1,5 @@
 from operator import attrgetter
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, List
 
 from ..core.taxes import zero_money, zero_taxed_money
 from .models import Payment
@@ -24,6 +24,6 @@ def get_total_authorized(payments: List[Payment], fallback_currency: str):
     return zero_money(fallback_currency)
 
 
-def get_subtotal(order_lines: List["OrderLine"], fallback_currency: str):
+def get_subtotal(order_lines: Iterable["OrderLine"], fallback_currency: str):
     subtotal_iterator = (line.total_price for line in order_lines)
     return sum(subtotal_iterator, zero_taxed_money(currency=fallback_currency))

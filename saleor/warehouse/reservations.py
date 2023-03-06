@@ -288,7 +288,7 @@ def reserve_preorders(
     )
 
     insufficient_stocks: List[InsufficientStockData] = []
-    reservations: List[Reservation] = []
+    reservations: List[PreorderReservation] = []
     for line in checkout_lines_to_reserve:
         insufficient_stocks, reservation = _create_preorder_reservation(
             line,
@@ -391,10 +391,10 @@ def is_reservation_enabled(settings) -> bool:
     )
 
 
-def get_reservation_length(request) -> Optional[int]:
-    if request.user.is_authenticated:
-        return request.site.settings.reserve_stock_duration_authenticated_user
-    return request.site.settings.reserve_stock_duration_anonymous_user
+def get_reservation_length(site, user) -> Optional[int]:
+    if user:
+        return site.settings.reserve_stock_duration_authenticated_user
+    return site.settings.reserve_stock_duration_anonymous_user
 
 
 def get_listings_reservations(

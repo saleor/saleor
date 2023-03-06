@@ -18,6 +18,7 @@ from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..core.utils import from_global_id_or_error
 from ..meta.resolvers import resolve_metadata
+from ..plugins.dataloaders import load_plugin_manager
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .types import Address, AddressValidationData, ChoiceValue, User
 from .utils import (
@@ -158,7 +159,7 @@ def resolve_address_validation_rules(
 
 @traced_resolver
 def resolve_payment_sources(info, user: models.User, channel_slug: str):
-    manager = info.context.plugins
+    manager = load_plugin_manager(info.context)
     stored_customer_accounts = (
         (gtw.id, fetch_customer_id(user, gtw.id))
         for gtw in gateway.list_gateways(manager, channel_slug)
@@ -205,7 +206,7 @@ def resolve_address(info, id):
     _, address_pk = from_global_id_or_error(id, Address)
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(pk=address_pk).first()
-    if user and not user.is_anonymous:
+    if user:
         return user.addresses.filter(id=address_pk).first()
     raise PermissionDenied(
         permissions=[AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
@@ -221,7 +222,7 @@ def resolve_addresses(info, ids):
     ]
     if app and app.has_perm(AccountPermissions.MANAGE_USERS):
         return models.Address.objects.filter(id__in=ids)
-    if user and not user.is_anonymous:
+    if user:
         return user.addresses.filter(id__in=ids)
     return models.Address.objects.none()
 

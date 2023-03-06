@@ -16,6 +16,7 @@ from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
+    ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -130,7 +131,7 @@ class AppExtension(AppManifestExtension, ModelObjectType):
             app_id = root.app_id
         else:
             requestor = get_user_or_app_from_context(info.context)
-            if requestor.has_perm(AppPermission.MANAGE_APPS):
+            if requestor and requestor.has_perm(AppPermission.MANAGE_APPS):
                 app_id = root.app_id
 
         if not app_id:
@@ -147,8 +148,11 @@ class AppExtension(AppManifestExtension, ModelObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_access_token(root: models.App, info):
-        return resolve_access_token_for_app_extension(info, root)
+    def resolve_access_token(root: models.AppExtension, info):
+        def _resolve_access_token(app):
+            return resolve_access_token_for_app_extension(info, root, app)
+
+        return AppByIdLoader(info.context).load(root.app_id).then(_resolve_access_token)
 
 
 class AppExtensionCountableConnection(CountableConnection):
@@ -210,6 +214,13 @@ class Manifest(graphene.ObjectType):
         AppManifestWebhook,
         description="List of the app's webhooks." + ADDED_IN_35 + PREVIEW_FEATURE,
         required=True,
+    )
+    audience = graphene.String(
+        description=(
+            "The audience that will be included in all JWT tokens for the app."
+            + ADDED_IN_38
+            + PREVIEW_FEATURE
+        )
     )
 
     class Meta:
@@ -343,7 +354,7 @@ class App(ModelObjectType):
         from .resolvers import resolve_apps
 
         requestor = get_user_or_app_from_context(info.context)
-        if not requestor.has_perm(AppPermission.MANAGE_APPS):
+        if not requestor or not requestor.has_perm(AppPermission.MANAGE_APPS):
             qs = models.App.objects.none()
         else:
             qs = resolve_apps(info)

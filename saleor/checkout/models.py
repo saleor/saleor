@@ -159,12 +159,15 @@ class Checkout(ModelWithMetadata):
         max_length=35, choices=settings.LANGUAGES, default=settings.LANGUAGE_CODE
     )
 
+    tax_exemption = models.BooleanField(default=False)
+
     class Meta(ModelWithMetadata.Meta):
         ordering = ("-last_change", "pk")
         permissions = (
             (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
             (CheckoutPermissions.HANDLE_CHECKOUTS.codename, "Handle checkouts"),
             (CheckoutPermissions.HANDLE_TAXES.codename, "Handle taxes"),
+            (CheckoutPermissions.MANAGE_TAXES.codename, "Manage taxes"),
         )
 
     def __iter__(self):

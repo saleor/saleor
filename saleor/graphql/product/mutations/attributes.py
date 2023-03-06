@@ -265,7 +265,6 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
                 )
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
         operations: List[ProductAttributeAssignInput] = data["operations"]
@@ -291,9 +290,10 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
         # Ensure the attribute are assignable
         cls.clean_operations(product_type, product_attrs_data, variant_attrs_data)
 
-        # Commit
-        cls.save_field_values(product_type, "AttributeProduct", product_attrs_data)
-        cls.save_field_values(product_type, "AttributeVariant", variant_attrs_data)
+        with traced_atomic_transaction():
+            # Commit
+            cls.save_field_values(product_type, "AttributeProduct", product_attrs_data)
+            cls.save_field_values(product_type, "AttributeVariant", variant_attrs_data)
 
         return cls(product_type=product_type)
 
@@ -515,7 +515,6 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
         ).update(variant_selection=False)
 
     @classmethod
-    @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         product_type_id: str = data["product_type_id"]
         operations: List[ProductAttributeAssignmentUpdateInput] = data["operations"]
@@ -540,7 +539,8 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
             )
 
         cls.clean_operations(product_type, variant_attrs_data)
-        cls.update_field_values(product_type, variant_attrs_data)
+        with traced_atomic_transaction():
+            cls.update_field_values(product_type, variant_attrs_data)
         return cls(product_type=product_type)
 
 
