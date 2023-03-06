@@ -3,7 +3,7 @@ from datetime import datetime
 import graphene
 
 from .....order import OrderStatus
-from .....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from .....order.models import Order, OrderEvent, OrderLine
 from ....tests.utils import get_graphql_content
 
 ORDER_BULK_CREATE = """
@@ -75,8 +75,6 @@ def test_order_bulk_create(
     orders_count = Order.objects.count()
     order_lines_count = OrderLine.objects.count()
     order_events = OrderEvent.objects.count()
-    fulfillment_count = Fulfillment.objects.count()
-    fulfillmen_line_count = FulfillmentLine.objects.count()
 
     shipping_method = shipping_method_channel_PLN
     user = {
@@ -119,24 +117,6 @@ def test_order_bulk_create(
         "userId": graphene.Node.to_global_id("User", customer_user.id),
         # "appId": graphene.Node.to_global_id("App", app.id),
     }
-    fulfillment_line_1 = {
-        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "stocks": [
-            {
-                "quantity": 3,
-                "warehouseId": graphene.Node.to_global_id(
-                    "Warehouse", warehouses[0].id
-                ),
-            },
-            {
-                "quantity": 2,
-                "warehouseId": graphene.Node.to_global_id(
-                    "Warehouse", warehouses[1].id
-                ),
-            },
-        ],
-    }
-    fulfillment_1 = {"trackingCode": "abc-123", "lines": [fulfillment_line_1]}
     order_1 = {
         "channel": channel_PLN.slug,
         "createdAt": datetime.now(),
@@ -149,7 +129,6 @@ def test_order_bulk_create(
         "lines": [line_1],
         "notes": [note_1],
         "weight": "10.15",
-        "fulfillments": [fulfillment_1],
     }
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     variables = {"orders": [order_1]}
@@ -167,13 +146,7 @@ def test_order_bulk_create(
     assert order["events"][0]["message"] == "Test message"
     assert order["weight"]["value"] == 10.15
     assert order["displayGrossPrices"]
-    assert (
-        order["fulfillments"][0]["lines"][0]["orderLine"]["id"]
-        == order["lines"][0]["id"]
-    )
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert OrderEvent.objects.count() == order_events + 1
-    assert Fulfillment.objects.count() == fulfillment_count + 1
-    assert FulfillmentLine.objects.count() == fulfillmen_line_count + 1
