@@ -29,7 +29,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
@@ -114,6 +114,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         cls,
         _root,
         info,
+        /,
         shipping_address,
         validation_rules=None,
         checkout_id=None,
@@ -126,7 +127,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             checkout_id=checkout_id,
             token=token,
             id=id,
-            error_class=CheckoutErrorCode,
             qs=models.Checkout.objects.prefetch_related(
                 "lines__variant__product__product_type"
             ),
@@ -138,7 +138,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 {
                     "shipping_address": ValidationError(
                         ERROR_DOES_NOT_SHIP,
-                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value,
                     )
                 }
             )
@@ -154,7 +154,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 "enable_fields_normalization", True
             ),
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(

@@ -17,13 +17,19 @@ from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, PREVIEW_FEATURE
+from ....core import ResolveInfo
+from ....core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_38,
+    ADDED_IN_310,
+    PREVIEW_FEATURE,
+)
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import NonNullList, ProductError
 from ....core.utils import get_duplicated_values
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ....warehouse.types import Warehouse
 from ...types import ProductVariant
 from ...utils import (
@@ -83,6 +89,10 @@ class ProductVariantInput(graphene.InputObjectType):
             "Fields required to update the product variant private metadata."
             + ADDED_IN_38
         ),
+        required=False,
+    )
+    external_reference = graphene.String(
+        description="External ID of this product variant." + ADDED_IN_310,
         required=False,
     )
 
@@ -156,9 +166,13 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def clean_input(
-        cls, info, instance: models.ProductVariant, data: dict, input_cls=None
+        cls,
+        info: ResolveInfo,
+        instance: models.ProductVariant,
+        data: dict,
+        **kwargs,
     ):
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
@@ -278,49 +292,7 @@ class ProductVariantCreate(ModelMutation):
             )
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation.
-
-        If we are updating an instance and want to update its attributes,
-        # prefetch them.
-        """
-
-        object_id = data.get("id")
-        object_sku = data.get("sku")
-        attributes = data.get("attributes")
-
-        if attributes:
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product__product_type__variant_attributes__values",
-                "product__product_type__attributevariant",
-            )
-        else:
-            # Use the default queryset.
-            qs = models.ProductVariant.objects.all()
-
-        if object_id:
-            return cls.get_node_or_error(
-                info, object_id, only_type="ProductVariant", qs=qs
-            )
-        elif object_sku:
-            instance = qs.filter(sku=object_sku).first()
-            if not instance:
-                raise ValidationError(
-                    {
-                        "sku": ValidationError(
-                            f"Couldn't resolve to a node: {object_sku}",
-                            code="not_found",
-                        )
-                    }
-                )
-            return instance
-        else:
-            return cls._meta.model()
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         new_variant = instance.pk is None
         with traced_atomic_transaction():
             instance.save()
@@ -340,7 +312,7 @@ class ProductVariantCreate(ModelMutation):
             if not instance.name:
                 generate_and_set_variant_name(instance, cleaned_input.get("sku"))
 
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             update_product_search_vector(instance.product)
             event_to_call = (
                 manager.product_variant_created

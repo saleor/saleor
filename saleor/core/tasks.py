@@ -25,9 +25,9 @@ def delete_event_payloads_task():
         deliveries__isnull=True, created_at__lte=delete_period
     )
 
-    attempts._raw_delete(attempts.db)
-    deliveries._raw_delete(deliveries.db)
-    payloads._raw_delete(payloads.db)
+    attempts._raw_delete(attempts.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+    deliveries._raw_delete(deliveries.db)  # type: ignore[attr-defined] # raw access # noqa: E501
+    payloads._raw_delete(payloads.db)  # type: ignore[attr-defined] # raw access # noqa: E501
 
 
 @app.task(

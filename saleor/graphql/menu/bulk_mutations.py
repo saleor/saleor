@@ -2,9 +2,10 @@ import graphene
 
 from ...core.permissions import MenuPermissions
 from ...menu import models
+from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import MenuError, NonNullList
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Menu, MenuItem
 
 
@@ -23,10 +24,10 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         menus = list(queryset)
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for menu in menus:
             manager.menu_deleted(menu)
 
@@ -46,9 +47,9 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "menu_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         menu_items = list(queryset)
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for menu_item in menu_items:
             manager.menu_item_deleted(menu_item)

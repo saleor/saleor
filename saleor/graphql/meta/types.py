@@ -1,8 +1,13 @@
+from typing import Optional
+
 import graphene
 from graphene.types.generic import GenericScalar
 
+from ...checkout.models import Checkout
+from ...checkout.utils import get_or_create_checkout_metadata
 from ...core.models import ModelWithMetadata
 from ..channel import ChannelContext
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_33, PREVIEW_FEATURE
 from ..core.types import NonNullList
 from .resolvers import (
@@ -38,86 +43,113 @@ def _filter_metadata(metadata, keys):
     return {key: value for key, value in metadata.items() if key in keys}
 
 
+class MetadataDescription:
+    PRIVATE_METADATA = (
+        "List of private metadata items. Requires staff permissions to access."
+    )
+    PRIVATE_METAFIELD = (
+        "A single key from private metadata. "
+        "Requires staff permissions to access.\n\n"
+        "Tip: Use GraphQL aliases to fetch multiple keys."
+    )
+    PRIVATE_METAFIELDS = (
+        "Private metadata. Requires staff permissions to access. "
+        "Use `keys` to control which fields you want to include. "
+        "The default is to include everything."
+    )
+    METADATA = "List of public metadata items. Can be accessed without permissions."
+    METAFIELD = (
+        "A single key from public metadata.\n\n"
+        "Tip: Use GraphQL aliases to fetch multiple keys."
+    )
+    METAFIELDS = (
+        "Public metadata. Use `keys` to control which fields you want to include. "
+        "The default is to include everything."
+    )
+
+
 class ObjectWithMetadata(graphene.Interface):
     private_metadata = NonNullList(
         MetadataItem,
         required=True,
-        description=(
-            "List of private metadata items. Requires staff permissions to access."
-        ),
+        description=MetadataDescription.PRIVATE_METADATA,
     )
     private_metafield = graphene.String(
         args={"key": graphene.NonNull(graphene.String)},
         description=(
-            "A single key from private metadata. "
-            "Requires staff permissions to access.\n\n"
-            "Tip: Use GraphQL aliases to fetch multiple keys."
-            + ADDED_IN_33
-            + PREVIEW_FEATURE
+            MetadataDescription.PRIVATE_METAFIELD + ADDED_IN_33 + PREVIEW_FEATURE
         ),
     )
     private_metafields = Metadata(
         args={"keys": NonNullList(graphene.String)},
         description=(
-            "Private metadata. Requires staff permissions to access. "
-            "Use `keys` to control which fields you want to include. "
-            "The default is to include everything." + ADDED_IN_33 + PREVIEW_FEATURE
+            MetadataDescription.PRIVATE_METAFIELDS + ADDED_IN_33 + PREVIEW_FEATURE
         ),
     )
     metadata = NonNullList(
         MetadataItem,
         required=True,
-        description=(
-            "List of public metadata items. Can be accessed without permissions."
-        ),
+        description=(MetadataDescription.METADATA),
     )
     metafield = graphene.String(
         args={"key": graphene.NonNull(graphene.String)},
-        description=(
-            "A single key from public metadata.\n\n"
-            "Tip: Use GraphQL aliases to fetch multiple keys."
-            + ADDED_IN_33
-            + PREVIEW_FEATURE
-        ),
+        description=(MetadataDescription.METAFIELD + ADDED_IN_33 + PREVIEW_FEATURE),
     )
     metafields = Metadata(
         args={"keys": NonNullList(graphene.String)},
-        description=(
-            "Public metadata. Use `keys` to control which fields you want to include. "
-            "The default is to include everything." + ADDED_IN_33 + PREVIEW_FEATURE
-        ),
+        description=(MetadataDescription.METAFIELDS + ADDED_IN_33 + PREVIEW_FEATURE),
     )
 
     @staticmethod
-    def resolve_metadata(root: ModelWithMetadata, _info):
+    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo):
+        if isinstance(root, Checkout):
+            from ..checkout.types import Checkout as CheckoutType
+
+            return CheckoutType.resolve_metadata(root, info)
         return resolve_metadata(root.metadata)
 
     @staticmethod
-    def resolve_metafield(root: ModelWithMetadata, _info, *, key: str):
+    def resolve_metafield(
+        root: ModelWithMetadata, _info: ResolveInfo, *, key: str
+    ) -> Optional[str]:
         return root.metadata.get(key)
 
     @staticmethod
-    def resolve_metafields(root: ModelWithMetadata, _info, *, keys=None):
+    def resolve_metafields(root: ModelWithMetadata, _info: ResolveInfo, *, keys=None):
         return _filter_metadata(root.metadata, keys)
 
     @staticmethod
-    def resolve_private_metadata(root: ModelWithMetadata, info):
+    def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
         return resolve_private_metadata(root, info)
 
     @staticmethod
-    def resolve_private_metafield(root: ModelWithMetadata, info, *, key: str):
+    def resolve_private_metafield(
+        root: ModelWithMetadata, info: ResolveInfo, *, key: str
+    ) -> Optional[str]:
         check_private_metadata_privilege(root, info)
         return root.private_metadata.get(key)
 
     @staticmethod
-    def resolve_private_metafields(root: ModelWithMetadata, info, *, keys=None):
+    def resolve_private_metafields(
+        root: ModelWithMetadata, info: ResolveInfo, *, keys=None
+    ):
         check_private_metadata_privilege(root, info)
         return _filter_metadata(root.private_metadata, keys)
 
     @classmethod
-    def resolve_type(cls, instance: ModelWithMetadata, _info):
+    def resolve_type(cls, instance: ModelWithMetadata, info: ResolveInfo):
         if isinstance(instance, ChannelContext):
             # Return instance for types that use ChannelContext
             instance = instance.node
+        if isinstance(instance, Checkout):
+            from ..checkout.types import Checkout as CheckoutType
+
+            return CheckoutType.resolve_type(instance, info)
         item_type, _ = resolve_object_with_metadata_type(instance)
         return item_type
+
+
+def get_valid_metadata_instance(instance):
+    if isinstance(instance, Checkout):
+        instance = get_or_create_checkout_metadata(instance)
+    return instance

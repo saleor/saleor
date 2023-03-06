@@ -818,6 +818,36 @@ def test_checkout_available_collection_points_with_line_avail_in_2_local_and_1_a
     assert all(c in expected_collection_points for c in received_collection_points)
 
 
+def test_checkout_available_collection_points_two_lines_for_same_checkout(
+    api_client, checkout_with_items_for_cc, stocks_for_cc
+):
+    # given
+    expected_collection_points = [
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse4"},
+        {"address": {"streetAddress1": "Tęczowa 7"}, "name": "Warehouse2"},
+    ]
+
+    line = checkout_with_items_for_cc.lines.first()
+    line_2 = checkout_with_items_for_cc.lines.all()[1]
+    line_2.variant = line.variant
+    line_2.save(update_fields=["variant"])
+
+    query = GET_CHECKOUT_AVAILABLE_COLLECTION_POINTS
+    variables = {"id": to_global_id_or_none(checkout_with_items_for_cc)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    received_collection_points = content["data"]["checkout"][
+        "availableCollectionPoints"
+    ]
+
+    assert len(received_collection_points) == len(expected_collection_points)
+    assert all(c in expected_collection_points for c in received_collection_points)
+
+
 def test_checkout_avail_collect_points_exceeded_quantity_shows_only_all_warehouse(
     api_client, checkout_with_items_for_cc, stocks_for_cc
 ):

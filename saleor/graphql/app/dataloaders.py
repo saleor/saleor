@@ -1,10 +1,13 @@
 from collections import defaultdict
+from functools import partial, wraps
+from typing import Optional
 
 from django.contrib.auth.hashers import check_password
 from promise import Promise
 
 from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
+from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 
 
@@ -71,26 +74,25 @@ class AppByTokenLoader(DataLoader):
         return [apps.get(authed_apps.get(key)) for key in keys]
 
 
-def promise_app(context):
+def promise_app(context: SaleorContext) -> Promise[Optional[App]]:
     auth_token = get_token_from_request(context)
     if not auth_token or len(auth_token) != 30:
-        return None
+        return Promise.resolve(None)
     return AppByTokenLoader(context).load(auth_token)
 
 
-def load_app(context):
-    if hasattr(context, "app"):
-        return context.app
-    promise = promise_app(context)
-    return None if promise is None else promise.get()
-
-
-def get_app_promise(context):
+def get_app_promise(context: SaleorContext) -> Promise[Optional[App]]:
     if hasattr(context, "app"):
         return Promise.resolve(context.app)
 
-    promise = promise_app(context)
-    if promise is None:
-        return Promise.resolve(None)
+    return promise_app(context)
 
-    return promise
+
+def app_promise_callback(func):
+    @wraps(func)
+    def _wrapper(root, info, *args, **kwargs):
+        return get_app_promise(info.context).then(
+            partial(func, root, info, *args, **kwargs)
+        )
+
+    return _wrapper

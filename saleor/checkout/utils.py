@@ -37,11 +37,9 @@ from .fetch import (
     update_checkout_info_delivery_method,
     update_checkout_info_shipping_address,
 )
-from .models import Checkout, CheckoutLine
+from .models import Checkout, CheckoutLine, CheckoutMetadata
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import Address
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -163,7 +161,7 @@ def add_variant_to_checkout(
         if line is not None:
             line.delete()
     elif line is None:
-        checkout.lines.create(  # type: ignore
+        checkout.lines.create(
             variant=variant,
             quantity=new_quantity,
             currency=checkout.currency,
@@ -362,8 +360,8 @@ def change_shipping_address_in_checkout(
     )
     updated_fields = []
     if changed:
-        if remove:
-            checkout.shipping_address.delete()  # type: ignore
+        if remove and checkout.shipping_address:
+            checkout.shipping_address.delete()
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
             checkout_info, address, lines, discounts, manager, shipping_channel_listings
@@ -791,11 +789,11 @@ def get_valid_internal_shipping_methods_for_checkout(
         listing.shipping_method_id: listing for listing in shipping_channel_listings
     }
 
-    internal_methods = []
+    internal_methods: List[ShippingMethodData] = []
     for method in shipping_methods:
         listing = channel_listings_map.get(method.pk)
-        shipping_method_data = convert_to_shipping_method_data(method, listing)
-        if shipping_method_data:
+        if listing:
+            shipping_method_data = convert_to_shipping_method_data(method, listing)
             internal_methods.append(shipping_method_data)
 
     return internal_methods
@@ -837,8 +835,12 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
         update_fields=[
             "shipping_method",
             "collection_point",
-            "private_metadata",
             "last_change",
+        ]
+    )
+    get_or_create_checkout_metadata(checkout).save(
+        update_fields=[
+            "private_metadata",
         ]
     )
 
@@ -894,12 +896,12 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
             graphene.Node.to_global_id("ProductVariant", pk)
             for pk in not_available_variants
         }
-        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+        error_code = CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value
         raise ValidationError(
             {
                 "lines": ValidationError(
                     "Cannot add lines with unavailable variants.",
-                    code=error_code,  # type: ignore
+                    code=error_code,
                     params={"variants": not_available_variants_ids},
                 )
             }
@@ -907,14 +909,27 @@ def validate_variants_in_checkout_lines(lines: Iterable["CheckoutLineInfo"]):
 
 
 def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
-    checkout.store_value_in_private_metadata(
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.store_value_in_private_metadata(
         {PRIVATE_META_APP_SHIPPING_ID: app_shipping_id}
     )
 
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
-    return container.get_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    if type(container) == Checkout:
+        container = get_or_create_checkout_metadata(container)
+    return container.get_value_from_private_metadata(  # type:ignore
+        PRIVATE_META_APP_SHIPPING_ID
+    )
 
 
 def delete_external_shipping_id(checkout: Checkout):
-    checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+    metadata = get_or_create_checkout_metadata(checkout)
+    metadata.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+def get_or_create_checkout_metadata(checkout: "Checkout"):
+    if hasattr(checkout, "metadata_storage"):
+        return checkout.metadata_storage
+    else:
+        return CheckoutMetadata.objects.create(checkout=checkout)

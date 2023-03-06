@@ -3,8 +3,9 @@ import graphene
 from .....core.permissions import ProductPermissions
 from .....product import models
 from .....thumbnail import models as thumbnail_models
+from ....core import ResolveInfo
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 from .category_create import CategoryCreate, CategoryInput
 
@@ -35,6 +36,6 @@ class CategoryUpdate(CategoryCreate):
         return super().construct_instance(instance, cleaned_data)
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.category_updated, instance)

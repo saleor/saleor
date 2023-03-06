@@ -3,6 +3,7 @@ import graphene
 from ...tax import models
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
 from ..core.types import CountryDisplay, ModelObjectType, NonNullList
@@ -15,7 +16,7 @@ from .dataloaders import (
 from .enums import TaxCalculationStrategy
 
 
-class TaxConfiguration(ModelObjectType):
+class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
     channel = graphene.Field(
         Channel,
         description="A channel to which the tax configuration applies to.",
@@ -59,17 +60,19 @@ class TaxConfiguration(ModelObjectType):
         model = models.TaxConfiguration
 
     @staticmethod
-    def resolve_channel(root: models.TaxConfiguration, info):
+    def resolve_channel(root: models.TaxConfiguration, info: ResolveInfo):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
-    def resolve_countries(root: models.TaxConfiguration, info):
+    def resolve_countries(root: models.TaxConfiguration, info: ResolveInfo):
         return TaxConfigurationPerCountryByTaxConfigurationIDLoader(info.context).load(
             root.pk
         )
 
     @staticmethod
-    def resolve_tax_calculation_strategy(root: models.TaxConfiguration, _info):
+    def resolve_tax_calculation_strategy(
+        root: models.TaxConfiguration, _info: ResolveInfo
+    ):
         return root.tax_calculation_strategy or TaxCalculationStrategy.FLAT_RATES
 
 
@@ -78,7 +81,7 @@ class TaxConfigurationCountableConnection(CountableConnection):
         node = TaxConfiguration
 
 
-class TaxConfigurationPerCountry(ModelObjectType):
+class TaxConfigurationPerCountry(ModelObjectType[models.TaxConfigurationPerCountry]):
     country = graphene.Field(
         CountryDisplay,
         required=True,
@@ -115,11 +118,11 @@ class TaxConfigurationPerCountry(ModelObjectType):
         model = models.TaxConfigurationPerCountry
 
     @staticmethod
-    def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+    def resolve_country(root: models.TaxConfigurationPerCountry, _info: ResolveInfo):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
 
-class TaxClass(ModelObjectType):
+class TaxClass(ModelObjectType[models.TaxClass]):
     name = graphene.String(description="Name of the tax class.", required=True)
     countries = NonNullList(
         "saleor.graphql.tax.types.TaxClassCountryRate",
@@ -146,7 +149,7 @@ class TaxClassCountableConnection(CountableConnection):
         node = TaxClass
 
 
-class TaxClassCountryRate(ModelObjectType):
+class TaxClassCountryRate(ModelObjectType[models.TaxClassCountryRate]):
     country = graphene.Field(
         CountryDisplay,
         required=True,
@@ -166,11 +169,11 @@ class TaxClassCountryRate(ModelObjectType):
         model = models.TaxClassCountryRate
 
     @staticmethod
-    def resolve_country(root: models.TaxConfigurationPerCountry, _info):
+    def resolve_country(root: models.TaxConfigurationPerCountry, _info: ResolveInfo):
         return CountryDisplay(code=root.country.code, country=root.country.name)
 
     @staticmethod
-    def resolve_tax_class(root, info):
+    def resolve_tax_class(root, info: ResolveInfo):
         return (
             TaxClassByIdLoader(info.context).load(root.tax_class_id)
             if root.tax_class_id
@@ -194,5 +197,5 @@ class TaxCountryConfiguration(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_country(root, info, **kwargs):
+    def resolve_country(root, _info: ResolveInfo, **kwargs):
         return CountryDisplay(code=root.country.code, country=root.country.name)

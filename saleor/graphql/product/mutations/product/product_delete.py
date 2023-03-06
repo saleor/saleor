@@ -8,18 +8,24 @@ from .....order import events as order_events
 from .....order import models as order_models
 from .....order.tasks import recalculate_orders_task
 from .....product import models
-from ....app.dataloaders import load_app
+from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
-from ....core.mutations import ModelDeleteMutation
+from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_310
+from ....core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 from ...utils import get_draft_order_lines_data_for_variants
 
 
-class ProductDelete(ModelDeleteMutation):
+class ProductDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a product to delete.")
+        id = graphene.ID(required=False, description="ID of a product to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product to delete. {ADDED_IN_310}",
+        )
 
     class Meta:
         description = "Deletes a product."
@@ -35,10 +41,10 @@ class ProductDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-
-        instance = cls.get_node_or_error(info, node_id, only_type=Product)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         variants_id = list(instance.variants.all().values_list("id", flat=True))
         with traced_atomic_transaction():
             cls.delete_assigned_attribute_values(instance)
@@ -47,14 +53,16 @@ class ProductDelete(ModelDeleteMutation):
                 variants_id
             )
 
-            response = super().perform_mutation(_root, info, **data)
+            response = super().perform_mutation(
+                _root, info, external_reference=external_reference, id=id
+            )
 
             # delete order lines for deleted variant
             order_models.OrderLine.objects.filter(
                 pk__in=draft_order_lines_data.line_pks
             ).delete()
 
-            app = load_app(info.context)
+            app = get_app_promise(info.context).get()
             # run order event for deleted lines
             for (
                 order,
@@ -65,7 +73,7 @@ class ProductDelete(ModelDeleteMutation):
                 )
 
             order_pks = draft_order_lines_data.order_pks
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             if order_pks:
                 recalculate_orders_task.delay(list(order_pks))
             cls.call_event(manager.product_deleted, instance, variants_id)

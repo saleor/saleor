@@ -16,11 +16,12 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import (
@@ -54,7 +55,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         errors_mapping = {"lines": "input", "channel": "input"}
 
     @classmethod
-    def validate_lines(cls, info, data, existing_lines_info):
+    def validate_lines(cls, info: ResolveInfo, data, existing_lines_info):
         grouped_lines_data: List[OrderLineData] = []
         lines_data_map: Dict[str, OrderLineData] = defaultdict(OrderLineData)
 
@@ -63,11 +64,11 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         ]
 
         invalid_ids = []
-        for input_line in data.get("input"):
-            variant_id = input_line["variant_id"]
+        for input_line in data:
+            variant_id: str = input_line["variant_id"]
             force_new_line = input_line["force_new_line"]
             variant = cls.get_node_or_error(
-                info, variant_id, "variant_id", only_type=ProductVariant
+                info, variant_id, field="variant_id", only_type=ProductVariant
             )
             quantity = input_line["quantity"]
 
@@ -101,7 +102,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 {
                     "quantity": ValidationError(
                         "Variants quantity must be greater than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                         params={"variants": invalid_ids},
                     ),
                 }
@@ -143,16 +144,18 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         return added_lines
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
+        order = cls.get_node_or_error(info, id, only_type=Order)
         cls.validate_order(order)
         existing_lines_info = fetch_order_lines(order)
 
-        lines_to_add = cls.validate_lines(info, data, existing_lines_info)
+        lines_to_add = cls.validate_lines(info, input, existing_lines_info)
         variants = [line.variant for line in lines_to_add]
         cls.validate_variants(order, variants)
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         with traced_atomic_transaction():
             added_lines = cls.add_lines_to_order(

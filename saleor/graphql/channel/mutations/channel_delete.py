@@ -1,14 +1,18 @@
+from typing import Dict, Optional
+
 import graphene
 from django.core.exceptions import ValidationError
 
 from ....channel import models
+from ....channel.error_codes import ChannelErrorCode
 from ....checkout.models import Checkout
 from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
+from ...core import ResolveInfo
 from ...core.mutations import ModelDeleteMutation
-from ...core.types import ChannelError, ChannelErrorCode
-from ...plugins.dataloaders import load_plugin_manager
+from ...core.types import ChannelError
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 
@@ -44,7 +48,7 @@ class ChannelDelete(ModelDeleteMutation):
                 {
                     "channel_id": ValidationError(
                         "Cannot migrate data to the channel that is being removed.",
-                        code=ChannelErrorCode.INVALID,
+                        code=ChannelErrorCode.INVALID.value,
                     )
                 }
             )
@@ -57,7 +61,7 @@ class ChannelDelete(ModelDeleteMutation):
                         f"Cannot migrate from {origin_channel_currency} "
                         f"to {target_channel_currency}. "
                         "Migration are allowed between the same currency",
-                        code=ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME,
+                        code=ChannelErrorCode.CHANNELS_CURRENCY_MUST_BE_THE_SAME.value,
                     )
                 }
             )
@@ -91,7 +95,7 @@ class ChannelDelete(ModelDeleteMutation):
                     "id": ValidationError(
                         "Cannot remove channel with orders. Try to migrate orders to "
                         "another channel by passing `targetChannel` param.",
-                        code=ChannelErrorCode.CHANNEL_WITH_ORDERS,
+                        code=ChannelErrorCode.CHANNEL_WITH_ORDERS.value,
                     )
                 }
             )
@@ -99,14 +103,16 @@ class ChannelDelete(ModelDeleteMutation):
             cls.delete_checkouts(origin_channel.id)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_deleted, instance)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        origin_channel = cls.get_node_or_error(info, data["id"], only_type=Channel)
-        target_channel_global_id = data.get("input", {}).get("channel_id")
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, id: str, input: Optional[Dict] = None
+    ):
+        origin_channel = cls.get_node_or_error(info, id, only_type=Channel)
+        target_channel_global_id = input.get("channel_id") if input else None
         if target_channel_global_id:
             target_channel = cls.get_node_or_error(
                 info, target_channel_global_id, only_type=Channel
@@ -120,4 +126,4 @@ class ChannelDelete(ModelDeleteMutation):
                 origin_channel.warehouses.values("id"),
                 channel_deletion=True,
             )
-        return super().perform_mutation(_root, info, **data)
+        return super().perform_mutation(root, info, id=id)

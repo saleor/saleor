@@ -19,10 +19,10 @@ class OrderSortField(graphene.Enum):
     @property
     def description(self):
         descriptions = {
-            OrderSortField.RANK.name: (
+            OrderSortField.RANK.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 "rank. Note: This option is available only with the `search` filter."
             ),
-            OrderSortField.CREATION_DATE.name: (
+            OrderSortField.CREATION_DATE.name: (  # type: ignore[attr-defined] # graphene.Enum is not typed # noqa: E501
                 f"creation date. {DEPRECATED_IN_3X_INPUT}"
             ),
         }

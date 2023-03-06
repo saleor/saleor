@@ -8,10 +8,11 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....warehouse.management import deactivate_preorder_for_variant
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import ProductVariant
 
 
@@ -37,7 +38,9 @@ class ProductVariantPreorderDeactivate(BaseMutation):
         error_type_class = ProductError
 
     @classmethod
-    def perform_mutation(cls, _root, info, id):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id
+    ):
         qs = models.ProductVariant.objects.prefetched_for_webhook()
         variant = cls.get_node_or_error(
             info, id, field="id", only_type=ProductVariant, qs=qs
@@ -47,7 +50,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
                 {
                     "id": ValidationError(
                         "This variant is not in preorder.",
-                        code=ProductErrorCode.INVALID,
+                        code=ProductErrorCode.INVALID.value,
                     )
                 }
             )
@@ -58,9 +61,9 @@ class ProductVariantPreorderDeactivate(BaseMutation):
             except PreorderAllocationError as error:
                 raise ValidationError(
                     str(error),
-                    code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED,
+                    code=ProductErrorCode.PREORDER_VARIANT_CANNOT_BE_DEACTIVATED.value,
                 )
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             variant = ChannelContext(node=variant, channel_slug=None)
             cls.call_event(manager.product_variant_updated, variant.node)
         return ProductVariantPreorderDeactivate(product_variant=variant)

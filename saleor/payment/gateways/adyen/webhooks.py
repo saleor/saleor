@@ -161,7 +161,7 @@ def create_new_transaction(notification, payment, kind):
         amount=amount,
         currency=currency,
         error="",
-        raw_response={},
+        raw_response=notification,
         psp_reference=transaction_id,
     )
     return create_transaction(
@@ -245,18 +245,13 @@ def handle_not_created_order(notification, payment, checkout, kind, manager):
         ChargeStatus.FULLY_CHARGED,
     }:
         return
-    transaction = payment.transactions.filter(
-        action_required=False, is_success=True, kind=kind
-    ).last()
-    if not transaction:
-        # If the payment is not Auth/Capture, it means that user didn't return to the
-        # storefront and we need to finalize the checkout asynchronously.
-        transaction = create_new_transaction(
-            notification, payment, TransactionKind.ACTION_TO_CONFIRM
-        )
+
+    transaction = create_new_transaction(
+        notification, payment, TransactionKind.ACTION_TO_CONFIRM
+    )
 
     # Only when we confirm that notification is success we will create the order
-    if transaction.is_success and checkout:  # type: ignore
+    if transaction.is_success and checkout:
         confirm_payment_and_set_back_to_confirm(payment, manager, checkout.channel.slug)
         payment.refresh_from_db()  # refresh charge_status
         order = create_order(payment, checkout, manager)
@@ -328,20 +323,11 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
-    if not payment.order:
-        handle_not_created_order(notification, payment, checkout, kind, manager)
-    else:
-        adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
-        kind = TransactionKind.AUTH
-        if adyen_auto_capture:
-            kind = TransactionKind.CAPTURE
-        transaction = payment.transactions.filter(
-            token=transaction_id,
-            action_required=False,
-            is_success=True,
-            kind__in=[TransactionKind.AUTH, TransactionKind.CAPTURE],
-        ).last()
-        if not transaction:
+    transaction = get_transaction(payment, transaction_id, kind)
+    if not transaction:
+        if not payment.order:
+            handle_not_created_order(notification, payment, checkout, kind, manager)
+        else:
             new_transaction = create_new_transaction(notification, payment, kind)
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
@@ -364,6 +350,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                         payment,
                         manager,
                     )
+
     reason = notification.get("reason", "-")
     is_success = True if notification.get("success") == "true" else False
     success_msg = f"Adyen: The payment  {transaction_id} request  was successful."
@@ -446,25 +433,22 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
         try_void_or_refund_inactive_payment(payment, transaction, manager)
         return
 
-    if not payment.order:
-        handle_not_created_order(
-            notification, payment, checkout, TransactionKind.CAPTURE, manager
-        )
-    else:
-        capture_transaction = payment.transactions.filter(
-            action_required=False,
-            is_success=True,
-            kind=TransactionKind.CAPTURE,
-        ).last()
-        new_transaction = create_new_transaction(
-            notification, payment, TransactionKind.CAPTURE
-        )
-        if new_transaction.is_success and not capture_transaction:
-            gateway_postprocess(new_transaction, payment)
-            order_info = fetch_order_info(payment.order)
-            order_captured(
-                order_info, None, None, new_transaction.amount, payment, manager
+    transaction = get_transaction(payment, transaction_id, TransactionKind.CAPTURE)
+    if not transaction:
+        if not payment.order:
+            handle_not_created_order(
+                notification, payment, checkout, TransactionKind.CAPTURE, manager
             )
+        else:
+            new_transaction = create_new_transaction(
+                notification, payment, TransactionKind.CAPTURE
+            )
+            if new_transaction.is_success:
+                gateway_postprocess(new_transaction, payment)
+                order_info = fetch_order_info(payment.order)
+                order_captured(
+                    order_info, None, None, new_transaction.amount, payment, manager
+                )
 
     reason = notification.get("reason", "-")
     is_success = True if notification.get("success") == "true" else False
@@ -745,10 +729,14 @@ def get_or_create_adyen_partial_payments(
         # payments.
         payment_total_to_cover -= new_payment.total
 
-    already_existing_partial_payments = Payment.objects.filter(
-        psp_reference__in=[p.psp_reference for p in new_payments],
-        partial=True,
-        checkout_id=payment.checkout_id,
+    already_existing_partial_payments = (
+        Payment.objects.filter(
+            psp_reference__in=[p.psp_reference for p in new_payments],
+            partial=True,
+            checkout_id=payment.checkout_id,
+        )
+        if payment.checkout_id
+        else []
     )
     if already_existing_partial_payments:
         return list(already_existing_partial_payments)
@@ -864,10 +852,15 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
     adyen_auto_capture = gateway_config.connection_params["adyen_auto_capture"]
     kind = TransactionKind.CAPTURE if adyen_auto_capture else TransactionKind.AUTH
 
+    order = None
     try:
         order = handle_not_created_order(
             notification, payment, checkout, kind, get_plugins_manager()
         )
+    except Exception as e:
+        logger.exception("Exception during order creation", extra={"error": e})
+        return
+    finally:
         if not order and adyen_partial_payments:
             refund_partial_payments(adyen_partial_payments, config=gateway_config)
             # There is a possibility that user will try once again to pay with partial
@@ -878,10 +871,6 @@ def handle_order_closed(notification: Dict[str, Any], gateway_config: GatewayCon
             Payment.objects.filter(
                 id__in=[p.id for p in adyen_partial_payments]
             ).update(partial=False)
-
-    except Exception as e:
-        logger.exception("Exception during order creation", extra={"error": e})
-        return
 
     if adyen_partial_payments:
         create_order_event_about_adyen_partial_payments(adyen_partial_payments, payment)
@@ -924,16 +913,13 @@ def validate_hmac_signature(
         "hmacSignature"
     )
     hmac_key: Optional[str] = gateway_config.connection_params.get("webhook_hmac")
-    if not hmac_key and not hmac_signature:
-        return True
-
-    if not hmac_key and hmac_signature:
-        return False
+    if not hmac_key:
+        return not hmac_signature
 
     if not hmac_signature and hmac_key:
         return False
 
-    hmac_key = hmac_key.encode()  # type: ignore
+    hmac_key = hmac_key.encode()
 
     success = "true" if notification.get("success", "") == "true" else "false"
     if notification.get("success", None) is None:
@@ -1018,7 +1004,7 @@ def handle_webhook(request: WSGIRequest, gateway_config: "GatewayConfig"):
 
     event_handler = EVENT_MAP.get(notification.get("eventCode", ""))
     if event_handler:
-        event_handler(notification, gateway_config)  # type: ignore
+        event_handler(notification, gateway_config)
         return HttpResponse("[accepted]")
     return HttpResponse("[accepted]")
 
@@ -1125,7 +1111,7 @@ def prepare_api_request_data(request: WSGIRequest, data: dict):
 def prepare_redirect_url(
     payment_id: str, checkout_pk: str, api_response: Adyen.Adyen, return_url: str
 ):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)  # type: ignore
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_pk)
 
     params = {
         "checkout": checkout_id,

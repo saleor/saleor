@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import graphene
 
 from ....core.permissions import OrderPermissions
@@ -5,9 +7,11 @@ from ....order import FulfillmentStatus
 from ....order import models as order_models
 from ....order.actions import create_refund_fulfillment
 from ....payment import PaymentError
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Fulfillment, Order
 from .fulfillment_refund_and_return_product_base import (
     FulfillmentRefundAndReturnProductBase,
@@ -80,8 +84,8 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, order_id, input):
-        cleaned_input = {}
+    def clean_input(cls, info: ResolveInfo, order_id, input):
+        cleaned_input: Dict[str, Any] = {}
         amount_to_refund = input.get("amount_to_refund")
         include_shipping_costs = input["include_shipping_costs"]
 
@@ -129,14 +133,15 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         try:
+            app = get_app_promise(info.context).get()
             refund_fulfillment = create_refund_fulfillment(
                 info.context.user,
-                info.context.app,
+                app,
                 order,
                 cleaned_input["payment"],
                 cleaned_input["transactions"],

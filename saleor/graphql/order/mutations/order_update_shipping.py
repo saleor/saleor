@@ -8,9 +8,10 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import invalidate_order_prices
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
+from ...core import ResolveInfo
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
 from .utils import EditableOrderValidationMixin, clean_order_update_shipping
@@ -49,10 +50,12 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, input
+    ):
         order = cls.get_node_or_error(
             info,
-            data.get("id"),
+            id,
             only_type=Order,
             qs=models.Order.objects.prefetch_related(
                 "lines", "channel__shipping_method_listings"
@@ -60,36 +63,34 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
         )
         cls.validate_order(order)
 
-        data = data.get("input")
-
-        if "shipping_method" not in data:
+        if "shipping_method" not in input:
             raise ValidationError(
                 {
                     "shipping_method": ValidationError(
                         "Shipping method must be provided to perform mutation.",
-                        code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                        code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                     )
                 }
             )
 
-        if not data.get("shipping_method"):
+        if not input.get("shipping_method"):
             if not order.is_draft() and order.is_shipping_required():
                 raise ValidationError(
                     {
                         "shipping_method": ValidationError(
                             "Shipping method is required for this order.",
-                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                         )
                     }
                 )
 
             # Shipping method is detached only when null is passed in input.
-            if data["shipping_method"] == "":
+            if input["shipping_method"] == "":
                 raise ValidationError(
                     {
                         "shipping_method": ValidationError(
                             "Shipping method cannot be empty.",
-                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED.value,
                         )
                     }
                 )
@@ -122,9 +123,10 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             )
             return OrderUpdateShipping(order=order)
 
-        method = cls.get_node_or_error(
+        method_id: str = input["shipping_method"]
+        method: shipping_models.ShippingMethod = cls.get_node_or_error(
             info,
-            data["shipping_method"],
+            method_id,
             field="shipping_method",
             only_type=ShippingMethod,
             qs=shipping_models.ShippingMethod.objects.prefetch_related(
@@ -150,7 +152,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
             method,
             shipping_channel_listing,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         clean_order_update_shipping(order, shipping_method_data, manager)
 
         order.shipping_method = method

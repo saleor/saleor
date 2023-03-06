@@ -160,6 +160,45 @@ def test_handle_additional_actions_handles_return_urls(
 
 
 @mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
+def test_handle_additional_actions_sets_psp_reference(
+    api_call_mock, payment_adyen_for_checkout, adyen_plugin
+):
+    # given
+    plugin = adyen_plugin()
+    channel_slug = plugin.channel.slug
+    payment_adyen_for_checkout.to_confirm = True
+    payment_adyen_for_checkout.extra_data = json.dumps(
+        {"payment_data": "test_data", "parameters": ["payload"]}
+    )
+    payment_adyen_for_checkout.save(update_fields=["to_confirm", "extra_data"])
+
+    checkout = payment_adyen_for_checkout.checkout
+    payment_id = graphene.Node.to_global_id("Payment", payment_adyen_for_checkout.pk)
+
+    request_mock = mock.Mock()
+    request_mock.GET = {
+        "payment": payment_id,
+        "checkout": str(checkout.pk),
+        "payload": "test",
+    }
+
+    expected_psp_reference = "psp-11111"
+    payment_details_mock = mock.Mock()
+    message = {
+        "pspReference": expected_psp_reference,
+        "resultCode": "authorised",
+    }
+    api_call_mock.return_value.message = message
+
+    # when
+    handle_additional_actions(request_mock, payment_details_mock, channel_slug)
+
+    # then
+    payment_adyen_for_checkout.refresh_from_db()
+    assert payment_adyen_for_checkout.psp_reference == expected_psp_reference
+
+
+@mock.patch("saleor.payment.gateways.adyen.webhooks.api_call")
 def test_handle_additional_actions_get(
     api_call_mock, payment_adyen_for_checkout, adyen_plugin
 ):

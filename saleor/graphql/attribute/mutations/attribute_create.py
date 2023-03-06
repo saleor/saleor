@@ -1,3 +1,5 @@
+from typing import Tuple, Union
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -6,12 +8,13 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import PageTypePermissions, ProductTypePermissions
-from ...core.descriptions import DEPRECATED_IN_3X_INPUT
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
 from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute
@@ -37,6 +40,10 @@ class AttributeValueInput(graphene.InputObjectType):
         description="URL of the file attribute. Every time, a new value is created.",
     )
     content_type = graphene.String(required=False, description="File content type.")
+    external_reference = graphene.String(
+        description="External ID of this attribute value." + ADDED_IN_310,
+        required=False,
+    )
 
 
 class AttributeValueCreateInput(AttributeValueInput):
@@ -72,6 +79,9 @@ class AttributeCreateInput(graphene.InputObjectType):
     available_in_grid = graphene.Boolean(
         required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
     )
+    external_reference = graphene.String(
+        description="External ID of this attribute." + ADDED_IN_310, required=False
+    )
 
 
 class AttributeCreate(AttributeMixin, ModelMutation):
@@ -94,8 +104,8 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         if cleaned_input.get(
             "input_type"
         ) == AttributeInputType.REFERENCE and not cleaned_input.get("entity_type"):
@@ -110,9 +120,11 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        input = data.get("input")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
         # check permissions based on attribute type
+        permissions: Union[Tuple[ProductTypePermissions], Tuple[PageTypePermissions]]
         if input["type"] == AttributeTypeEnum.PRODUCT_TYPE.value:
             permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         else:
@@ -139,6 +151,6 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         return AttributeCreate(attribute=instance)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_created, instance)

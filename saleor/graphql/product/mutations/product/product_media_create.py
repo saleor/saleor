@@ -8,6 +8,7 @@ from .....core.utils.validators import get_oembed_data
 from .....product import ProductMediaTypes, models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError, Upload
 from ....core.validators.file import (
@@ -16,7 +17,7 @@ from ....core.validators.file import (
     is_image_url,
     validate_image_url,
 )
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductMedia
 
 
@@ -63,7 +64,7 @@ class ProductMediaCreate(BaseMutation):
                 {
                     "input": ValidationError(
                         "Image or external URL is required.",
-                        code=ProductErrorCode.REQUIRED,
+                        code=ProductErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -72,28 +73,29 @@ class ProductMediaCreate(BaseMutation):
                 {
                     "input": ValidationError(
                         "Either image or external URL is required.",
-                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                        code=ProductErrorCode.DUPLICATED_INPUT_ITEM.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        data = data.get("input")
-        cls.validate_input(data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
+        cls.validate_input(input)
         product = cls.get_node_or_error(
             info,
-            data["product"],
+            input["product"],
             field="product",
             only_type=Product,
             qs=models.Product.objects.prefetched_for_webhook(),
         )
 
-        alt = data.get("alt", "")
-        media_url = data.get("media_url")
-        if img_data := data.get("image"):
-            data["image"] = info.context.FILES.get(img_data)
-            image_data = clean_image_file(data, "image", ProductErrorCode)
+        alt = input.get("alt", "")
+        media_url = input.get("media_url")
+        if img_data := input.get("image"):
+            input["image"] = info.context.FILES.get(img_data)
+            image_data = clean_image_file(input, "image", ProductErrorCode)
             media = product.media.create(
                 image=image_data, alt=alt, type=ProductMediaTypes.IMAGE
             )
@@ -102,7 +104,9 @@ class ProductMediaCreate(BaseMutation):
             # In case of images, file is downloaded. Otherwise we keep only
             # URL to remote media.
             if is_image_url(media_url):
-                validate_image_url(media_url, "media_url", ProductErrorCode.INVALID)
+                validate_image_url(
+                    media_url, "media_url", ProductErrorCode.INVALID.value
+                )
                 filename = get_filename_from_url(media_url)
                 image_data = requests.get(media_url, stream=True)
                 image_file = File(image_data.raw, filename)
@@ -119,7 +123,7 @@ class ProductMediaCreate(BaseMutation):
                     type=media_type,
                     oembed_data=oembed_data,
                 )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_updated, product)
         product = ChannelContext(node=product, channel_slug=None)
         return ProductMediaCreate(product=product, media=media)

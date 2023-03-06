@@ -6,6 +6,7 @@ from ...core import models as core_models
 from ...webhook import models
 from ...webhook.deprecated_event_types import WebhookEventType
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
+from ..core import ResolveInfo
 from ..core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -24,7 +25,7 @@ from . import enums
 from .dataloaders import PayloadByIdLoader, WebhookEventsByWebhookIdLoader
 
 
-class WebhookEvent(ModelObjectType):
+class WebhookEvent(ModelObjectType[models.WebhookEvent]):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeEnum(
         description="Internal name of the event type.", required=True
@@ -39,7 +40,7 @@ class WebhookEvent(ModelObjectType):
         return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
 
 
-class WebhookEventAsync(ModelObjectType):
+class WebhookEventAsync(ModelObjectType[models.WebhookEvent]):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeAsyncEnum(
         description="Internal name of the event type.", required=True
@@ -56,7 +57,7 @@ class WebhookEventAsync(ModelObjectType):
         )
 
 
-class WebhookEventSync(ModelObjectType):
+class WebhookEventSync(ModelObjectType[models.WebhookEvent]):
     name = graphene.String(description="Display name of the event.", required=True)
     event_type = enums.WebhookEventTypeSyncEnum(
         description="Internal name of the event type.", required=True
@@ -73,7 +74,7 @@ class WebhookEventSync(ModelObjectType):
         )
 
 
-class EventDeliveryAttempt(ModelObjectType):
+class EventDeliveryAttempt(ModelObjectType[core_models.EventDeliveryAttempt]):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(
         description="Event delivery creation date and time.", required=True
@@ -105,7 +106,7 @@ class EventDeliveryAttemptCountableConnection(CountableConnection):
         node = EventDeliveryAttempt
 
 
-class EventDelivery(ModelObjectType):
+class EventDelivery(ModelObjectType[core_models.EventDelivery]):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True)
     status = EventDeliveryStatusEnum(
@@ -125,7 +126,7 @@ class EventDelivery(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_attempts(root: core_models.EventDelivery, info, **kwargs):
+    def resolve_attempts(root: core_models.EventDelivery, info: ResolveInfo, **kwargs):
         qs = core_models.EventDeliveryAttempt.objects.filter(delivery=root)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(
@@ -133,7 +134,7 @@ class EventDelivery(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_payload(root: core_models.EventDelivery, info):
+    def resolve_payload(root: core_models.EventDelivery, info: ResolveInfo):
         if not root.payload_id:
             return None
         return PayloadByIdLoader(info.context).load(root.payload_id)
@@ -144,7 +145,7 @@ class EventDeliveryCountableConnection(CountableConnection):
         node = EventDelivery
 
 
-class Webhook(ModelObjectType):
+class Webhook(ModelObjectType[models.Webhook]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
     events = NonNullList(
@@ -193,7 +194,7 @@ class Webhook(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    def resolve_async_events(root: models.Webhook, info):
+    def resolve_async_events(root: models.Webhook, info: ResolveInfo):
         def _filter_by_async_type(webhook_events: List[WebhookEvent]):
             return filter(
                 lambda webhook_event: webhook_event.event_type
@@ -208,7 +209,7 @@ class Webhook(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_sync_events(root: models.Webhook, info):
+    def resolve_sync_events(root: models.Webhook, info: ResolveInfo):
         def _filter_by_sync_type(webhook_events: List[WebhookEvent]):
             return filter(
                 lambda webhook_event: webhook_event.event_type
@@ -223,11 +224,11 @@ class Webhook(ModelObjectType):
         )
 
     @staticmethod
-    def resolve_events(root: models.Webhook, info):
+    def resolve_events(root: models.Webhook, info: ResolveInfo):
         return WebhookEventsByWebhookIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_event_deliveries(root: models.Webhook, info, **kwargs):
+    def resolve_event_deliveries(root: models.Webhook, info: ResolveInfo, **kwargs):
         qs = core_models.EventDelivery.objects.filter(webhook_id=root.pk)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(

@@ -3,13 +3,23 @@ import uuid
 from collections import defaultdict
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Type, Union, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Type,
+    Union,
+    cast,
+)
 
 import graphene
 import pytz
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Q, QuerySet
-from graphql import ResolveInfo
 
 from ....checkout import models
 from ....checkout.error_codes import CheckoutErrorCode
@@ -22,10 +32,11 @@ from ....checkout.utils import (
 from ....core.exceptions import InsufficientStock, PermissionDenied
 from ....core.permissions import CheckoutPermissions
 from ....product import models as product_models
-from ....product.models import ProductChannelListing
+from ....product.models import ProductChannelListing, ProductVariant
 from ....shipping import interface as shipping_interface
 from ....warehouse import models as warehouse_models
 from ....warehouse.availability import check_stock_and_preorder_quantity_bulk
+from ...core import ResolveInfo
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ..types import Checkout
 
@@ -100,10 +111,12 @@ def update_checkout_shipping_method_if_invalid(
 
 
 def get_variants_and_total_quantities(
-    variants, lines_data, quantity_to_update_check=False
+    variants: List[ProductVariant],
+    lines_data: Iterable[CheckoutLineData],
+    quantity_to_update_check=False,
 ):
-    variants_total_quantity_map = defaultdict(int)
-    mapped_data = defaultdict(int)
+    variants_total_quantity_map: DefaultDict[ProductVariant, int] = defaultdict(int)
+    mapped_data: DefaultDict[Optional[str], int] = defaultdict(int)
 
     if quantity_to_update_check:
         lines_data = filter(lambda d: d.quantity_to_update, lines_data)
@@ -145,7 +158,7 @@ def check_lines_quantity(
                 {
                     "quantity": ValidationError(
                         "The quantity should be higher than zero.",
-                        code=CheckoutErrorCode.ZERO_QUANTITY,
+                        code=CheckoutErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
@@ -155,7 +168,7 @@ def check_lines_quantity(
                 {
                     "quantity": ValidationError(
                         "The quantity should be higher or equal zero.",
-                        code=CheckoutErrorCode.ZERO_QUANTITY,
+                        code=CheckoutErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
@@ -176,7 +189,7 @@ def check_lines_quantity(
             ValidationError(
                 f"Could not add items {item.variant}. "
                 f"Only {max(item.available_quantity, 0)} remaining in stock.",
-                code=e.code,
+                code=e.code.value,
             )
             for item in e.items
         ]
@@ -233,7 +246,9 @@ def validate_variants_are_published(variants_id: set, channel_id: int):
         )
 
 
-def get_checkout_by_token(token: uuid.UUID, qs=None):
+def get_checkout_by_token(
+    token: uuid.UUID, qs: Optional[QuerySet[models.Checkout]] = None
+):
     if qs is None:
         qs = models.Checkout.objects.select_related(
             "channel",
@@ -259,11 +274,10 @@ def get_checkout_by_token(token: uuid.UUID, qs=None):
 def get_checkout(
     mutation_class: Type["BaseMutation"],
     info: ResolveInfo,
-    checkout_id: str = None,
-    token: uuid.UUID = None,
-    id: str = None,
-    error_class=CheckoutErrorCode,
-    qs: QuerySet = None,
+    checkout_id: Optional[str] = None,
+    token: Optional[uuid.UUID] = None,
+    id: Optional[str] = None,
+    qs: Optional[QuerySet] = None,
 ):
     """Return checkout by using the current id field or the deprecated one.
 
@@ -273,7 +287,7 @@ def get_checkout(
     """
 
     validate_one_of_args_is_in_mutation(
-        error_class, "checkout_id", checkout_id, "token", token, "id", id
+        "checkout_id", checkout_id, "token", token, "id", id
     )
     if qs is None:
         qs = models.Checkout.objects.select_related(
@@ -292,6 +306,7 @@ def get_checkout(
         if token:
             checkout = get_checkout_by_token(token, qs=qs)
         else:
+            checkout_id = cast(str, checkout_id)
             checkout = mutation_class.get_node_or_error(
                 info, checkout_id, only_type=Checkout, field="checkout_id", qs=qs
             )

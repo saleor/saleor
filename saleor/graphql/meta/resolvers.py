@@ -18,6 +18,7 @@ from ...shipping import models as shipping_models
 from ...shipping.interface import ShippingMethodData
 from ...tax import models as tax_models
 from ...warehouse import models as warehouse_models
+from ..core import ResolveInfo
 from ..utils import get_user_or_app_from_context
 from .permissions import PRIVATE_META_PERMISSION_MAP
 
@@ -44,10 +45,12 @@ def resolve_object_with_metadata_type(instance):
 
     if isinstance(instance, ModelWithMetadata):
         MODEL_TO_TYPE_MAP = {
+            account_models.Address: account_types.Address,
             account_models.User: account_types.User,
             app_models.App: app_types.App,
             attribute_models.Attribute: attribute_types.Attribute,
             checkout_models.Checkout: checkout_types.Checkout,
+            checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,
             discount_models.Sale: discount_types.Sale,
             discount_models.Voucher: discount_types.Voucher,
@@ -79,6 +82,7 @@ def resolve_object_with_metadata_type(instance):
     elif dataclasses.is_dataclass(instance):
         DATACLASS_TO_TYPE_MAP = {ShippingMethodData: shipping_types.ShippingMethod}
         return DATACLASS_TO_TYPE_MAP.get(instance.__class__, None), instance.id
+    raise ValueError(f"Unknown type: {instance.__class__}")
 
 
 def resolve_metadata(metadata: dict):
@@ -88,7 +92,7 @@ def resolve_metadata(metadata: dict):
     )
 
 
-def check_private_metadata_privilege(root: ModelWithMetadata, info):
+def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo):
     item_type, item_id = resolve_object_with_metadata_type(root)
     if not item_type:
         raise NotImplementedError(
@@ -96,11 +100,11 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
             "Make sure that model exists inside MODEL_TO_TYPE_MAP."
         )
 
-    get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
+    get_required_permission = PRIVATE_META_PERMISSION_MAP.get(item_type.__name__)
     if not get_required_permission:
         raise PermissionDenied()
 
-    required_permissions = get_required_permission(info, item_id)  # type: ignore
+    required_permissions = get_required_permission(info, item_id)
 
     if not isinstance(required_permissions, list):
         raise PermissionDenied()
@@ -112,6 +116,6 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info):
         raise PermissionDenied()
 
 
-def resolve_private_metadata(root: ModelWithMetadata, info):
+def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
     check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)

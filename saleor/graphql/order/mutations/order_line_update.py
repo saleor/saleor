@@ -12,10 +12,11 @@ from ....order.utils import (
     invalidate_order_prices,
     recalculate_order_weight,
 )
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
 from .draft_order_create import OrderLineInput
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
@@ -39,9 +40,9 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         instance.old_quantity = instance.quantity
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         cls.validate_order(instance.order)
 
         quantity = data["quantity"]
@@ -50,21 +51,21 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
                 {
                     "quantity": ValidationError(
                         "Ensure this value is greater than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
+                        code=OrderErrorCode.ZERO_QUANTITY.value,
                     )
                 }
             )
         return cleaned_input
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         warehouse_pk = (
             instance.allocations.first().stock.warehouse.pk
             if instance.order.is_unconfirmed()
             else None
         )
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
             line_info = OrderLineInfo(
                 line=instance,
@@ -85,7 +86,7 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
             except InsufficientStock:
                 raise ValidationError(
                     "Cannot set new quantity because of insufficient stock.",
-                    code=OrderErrorCode.INSUFFICIENT_STOCK,
+                    code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 )
             invalidate_order_prices(instance.order)
             recalculate_order_weight(instance.order)

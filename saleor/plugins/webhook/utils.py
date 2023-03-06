@@ -4,9 +4,7 @@ import logging
 from contextlib import contextmanager
 from dataclasses import dataclass
 from time import time
-from typing import TYPE_CHECKING, Any, List, Optional
-
-from django.db.models import QuerySet
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence
 
 from ...app.models import App
 from ...core.models import (
@@ -21,6 +19,7 @@ from ...webhook.event_types import WebhookEventSyncType
 
 if TYPE_CHECKING:
     from ...payment.interface import PaymentData
+    from ...webhook.models import Webhook
     from .tasks import WebhookResponse
 
 APP_GATEWAY_ID_PREFIX = "app"
@@ -187,7 +186,7 @@ def catch_duration_time():
 
 
 def create_event_delivery_list_for_webhooks(
-    webhooks: QuerySet,
+    webhooks: Sequence["Webhook"],
     event_payload: "EventPayload",
     event_type: str,
 ) -> List[EventDelivery]:
@@ -207,7 +206,7 @@ def create_event_delivery_list_for_webhooks(
 
 def create_attempt(
     delivery: "EventDelivery",
-    task_id: str = None,
+    task_id: Optional[str] = None,
 ):
     attempt = EventDeliveryAttempt.objects.create(
         delivery=delivery,

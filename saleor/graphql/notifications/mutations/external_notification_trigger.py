@@ -11,12 +11,13 @@ from ....core.notification.validation import (
     validate_and_get_payload_params,
     validate_ids_and_get_model_type_and_pks,
 )
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import ExternalNotificationError, NonNullList
 from ...notifications.error_codes import ExternalNotificationErrorCodes
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 
 
 class ExternalNotificationTriggerInput(graphene.InputObjectType):
@@ -66,8 +67,8 @@ class ExternalNotificationTrigger(BaseMutation):
         error_type_class = ExternalNotificationError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        manager = get_plugin_manager_promise(info.context).get()
         plugin_id = data.get("plugin_id")
         channel_slug = validate_and_get_channel(data, ExternalNotificationErrorCodes)
         if data_input := data.get("input"):

@@ -4,9 +4,10 @@ from .....core.permissions import ProductPermissions
 from .....product import models
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Collection, Product
 
 
@@ -30,7 +31,9 @@ class CollectionRemoveProducts(BaseMutation):
         error_type_field = "collection_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, collection_id, products):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, collection_id, products
+    ):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
@@ -41,7 +44,7 @@ class CollectionRemoveProducts(BaseMutation):
             qs=models.Product.objects.prefetched_for_webhook(single_object=False),
         )
         collection.products.remove(*products)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for product in products:
             cls.call_event(manager.product_updated, product)
         if collection.sale_set.exists():

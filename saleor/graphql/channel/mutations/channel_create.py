@@ -6,10 +6,11 @@ from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....tax.models import TaxConfiguration
 from ...account.enums import CountryCodeEnum
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_37, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AllocationStrategyEnum
 from ..types import Channel
 
@@ -82,8 +83,8 @@ class ChannelCreate(ModelMutation):
         return Channel
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
@@ -93,7 +94,7 @@ class ChannelCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             shipping_zones = cleaned_data.get("add_shipping_zones")
@@ -104,7 +105,7 @@ class ChannelCreate(ModelMutation):
                 instance.warehouses.add(*warehouses)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
         TaxConfiguration.objects.create(channel=instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_created, instance)

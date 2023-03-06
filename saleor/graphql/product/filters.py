@@ -1,7 +1,7 @@
 import datetime
 import math
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional
+from typing import DefaultDict, Dict, List, Optional, TypedDict
 
 import django_filters
 import graphene
@@ -65,7 +65,7 @@ from .enums import (
     StockAvailability,
 )
 
-T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+T_PRODUCT_FILTER_QUERIES = Dict[int, List[int]]
 
 
 def _clean_product_attributes_filter_input(filter_value, queries):
@@ -114,13 +114,15 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
     )
 
     attributes_map: Dict[str, int] = {}
-    values_map: Dict[str, Dict[str, int]] = defaultdict(dict)
+    values_map: DefaultDict[str, DefaultDict[str, List[int]]] = defaultdict(
+        lambda: defaultdict(list)
+    )
     for value_data in values.values_list(
         "attribute_id", "attribute__slug", "pk", "numeric_value"
     ):
         attr_pk, attr_slug, pk, numeric_value = value_data
         attributes_map[attr_slug] = attr_pk
-        values_map[attr_slug][numeric_value] = pk
+        values_map[attr_slug][numeric_value].append(pk)
 
     for attr_name, val_range in filter_value:
         if attr_name not in attributes_map:
@@ -131,8 +133,9 @@ def _clean_product_attributes_range_filter_input(filter_value, queries):
         matching_values = [
             value for value in attr_values.keys() if gte <= value and lte >= value
         ]
-        attr_val_pks = [attr_values[value] for value in matching_values]
-        queries[attr_pk] += attr_val_pks
+        queries[attr_pk] = []
+        for value in matching_values:
+            queries[attr_pk] += attr_values[value]
 
 
 def _clean_product_attributes_date_time_range_filter_input(filter_value):
@@ -157,12 +160,17 @@ def _clean_product_attributes_date_time_range_filter_input(filter_value):
     return matching_attributes.filter(**filters)
 
 
+class KeyValueDict(TypedDict):
+    pk: int
+    values: Dict[Optional[bool], int]
+
+
 def _clean_product_attributes_boolean_filter_input(filter_value, queries):
     attribute_slugs = [slug for slug, _ in filter_value]
     attributes = Attribute.objects.filter(
         input_type=AttributeInputType.BOOLEAN, slug__in=attribute_slugs
     ).prefetch_related("values")
-    values_map = {
+    values_map: Dict[str, KeyValueDict] = {
         attr.slug: {
             "pk": attr.pk,
             "values": {val.boolean: val.pk for val in attr.values.all()},
@@ -247,7 +255,7 @@ def filter_products_by_attributes(
     date_range_list,
     date_time_range_list,
 ):
-    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
+    queries: Dict[int, List[int]] = defaultdict(list)
     try:
         if filter_values:
             _clean_product_attributes_filter_input(filter_values, queries)

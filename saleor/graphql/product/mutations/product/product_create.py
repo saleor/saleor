@@ -13,14 +13,20 @@ from .....product.search import update_product_search_vector
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
-from ....core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT, RICH_CONTENT
+from ....core import ResolveInfo
+from ....core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    DEPRECATED_IN_3X_INPUT,
+    RICH_CONTENT,
+)
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.mutations import MetadataInput
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
 
 
@@ -70,6 +76,9 @@ class ProductInput(graphene.InputObjectType):
         ),
         required=False,
     )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
+    )
 
 
 class StockInput(graphene.InputObjectType):
@@ -117,8 +126,8 @@ class ProductCreate(ModelMutation):
         return attributes
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         description = cleaned_input.get("description")
         cleaned_input["description_plaintext"] = (
@@ -166,25 +175,7 @@ class ProductCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def get_instance(cls, info, **data):
-        """Prefetch related fields that are needed to process the mutation."""
-        # If we are updating an instance and want to update its attributes,
-        # prefetch them.
-
-        object_id = data.get("id")
-        if object_id and data.get("attributes"):
-            # Prefetches needed by AttributeAssignmentMixin and
-            # associate_attribute_values_to_instance
-            qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes__values",
-                "product_type__attributeproduct",
-            )
-            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
-
-        return super().get_instance(info, **data)
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
             instance.save()
             attributes = cleaned_input.get("attributes")
@@ -192,20 +183,20 @@ class ProductCreate(ModelMutation):
                 AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, _info: ResolveInfo, instance, cleaned_data):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
         product = models.Product.objects.prefetched_for_webhook().get(pk=instance.pk)
         update_product_search_vector(instance)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.product_created, product)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         response = super().perform_mutation(_root, info, **data)
         product = getattr(response, cls._meta.return_field_name)
 

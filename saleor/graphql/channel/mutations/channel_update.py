@@ -3,16 +3,18 @@ from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
 from ....channel import models
+from ....channel.error_codes import ChannelErrorCode
 from ....core.permissions import ChannelPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....shipping.tasks import (
     drop_invalid_shipping_methods_relations_for_given_channels,
 )
 from ...account.enums import CountryCodeEnum
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
 from ...core.mutations import ModelMutation
-from ...core.types import ChannelError, ChannelErrorCode, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...core.types import ChannelError, NonNullList
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
@@ -59,7 +61,7 @@ class ChannelUpdate(ModelMutation):
         error_type_field = "channel_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         errors = {}
         if error := check_for_duplicates(
             data, "add_shipping_zones", "remove_shipping_zones", "shipping_zones"
@@ -76,7 +78,7 @@ class ChannelUpdate(ModelMutation):
         if errors:
             raise ValidationError(errors)
 
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
         slug = cleaned_input.get("slug")
         if slug:
             cleaned_input["slug"] = slugify(slug)
@@ -86,7 +88,7 @@ class ChannelUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             cls._update_shipping_zones(instance, cleaned_data)
@@ -136,6 +138,6 @@ class ChannelUpdate(ModelMutation):
             instance.warehouses.remove(*remove_warehouses)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.channel_updated, instance)

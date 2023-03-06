@@ -422,3 +422,90 @@ def test_product_delete_removes_reference_to_page(
         product.refresh_from_db()
 
     assert not data["errors"]
+
+
+DELETE_PRODUCT_BY_EXTERNAL_REFERENCE = """
+    mutation DeleteProduct($id: ID, $externalReference: String) {
+        productDelete(id: $id, externalReference: $externalReference) {
+            product {
+                id
+                externalReference
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+@patch("saleor.order.tasks.recalculate_orders_task.delay")
+def test_delete_product_by_external_reference(
+    mocked_recalculate_orders_task,
+    staff_api_client,
+    product,
+    permission_manage_products,
+):
+    # given
+    query = DELETE_PRODUCT_BY_EXTERNAL_REFERENCE
+    product.external_reference = "test-ext-id"
+    product.save(update_fields=["external_reference"])
+    variables = {"externalReference": product.external_reference}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productDelete"]
+
+    # then
+    with pytest.raises(product._meta.model.DoesNotExist):
+        product.refresh_from_db()
+    assert (
+        graphene.Node.to_global_id(product._meta.model.__name__, product.id)
+        == data["product"]["id"]
+    )
+    assert data["product"]["externalReference"] == product.external_reference
+    mocked_recalculate_orders_task.assert_not_called()
+
+
+def test_delete_product_by_both_id_and_external_reference(
+    staff_api_client, permission_manage_products
+):
+    # given
+    query = DELETE_PRODUCT_BY_EXTERNAL_REFERENCE
+    variables = {"externalReference": "whatever", "id": "whatever"}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productDelete"]["errors"]
+    assert (
+        errors[0]["message"]
+        == "Argument 'id' cannot be combined with 'external_reference'"
+    )
+
+
+def test_delete_product_by_external_reference_not_existing(
+    staff_api_client, permission_manage_products
+):
+    # given
+    query = DELETE_PRODUCT_BY_EXTERNAL_REFERENCE
+    ext_ref = "non-existing-ext-ref"
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["productDelete"]["errors"]
+    assert errors[0]["message"] == f"Couldn't resolve to a node: {ext_ref}"

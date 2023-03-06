@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from json.encoder import ESCAPE_ASCII, ESCAPE_DCT  # type: ignore
+from json.encoder import ESCAPE_ASCII, ESCAPE_DCT
 from typing import List, Optional, Tuple, TypedDict
 
 

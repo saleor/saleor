@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, List, Optional
+from uuid import UUID
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -13,7 +14,7 @@ class OrderInfo:
     order: "Order"
     customer_email: "str"
     channel: "Channel"
-    payment: "Payment"
+    payment: Optional["Payment"]
     lines_data: Iterable["OrderLineInfo"]
 
 
@@ -25,7 +26,7 @@ class OrderLineInfo:
     is_digital: Optional[bool] = None
     digital_content: Optional["DigitalContent"] = None
     replace: bool = False
-    warehouse_pk: Optional[str] = None
+    warehouse_pk: Optional[UUID] = None
 
 
 def fetch_order_info(order: "Order") -> OrderInfo:

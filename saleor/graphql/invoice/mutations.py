@@ -1,17 +1,21 @@
+from typing import Dict, cast
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...account.models import User
 from ...core import JobStatus
 from ...core.permissions import OrderPermissions
 from ...invoice import events, models
 from ...invoice.error_codes import InvoiceErrorCode
 from ...invoice.notifications import send_invoice
 from ...order import events as order_events
-from ..app.dataloaders import load_app
+from ..app.dataloaders import get_app_promise
+from ..core import ResolveInfo
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import InvoiceError
 from ..order.types import Order
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice
 from .utils import is_event_active_for_any_plugin
 
@@ -43,7 +47,7 @@ class InvoiceRequest(ModelMutation):
                 {
                     "orderId": ValidationError(
                         "Cannot request an invoice for draft or unconfirmed order.",
-                        code=InvoiceErrorCode.INVALID_STATUS,
+                        code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }
             )
@@ -53,37 +57,37 @@ class InvoiceRequest(ModelMutation):
                 {
                     "orderId": ValidationError(
                         "Cannot request an invoice for order without billing address.",
-                        code=InvoiceErrorCode.NOT_READY,
+                        code=InvoiceErrorCode.NOT_READY.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(
-            info, data["order_id"], only_type=Order, field="orderId"
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, number=None, order_id
+    ):
+        order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
         cls.clean_order(order)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
             raise ValidationError(
                 {
                     "orderId": ValidationError(
                         "No app or plugin is configured to handle invoice requests.",
-                        code=InvoiceErrorCode.NO_INVOICE_PLUGIN,
+                        code=InvoiceErrorCode.NO_INVOICE_PLUGIN.value,
                     )
                 }
             )
 
         shallow_invoice = models.Invoice.objects.create(
             order=order,
-            number=data.get("number"),
+            number=number,
         )
 
         invoice = manager.invoice_request(
-            order=order, invoice=shallow_invoice, number=data.get("number")
+            order=order, invoice=shallow_invoice, number=number
         )
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         if invoice and invoice.status == JobStatus.SUCCESS:
             order_events.invoice_generated_event(
                 order=order,
@@ -100,7 +104,7 @@ class InvoiceRequest(ModelMutation):
             user=info.context.user,
             app=app,
             order=order,
-            number=data.get("number"),
+            number=number,
         )
         return InvoiceRequest(invoice=invoice, order=order)
 
@@ -128,26 +132,26 @@ class InvoiceCreate(ModelMutation):
         error_type_field = "invoice_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, _info: ResolveInfo, _instance, data):  # type: ignore[override]
         validation_errors = {}
         for field in ["url", "number"]:
-            if data["input"][field] == "":
+            if data[field] == "":
                 validation_errors[field] = ValidationError(
                     f"{field} cannot be empty.",
-                    code=InvoiceErrorCode.REQUIRED,
+                    code=InvoiceErrorCode.REQUIRED.value,
                 )
         if validation_errors:
             raise ValidationError(validation_errors)
-        return data["input"]
+        return data
 
     @classmethod
-    def clean_order(cls, info, order):
+    def clean_order(cls, info: ResolveInfo, order):
         if order.is_draft() or order.is_unconfirmed():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
                         "Cannot create an invoice for draft or unconfirmed order.",
-                        code=InvoiceErrorCode.INVALID_STATUS,
+                        code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }
             )
@@ -157,23 +161,23 @@ class InvoiceCreate(ModelMutation):
                 {
                     "orderId": ValidationError(
                         "Cannot create an invoice for order without billing address.",
-                        code=InvoiceErrorCode.NOT_READY,
+                        code=InvoiceErrorCode.NOT_READY.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(
-            info, data["order_id"], only_type=Order, field="orderId"
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input, order_id
+    ):
+        order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
         cls.clean_order(info, order)
-        cleaned_input = cls.clean_input(info, order, data)
+        cleaned_input = cls.clean_input(info, order, input)
         invoice = models.Invoice(**cleaned_input)
         invoice.order = order
         invoice.status = JobStatus.SUCCESS
         invoice.save()
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         events.invoice_created_event(
             user=info.context.user,
             app=app,
@@ -205,13 +209,15 @@ class InvoiceRequestDelete(ModelMutation):
         error_type_field = "invoice_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id
+    ):
+        invoice = cls.get_node_or_error(info, id, only_type=Invoice)
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.invoice_delete, invoice)
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         events.invoice_requested_deletion_event(
             user=info.context.user, app=app, invoice=invoice
         )
@@ -231,10 +237,10 @@ class InvoiceDelete(ModelDeleteMutation):
         error_type_field = "invoice_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         invoice = cls.get_instance(info, **data)
         response = super().perform_mutation(_root, info, **data)
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         events.invoice_deleted_event(
             user=info.context.user, app=app, invoice_id=invoice.pk
         )
@@ -262,37 +268,39 @@ class InvoiceUpdate(ModelMutation):
         error_type_field = "invoice_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        number = instance.number or data["input"].get("number")
-        url = instance.external_url or data["input"].get("url")
+    def clean_input(cls, _info: ResolveInfo, instance, data):  # type: ignore[override]
+        number = instance.number or data.get("number")
+        url = instance.external_url or data.get("url")
 
-        validation_errors = {}
+        validation_errors: Dict[str, ValidationError] = {}
         if not number:
             validation_errors["number"] = ValidationError(
                 "Number need to be set after update operation.",
-                code=InvoiceErrorCode.NUMBER_NOT_SET,
+                code=InvoiceErrorCode.NUMBER_NOT_SET.value,
             )
         if not url:
             validation_errors["url"] = ValidationError(
                 "URL need to be set after update operation.",
-                code=InvoiceErrorCode.URL_NOT_SET,
+                code=InvoiceErrorCode.URL_NOT_SET.value,
             )
 
         if validation_errors:
             raise ValidationError(validation_errors)
 
-        return data["input"]
+        return data
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
-        cleaned_input = cls.clean_input(info, instance, data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
+        instance = cls.get_instance(info, id=id)
+        cleaned_input = cls.clean_input(info, instance, input)
         instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
         instance.status = JobStatus.SUCCESS
         instance.save(update_fields=["external_url", "number", "updated_at", "status"])
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         order_events.invoice_updated_event(
             order=instance.order,
             user=info.context.user,
@@ -317,41 +325,45 @@ class InvoiceSendNotification(ModelMutation):
         error_type_field = "invoice_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, _info: ResolveInfo, instance):
         validation_errors = {}
         if instance.status != JobStatus.SUCCESS:
             validation_errors["invoice"] = ValidationError(
                 "Provided invoice is not ready to be sent.",
-                code=InvoiceErrorCode.NOT_READY,
+                code=InvoiceErrorCode.NOT_READY.value,
             )
         if not instance.url:
             validation_errors["url"] = ValidationError(
                 "Provided invoice needs to have an URL.",
-                code=InvoiceErrorCode.URL_NOT_SET,
+                code=InvoiceErrorCode.URL_NOT_SET.value,
             )
         if not instance.number:
             validation_errors["number"] = ValidationError(
                 "Provided invoice needs to have an invoice number.",
-                code=InvoiceErrorCode.NUMBER_NOT_SET,
+                code=InvoiceErrorCode.NUMBER_NOT_SET.value,
             )
         if not instance.order.get_customer_email():
             validation_errors["order"] = ValidationError(
                 "Provided invoice order needs an email address.",
-                code=InvoiceErrorCode.EMAIL_NOT_SET,
+                code=InvoiceErrorCode.EMAIL_NOT_SET.value,
             )
 
         if validation_errors:
             raise ValidationError(validation_errors)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = cls.get_instance(info, **data)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id
+    ):
+        user = info.context.user
+        user = cast(User, user)
+        instance = cls.get_instance(info, id=id)
         cls.clean_instance(info, instance)
-        app = load_app(info.context)
-        manager = load_plugin_manager(info.context)
+        app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
         send_invoice(
             invoice=instance,
-            staff_user=info.context.user,
+            staff_user=user,
             app=app,
             manager=manager,
         )

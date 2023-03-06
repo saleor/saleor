@@ -4,7 +4,7 @@ from ....app import models
 from ....core.permissions import AppPermission
 from ...core.mutations import ModelMutation
 from ...core.types import AppError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import App
 
 
@@ -21,10 +21,10 @@ class AppActivate(ModelMutation):
         error_type_field = "app_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        app = cls.get_instance(info, **data)
+    def perform_mutation(cls, _root, info, /, *, id):
+        app = cls.get_instance(info, id=id)
         app.is_active = True
-        cls.save(info, app, cleaned_input=None)
-        manager = load_plugin_manager(info.context)
+        cls.save(info, app, None)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.app_status_changed, app)
         return cls.success_response(app)

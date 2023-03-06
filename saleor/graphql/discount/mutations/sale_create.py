@@ -11,12 +11,13 @@ from ....discount.error_codes import DiscountErrorCode
 from ....discount.utils import fetch_catalogue_info
 from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import DiscountValueTypeEnum
 from ..types import Sale
 from .utils import convert_catalogue_info_to_global_ids
@@ -28,7 +29,7 @@ class SaleUpdateDiscountedPriceMixin:
         # Update the "discounted_prices" of the associated, discounted
         # products (including collections and categories).
         update_products_discounted_prices_of_discount_task.delay(instance.pk)
-        return super().success_response(
+        return super().success_response(  # type: ignore[misc] # mixin
             ChannelContext(node=instance, channel_slug=None)
         )
 
@@ -78,7 +79,7 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
         error_type_field = "discount_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         super().clean_instance(info, instance)
         start_date = instance.start_date
         end_date = instance.end_date
@@ -89,11 +90,11 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
             instance = getattr(response, cls._meta.return_field_name).node
-            manager = load_plugin_manager(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, instance)
         return response
 

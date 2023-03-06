@@ -112,6 +112,16 @@ query warehouse($id: ID!){
 """
 
 
+QUERY_WAREHOUSE_BY_EXTERNAL_REFERENCE = """
+query warehouse($id: ID, $externalReference: String){
+    warehouse(id: $id, externalReference: $externalReference) {
+        id
+        externalReference
+    }
+}
+"""
+
+
 MUTATION_CREATE_WAREHOUSE = """
 mutation createWarehouse($input: WarehouseCreateInput!) {
     createWarehouse(input: $input){
@@ -120,6 +130,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
             name
             slug
             companyName
+            externalReference
             address {
                 id
             }
@@ -155,6 +166,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
             companyName
             isPrivate
             clickAndCollectOption
+            externalReference
             address {
                 id
                 streetAddress1
@@ -658,6 +670,7 @@ def test_mutation_create_warehouse(
             "name": "Test warehouse",
             "slug": "test-warhouse",
             "email": "test-admin@example.com",
+            "externalReference": "test-ext-ref",
             "address": {
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
@@ -683,6 +696,7 @@ def test_mutation_create_warehouse(
     assert created_warehouse["name"] == warehouse.name
     assert created_warehouse["slug"] == warehouse.slug
     assert created_warehouse["companyName"] == warehouse.address.company_name
+    assert created_warehouse["externalReference"] == warehouse.external_reference
 
 
 def test_mutation_create_warehouse_shipping_zone_provided(
@@ -881,15 +895,52 @@ def test_create_warehouse_with_given_slug(
     assert data["warehouse"]["slug"] == expected_slug
 
 
+def test_create_warehouse_with_non_unique_external_reference(
+    staff_api_client, permission_manage_products, shipping_zone, warehouse
+):
+    # given
+    ext_ref = "test-ext-ref"
+    warehouse.external_reference = ext_ref
+    warehouse.save(update_fields=["external_reference"])
+
+    variables = {
+        "input": {
+            "name": "Test warehouse",
+            "externalReference": ext_ref,
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["createWarehouse"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == WarehouseErrorCode.UNIQUE.name
+    assert error["message"] == "Warehouse with this External reference already exists."
+
+
 def test_mutation_update_warehouse(
     staff_api_client, warehouse, permission_manage_products
 ):
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     warehouse_old_name = warehouse.name
     warehouse_slug = warehouse.slug
+    external_reference = "test-ext-ref"
     variables = {
         "id": warehouse_id,
-        "input": {"name": "New name"},
+        "input": {"name": "New name", "externalReference": external_reference},
     }
     staff_api_client.post_graphql(
         MUTATION_UPDATE_WAREHOUSE,
@@ -900,6 +951,36 @@ def test_mutation_update_warehouse(
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
     assert warehouse.slug == warehouse_slug
+    assert warehouse.external_reference == external_reference
+
+
+def test_mutation_update_warehouse_with_non_unique_external_reference(
+    staff_api_client, warehouse, permission_manage_products, warehouse_JPY
+):
+    # given
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    ext_ref = "test-ext-ref"
+    warehouse_JPY.external_reference = ext_ref
+    warehouse_JPY.save(update_fields=["external_reference"])
+
+    variables = {
+        "id": warehouse_id,
+        "input": {"externalReference": ext_ref},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_WAREHOUSE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["updateWarehouse"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == WarehouseErrorCode.UNIQUE.name
+    assert error["message"] == "Warehouse with this External reference already exists."
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -1488,3 +1569,26 @@ def test_shipping_zone_unassign_from_warehouse(
     warehouse.refresh_from_db()
     shipping_zone.refresh_from_db()
     assert not warehouse.shipping_zones.all()
+
+
+def test_warehouse_query_by_external_reference(
+    staff_api_client, warehouse, permission_manage_products
+):
+    # given
+    ext_ref = "test-ext-ref"
+    warehouse.external_reference = ext_ref
+    warehouse.save(update_fields=["external_reference"])
+    variables = {"externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSE_BY_EXTERNAL_REFERENCE,
+        variables=variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["warehouse"]
+    assert data["externalReference"] == ext_ref
+    assert data["id"] == graphene.Node.to_global_id("Warehouse", warehouse.id)

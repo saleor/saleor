@@ -6,11 +6,12 @@ from .....core.tracing import traced_atomic_transaction
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
+from ....core import ResolveInfo
 from ....core.inputs import ReorderInput
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
 from ....core.utils.reordering import perform_reordering
-from ....plugins.dataloaders import load_plugin_manager
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product, ProductVariant
 
 
@@ -39,7 +40,9 @@ class ProductVariantReorder(BaseMutation):
         error_type_field = "product_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id, moves):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, moves, product_id
+    ):
         pk = cls.get_global_id_or_error(product_id, only_type=Product)
 
         try:
@@ -49,7 +52,7 @@ class ProductVariantReorder(BaseMutation):
                 {
                     "product_id": ValidationError(
                         (f"Couldn't resolve to a product type: {product_id}"),
-                        code=ProductErrorCode.NOT_FOUND,
+                        code=ProductErrorCode.NOT_FOUND.value,
                     )
                 }
             )
@@ -69,12 +72,12 @@ class ProductVariantReorder(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to a variant: {move_info.id}",
-                            code=ProductErrorCode.NOT_FOUND,
+                            code=ProductErrorCode.NOT_FOUND.value,
                         )
                     }
                 )
             operations[m2m_info.pk] = move_info.sort_order
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             perform_reordering(variants_m2m, operations)
             product.save(update_fields=["updated_at"])

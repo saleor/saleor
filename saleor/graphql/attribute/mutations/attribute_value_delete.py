@@ -4,17 +4,23 @@ from django.db.models import Exists, OuterRef, Q
 from ....attribute import models as models
 from ....core.permissions import ProductTypePermissions
 from ....product import models as product_models
-from ...core.mutations import ModelDeleteMutation
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import AttributeError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Attribute, AttributeValue
 
 
-class AttributeValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a value to delete.")
+        id = graphene.ID(required=False, description="ID of a value to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a value to delete. {ADDED_IN_310}",
+        )
 
     class Meta:
         model = models.AttributeValue
@@ -25,15 +31,18 @@ class AttributeValueDelete(ModelDeleteMutation):
         error_type_field = "attribute_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data.get("id")
-        instance = cls.get_node_or_error(info, node_id, only_type=AttributeValue)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
         product_ids = cls.get_product_ids_to_update(instance)
-        response = super().perform_mutation(_root, info, **data)
+        response = super().perform_mutation(
+            _root, info, external_reference=external_reference, id=id
+        )
         product_models.Product.objects.filter(id__in=product_ids).update(
             search_index_dirty=True
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_value_deleted, instance)
         cls.call_event(manager.attribute_updated, instance.attribute)
         return response

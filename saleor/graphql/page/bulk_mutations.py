@@ -7,9 +7,10 @@ from ...attribute import models as attribute_models
 from ...core.permissions import PagePermissions, PageTypePermissions
 from ...core.tracing import traced_atomic_transaction
 from ...page import models
+from ..core import ResolveInfo
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import NonNullList, PageError
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Page, PageType
 
 
@@ -29,13 +30,15 @@ class PageBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=Page, field="pk")
         except ValidationError as error:
             return 0, error
         cls.delete_assigned_attribute_values(pks)
-        return super().perform_mutation(_root, info, ids, **data)
+        return super().perform_mutation(_root, info, ids=ids)
 
     @staticmethod
     def delete_assigned_attribute_values(instance_pks):
@@ -63,7 +66,9 @@ class PageBulkPublish(BaseBulkMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset, is_published):
+    def bulk_action(  # type: ignore[override]
+        cls, _info: ResolveInfo, queryset, /, is_published
+    ):
         queryset.update(is_published=is_published)
 
 
@@ -85,19 +90,21 @@ class PageTypeBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     @traced_atomic_transaction()
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, ids
+    ):
         try:
             pks = cls.get_global_ids_or_error(ids, only_type=PageType, field="pk")
         except ValidationError as error:
             return 0, error
         cls.delete_assigned_attribute_values(pks)
-        return super().perform_mutation(_root, info, ids, **data)
+        return super().perform_mutation(_root, info, ids=ids)
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         page_types = list(queryset)
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for pt in page_types:
             transaction.on_commit(lambda: manager.page_type_deleted(pt))
 

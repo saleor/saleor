@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import DefaultDict, Iterable, List, Tuple, cast
 
 from django.db.models import F
 
@@ -8,10 +9,12 @@ from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
 
 
-class OrderLinesByVariantIdAndChannelIdLoader(DataLoader):
+class OrderLinesByVariantIdAndChannelIdLoader(
+    DataLoader[Tuple[int, int], List[OrderLine]]
+):
     context_key = "orderline_by_variant_and_channel"
 
-    def batch_load(self, keys):
+    def batch_load(self, keys: Iterable[Tuple[int, int]]):
         channel_ids = [key[1] for key in keys]
         variant_ids = [key[0] for key in keys]
         order_lines = (
@@ -20,9 +23,14 @@ class OrderLinesByVariantIdAndChannelIdLoader(DataLoader):
             .annotate(channel_id=F("order__channel_id"))
         )
 
-        order_line_by_variant_and_channel_map = defaultdict(list)
+        order_line_by_variant_and_channel_map: DefaultDict[
+            Tuple[int, int], List[OrderLine]
+        ] = defaultdict(list)
         for order_line in order_lines:
-            key = (order_line.variant_id, order_line.channel_id)
+            key = (
+                cast(int, order_line.variant_id),
+                getattr(order_line, "channel_id", 0),  # annotation
+            )
             order_line_by_variant_and_channel_map[key].append(order_line)
         return [order_line_by_variant_and_channel_map[key] for key in keys]
 

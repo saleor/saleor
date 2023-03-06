@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -6,9 +7,10 @@ from django.core.exceptions import ValidationError
 from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...core.permissions import AccountPermissions
+from ..core import ResolveInfo
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
@@ -33,16 +35,16 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         error_type_field = "account_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
+    def perform_mutation(cls, root, info: ResolveInfo, /, **data):
         count, errors = super().perform_mutation(root, info, **data)
         cls.post_process(info, count)
         return count, errors
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
             manager.customer_deleted(instance)
 
@@ -59,21 +61,23 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         error_type_field = "staff_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, ids, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids, **data
+    ):
         instances = cls.get_nodes_or_error(ids, "id", User)
         errors = cls.clean_instances(info, instances)
         count = len(instances)
         if not errors and count:
             clean_instance_ids = [instance.pk for instance in instances]
             qs = models.User.objects.filter(pk__in=clean_instance_ids)
-            cls.bulk_action(info=info, queryset=qs, **data)
+            cls.bulk_action(info, qs, **data)
         else:
             count = 0
         return count, errors
 
     @classmethod
-    def clean_instances(cls, info, users):
-        errors = defaultdict(list)
+    def clean_instances(cls, info: ResolveInfo, users):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
@@ -84,10 +88,10 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         return ValidationError(errors) if errors else {}
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         instances = list(queryset)
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for instance in instances:
             manager.staff_deleted(instance)
 
@@ -110,13 +114,13 @@ class UserBulkSetActive(BaseBulkMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         if info.context.user == instance:
             raise ValidationError(
                 {
                     "is_active": ValidationError(
                         "Cannot activate or deactivate your own account.",
-                        code=AccountErrorCode.ACTIVATE_OWN_ACCOUNT,
+                        code=AccountErrorCode.ACTIVATE_OWN_ACCOUNT.value,
                     )
                 }
             )
@@ -125,11 +129,13 @@ class UserBulkSetActive(BaseBulkMutation):
                 {
                     "is_active": ValidationError(
                         "Cannot activate or deactivate superuser's account.",
-                        code=AccountErrorCode.ACTIVATE_SUPERUSER_ACCOUNT,
+                        code=AccountErrorCode.ACTIVATE_SUPERUSER_ACCOUNT.value,
                     )
                 }
             )
 
     @classmethod
-    def bulk_action(cls, info, queryset, is_active):
+    def bulk_action(  # type: ignore[override]
+        cls, _info: ResolveInfo, queryset, /, *, is_active
+    ):
         queryset.update(is_active=is_active)

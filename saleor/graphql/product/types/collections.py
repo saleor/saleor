@@ -9,6 +9,7 @@ from ....product import models
 from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
 from ...channel import ChannelContext, ChannelQsContext
 from ...channel.types import ChannelContextType, ChannelContextTypeWithMetadata
+from ...core import ResolveInfo
 from ...core.connection import (
     CountableConnection,
     create_connection_slice,
@@ -17,7 +18,7 @@ from ...core.connection import (
 from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
-from ...core.types import Image, ModelObjectType, NonNullList, ThumbnailField
+from ...core.types import Image, NonNullList, ThumbnailField
 from ...core.utils import from_global_id_or_error
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
@@ -34,7 +35,7 @@ from .products import ProductCountableConnection
 
 
 @federated_entity("id channel")
-class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
+class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     id = graphene.GlobalID(required=True)
     seo_title = graphene.String()
     seo_description = graphene.String()
@@ -87,7 +88,10 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
 
     @staticmethod
     def resolve_background_image(
-        root: ChannelContext[models.Collection], info, size=None, format=None
+        root: ChannelContext[models.Collection],
+        info: ResolveInfo,
+        size=None,
+        format=None,
     ):
         node = root.node
         if not node.background_image:
@@ -101,7 +105,9 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         size = get_thumbnail_size(size)
 
         def _resolve_background_image(thumbnail):
-            url = get_image_or_proxy_url(thumbnail, node.id, "Collection", size, format)
+            url = get_image_or_proxy_url(
+                thumbnail, str(node.id), "Collection", size, format
+            )
             return Image(url=url, alt=alt)
 
         return (
@@ -111,9 +117,11 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         )
 
     @staticmethod
-    def resolve_products(root: ChannelContext[models.Collection], info, **kwargs):
+    def resolve_products(
+        root: ChannelContext[models.Collection], info: ResolveInfo, **kwargs
+    ):
         requestor = get_user_or_app_from_context(info.context)
-        qs = root.node.products.visible_to_user(  # type: ignore
+        qs = root.node.products.visible_to_user(  # type: ignore[attr-defined] # mypy does not properly resolve the related manager # noqa: E501
             requestor, root.channel_slug
         )
         qs = ChannelQsContext(qs=qs, channel_slug=root.channel_slug)
@@ -134,7 +142,7 @@ class Collection(ChannelContextTypeWithMetadata, ModelObjectType):
         return description if description is not None else {}
 
     @staticmethod
-    def __resolve_references(roots: List["Collection"], info):
+    def __resolve_references(roots: List["Collection"], info: ResolveInfo):
         from ..resolvers import resolve_collections
 
         channels = defaultdict(set)

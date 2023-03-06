@@ -5,9 +5,10 @@ from ...core.permissions import PluginsPermissions
 from ...plugins.error_codes import PluginErrorCode
 from ...plugins.manager import get_plugins_manager
 from ..channel.types import Channel
+from ..core import ResolveInfo
 from ..core.mutations import BaseMutation
 from ..core.types import NonNullList, PluginError
-from .dataloaders import load_plugin_manager
+from .dataloaders import get_plugin_manager_promise
 from .resolvers import resolve_plugin
 from .types import Plugin
 
@@ -51,17 +52,17 @@ class PluginUpdate(BaseMutation):
         error_type_field = "plugins_errors"
 
     @classmethod
-    def clean_input(cls, info, data):
+    def clean_input(cls, info: ResolveInfo, data):
         plugin_id = data.get("id")
         channel_id = data.get("channel_id")
         channel = None
         if channel_id:
             channel = cls.get_node_or_error(info, channel_id, only_type=Channel)
 
-        channel_slug = channel.slug if channel_id else None
+        channel_slug = channel.slug if channel else None
         input_data = data.get("input")
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         plugin = manager.get_plugin(plugin_id, channel_slug)
         if not plugin or plugin.HIDDEN is True:
             raise ValidationError(
@@ -93,12 +94,12 @@ class PluginUpdate(BaseMutation):
         return {"plugin": plugin, "data": input_data, "channel_slug": channel_slug}
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         cleaned_data = cls.clean_input(info, data)
         plugin_id = cleaned_data["plugin"].PLUGIN_ID
         channel_slug = cleaned_data["channel_slug"]
         input_data = cleaned_data["data"]
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         manager.save_plugin_configuration(plugin_id, channel_slug, input_data)
         manager = get_plugins_manager()
         return PluginUpdate(plugin=resolve_plugin(plugin_id, manager))

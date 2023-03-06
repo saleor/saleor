@@ -93,7 +93,7 @@ class AppFetchManifest(BaseMutation):
             ]
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info, /, **data):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)

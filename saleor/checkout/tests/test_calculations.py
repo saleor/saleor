@@ -7,6 +7,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
+from ...checkout.utils import add_promo_code_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxLineData, zero_taxed_money
 from ...plugins.manager import get_plugins_manager
@@ -16,7 +17,11 @@ from ..base_calculations import (
     base_checkout_delivery_price,
     calculate_base_line_total_price,
 )
-from ..calculations import _apply_tax_data, fetch_checkout_prices_if_expired
+from ..calculations import (
+    _apply_tax_data,
+    _get_checkout_base_prices,
+    fetch_checkout_prices_if_expired,
+)
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
 
@@ -257,6 +262,78 @@ def test_fetch_checkout_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
     mocked_update_checkout_prices_with_flat_rates.assert_called_once()
     assert line.tax_rate == Decimal("0.2300")
     assert checkout.shipping_tax_rate == Decimal("0.2300")
+
+
+def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
+    checkout_with_item, voucher_percentage
+):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+
+    line = checkout.lines.first()
+    variant = line.variant
+    channel_listing = variant.channel_listings.get(channel=channel.pk)
+    channel_listing.price_amount = Decimal("9.60")
+    channel_listing.save()
+
+    line.quantity = 7
+    line.save()
+
+    voucher_value = Decimal("3.00")
+    voucher_channel_listing = voucher_percentage.channel_listings.get(
+        channel=channel.pk
+    )
+    voucher_channel_listing.discount_value = voucher_value
+    voucher_channel_listing.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    line_info = list(lines)[0]
+    variant = line_info.variant
+    product_price = variant.get_price(
+        line_info.product, [], channel, line_info.channel_listing, []
+    )
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    add_promo_code_to_checkout(
+        manager,
+        checkout_info,
+        lines,
+        voucher_percentage.code,
+        [],
+    )
+
+    checkout.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    _get_checkout_base_prices(checkout, checkout_info, lines, [])
+    checkout.save()
+    checkout.lines.bulk_update(
+        [line_info.line for line_info in lines],
+        [
+            "total_price_net_amount",
+            "total_price_gross_amount",
+            "tax_rate",
+        ],
+    )
+    checkout.refresh_from_db()
+
+    line = checkout.lines.all()[0]
+
+    # then
+    assert line.tax_rate == Decimal("0.0")
+
+    expected_unit_price = quantize_price(
+        (100 - voucher_value) / 100 * product_price, checkout.currency
+    )
+    line_unit_price = quantize_price(
+        line.total_price / line.quantity, checkout.currency
+    )
+    assert line_unit_price.gross == expected_unit_price
+    assert line.total_price == checkout.total
 
 
 @freeze_time("2020-12-12 12:00:00")

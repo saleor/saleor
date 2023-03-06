@@ -1,13 +1,16 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from ...core.permissions import AppPermission, AuthorizationFilters
 from ...webhook import models
 from ...webhook.error_codes import WebhookErrorCode
+from ..app.dataloaders import get_app_promise
+from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_32, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WebhookError
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from . import enums
 from .subscription_payload import validate_query
 from .types import EventDelivery, Webhook
@@ -81,15 +84,17 @@ class WebhookCreate(ModelMutation):
         error_type_field = "webhook_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_data = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_data = super().clean_input(info, instance, data, **kwargs)
         app = cleaned_data.get("app")
 
         # We are not able to check it in `check_permission`.
         # We need to confirm that cleaned_data has app_id or
         # context has assigned app instance
         if not instance.app_id and not app:
-            raise ValidationError("Missing token or app", code=WebhookErrorCode.INVALID)
+            raise ValidationError(
+                "Missing token or app", code=WebhookErrorCode.INVALID.value
+            )
 
         if instance.app_id:
             # Let's skip app id in case when context has
@@ -100,7 +105,7 @@ class WebhookCreate(ModelMutation):
         if not app or not app.is_active:
             raise ValidationError(
                 "App doesn't exist or is disabled",
-                code=WebhookErrorCode.NOT_FOUND,
+                code=WebhookErrorCode.NOT_FOUND.value,
             )
         clean_webhook_events(info, instance, cleaned_data)
         if query := cleaned_data.get("query"):
@@ -109,14 +114,14 @@ class WebhookCreate(ModelMutation):
         return cleaned_data
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         instance = super().get_instance(info, **data)
-        app = info.context.app
+        app = get_app_promise(info.context).get()
         instance.app = app
         return instance
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, _info: ResolveInfo, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
         models.WebhookEvent.objects.bulk_create(
@@ -192,7 +197,9 @@ class WebhookUpdate(ModelMutation):
         app = cleaned_data.get("app")
 
         if not instance.app_id and not app:
-            raise ValidationError("Missing token or app", code=WebhookErrorCode.INVALID)
+            raise ValidationError(
+                "Missing token or app", code=WebhookErrorCode.INVALID.value
+            )
 
         if instance.app_id:
             # Let's skip app id in case when context has
@@ -203,7 +210,7 @@ class WebhookUpdate(ModelMutation):
         if not app or not app.is_active:
             raise ValidationError(
                 "App doesn't exist or is disabled",
-                code=WebhookErrorCode.NOT_FOUND,
+                code=WebhookErrorCode.NOT_FOUND.value,
             )
         clean_webhook_events(info, instance, cleaned_data)
 
@@ -213,7 +220,7 @@ class WebhookUpdate(ModelMutation):
         return cleaned_data
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, _info: ResolveInfo, instance, cleaned_input):
         instance.save()
         events = set(cleaned_input.get("events", []))
         if events:
@@ -231,7 +238,12 @@ class WebhookDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of a webhook to delete.")
 
     class Meta:
-        description = "Deletes a webhook subscription."
+        description = (
+            "Delete a webhook. Before the deletion, the webhook is deactivated to "
+            "pause any deliveries that are already scheduled. The deletion might fail "
+            "if delivery is in progress. In such a case, the webhook is not deleted "
+            "but remains deactivated."
+        )
         model = models.Webhook
         object_type = Webhook
         permissions = (
@@ -242,26 +254,33 @@ class WebhookDelete(ModelDeleteMutation):
         error_type_field = "webhook_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        node_id = data["id"]
-        object_id = cls.get_global_id_or_error(node_id)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        app = get_app_promise(info.context).get()
+        node_id: str = data["id"]
+        if app and not app.is_active:
+            raise ValidationError(
+                "App needs to be active to delete webhook",
+                code=WebhookErrorCode.INVALID.value,
+            )
+        webhook = cls.get_node_or_error(info, node_id, only_type=Webhook)
+        if app and webhook.app_id != app.id:
+            raise ValidationError(
+                f"Couldn't resolve to a node: {node_id}",
+                code=WebhookErrorCode.GRAPHQL_ERROR.value,
+            )
+        webhook.is_active = False
+        webhook.save(update_fields=["is_active"])
 
-        app = info.context.app
-        if app:
-            if not app.is_active:
-                raise ValidationError(
-                    "App needs to be active to delete webhook",
-                    code=WebhookErrorCode.INVALID,
-                )
-            try:
-                app.webhooks.get(id=object_id)
-            except models.Webhook.DoesNotExist:
-                raise ValidationError(
-                    f"Couldn't resolve to a node: {node_id}",
-                    code=WebhookErrorCode.GRAPHQL_ERROR,
-                )
+        try:
+            response = super().perform_mutation(_root, info, **data)
+        except IntegrityError:
+            raise ValidationError(
+                "Webhook couldn't be deleted at this time due to running task."
+                "Webhook deactivated. Try deleting Webhook later",
+                code=WebhookErrorCode.DELETE_FAILED.value,
+            )
 
-        return super().perform_mutation(_root, info, **data)
+        return response
 
 
 class EventDeliveryRetry(BaseMutation):
@@ -278,12 +297,12 @@ class EventDeliveryRetry(BaseMutation):
         error_type_class = WebhookError
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, **data):
         delivery = cls.get_node_or_error(
             info,
             data["id"],
             only_type=EventDelivery,
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         manager.event_delivery_retry(delivery)
         return EventDeliveryRetry(delivery=delivery)

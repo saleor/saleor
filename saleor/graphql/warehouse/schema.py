@@ -5,9 +5,13 @@ from ...core.permissions import (
     ProductPermissions,
     ShippingPermissions,
 )
+from ...warehouse import models
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
+from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -16,12 +20,7 @@ from .mutations import (
     WarehouseShippingZoneUnassign,
     WarehouseUpdate,
 )
-from .resolvers import (
-    resolve_stock,
-    resolve_stocks,
-    resolve_warehouse,
-    resolve_warehouses,
-)
+from .resolvers import resolve_stock, resolve_stocks, resolve_warehouses
 from .sorters import WarehouseSortingInput
 from .types import (
     Stock,
@@ -35,8 +34,9 @@ class WarehouseQueries(graphene.ObjectType):
     warehouse = PermissionsField(
         Warehouse,
         description="Look up a warehouse by ID.",
-        id=graphene.Argument(
-            graphene.ID, description="ID of an warehouse", required=True
+        id=graphene.Argument(graphene.ID, description="ID of a warehouse."),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of a warehouse. {ADDED_IN_310}"
         ),
         permissions=[
             ProductPermissions.MANAGE_PRODUCTS,
@@ -57,13 +57,13 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_warehouse(_root, _info, **data):
-        warehouse_pk = data.get("id")
-        _, id = from_global_id_or_error(warehouse_pk, Warehouse)
-        return resolve_warehouse(id)
+    def resolve_warehouse(
+        _root, _info: ResolveInfo, /, *, id=None, external_reference=None
+    ):
+        return resolve_by_global_id_or_ext_ref(models.Warehouse, id, external_reference)
 
     @staticmethod
-    def resolve_warehouses(_root, info, **kwargs):
+    def resolve_warehouses(_root, info: ResolveInfo, **kwargs):
         qs = resolve_warehouses()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, WarehouseCountableConnection)
@@ -92,13 +92,12 @@ class StockQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_stock(_root, _info, **kwargs):
-        stock_id = kwargs.get("id")
-        _, id = from_global_id_or_error(stock_id, Stock)
+    def resolve_stock(_root, _info: ResolveInfo, /, *, id: str):
+        _, id = from_global_id_or_error(id, Stock)
         return resolve_stock(id)
 
     @staticmethod
-    def resolve_stocks(_root, info, **kwargs):
+    def resolve_stocks(_root, info: ResolveInfo, **kwargs):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)

@@ -2,9 +2,10 @@ import graphene
 
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
+from ..core import ResolveInfo
 from ..core.mutations import ModelBulkDeleteMutation
 from ..core.types import NonNullList, ShippingError
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import ShippingMethod, ShippingZone
 
 
@@ -25,10 +26,10 @@ class ShippingZoneBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         zones = [zone for zone in queryset]
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for zone in zones:
             manager.shipping_zone_deleted(zone)
 
@@ -67,9 +68,9 @@ class ShippingPriceBulkDelete(ModelBulkDeleteMutation):
         )
 
     @classmethod
-    def bulk_action(cls, info, queryset):
+    def bulk_action(cls, info: ResolveInfo, queryset, /):
         shipping_methods = [sm for sm in queryset]
         queryset.delete()
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         for method in shipping_methods:
             manager.shipping_price_deleted(method)

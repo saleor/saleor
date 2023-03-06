@@ -8,12 +8,13 @@ from ....checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout_prices
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
 
@@ -48,19 +49,20 @@ class CheckoutAddPromoCode(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, promo_code, checkout_id=None, token=None, id=None
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        id=None,
+        promo_code,
+        token=None
     ):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 

@@ -1,7 +1,10 @@
 import graphene
 
 from ...core.permissions import AccountPermissions, OrderPermissions
+from ..app.dataloaders import app_promise_callback
+from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -154,6 +157,9 @@ class AccountQueries(graphene.ObjectType):
         email=graphene.Argument(
             graphene.String, description="Email address of the user."
         ),
+        external_reference=graphene.Argument(
+            graphene.String, description=f"External ID of the user. {ADDED_IN_310}"
+        ),
         permissions=[
             AccountPermissions.MANAGE_STAFF,
             AccountPermissions.MANAGE_USERS,
@@ -164,7 +170,13 @@ class AccountQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_address_validation_rules(
-        _root, info, *, country_code, country_area=None, city=None, city_area=None
+        _root,
+        info: ResolveInfo,
+        *,
+        country_code,
+        country_area=None,
+        city=None,
+        city_area=None
     ):
         return resolve_address_validation_rules(
             info,
@@ -175,19 +187,19 @@ class AccountQueries(graphene.ObjectType):
         )
 
     @staticmethod
-    def resolve_customers(_root, info, **kwargs):
+    def resolve_customers(_root, info: ResolveInfo, **kwargs):
         qs = resolve_customers(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_permission_groups(_root, info, **kwargs):
+    def resolve_permission_groups(_root, info: ResolveInfo, **kwargs):
         qs = resolve_permission_groups(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, GroupCountableConnection)
 
     @staticmethod
-    def resolve_permission_group(_root, _info, *, id):
+    def resolve_permission_group(_root, _info: ResolveInfo, *, id):
         _, id = from_global_id_or_error(id, Group)
         return resolve_permission_group(id)
 
@@ -197,19 +209,24 @@ class AccountQueries(graphene.ObjectType):
         return user if user else None
 
     @staticmethod
-    def resolve_staff_users(_root, info, **kwargs):
+    def resolve_staff_users(_root, info: ResolveInfo, **kwargs):
         qs = resolve_staff_users(info)
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, UserCountableConnection)
 
     @staticmethod
-    def resolve_user(_root, info, *, id=None, email=None):
-        validate_one_of_args_is_in_query("id", id, "email", email)
-        return resolve_user(info, id, email)
+    def resolve_user(
+        _root, info: ResolveInfo, *, id=None, email=None, external_reference=None
+    ):
+        validate_one_of_args_is_in_query(
+            "id", id, "email", email, "external_reference", external_reference
+        )
+        return resolve_user(info, id, email, external_reference)
 
     @staticmethod
-    def resolve_address(_root, info, *, id):
-        return resolve_address(info, id)
+    @app_promise_callback
+    def resolve_address(_root, info: ResolveInfo, app, *, id):
+        return resolve_address(info, id, app)
 
 
 class AccountMutations(graphene.ObjectType):

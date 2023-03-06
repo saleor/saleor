@@ -9,11 +9,12 @@ from ....graphql.core.mutations import BaseMutation
 from ....order import ORDER_EDITABLE_STATUS
 from ....order.models import Order
 from ....tax import error_codes
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
@@ -48,7 +49,7 @@ class TaxExemptionManage(BaseMutation):
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
     @classmethod
-    def validate_input(cls, info, data):
+    def validate_input(cls, info: ResolveInfo, data):
         obj = cls.get_node_or_error(info, data["id"])
         if not isinstance(obj, (Order, Checkout)):
             code = error_codes.TaxExemptionManageErrorCode.NOT_FOUND.value
@@ -66,13 +67,13 @@ class TaxExemptionManage(BaseMutation):
             raise ValidationError(code=code, message=message)
 
     @classmethod
-    def get_object(cls, info, object_global_id):
+    def get_object(cls, info: ResolveInfo, object_global_id):
         obj = graphene.Node.get_node_from_global_id(info, object_global_id)
         return obj
 
     @classmethod
-    def _invalidate_checkout_prices(cls, info, checkout):
-        manager = load_plugin_manager(info.context)
+    def _invalidate_checkout_prices(cls, info: ResolveInfo, checkout):
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
 
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
@@ -86,7 +87,7 @@ class TaxExemptionManage(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         cls.validate_input(info, data)
         obj = cls.get_object(info, data["id"])
         obj.tax_exemption = data["tax_exemption"]

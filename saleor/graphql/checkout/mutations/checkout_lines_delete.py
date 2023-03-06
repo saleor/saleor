@@ -1,15 +1,15 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import invalidate_checkout_prices
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...discount.dataloaders import load_discounts
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
@@ -60,15 +60,10 @@ class CheckoutLinesDelete(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, lines_ids, token=None, id=None):
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=None,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id=None, lines_ids, token=None
+    ):
+        checkout = get_checkout(cls, info, checkout_id=None, token=token, id=id)
 
         _, lines_to_delete = resolve_global_ids_to_primary_keys(
             lines_ids, graphene_type="CheckoutLine", raise_error=True
@@ -78,7 +73,7 @@ class CheckoutLinesDelete(BaseMutation):
 
         lines, _ = fetch_checkout_lines(checkout)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

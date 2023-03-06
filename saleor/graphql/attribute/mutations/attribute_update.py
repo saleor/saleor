@@ -4,10 +4,12 @@ from django.core.exceptions import ValidationError
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.permissions import ProductTypePermissions
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310
 from ...core.enums import MeasurementUnitsEnum
-from ...core.mutations import ModelMutation
+from ...core.mutations import ModelWithExtRefMutation
 from ...core.types import AttributeError, NonNullList
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
 from .attribute_create import AttributeValueInput
@@ -51,9 +53,12 @@ class AttributeUpdateInput(graphene.InputObjectType):
     available_in_grid = graphene.Boolean(
         required=False, description=AttributeDescriptions.AVAILABLE_IN_GRID
     )
+    external_reference = graphene.String(
+        description="External ID of this product." + ADDED_IN_310, required=False
+    )
 
 
-class AttributeUpdate(AttributeMixin, ModelMutation):
+class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
@@ -61,7 +66,11 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of an attribute to update.")
+        id = graphene.ID(required=False, description="ID of an attribute to update.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of an attribute to update. {ADDED_IN_310}",
+        )
         input = AttributeUpdateInput(
             required=True, description="Fields required to update an attribute."
         )
@@ -84,21 +93,23 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=AttributeErrorCode.INVALID
+                            msg, code=AttributeErrorCode.INVALID.value
                         )
                     }
                 )
         return remove_values
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
         for attribute_value in cleaned_data.get("remove_values", []):
             attribute_value.delete()
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
-        instance = cls.get_node_or_error(info, id, only_type=Attribute)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None, input
+    ):
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
 
         # Do cleaning and uniqueness checks
         cleaned_input = cls.clean_input(info, instance, input)
@@ -119,6 +130,6 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.attribute_updated, instance)

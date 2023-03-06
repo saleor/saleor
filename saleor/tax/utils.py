@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING, Iterable, Optional, Tuple
 
 from prices import TaxedMoney
 
+from . import TaxCalculationStrategy
+
 if TYPE_CHECKING:
     from ..account.models import Address
     from ..channel.models import Channel
@@ -73,7 +75,7 @@ def get_charge_taxes(
 def get_tax_calculation_strategy(
     channel_tax_configuration: "TaxConfiguration",
     country_tax_configuration: Optional["TaxConfigurationPerCountry"],
-) -> Optional[str]:
+) -> str:
     """Get tax_calculation_strategy value for tax channel configuration.
 
     :param channel_tax_configuration: Channel-specific tax configuration.
@@ -84,7 +86,7 @@ def get_tax_calculation_strategy(
         country_tax_configuration.tax_calculation_strategy
         if country_tax_configuration
         else channel_tax_configuration.tax_calculation_strategy
-    )
+    ) or TaxCalculationStrategy.FLAT_RATES
 
 
 def get_charge_taxes_for_order(order: "Order") -> bool:

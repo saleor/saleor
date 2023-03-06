@@ -12,6 +12,7 @@ from ....checkout.utils import (
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -21,7 +22,7 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.dataloaders import load_discounts
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -64,6 +65,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         cls,
         _root,
         info,
+        /,
         checkout_id=None,
         token=None,
         id=None,
@@ -71,21 +73,14 @@ class CheckoutRemovePromoCode(BaseMutation):
         promo_code_id=None,
     ):
         validate_one_of_args_is_in_mutation(
-            CheckoutErrorCode, "promo_code", promo_code, "promo_code_id", promo_code_id
+            "promo_code", promo_code, "promo_code_id", promo_code_id
         )
 
         object_type, promo_code_pk = cls.clean_promo_code_id(promo_code_id)
 
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
         checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
 
@@ -142,7 +137,11 @@ class CheckoutRemovePromoCode(BaseMutation):
 
     @classmethod
     def remove_promo_code_by_id(
-        cls, info, checkout: models.Checkout, object_type: str, promo_code_pk: int
+        cls,
+        info: ResolveInfo,
+        checkout: models.Checkout,
+        object_type: str,
+        promo_code_pk: int,
     ) -> bool:
         """Detach promo code from the checkout based on the id.
 

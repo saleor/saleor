@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Collection, Union
+from typing import TYPE_CHECKING, Iterable, Union
 
 from .auth_filters import (
     AuthorizationFilters,
@@ -71,7 +71,9 @@ if TYPE_CHECKING:
     from ...app.models import App
 
 
-def one_of_permissions_or_auth_filter_required(context, permissions):
+def one_of_permissions_or_auth_filter_required(
+    context, permissions: Iterable[BasePermissionEnum]
+):
     """Determine whether user or app has rights to perform an action.
 
     The `context` parameter is the Context instance associated with the request.
@@ -111,7 +113,7 @@ def one_of_permissions_or_auth_filter_required(context, permissions):
 
 
 def permission_required(
-    requestor: Union["User", "App"], perms: Collection[BasePermissionEnum]
+    requestor: Union["User", "App", None], perms: Iterable[BasePermissionEnum]
 ) -> bool:
     from ...account.models import User
 
@@ -126,10 +128,12 @@ def permission_required(
 
 
 def has_one_of_permissions(
-    requestor: Union["User", "App"], permissions: Collection[BasePermissionEnum]
+    requestor: Union["User", "App", None], permissions: Iterable[BasePermissionEnum]
 ) -> bool:
     if not permissions:
         return True
+    if not requestor:
+        return False
     for perm in permissions:
         if permission_required(requestor, (perm,)):
             return True
@@ -137,7 +141,7 @@ def has_one_of_permissions(
 
 
 def message_one_of_permissions_required(
-    permissions: Collection[BasePermissionEnum],
+    permissions: Iterable[BasePermissionEnum],
 ) -> str:
     permission_msg = ", ".join([p.name for p in permissions])
     return f"\n\nRequires one of the following permissions: {permission_msg}."

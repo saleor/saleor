@@ -5,7 +5,9 @@ from django.forms import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
 from ....warehouse.reservations import is_reservation_enabled
+from ...app.dataloaders import get_app_promise
 from ...checkout.types import CheckoutLine
+from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
@@ -130,8 +132,9 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         discounts,
         replace,
     ):
+        app = get_app_promise(info.context).get()
         # if the requestor is not app, the quantity is required for all lines
-        if not info.context.app:
+        if not app:
             if any(
                 [
                     line_data.quantity_to_update is False
@@ -160,12 +163,11 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         )
 
     @classmethod
-    def perform_mutation(
-        cls, root, info, lines, checkout_id=None, token=None, id=None, replace=True
+    def perform_mutation(  # type: ignore[override]
+        cls, root, info: ResolveInfo, /, *, lines, checkout_id=None, token=None, id=None
     ):
         for line in lines:
             validate_one_of_args_is_in_mutation(
-                CheckoutErrorCode,
                 "line_id",
                 line.get("line_id"),
                 "variant_id",
@@ -173,7 +175,13 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
             )
 
         return super().perform_mutation(
-            root, info, lines, checkout_id, token, id, replace=True
+            root,
+            info,
+            lines=lines,
+            checkout_id=checkout_id,
+            token=token,
+            id=id,
+            replace=True,
         )
 
     @classmethod

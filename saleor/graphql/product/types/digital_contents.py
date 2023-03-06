@@ -3,6 +3,7 @@ from graphene import relay
 
 from ....product import models
 from ...channel import ChannelContext
+from ...core import ResolveInfo
 from ...core.connection import CountableConnection
 from ...core.scalars import UUID
 from ...core.types import ModelObjectType, NonNullList
@@ -10,7 +11,7 @@ from ...meta.types import ObjectWithMetadata
 from ..dataloaders import ProductVariantByIdLoader
 
 
-class DigitalContentUrl(ModelObjectType):
+class DigitalContentUrl(ModelObjectType[models.DigitalContentUrl]):
     id = graphene.GlobalID(required=True)
     content = graphene.Field(lambda: DigitalContent, required=True)
     created = graphene.DateTime(required=True)
@@ -31,7 +32,7 @@ class DigitalContentUrl(ModelObjectType):
         return root.get_absolute_url()
 
 
-class DigitalContent(ModelObjectType):
+class DigitalContent(ModelObjectType[models.DigitalContent]):
     id = graphene.GlobalID(required=True)
     use_default_settings = graphene.Boolean(required=True)
     automatic_fulfillment = graphene.Boolean(required=True)
@@ -57,7 +58,7 @@ class DigitalContent(ModelObjectType):
         return root.urls.all()
 
     @staticmethod
-    def resolve_product_variant(root: models.DigitalContent, info):
+    def resolve_product_variant(root: models.DigitalContent, info: ResolveInfo):
         return (
             ProductVariantByIdLoader(info.context)
             .load(root.product_variant_id)

@@ -16,6 +16,7 @@ from ..attribute.models import AttributeValueTranslation
 from ..checkout import base_calculations
 from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
 from ..checkout.models import Checkout
+from ..checkout.utils import get_or_create_checkout_metadata
 from ..core.prices import quantize_price, quantize_price_fields
 from ..core.utils import build_absolute_uri
 from ..core.utils.anonymization import (
@@ -156,9 +157,8 @@ def generate_metadata_updated_payload(
 
 def prepare_order_lines_allocations_payload(line):
     warehouse_id_quantity_allocated_map = list(
-        line.allocations.values(  # type: ignore
-            "quantity_allocated",
-            warehouse_id=F("stock__warehouse_id"),
+        line.allocations.values(
+            "quantity_allocated", warehouse_id=F("stock__warehouse_id")
         )
     )
     for item in warehouse_id_quantity_allocated_map:
@@ -527,8 +527,6 @@ def generate_checkout_payload(
         "discount_amount",
         "discount_name",
         "language_code",
-        "private_metadata",
-        "metadata",
     )
 
     checkout_price_fields = ("discount_amount",)
@@ -575,6 +573,16 @@ def generate_checkout_payload(
             # We add token as a graphql ID as it worked in that way since we introduce
             # a checkout payload
             "token": graphene.Node.to_global_id("Checkout", checkout.token),
+            "metadata": (
+                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
+                if hasattr(c, "metadata_storage")
+                else {}
+            ),
+            "private_metadata": (
+                lambda c=checkout: get_or_create_checkout_metadata(c).private_metadata
+                if hasattr(c, "metadata_storage")
+                else {}
+            ),
         },
     )
     return checkout_data
@@ -720,7 +728,7 @@ def generate_product_payload(
             "charge_taxes": _get_charge_taxes_for_product(product),
             "channel_listings": json.loads(
                 serialize_product_channel_listing_payload(
-                    product.channel_listings.all()  # type: ignore
+                    product.channel_listings.all()
                 )
             ),
             "variants": lambda x: json.loads(
@@ -1237,10 +1245,7 @@ def generate_checkout_payload_for_tax_calculation(
 
     serializer = PayloadSerializer()
 
-    checkout_fields = (
-        "currency",
-        "metadata",
-    )
+    checkout_fields = ("currency",)
 
     # Prepare checkout data
     address = checkout_info.shipping_address or checkout_info.billing_address
@@ -1310,6 +1315,11 @@ def generate_checkout_payload_for_tax_calculation(
             "shipping_name": shipping_method_name,
             "discounts": discounts,
             "lines": lines_dict_data,
+            "metadata": (
+                lambda c=checkout: get_or_create_checkout_metadata(c).metadata
+                if hasattr(c, "metadata_storage")
+                else {}
+            ),
         },
     )
     return checkout_data

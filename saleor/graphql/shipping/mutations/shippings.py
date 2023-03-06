@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import Dict, List, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -19,11 +20,12 @@ from ....shipping.utils import (
     get_countries_without_shipping_zone,
 )
 from ...channel.types import ChannelContext
+from ...core import ResolveInfo
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
 from ...core.types import NonNullList, ShippingError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product import types as product_types
 from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
@@ -115,8 +117,8 @@ class ShippingZoneUpdateInput(ShippingZoneCreateInput):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        errors = defaultdict(list)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         cls.check_duplicates(
             errors, data, "add_warehouses", "remove_warehouses", "warehouses"
         )
@@ -127,7 +129,9 @@ class ShippingZoneMixin:
         if errors:
             raise ValidationError(errors)
 
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
+            info, instance, data, **kwargs
+        )
         if add_warehouses := cleaned_input.get("add_warehouses"):
             cls.clean_add_warehouses(instance, add_warehouses, cleaned_input)
         cleaned_input = cls.clean_default(instance, cleaned_input)
@@ -169,7 +173,7 @@ class ShippingZoneMixin:
         if add_channels := cleaned_input.get("add_channels"):
             add_channel_ids = {channel.id for channel in add_channels}
 
-        ChannelWarehouse = channel_models.Channel.warehouses.through
+        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
         channel_warehouses = ChannelWarehouse.objects.filter(
             warehouse_id__in=warehouse_ids
         )
@@ -210,7 +214,7 @@ class ShippingZoneMixin:
                     "add_warehouses": ValidationError(
                         "Only warehouses that have common channel with shipping zone "
                         "can be assigned.",
-                        code=ShippingErrorCode.INVALID,
+                        code=ShippingErrorCode.INVALID.value,
                         params={
                             "warehouses": invalid_warehouses,
                         },
@@ -269,9 +273,9 @@ class ShippingZoneMixin:
         return data
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
-            super()._save_m2m(info, instance, cleaned_data)
+            super()._save_m2m(info, instance, cleaned_data)  # type: ignore[misc] # mixin # noqa: E501
 
             add_warehouses = cleaned_data.get("add_warehouses")
             if add_warehouses:
@@ -313,8 +317,8 @@ class ShippingZoneMixin:
         Remove all shipping zone to warehouse relations that will not have common
         channel after removing given channels from the shipping zone.
         """
-        WarehouseShippingZone = models.ShippingZone.warehouses.through
-        ChannelWarehouse = channel_models.Channel.warehouses.through
+        WarehouseShippingZone = models.ShippingZone.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+        ChannelWarehouse = channel_models.Channel.warehouses.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
         ShippingZoneChannel = models.ShippingZone.channels.through
 
         warehouse_shipping_zones = WarehouseShippingZone.objects.filter(
@@ -371,8 +375,8 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_created, instance)
 
     @classmethod
@@ -399,8 +403,8 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_updated, instance)
 
     @classmethod
@@ -424,8 +428,8 @@ class ShippingZoneDelete(ModelDeleteMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_zone_deleted, instance)
 
     @classmethod
@@ -442,14 +446,14 @@ class ShippingMethodTypeMixin:
         return shipping_types.ShippingMethodType
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         object_id = data.get("id")
         if object_id:
-            instance = cls.get_node_or_error(
+            instance = cls.get_node_or_error(  # type: ignore[attr-defined] # mixin
                 info, object_id, qs=models.ShippingMethod.objects
             )
         else:
-            instance = cls._meta.model()
+            instance = cls._meta.model()  # type: ignore[attr-defined] # mixin
         return instance
 
 
@@ -459,9 +463,11 @@ class ShippingPriceMixin:
         return ShippingMethodType
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
-        errors = {}
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
+            info, instance, data, **kwargs
+        )
+        errors: Dict[str, ValidationError] = {}
         cls.clean_weight(cleaned_input, errors)
         if (
             "minimum_delivery_days" in cleaned_input
@@ -483,7 +489,7 @@ class ShippingPriceMixin:
                 {
                     "inclusion_type": ValidationError(
                         "This field is required.",
-                        code=ShippingErrorCode.REQUIRED,
+                        code=ShippingErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -497,12 +503,12 @@ class ShippingPriceMixin:
         if min_weight and min_weight.value < 0:
             errors["minimum_order_weight"] = ValidationError(
                 "Shipping can't have negative weight.",
-                code=ShippingErrorCode.INVALID,
+                code=ShippingErrorCode.INVALID.value,
             )
         if max_weight and max_weight.value < 0:
             errors["maximum_order_weight"] = ValidationError(
                 "Shipping can't have negative weight.",
-                code=ShippingErrorCode.INVALID,
+                code=ShippingErrorCode.INVALID.value,
             )
 
         if errors:
@@ -520,7 +526,7 @@ class ShippingPriceMixin:
                             "Maximum order weight should be larger than the "
                             "minimum order weight."
                         ),
-                        code=ShippingErrorCode.MAX_LESS_THAN_MIN,
+                        code=ShippingErrorCode.MAX_LESS_THAN_MIN.value,
                     )
                 }
             )
@@ -581,9 +587,9 @@ class ShippingPriceMixin:
             )
 
     @classmethod
-    def save(cls, info, instance, cleaned_input):
+    def save(cls, info: ResolveInfo, instance, cleaned_input):
         with traced_atomic_transaction():
-            super().save(info, instance, cleaned_input)
+            super().save(info, instance, cleaned_input)  # type: ignore[misc] # mixin
 
             delete_postal_code_rules = cleaned_input.get("delete_postal_code_rules")
             if delete_postal_code_rules:
@@ -635,8 +641,8 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         errors_mapping = {"price_amount": "price"}
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_created, instance)
 
     @classmethod
@@ -674,8 +680,8 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMuta
         errors_mapping = {"price_amount": "price"}
 
     @classmethod
-    def post_save_action(cls, info, instance, _cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, instance)
 
     @classmethod
@@ -708,15 +714,18 @@ class ShippingPriceDelete(BaseMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data.get("id"), qs=models.ShippingMethod.objects
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str
+    ):
+        shipping_method = cast(
+            models.ShippingMethod,
+            cls.get_node_or_error(info, id, qs=models.ShippingMethod.objects),
         )
         shipping_method_id = shipping_method.id
         shipping_zone = shipping_method.shipping_zone
         shipping_method.delete()
         shipping_method.id = shipping_method_id
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_deleted, shipping_method)
 
         return ShippingPriceDelete(
@@ -753,11 +762,12 @@ class ShippingPriceExcludeProducts(BaseMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         shipping_method = cls.get_node_or_error(
-            info, data.get("id"), qs=models.ShippingMethod.objects
+            info, id, qs=models.ShippingMethod.objects
         )
-        input = data.get("input")
         product_ids = input.get("products", [])
 
         product_db_ids = cls.get_global_ids_or_error(
@@ -772,7 +782,7 @@ class ShippingPriceExcludeProducts(BaseMutation):
         shipping_method.excluded_products.set(
             (current_excluded_products | product_to_exclude).distinct()
         )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(
@@ -801,20 +811,22 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
         error_type_field = "shipping_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        shipping_method = cls.get_node_or_error(
-            info, data.get("id"), qs=models.ShippingMethod.objects
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, products: list
+    ):
+        shipping_method = cast(
+            models.ShippingMethod,
+            cls.get_node_or_error(info, id, qs=models.ShippingMethod.objects),
         )
 
-        product_ids = data.get("products")
-        if product_ids:
+        if products:
             product_db_ids = cls.get_global_ids_or_error(
-                product_ids, product_types.Product, field="products"
+                products, product_types.Product, field="products"
             )
             shipping_method.excluded_products.set(
                 shipping_method.excluded_products.exclude(id__in=product_db_ids)
             )
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingPriceExcludeProducts(

@@ -1,11 +1,12 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+from typing import DefaultDict, Dict, List, Tuple, cast
 
 import graphene
-from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
+from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
+from ....account.models import User
 from ....core.exceptions import PermissionDenied
 from ....core.permissions import AccountPermissions, get_permissions
 from ....core.tracing import traced_atomic_transaction
@@ -17,15 +18,14 @@ from ...account.utils import (
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Group
-
-if TYPE_CHECKING:
-    from ....account.models import User
 
 
 class PermissionGroupInput(graphene.InputObjectType):
@@ -56,14 +56,14 @@ class PermissionGroupCreate(ModelMutation):
             "Create new permission group. "
             "Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         add_permissions = cleaned_data.get("add_permissions")
         with traced_atomic_transaction():
             if add_permissions:
@@ -74,18 +74,19 @@ class PermissionGroupCreate(ModelMutation):
                 instance.user_set.add(*users)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_created, instance)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        requestor = info.context.user
-        errors = defaultdict(list)
-        cls.clean_permissions(requestor, instance, errors, cleaned_input)
-        cls.clean_users(requestor, errors, cleaned_input, instance)
+        user = info.context.user
+        user = cast(User, user)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        cls.clean_permissions(user, instance, errors, cleaned_input)
+        cls.clean_users(user, errors, cleaned_input, instance)
 
         if errors:
             raise ValidationError(errors)
@@ -96,8 +97,8 @@ class PermissionGroupCreate(ModelMutation):
     def clean_permissions(
         cls,
         requestor: "User",
-        group: auth_models.Group,
-        errors: Dict[Optional[str], List[ValidationError]],
+        group: models.Group,
+        errors: Dict[str, List[ValidationError]],
         cleaned_input: dict,
     ):
         field = "add_permissions"
@@ -111,7 +112,8 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if context.app:
+        app = get_app_promise(context).get()
+        if app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )
@@ -121,7 +123,7 @@ class PermissionGroupCreate(ModelMutation):
     def ensure_can_manage_permissions(
         cls,
         requestor: "User",
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         permission_items: List[str],
     ):
@@ -140,10 +142,10 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def clean_users(
         cls,
-        requestor: "User",
+        requestor: User,
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         user_items = cleaned_input.get("add_users")
         if user_items:
@@ -152,7 +154,7 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def ensure_users_are_staff(
         cls,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -170,9 +172,9 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def update_errors(
         cls,
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         msg: str,
-        field: Optional[str],
+        field: str,
         code: str,
         params: dict,
     ):
@@ -206,14 +208,14 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = (
             "Update permission group. Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def _save_m2m(cls, info, instance, cleaned_data):
+    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
             remove_users = cleaned_data.get("remove_users")
@@ -225,8 +227,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
                     instance.permissions.remove(*remove_permissions)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_updated, instance)
 
     @classmethod
@@ -239,7 +241,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor = info.context.user
         cls.ensure_requestor_can_manage_group(requestor, instance)
 
-        errors = defaultdict(list)
+        errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
 
@@ -254,9 +256,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def ensure_requestor_can_manage_group(
-        cls, requestor: "User", group: auth_models.Group
-    ):
+    def ensure_requestor_can_manage_group(cls, requestor: "User", group: models.Group):
         """Check if requestor can manage group.
 
         Requestor cannot manage group with wider scope of permissions.
@@ -270,8 +270,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def clean_permissions(
         cls,
         requestor: "User",
-        group: auth_models.Group,
-        errors: Dict[Optional[str], List[ValidationError]],
+        group: models.Group,
+        errors: Dict[str, List[ValidationError]],
         cleaned_input: dict,
     ):
         super().clean_permissions(requestor, group, errors, cleaned_input)
@@ -289,7 +289,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def ensure_permissions_can_be_removed(
         cls,
         errors: dict,
-        group: auth_models.Group,
+        group: models.Group,
         permissions: List["str"],
     ):
         missing_perms = get_not_manageable_permissions_after_removing_perms_from_group(
@@ -312,7 +312,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         super().clean_users(requestor, errors, cleaned_input, group)
         remove_users = cleaned_input.get("remove_users")
@@ -326,7 +326,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def ensure_can_manage_users(
         cls,
         requestor: "User",
-        errors: Dict[Optional[str], List[ValidationError]],
+        errors: Dict[str, List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
@@ -355,7 +355,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         cls.check_if_removing_user_last_group(requestor, errors, cleaned_input)
         cls.check_if_users_can_be_removed(requestor, errors, cleaned_input, group)
@@ -379,7 +379,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         requestor: "User",
         errors: dict,
         cleaned_input: dict,
-        group: auth_models.Group,
+        group: models.Group,
     ):
         """Check if after removing users from group all permissions will be manageable.
 
@@ -436,20 +436,22 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = (
             "Delete permission group. Apps are not allowed to perform this mutation."
         )
-        model = auth_models.Group
+        model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.permission_group_deleted, instance)
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         requestor = info.context.user
+        if not requestor:
+            raise PermissionDenied("You must be authenticated to perform this action.")
         if requestor.is_superuser:
             return
         if not can_user_manage_group(requestor, instance):
@@ -461,7 +463,8 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        if context.app:
+        app = get_app_promise(context).get()
+        if app:
             raise PermissionDenied(
                 message="Apps are not allowed to perform this mutation."
             )

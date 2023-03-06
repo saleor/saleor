@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,15 +9,16 @@ from ...core.permissions import ProductPermissions
 from ...core.tracing import traced_atomic_transaction
 from ...warehouse import WarehouseClickAndCollectOption, models
 from ...warehouse.error_codes import WarehouseErrorCode
-from ...warehouse.validation import validate_warehouse_count  # type: ignore
+from ...warehouse.validation import validate_warehouse_count
 from ..account.i18n import I18nMixin
+from ..core import ResolveInfo
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import NonNullList, WarehouseError
 from ..core.validators import (
     validate_required_string_field,
     validate_slug_and_generate_if_needed,
 )
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import get_plugin_manager_promise
 from ..shipping.types import ShippingZone
 from .types import Warehouse, WarehouseCreateInput, WarehouseUpdateInput
 
@@ -34,8 +36,10 @@ ADDRESS_FIELDS = [
 
 class WarehouseMixin:
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cleaned_input = super().clean_input(  # type: ignore[misc] # mixin
+            info, instance, data, **kwargs
+        )
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
@@ -83,8 +87,8 @@ class WarehouseMixin:
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
-        cleaned_data["address"] = cls.prepare_address(cleaned_data, instance)
-        return super().construct_instance(instance, cleaned_data)
+        cleaned_data["address"] = cls.prepare_address(cleaned_data, instance)  # type: ignore[attr-defined] # mixing # noqa: E501
+        return super().construct_instance(instance, cleaned_data)  # type: ignore[misc] # mixing # noqa: E501
 
 
 class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
@@ -107,8 +111,8 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
         return address_form.save()
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_created, instance)
 
 
@@ -130,10 +134,12 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        warehouse = cls.get_node_or_error(info, data.get("id"), only_type=Warehouse)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, shipping_zone_ids: List[str]
+    ):
+        warehouse = cls.get_node_or_error(info, id, only_type=Warehouse)
         shipping_zones = cls.get_nodes_or_error(
-            data.get("shipping_zone_ids"), "shipping_zone_id", only_type=ShippingZone
+            shipping_zone_ids, "shipping_zone_id", only_type=ShippingZone
         )
         cls.clean_shipping_zones(warehouse, shipping_zones)
         warehouse.shipping_zones.add(*shipping_zones)
@@ -144,7 +150,7 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
         if not validate_warehouse_count(shipping_zones, instance):
             msg = "Shipping zone can be assigned only to one warehouse."
             raise ValidationError(
-                {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+                {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID.value
             )
 
         cls.check_if_zones_can_be_assigned(instance, shipping_zones)
@@ -156,7 +162,7 @@ class WarehouseShippingZoneAssign(ModelMutation, I18nMixin):
         Raise and error when the condition is not fulfilled.
         """
         shipping_zone_ids = [zone.id for zone in shipping_zones]
-        ChannelShippingZone = channel_models.Channel.shipping_zones.through
+        ChannelShippingZone = channel_models.Channel.shipping_zones.through  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
         channel_shipping_zones = ChannelShippingZone.objects.filter(
             shippingzone_id__in=shipping_zone_ids
         )
@@ -234,10 +240,12 @@ class WarehouseShippingZoneUnassign(ModelMutation, I18nMixin):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        warehouse = cls.get_node_or_error(info, data.get("id"), only_type=Warehouse)
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id: str, shipping_zone_ids: List[str]
+    ):
+        warehouse = cls.get_node_or_error(info, id, only_type=Warehouse)
         shipping_zones = cls.get_nodes_or_error(
-            data.get("shipping_zone_ids"), "shipping_zone_id", only_type=ShippingZone
+            shipping_zone_ids, "shipping_zone_id", only_type=ShippingZone
         )
         warehouse.shipping_zones.remove(*shipping_zones)
         return WarehouseShippingZoneAssign(warehouse=warehouse)
@@ -268,8 +276,8 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
         return address_form.save()
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_updated, instance)
 
 
@@ -286,8 +294,8 @@ class WarehouseDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        manager = load_plugin_manager(info.context)
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        manager = get_plugin_manager_promise(info.context).get()
         node_id = data.get("id")
         model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
@@ -322,6 +330,6 @@ class WarehouseDelete(ModelDeleteMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def post_save_action(cls, info, instance, cleaned_input):
-        manager = load_plugin_manager(info.context)
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.warehouse_deleted, instance)

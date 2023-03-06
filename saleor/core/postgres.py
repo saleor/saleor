@@ -20,8 +20,8 @@ class NoValidationSearchVectorCombinable(SearchVectorCombinable):
                 f"instances, got {type(other).__name__}."
             )
         if reversed:
-            return NoValidationCombinedSearchVector(other, connector, self, self.config)
-        return NoValidationCombinedSearchVector(self, connector, other, self.config)
+            return NoValidationCombinedSearchVector(other, connector, self, self.config)  # type: ignore[arg-type, attr-defined] # mixin class # noqa: E501
+        return NoValidationCombinedSearchVector(self, connector, other, self.config)  # type: ignore[arg-type, attr-defined] # mixin class # noqa: E501
 
 
 class NoValidationCombinedSearchVector(
@@ -86,7 +86,7 @@ class FlatConcat(Expression):
                 expressions = expressions[: self.max_expression_count]
             else:
                 raise ValueError("Maximum expression count exceeded")
-        self.source_expressions: List[SearchVector] = self._parse_expressions(
+        self.source_expressions: List[SearchVector] = self._parse_expressions(  # type: ignore[attr-defined] # private method of BaseExpression # noqa: E501
             *expressions
         )
 

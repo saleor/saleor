@@ -10,7 +10,6 @@ from ... import __version__
 from ...account import models as account_models
 from ...channel import models as channel_models
 from ...core.permissions import AuthorizationFilters, SitePermissions, get_permissions
-from ...core.tracing import traced_resolver
 from ...core.utils import build_absolute_uri
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
@@ -24,6 +23,7 @@ from ..core.descriptions import (
 )
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
+from ..core.tracing import traced_resolver
 from ..core.types import (
     CountryDisplay,
     LanguageDisplay,
@@ -33,7 +33,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
-from ..plugins.dataloaders import load_plugin_manager
+from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site_callback
 from ..translations.fields import TranslationField
@@ -56,7 +56,7 @@ class Domain(graphene.ObjectType):
         description = "Represents shop's domain."
 
 
-class OrderSettings(ModelObjectType):
+class OrderSettings(ModelObjectType[site_models.SiteSettings]):
     automatically_confirm_all_new_orders = graphene.Boolean(required=True)
     automatically_fulfill_non_shippable_gift_card = graphene.Boolean(required=True)
 
@@ -65,7 +65,7 @@ class OrderSettings(ModelObjectType):
         model = site_models.SiteSettings
 
 
-class GiftCardSettings(ModelObjectType):
+class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="The gift card expiry type settings.", required=True
     )
@@ -334,16 +334,16 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
+    @plugin_manager_promise_callback
     def resolve_available_payment_gateways(
-        _, info, currency: Optional[str] = None, channel: Optional[str] = None
+        _, _info, manager, currency: Optional[str] = None, channel: Optional[str] = None
     ):
-        manager = load_plugin_manager(info.context)
         return manager.list_payment_gateways(currency=currency, channel_slug=channel)
 
     @staticmethod
     @traced_resolver
-    def resolve_available_external_authentications(_, info):
-        manager = load_plugin_manager(info.context)
+    @plugin_manager_promise_callback
+    def resolve_available_external_authentications(_, _info, manager):
         return manager.list_external_authentications(active_only=True)
 
     @staticmethod

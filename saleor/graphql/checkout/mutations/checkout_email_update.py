@@ -2,11 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....checkout.error_codes import CheckoutErrorCode
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout
 
@@ -49,23 +50,24 @@ class CheckoutEmailUpdate(BaseMutation):
             )
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, email, checkout_id=None, token=None, id=None
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        _root,
+        info: ResolveInfo,
+        /,
+        *,
+        checkout_id=None,
+        email,
+        id=None,
+        token=None
     ):
         cls.clean_email(email)
 
-        checkout = get_checkout(
-            cls,
-            info,
-            checkout_id=checkout_id,
-            token=token,
-            id=id,
-            error_class=CheckoutErrorCode,
-        )
+        checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         checkout.email = email
         cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email", "last_change"])
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.checkout_updated, checkout)
         return CheckoutEmailUpdate(checkout=checkout)

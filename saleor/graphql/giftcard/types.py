@@ -12,7 +12,6 @@ from ...core.permissions import (
     AuthorizationFilters,
     GiftcardPermissions,
 )
-from ...core.tracing import traced_resolver
 from ...giftcard import GiftCardEvents, models
 from ..account.dataloaders import UserByUserIdLoader
 from ..account.utils import (
@@ -26,6 +25,8 @@ from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
 from ..core.fields import PermissionsField
+from ..core.scalars import Date
+from ..core.tracing import traced_resolver
 from ..core.types import ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
@@ -63,7 +64,7 @@ class GiftCardEventBalance(graphene.ObjectType):
     )
 
 
-class GiftCardEvent(ModelObjectType):
+class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     id = graphene.GlobalID(required=True)
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
@@ -104,10 +105,8 @@ class GiftCardEvent(ModelObjectType):
         description="The list of old gift card tags.",
     )
     balance = graphene.Field(GiftCardEventBalance, description="The gift card balance.")
-    expiry_date = graphene.types.datetime.Date(description="The gift card expiry date.")
-    old_expiry_date = graphene.types.datetime.Date(
-        description="Previous gift card expiry date."
-    )
+    expiry_date = Date(description="The gift card expiry date.")
+    old_expiry_date = Date(description="Previous gift card expiry date.")
 
     class Meta:
         description = "History log of the gift card." + ADDED_IN_31 + PREVIEW_FEATURE
@@ -215,7 +214,7 @@ class GiftCardEvent(ModelObjectType):
         )
 
 
-class GiftCardTag(ModelObjectType):
+class GiftCardTag(ModelObjectType[models.GiftCardTag]):
     id = graphene.GlobalID(required=True)
     name = graphene.String(required=True)
 
@@ -225,7 +224,7 @@ class GiftCardTag(ModelObjectType):
         interfaces = [graphene.relay.Node]
 
 
-class GiftCard(ModelObjectType):
+class GiftCard(ModelObjectType[models.GiftCard]):
     id = graphene.GlobalID(required=True)
     display_code = graphene.String(
         description="Code in format which allows displaying in a user interface.",
@@ -276,7 +275,7 @@ class GiftCard(ModelObjectType):
         ),
     )
     last_used_on = graphene.DateTime()
-    expiry_date = graphene.Date()
+    expiry_date = Date()
     app = graphene.Field(
         App,
         description=(

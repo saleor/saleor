@@ -22,6 +22,9 @@ INVOICE_CREATE_MUTATION = """
                 status
                 number
                 url
+                order {
+                    id
+                }
             }
             errors {
                 field
@@ -35,8 +38,9 @@ INVOICE_CREATE_MUTATION = """
 def test_create_invoice(staff_api_client, permission_manage_orders, order):
     number = "01/12/2020/TEST"
     url = "http://www.example.com"
+    order_id = graphene.Node.to_global_id("Order", order.pk)
     variables = {
-        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "orderId": order_id,
         "number": number,
         "url": url,
     }
@@ -45,6 +49,7 @@ def test_create_invoice(staff_api_client, permission_manage_orders, order):
     )
     content = get_graphql_content(response)
     invoice = Invoice.objects.get(order=order, status=JobStatus.SUCCESS)
+    assert order_id == content["data"]["invoiceCreate"]["invoice"]["order"]["id"]
     assert invoice.url == content["data"]["invoiceCreate"]["invoice"]["url"]
     assert invoice.number == content["data"]["invoiceCreate"]["invoice"]["number"]
     assert (

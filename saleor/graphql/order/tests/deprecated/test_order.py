@@ -272,7 +272,7 @@ def test_order_fulfill_old_line_id(
     assert not data["errors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
+        warehouse.pk: [
             {"order_line": order_line, "quantity": 3},
             {"order_line": order_line2, "quantity": 2},
         ]

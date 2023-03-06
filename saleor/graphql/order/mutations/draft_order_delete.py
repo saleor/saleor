@@ -5,15 +5,21 @@ from ....core.permissions import OrderPermissions
 from ....core.tracing import traced_atomic_transaction
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
-from ...core.mutations import ModelDeleteMutation
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_310
+from ...core.mutations import ModelDeleteMutation, ModelWithExtRefMutation
 from ...core.types import OrderError
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 
 
-class DraftOrderDelete(ModelDeleteMutation):
+class DraftOrderDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID of a draft order to delete.")
+        id = graphene.ID(required=False, description="ID of a product to delete.")
+        external_reference = graphene.String(
+            required=False,
+            description=f"External ID of a product to delete. {ADDED_IN_310}",
+        )
 
     class Meta:
         description = "Deletes a draft order."
@@ -24,21 +30,21 @@ class DraftOrderDelete(ModelDeleteMutation):
         error_type_field = "order_errors"
 
     @classmethod
-    def clean_instance(cls, info, instance):
+    def clean_instance(cls, info: ResolveInfo, instance):
         if instance.status != OrderStatus.DRAFT:
             raise ValidationError(
                 {
                     "id": ValidationError(
                         "Provided order id belongs to non-draft order.",
-                        code=OrderErrorCode.INVALID,
+                        code=OrderErrorCode.INVALID.value,
                     )
                 }
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         order = cls.get_instance(info, **data)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
             cls.call_event(manager.draft_order_deleted, order)

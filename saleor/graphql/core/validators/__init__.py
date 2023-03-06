@@ -15,11 +15,11 @@ if TYPE_CHECKING:
     from django.db.models import Model
 
 
-def validate_one_of_args_is_in_mutation(error_class, *args):
+def validate_one_of_args_is_in_mutation(*args):
     try:
         validate_one_of_args_is_in_query(*args)
     except GraphQLError as e:
-        raise ValidationError(str(e), code=error_class.GRAPHQL_ERROR)
+        raise ValidationError(str(e), code="graphql_error")
 
 
 def validate_one_of_args_is_in_query(*args):
@@ -118,7 +118,7 @@ def validate_slug_and_generate_if_needed(
 
     # update mutation - just check if slug value is not empty
     # _state.adding is True only when it's new not saved instance.
-    if not instance._state.adding:  # type: ignore
+    if not instance._state.adding:
         validate_slug_value(cleaned_input)
         return cleaned_input
 

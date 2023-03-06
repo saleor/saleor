@@ -13,10 +13,11 @@ from ....shipping.tasks import (
 )
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
+from ...core import ResolveInfo
 from ...core.scalars import PositiveDecimal
 from ...core.types import NonNullList, ShippingError
 from ...core.validators import validate_decimal_max_value, validate_price_precision
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import ShippingMethodType
 
@@ -109,7 +110,12 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
         )
 
     @classmethod
-    def save(cls, info, shipping_method: "ShippingMethodModel", cleaned_input: Dict):
+    def save(
+        cls,
+        info: ResolveInfo,
+        shipping_method: "ShippingMethodModel",
+        cleaned_input: Dict,
+    ):
         # transaction ensures consistent channels data
         with traced_atomic_transaction():
             cls.add_channels(shipping_method, cleaned_input.get("add_channels", []))
@@ -161,7 +167,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                     errors["price"].append(
                         ValidationError(
                             "This field is required.",
-                            code=ShippingErrorCode.REQUIRED,
+                            code=ShippingErrorCode.REQUIRED.value,
                             params={"channels": [channel_id]},
                         )
                     )
@@ -211,7 +217,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
                             "Maximum order price should be larger than "
                             "the minimum order price."
                         ),
-                        code=ShippingErrorCode.MAX_LESS_THAN_MIN,
+                        code=ShippingErrorCode.MAX_LESS_THAN_MIN.value,
                         params={"channels": [channel_id]},
                     )
                 )
@@ -242,10 +248,12 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
             )
 
     @classmethod
-    def perform_mutation(cls, _root, info, id, input):
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, id, input
+    ):
         shipping_method = get_shipping_model_by_object_id(id)
 
-        errors = defaultdict(list)
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
         clean_channels = cls.clean_channels(
             info, input, errors, ShippingErrorCode.DUPLICATED_INPUT_ITEM.value
         )
@@ -255,7 +263,7 @@ class ShippingMethodChannelListingUpdate(BaseChannelListingMutation):
             raise ValidationError(errors)
 
         cls.save(info, shipping_method, cleaned_input)
-        manager = load_plugin_manager(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.shipping_price_updated, shipping_method)
 
         return ShippingMethodChannelListingUpdate(

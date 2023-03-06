@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from django.db.models.query import QuerySet
 
     from ...order.models import Order, OrderLine
-    from ..models import Category, Product, ProductVariant
+    from ..models import Category, ProductVariant
 
 
 def calculate_revenue_for_variant(
@@ -32,7 +32,7 @@ def calculate_revenue_for_variant(
 
 
 @traced_atomic_transaction()
-def delete_categories(categories_ids: List[str], manager):
+def delete_categories(categories_ids: List[Union[str, int]], manager):
     """Delete categories and perform all necessary actions.
 
     Set products of deleted categories as unpublished, delete categories
@@ -68,9 +68,7 @@ def delete_categories(categories_ids: List[str], manager):
 
 def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
     """Collect products from all levels in category tree."""
-    products = category.products.prefetched_for_webhook(  # type: ignore
-        single_object=False
-    )
+    products = category.products.prefetched_for_webhook(single_object=False)
     descendants = category.get_descendants()
     for descendant in descendants:
         products = products | descendant.products.all()

@@ -11,8 +11,9 @@ from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...app.dataloaders import load_app
+from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel
+from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -26,7 +27,7 @@ from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_variants_available_in_channel
-from ...plugins.dataloaders import load_plugin_manager
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
@@ -177,9 +178,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def clean_checkout_lines(
-        cls, info, lines, country, channel
+        cls, info: ResolveInfo, lines, country, channel
     ) -> Tuple[List[product_models.ProductVariant], List["CheckoutLineData"]]:
-        app = load_app(info.context)
+        app = get_app_promise(info.context).get()
         site = get_site_promise(info.context).get()
         check_permissions_for_custom_prices(app, lines)
         variant_ids = [line["variant_id"] for line in lines]
@@ -254,10 +255,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
+    def clean_input(cls, info: ResolveInfo, instance: models.Checkout, data, **kwargs):
         user = info.context.user
         channel = data.pop("channel")
-        cleaned_input = super().clean_input(info, instance, data)
+        cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         cleaned_input["channel"] = channel
         cleaned_input["currency"] = channel.currency_code
@@ -297,7 +298,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def save(cls, info, instance: models.Checkout, cleaned_input):
+    def save(cls, info: ResolveInfo, instance: models.Checkout, cleaned_input):
         with traced_atomic_transaction():
             # Create the checkout object
             instance.save()
@@ -336,7 +337,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             instance.save()
 
     @classmethod
-    def get_instance(cls, info, **data):
+    def get_instance(cls, info: ResolveInfo, **data):
         instance = super().get_instance(info, **data)
         user = info.context.user
         if user:
@@ -344,13 +345,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return instance
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        channel_input = data.get("input", {}).get("channel")
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, input
+    ):
+        channel_input = input.get("channel")
         channel = clean_channel(channel_input, error_class=CheckoutErrorCode)
         if channel:
-            data["input"]["channel"] = channel
-        response = super().perform_mutation(_root, info, **data)
-        manager = load_plugin_manager(info.context)
+            input["channel"] = channel
+        response = super().perform_mutation(_root, info, input=input)
+        manager = get_plugin_manager_promise(info.context).get()
         cls.call_event(manager.checkout_created, response.checkout)
         response.created = True
         return response

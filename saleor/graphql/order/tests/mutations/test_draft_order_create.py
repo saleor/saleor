@@ -20,58 +20,63 @@ DRAFT_ORDER_CREATE_MUTATION = """
         $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput!],
         $shippingAddress: AddressInput, $billingAddress: AddressInput,
         $shippingMethod: ID, $voucher: ID, $customerNote: String, $channel: ID,
-        $redirectUrl: String
+        $redirectUrl: String, $externalReference: String
         ) {
             draftOrderCreate(
-                input: {user: $user, discount: $discount,
-                lines: $lines, shippingAddress: $shippingAddress,
-                billingAddress: $billingAddress,
-                shippingMethod: $shippingMethod, voucher: $voucher,
-                channelId: $channel,
-                redirectUrl: $redirectUrl,
-                customerNote: $customerNote}) {
-                    errors {
-                        field
-                        code
-                        variants
-                        message
-                        addressType
+                input: {
+                    user: $user, discount: $discount,
+                    lines: $lines, shippingAddress: $shippingAddress,
+                    billingAddress: $billingAddress,
+                    shippingMethod: $shippingMethod, voucher: $voucher,
+                    channelId: $channel,
+                    redirectUrl: $redirectUrl,
+                    customerNote: $customerNote,
+                    externalReference: $externalReference
+                }
+            ) {
+                errors {
+                    field
+                    code
+                    variants
+                    message
+                    addressType
+                }
+                order {
+                    id
+                    discount {
+                        amount
                     }
-                    order {
-                        id
-                        discount {
+                    discountName
+                    redirectUrl
+                    lines {
+                        productName
+                        productSku
+                        quantity
+                    }
+                    billingAddress{
+                        city
+                        streetAddress1
+                        postalCode
+                    }
+                    shippingAddress{
+                        city
+                        streetAddress1
+                        postalCode
+                    }
+                    status
+                    voucher {
+                        code
+                    }
+                    customerNote
+                    total {
+                        gross {
                             amount
                         }
-                        discountName
-                        redirectUrl
-                        lines {
-                            productName
-                            productSku
-                            quantity
-                        }
-                        billingAddress{
-                            city
-                            streetAddress1
-                            postalCode
-                        }
-                        shippingAddress{
-                            city
-                            streetAddress1
-                            postalCode
-                        }
-                        status
-                        voucher {
-                            code
-                        }
-                        customerNote
-                        total {
-                            gross {
-                                amount
-                            }
-                        }
-                        shippingMethodName
                     }
+                    shippingMethodName
+                    externalReference
                 }
+            }
         }
     """
 
@@ -111,6 +116,7 @@ def test_draft_order_create(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
 
     variables = {
         "user": user_id,
@@ -123,6 +129,7 @@ def test_draft_order_create(
         "customerNote": customer_note,
         "channel": channel_id,
         "redirectUrl": redirect_url,
+        "externalReference": external_reference,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -134,6 +141,7 @@ def test_draft_order_create(
     assert data["voucher"]["code"] == voucher.code
     assert data["customerNote"] == customer_note
     assert data["redirectUrl"] == redirect_url
+    assert data["externalReference"] == external_reference
     assert (
         data["billingAddress"]["streetAddress1"]
         == graphql_address_data["streetAddress1"]
@@ -150,6 +158,7 @@ def test_draft_order_create(
     assert order.billing_address
     assert order.shipping_address
     assert order.search_vector
+    assert order.external_reference == external_reference
 
     # Ensure the correct event was created
     created_draft_event = OrderEvent.objects.get(
@@ -1174,3 +1183,32 @@ def test_draft_order_create_update_display_gross_prices(
 
     order = Order.objects.get(id=order_pk)
     assert not order.display_gross_prices
+
+
+def test_draft_order_create_with_non_unique_external_reference(
+    staff_api_client,
+    permission_manage_orders,
+    channel_USD,
+    order,
+):
+    # given
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    ext_ref = "test-ext-ref"
+    order.external_reference = ext_ref
+    order.save(update_fields=["external_reference"])
+
+    variables = {"channel": channel_id, "externalReference": ext_ref}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["draftOrderCreate"]["errors"][0]
+    assert error["field"] == "externalReference"
+    assert error["code"] == OrderErrorCode.UNIQUE.name
+    assert error["message"] == "Order with this External reference already exists."

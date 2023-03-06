@@ -1,8 +1,9 @@
 import logging
 from decimal import Decimal
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import before_after
 import graphene
 import pytest
 from django.core.exceptions import ValidationError
@@ -12,6 +13,7 @@ from ......checkout import calculations
 from ......checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ......order import OrderEvents, OrderStatus
 from ......plugins.manager import get_plugins_manager
+from ......warehouse.models import Stock
 from ..... import ChargeStatus, TransactionKind
 from .....utils import price_to_minor_unit, update_payment_charge_status
 from ...webhooks import (
@@ -147,6 +149,52 @@ def test_handle_authorization_for_pending_order(
     assert external_events.count() == 1
 
 
+def test_handle_authorization_sets_psp_reference(
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    expected_psp_reference = "psp-123"
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference=expected_psp_reference,
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin().config
+
+    # when
+    handle_authorization(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert payment.psp_reference == expected_psp_reference
+
+
 def test_handle_authorization_for_checkout(
     notification,
     adyen_plugin,
@@ -238,6 +286,142 @@ def test_handle_authorization_for_checkout_partial_payment(
     assert payment.transactions.count() == 0
     assert payment.checkout
     assert not payment.order
+
+
+@mock.patch("saleor.payment.gateways.adyen.plugin.call_refund")
+def test_handle_authorization_for_checkout_out_of_stock_after_payment(
+    mock_refund,
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+
+    refund_response = {"pspReference": "refund-psp"}
+    mock_refund_response = MagicMock()
+    mock_refund.return_value = mock_refund_response
+    mock_refund_response.message = refund_response
+
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference="reference",
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin(adyen_auto_capture=True).config
+
+    # when
+    def call_after_finalizing_payment(*args, **kwargs):
+        Stock.objects.all().update(quantity=0)
+
+    with before_after.before(
+        "saleor.checkout.complete_checkout._create_order",
+        call_after_finalizing_payment,
+    ):
+        handle_authorization(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert not payment.order
+    assert payment.checkout
+    assert (
+        payment.transactions.filter(
+            kind__in=[
+                TransactionKind.ACTION_TO_CONFIRM,
+                TransactionKind.CAPTURE,
+                TransactionKind.REFUND_ONGOING,
+            ]
+        ).count()
+        == 3
+    )
+
+
+def test_handle_authorization_for_checkout_that_cannot_be_finalized(
+    notification,
+    adyen_plugin,
+    payment_adyen_for_checkout,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = payment_adyen_for_checkout.checkout
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    payment = payment_adyen_for_checkout
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.to_confirm = True
+    payment.save()
+
+    payment.transactions.create(
+        token="reference",
+        kind=TransactionKind.CAPTURE,
+        is_success=True,
+        action_required=False,
+        currency=payment.currency,
+        amount=payment.total,
+        gateway_response={},
+    )
+    payment.transactions.create(
+        token="refund-reference",
+        is_success=True,
+        kind=TransactionKind.REFUND_ONGOING,
+        action_required=False,
+        currency=payment.currency,
+        amount=payment.total,
+        gateway_response={},
+    )
+
+    checkout.lines.first().delete()
+
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+    notification = notification(
+        psp_reference="reference",
+        merchant_reference=payment_id,
+        value=price_to_minor_unit(payment.total, payment.currency),
+    )
+    config = adyen_plugin(adyen_auto_capture=True).config
+
+    # when
+    handle_authorization(notification, config)
+
+    # then
+    payment.refresh_from_db()
+    assert not payment.order
+    assert payment.checkout
+    assert payment.transactions.count() == 2
 
 
 @patch("saleor.payment.gateway.void")

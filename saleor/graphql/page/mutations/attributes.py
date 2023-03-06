@@ -14,6 +14,7 @@ from ...attribute.mutations import (
     BaseReorderAttributeValuesMutation,
 )
 from ...attribute.types import Attribute
+from ...core import ResolveInfo
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, PageError
@@ -86,10 +87,10 @@ class PageAttributeAssign(BaseMutation):
             errors["attribute_ids"].append(error)
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        errors = defaultdict(list)
-        page_type_id: str = data["page_type_id"]
-        attribute_ids = data["attribute_ids"]
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, attribute_ids, page_type_id
+    ):
+        errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
 
         # retrieve the requested page type
         page_type = cls.get_node_or_error(
@@ -135,7 +136,7 @@ class PageAttributeUnassign(BaseMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         page_type_id = data["page_type_id"]
         attribute_ids = data["attribute_ids"]
 
@@ -172,7 +173,7 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
         error_type_field = "page_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         page_type_id = data["page_type_id"]
         pk = cls.get_global_id_or_error(page_type_id, only_type=PageType, field="pk")
 
@@ -230,7 +231,7 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, _info, **data):
+    def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         page_id = data["page_id"]
         page = cls.perform(page_id, "page", data, "pagevalueassignment", PageErrorCode)
         return PageReorderAttributeValues(page=page)
