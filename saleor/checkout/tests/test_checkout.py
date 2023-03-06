@@ -475,6 +475,8 @@ def test_get_discount_for_checkout_value_specific_product_voucher(
             product=line.variant.product,
             variant=line.variant,
             product_type=line.variant.product.product_type,
+            discounts=[],
+            channel=channel_USD,
         )
         for line in checkout_with_items.lines.all()
     ]

@@ -80,6 +80,67 @@ def test_create_fixed_sale(checkout_lines_info, checkout_info, new_sale):
 
 
 @freeze_time("2020-12-12 12:00:00")
+def test_create_percentage_sale(
+    checkout_lines_info, checkout_info, new_sale_percentage
+):
+    # given
+    line_info1 = checkout_lines_info[0]
+    product_line1 = line_info1.product
+
+    sale = new_sale_percentage
+    sale.products.add(product_line1)
+    discount_info_for_new_sale_percentage = generate_discount_info(
+        sale, products_pks={product_line1.pk}
+    )
+
+    sale_channel_listing = sale.channel_listings.get()
+    variant_channel_listing = line_info1.variant.channel_listings.get()
+    expected_discount_amount = variant_channel_listing.price_amount * (
+        sale_channel_listing.discount_value / 100
+    )
+
+    # when
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info_for_new_sale_percentage]
+    )
+
+    # then
+    assert len(line_info1.discounts) == 1
+    now = timezone.now()
+    discount_from_info = line_info1.discounts[0]
+    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    assert discount_from_info.line == discount_from_db.line == line_info1.line
+    assert discount_from_info.created_at == discount_from_db.created_at == now
+    assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
+    assert (
+        discount_from_info.value_type
+        == discount_from_db.value_type
+        == DiscountValueType.PERCENTAGE
+    )
+    assert (
+        discount_from_info.value
+        == discount_from_db.value
+        == sale_channel_listing.discount_value
+    )
+    assert (
+        discount_from_info.amount_value
+        == discount_from_db.amount_value
+        == expected_discount_amount
+    )
+    assert discount_from_info.currency == discount_from_db.currency == "USD"
+    assert discount_from_info.name == discount_from_db.name == sale.name
+    assert (
+        discount_from_info.translated_name == discount_from_db.translated_name is None
+    )
+    assert discount_from_info.reason == discount_from_db.reason is None
+    assert discount_from_info.sale == discount_from_db.sale == sale
+    assert discount_from_info.voucher == discount_from_db.voucher is None
+
+    for checkout_line_info in checkout_lines_info[1:]:
+        assert not checkout_line_info.discounts
+
+
+@freeze_time("2020-12-12 12:00:00")
 def test_create_percentage_sale_multiple_quantity_in_lines(
     checkout_lines_with_multiple_quantity_info,
     checkout_info,
@@ -144,67 +205,6 @@ def test_create_percentage_sale_multiple_quantity_in_lines(
     assert discount_from_info.voucher == discount_from_db.voucher is None
 
     for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
-        assert not checkout_line_info.discounts
-
-
-@freeze_time("2020-12-12 12:00:00")
-def test_create_percentage_sale(
-    checkout_lines_info, checkout_info, new_sale_percentage
-):
-    # given
-    line_info1 = checkout_lines_info[0]
-    product_line1 = line_info1.product
-
-    sale = new_sale_percentage
-    sale.products.add(product_line1)
-    discount_info_for_new_sale_percentage = generate_discount_info(
-        sale, products_pks={product_line1.pk}
-    )
-
-    sale_channel_listing = sale.channel_listings.get()
-    variant_channel_listing = line_info1.variant.channel_listings.get()
-    expected_discount_amount = variant_channel_listing.price_amount * (
-        sale_channel_listing.discount_value / 100
-    )
-
-    # when
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, checkout_lines_info, [discount_info_for_new_sale_percentage]
-    )
-
-    # then
-    assert len(line_info1.discounts) == 1
-    now = timezone.now()
-    discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
-    assert discount_from_info.line == discount_from_db.line == line_info1.line
-    assert discount_from_info.created_at == discount_from_db.created_at == now
-    assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
-    assert (
-        discount_from_info.value_type
-        == discount_from_db.value_type
-        == DiscountValueType.PERCENTAGE
-    )
-    assert (
-        discount_from_info.value
-        == discount_from_db.value
-        == sale_channel_listing.discount_value
-    )
-    assert (
-        discount_from_info.amount_value
-        == discount_from_db.amount_value
-        == expected_discount_amount
-    )
-    assert discount_from_info.currency == discount_from_db.currency == "USD"
-    assert discount_from_info.name == discount_from_db.name == sale.name
-    assert (
-        discount_from_info.translated_name == discount_from_db.translated_name is None
-    )
-    assert discount_from_info.reason == discount_from_db.reason is None
-    assert discount_from_info.sale == discount_from_db.sale == sale
-    assert discount_from_info.voucher == discount_from_db.voucher is None
-
-    for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
 
 
@@ -600,7 +600,7 @@ def test_create_sale_two_fixed_sales(
         assert not checkout_line_info.discounts
 
 
-def test_create_sale_percentage_sales_more_then_fixed(
+def test_create_sale_fixed_sales_more_then_percentage(
     checkout_lines_info, checkout_info, new_sale, sale_5_percentage
 ):
     # given
@@ -664,7 +664,7 @@ def test_create_sale_percentage_sales_more_then_fixed(
         assert not checkout_line_info.discounts
 
 
-def test_create_sale_fixed_sales_more_then_percentage(
+def test_create_sale_percentage_sales_more_then_fixed(
     checkout_lines_info,
     checkout_info,
     new_sale_percentage,

@@ -16,7 +16,9 @@ from typing import (
     Union,
     cast,
 )
+from uuid import UUID
 
+from babel.numbers import get_currency_precision
 from django.conf import settings
 from django.db.models import F
 from django.utils import timezone
@@ -422,7 +424,6 @@ def fetch_catalogue_info(instance: Sale) -> CatalogueInfo:
     return catalogue_info
 
 
-# TODO: COnsider typing refactor:
 def apply_discount_to_value(
     value: Decimal,
     value_type: str,
@@ -503,36 +504,121 @@ def is_sale_applicable_on_line(
     )
 
 
-def _get_best_sale_for_line(
-    line_info: "CheckoutLineInfo",
-    sales_info: Iterable[DiscountInfo],
-    base_line_total_price: Money,
-) -> Optional[Tuple[Sale, SaleChannelListing, Money]]:
-    current_best_price = base_line_total_price
-    current_best_sale = None
-    channel_listing_for_best_sale = None
-    for sale_info in sales_info:
+def _apply_percentage_sale_on_lines(
+    lines_info: Iterable["CheckoutLineInfo"],
+    sale_info: DiscountInfo,
+    sales_data_by_line_map: Dict[UUID, dict],
+    currency_precision: Decimal,
+):
+    """Calculate discount amounts for percentage sales.
+
+    This function calculates the discount amount for the sale. If the calculated
+    discount amount is greater than the currently applied discount, the function
+    saves the sale as the best sale for the calculated lines. All data are stored
+    in the `sales_data_by_line_map`.
+    """
+    sale = sale_info.sale
+    qualified_lines = []
+    base_line_total_price_by_line_id_map = defaultdict(Decimal)
+    remaining_total_amount = Decimal(0)
+    for line_info in lines_info:
         if is_sale_applicable_on_line(line_info, sale_info):
-            sale = sale_info.sale
+            qualified_lines.append(line_info)
+            line = line_info.line
+            quantity = line.quantity
+            base_unit_price = line_info.variant.get_base_price(
+                line_info.channel_listing, line.price_override
+            )
+            base_unit_price = cast(Money, base_unit_price)
+            base_line_total_price = base_unit_price * quantity
+            base_line_total_amount = base_line_total_price.amount
+
+            remaining_total_amount += base_line_total_amount
+            base_line_total_price_by_line_id_map[line.id] = base_line_total_amount
+
+    sale_channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
+    if sale_channel_listing and remaining_total_amount != Decimal(0):
+        currency = sale_channel_listing.currency
+        discounted_amount = apply_discount_to_value(
+            sale_channel_listing.discount_value,
+            sale.type,
+            currency,
+            Money(remaining_total_amount, currency),
+        ).amount
+        remaining_discount_amount = remaining_total_amount - discounted_amount
+        for line_info in qualified_lines:
+            line = line_info.line
+            base_line_total_amount = base_line_total_price_by_line_id_map[line.pk]
+            line_discount_amount = Decimal(
+                base_line_total_amount
+                * remaining_discount_amount
+                / remaining_total_amount
+            ).quantize(currency_precision, ROUND_HALF_UP)
+            remaining_discount_amount -= line_discount_amount
+            remaining_total_amount -= base_line_total_amount
+            if (
+                sales_data_by_line_map[line.id].get(
+                    "best_discount_amount",
+                    Decimal("-Inf"),
+                )
+                < line_discount_amount
+            ):
+                sales_data_by_line_map[line.id] = {
+                    "sale": sale,
+                    "sale_channel_listing": sale_channel_listing,
+                    "best_discount_amount": line_discount_amount,
+                }
+
+
+def _apply_fixed_sale_on_lines(
+    lines_info: Iterable["CheckoutLineInfo"],
+    sale_info: DiscountInfo,
+    sales_data_by_line_map: Dict[UUID, dict],
+):
+    """Calculate discount amounts for for fixed sales.
+
+    This function calculates the discount amount for the sale. If the calculated
+    discount amount is greater than the currently applied discount, the function
+    saves the sale as the best sale for the calculated lines. All data are stored
+    in the `sales_data_by_line_map`.
+    """
+    sale = sale_info.sale
+    for line_info in lines_info:
+        if is_sale_applicable_on_line(line_info, sale_info):
+            line = line_info.line
+            quantity = line.quantity
+            base_unit_price = line_info.variant.get_base_price(
+                line_info.channel_listing, line.price_override
+            )
+            base_unit_price = cast(Money, base_unit_price)
+            base_line_total_price = base_unit_price * quantity
+
             channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
             if not channel_listing:
                 continue
-            temp_price = apply_discount_to_value(
+            price_with_applied_sale = apply_discount_to_value(
                 channel_listing.discount_value,
                 sale.type,
                 channel_listing.currency,
                 base_line_total_price,
             )
-            if temp_price < current_best_price:
-                current_best_sale = sale
-                channel_listing_for_best_sale = channel_listing
-                current_best_price = temp_price
-    if current_best_sale:
-        channel_listing_for_best_sale = cast(
-            SaleChannelListing, channel_listing_for_best_sale
-        )
-        return current_best_sale, channel_listing_for_best_sale, current_best_price
-    return None
+            price_with_applied_sale = cast(Money, price_with_applied_sale)
+            discount = min(
+                base_line_total_price - price_with_applied_sale,
+                base_line_total_price,
+            )
+            discount_amount = discount.amount
+            if (
+                sales_data_by_line_map[line.id].get(
+                    "best_discount_amount", Decimal("-Inf")
+                )
+                < discount_amount
+            ):
+                sales_data_by_line_map[line.id] = {
+                    "sale": sale,
+                    "sale_channel_listing": channel_listing,
+                    "best_discount_amount": discount_amount,
+                }
 
 
 def create_or_update_discount_objects_from_sale_for_checkout(
@@ -543,19 +629,33 @@ def create_or_update_discount_objects_from_sale_for_checkout(
     line_discounts_to_create = []
     line_discounts_to_update = []
     updated_fields = []
+
+    currency_precision = Decimal("0.1") ** get_currency_precision(
+        checkout_info.checkout.currency
+    )
+
+    sales_data_by_line_map: Dict[UUID, dict] = defaultdict(dict)
+
+    for sale_info in sales_info:
+        if sale_info.sale.type == DiscountValueType.FIXED:
+            _apply_fixed_sale_on_lines(lines_info, sale_info, sales_data_by_line_map)
+
+        else:
+            _apply_percentage_sale_on_lines(
+                lines_info, sale_info, sales_data_by_line_map, currency_precision
+            )
+
     for line_info in lines_info:
         line = line_info.line
-        quantity = line.quantity
-        base_unit_price = line_info.variant.get_base_price(
-            line_info.channel_listing, line.price_override
+        sale = sales_data_by_line_map[line.id].get("sale")
+        sale_channel_listing = sales_data_by_line_map[line.id].get(
+            "sale_channel_listing"
         )
-        base_total_price = base_unit_price * quantity
-        sale_data = _get_best_sale_for_line(line_info, sales_info, base_total_price)
-        if sale_data:
-            sale, sale_channel_listing, best_price = sale_data
+        discount_amount = sales_data_by_line_map[line.id].get("best_discount_amount")
 
-            # Calculate discount amount. Discount amount couldn't be more the line price
-            discount_amount = min(base_total_price - best_price, base_total_price)
+        if sale and sale_channel_listing and discount_amount:
+            sale = cast(Sale, sale)
+            sale_channel_listing = cast(SaleChannelListing, sale_channel_listing)
 
             # Fetch Sale translation
             translation_language_code = checkout_info.checkout.language_code
@@ -572,7 +672,7 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                     type=DiscountType.SALE,
                     value_type=sale.type,
                     value=sale_channel_listing.discount_value,
-                    amount_value=discount_amount.amount,
+                    amount_value=discount_amount,
                     currency=line.currency,
                     name=sale.name,
                     translated_name=translated_name,
@@ -588,8 +688,8 @@ def create_or_update_discount_objects_from_sale_for_checkout(
                 if discount_to_update.value != sale_channel_listing.discount_value:
                     discount_to_update.value = sale_channel_listing.discount_value
                     updated_fields.append("value")
-                if discount_to_update.amount_value != discount_amount.amount:
-                    discount_to_update.amount_value = discount_amount.amount
+                if discount_to_update.amount_value != discount_amount:
+                    discount_to_update.amount_value = discount_amount
                     updated_fields.append("amount_value")
                 if discount_to_update.name != sale.name:
                     discount_to_update.name = sale.name
@@ -611,11 +711,10 @@ def create_or_update_discount_objects_from_sale_for_checkout(
         )
 
 
-def generate_discount_objects_from_sale_for_checkout(
+def generate_sale_discount_objects_for_checkout(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
 ):
-    # TODO: Add tests for that base prices are set correctly.
     sales_info = fetch_active_sales_for_checkout(lines_info)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines_info, sales_info
