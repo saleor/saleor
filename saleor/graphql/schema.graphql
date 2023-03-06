@@ -23459,7 +23459,22 @@ type AppManifestWebhook {
 }
 
 type ManifestRequiredSaleorVersion {
+  """
+  Required Saleor version as semver range.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   constraint: String!
+
+  """
+  Informs if the Saleor version matches the required one.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
   satisfied: Boolean!
 }
 

@@ -194,8 +194,20 @@ class AppManifestWebhook(graphene.ObjectType):
 
 
 class ManifestRequiredSaleorVersion(graphene.ObjectType):
-    constraint = graphene.String(required=True)
-    satisfied = graphene.Boolean(required=True)
+    constraint = graphene.String(
+        required=True,
+        description=(
+            "Required Saleor version as semver range." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    satisfied = graphene.Boolean(
+        required=True,
+        description=(
+            "Informs if the Saleor version matches the required one."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
 
 
 class Manifest(graphene.ObjectType):
