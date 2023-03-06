@@ -3,7 +3,7 @@ from django.db import models
 from django_countries.fields import CountryField
 
 from ..permission.enums import ChannelPermissions
-from . import AllocationStrategy
+from . import AllocationStrategy, MarkAsPaidStrategy
 
 
 class Channel(models.Model):
@@ -21,6 +21,11 @@ class Channel(models.Model):
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(
         default=True,
         null=True,
+    )
+    order_mark_as_paid_strategy = models.CharField(
+        max_length=255,
+        choices=MarkAsPaidStrategy.CHOICES,
+        default=MarkAsPaidStrategy.PAYMENT_FLOW,
     )
 
     class Meta:

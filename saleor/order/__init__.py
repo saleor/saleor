@@ -115,8 +115,11 @@ class OrderEvents:
 
     TRANSACTION_EVENT = "transaction_event"
     TRANSACTION_CAPTURE_REQUESTED = "transaction_capture_requested"
+    TRANSACTION_CHARGE_REQUESTED = "transaction_charge_requested"
     TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
     TRANSACTION_VOID_REQUESTED = "transaction_void_requested"
+    TRANSACTION_CANCEL_REQUESTED = "transaction_cancel_requested"
+    TRANSACTION_MARK_AS_PAID_FAILED = "transaction_mark_as_paid_failed"
 
     EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
@@ -171,9 +174,12 @@ class OrderEvents:
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
         (TRANSACTION_EVENT, "The transaction event"),
-        (TRANSACTION_CAPTURE_REQUESTED, "The capture on transaction requested"),
-        (TRANSACTION_REFUND_REQUESTED, "The refund on transaction requested"),
-        (TRANSACTION_VOID_REQUESTED, "The void on transaction requested"),
+        (TRANSACTION_CHARGE_REQUESTED, "The charge requested for transaction"),
+        (TRANSACTION_CAPTURE_REQUESTED, "The capture requested for transaction"),
+        (TRANSACTION_REFUND_REQUESTED, "The refund requested for transaction"),
+        (TRANSACTION_VOID_REQUESTED, "The void requested for transaction"),
+        (TRANSACTION_CANCEL_REQUESTED, "The cancel requested for transaction"),
+        (TRANSACTION_MARK_AS_PAID_FAILED, "The mark as paid failed for transaction"),
         (INVOICE_REQUESTED, "An invoice was requested"),
         (INVOICE_GENERATED, "An invoice was generated"),
         (INVOICE_UPDATED, "An invoice was updated"),
