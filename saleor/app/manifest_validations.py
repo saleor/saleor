@@ -327,8 +327,9 @@ class VersionConstraint:
 
 def validate_required_saleor_version(constraint: Optional[VersionConstraint]) -> bool:
     if constraint and not constraint.satisfied:
+        msg = f"Saleor version {constraint.version} is not supported by the app."
+        code = AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
         raise ValidationError(
-            f"Saleor version {constraint.version} is not supported by the app.",
-            code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value,
+            {"requiredSaleorVersion": ValidationError(msg, code=code)}
         )
     return True

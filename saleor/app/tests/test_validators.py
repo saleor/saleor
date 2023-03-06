@@ -54,7 +54,9 @@ def test_version_constraint_with_invalid_range(required_version):
 
 
 def test_validate_required_saleor_version():
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(ValidationError) as validation_error:
         validate_required_saleor_version(VersionConstraint("^3.13", "3.12.1"))
-    assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
+    errors = validation_error.value.error_dict["requiredSaleorVersion"]
+    assert len(errors) == 1
+    assert errors[0].code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
     assert validate_required_saleor_version(None) is True
