@@ -22,7 +22,7 @@ class StockBulkResult(graphene.ObjectType):
     errors = NonNullList(
         StockBulkUpdateError,
         required=False,
-        description="List of errors occurred on create attempt.",
+        description="List of errors occurred on create or update attempt.",
     )
 
 
@@ -44,7 +44,7 @@ class StocksBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
         default_value=0,
-        description="Returns how many objects were created.",
+        description="Returns how many objects were updated.",
     )
     results = NonNullList(
         StockBulkResult,
@@ -57,7 +57,7 @@ class StocksBulkUpdate(BaseMutation):
         stocks = NonNullList(
             StockBulkUpdateInput,
             required=True,
-            description="Input list of product variants to create.",
+            description="Input list of stocks to update.",
         )
         error_policy = ErrorPolicyEnum(
             required=False,

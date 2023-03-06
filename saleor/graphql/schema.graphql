@@ -12420,7 +12420,7 @@ type Mutation {
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum = reject_everything
 
-    """Input list of product variants to create."""
+    """Input list of stocks to update."""
     stocks: [StockBulkUpdateInput!]!
   ): StocksBulkUpdate
 
@@ -16845,7 +16845,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
 type StocksBulkUpdate {
-  """Returns how many objects were created."""
+  """Returns how many objects were updated."""
   count: Int!
 
   """List of the updated stocks."""
@@ -16857,7 +16857,7 @@ type StockBulkResult {
   """Stock data."""
   stock: Stock
 
-  """List of errors occurred on create attempt."""
+  """List of errors occurred on create or update attempt."""
   errors: [StockBulkUpdateError!]
 }
 
