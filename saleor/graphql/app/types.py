@@ -340,6 +340,9 @@ class App(ModelObjectType[models.App]):
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app."
     )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
+    )
     extensions = NonNullList(
         AppExtension,
         description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,

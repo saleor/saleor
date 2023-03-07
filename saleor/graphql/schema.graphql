@@ -2607,6 +2607,15 @@ type App implements Node & ObjectWithMetadata {
   accessToken: String
 
   """
+  The App's author name.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  author: String
+
+  """
   App's dashboard extensions.
   
   Added in Saleor 3.1.

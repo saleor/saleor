@@ -32,6 +32,7 @@ QUERY_APP = """
             configurationUrl
             appUrl
             accessToken
+            author
             extensions{
                 id
                 label
@@ -72,6 +73,7 @@ def test_app_query(
     app = app if app_type == "custom" else external_app
     app.permissions.add(permission_manage_staff)
     app.store_value_in_metadata({"test": "123"})
+    app.author = "Acme Ltd"
     app.save()
 
     webhook = webhook
@@ -105,6 +107,7 @@ def test_app_query(
     assert app_data["supportUrl"] == app.support_url
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url
+    assert app_data["author"] == app.author
     if app_type == "external":
         assert app_data["accessToken"] == create_access_token_for_app(
             app, staff_api_client.user
