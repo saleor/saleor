@@ -68,16 +68,6 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=order.currency,
-            ),
-        )
-    )
 
     total_prices = [
         get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
@@ -96,7 +86,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     subtotal = sum(
         (get_taxed_money(line, "total", currency) for line in tax_data.lines),
         zero_taxed_money(order.currency),
-    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
+    )
     total = shipping + subtotal
 
     manager = Mock(
@@ -171,16 +161,6 @@ def test_recalculate_order_prices_tax_error_line_prices(
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=currency,
-            ),
-        )
-    )
     error_line = order_lines[0]
     old_line_unit_price = error_line.unit_price
     old_line_undiscounted_unit_price = error_line.undiscounted_unit_price
@@ -203,13 +183,9 @@ def test_recalculate_order_prices_tax_error_line_prices(
     shipping_tax_rate = tax_data.shipping_tax_rate
     shipping = get_taxed_money(tax_data, "shipping_price", currency)
 
-    subtotal = (
-        error_line.total_price
-        + sum(
-            [get_taxed_money(line, "total", currency) for line in tax_data.lines[1:]],
-            zero_taxed_money(currency),
-        )
-        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
+    subtotal = error_line.total_price + sum(
+        [get_taxed_money(line, "total", currency) for line in tax_data.lines[1:]],
+        zero_taxed_money(currency),
     )
     total = shipping + subtotal
 
@@ -253,16 +229,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=currency,
-            ),
-        )
-    )
+
     old_shipping_price = order.shipping_price
     old_shipping_tax_rate = order.shipping_tax_rate
 
@@ -283,7 +250,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     subtotal = sum(
         [get_taxed_money(line, "total", currency) for line in tax_data.lines],
         zero_taxed_money(currency),
-    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
+    )
 
     manager = Mock(
         calculate_order_line_unit=Mock(side_effect=unit_prices),
