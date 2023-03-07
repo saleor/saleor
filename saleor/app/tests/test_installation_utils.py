@@ -120,9 +120,11 @@ def test_install_app_when_saleor_version_unsupported(
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
 
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(ValidationError) as validation_error:
         install_app(app_installation, activate=True)
-    assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
+    errors = validation_error.value.error_dict["requiredSaleorVersion"]
+    assert len(errors) == 1
+    assert errors[0].code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
 
 
 @freeze_time("2022-05-12 12:00:00")
