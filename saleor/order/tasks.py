@@ -2,11 +2,11 @@ import logging
 from typing import List
 
 from celery.exceptions import SoftTimeLimitExceeded
-from django.db.models import Exists, F, Func, OuterRef, Subquery
-from django.db.models.functions import Extract
+from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.utils import timezone
 
 from ..celeryconf import app
+from ..channel.models import Channel
 from ..core.tasks import celery_task_lock
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
@@ -20,7 +20,8 @@ from .utils import invalidate_order_prices
 
 logger = logging.getLogger(__name__)
 
-ORDER_BATCH_SIZE = 1000
+# Batch size of 100 is about ~87MB of memory usage in task
+ORDER_BATCH_SIZE = 100
 
 
 @app.task
@@ -85,13 +86,23 @@ def _call_expired_order_events(order_ids, manager):
 
 
 def _expire_orders(manager, now):
+    time_diff_func_in_minutes = (
+        Func(Value("day"), now - OuterRef("created_at"), function="DATE_PART") * 24
+        + Func(Value("hour"), now - OuterRef("created_at"), function="DATE_PART") * 60
+    ) + Func(Value("minute"), now - OuterRef("created_at"), function="DATE_PART")
+
+    channels = Channel.objects.filter(
+        id=OuterRef("channel"),
+        expire_orders_after__isnull=False,
+        expire_orders_after__gt=0,
+        expire_orders_after__lte=time_diff_func_in_minutes,
+    )
+
     qs = Order.objects.filter(
         ~Exists(TransactionItem.objects.filter(order=OuterRef("pk"))),
         ~Exists(Payment.objects.filter(order=OuterRef("pk"))),
+        Exists(channels),
         status=OrderStatus.UNCONFIRMED,
-        channel__expire_orders_after__isnull=False,
-        channel__expire_orders_after__gt=0,
-        channel__expire_orders_after__lte=Extract(now - F("created_at"), "epoch"),
     )
     for ids_batch in _queryset_in_batches(qs):
         with traced_atomic_transaction():
