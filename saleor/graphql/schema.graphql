@@ -23503,6 +23503,15 @@ type Manifest {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   requiredSaleorVersion: AppManifestRequiredSaleorVersion
+
+  """
+  The App's author name.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  author: String
 }
 
 type AppManifestExtension {

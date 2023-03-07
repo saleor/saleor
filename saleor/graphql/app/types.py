@@ -250,6 +250,9 @@ class Manifest(graphene.ObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
+    )
 
     class Meta:
         description = "The manifest definition."

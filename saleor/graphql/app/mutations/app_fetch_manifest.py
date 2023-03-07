@@ -72,6 +72,7 @@ class AppFetchManifest(BaseMutation):
             webhooks=cleaned_data.get("webhooks", []),
             audience=cleaned_data.get("audience"),
             required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
+            author=cleaned_data.get("author"),
         )
 
     @classmethod
