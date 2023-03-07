@@ -14,6 +14,7 @@ from ...core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ...core.mutations import ModelMutation
@@ -51,7 +52,7 @@ class OrderSettingsInput(graphene.InputObjectType):
         description=(
             "Expiration time in minutes. "
             "Default null - means do not expire any orders. "
-            "Enter 0 or null to disable." + ADDED_IN_312 + PREVIEW_FEATURE
+            "Enter 0 or null to disable." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
 

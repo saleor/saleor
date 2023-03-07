@@ -21,6 +21,7 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
@@ -183,7 +184,7 @@ class OrderSettings(ObjectType):
         required=False,
         description=(
             "Expiration time in minutes. Default null - means do not expire any orders."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
     )

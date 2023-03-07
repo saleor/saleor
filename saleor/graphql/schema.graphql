@@ -4839,7 +4839,7 @@ type OrderSettings {
   """
   Expiration time in minutes. Default null - means do not expire any orders.
   
-  Added in Saleor 3.12.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -22565,7 +22565,7 @@ input OrderSettingsInput {
   """
   Expiration time in minutes. Default null - means do not expire any orders. Enter 0 or null to disable.
   
-  Added in Saleor 3.12.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25092,9 +25092,9 @@ type OrderCancelled implements Event {
 }
 
 """
-Event sent when order is expired.
+Event sent when order becomes expired.
 
-Added in Saleor 3.12.
+Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """

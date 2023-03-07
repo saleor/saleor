@@ -36,6 +36,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import PositiveDecimal
@@ -471,7 +472,7 @@ class OrderExpired(SubscriptionObjectType, OrderBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when order is expired." + ADDED_IN_312 + PREVIEW_FEATURE
+            "Event sent when order becomes expired." + ADDED_IN_313 + PREVIEW_FEATURE
         )
 
 
