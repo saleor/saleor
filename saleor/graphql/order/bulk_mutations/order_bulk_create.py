@@ -25,10 +25,10 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
-from ...core.utils import from_global_id_or_none
 from ...meta.mutations import MetadataInput
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
+from .utils import get_instance
 
 MINUTES_DIFF = 5
 
@@ -326,78 +326,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         error_type_field = "bulk_order_errors"
 
     @classmethod
-    def get_instance(
-        cls,
-        input: Dict[str, Any],
-        model,
-        key_map: Dict[str, str],
-        instance_storage: Dict[str, Any],
-    ):
-        """Resolve instance based on input data, model and `key_map` argument provided.
-
-        Args:
-            input: data from input
-            model: database model associated with searched instance
-            key_map: mapping between keys from input and keys from database
-            instance_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
-                       and instances as values; it is used to search for already
-                       resolved instances
-
-        Return:
-            Model instance
-
-        Raise:
-            ValidationError:
-                - if multiple keys provided in input
-                - if no key provided in input
-                - if global id can't be resolved ( in case of `id` database key)
-                - if instance can't be resolved by
-
-        """
-        model_name = model.__name__
-        if sum((input.get(key) is not None for key in key_map.keys())) > 1:
-            args = ", ".join((k for k in key_map.keys()))
-            raise ValidationError(
-                f"Only one of [{args}] arguments can be provided "
-                f"to resolve {model_name} instance."
-            )
-
-        if all((input.get(key) is None for key in key_map.keys())):
-            args = ", ".join((k for k in key_map.keys()))
-            raise ValidationError(
-                f"One of [{args}] arguments must be provided "
-                f"to resolve {model_name} instance."
-            )
-
-        for data_key, db_key in key_map.items():
-            if input.get(data_key) and isinstance(input.get(data_key), str):
-                if db_key == "id":
-                    id = from_global_id_or_none(input.get(data_key), model_name)
-                    if not id:
-                        raise ValidationError(
-                            f"Can't resolve global id: {input.get(data_key)}"
-                        )
-                    else:
-                        input[data_key] = id
-
-                lookup_key = "_".join((model_name, db_key, input[data_key]))
-                instance = instance_storage.get(lookup_key)
-                if instance:
-                    return instance
-
-                instance = model.objects.filter(**{db_key: input[data_key]}).first()
-                if not instance:
-                    raise ValidationError(
-                        f"{model_name} instance with {db_key}={input[data_key]} "
-                        f"doesn't exist."
-                    )
-
-                instance_storage[lookup_key] = instance
-                return instance
-
-        raise ValidationError(f"Can't return {model_name} instance.")
-
-    @classmethod
     def get_instance_and_errors(
         cls,
         input: Dict[str, Any],
@@ -414,17 +342,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             key_map: mapping between keys from input and keys from database
             errors: error list to be updated if an error occur
             instance_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
-                       and instances as values; it is used to search for already
-                       resolved instances
+                              and instances as values; it is used to search for already
+                              resolved instances
 
         Return:
             model instance and error list.
 
         """
-        # TODO store results to narrow request number
         instance = None
         try:
-            instance = cls.get_instance(input, model, key_map, instance_storage)
+            instance = get_instance(input, model, key_map, instance_storage)
         except ValidationError as err:
             errors.append(OrderBulkError(message=str(err.message)))
         return instance, errors
@@ -866,6 +793,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         # TODO post save actions
+        # TODO Order.updatedAt - set to current timestamp after bulk creation finished
+        # TODO add webhook ORDER_BULK_CREATED
         orders_input = data["orders"]
         orders_with_errors: List[OrderWithErrors] = []
         instance_storage: Dict[str, Any] = {}
