@@ -40,7 +40,7 @@ class StockBulkUpdateInput(graphene.InputObjectType):
     )
 
 
-class StocksBulkUpdate(BaseMutation):
+class StockBulkUpdate(BaseMutation):
     count = graphene.Int(
         required=True,
         default_value=0,
@@ -373,7 +373,7 @@ class StocksBulkUpdate(BaseMutation):
         if any([True if error else False for error in index_error_map.values()]):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
-                return StocksBulkUpdate(count=0, results=results)
+                return StockBulkUpdate(count=0, results=results)
 
             if error_policy == ErrorPolicyEnum.REJECT_FAILED_ROWS.value:
                 for data in instances_data_with_errors_list:
@@ -387,4 +387,4 @@ class StocksBulkUpdate(BaseMutation):
 
         cls.post_save_actions(info, updated_stocks)
 
-        return StocksBulkUpdate(count=len(updated_stocks), results=results)
+        return StockBulkUpdate(count=len(updated_stocks), results=results)

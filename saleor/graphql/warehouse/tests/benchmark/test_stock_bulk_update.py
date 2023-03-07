@@ -5,8 +5,8 @@ from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
 STOCKS_BULK_UPDATE_MUTATION = """
-    mutation StocksBulkUpdate($stocks: [StockBulkUpdateInput!]!){
-        stocksBulkUpdate(stocks: $stocks){
+    mutation StockBulkUpdate($stocks: [StockBulkUpdateInput!]!){
+        stockBulkUpdate(stocks: $stocks){
             results{
                 errors {
                     field
@@ -73,7 +73,7 @@ def test_stocks_bulk_update_queries_count(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
         )
         content = get_graphql_content(response)
-        data = content["data"]["stocksBulkUpdate"]
+        data = content["data"]["stockBulkUpdate"]
         assert data["count"] == 1
 
     stocks_input += [
@@ -101,5 +101,5 @@ def test_stocks_bulk_update_queries_count(
             STOCKS_BULK_UPDATE_MUTATION, {"stocks": stocks_input}
         )
         content = get_graphql_content(response)
-        data = content["data"]["stocksBulkUpdate"]
+        data = content["data"]["stockBulkUpdate"]
         assert data["count"] == 4

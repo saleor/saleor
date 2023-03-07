@@ -12,7 +12,7 @@ from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
-from .bulk_mutations import StocksBulkUpdate
+from .bulk_mutations import StockBulkUpdate
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -105,4 +105,4 @@ class StockQueries(graphene.ObjectType):
 
 
 class StockMutations(graphene.ObjectType):
-    stocks_bulk_update = StocksBulkUpdate.Field()
+    stock_bulk_update = StockBulkUpdate.Field()

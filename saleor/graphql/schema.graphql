@@ -12416,13 +12416,13 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
-  stocksBulkUpdate(
+  stockBulkUpdate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum = reject_everything
 
     """Input list of stocks to update."""
     stocks: [StockBulkUpdateInput!]!
-  ): StocksBulkUpdate
+  ): StockBulkUpdate
 
   """
   Creates a new staff notification recipient. 
@@ -16844,7 +16844,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type StocksBulkUpdate {
+type StockBulkUpdate {
   """Returns how many objects were updated."""
   count: Int!
 

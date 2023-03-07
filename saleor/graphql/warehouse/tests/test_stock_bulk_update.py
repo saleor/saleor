@@ -6,8 +6,8 @@ from ....warehouse.error_codes import StockBulkUpdateErrorCode
 from ...tests.utils import get_graphql_content
 
 STOCKS_BULK_UPDATE_MUTATION = """
-    mutation StocksBulkUpdate($stocks: [StockBulkUpdateInput!]!){
-        stocksBulkUpdate(stocks: $stocks){
+    mutation StockBulkUpdate($stocks: [StockBulkUpdateInput!]!){
+        stockBulkUpdate(stocks: $stocks){
             results{
                 errors {
                     field
@@ -64,7 +64,7 @@ def test_stocks_bulk_update_using_ids(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     stock_1.refresh_from_db()
@@ -104,7 +104,7 @@ def test_stocks_bulk_update_send_stock_updated_event(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert not data["results"][0]["errors"]
@@ -151,7 +151,7 @@ def test_stocks_bulk_update_using_external_refs(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     stock_1.refresh_from_db()
@@ -202,7 +202,7 @@ def test_stocks_bulk_update_using_variant_id_and_warehouse_external_ref(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     stock_1.refresh_from_db()
@@ -254,7 +254,7 @@ def test_stocks_bulk_update_using_variant_external_ref_and_warehouse_id(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     stock_1.refresh_from_db()
@@ -287,7 +287,7 @@ def test_stocks_bulk_update_when_no_variant_args_provided(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert data["count"] == 0
@@ -320,7 +320,7 @@ def test_stocks_bulk_update_when_invalid_variant_id_provided(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert data["count"] == 0
@@ -348,7 +348,7 @@ def test_stocks_bulk_update_when_no_warehouse_args_provided(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert data["count"] == 0
@@ -379,7 +379,7 @@ def test_stocks_bulk_update_when_invalid_warehouse_id_provided(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert data["count"] == 0
@@ -408,7 +408,7 @@ def test_stocks_bulk_update_when_stock_not_exists(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(STOCKS_BULK_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["stocksBulkUpdate"]
+    data = content["data"]["stockBulkUpdate"]
 
     # then
     assert data["count"] == 0
