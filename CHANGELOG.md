@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
+- Add `author` field to the `Manifest` and `App` object types - #12166 by @przlada
 
 # 3.12.0
 
