@@ -22276,7 +22276,7 @@ input OrderBulkCreateInput {
   """Status of the order."""
   status: String
 
-  """Customer accociated with the order."""
+  """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
 
   """Tracking ID of the customer."""
