@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core.weight import zero_weight
 from ....order import OrderEvents, OrderOrigin
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
@@ -103,12 +104,12 @@ class OrderAmounts:
     total_net: Decimal
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
+    shipping_tax_rate: int
 
 
 class TaxedMoneyInput(graphene.InputObjectType):
     gross = PositiveDecimal(required=True, description="Gross value of an item.")
     net = PositiveDecimal(required=True, description="Net value of an item.")
-    currency = graphene.String(required=True, description="Currency code.")
 
 
 class OrderBulkCreateUserInput(graphene.InputObjectType):
@@ -132,12 +133,6 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
     shipping_tax_rate = graphene.Float(description="Tax rate of the shipping.")
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
-    shipping_tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
-    )
-    shipping_tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
-    )
 
 
 class OrderBulkCreateNoteInput(graphene.InputObjectType):
@@ -220,12 +215,6 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     tax_rate = graphene.Float(required=True, description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
-    tax_class_metadata = NonNullList(
-        MetadataInput, description="Metadata of the tax class."
-    )
-    tax_class_private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
-    )
 
 
 class OrderBulkCreateInput(graphene.InputObjectType):
@@ -251,6 +240,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     shipping_address = graphene.Field(
         AddressInput, description="Shipping address of the customer."
     )
+    currency = graphene.String(required=True, description="Currency code.")
     metadata = NonNullList(MetadataInput, description="Metadata of the order.")
     private_metadata = NonNullList(
         MetadataInput, description="Private metadata of the order."
@@ -441,8 +431,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             instance_storage=instance_storage,
         )
 
+        channel, errors = cls.get_instance_and_errors(
+            input=order_input,
+            errors=errors,
+            model=Channel,
+            key_map={"channel": "slug"},
+            instance_storage=instance_storage,
+        )
+
         billing_address: Optional[Address] = None
-        shipping_address: Optional[Address] = None
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
@@ -453,6 +450,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
+        shipping_address: Optional[Address] = None
         if shipping_address_input := order_input.get("shipping_address"):
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
@@ -462,14 +460,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         message=f'Shipping address error: {getattr(err, "message", "")}'
                     )
                 )
-
-        channel, errors = cls.get_instance_and_errors(
-            input=order_input,
-            errors=errors,
-            model=Channel,
-            key_map={"channel": "slug"},
-            instance_storage=instance_storage,
-        )
 
         instances = None
         if user and billing_address and channel:
@@ -488,6 +478,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_line_input: Dict[str, Any],
         order: Order,
         instance_storage,
+        order_input: Dict[str, Any],
     ) -> OrderLineWithErrors:
         errors: List[OrderBulkError] = []
 
@@ -503,7 +494,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             instance_storage=instance_storage,
         )
 
-        # TODO handle tax class metadata
         line_tax_class, errors = cls.get_instance_and_errors(
             input=order_line_input,
             errors=errors,
@@ -515,7 +505,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if not all([variant, line_tax_class]):
             return OrderLineWithErrors(line=None, errors=errors)
 
-        order_line_currency = order_line_input["total_price"]["currency"]
         order_line_gross_amount = order_line_input["total_price"]["gross"]
         order_line_net_amount = order_line_input["total_price"]["net"]
         order_line_quantity = order_line_input["quantity"]
@@ -537,7 +526,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             is_gift_card=variant.is_gift_card(),
             quantity=order_line_quantity,
             quantity_fulfilled=order_line_input["quantity_fulfilled"],
-            currency=order_line_currency,
+            currency=order_input["currency"],
             unit_price_net_amount=order_line_unit_price_net_amount,
             unit_price_gross_amount=order_line_unit_price_gross_amount,
             total_price_net_amount=order_line_net_amount,
@@ -545,7 +534,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             tax_class=line_tax_class,
             tax_class_name=line_tax_class.name,
             # TODO handle discounts
-            # TODO handle taxes
         )
 
         return OrderLineWithErrors(line=order_line, errors=errors)
@@ -556,24 +544,42 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         delivery_method: DeliveryMethod,
         order_lines: List[OrderLine],
         channel: Channel,
+        delivery_input: Dict[str, Any],
     ) -> OrderAmounts:
-        """Calculate all order amount fields based on associated order lines."""
+        """Calculate all order amount fields."""
 
-        shipping_price_net_amount = Decimal("0.0")
+        # calculate shipping amounts
+        shipping_price_net_amount = Decimal(0)
+        shipping_price_gross_amount = Decimal(0)
+        shipping_price_tax_rate = delivery_input.get("shipping_tax_rate", 0)
+
         if delivery_method.shipping_method:
-            shipping_price_net_amount = (
-                ShippingMethodChannelListing.objects.values_list(
-                    "price_amount", flat=True
+            if shipping_price := delivery_input.get("shipping_price"):
+                shipping_price_net_amount = Decimal(shipping_price.net)
+                shipping_price_gross_amount = Decimal(shipping_price.gross)
+                shipping_price_tax_rate = (
+                    1 - shipping_price_net_amount / shipping_price_gross_amount
                 )
-                .filter(
-                    shipping_method_id=delivery_method.shipping_method.id,
-                    channel_id=channel.id,
+            else:
+                # TODO consult if we should take it from database
+                #  and consider storing this value
+                db_price_amount = (
+                    ShippingMethodChannelListing.objects.values_list(
+                        "price_amount", flat=True
+                    )
+                    .filter(
+                        shipping_method_id=delivery_method.shipping_method.id,
+                        channel_id=channel.id,
+                    )
+                    .first()
                 )
-                .first()
-            )
-            if not shipping_price_net_amount:
-                shipping_price_net_amount = Decimal("0.0")
+                if db_price_amount:
+                    shipping_price_net_amount = Decimal(db_price_amount)
+                    shipping_price_gross_amount = Decimal(
+                        shipping_price_net_amount * shipping_price_tax_rate / 100
+                    )
 
+        # calculate lines
         order_total_gross_amount = Decimal(
             sum((line.total_price_gross_amount for line in order_lines))
         )
@@ -584,15 +590,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_undiscounted_total_net_amount = Decimal(order_total_net_amount)
 
         return OrderAmounts(
-            # TODO handle shipping_net_price
-            shipping_price_gross=shipping_price_net_amount,
+            shipping_price_gross=shipping_price_gross_amount,
             shipping_price_net=shipping_price_net_amount,
+            shipping_tax_rate=shipping_price_tax_rate,
             total_gross=order_total_gross_amount,
             total_net=order_total_net_amount,
             undiscounted_total_gross=order_undiscounted_total_gross_amount,
             undiscounted_total_net=order_undiscounted_total_net_amount,
         )
-        # TODO handle taxes
 
     @classmethod
     def is_datetime_valid(cls, date: datetime) -> bool:
@@ -655,8 +660,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
             instance_storage=instance_storage,
         )
+        delivery_input = order_input["delivery_method"]
         delivery_method, errors = cls.get_delivery_method(
-            input=order_input["delivery_method"],
+            input=delivery_input,
             errors=errors,
             instance_storage=instance_storage,
         )
@@ -668,8 +674,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_lines_with_errors: List[OrderLineWithErrors] = []
         for order_line_input in order_lines_input:
             order_lines_with_errors.append(
-                cls.create_single_order_line(order_line_input, order, instance_storage)
+                cls.create_single_order_line(
+                    order_line_input, order, instance_storage, order_input
+                )
             )
+
         # TODO exit earlier if sth wrong with lines
         # TODO check if multiple order lines contains the same variant
 
@@ -678,7 +687,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             line.line for line in order_lines_with_errors if line.line is not None
         ]
         order_amounts = cls.make_order_calculations(
-            delivery_method, order_lines, instances.channel
+            delivery_method, order_lines, instances.channel, delivery_input
         )
 
         # create notes
@@ -692,34 +701,28 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
         order.channel = instances.channel
-        order.created_at = order_input.get("created_at")
-        order.status = order_input.get("status")
+        order.created_at = order_input["created_at"]
+        order.status = order_input["status"]
         order.user = instances.user
         order.billing_address = instances.billing_address
         order.shipping_address = instances.shipping_address
-        order.language_code = order_input.get("language_code")
+        order.language_code = order_input["language_code"]
         order.user_email = instances.user.email
-        order.shipping_method = delivery_method.shipping_method
-        order.shipping_method_name = (
-            delivery_method.shipping_method.name
-            if delivery_method.shipping_method
-            else None
-        )
         order.collection_point = delivery_method.warehouse
-        order.collection_point_name = (
-            delivery_method.warehouse.name if delivery_method.warehouse else None
+        order.collection_point_name = delivery_input.get("warehouse_name") or getattr(
+            delivery_method.warehouse, "name", None
         )
+        order.shipping_method = delivery_method.shipping_method
+        order.shipping_method_name = delivery_input.get(
+            "shipping_method_name"
+        ) or getattr(delivery_method.shipping_method, "name", None)
+        order.shipping_tax_class = delivery_method.shipping_tax_class
+        order.shipping_tax_class_name = delivery_input.get(
+            "shipping_tax_class_name"
+        ) or getattr(delivery_method.shipping_tax_class, "name", None)
         order.shipping_price_gross_amount = order_amounts.shipping_price_gross
         order.shipping_price_net_amount = order_amounts.shipping_price_net
-        order.shipping_tax_class = delivery_method.shipping_tax_class
-        order.shipping_tax_class_name = (
-            delivery_method.shipping_tax_class.name
-            if delivery_method.shipping_tax_class
-            else None
-        )
-        # order.shipping_tax_rate = Decimal(
-        #     order_input["delivery_method"]["shipping_tax_rate"]
-        # )
+        order.shipping_tax_rate = order_amounts.shipping_tax_rate
         order.total_gross_amount = order_amounts.total_gross
         order.undiscounted_total_gross_amount = order_amounts.undiscounted_total_gross
         order.total_net_amount = order_amounts.total_net
@@ -727,7 +730,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.customer_note = order_input.get("customer_note", "")
         order.redirect_url = order_input.get("redirect_url")
         order.origin = OrderOrigin.BULK_CREATE
-        order.weight = order_input.get("weight")
+        order.weight = order_input.get("weight", zero_weight())
         # TODO charged
         # TODO authourized
         # TODO voucher
@@ -805,6 +808,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO post save actions
         # TODO Order.updatedAt - set to current timestamp after bulk creation finished
         # TODO add webhook ORDER_BULK_CREATED
+        # TODO handle tax class matedata ??
         orders_input = data["orders"]
         orders_with_errors: List[OrderWithErrors] = []
         instance_storage: Dict[str, Any] = {}
