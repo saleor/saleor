@@ -10,6 +10,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 
 ### Other changes
+- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
+  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
+  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
 
 # 3.12.0
 
@@ -85,9 +88,6 @@ All notable, unreleased changes to this project will be documented in this file.
   - `THUMBNAIL_CREATED`
 - CORS is now handled in the ASGI layer - #11415 by @patrys
 - Added native support for gzip compression - #11833 by @patrys
-- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
-  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
-  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
 - Set flat rates as the default tax calculation strategy - #12069 by @maarcingebala
   - Enables flat rates for channels in which no tax calculation method was set.
 - Users created by the OIDC plugin now have unusable password set instead of empty string - #12103 by @rafalp
