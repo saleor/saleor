@@ -69,12 +69,6 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
             root.pk
         )
 
-    @staticmethod
-    def resolve_tax_calculation_strategy(
-        root: models.TaxConfiguration, _info: ResolveInfo
-    ):
-        return root.tax_calculation_strategy or TaxCalculationStrategy.FLAT_RATES
-
 
 class TaxConfigurationCountableConnection(CountableConnection):
     class Meta:

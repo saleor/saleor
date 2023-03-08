@@ -269,7 +269,6 @@ class GraphQLView(View):
             )
 
             query, variables, operation_name = self.get_graphql_params(request, data)
-            query_cost = 0
 
             document, error = self.parse_query(query)
             with observability.report_gql_operation() as operation:

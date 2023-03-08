@@ -27,7 +27,11 @@ from ....tax.utils import (
     get_tax_calculation_strategy,
     get_tax_rate_for_tax_class,
 )
-from ....thumbnail.utils import get_image_or_proxy_url, get_thumbnail_size
+from ....thumbnail.utils import (
+    get_image_or_proxy_url,
+    get_thumbnail_format,
+    get_thumbnail_size,
+)
 from ....warehouse.reservations import is_reservation_enabled
 from ...account import types as account_types
 from ...account.enums import CountryCodeEnum
@@ -1017,9 +1021,13 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
     @staticmethod
     def resolve_thumbnail(
-        root: ChannelContext[models.Product], info, *, size=256, format=None
+        root: ChannelContext[models.Product],
+        info,
+        *,
+        size: int = 256,
+        format: Optional[str] = None
     ):
-        format = format.lower() if format else None
+        format = get_thumbnail_format(format)
         size = get_thumbnail_size(size)
 
         def return_first_thumbnail(product_media):
@@ -1770,28 +1778,34 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         metadata_since = ADDED_IN_312
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
+    def resolve_url(
+        root: models.ProductMedia,
+        info,
+        *,
+        size: Optional[int] = None,
+        format: Optional[str] = None
+    ):
         if root.external_url:
             return root.external_url
 
         if not root.image:
             return
 
-        if not size:
+        if size == 0:
             return build_absolute_uri(root.image.url)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, str(root.id), "ProductMedia", size, format
+                thumbnail, str(root.id), "ProductMedia", selected_size, format
             )
             return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
+            .load((root.id, selected_size, format))
             .then(_resolve_url)
         )
 
@@ -1827,24 +1841,30 @@ class ProductImage(graphene.ObjectType):
         return graphene.Node.to_global_id("ProductImage", root.id)
 
     @staticmethod
-    def resolve_url(root: models.ProductMedia, info, *, size=None, format=None):
+    def resolve_url(
+        root: models.ProductMedia,
+        info,
+        *,
+        size: Optional[int] = None,
+        format: Optional[str] = None
+    ):
         if not root.image:
             return
 
-        if not size:
+        if size == 0:
             return build_absolute_uri(root.image.url)
 
-        format = format.lower() if format else None
-        size = get_thumbnail_size(size)
+        format = get_thumbnail_format(format)
+        selected_size = get_thumbnail_size(size)
 
         def _resolve_url(thumbnail):
             url = get_image_or_proxy_url(
-                thumbnail, str(root.id), "ProductMedia", size, format
+                thumbnail, str(root.id), "ProductMedia", selected_size, format
             )
             return build_absolute_uri(url)
 
         return (
             ThumbnailByProductMediaIdSizeAndFormatLoader(info.context)
-            .load((root.id, size, format))
+            .load((root.id, selected_size, format))
             .then(_resolve_url)
         )

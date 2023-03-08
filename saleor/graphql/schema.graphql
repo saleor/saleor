@@ -1484,6 +1484,15 @@ type Webhook implements Node {
 
   """Used to define payloads for specific events."""
   subscriptionQuery: String
+
+  """
+  Custom headers, which will be added to HTTP request.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """An object with an ID"""
@@ -4971,18 +4980,18 @@ type Product implements Node & ObjectWithMetadata {
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -5996,18 +6005,18 @@ type Category implements Node & ObjectWithMetadata {
   ): CategoryCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated category fields for the given language code."""
@@ -6267,6 +6276,8 @@ type Image {
 
 """An enumeration."""
 enum ThumbnailFormatEnum {
+  ORIGINAL
+  AVIF
   WEBP
 }
 
@@ -6605,18 +6616,18 @@ type ProductImage {
   sortOrder: Int
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 }
 
@@ -6687,18 +6698,18 @@ type ProductMedia implements Node & ObjectWithMetadata {
   oembedData: JSONString!
   url(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): String!
 
   """
@@ -7055,18 +7066,18 @@ type Collection implements Node & ObjectWithMetadata {
   ): ProductCountableConnection
   backgroundImage(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Returns translated collection fields for the given language code."""
@@ -7569,7 +7580,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Attributes that can be assigned to the page type.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   availableAttributes(
     filter: AttributeFilterInput
@@ -7591,7 +7602,7 @@ type PageType implements Node & ObjectWithMetadata {
   """
   Whether page type has pages assigned.
   
-  Requires one of the following permissions: MANAGE_PAGES.
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   """
   hasPages: Boolean
 }
@@ -8868,18 +8879,18 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
   avatar(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """
@@ -10018,18 +10029,18 @@ type OrderLine implements Node & ObjectWithMetadata {
   digitalContentUrl: DigitalContentUrl
   thumbnail(
     """
-    Size of the image. If not provided, the original image will be returned.
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
     """
     size: Int
 
     """
-    The format of the image. When not provided, format of the original image will be used. Must be provided together with the size value, otherwise original image will be returned.
+    The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
     
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
-    format: ThumbnailFormatEnum
+    format: ThumbnailFormatEnum = ORIGINAL
   ): Image
 
   """Price of the single item in the order line."""
@@ -12417,6 +12428,23 @@ type Mutation {
     """Determines if a taxes should be exempt."""
     taxExemption: Boolean!
   ): TaxExemptionManage
+
+  """
+  Updates stocks for a given variant and warehouse.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  stockBulkUpdate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
+    """Input list of stocks to update."""
+    stocks: [StockBulkUpdateInput!]!
+  ): StockBulkUpdate
 
   """
   Creates a new staff notification recipient. 
@@ -15720,7 +15748,7 @@ type Mutation {
     newPassword: String!
 
     """Current user password."""
-    oldPassword: String!
+    oldPassword: String
   ): PasswordChange
 
   """
@@ -16105,6 +16133,7 @@ enum WebhookErrorCode {
   MISSING_SUBSCRIPTION
   UNABLE_TO_PARSE
   MISSING_EVENT
+  INVALID_CUSTOM_HEADERS
 }
 
 input WebhookCreateInput {
@@ -16148,6 +16177,15 @@ input WebhookCreateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
@@ -16213,6 +16251,15 @@ input WebhookUpdateInput {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
+
+  """
+  Custom headers, which will be added to HTTP request. There is a limitation of 5 headers per webhook and 998 characters per header.Only "X-*" and "Authorization*" keys are allowed.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  customHeaders: JSONString
 }
 
 """
@@ -16808,6 +16855,83 @@ enum TaxExemptionManageErrorCode {
   INVALID
   NOT_FOUND
   NOT_EDITABLE_ORDER
+}
+
+"""
+Updates stocks for a given variant and warehouse.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type StockBulkUpdate {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated stocks."""
+  results: [StockBulkResult!]!
+  errors: [StockBulkUpdateError!]!
+}
+
+type StockBulkResult {
+  """Stock data."""
+  stock: Stock
+
+  """List of errors occurred on create or update attempt."""
+  errors: [StockBulkUpdateError!]
+}
+
+type StockBulkUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: StockBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum StockBulkUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+enum ErrorPolicyEnum {
+  """
+  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
+  """
+  IGNORE_FAILED
+
+  """Reject all rows if there is at least one error in any of them."""
+  REJECT_EVERYTHING
+
+  """Reject rows with errors."""
+  REJECT_FAILED_ROWS
+}
+
+input StockBulkUpdateInput {
+  """Variant ID."""
+  variantId: ID
+
+  """Variant external reference."""
+  variantExternalReference: String
+
+  """Warehouse ID."""
+  warehouseId: ID
+
+  """Warehouse external reference."""
+  warehouseExternalReference: String
+
+  """Quantity of items available for sell."""
+  quantity: Int!
 }
 
 """
@@ -18860,8 +18984,22 @@ type ProductVariantBulkError {
   """List of warehouse IDs which causes the error."""
   warehouses: [ID!]
 
-  """List of channel IDs which causes the error."""
+  """
+  List of stocks IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
+  stocks: [ID!]
+
+  """
+  List of channel IDs which causes the error.
+  
+  Added in Saleor 3.12.
+  """
   channels: [ID!]
+
+  """List of channel listings IDs which causes the error."""
+  channelListings: [ID!]
 }
 
 """An enumeration."""
@@ -18906,19 +19044,6 @@ type BulkProductError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
-}
-
-enum ErrorPolicyEnum {
-  """
-  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
-  """
-  IGNORE_FAILED
-
-  """Reject all rows if there is at least one error in any of them."""
-  REJECT_EVERYTHING
-
-  """Reject rows with errors."""
-  REJECT_FAILED_ROWS
 }
 
 input ProductVariantBulkCreateInput {
@@ -18990,14 +19115,91 @@ input BulkAttributeValueInput {
   id: ID
 
   """
-  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
+  The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
   """
   values: [String!]
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  dropdown: AttributeValueSelectableTypeInput
+
+  """
+  Attribute value ID.
+  
+  Added in Saleor 3.12.
+  """
+  swatch: AttributeValueSelectableTypeInput
+
+  """
+  List of attribute value IDs.
+  
+  Added in Saleor 3.12.
+  """
+  multiselect: [AttributeValueSelectableTypeInput!]
+
+  """
+  Numeric value of an attribute.
+  
+  Added in Saleor 3.12.
+  """
+  numeric: String
+
+  """
+  URL of the file attribute. Every time, a new value is created.
+  
+  Added in Saleor 3.12.
+  """
+  file: String
+
+  """
+  File content type.
+  
+  Added in Saleor 3.12.
+  """
+  contentType: String
+
+  """
+  List of entity IDs that will be used as references.
+  
+  Added in Saleor 3.12.
+  """
+  references: [ID!]
+
+  """
+  Text content in JSON format.
+  
+  Added in Saleor 3.12.
+  """
+  richText: JSONString
+
+  """
+  Plain text content.
+  
+  Added in Saleor 3.12.
+  """
+  plainText: String
 
   """
   The boolean value of an attribute to resolve. If the passed value is non-existent, it will be created.
   """
   boolean: Boolean
+
+  """
+  Represents the date value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  date: Date
+
+  """
+  Represents the date/time value of the attribute value.
+  
+  Added in Saleor 3.12.
+  """
+  dateTime: DateTime
 }
 
 input ProductVariantChannelListingAddInput {
@@ -19100,14 +19302,70 @@ input ProductVariantBulkUpdateInput {
   """
   externalReference: String
 
-  """Stocks of a product available for sale."""
-  stocks: [StockInput!]
+  """
+  Stocks input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  stocks: ProductVariantStocksUpdateInput
 
-  """List of prices assigned to channels."""
-  channelListings: [ProductVariantChannelListingAddInput!]
+  """
+  Channel listings input.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  channelListings: ProductVariantChannelListingUpdateInput
 
   """ID of the product variant to update."""
   id: ID!
+}
+
+input ProductVariantStocksUpdateInput {
+  """List of warehouses to create stocks."""
+  create: [StockInput!]
+
+  """List of stocks to update."""
+  update: [StockUpdateInput!]
+
+  """List of stocks to remove."""
+  remove: [ID!]
+}
+
+input StockUpdateInput {
+  """Stock."""
+  stock: ID!
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+input ProductVariantChannelListingUpdateInput {
+  """List of channels to create variant channel listings."""
+  create: [ProductVariantChannelListingAddInput!]
+
+  """List of channel listings to update."""
+  update: [ChannelListingUpdateInput!]
+
+  """List of channel listings to remove."""
+  remove: [ID!]
+}
+
+input ChannelListingUpdateInput {
+  """ID of a channel listing."""
+  channelListing: ID!
+
+  """Price of the particular variant in channel."""
+  price: PositiveDecimal
+
+  """Cost price of the variant in channel."""
+  costPrice: PositiveDecimal
+
+  """The threshold for preorder variant in channel."""
+  preorderThreshold: Int
 }
 
 """
@@ -23094,6 +23352,7 @@ enum AppErrorCode {
   INVALID_PERMISSION
   INVALID_URL_FORMAT
   INVALID_MANIFEST_FORMAT
+  INVALID_CUSTOM_HEADERS
   MANIFEST_URL_CANT_CONNECT
   NOT_FOUND
   REQUIRED

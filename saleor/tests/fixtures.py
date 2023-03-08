@@ -367,6 +367,16 @@ def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
 
 
 @pytest.fixture
+def checkout_with_item_and_voucher(checkout_with_item, voucher):
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_line(checkout_with_item):
     return checkout_with_item.lines.first()
 
@@ -2737,7 +2747,9 @@ def variant_without_inventory_tracking(
 
 @pytest.fixture
 def variant(product, channel_USD) -> ProductVariant:
-    product_variant = ProductVariant.objects.create(product=product, sku="SKU_A")
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", external_reference="SKU_A"
+    )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
         channel=channel_USD,
@@ -4048,6 +4060,7 @@ def order_with_lines(
         slug="test-product-9",
         product_type=product_type,
         category=category,
+        tax_class=default_tax_class,
     )
     ProductChannelListing.objects.create(
         product=product,
@@ -4892,6 +4905,24 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
         variants_ids=set(),
     )
 
@@ -5924,6 +5955,21 @@ def warehouse(address, shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def warehouse_with_external_ref(address, shipping_zone, channel_USD):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse With Ref",
+        slug="example-warehouse-with-ref",
+        email="test@example.com",
+        external_reference="example-warehouse-with-ref",
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
 def warehouse_JPY(address, shipping_zone_JPY, channel_JPY):
     warehouse = Warehouse.objects.create(
         address=address,
@@ -5946,12 +5992,14 @@ def warehouses(address, address_usa, channel_USD):
                 name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
+                external_reference="warehouse1",
             ),
             Warehouse(
                 address=address_usa.get_copy(),
                 name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
+                external_reference="warehouse2",
             ),
         ]
     )

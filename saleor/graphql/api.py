@@ -25,7 +25,12 @@ from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
 from .tax.schema import TaxMutations, TaxQueries
 from .translations.schema import TranslationQueries
-from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
+from .warehouse.schema import (
+    StockMutations,
+    StockQueries,
+    WarehouseMutations,
+    WarehouseQueries,
+)
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
@@ -80,6 +85,7 @@ class Mutation(
     ProductMutations,
     ShippingMutations,
     ShopMutations,
+    StockMutations,
     TaxMutations,
     WarehouseMutations,
     WebhookMutations,

@@ -205,7 +205,8 @@ def _create_line_for_order(
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
-    # the price with sale discount - base price that is used for total price calculation
+    # the price with sale and discounts applied - base price that is used for
+    # total price calculation
     base_unit_price = calculate_base_line_unit_price(
         line_info=checkout_line_info, channel=checkout_info.channel, discounts=discounts
     )
@@ -423,8 +424,6 @@ def _prepare_order_data(
         address=address,
         discounts=discounts,
     )
-    # checkout.discount contains only discounts applied on entire order
-    undiscounted_total = taxed_total + checkout.discount
 
     base_shipping_price = base_checkout_delivery_price(checkout_info, lines)
     shipping_total = calculations.checkout_shipping_price(
@@ -455,15 +454,13 @@ def _prepare_order_data(
         discounts,
         prices_entered_with_tax,
     )
-    # Calculate the discount that was applied for each lines - the sales and voucher
-    # discounts on specific products are included on the line level and are not included
-    # in the checkout.discount amount.
-    line_discounts = zero_taxed_money(checkout.currency)
-    for line in order_data["lines"]:
-        line_discounts += line.line.undiscounted_total_price - line.line.total_price
-
-    # include discounts applied on lines, in order undiscounted total price
-    undiscounted_total += line_discounts
+    undiscounted_total = (
+        sum(
+            [line.line.undiscounted_total_price for line in order_data["lines"]],
+            start=zero_taxed_money(taxed_total.currency),
+        )
+        + shipping_total
+    )
 
     order_data.update(
         {

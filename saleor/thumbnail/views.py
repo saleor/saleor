@@ -34,10 +34,8 @@ def handle_thumbnail(
     """
     # check formats
     format = format.lower() if format else None
-    if format and format != ThumbnailFormat.WEBP:
-        return HttpResponseNotFound(
-            f"Invalid format value. Available format: {ThumbnailFormat.WEBP}."
-        )
+    if format and format not in {ThumbnailFormat.AVIF, ThumbnailFormat.WEBP}:
+        return HttpResponseNotFound("Unsupported image format.")
 
     # try to find corresponding instance based on given instance_id
     try:
@@ -48,7 +46,10 @@ def handle_thumbnail(
     if object_type not in TYPE_TO_MODEL_DATA_MAPPING.keys():
         return HttpResponseNotFound("Invalid instance type.")
 
-    size_px: int = get_thumbnail_size(size)
+    try:
+        size_px = get_thumbnail_size(int(size))
+    except ValueError:
+        return HttpResponseNotFound("Invalid size.")
 
     # return the thumbnail if it's already exist
     model_data = TYPE_TO_MODEL_DATA_MAPPING[object_type]

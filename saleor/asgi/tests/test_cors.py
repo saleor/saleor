@@ -17,12 +17,12 @@ ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers"
 ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods"
 
 
-def build_scope(origin: str) -> HTTPScope:
+def build_scope(origin: str, method: str) -> HTTPScope:
     return {
         "type": "http",
         "asgi": {"spec_version": "2.1", "version": "3.0"},
         "http_version": "2",
-        "method": "OPTIONS",
+        "method": method,
         "scheme": "https",
         "path": "/",
         "raw_path": b"/",
@@ -51,10 +51,10 @@ async def run_app(app: ASGI3Application, scope: HTTPScope) -> List[dict]:
     return events
 
 
-async def test_access_control_header(asgi_app: ASGI3Application, settings):
+async def test_access_control_header_preflight(asgi_app: ASGI3Application, settings):
     settings.ALLOWED_GRAPHQL_ORIGINS = ["*"]
     cors_app = cors_handler(asgi_app)
-    events = await run_app(cors_app, build_scope("http://localhost:3000"))
+    events = await run_app(cors_app, build_scope("http://localhost:3000", "OPTIONS"))
     assert events == [
         HTTPResponseStartEvent(
             type="http.response.start",
@@ -69,6 +69,26 @@ async def test_access_control_header(asgi_app: ASGI3Application, settings):
                 (b"access-control-allow-methods", b"POST, OPTIONS"),
                 (b"access-control-allow-origin", b"http://localhost:3000"),
                 (b"access-control-max-age", b"600"),
+                (b"vary", b"Origin"),
+            ],
+            trailers=False,
+        ),
+        HTTPResponseBodyEvent(type="http.response.body", body=b"", more_body=False),
+    ]
+
+
+async def test_access_control_header_simple(asgi_app: ASGI3Application, settings):
+    settings.ALLOWED_GRAPHQL_ORIGINS = ["*"]
+    cors_app = cors_handler(asgi_app)
+    events = await run_app(cors_app, build_scope("http://localhost:3000", "POST"))
+    assert events == [
+        HTTPResponseStartEvent(
+            type="http.response.start",
+            status=200,
+            headers=[
+                (b"access-control-allow-credentials", b"true"),
+                (b"access-control-allow-origin", b"http://localhost:3000"),
+                (b"content-type", b"text/plain"),
                 (b"vary", b"Origin"),
             ],
             trailers=False,
@@ -96,7 +116,7 @@ async def test_access_control_allowed_origins(
 ):
     settings.ALLOWED_GRAPHQL_ORIGINS = allowed_origins
     cors_app = cors_handler(asgi_app)
-    events = await run_app(cors_app, build_scope(origin))
+    events = await run_app(cors_app, build_scope(origin, "OPTIONS"))
     assert events[0]["type"] == "http.response.start"
     assert events[0]["status"] == 200
     assert (b"access-control-allow-origin", origin.encode("latin1")) in events[0][
@@ -120,7 +140,7 @@ async def test_access_control_disallowed_origins(
 ):
     settings.ALLOWED_GRAPHQL_ORIGINS = allowed_origins
     cors_app = cors_handler(asgi_app)
-    events = await run_app(cors_app, build_scope(origin))
+    events = await run_app(cors_app, build_scope(origin, "OPTIONS"))
     assert events[0]["type"] == "http.response.start"
     assert events[0]["status"] == 400
     assert (b"access-control-allow-origin", origin.encode("latin1")) not in events[0][
