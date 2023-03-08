@@ -1,16 +1,20 @@
-from datetime import datetime
+import copy
 
 import graphene
+import pytest
+from django.utils import timezone
 
 from .....order import OrderStatus
 from .....order.models import Order, OrderEvent, OrderLine
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
         $orders: [OrderBulkCreateInput!]!,
+        $errorPolicy: ErrorPolicyEnum
     ) {
-        orderBulkCreate(orders: $orders) {
+        orderBulkCreate(orders: $orders, errorPolicy: $errorPolicy) {
             count
             results {
                 order {
@@ -58,24 +62,17 @@ ORDER_BULK_CREATE = """
 """
 
 
-def test_order_bulk_create(
-    staff_api_client,
-    permission_manage_orders,
-    channel_PLN,
-    graphql_address_data,
-    customer_user,
-    warehouses,
-    variant,
-    default_tax_class,
-    shipping_method_channel_PLN,
+@pytest.fixture
+def order_bulk_input(
     app,
-    stock,
+    channel_PLN,
+    customer_user,
+    default_tax_class,
+    graphql_address_data,
+    shipping_method_channel_PLN,
+    variant,
+    warehouse,
 ):
-    # given
-    orders_count = Order.objects.count()
-    order_lines_count = OrderLine.objects.count()
-    order_events = OrderEvent.objects.count()
-
     shipping_method = shipping_method_channel_PLN
     user = {
         "id": graphene.Node.to_global_id("User", customer_user.id),
@@ -90,9 +87,9 @@ def test_order_bulk_create(
             "TaxClass", default_tax_class.id
         ),
     }
-    line_1 = {
+    line = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "createdAt": datetime.now(),
+        "createdAt": timezone.now(),
         "isShippingRequired": True,
         "isGiftCard": False,
         "quantity": 5,
@@ -108,15 +105,15 @@ def test_order_bulk_create(
         "taxRate": 20,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
     }
-    note_1 = {
+    note = {
         "message": "Test message",
-        "date": datetime.now(),
+        "date": timezone.now(),
         "userId": graphene.Node.to_global_id("User", customer_user.id),
         # "appId": graphene.Node.to_global_id("App", app.id),
     }
-    order_1 = {
+    return {
         "channel": channel_PLN.slug,
-        "createdAt": datetime.now(),
+        "createdAt": timezone.now(),
         "status": OrderStatus.DRAFT,
         "user": user,
         "billingAddress": graphql_address_data,
@@ -124,12 +121,26 @@ def test_order_bulk_create(
         "currency": "PLN",
         "languageCode": "PL",
         "deliveryMethod": delivery_method,
-        "lines": [line_1],
-        "notes": [note_1],
+        "lines": [line],
+        "notes": [note],
         "weight": "10.15",
     }
+
+
+def test_order_bulk_create(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+    order_events_count = OrderEvent.objects.count()
+
+    order = order_bulk_input
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    variables = {"orders": [order_1]}
+    variables = {"orders": [order]}
 
     # when
     response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
@@ -147,71 +158,21 @@ def test_order_bulk_create(
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
-    assert OrderEvent.objects.count() == order_events + 1
+    assert OrderEvent.objects.count() == order_events_count + 1
 
 
 def test_order_bulk_create_multiple_orders(
     staff_api_client,
     permission_manage_orders,
-    channel_PLN,
-    graphql_address_data,
-    customer_user,
-    warehouses,
-    variant,
-    default_tax_class,
-    app,
-    stock,
+    order_bulk_input,
 ):
     # given
     orders_count = Order.objects.count()
     order_lines_count = OrderLine.objects.count()
 
-    user = {"id": graphene.Node.to_global_id("User", customer_user.id)}
-    delivery_method = {
-        "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
-    }
-    line_1 = {
-        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "createdAt": datetime.now(),
-        "isShippingRequired": True,
-        "isGiftCard": False,
-        "quantity": 5,
-        "quantityFulfilled": 0,
-        "totalPrice": {
-            "gross": 120,
-            "net": 100,
-        },
-        "undiscountedTotalPrice": {
-            "gross": 120,
-            "net": 100,
-        },
-        "taxRate": 20,
-        "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
-    }
-    order_1 = {
-        "channel": channel_PLN.slug,
-        "createdAt": datetime.now(),
-        "status": OrderStatus.DRAFT,
-        "user": user,
-        "billingAddress": graphql_address_data,
-        "currency": "PLN",
-        "languageCode": "PL",
-        "deliveryMethod": delivery_method,
-        "lines": [line_1],
-        "weight": "10.15",
-    }
-    order_2 = {
-        "channel": channel_PLN.slug,
-        "createdAt": datetime.now(),
-        "status": OrderStatus.DRAFT,
-        "user": user,
-        "billingAddress": graphql_address_data,
-        "currency": "PLN",
-        "languageCode": "PL",
-        "deliveryMethod": delivery_method,
-        "lines": [line_1],
-        "weight": "10.15",
-    }
+    order_1 = order_bulk_input
+    order_2 = order_bulk_input
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     variables = {"orders": [order_1, order_2]}
 
@@ -236,67 +197,21 @@ def test_order_bulk_create_multiple_orders(
 def test_order_bulk_create_reject_failed_rows(
     staff_api_client,
     permission_manage_orders,
-    channel_PLN,
-    graphql_address_data,
-    customer_user,
-    warehouses,
-    variant,
-    default_tax_class,
-    app,
-    stock,
+    order_bulk_input,
 ):
     # given
     orders_count = Order.objects.count()
     order_lines_count = OrderLine.objects.count()
 
-    user = {"id": graphene.Node.to_global_id("User", customer_user.id)}
-    delivery_method = {
-        "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
-    }
-    line_1 = {
-        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "createdAt": datetime.now(),
-        "isShippingRequired": True,
-        "isGiftCard": False,
-        "quantity": 5,
-        "quantityFulfilled": 0,
-        "totalPrice": {
-            "gross": 100,
-            "net": 80,
-        },
-        "undiscountedTotalPrice": {
-            "gross": 100,
-            "net": 80,
-        },
-        "taxRate": 20,
-        "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
-    }
-    order_1 = {
-        "channel": channel_PLN.slug,
-        "createdAt": datetime.now(),
-        "status": OrderStatus.DRAFT,
-        "user": user,
-        "billingAddress": graphql_address_data,
-        "currency": "PLN",
-        "languageCode": "PL",
-        "deliveryMethod": delivery_method,
-        "lines": [line_1],
-        "weight": "10.15",
-    }
-    order_2 = {
-        "channel": "non-existing-channel",
-        "createdAt": datetime.now(),
-        "status": OrderStatus.DRAFT,
-        "user": user,
-        "billingAddress": graphql_address_data,
-        "currency": "PLN",
-        "languageCode": "PL",
-        "deliveryMethod": delivery_method,
-        "lines": [line_1],
-        "weight": "10.15",
-    }
+    order_1 = order_bulk_input
+    order_2 = copy.deepcopy(order_bulk_input)
+    order_2["channel"] = "non-existing-channel"
+
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    variables = {"orders": [order_1, order_2]}
+    variables = {
+        "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+        "orders": [order_1, order_2],
+    }
 
     # when
     response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
@@ -318,3 +233,40 @@ def test_order_bulk_create_reject_failed_rows(
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
+
+
+def test_order_bulk_create_ignore_failed(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+    app,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+    order_events_count = OrderEvent.objects.count()
+
+    order = order_bulk_input
+    order["notes"][0]["appId"] = graphene.Node.to_global_id("App", app.id)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+        "orders": [order],
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"][0]
+    assert data["order"]
+    assert data["order"]["lines"]
+    assert data["order"]["events"]
+    assert data["errors"][0]["message"] == "Note input contains both userId and appId."
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderLine.objects.count() == order_lines_count + 1
+    assert OrderEvent.objects.count() == order_events_count + 1
