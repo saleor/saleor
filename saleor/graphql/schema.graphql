@@ -15988,6 +15988,23 @@ type Mutation {
   ): CustomerBulkDelete @doc(category: "Users")
 
   """
+  Updates customers.
+  
+  Added in Saleor 3.12.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_USERS.
+  """
+  customerBulkUpdate(
+    """Input list of customers to update."""
+    customers: [CustomerBulkUpdateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+  ): CustomerBulkUpdate
+
+  """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
@@ -24163,6 +24180,67 @@ type CustomerBulkDelete @doc(category: "Users") {
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
+}
+
+"""
+Updates customers.
+
+Added in Saleor 3.12.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_USERS.
+"""
+type CustomerBulkUpdate {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the updated customers."""
+  results: [CustomerBulkResult!]!
+  errors: [CustomerBulkUpdateError!]!
+}
+
+type CustomerBulkResult {
+  """Customer data."""
+  customer: User
+
+  """List of errors occurred on update attempt."""
+  errors: [CustomerBulkUpdateError!]
+}
+
+type CustomerBulkUpdateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum CustomerBulkUpdateErrorCode {
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  UNIQUE
+  NOT_FOUND
+  MAX_LENGTH
+}
+
+input CustomerBulkUpdateInput {
+  """ID of a customer to update."""
+  id: ID
+
+  """External ID of a customer to update."""
+  externalReference: String
+
+  """Fields required to update a customer."""
+  input: CustomerInput!
 }
 
 """
