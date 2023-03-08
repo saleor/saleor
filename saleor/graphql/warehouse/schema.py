@@ -12,6 +12,7 @@ from ..core.descriptions import ADDED_IN_310
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
+from .bulk_mutations import StockBulkUpdate
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -101,3 +102,7 @@ class StockQueries(graphene.ObjectType):
         qs = resolve_stocks()
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, StockCountableConnection)
+
+
+class StockMutations(graphene.ObjectType):
+    stock_bulk_update = StockBulkUpdate.Field()

@@ -40,6 +40,7 @@ from ..enums import (
     ProductVariantBulkErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
+    StockBulkUpdateErrorCode,
     StockErrorCode,
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
@@ -434,6 +435,10 @@ class BulkStockError(ProductError):
     index = graphene.Int(
         description="Index of an input list item that caused the error."
     )
+
+
+class StockBulkUpdateError(Error):
+    code = StockBulkUpdateErrorCode(description="The error code.", required=True)
 
 
 class UploadError(Error):

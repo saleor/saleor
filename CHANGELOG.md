@@ -7,6 +7,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 ### GraphQL API
+- [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 
 ### Other changes
 

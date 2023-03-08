@@ -12408,6 +12408,23 @@ type Mutation {
   ): TaxExemptionManage
 
   """
+  Updates stocks for a given variant and warehouse.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_PRODUCTS.
+  """
+  stockBulkUpdate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum = reject_everything
+
+    """Input list of stocks to update."""
+    stocks: [StockBulkUpdateInput!]!
+  ): StockBulkUpdate
+
+  """
   Creates a new staff notification recipient. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
@@ -16819,6 +16836,83 @@ enum TaxExemptionManageErrorCode {
 }
 
 """
+Updates stocks for a given variant and warehouse.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_PRODUCTS.
+"""
+type StockBulkUpdate {
+  """Returns how many objects were updated."""
+  count: Int!
+
+  """List of the updated stocks."""
+  results: [StockBulkResult!]!
+  errors: [StockBulkUpdateError!]!
+}
+
+type StockBulkResult {
+  """Stock data."""
+  stock: Stock
+
+  """List of errors occurred on create or update attempt."""
+  errors: [StockBulkUpdateError!]
+}
+
+type StockBulkUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: StockBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum StockBulkUpdateErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+enum ErrorPolicyEnum {
+  """
+  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
+  """
+  IGNORE_FAILED
+
+  """Reject all rows if there is at least one error in any of them."""
+  REJECT_EVERYTHING
+
+  """Reject rows with errors."""
+  REJECT_FAILED_ROWS
+}
+
+input StockBulkUpdateInput {
+  """Variant ID."""
+  variantId: ID
+
+  """Variant external reference."""
+  variantExternalReference: String
+
+  """Warehouse ID."""
+  warehouseId: ID
+
+  """Warehouse external reference."""
+  warehouseExternalReference: String
+
+  """Quantity of items available for sell."""
+  quantity: Int!
+}
+
+"""
 Creates a new staff notification recipient. 
 
 Requires one of the following permissions: MANAGE_SETTINGS.
@@ -18928,19 +19022,6 @@ type BulkProductError {
 
   """List of channel IDs which causes the error."""
   channels: [ID!]
-}
-
-enum ErrorPolicyEnum {
-  """
-  Save what is possible within a single row. If there are errors in an input data row, try to save it partially and skip the invalid part.
-  """
-  IGNORE_FAILED
-
-  """Reject all rows if there is at least one error in any of them."""
-  REJECT_EVERYTHING
-
-  """Reject rows with errors."""
-  REJECT_FAILED_ROWS
 }
 
 input ProductVariantBulkCreateInput {

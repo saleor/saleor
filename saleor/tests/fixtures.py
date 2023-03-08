@@ -2733,7 +2733,9 @@ def variant_without_inventory_tracking(
 
 @pytest.fixture
 def variant(product, channel_USD) -> ProductVariant:
-    product_variant = ProductVariant.objects.create(product=product, sku="SKU_A")
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", external_reference="SKU_A"
+    )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
         channel=channel_USD,
@@ -5931,6 +5933,21 @@ def warehouse(address, shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def warehouse_with_external_ref(address, shipping_zone, channel_USD):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse With Ref",
+        slug="example-warehouse-with-ref",
+        email="test@example.com",
+        external_reference="example-warehouse-with-ref",
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
 def warehouse_JPY(address, shipping_zone_JPY, channel_JPY):
     warehouse = Warehouse.objects.create(
         address=address,
@@ -5953,12 +5970,14 @@ def warehouses(address, address_usa, channel_USD):
                 name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
+                external_reference="warehouse1",
             ),
             Warehouse(
                 address=address_usa.get_copy(),
                 name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
+                external_reference="warehouse2",
             ),
         ]
     )
