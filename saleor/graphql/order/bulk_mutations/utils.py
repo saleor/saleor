@@ -34,19 +34,20 @@ def get_instance(
 
     """
     model_name = model.__name__
-    if sum((input.get(key) is not None for key in key_map.keys())) > 1:
-        args = ", ".join((k for k in key_map.keys()))
-        raise ValidationError(
-            f"Only one of [{args}] arguments can be provided "
-            f"to resolve {model_name} instance."
-        )
+    if len(key_map) > 1:
+        if sum((input.get(key) is not None for key in key_map.keys())) > 1:
+            args = ", ".join((k for k in key_map.keys()))
+            raise ValidationError(
+                f"Only one of [{args}] arguments can be provided "
+                f"to resolve {model_name} instance."
+            )
 
-    if all((input.get(key) is None for key in key_map.keys())):
-        args = ", ".join((k for k in key_map.keys()))
-        raise ValidationError(
-            f"One of [{args}] arguments must be provided "
-            f"to resolve {model_name} instance."
-        )
+        if all((input.get(key) is None for key in key_map.keys())):
+            args = ", ".join((k for k in key_map.keys()))
+            raise ValidationError(
+                f"One of [{args}] arguments must be provided "
+                f"to resolve {model_name} instance."
+            )
 
     for data_key, db_key in key_map.items():
         if input.get(data_key) and isinstance(input.get(data_key), str):
