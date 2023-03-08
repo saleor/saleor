@@ -22288,6 +22288,9 @@ input OrderBulkCreateInput {
   """Shipping address of the customer."""
   shippingAddress: AddressInput
 
+  """Currency code."""
+  currency: String!
+
   """Metadata of the order."""
   metadata: [MetadataInput!]
 
@@ -22408,12 +22411,6 @@ input OrderBulkCreateOrderLineInput {
 
   """The name of the tax class."""
   taxClassName: String
-
-  """Metadata of the tax class."""
-  taxClassMetadata: [MetadataInput!]
-
-  """Private metadata of the tax class."""
-  taxClassPrivateMetadata: [MetadataInput!]
 }
 
 input TaxedMoneyInput {
@@ -22422,9 +22419,6 @@ input TaxedMoneyInput {
 
   """Net value of an item."""
   net: PositiveDecimal!
-
-  """Currency code."""
-  currency: String!
 }
 
 input OrderBulkCreateDeliveryMethodInput {
@@ -22451,12 +22445,6 @@ input OrderBulkCreateDeliveryMethodInput {
 
   """The name of the tax class."""
   shippingTaxClassName: String
-
-  """Metadata of the tax class."""
-  shippingTaxClassMetadata: [MetadataInput!]
-
-  """Private metadata of the tax class."""
-  shippingTaxClassPrivateMetadata: [MetadataInput!]
 }
 
 input OrderBulkCreateFulfillmentInput {
