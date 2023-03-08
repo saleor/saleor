@@ -149,3 +149,173 @@ def test_order_bulk_create(
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert OrderEvent.objects.count() == order_events + 1
+
+
+def test_order_bulk_create_multiple_orders(
+    staff_api_client,
+    permission_manage_orders,
+    channel_PLN,
+    graphql_address_data,
+    customer_user,
+    warehouses,
+    variant,
+    default_tax_class,
+    app,
+    stock,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+
+    user = {"id": graphene.Node.to_global_id("User", customer_user.id)}
+    delivery_method = {
+        "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
+    }
+    line_1 = {
+        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "createdAt": datetime.now(),
+        "isShippingRequired": True,
+        "isGiftCard": False,
+        "quantity": 5,
+        "quantityFulfilled": 0,
+        "totalPrice": {
+            "gross": 100,
+            "net": 80,
+            "currency": "PLN",
+        },
+        "undiscountedTotalPrice": {
+            "gross": 100,
+            "net": 80,
+            "currency": "PLN",
+        },
+        "taxRate": 20,
+        "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
+    }
+    order_1 = {
+        "channel": channel_PLN.slug,
+        "createdAt": datetime.now(),
+        "status": OrderStatus.DRAFT,
+        "user": user,
+        "billingAddress": graphql_address_data,
+        "languageCode": "PL",
+        "deliveryMethod": delivery_method,
+        "lines": [line_1],
+        "weight": "10.15",
+    }
+    order_2 = {
+        "channel": channel_PLN.slug,
+        "createdAt": datetime.now(),
+        "status": OrderStatus.DRAFT,
+        "user": user,
+        "billingAddress": graphql_address_data,
+        "languageCode": "PL",
+        "deliveryMethod": delivery_method,
+        "lines": [line_1],
+        "weight": "10.15",
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order_1, order_2]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 2
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+    assert not data[1]["errors"]
+    order_1 = data[0]["order"]
+    order_2 = data[1]["order"]
+
+    assert order_1["lines"]
+    assert order_2["lines"]
+    assert Order.objects.count() == orders_count + 2
+    assert OrderLine.objects.count() == order_lines_count + 2
+
+
+def test_order_bulk_create_reject_failed_rows(
+    staff_api_client,
+    permission_manage_orders,
+    channel_PLN,
+    graphql_address_data,
+    customer_user,
+    warehouses,
+    variant,
+    default_tax_class,
+    app,
+    stock,
+):
+    # given
+    orders_count = Order.objects.count()
+    order_lines_count = OrderLine.objects.count()
+
+    user = {"id": graphene.Node.to_global_id("User", customer_user.id)}
+    delivery_method = {
+        "warehouseId": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
+    }
+    line_1 = {
+        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "createdAt": datetime.now(),
+        "isShippingRequired": True,
+        "isGiftCard": False,
+        "quantity": 5,
+        "quantityFulfilled": 0,
+        "totalPrice": {
+            "gross": 100,
+            "net": 80,
+            "currency": "PLN",
+        },
+        "undiscountedTotalPrice": {
+            "gross": 100,
+            "net": 80,
+            "currency": "PLN",
+        },
+        "taxRate": 20,
+        "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
+    }
+    order_1 = {
+        "channel": channel_PLN.slug,
+        "createdAt": datetime.now(),
+        "status": OrderStatus.DRAFT,
+        "user": user,
+        "billingAddress": graphql_address_data,
+        "languageCode": "PL",
+        "deliveryMethod": delivery_method,
+        "lines": [line_1],
+        "weight": "10.15",
+    }
+    order_2 = {
+        "channel": "non-existing-channel",
+        "createdAt": datetime.now(),
+        "status": OrderStatus.DRAFT,
+        "user": user,
+        "billingAddress": graphql_address_data,
+        "languageCode": "PL",
+        "deliveryMethod": delivery_method,
+        "lines": [line_1],
+        "weight": "10.15",
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order_1, order_2]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+    assert data[0]["order"]
+    assert data[0]["order"]["lines"]
+
+    assert not data[1]["order"]
+    errors = data[1]["errors"]
+    assert (
+        errors[0]["message"] == "Channel instance with slug=non-existing-channel"
+        " doesn't exist."
+    )
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderLine.objects.count() == order_lines_count + 1

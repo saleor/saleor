@@ -31,6 +31,8 @@ from ..types import Order as OrderType
 from .utils import get_instance
 
 MINUTES_DIFF = 5
+# TODO handle max orders
+MAX_ORDERS = 50
 
 
 @dataclass
@@ -70,6 +72,12 @@ class OrderWithErrors:
             + [error for line in self.lines for error in line.errors]
             + [error for note in self.notes for error in note.errors]
         )
+
+    def get_all_lines(self) -> List[OrderLine]:
+        return [line.line for line in self.lines if line.line and self.order]
+
+    def get_all_notes(self) -> List[OrderEvent]:
+        return [note.note for note in self.notes if note.note and self.order]
 
 
 @dataclass
@@ -234,7 +242,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     user = graphene.Field(
         OrderBulkCreateUserInput,
         required=True,
-        description="Customer accociated with the order.",
+        description="Customer associated with the order.",
     )
     tracking_client_id = graphene.String(description="Tracking ID of the customer.")
     billing_address = graphene.Field(
@@ -361,19 +369,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls, input: Dict[str, Any], errors: List[OrderBulkError], instance_storage
     ) -> Tuple[Optional[DeliveryMethod], List[OrderBulkError]]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
-        warehouse_key_map = {"warehouse_id": "id", "warehouse_name": "name"}
-        shipping_key_map = {"shipping_method_id": "id", "shipping_method_name": "name"}
-        is_warehouse_delivery = (
-            sum((input.get(key) is not None for key in warehouse_key_map.keys())) > 0
-        )
-        is_shipping_delivery = (
-            sum((input.get(key) is not None for key in shipping_key_map.keys())) > 0
-        )
+
+        is_warehouse_delivery = input.get("warehouse_id")
+        is_shipping_delivery = input.get("shipping_method_id")
 
         if is_warehouse_delivery and is_shipping_delivery:
             errors.append(
                 OrderBulkError(
-                    message="Can't provide both warehouse and shipping method info "
+                    message="Can't provide both warehouse and shipping method IDs "
                     "in deliveryMethod field."
                 )
             )
@@ -384,7 +387,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 input=input,
                 errors=errors,
                 model=Warehouse,
-                key_map=warehouse_key_map,
+                key_map={"warehouse_id": "id"},
                 instance_storage=instance_storage,
             )
 
@@ -393,7 +396,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 input=input,
                 errors=errors,
                 model=ShippingMethod,
-                key_map=shipping_key_map,
+                key_map={"shipping_method_id": "id"},
                 instance_storage=instance_storage,
             )
             # TODO handle tax class metadata
@@ -401,10 +404,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 input=input,
                 errors=errors,
                 model=TaxClass,
-                key_map={
-                    "shipping_tax_class_id": "id",
-                    "shipping_tax_class_name": "name",
-                },
+                key_map={"shipping_tax_class_id": "id"},
                 instance_storage=instance_storage,
             )
 
@@ -441,12 +441,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             instance_storage=instance_storage,
         )
 
-        billing_address, shipping_address = None, None
+        billing_address: Optional[Address] = None
+        shipping_address: Optional[Address] = None
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
-            billing_address.save()
-            # TODO move saving and consult address validation
         except Exception as err:
             errors.append(
                 OrderBulkError(
@@ -454,11 +453,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        if shipping_address_input := order_input["shipping_address"]:
+        if shipping_address_input := order_input.get("shipping_address"):
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
-                shipping_address.save()
-                # TODO move saving and consult address validation
             except Exception as err:
                 errors.append(
                     OrderBulkError(
@@ -466,10 +463,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
-        channel = Channel.objects.get(slug=order_input["channel"])
+        channel, errors = cls.get_instance_and_errors(
+            input=order_input,
+            errors=errors,
+            model=Channel,
+            key_map={"channel": "slug"},
+            instance_storage=instance_storage,
+        )
 
         instances = None
-        if all([user, billing_address, channel]):
+        if user and billing_address and channel:
             instances = InstancesRelatedToOrder(
                 user=user,
                 billing_address=billing_address,
@@ -505,7 +508,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             input=order_line_input,
             errors=errors,
             model=TaxClass,
-            key_map={"tax_class_id": "id", "tax_class_name": "name"},
+            key_map={"tax_class_id": "id"},
             instance_storage=instance_storage,
         )
 
@@ -679,12 +682,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         # create notes
-        notes_input = order_input.get("notes")
         notes_with_errors: List[NoteWithErrors] = []
-        for note_input in notes_input:
-            notes_with_errors.append(
-                cls.create_single_note(note_input, order, instance_storage)
-            )
+        if notes_input := order_input.get("notes"):
+            for note_input in notes_input:
+                notes_with_errors.append(
+                    cls.create_single_note(note_input, order, instance_storage)
+                )
 
         # order.number = order_input.get("number")
         order.external_reference = order_input.get("external_reference")
@@ -740,11 +743,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
     @classmethod
-    def save_data(
+    def handle_error_policy(
         cls,
         orders_with_errors: List[OrderWithErrors],
         policy: ErrorPolicy,
     ):
+        # TODO handle IGNORE_FAILED
         errors = [order.get_all_errors() for order in orders_with_errors][0]
         if errors:
             for order in orders_with_errors:
@@ -753,25 +757,31 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 elif policy == ErrorPolicy.REJECT_FAILED_ROWS:
                     if order.get_all_errors():
                         order.order = None
-            return orders_with_errors
+        return orders_with_errors
 
-        # TODO handle IGNORE_FAILED
-        # elif policy == ErrorPolicy.IGNORE_FAILED and errors:
-        #     pass
+    @classmethod
+    def save_data(cls, orders_with_errors: List[OrderWithErrors]):
+        addresses = []
+        for order in orders_with_errors:
+            if order.order:
+                if billing_address := order.order.billing_address:
+                    addresses.append(billing_address)
+                if shipping_address := order.order.shipping_address:
+                    addresses.append(shipping_address)
+        # TODO remove address duplicates
+        Address.objects.bulk_create(addresses)
 
-        # TODO save addresses here
         Order.objects.bulk_create(
             [order.order for order in orders_with_errors if order.order]
         )
-        order_lines_with_errors = [order.lines for order in orders_with_errors][0]
-        OrderLine.objects.bulk_create(
-            [line.line for line in order_lines_with_errors if line.line]
-        )
 
-        notes_with_errors = [order.notes for order in orders_with_errors][0]
-        OrderEvent.objects.bulk_create(
-            [note.note for note in notes_with_errors if note.note]
-        )
+        order_lines = [
+            line for order in orders_with_errors for line in order.get_all_lines()
+        ]
+        OrderLine.objects.bulk_create(order_lines)
+
+        notes = [note for order in orders_with_errors for note in order.get_all_notes()]
+        OrderEvent.objects.bulk_create(notes)
 
         return orders_with_errors
 
@@ -803,7 +813,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 cls.create_single_order(order_input, instance_storage)
             )
 
-        cls.save_data(orders_with_errors, data["error_policy"])
+        cls.handle_error_policy(orders_with_errors, data["error_policy"])
+        cls.save_data(orders_with_errors)
 
         results = [
             OrderBulkCreateResult(order=order.order, errors=order.get_all_errors())
