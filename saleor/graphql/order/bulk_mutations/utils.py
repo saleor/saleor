@@ -54,7 +54,7 @@ def get_instance(
             if db_key == "id":
                 try:
                     _, id = from_global_id_or_error(
-                        input.get(data_key), model_name, raise_error=True
+                        str(input.get(data_key)), model_name, raise_error=True
                     )
                     input[data_key] = id
                 except GraphQLError as err:
