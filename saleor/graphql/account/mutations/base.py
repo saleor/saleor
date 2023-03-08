@@ -42,6 +42,7 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from .. import DOC_CATEGORY_USERS
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -83,6 +84,7 @@ class SetPassword(CreateToken):
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -159,6 +161,7 @@ class RequestPasswordReset(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -251,6 +254,7 @@ class ConfirmAccount(BaseMutation):
         description = (
             "Confirm user account with token sent by email during registration."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -297,6 +301,7 @@ class PasswordChange(BaseMutation):
 
     class Meta:
         description = "Change the password of the logged in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

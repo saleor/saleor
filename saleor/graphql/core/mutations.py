@@ -127,6 +127,7 @@ def attach_error_params(error, params: Optional[dict], error_class_fields: set):
 
 
 class ModelMutationOptions(MutationOptions):
+    doc_category = None
     exclude = None
     model = None
     object_type = None
@@ -157,6 +158,7 @@ class BaseMutation(graphene.Mutation):
         cls,
         auto_permission_message=True,
         description=None,
+        doc_category=None,
         permissions: Optional[Collection[BasePermissionEnum]] = None,
         _meta=None,
         error_type_class=None,
@@ -178,10 +180,11 @@ class BaseMutation(graphene.Mutation):
         cls._validate_permissions(permissions)
 
         _meta.auto_permission_message = auto_permission_message
-        _meta.permissions = permissions
+        _meta.doc_category = doc_category
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
+        _meta.permissions = permissions
         _meta.support_meta_field = support_meta_field
         _meta.support_private_meta_field = support_private_meta_field
 

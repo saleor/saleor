@@ -5,6 +5,7 @@ Can be dropped once we upgrade from the legacy version of GraphQL Core.
 
 from typing import Callable, Dict, List, Optional, Union, cast
 
+from graphene.types.definitions import GrapheneObjectType
 from graphql.language.printer import print_ast
 from graphql.type.definition import (
     GraphQLArgument,
@@ -22,6 +23,10 @@ from graphql.type.schema import GraphQLSchema
 from graphql.utils.ast_from_value import ast_from_value
 
 __all__ = ["print_schema", "print_introspection_schema", "print_type"]
+
+# TODO: add support for doc directives in input object types
+# TODO: add support for doc directives in connection types
+# TODO: add support for doc directives in enums
 
 
 def is_specified_directive(directive: GraphQLDirective) -> bool:
@@ -150,13 +155,21 @@ def print_implemented_interfaces(type_: GraphQLObjectType) -> str:
     return " implements " + " & ".join(i.name for i in interfaces) if interfaces else ""
 
 
-def print_object(type_: GraphQLObjectType) -> str:
+def print_object(type_: GrapheneObjectType) -> str:
     return (
         print_description(type_)
         + f"type {type_.name}"
         + print_implemented_interfaces(type_)
+        + print_object_directives(type_)
         + print_fields(type_)
     )
+
+
+def print_object_directives(type_) -> str:
+    doc_category = getattr(type_.graphene_type._meta, "doc_category", None)
+    if doc_category:
+        return f' @doc(category: "{doc_category}")'
+    return ""
 
 
 def print_interface(type_: GraphQLInterfaceType) -> str:
@@ -193,10 +206,22 @@ def print_fields(type_: Union[GraphQLObjectType, GraphQLInterfaceType]) -> str:
         + f"  {name}"
         + print_args(field.args, "  ")
         + f": {field.type}"
+        + print_field_directives(field, name)
         + print_deprecated(field.deprecation_reason)
         for i, (name, field) in enumerate(type_.fields.items())
     ]
     return print_block(fields)
+
+
+def print_field_directives(field, name) -> str:
+    # Get doc_category for query fields.
+    doc_category = getattr(field.resolver, "doc_category", None)
+
+    # # Get doc_category for mutation fields.
+    # if not doc_category and hasattr(field.type, "graphene_type"):
+    #     doc_category = getattr(field.type.graphene_type._meta, "doc_category", None)
+
+    return f' @doc(category: "{doc_category}")' if doc_category else ""
 
 
 def print_block(items: List[str]) -> str:

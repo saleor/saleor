@@ -3,10 +3,11 @@ from typing import Generic, Optional, Type, TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
-from graphene.types.objecttype import ObjectType, ObjectTypeOptions
+from graphene.types.objecttype import ObjectTypeOptions
 
 from ..descriptions import ADDED_IN_33, PREVIEW_FEATURE
 from . import TYPES_WITH_DOUBLE_ID_AVAILABLE
+from .base import BaseObjectType
 
 
 class ModelObjectOptions(ObjectTypeOptions):
@@ -17,7 +18,7 @@ class ModelObjectOptions(ObjectTypeOptions):
 MT = TypeVar("MT", bound=Model)
 
 
-class ModelObjectType(Generic[MT], ObjectType):
+class ModelObjectType(Generic[MT], BaseObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls,

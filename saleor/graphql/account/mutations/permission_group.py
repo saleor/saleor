@@ -25,6 +25,7 @@ from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
+from .. import DOC_CATEGORY_USERS
 from ..types import Group
 
 
@@ -56,6 +57,7 @@ class PermissionGroupCreate(ModelMutation):
             "Create new permission group. "
             "Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -208,6 +210,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = (
             "Update permission group. Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -436,6 +439,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = (
             "Delete permission group. Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.Group
         object_type = Group
         permissions = (AccountPermissions.MANAGE_STAFF,)

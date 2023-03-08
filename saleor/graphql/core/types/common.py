@@ -57,6 +57,7 @@ from ..enums import (
 )
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
+from .base import BaseObjectType
 from .money import VAT
 from .upload import Upload
 
@@ -96,7 +97,7 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description="Full name of the language.", required=True)
 
 
-class Permission(graphene.ObjectType):
+class Permission(BaseObjectType):
     code = PermissionEnum(description="Internal code for permission.", required=True)
     name = graphene.String(
         description="Describe action(s) allowed to do by permission.", required=True

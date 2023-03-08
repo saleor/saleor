@@ -31,6 +31,7 @@ from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     Image,
     ModelObjectType,
@@ -44,6 +45,7 @@ from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from . import DOC_CATEGORY_USERS
 from .dataloaders import (
     CustomerEventsByUserLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
@@ -94,6 +96,7 @@ class Address(ModelObjectType[models.Address]):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
         metadata_since = ADDED_IN_310
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_country(root: models.Address, _info: ResolveInfo):
@@ -177,6 +180,7 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
         description = "History log of the customer."
         interfaces = [relay.Node]
         model = models.CustomerEvent
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info: ResolveInfo):
@@ -232,6 +236,10 @@ class UserPermission(Permission):
         ),
         required=False,
     )
+
+    class Meta:
+        description = "Represents user's permissions."
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     @traced_resolver
@@ -343,6 +351,7 @@ class User(ModelObjectType[models.User]):
         description = "Represents user data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = get_user_model()
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
@@ -559,7 +568,7 @@ class ChoiceValue(graphene.ObjectType):
     verbose = graphene.String()
 
 
-class AddressValidationData(graphene.ObjectType):
+class AddressValidationData(BaseObjectType):
     country_code = graphene.String(required=True)
     country_name = graphene.String(required=True)
     address_format = graphene.String(required=True)
@@ -577,6 +586,10 @@ class AddressValidationData(graphene.ObjectType):
     postal_code_matchers = NonNullList(graphene.String, required=True)
     postal_code_examples = NonNullList(graphene.String, required=True)
     postal_code_prefix = graphene.String(required=True)
+
+    class Meta:
+        description = "Represents address validation rules for a country."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class StaffNotificationRecipient(graphene.ObjectType):
@@ -648,6 +661,7 @@ class Group(ModelObjectType[models.Group]):
         description = "Represents permission group data."
         interfaces = [relay.Node]
         model = models.Group
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_users(root: models.Group, _info: ResolveInfo):

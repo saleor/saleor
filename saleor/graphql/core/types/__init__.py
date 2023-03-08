@@ -1,3 +1,4 @@
+from .base import BaseObjectType
 from .common import (
     TYPES_WITH_DOUBLE_ID_AVAILABLE,
     AccountError,
@@ -78,6 +79,7 @@ __all__ = [
     "AccountError",
     "AppError",
     "AttributeError",
+    "BaseObjectType",
     "BulkProductError",
     "BulkStockError",
     "ChannelError",
