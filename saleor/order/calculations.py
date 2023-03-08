@@ -19,6 +19,7 @@ from ..tax.utils import (
     normalize_tax_rate_for_db,
 )
 from . import ORDER_EDITABLE_STATUS
+from .base_calculations import base_order_subtotal, base_order_total
 from .interface import OrderTaxedPricesData
 from .models import Order, OrderLine
 
@@ -31,6 +32,9 @@ def _recalculate_order_prices(
     Does not throw TaxError.
     """
     undiscounted_subtotal = zero_taxed_money(order.currency)
+
+    _update_order_discounts_and_base_undiscounted_total(order, lines)
+
     for line in lines:
         variant = line.variant
         if variant:
@@ -63,8 +67,25 @@ def _recalculate_order_prices(
         )
     except TaxError:
         pass
-    order.undiscounted_total = undiscounted_subtotal + order.shipping_price
+    order.undiscounted_total = undiscounted_subtotal + TaxedMoney(
+        net=order.base_shipping_price, gross=order.base_shipping_price
+    )
     order.total = manager.calculate_order_total(order, lines)
+
+
+def _update_order_discounts_and_base_undiscounted_total(
+    order: Order, lines: Iterable[OrderLine]
+):
+    """Update order discounts and order undiscounted_total price.
+
+    Entire order vouchers and staff order discounts are recalculated and updated.
+    """
+    base_order_total(order, lines)
+    subtotal = base_order_subtotal(order, lines)
+    undiscounted_total = subtotal + order.base_shipping_price
+    order.undiscounted_total = TaxedMoney(
+        net=undiscounted_total, gross=undiscounted_total
+    )
 
 
 def _get_order_base_prices(order, lines):
