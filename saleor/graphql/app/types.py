@@ -193,7 +193,7 @@ class AppManifestWebhook(graphene.ObjectType):
         return root["targetUrl"]
 
 
-class ManifestRequiredSaleorVersion(graphene.ObjectType):
+class AppManifestRequiredSaleorVersion(graphene.ObjectType):
     constraint = graphene.String(
         required=True,
         description=(
@@ -243,7 +243,7 @@ class Manifest(graphene.ObjectType):
         )
     )
     required_saleor_version = graphene.Field(
-        ManifestRequiredSaleorVersion,
+        AppManifestRequiredSaleorVersion,
         description=(
             "Determines the app's required Saleor version as semver range."
             + ADDED_IN_313

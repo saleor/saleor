@@ -1,4 +1,3 @@
-import functools
 import logging
 from collections import defaultdict
 from typing import Dict, Iterable, List, Optional
@@ -98,7 +97,7 @@ def clean_permissions(
     return [p for p in saleor_permissions if p.codename in permissions]
 
 
-def clean_manifest_data(manifest_data):
+def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     errors: T_ERRORS = defaultdict(list)
 
     validate_required_fields(manifest_data, errors)
@@ -114,16 +113,11 @@ def clean_manifest_data(manifest_data):
         )
 
     try:
-        if required_version := manifest_data.get("requiredSaleorVersion"):
-            constraint = VersionConstraint(required_version, __version__)
-            manifest_data["requiredSaleorVersion"] = constraint
-    except ValueError:
-        errors["requiredSaleorVersion"].append(
-            ValidationError(
-                "Incorrect value for required Saleor version.",
-                code=AppErrorCode.INVALID.value,
-            )
+        manifest_data["requiredSaleorVersion"] = clean_required_saleor_version(
+            manifest_data.get("requiredSaleorVersion"), raise_for_saleor_version
         )
+    except ValidationError as e:
+        errors["requiredSaleorVersion"].append(e)
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -308,28 +302,25 @@ def validate_required_fields(manifest_data, errors):
             )
 
 
-@functools.lru_cache
 def parse_version(version_str: str) -> Version:
     return Version(version_str)
 
 
-class VersionConstraint:
-    def __init__(self, required_version, version_str: str):
-        version = parse_version(version_str)
-        try:
-            spec = NpmSpec(required_version)
-        except Exception:
-            raise ValueError("Invalid required version string")
-        self.constraint = required_version
-        self.satisfied = spec.match(version)
-        self.version = version_str
-
-
-def validate_required_saleor_version(constraint: Optional[VersionConstraint]) -> bool:
-    if constraint and not constraint.satisfied:
-        msg = f"Saleor version {constraint.version} is not supported by the app."
-        code = AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
-        raise ValidationError(
-            {"requiredSaleorVersion": ValidationError(msg, code=code)}
-        )
-    return True
+def clean_required_saleor_version(
+    required_version,
+    raise_for_saleor_version: bool,
+    saleor_version=__version__,
+) -> Optional[Dict]:
+    if not required_version:
+        return None
+    try:
+        spec = NpmSpec(required_version)
+    except Exception:
+        msg = "Incorrect value for required Saleor version."
+        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
+    version = parse_version(saleor_version)
+    satisfied = spec.match(version)
+    if raise_for_saleor_version and not satisfied:
+        msg = f"Saleor version {saleor_version} is not supported by the app."
+        raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
+    return {"constraint": required_version, "satisfied": satisfied}
