@@ -638,20 +638,23 @@ def test_app_fetch_manifest_with_extensions(
 def test_app_fetch_manifest_with_required_saleor_version(
     staff_api_client, app_manifest, permission_manage_apps, monkeypatch
 ):
+    # given
     required_saleor_version = "<3.11"
     app_manifest["requiredSaleorVersion"] = required_saleor_version
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
     response = staff_api_client.post_graphql(
         APP_FETCH_MANIFEST_MUTATION,
         variables={"manifest_url": "http://localhost:3000/manifest"},
         permissions=[permission_manage_apps],
     )
 
+    # then
     content = get_graphql_content(response)
     manifest = content["data"]["appFetchManifest"]["manifest"]
-
     assert len(content["data"]["appFetchManifest"]["errors"]) == 0
     assert manifest["requiredSaleorVersion"] == {
         "constraint": required_saleor_version,
@@ -662,20 +665,23 @@ def test_app_fetch_manifest_with_required_saleor_version(
 def test_app_fetch_manifest_with_invalid_required_saleor_version(
     staff_api_client, app_manifest, permission_manage_apps, monkeypatch
 ):
+    # given
     required_saleor_version = "3.wrong.1"
     app_manifest["requiredSaleorVersion"] = required_saleor_version
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
     response = staff_api_client.post_graphql(
         APP_FETCH_MANIFEST_MUTATION,
         variables={"manifest_url": "http://localhost:3000/manifest"},
         permissions=[permission_manage_apps],
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["appFetchManifest"]["errors"]
-
     assert len(errors) == 1
     assert errors[0]["field"] == "requiredSaleorVersion"
     assert errors[0]["code"] == AppErrorCode.INVALID.name
