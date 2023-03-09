@@ -24223,6 +24223,7 @@ type CustomerBulkUpdateError {
 
 """An enumeration."""
 enum CustomerBulkUpdateErrorCode {
+  BLANK
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
