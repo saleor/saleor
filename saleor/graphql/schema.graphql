@@ -22311,7 +22311,7 @@ input OrderBulkCreateInput {
   """
   displayGrossPrices: Boolean
 
-  """Weight of the order."""
+  """Weight of the order in kg."""
   weight: WeightScalar
 
   """
@@ -22355,6 +22355,12 @@ input OrderBulkCreateNoteInput {
 
   """The user ID associated with the message."""
   userId: ID
+
+  """The user email associated with the message."""
+  userEmail: ID
+
+  """The user external ID associated with the message."""
+  userExternalReference: ID
 
   """The app ID associated with the message."""
   appId: ID

@@ -10,6 +10,7 @@ from django.utils import timezone
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....order import OrderEvents, OrderOrigin
 from ....order.models import Order, OrderEvent, OrderLine
@@ -139,6 +140,10 @@ class OrderBulkCreateNoteInput(graphene.InputObjectType):
     message = graphene.String(required=True, description="Note message.")
     date = graphene.DateTime(description="The date associated with the message.")
     user_id = graphene.ID(description="The user ID associated with the message.")
+    user_email = graphene.ID(description="The user email associated with the message.")
+    user_external_reference = graphene.ID(
+        description="The user external ID associated with the message."
+    )
     app_id = graphene.ID(description="The app ID associated with the message.")
 
 
@@ -257,7 +262,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
         description="Determines whether checkout prices should include taxes, "
         "when displayed in a storefront.",
     )
-    weight = WeightScalar(description="Weight of the order.")
+    weight = WeightScalar(description="Weight of the order in kg.")
     redirect_url = graphene.String(
         description="URL of a view, where users should be redirected "
         "to see the order details.",
@@ -336,6 +341,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         date = order_input.get("created_at")
         if date and not cls.is_datetime_valid(date):
             errors.append(OrderBulkError(message="Order input contains future date."))
+
+        if redirect_url := order_input.get("redirect_url"):
+            try:
+                validate_storefront_url(redirect_url)
+            except ValidationError as err:
+                errors.append(
+                    OrderBulkError(message=f"Invalid redirect url: {err.message}.")
+                )
 
         # TODO validate status (wait for fulfillments)
         # TODO validate number (?)
@@ -456,7 +469,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 shipping_price_net_amount = Decimal(shipping_price.net)
                 shipping_price_gross_amount = Decimal(shipping_price.gross)
                 shipping_price_tax_rate = (
-                    1 - shipping_price_net_amount / shipping_price_gross_amount
+                    shipping_price_gross_amount / shipping_price_net_amount - 1
                 )
             else:
                 # TODO discuss if it make sense to get it from database
@@ -551,6 +564,57 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return delivery_method, errors
 
     @classmethod
+    def create_single_note(
+        cls, note_input, order: Order, instance_storage: Dict[str, Any]
+    ) -> NoteWithErrors:
+        errors: List[OrderBulkError] = []
+        date = note_input.get("date")
+        if date and not cls.is_datetime_valid(date):
+            errors.append(OrderBulkError(message="Note input contains future date."))
+            date = None
+
+        user, app = None, None
+        user_key_map = {
+            "user_id": "id",
+            "user_email": "email",
+            "user_external_reference": "external_reference",
+        }
+        if any([note_input.get(key) for key in user_key_map.keys()]):
+            user, errors = cls.get_instance_and_errors(
+                input=note_input,
+                errors=errors,
+                model=User,
+                key_map=user_key_map,
+                instance_storage=instance_storage,
+            )
+
+        if note_input.get("app_id"):
+            app, errors = cls.get_instance_and_errors(
+                input=note_input,
+                errors=errors,
+                model=App,
+                key_map={"app_id": "id"},
+                instance_storage=instance_storage,
+            )
+
+        if user and app:
+            user, app = None, None
+            errors.append(
+                OrderBulkError(message="Note input contains both userId and appId.")
+            )
+
+        event = OrderEvent(
+            date=date,
+            type=OrderEvents.NOTE_ADDED,
+            order=order,
+            parameters={"message": note_input["message"]},
+            user=user,
+            app=app,
+        )
+
+        return NoteWithErrors(note=event, errors=errors)
+
+    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -603,6 +667,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             translated_product_name=order_line_input.get("translated_product_name", ""),
             translated_variant_name=order_line_input.get("translated_variant_name", ""),
             product_variant_id=variant.get_global_id(),
+            created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
             quantity=order_line_quantity,
@@ -613,61 +678,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             total_price_net_amount=order_line_net_amount,
             total_price_gross_amount=order_line_gross_amount,
             tax_class=line_tax_class,
-            tax_class_name=line_tax_class.name,
+            tax_class_name=order_line_input.get("tax_class_name", line_tax_class.name),
         )
 
         return OrderLineWithErrors(line=order_line, errors=errors)
-
-    @classmethod
-    def create_single_note(
-        cls, note_input, order: Order, instance_storage: Dict[str, Any]
-    ) -> NoteWithErrors:
-        errors: List[OrderBulkError] = []
-        date = note_input.get("date")
-        if date and not cls.is_datetime_valid(date):
-            errors.append(OrderBulkError(message="Note input contains future date."))
-            date = None
-
-        user, app = None, None
-        user_key_map = {
-            "user_id": "id",
-            "user_email": "email",
-            "user_external_reference": "external_reference",
-        }
-        if any([note_input.get(key) for key in user_key_map.keys()]):
-            user, errors = cls.get_instance_and_errors(
-                input=note_input,
-                errors=errors,
-                model=User,
-                key_map=user_key_map,
-                instance_storage=instance_storage,
-            )
-
-        if note_input.get("app_id"):
-            app, errors = cls.get_instance_and_errors(
-                input=note_input,
-                errors=errors,
-                model=App,
-                key_map={"app_id": "id"},
-                instance_storage=instance_storage,
-            )
-
-        if user and app:
-            user, app = None, None
-            errors.append(
-                OrderBulkError(message="Note input contains both userId and appId.")
-            )
-
-        event = OrderEvent(
-            date=date,
-            type=OrderEvents.NOTE_ADDED,
-            order=order,
-            parameters={"message": note_input["message"]},
-            user=user,
-            app=app,
-        )
-
-        return NoteWithErrors(note=event, errors=errors)
 
     @classmethod
     def create_single_order(
@@ -745,9 +759,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.shipping_tax_class_name = delivery_input.get(
             "shipping_tax_class_name"
         ) or getattr(delivery_method.shipping_tax_class, "name", None)
+        order.shipping_tax_rate = order_amounts.shipping_tax_rate
         order.shipping_price_gross_amount = order_amounts.shipping_price_gross
         order.shipping_price_net_amount = order_amounts.shipping_price_net
-        order.shipping_tax_rate = order_amounts.shipping_tax_rate
         order.total_gross_amount = order_amounts.total_gross
         order.undiscounted_total_gross_amount = order_amounts.undiscounted_total_gross
         order.total_net_amount = order_amounts.total_net
@@ -756,12 +770,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.redirect_url = order_input.get("redirect_url")
         order.origin = OrderOrigin.BULK_CREATE
         order.weight = order_input.get("weight", zero_weight())
+        order.tracking_client_id = order_input.get("tracking_client_id")
+        order.currency = order_input["currency"]
+        update_order_display_gross_prices(order)
         # TODO charged
         # TODO authourized
         # TODO voucher
         # TODO gift cards
-
-        update_order_display_gross_prices(order)
 
         return OrderWithErrors(
             order=order,
