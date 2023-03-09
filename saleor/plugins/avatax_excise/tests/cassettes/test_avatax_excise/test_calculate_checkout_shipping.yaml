@@ -1,0 +1,111 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "2022-04-27", "InvoiceDate": "2022-04-27", "TitleTransferCode":
+      "DEST", "TransactionType": "DIRECT", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "123", "UnitPrice": "15.00", "UnitOfMeasure": null, "BilledUnits":
+      "3", "LineAmount": "15.00", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": null, "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": "USA", "OriginJurisdiction": "VA", "OriginCounty": "",
+      "OriginCity": "Richmond", "OriginPostalCode": "23226", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "UserData": "123", "CustomString1": null,
+      "CustomString2": null, "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2":
+      null, "CustomNumeric3": null}, {"InvoiceLine": null, "ProductCode": "TAXFREIGHT",
+      "UnitPrice": null, "UnitOfMeasure": "EA", "BilledUnits": null, "LineAmount":
+      "10.000", "AlternateUnitPrice": null, "TaxIncluded": false, "UnitQuantity":
+      null, "UnitQuantityUnitOfMeasure": null, "DestinationCountryCode": "USA", "DestinationJurisdiction":
+      "VA", "DestinationAddress1": "1100 Congress Ave", "DestinationAddress2": "",
+      "DestinationCounty": "", "DestinationCity": "Richmond", "DestinationPostalCode":
+      "23226", "SaleCountryCode": "USA", "SaleAddress1": "1100 Congress Ave", "SaleAddress2":
+      "", "SaleJurisdiction": "VA", "SaleCounty": "", "SaleCity": "Richmond", "SalePostalCode":
+      "23226", "Discounted": false, "OriginCountryCode": null, "OriginJurisdiction":
+      null, "OriginCounty": null, "OriginCity": null, "OriginPostalCode": null, "OriginAddress1":
+      null, "OriginAddress2": null, "UserData": "Shipping", "CustomString1": null,
+      "CustomString2": null, "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2":
+      null, "CustomNumeric3": null}], "InvoiceNumber": null, "Discount": "0", "UserTranId":
+      null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2225'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.27.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO1XXU/bMBR9n8R/sPJcSprC2PpW0gKdClRNiiZNPHjJbWsptTsnqVYh/vv8kRQn
+        TluY9jQhIYHuOb4fx/G93OeTTwg5Icd0FDs9dO5efD3vfmkpa5DhLE+F1RlyzniK5iynsaPBKWQ5
+        pz6LQRBOO9oYsgwnIf7dXwlmJgC37bZ2EVIcZYRRgYP0+uPJgnQciUkEoWf9S+YCv3KgEagsdTRl
+        VyeKLJzTjut2nRp4B2mKFwq/ZyiIgGJOGOIQMR7rktoImflt19BDg9F06IfogZMFod9yTtKYKLiH
+        HvuF2ZdV8q0M30OzoI8GkGaEYkmzjhiYdS4kWQIqhTlwbR4Mg1CcyYCvilMTzuI8ynycwYLxbQ9d
+        eCiAJAE+ioXSaDifgwi3gYFgCMP5mXd55rmeh1y3p37QBHi61qSrPCVUSKOrRf4SEzqGhVCppt8Y
+        NpCMqNTd8TnJSIQTg2MINxYO5e1o7EX+sq9YEIpbrR817t24+eYQLQMe0Q0jETRBVyRJHuZjHBO6
+        uM9XP4HLKhyTUqpafEIdr1uBrxKgcchqrAplRkk24SIDGf2i7br1DCCWFFlet+3WTz7M7wCnOVd+
+        b8bjimtZ0+4tWb6vOZDFMpM3aCXl55yL97KVwCwYVDDr49WkfgPJ/Iol67GJpDxtrRQKkGhoSqLl
+        ipXto0KZsFS0jTIRr+t5nxtYjWVqqB/HXHzKHXWBogcgn9GFtKD+BvbzvX3uCF8z3nzZza+4ScA9
+        vaBBxbpPW0qTcUhPg3dMVIPaqKyBv11e+5Ctsck5IHSAEziisKQckXbnxdZUQYfElIRjKkpOo3wS
+        eLtuBtsWTIEHlFL1ybFREauJUhdrrxtbrRIl+7GqVk2M5k6lMVOsA7gtT4kfUGiWAhdDEZcNvoRe
+        dqTD48bbP26sZv++cRP2v19Ph6Ob2/Bvpk5ldgz92wqhnwhVxDsDm1l9I9UhI/5j++dT5thseGe3
+        /2jPH+35oz3/n+05WJL1WrTP1x6t/3hqGUuDWgLLJiUirNaYbvVm2O1elnbRPSORUrG6DMuQTmVP
+        Ut+N2JFO3fNT7zIsN6Uduej2b6Fe55CIUuolOtZyJ1G53jlmTcbyqXC1flYZUkD1MO+EEztMsXtD
+        anblKjwF6UPIW+7g7m4hqdyCYxr1pg/xI07yasiA5TyCYJtmsFKAtOuhapx8PXfy6eUPHSzisXAQ
+        AAA=
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '914'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 27 Apr 2022 13:28:10 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,205 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "2022-04-27", "InvoiceDate": "2022-04-27", "TitleTransferCode":
+      "DEST", "TransactionType": "DIRECT", "TransactionLines": [{"InvoiceLine": 13,
+      "ProductCode": "202015500", "UnitPrice": "30.000", "UnitOfMeasure": "PAC", "BilledUnits":
+      "3", "LineAmount": "30.000", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": "USA", "OriginJurisdiction": "VA", "OriginCounty": "",
+      "OriginCity": "Richmond", "OriginPostalCode": "23226", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "UserData": "202015500", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}, {"InvoiceLine": 14, "ProductCode":
+      "202015500", "UnitPrice": "40.000", "UnitOfMeasure": "PAC", "BilledUnits": "2",
+      "LineAmount": "40.000", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": "USA", "OriginJurisdiction": "VA", "OriginCounty": "",
+      "OriginCity": "Richmond", "OriginPostalCode": "23226", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "UserData": "202015500", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}], "InvoiceNumber": "7", "Discount":
+      "0", "UserTranId": null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2265'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.27.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO1aXW+jOBR9H2n+A+K5iRwgJJk3SpgOs2mSDbTa1WofHHAySASyBqJGo/73sfk0
+        n+m2O6tkGqlSKp/DtX18j6+x+P7xA8fxDwHCJoaebvOfOF6Wx2uIZKEHxbHdkyYD0JuAtdUTNmMJ
+        rCdjS5bG/E38YP6QBIaT4XCStBohDKOAhjIiy0JBkLJXKIywp/o2IhhII/ghdE34pOz8yAtJu9if
+        yEXwAFqh43uEgGjAvyjAcd+TnxonCRIT/77JOQb6J0KeheKBDm6anp05HiqDunfwHQtlgFggKu0D
+        H9Np8A+Gwhfg1wg7ge3EQSn6yIIz34JulTEcMIwl9u3IClUYoq2Pj1SmPmBGDJ8cbztDB+TG6pps
+        dAKax308JoNpXpFYWftdpd2I1mEKzRdzjUFV6FqRC2NdCUP34sxYlrujIZIhSiIA5XH+HkEvdMKm
+        KeRLPegLQgnRntBuT/tM+5sz/RnQRQHh3MIA5RGEcb/c84ysmRegebRbI0xDMBFolicpiOxH6Ebx
+        vAUggMFwCEBFmikKLOzsi3XkiNqmxpnKH1yPe9RXd/pcZ+VXI4xJlh2TnJiyIycq0yxPJ6WyUOyU
+        LJUU1dQf2VXIREyfvGUgLQbIlLKH+QR6vnmzRYRzs4g8AqX1+XcuUXXzTFwyAK9xCegL48txCVH7
+        z9QkK139cr+YT39Jk4jnZpLFnbF8vUkM8+uZmASMXmkScDkmMZaaqiuzik84dUGQX9ItUpdbhFa3
+        SD/NLe/61CW/8dQljvoj6Xrq+m8tMjw3i7z3U5f4xlPX/+mS93Lqks/NJO/+1CVfjkku7NRFfxIf
+        sLmuYexjxiMsRlpTb1XdwdydMf478e7S9fZCsFvHdRebGbRJRjctF+OGdGaqfqesSgTFDRH2yGpV
+        mA2LSnt0kWebfoVbojx4TrjEZMg0t2heg+qQkU05VBCxD6qPLjb3CAYRjgMvld+aB9vAVGujyJa8
+        RtbUL61k0kWdr5TodC0K+9Sm+BkjZ/stzDaM0qOtmU2wBXa2jte1O+akrl2yHOlYG0IKJvsKv3Ks
+        bzufeKJOWfoBcVqeD6IgyA2sxmkmkGLbGAXBgMIDcgbgVN/b0hZOOaB2vtAWzsF7HzcnHdlqQseL
+        99oTAjLMEypWY9alZBldejK8U6Iy1EZlGfzl8tYfqmvMcjqEpiXkhMKUckLaPEpd0xjqEpMSTqlI
+        OY3yUeDlujHsumAx2KFUPD+EK2I1UapitYapq5WhTjtW1qqJ0bxTJRgrVgdelyfDOxSih4kpDGF7
+        uZk6gUXjMMcdkMHPObG7mgpswNZT6SVUU+lENRUuv5rWp3itptdqeq2m12p6raY/t5om/2S3PsVn
+        JdlmTIaw20PvmHzCIYqjrJ1UL/qBSfpenW/CvLbZILIIBzRNrjjooIQekHrCyATgU/yXk9O6XJTd
+        URV6SZTPEXLZ1/h8Mk5IMpieDDZ07RN0qhkmz043uwZL12+qrzS1wqDix6a+J0Hq3aQf0qDk1XYi
+        14GWipUwVojGJ6ePLEZx61NaXZ5tfM1HQ1zLRU6OGn6ELWQcgxDtSgBJgp0TMl8XwQPKNxReOUB6
+        g1bXMr54SheyPOcsJ4tsTM51zACL4X388PwDb46cPy4lAAA=
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1232'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 27 Apr 2022 14:19:22 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.27.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/668bae62-a38d-4910-90bc-2f840b98c648/commit
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO1aW2/iOBh9H2n+Q5TngkISAsxbGphOZimwJK12tdoHNzHUUkhYx0FFo/73sXPD
+        ucK2e6EtVSVan5PP9vF3/BkrPz5/EgTxLoTYxsA3XfGLIGra8AFATe4AZeh21FFP6oykB6cjr4aq
+        9DAaOpo6FK/iB/OHVKk/6vdHSatFAIlCFsqKHAeGYcpeQhJh3whcSDEpjRAQ4NngSd8EkU9ou9Id
+        aRL9OXQQAoegwKckyIL+wQBB+JF8VDhJoJj451XOseBfEfQdGA+2d1X37BT5sAia/i5ADswA5YAY
+        rA+8T6ci3lm6eAC/RxiFLoqDMvSeB6eBA7wyo9/jGAscuJFDDEDgOsB7JlVX4kYMnpC/nsId9GKF
+        bT46Be39Nh6TxTUvaays/abUbkUPJIVm89mEQw3gOZEHYl0pw/Tj7FgUu2MhkiGqSrZqGfZrBHyC
+        SN0U8uXudWW59NjkCW62rNe0xxnXowU8GFLONQhhHkMedot9T+mq+SGcRZsHiFkILgLL9SQRoXsP
+        vCieuSzJUq/fl6SSOGMYOhhtDyspUL3tiWDrvwkd4d5c3pgzk18AI8KY5tk+yYoxP3KqM8v1dFIG
+        D8V+yZJJN2zznl+HTMb0yWsOmsQAnVL2sJhAz1evNol8bibRBlJhff6eTwzTPhOf9KSX+ETqysO3
+        5BOq9++pTZam8e12Phu/S5so52aT+Y21eLlNLPv7mdhEGrzQJuXHztom1mJimPq05BTBmFPkXfpF
+        bfOL3OgX9V/zy4c+e2mvPnspg+5AvZy9/lmT9M/NJB/97KW8+uz1X/rko5y9tHOzyYc/e2lvySZv
+        7OzFPhIn8Nk+wTjAnEt4jLam7ir7g7tH4xxIeXOM1si3ttBBxfQuGZFSqaAE+XFOncRn630Sse17
+        VNs3KYpdI8+br6bApb6qSxnOk6m6hnmjLwsE3SMQ03nBErMmsViPHvRdOyhxC5Q7H5EFpkNm+c3c
+        VShC6aihy2hMDKWGwbD56haCMMJxBwv9l/pB1zCNymiy9KuQJ8a3RjLtosrXC3S2JgcrZ1MtT+Yr
+        hmj9SLJdrBCh0Wx5brZt2TmpbesuRtpXhpCCyWYnLpHzuAmoTauURRBS8+fpociyVsOqnWYC6a6L
+        YRj2GNyjRxPBCPw1axH0HWzmy03hEN4GuD4HObMeEZBjHlGxHLMqJc9o05PjHROVo9Yqy+Gny1t9
+        qKoxz2kRmu1yRxRmlCPS5lGqmsZQm5iMcExFxqmVjwGn68axq4LFYItS8fwgLolVRymL1RimqlaG
+        omasqFUdo36nSjBerBa8Kk+GtyjEzjdjQEBz9Rmj0GFxuDOYlMHPOfH8C7zMw43H9bdQ4NXjBV5+
+        JwVevRT4S4G/FPhLgb8U+P+nwCd/ZKW1cCvw5DwCfw3ZxUeh/ta/sROPdrMF/j55P0ZRBlk7rXvs
+        DZ70oiLfr8XJagVpVzs4Tm6N2PjljqR25IEtSV/i35ycVvRDwR6UoVOifI2gx9+L5FNChCY7m/yK
+        pUmCjieWLdYoky312FxOjBKDrVPs/1sapNpN+qYSTL6kc28pFcCGApcwlpD1Qc8uWZzSaaGQESLf
+        +JLXs4SGK7IctYIIO9DahwRuCgDNhg0ih/e4kv8JzDciUd8BdkNZFTa+1ktXtTj5LJcPWZwcUblB
+        Hob4+dPzTwlO4/OcJgAA
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1269'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 27 Apr 2022 14:19:27 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
