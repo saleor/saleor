@@ -8,7 +8,7 @@ schema {
 directive @doc(
   """Name of the grouping category"""
   category: String!
-) on FIELD | FIELD_DEFINITION | OBJECT | INPUT_OBJECT
+) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
 
 type Query {
   """
@@ -12082,7 +12082,7 @@ type UserCountableEdge {
   cursor: String!
 }
 
-input CustomerFilterInput {
+input CustomerFilterInput @doc(category: "Users") {
   dateJoined: DateRangeInput
   numberOfOrders: IntRangeInput
   placedOrders: DateRangeInput
@@ -12098,7 +12098,7 @@ input CustomerFilterInput {
   updatedAt: DateTimeRangeInput
 }
 
-input UserSortingInput {
+input UserSortingInput @doc(category: "Users") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12106,7 +12106,7 @@ input UserSortingInput {
   field: UserSortField!
 }
 
-enum UserSortField {
+enum UserSortField @doc(category: "Users") {
   """Sort users by first name."""
   FIRST_NAME
 
@@ -12143,12 +12143,12 @@ type GroupCountableEdge {
   cursor: String!
 }
 
-input PermissionGroupFilterInput {
+input PermissionGroupFilterInput @doc(category: "Users") {
   search: String
   ids: [ID!]
 }
 
-input PermissionGroupSortingInput {
+input PermissionGroupSortingInput @doc(category: "Users") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12156,18 +12156,20 @@ input PermissionGroupSortingInput {
   field: PermissionGroupSortField!
 }
 
-enum PermissionGroupSortField {
+"""Sorting options for permission groups."""
+enum PermissionGroupSortField @doc(category: "Users") {
   """Sort permission group accounts by name."""
   NAME
 }
 
-input StaffUserInput {
+input StaffUserInput @doc(category: "Users") {
   status: StaffMemberStatus
   search: String
   ids: [ID!]
 }
 
-enum StaffMemberStatus {
+"""Represents status of a staff account."""
+enum StaffMemberStatus @doc(category: "Users") {
   """User account has been activated."""
   ACTIVE
 

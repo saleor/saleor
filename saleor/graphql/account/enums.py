@@ -4,7 +4,9 @@ from django_countries import countries
 from ...account import CustomerEvents
 from ...checkout import AddressType
 from ...graphql.core.enums import to_enum
+from ..core.types import BaseEnum
 from ..core.utils import str_to_enum
+from . import DOC_CATEGORY_USERS
 
 AddressTypeEnum = to_enum(AddressType, type_name="AddressTypeEnum")
 CustomerEventsEnum = to_enum(CustomerEvents)
@@ -15,9 +17,13 @@ CountryCodeEnum = graphene.Enum(
 )
 
 
-class StaffMemberStatus(graphene.Enum):
+class StaffMemberStatus(BaseEnum):
     ACTIVE = "active"
     DEACTIVATED = "deactivated"
+
+    class Meta:
+        description = "Represents status of a staff account."
+        doc_category = DOC_CATEGORY_USERS
 
     @property
     def description(self):

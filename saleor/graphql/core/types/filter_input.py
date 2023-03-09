@@ -3,14 +3,14 @@ import itertools
 import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
-from graphene import Argument, InputField, InputObjectType, String
-from graphene.types.inputobjecttype import InputObjectTypeOptions
+from graphene import Argument, InputField, String
 from graphene.types.utils import yank_fields_from_attrs
 
 from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
+from .base import BaseInputObjectType, BaseInputObjectTypeOptions
 from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from .converter import convert_form_field
 
@@ -38,7 +38,7 @@ def get_filterset_class(filterset_class=None):
     )
 
 
-class FilterInputObjectType(InputObjectType):
+class FilterInputObjectType(BaseInputObjectType):
     """Class for storing and serving django-filters as graphQL input.
 
     FilterSet class which inherits from django-filters.FilterSet should be
@@ -55,7 +55,7 @@ class FilterInputObjectType(InputObjectType):
         cls.model = model
 
         if not _meta:
-            _meta = InputObjectTypeOptions(cls)
+            _meta = BaseInputObjectTypeOptions(cls)
 
         fields = cls.get_filtering_args_from_filterset()
         fields = yank_fields_from_attrs(fields, _as=InputField)

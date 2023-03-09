@@ -121,6 +121,22 @@ def is_schema_of_common_names(schema: GraphQLSchema) -> bool:
     return not subscription_type or subscription_type.name == "Subscription"
 
 
+def print_object_directives(type_) -> str:
+    doc_category = getattr(type_.graphene_type._meta, "doc_category", None)
+    return f' @doc(category: "{doc_category}")' if doc_category else ""
+
+
+def print_field_directives(field, name) -> str:
+    # Get doc_category for query fields.
+    doc_category = getattr(field.resolver, "doc_category", None)
+
+    # Get doc_category for mutation fields.
+    if not doc_category and hasattr(field.type, "graphene_type"):
+        doc_category = getattr(field.type.graphene_type._meta, "doc_category", None)
+
+    return f' @doc(category: "{doc_category}")' if doc_category else ""
+
+
 def print_type(type_: GraphQLNamedType) -> str:
     if isinstance(type_, GraphQLScalarType):
         type_ = type_
@@ -165,13 +181,6 @@ def print_object(type_: GrapheneObjectType) -> str:
     )
 
 
-def print_object_directives(type_) -> str:
-    doc_category = getattr(type_.graphene_type._meta, "doc_category", None)
-    if doc_category:
-        return f' @doc(category: "{doc_category}")'
-    return ""
-
-
 def print_interface(type_: GraphQLInterfaceType) -> str:
     return print_description(type_) + f"interface {type_.name}" + print_fields(type_)
 
@@ -189,7 +198,12 @@ def print_enum(type_: GraphQLEnumType) -> str:
         + print_deprecated(v.deprecation_reason)
         for i, v in enumerate(type_.values)
     ]
-    return print_description(type_) + f"enum {type_.name}" + print_block(values)
+    return (
+        print_description(type_)
+        + f"enum {type_.name}"
+        + print_object_directives(type_)
+        + print_block(values)
+    )
 
 
 def print_input_object(type_: GraphQLInputObjectType) -> str:
@@ -219,17 +233,6 @@ def print_fields(
         for i, (name, field) in enumerate(type_.fields.items())
     ]
     return print_block(fields)
-
-
-def print_field_directives(field, name) -> str:
-    # Get doc_category for query fields.
-    doc_category = getattr(field.resolver, "doc_category", None)
-
-    # Get doc_category for mutation fields.
-    if not doc_category and hasattr(field.type, "graphene_type"):
-        doc_category = getattr(field.type.graphene_type._meta, "doc_category", None)
-
-    return f' @doc(category: "{doc_category}")' if doc_category else ""
 
 
 def print_block(items: List[str]) -> str:

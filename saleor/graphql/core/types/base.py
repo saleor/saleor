@@ -1,5 +1,6 @@
 from typing import Optional
 
+from graphene.types.enum import Enum, EnumOptions
 from graphene.types.inputobjecttype import InputObjectType, InputObjectTypeOptions
 from graphene.types.objecttype import ObjectType, ObjectTypeOptions
 
@@ -49,4 +50,23 @@ class BaseInputObjectType(InputObjectType):
 
         super(BaseInputObjectType, cls).__init_subclass_with_meta__(
             _meta=_meta, **options
+        )
+
+
+class BaseEnumOptions(EnumOptions):
+    doc_category: Optional[str] = None
+
+
+class BaseEnum(Enum):
+    @classmethod
+    def __init_subclass_with_meta__(
+        cls, enum=None, _meta=None, doc_category=None, **options
+    ):
+        if not _meta:
+            _meta = BaseEnumOptions(cls)
+
+        _meta.doc_category = doc_category
+
+        super(BaseEnum, cls).__init_subclass_with_meta__(
+            enum=enum, _meta=_meta, **options
         )

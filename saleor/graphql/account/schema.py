@@ -83,16 +83,19 @@ from .types import (
 
 class CustomerFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
 
 
 class PermissionGroupFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = PermissionGroupFilter
 
 
 class StaffUserInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = StaffUserFilter
 
 

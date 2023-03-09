@@ -104,10 +104,11 @@ GraphQLDocDirective = graphql.GraphQLDirective(
         )
     },
     locations=[
+        graphql.DirectiveLocation.ENUM,
         graphql.DirectiveLocation.FIELD,
         graphql.DirectiveLocation.FIELD_DEFINITION,
-        graphql.DirectiveLocation.OBJECT,
         graphql.DirectiveLocation.INPUT_OBJECT,
+        graphql.DirectiveLocation.OBJECT,
     ],
 )
 
