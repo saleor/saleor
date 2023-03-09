@@ -73,6 +73,10 @@ class StaffCreateInput(StaffInput):
         )
     )
 
+    class Meta:
+        description = "Fields required to create a staff user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class StaffUpdateInput(StaffInput):
     remove_groups = NonNullList(
@@ -82,6 +86,10 @@ class StaffUpdateInput(StaffInput):
         ),
         required=False,
     )
+
+    class Meta:
+        description = "Fields required to update a staff user."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class CustomerCreate(BaseCustomerCreate):

@@ -40,7 +40,7 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types import AccountError
+from ...core.types import AccountError, BaseInputObjectType
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import DOC_CATEGORY_USERS
 from .authentication import CreateToken
@@ -452,7 +452,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         return response
 
 
-class UserInput(graphene.InputObjectType):
+class UserInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     email = graphene.String(description="The unique email address of the user.")
@@ -460,7 +460,7 @@ class UserInput(graphene.InputObjectType):
     note = graphene.String(description="A note about the user.")
 
 
-class UserAddressInput(graphene.InputObjectType):
+class UserAddressInput(BaseInputObjectType):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )

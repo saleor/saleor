@@ -5,6 +5,7 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
+from ...account import DOC_CATEGORY_USERS
 from ...account.enums import AddressTypeEnum
 from ..descriptions import (
     ADDED_IN_36,
@@ -107,7 +108,7 @@ class Permission(BaseObjectType):
         description = "Represents a permission object in a friendly form."
 
 
-class Error(graphene.ObjectType):
+class Error(BaseObjectType):
     field = graphene.String(
         description=(
             "Name of a field that caused the error. A value of `null` indicates that "
@@ -126,6 +127,10 @@ class AccountError(Error):
     address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
+
+    class Meta:
+        description = "Represents errors in account mutations."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AppError(Error):

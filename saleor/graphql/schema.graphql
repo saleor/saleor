@@ -8,7 +8,7 @@ schema {
 directive @doc(
   """Name of the grouping category"""
   category: String!
-) on FIELD
+) on FIELD | FIELD_DEFINITION | OBJECT | INPUT_OBJECT
 
 type Query {
   """
@@ -15621,7 +15621,7 @@ type Mutation {
 
     """Password of a user."""
     password: String!
-  ): CreateToken
+  ): CreateToken @doc(category: "Authentication")
 
   """
   Refresh JWT token. Mutation tries to take refreshToken from the input.If it fails it will try to take refreshToken from the http-only cookie -refreshToken. csrfToken is required when refreshToken is provided as a cookie.
@@ -15634,20 +15634,20 @@ type Mutation {
 
     """Refresh token."""
     refreshToken: String
-  ): RefreshToken
+  ): RefreshToken @doc(category: "Authentication")
 
   """Verify JWT token."""
   tokenVerify(
     """JWT token to validate."""
     token: String!
-  ): VerifyToken
+  ): VerifyToken @doc(category: "Authentication")
 
   """
   Deactivate all JWT tokens of the currently authenticated user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   """
-  tokensDeactivateAll: DeactivateAllUserTokens
+  tokensDeactivateAll: DeactivateAllUserTokens @doc(category: "Authentication")
 
   """Prepare external authentication url for user by custom plugin."""
   externalAuthenticationUrl(
@@ -15674,7 +15674,7 @@ type Mutation {
 
     """The ID of the authentication plugin."""
     pluginId: String!
-  ): ExternalRefresh
+  ): ExternalRefresh @doc(category: "Authentication")
 
   """Logout user by custom plugin."""
   externalLogout(
@@ -15683,7 +15683,7 @@ type Mutation {
 
     """The ID of the authentication plugin."""
     pluginId: String!
-  ): ExternalLogout
+  ): ExternalLogout @doc(category: "Authentication")
 
   """Verify external authentication data by plugin."""
   externalVerify(
@@ -15692,7 +15692,7 @@ type Mutation {
 
     """The ID of the authentication plugin."""
     pluginId: String!
-  ): ExternalVerify
+  ): ExternalVerify @doc(category: "Authentication")
 
   """Sends an email with the account password modification link."""
   requestPasswordReset(
@@ -15708,7 +15708,7 @@ type Mutation {
     URL of a view where users should be redirected to reset the password. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestPasswordReset
+  ): RequestPasswordReset @doc(category: "Users")
 
   """Confirm user account with token sent by email during registration."""
   confirmAccount(
@@ -15717,7 +15717,7 @@ type Mutation {
 
     """A one-time token required to confirm the account."""
     token: String!
-  ): ConfirmAccount
+  ): ConfirmAccount @doc(category: "Users")
 
   """
   Sets the user's password from the token sent by email using the RequestPasswordReset mutation.
@@ -15731,7 +15731,7 @@ type Mutation {
 
     """A one-time token required to set the password."""
     token: String!
-  ): SetPassword
+  ): SetPassword @doc(category: "Users")
 
   """
   Change the password of the logged in user. 
@@ -15744,7 +15744,7 @@ type Mutation {
 
     """Current user password."""
     oldPassword: String
-  ): PasswordChange
+  ): PasswordChange @doc(category: "Users")
 
   """
   Request email change of the logged in user. 
@@ -15767,7 +15767,7 @@ type Mutation {
     URL of a view where users should be redirected to update the email address. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestEmailChange
+  ): RequestEmailChange @doc(category: "Users")
 
   """
   Confirm the email change of the logged-in user. 
@@ -15782,7 +15782,7 @@ type Mutation {
 
     """A one-time token required to change the email."""
     token: String!
-  ): ConfirmEmailChange
+  ): ConfirmEmailChange @doc(category: "Users")
 
   """
   Create a new address for the customer. 
@@ -15797,7 +15797,7 @@ type Mutation {
     A type of address. If provided, the new address will be automatically assigned as the customer's default address of that type.
     """
     type: AddressTypeEnum
-  ): AccountAddressCreate
+  ): AccountAddressCreate @doc(category: "Users")
 
   """
   Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
@@ -15808,7 +15808,7 @@ type Mutation {
 
     """Fields required to update the address."""
     input: AddressInput!
-  ): AccountAddressUpdate
+  ): AccountAddressUpdate @doc(category: "Users")
 
   """
   Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
@@ -15816,7 +15816,7 @@ type Mutation {
   accountAddressDelete(
     """ID of the address to delete."""
     id: ID!
-  ): AccountAddressDelete
+  ): AccountAddressDelete @doc(category: "Users")
 
   """
   Sets a default address for the authenticated user. 
@@ -15829,13 +15829,13 @@ type Mutation {
 
     """The type of address."""
     type: AddressTypeEnum!
-  ): AccountSetDefaultAddress
+  ): AccountSetDefaultAddress @doc(category: "Users")
 
   """Register a new user."""
   accountRegister(
     """Fields required to create a user."""
     input: AccountRegisterInput!
-  ): AccountRegister
+  ): AccountRegister @doc(category: "Users")
 
   """
   Updates the account of the logged-in user. 
@@ -15845,7 +15845,7 @@ type Mutation {
   accountUpdate(
     """Fields required to update the account of the logged-in user."""
     input: AccountInput!
-  ): AccountUpdate
+  ): AccountUpdate @doc(category: "Users")
 
   """
   Sends an email with the account removal link for the logged-in user. 
@@ -15862,7 +15862,7 @@ type Mutation {
     URL of a view where users should be redirected to delete their account. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): AccountRequestDeletion
+  ): AccountRequestDeletion @doc(category: "Users")
 
   """
   Remove user account. 
@@ -15874,7 +15874,7 @@ type Mutation {
     A one-time token required to remove account. Sent by email using AccountRequestDeletion mutation.
     """
     token: String!
-  ): AccountDelete
+  ): AccountDelete @doc(category: "Users")
 
   """
   Creates user address. 
@@ -15887,7 +15887,7 @@ type Mutation {
 
     """ID of a user to create address for."""
     userId: ID!
-  ): AddressCreate
+  ): AddressCreate @doc(category: "Users")
 
   """
   Updates an address. 
@@ -15900,7 +15900,7 @@ type Mutation {
 
     """Fields required to update the address."""
     input: AddressInput!
-  ): AddressUpdate
+  ): AddressUpdate @doc(category: "Users")
 
   """
   Deletes an address. 
@@ -15910,7 +15910,7 @@ type Mutation {
   addressDelete(
     """ID of the address to delete."""
     id: ID!
-  ): AddressDelete
+  ): AddressDelete @doc(category: "Users")
 
   """
   Sets a default address for the given user. 
@@ -15926,7 +15926,7 @@ type Mutation {
 
     """ID of the user to change the address for."""
     userId: ID!
-  ): AddressSetDefault
+  ): AddressSetDefault @doc(category: "Users")
 
   """
   Creates a new customer. 
@@ -15936,7 +15936,7 @@ type Mutation {
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
-  ): CustomerCreate
+  ): CustomerCreate @doc(category: "Users")
 
   """
   Updates an existing customer. 
@@ -15956,7 +15956,7 @@ type Mutation {
 
     """Fields required to update a customer."""
     input: CustomerInput!
-  ): CustomerUpdate
+  ): CustomerUpdate @doc(category: "Users")
 
   """
   Deletes a customer. 
@@ -15973,7 +15973,7 @@ type Mutation {
 
     """ID of a customer to delete."""
     id: ID
-  ): CustomerDelete
+  ): CustomerDelete @doc(category: "Users")
 
   """
   Deletes customers. 
@@ -15983,7 +15983,7 @@ type Mutation {
   customerBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): CustomerBulkDelete
+  ): CustomerBulkDelete @doc(category: "Users")
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -15993,7 +15993,7 @@ type Mutation {
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
-  ): StaffCreate
+  ): StaffCreate @doc(category: "Users")
 
   """
   Updates an existing staff user. Apps are not allowed to perform this mutation. 
@@ -16006,7 +16006,7 @@ type Mutation {
 
     """Fields required to update a staff user."""
     input: StaffUpdateInput!
-  ): StaffUpdate
+  ): StaffUpdate @doc(category: "Users")
 
   """
   Deletes a staff user. Apps are not allowed to perform this mutation. 
@@ -16016,7 +16016,7 @@ type Mutation {
   staffDelete(
     """ID of a staff user to delete."""
     id: ID!
-  ): StaffDelete
+  ): StaffDelete @doc(category: "Users")
 
   """
   Deletes staff users. Apps are not allowed to perform this mutation. 
@@ -16026,7 +16026,7 @@ type Mutation {
   staffBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): StaffBulkDelete
+  ): StaffBulkDelete @doc(category: "Users")
 
   """
   Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -16036,14 +16036,14 @@ type Mutation {
   userAvatarUpdate(
     """Represents an image file in a multipart request."""
     image: Upload!
-  ): UserAvatarUpdate
+  ): UserAvatarUpdate @doc(category: "Users")
 
   """
   Deletes a user avatar. Only for staff members. 
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
   """
-  userAvatarDelete: UserAvatarDelete
+  userAvatarDelete: UserAvatarDelete @doc(category: "Users")
 
   """
   Activate or deactivate users. 
@@ -16056,7 +16056,7 @@ type Mutation {
 
     """Determine if users will be set active or not."""
     isActive: Boolean!
-  ): UserBulkSetActive
+  ): UserBulkSetActive @doc(category: "Users")
 
   """
   Create new permission group. Apps are not allowed to perform this mutation. 
@@ -16066,7 +16066,7 @@ type Mutation {
   permissionGroupCreate(
     """Input fields to create permission group."""
     input: PermissionGroupCreateInput!
-  ): PermissionGroupCreate
+  ): PermissionGroupCreate @doc(category: "Users")
 
   """
   Update permission group. Apps are not allowed to perform this mutation. 
@@ -16079,7 +16079,7 @@ type Mutation {
 
     """Input fields to create permission group."""
     input: PermissionGroupUpdateInput!
-  ): PermissionGroupUpdate
+  ): PermissionGroupUpdate @doc(category: "Users")
 
   """
   Delete permission group. Apps are not allowed to perform this mutation. 
@@ -16089,7 +16089,7 @@ type Mutation {
   permissionGroupDelete(
     """ID of the group to delete."""
     id: ID!
-  ): PermissionGroupDelete
+  ): PermissionGroupDelete @doc(category: "Users")
 }
 
 """
@@ -23624,7 +23624,8 @@ type CreateToken @doc(category: "Authentication") {
   errors: [AccountError!]!
 }
 
-type AccountError {
+"""Represents errors in account mutations."""
+type AccountError @doc(category: "Users") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -23911,7 +23912,8 @@ type AccountRegister @doc(category: "Users") {
   user: User
 }
 
-input AccountRegisterInput {
+"""Fields required to create a user."""
+input AccountRegisterInput @doc(category: "Users") {
   """Given name."""
   firstName: String
 
@@ -23950,7 +23952,8 @@ type AccountUpdate @doc(category: "Users") {
   user: User
 }
 
-input AccountInput {
+"""Fields required to update the user."""
+input AccountInput @doc(category: "Users") {
   """Given name."""
   firstName: String
 
@@ -24153,7 +24156,7 @@ Deletes customers.
 
 Requires one of the following permissions: MANAGE_USERS.
 """
-type CustomerBulkDelete {
+type CustomerBulkDelete @doc(category: "Users") {
   """Returns how many objects were affected."""
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24196,7 +24199,8 @@ type StaffError {
   users: [ID!]
 }
 
-input StaffCreateInput {
+"""Fields required to create a staff user."""
+input StaffCreateInput @doc(category: "Users") {
   """Given name."""
   firstName: String
 
@@ -24232,7 +24236,8 @@ type StaffUpdate @doc(category: "Users") {
   user: User
 }
 
-input StaffUpdateInput {
+"""Fields required to update a staff user."""
+input StaffUpdateInput @doc(category: "Users") {
   """Given name."""
   firstName: String
 
@@ -24271,7 +24276,7 @@ Deletes staff users. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 """
-type StaffBulkDelete {
+type StaffBulkDelete @doc(category: "Users") {
   """Returns how many objects were affected."""
   count: Int!
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24307,7 +24312,7 @@ Activate or deactivate users.
 
 Requires one of the following permissions: MANAGE_USERS.
 """
-type UserBulkSetActive {
+type UserBulkSetActive @doc(category: "Users") {
   """Returns how many objects were affected."""
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")

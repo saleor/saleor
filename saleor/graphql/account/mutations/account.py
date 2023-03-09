@@ -22,7 +22,7 @@ from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import AccountError, NonNullList
+from ...core.types import AccountError, BaseInputObjectType, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import DOC_CATEGORY_USERS
@@ -37,7 +37,7 @@ from .base import (
 )
 
 
-class AccountBaseInput(graphene.InputObjectType):
+class AccountBaseInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     language_code = graphene.Argument(
@@ -70,6 +70,10 @@ class AccountRegisterInput(AccountBaseInput):
             "only one channel exists."
         )
     )
+
+    class Meta:
+        description = "Fields required to create a user."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AccountRegister(ModelMutation):
@@ -168,6 +172,10 @@ class AccountInput(AccountBaseInput):
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
     )
+
+    class Meta:
+        description = "Fields required to update the user."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AccountUpdate(BaseCustomerCreate):
