@@ -97,7 +97,6 @@ def test_product_bulk_create_with_base_data(
             "productType": product_type_id,
             "category": category_id,
             "name": product_name_1,
-            "slug": f"{base_product_slug}-1",
             "description": description_json_string,
             "chargeTaxes": product_charge_taxes,
             "taxCode": product_tax_rate,
@@ -130,6 +129,7 @@ def test_product_bulk_create_with_base_data(
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
     assert data["results"][0]["product"]["name"] == product_name_1
+    assert data["results"][0]["product"]["slug"] == "test-name-1"
     assert data["results"][0]["product"]["description"] == description_json_string
     assert data["results"][0]["product"]["category"]["name"] == category.name
     assert data["results"][1]["product"]["name"] == product_name_2

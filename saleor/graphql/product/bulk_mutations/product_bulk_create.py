@@ -7,9 +7,12 @@ import requests
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.db.models import F
+from django.utils.text import slugify
 from graphene.utils.str_converters import to_camel_case
+from text_unidecode import unidecode
 
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils import prepare_unique_slug
 from ....core.utils.editorjs import clean_editor_js
 from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
@@ -175,6 +178,22 @@ class ProductBulkCreate(BaseMutation):
         support_private_meta_field = True
 
     @classmethod
+    def generate_unique_slug(cls, slugable_value):
+        slug = slugify(unidecode(slugable_value))
+
+        search_field = "slug__iregex"
+        pattern = rf"{slug}-\d+$|{slug}$"
+        lookup = {search_field: pattern}
+
+        slug_values = models.Product.objects.filter(**lookup).values_list(
+            "slug", flat=True
+        )
+
+        unique_slug = prepare_unique_slug(slug, slug_values)
+
+        return unique_slug
+
+    @classmethod
     def clean_base_fields(cls, cleaned_input, product_index, index_error_map):
         base_fields_errors_count = 0
 
@@ -193,6 +212,11 @@ class ProductBulkCreate(BaseMutation):
         cleaned_input["description_plaintext"] = (
             clean_editor_js(description, to_string=True) if description else ""
         )
+
+        slug = cleaned_input.get("slug")
+        if not slug and "name" in cleaned_input:
+            slug = cls.generate_unique_slug(cleaned_input["name"])
+            cleaned_input["slug"] = slug
 
         clean_seo_fields(cleaned_input)
 
