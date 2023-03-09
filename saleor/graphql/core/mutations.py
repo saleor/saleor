@@ -429,14 +429,14 @@ class BaseMutation(graphene.Mutation):
                 pass
 
     @classmethod
-    def clean_instance(cls, info: ResolveInfo, instance, /, exclude=None) -> None:
+    def clean_instance(cls, info: ResolveInfo, instance, /) -> None:
         """Clean the instance that was created using the input data.
 
         Once an instance is created, this method runs `full_clean()` to perform
         model validation.
         """
         try:
-            instance.full_clean(exclude=exclude)
+            instance.full_clean()
         except ValidationError as error:
             if hasattr(cls._meta, "exclude"):
                 # Ignore validation errors for fields that are specified as
@@ -821,7 +821,7 @@ class ModelDeleteMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, _instance, /, exclude=None):
+    def clean_instance(cls, _info: ResolveInfo, _instance, /):
         """Perform additional logic before deleting the model instance.
 
         Override this method to raise custom validation error and abort
@@ -884,7 +884,7 @@ class BaseBulkMutation(BaseMutation):
         return cls._meta.object_type
 
     @classmethod
-    def clean_instance(cls, _info: ResolveInfo, _instance, /, exclude=None):
+    def clean_instance(cls, _info: ResolveInfo, _instance, /):
         """Perform additional logic.
 
         Override this method to raise custom validation error and prevent

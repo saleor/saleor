@@ -629,7 +629,7 @@ class ProductBulkCreate(BaseMutation):
                     cls.validate_and_update_metadata(
                         variant, metadata_list, private_metadata_list
                     )
-                    cls.clean_instance(info, variant, exclude=["product"])
+                    variant.full_clean(exclude=["product"])
 
                     # store variant related objects data to create related objects
                     # after variant instance will be created
