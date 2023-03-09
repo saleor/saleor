@@ -43,6 +43,7 @@ from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
+from ..core.permissions.enums import get_permissions
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
@@ -4978,8 +4979,53 @@ def permission_manage_payments():
 
 @pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
-    group = Group.objects.create(name="Manage user groups.")
+    group = Group.objects.create(
+        name="Manage user groups.", restrictedAccessToChannel=False
+    )
     group.permissions.add(permission_manage_users)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+@pytest.fixture
+def permission_group_all_perms_all_channels(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions for all channels.", restrictedAccessToChannel=False,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+@pytest.fixture
+def permission_group_all_perms_channel_USD_only(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions for USD channel only.", restrictedAccessToChannel=True,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
+
+    group.channels.add(channel_USD)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_all_perms_without_any_channel(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions without any channel access.",
+        restrictedAccessToChannel=True,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
 
     group.user_set.add(staff_users[1])
     return group

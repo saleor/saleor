@@ -20,6 +20,7 @@ from ...account.utils import (
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
@@ -37,6 +38,18 @@ class PermissionGroupInput(graphene.InputObjectType):
     add_users = NonNullList(
         graphene.ID,
         description="List of users to assign to this group.",
+        required=False,
+    )
+    # TODO Owczar: Verify Added IN
+    restricted_access_to_channel = graphene.Boolean(
+        description="Determine if group have restricted access to channels."
+        + ADDED_IN_311
+        + PREVIEW_FEATURE,
+        required=True,
+    )
+    add_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to assign as accessible for this group.",
         required=False,
     )
 
@@ -193,6 +206,12 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
     remove_users = NonNullList(
         graphene.ID,
         description="List of users to unassign from this group.",
+        required=False,
+    )
+    # TODO Owczar: Verify Added IN
+    remove_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to unassign as accessible for this group.",
         required=False,
     )
 
