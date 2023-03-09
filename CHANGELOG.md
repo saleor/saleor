@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
+- Upgrade GraphiQL to `2.4.0` for playground - #12271 by @zaiste
 
 ### Other changes
 
