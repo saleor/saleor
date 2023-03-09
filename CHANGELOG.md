@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 
 ### Other changes
+- Create order discounts for all voucher types - #12272 by @IKarbowiak
 
 # 3.12.0
 
