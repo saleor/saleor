@@ -5,6 +5,7 @@ import graphene
 from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
 from .....account.events import CustomerEvents
+from .....account.search import generate_address_search_document_value
 from ....tests.utils import get_graphql_content
 from ...tests.utils import convert_dict_keys_to_camel_case
 
@@ -485,11 +486,69 @@ def test_customers_bulk_update_with_address(
 
     shipping_address.refresh_from_db()
     billing_address.refresh_from_db()
+    customer_user.refresh_from_db()
 
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
     assert billing_address.street_address_1 == new_street_address
     assert shipping_address.street_address_1 == new_street_address
+    assert (
+        generate_address_search_document_value(billing_address)
+        in customer_user.search_document
+    )
+    assert (
+        generate_address_search_document_value(shipping_address)
+        in customer_user.search_document
+    )
+
+
+def test_customers_bulk_update_with_address_when_no_default(
+    staff_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+):
+    # given
+    shipping_address = customer_user.default_shipping_address
+
+    customer_user.default_shipping_address = None
+    customer_user.save(update_fields=["default_shipping_address"])
+
+    assert shipping_address
+
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    address_data = convert_dict_keys_to_camel_case(shipping_address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
+
+    new_street_address = "Updated street address"
+    address_data["streetAddress1"] = new_street_address
+
+    customers_input = [
+        {
+            "id": customer_id,
+            "input": {
+                "defaultShippingAddress": address_data,
+            },
+        }
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+
+    # then
+    customer_user.refresh_from_db()
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+
+    assert customer_user.default_shipping_address
+    assert customer_user.default_shipping_address in customer_user.addresses.all()
 
 
 def test_customers_bulk_update_with_invalid_address(

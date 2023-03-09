@@ -8,6 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ....account import models
 from ....account.events import CustomerEvents
+from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import assign_user_gift_cards
@@ -282,7 +283,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             lookup |= single_customer_lookup
 
         customers = models.User.objects.filter(lookup, is_staff=False)
-
         return list(customers)
 
     @classmethod
@@ -294,7 +294,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def update_address(cls, info, instance, data, field):
-        address = cls.construct_instance(getattr(instance, field), data)
+        address = getattr(instance, field) or models.Address()
+        address = cls.construct_instance(address, data)
         cls.clean_instance(info, address)
         return address
 
@@ -374,10 +375,13 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         return instances_data_and_errors_list
 
     @classmethod
-    def save_customers(cls, instances_data_with_errors_list):
+    def save_customers(cls, instances_data_with_errors_list, manager):
         old_instances = []
         customers_to_update = []
+        address_to_create = []
         address_to_update = []
+
+        customer_instance_new_addresses_map: dict = defaultdict(list)
 
         for customer_data in instances_data_with_errors_list:
             customer = customer_data["instance"]
@@ -389,24 +393,33 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             old_instances.append(customer_data["old_instance"])
 
             if shipping_address := customer_data[SHIPPING_ADDRESS_FIELD]:
-                address_to_update.append(shipping_address)
+                shipping_address = manager.change_user_address(
+                    shipping_address, "shipping", customer, save=False
+                )
+                if customer.default_shipping_address:
+                    address_to_update.append(shipping_address)
+                else:
+                    customer.default_shipping_address = shipping_address
+                    address_to_create.append(shipping_address)
+                    customer_instance_new_addresses_map[customer].append(
+                        shipping_address
+                    )
+
             if billing_address := customer_data[BILLING_ADDRESS_FIELD]:
-                address_to_update.append(billing_address)
+                billing_address = manager.change_user_address(
+                    billing_address, "billing", customer, save=False
+                )
 
-        models.User.objects.bulk_update(
-            customers_to_update,
-            fields=[
-                "first_name",
-                "last_name",
-                "email",
-                "is_active",
-                "note",
-                "language_code",
-                "external_reference",
-                "updated_at",
-            ],
-        )
+                if customer.default_billing_address:
+                    address_to_update.append(billing_address)
+                else:
+                    customer.default_billing_address = billing_address
+                    address_to_create.append(billing_address)
+                    customer_instance_new_addresses_map[customer].append(
+                        shipping_address
+                    )
 
+        models.Address.objects.bulk_create(address_to_create)
         models.Address.objects.bulk_update(
             address_to_update,
             fields=[
@@ -424,12 +437,44 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             ],
         )
 
+        models.User.objects.bulk_update(
+            customers_to_update,
+            fields=[
+                "first_name",
+                "last_name",
+                "email",
+                "is_active",
+                "note",
+                "language_code",
+                "external_reference",
+                "updated_at",
+            ],
+        )
+
+        for customer in customers_to_update:
+            if customer in customer_instance_new_addresses_map:
+                customer.addresses.add(*customer_instance_new_addresses_map[customer])
+                # refresh customer default addresses
+                customer.default_billing_address = customer.default_billing_address
+                customer.default_shipping_address = customer.default_shipping_address
+
+            search_document = prepare_user_search_document_value(customer)
+            customer.search_document = search_document
+
+        models.User.objects.bulk_update(
+            customers_to_update,
+            fields=[
+                "default_shipping_address",
+                "default_billing_address",
+                "search_document",
+            ],
+        )
+
         return customers_to_update, old_instances
 
     @classmethod
-    def post_save_actions(cls, info, instances, old_instances):
+    def post_save_actions(cls, info, manager, instances, old_instances):
         customer_events = []
-        manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
 
@@ -527,13 +572,15 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     if data["errors"] and data["instance"]:
                         data["instance"] = None
 
+        manager = get_plugin_manager_promise(info.context).get()
+
         updated_customers, old_instances = cls.save_customers(
-            instances_data_with_errors_list
+            instances_data_with_errors_list, manager
         )
 
         # prepare and return data
         results = cls.get_results(instances_data_with_errors_list)
 
-        cls.post_save_actions(info, updated_customers, old_instances)
+        cls.post_save_actions(info, manager, updated_customers, old_instances)
 
         return CustomerBulkUpdate(count=len(updated_customers), results=results)
