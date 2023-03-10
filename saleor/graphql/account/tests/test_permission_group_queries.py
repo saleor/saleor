@@ -2,6 +2,7 @@ import graphene
 import pytest
 
 from ....account.models import Group
+from ....channel.models import Channel
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
@@ -301,6 +302,62 @@ def test_query_permission_group_without_restricted_access_to_channels(
     # then
 
     content = get_graphql_content(response)
-    permission_group_data = content["data"]["permissionGroup"]
-    assert permission_group_data["name"] == group.name
-    assert len(permission_group_data["accessibleChannels"]) == 2
+    group_data = content["data"]["permissionGroup"]
+    assert group_data["name"] == group.name
+    assert group_data["restrictedAccessToChannel"] is False
+    assert len(group_data["accessibleChannels"]) == 2
+
+
+def test_query_permission_group_with_restricted_access_to_channels(
+    staff_api_client,
+    staff_user,
+    permission_group_all_perms_channel_USD_only,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    group = permission_group_all_perms_channel_USD_only
+    group.user_set.add(staff_user)
+
+    assert Channel.objects.count() > 1
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
+
+    # then
+
+    content = get_graphql_content(response)
+    group_data = content["data"]["permissionGroup"]
+    assert group_data["name"] == group.name
+    assert group_data["restrictedAccessToChannel"] is True
+    assert len(group_data["accessibleChannels"]) == 1
+    assert group_data["accessibleChannels"][0]["slug"] == channel_USD.slug
+
+
+def test_query_permission_group_with_restricted_access_to_channels_no_channels_assigned(
+    staff_api_client,
+    staff_user,
+    permission_group_all_perms_without_any_channel,
+    channel_USD,
+    channel_PLN,
+):
+    # given
+    group = permission_group_all_perms_without_any_channel
+    group.user_set.add(staff_user)
+
+    assert Channel.objects.count() > 1
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
+
+    # then
+
+    content = get_graphql_content(response)
+    group_data = content["data"]["permissionGroup"]
+    assert group_data["name"] == group.name
+    assert group_data["restrictedAccessToChannel"] is True
+    assert len(group_data["accessibleChannels"]) == 0

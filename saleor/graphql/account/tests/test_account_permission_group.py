@@ -11,10 +11,7 @@ from ....core.utils.json_serializer import CustomJsonEncoder
 from ....permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
-from ...tests.utils import (
-    assert_no_permission,
-    get_graphql_content,
-)
+from ...tests.utils import assert_no_permission, get_graphql_content
 
 PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(

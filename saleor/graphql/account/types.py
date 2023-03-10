@@ -52,7 +52,7 @@ from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
-    ChannelsByGroupIdLoader,
+    AccessibleChannelsByGroupIdLoader,
     CustomerEventsByUserLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
@@ -703,7 +703,7 @@ class Group(ModelObjectType[models.Group]):
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
         # TODO: should return all channels when the group has `restictedAccessToChannel`
         # set to False
-        return ChannelsByGroupIdLoader(info.context).load(root.id)
+        return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info: ResolveInfo):
