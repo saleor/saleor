@@ -57,6 +57,7 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
+from ..tax.calculations import calculate_flat_rate_tax, add_tax_to_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -219,12 +220,7 @@ def _create_line_for_order(
         line_info=checkout_line_info,
         channel=checkout_info.channel,
     )
-    undiscounted_unit_price = TaxedMoney(
-        net=undiscounted_base_unit_price, gross=undiscounted_base_unit_price
-    )
-    undiscounted_total_price = TaxedMoney(
-        net=undiscounted_base_total_price, gross=undiscounted_base_total_price
-    )
+
     # total price after applying all discounts - sales and vouchers
     total_line_price = calculations.checkout_line_total(
         manager=manager,
@@ -247,6 +243,18 @@ def _create_line_for_order(
         lines=lines,
         checkout_line_info=checkout_line_info,
         discounts=discounts,
+    )
+
+    undiscounted_unit_price = add_tax_to_undiscounted_price(
+        price=undiscounted_base_unit_price,
+        tax_rate=tax_rate,
+        prices_entered_with_tax=prices_entered_with_tax,
+    )
+
+    undiscounted_total_price = add_tax_to_undiscounted_price(
+        price=undiscounted_base_total_price,
+        tax_rate=tax_rate,
+        prices_entered_with_tax=prices_entered_with_tax,
     )
 
     price_override = checkout_line_info.line.price_override
