@@ -818,6 +818,6 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 
 # Lock time for request password reset mutation per user (seconds)
-RESET_PASSWORD_LOCK_TIME = timedelta(
-    seconds=parse(os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes"))
+RESET_PASSWORD_LOCK_TIME = parse(
+    os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
 )

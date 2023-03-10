@@ -198,7 +198,7 @@ class RequestPasswordReset(BaseMutation):
                     {
                         "email": ValidationError(
                             "Password reset already requested",
-                            code=AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED,
+                            code=AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED.value,
                         )
                     }
                 )
