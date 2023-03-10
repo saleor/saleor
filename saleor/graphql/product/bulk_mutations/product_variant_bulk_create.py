@@ -286,7 +286,10 @@ class ProductVariantBulkCreate(BaseMutation):
                 code = ProductVariantBulkErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value
                 index_error_map[variant_index].append(
                     ProductVariantBulkError(
-                        field="attributes", message=message, code=code
+                        field="attributes",
+                        message=message,
+                        code=code,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
@@ -335,6 +338,7 @@ class ProductVariantBulkCreate(BaseMutation):
                         field="attributes",
                         message=message,
                         code=ProductVariantBulkErrorCode.INVALID.value,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
