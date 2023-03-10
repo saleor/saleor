@@ -4044,6 +4044,8 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
+    order.total += order.shipping_price
+    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
@@ -4556,11 +4558,10 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 
 @pytest.fixture
-def draft_order(order_with_lines, shipping_method):
+def draft_order(order_with_lines):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
-    order_with_lines.shipping_method = shipping_method
     order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
@@ -4813,6 +4814,24 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
         variants_ids=set(),
     )
 

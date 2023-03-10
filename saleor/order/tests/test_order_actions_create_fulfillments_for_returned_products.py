@@ -644,3 +644,80 @@ def test_create_return_fulfillment_with_lines_already_refunded(
     assert returned_and_refunded_fulfillment.shipping_refund_amount is None
 
     mocked_order_updated.assert_called_once_with(fulfilled_order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.order.actions.gateway.refund")
+def test_create_return_fulfillment_only_order_lines_with_old_ids(
+    mocked_refund,
+    mocked_order_updated,
+    order_with_lines,
+    payment_dummy_fully_charged,
+    staff_user,
+):
+    order_with_lines.payments.add(payment_dummy_fully_charged)
+    payment = order_with_lines.get_last_payment()
+
+    order_lines_to_return = order_with_lines.lines.all()
+    order_lines_to_return[0].old_id = 16
+    order_lines_to_return[1].old_id = 12
+    original_quantity = {
+        line.id: line.quantity_unfulfilled for line in order_with_lines.lines.all()
+    }
+    order_line_ids = order_lines_to_return.values_list("id", flat=True)
+    original_allocations = list(
+        Allocation.objects.filter(order_line_id__in=order_line_ids)
+    )
+    lines_count = order_with_lines.lines.count()
+
+    response = create_fulfillments_for_returned_products(
+        user=staff_user,
+        app=None,
+        order=order_with_lines,
+        payment=payment,
+        transactions=[],
+        order_lines=[
+            OrderLineInfo(line=line, quantity=2, replace=False)
+            for line in order_lines_to_return
+        ],
+        fulfillment_lines=[],
+        manager=get_plugins_manager(),
+    )
+    returned_fulfillment, replaced_fulfillment, replace_order = response
+
+    returned_fulfillment_lines = returned_fulfillment.lines.all()
+    assert returned_fulfillment.status == FulfillmentStatus.RETURNED
+    assert len(returned_fulfillment_lines) == lines_count
+    for fulfillment_line in returned_fulfillment_lines:
+        assert fulfillment_line.quantity == 2
+        assert fulfillment_line.order_line_id in order_line_ids
+    for line in order_lines_to_return:
+        assert line.quantity_unfulfilled == original_quantity.get(line.pk) - 2
+
+    current_allocations = Allocation.objects.in_bulk(
+        [allocation.pk for allocation in original_allocations]
+    )
+    for original_allocation in original_allocations:
+        current_allocation = current_allocations.get(original_allocation.pk)
+        assert (
+            original_allocation.quantity_allocated - 2
+            == current_allocation.quantity_allocated
+        )
+    assert not mocked_refund.called
+    assert not replace_order
+
+    # check if we have correct events
+    flush_post_commit_hooks()
+    events = order_with_lines.events.all()
+    assert events.count() == 1
+    returned_event = events[0]
+    assert returned_event.type == OrderEvents.FULFILLMENT_RETURNED
+    assert len(returned_event.parameters["lines"]) == 2
+    event_lines = returned_event.parameters["lines"]
+    assert order_lines_to_return.filter(id=event_lines[0]["line_pk"]).exists()
+    assert event_lines[0]["quantity"] == 2
+
+    assert order_lines_to_return.filter(id=event_lines[1]["line_pk"]).exists()
+    assert event_lines[1]["quantity"] == 2
+
+    mocked_order_updated.assert_called_once_with(order_with_lines)
