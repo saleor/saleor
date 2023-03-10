@@ -935,7 +935,7 @@ def test_checkout_with_voucher_complete(
 
 
 @pytest.mark.integration
-def test_checkout_complete_with_voucher_apply_once_per_customer(
+def test_checkout_complete_with_voucher_apply_once_per_order(
     user_api_client,
     checkout_with_voucher_percentage,
     voucher_percentage,
