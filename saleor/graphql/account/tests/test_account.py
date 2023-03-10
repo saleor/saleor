@@ -5007,7 +5007,13 @@ def test_account_reset_password_on_cooldown(
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
     errors = content["data"]["requestPasswordReset"]["errors"]
-    assert errors == [{"field": "email", "message": "Password reset already requested"}]
+    assert errors == [
+        {
+            "field": "email",
+            "message": "Password reset already requested",
+            "code": AccountErrorCode.PASSWORD_RESET_ALREADY_REQUESTED.name,
+        }
+    ]
     mocked_notify.assert_not_called()
 
 
