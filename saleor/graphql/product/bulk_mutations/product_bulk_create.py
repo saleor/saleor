@@ -226,11 +226,16 @@ class ProductBulkCreate(BaseMutation):
     def add_indexes_to_errors(cls, index, error, index_error_map):
         for key, value in error.error_dict.items():
             for e in value:
+                code = (
+                    ProductBulkCreateErrorCode.INVALID.value
+                    if e.code == ProductBulkCreateErrorCode.GRAPHQL_ERROR.value
+                    else e.code
+                )
                 index_error_map[index].append(
                     ProductBulkCreateError(
                         path=to_camel_case(key),
                         message=e.messages[0],
-                        code=e.code,
+                        code=code,
                     )
                 )
 
@@ -470,12 +475,17 @@ class ProductBulkCreate(BaseMutation):
         index_error_map: dict,
     ):
         used_channels_map: dict = {}
+        base_fields_errors_count = 0
 
-        cleaned_input = ModelMutation.clean_input(
-            info, None, data, input_cls=ProductBulkCreateInput
-        )
+        try:
+            cleaned_input = ModelMutation.clean_input(
+                info, None, data, input_cls=ProductBulkCreateInput
+            )
+        except ValidationError as exc:
+            cls.add_indexes_to_errors(product_index, exc, index_error_map)
+            return None
 
-        base_fields_errors_count = cls.clean_base_fields(
+        base_fields_errors_count += cls.clean_base_fields(
             cleaned_input,
             product_index,
             index_error_map,

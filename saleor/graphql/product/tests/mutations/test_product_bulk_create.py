@@ -124,7 +124,6 @@ def test_product_bulk_create_with_base_data(
 
     # then
     products = Product.objects.all()
-
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
