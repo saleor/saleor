@@ -983,7 +983,7 @@ def test_creates_transaction_event_for_order_by_app(
     data = content["data"]["transactionUpdate"]["transaction"]
 
     events_data = data["events"]
-    assert len(events_data) == 3
+    assert len(events_data) == 2
     event_data = [
         event for event in events_data if event["pspReference"] == event_reference
     ][0]
@@ -992,7 +992,7 @@ def test_creates_transaction_event_for_order_by_app(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
-    assert transaction.events.count() == 3
+    assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
     assert event.message == event_name
     assert event.status == event_status
@@ -1031,7 +1031,7 @@ def test_creates_transaction_event_by_reinstalled_app(
     # then
     get_graphql_content(response)
 
-    assert transaction.events.count() == 3
+    assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
     assert event.message == event_name
     assert event.status == event_status
@@ -1876,7 +1876,7 @@ def test_creates_transaction_event_for_order_by_staff(
     data = content["data"]["transactionUpdate"]["transaction"]
 
     events_data = data["events"]
-    assert len(events_data) == 3
+    assert len(events_data) == 2
     event_data = [
         event for event in events_data if event["pspReference"] == event_reference
     ][0]
@@ -1885,7 +1885,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
-    assert transaction.events.count() == 3
+    assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
     assert event.message == event_name
     assert event.status == event_status
@@ -2163,15 +2163,13 @@ def test_transaction_update_creates_calculation_event(
 
     authorize_event = transaction.events.filter(
         type=TransactionEventType.AUTHORIZATION_ADJUSTMENT,
-        amount_value=authorized_value + charged_value + refunded_value + canceled_value,
+        amount_value=authorized_value,
     ).first()
     assert authorize_event
 
     charge_event = transaction.events.filter(
         type=TransactionEventType.CHARGE_SUCCESS,
-        amount_value=charged_value
-        - current_charged_value
-        + (refunded_value - current_refunded_value),
+        amount_value=charged_value - current_charged_value,
     ).first()
     assert charge_event
 

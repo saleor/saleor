@@ -485,7 +485,7 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
     assert error["code"] == TransactionEventReportErrorCode.INCORRECT_DETAILS.name
     assert error["field"] == "pspReference"
 
-    assert TransactionEvent.objects.count() == 3
+    assert TransactionEvent.objects.count() == 2
     event = TransactionEvent.objects.filter(
         type=TransactionEventTypeEnum.CHARGE_FAILURE.value
     ).first()

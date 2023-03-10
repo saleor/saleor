@@ -1126,8 +1126,8 @@ def test_event_without_psp_reference(
     transaction.refresh_from_db()
     _assert_amounts(
         transaction,
-        authorized_value=authorize_value - charge_value,
-        charged_value=charge_value - first_refund_value - second_refund_value,
+        authorized_value=authorize_value,
+        charged_value=charge_value - first_refund_value,
         refunded_value=first_refund_value + second_refund_value,
     )
 
@@ -1325,22 +1325,22 @@ def test_event_multiple_events_with_auth_charge_and_refund_without_psp_reference
         psp_references=[
             None,
             None,
-            "charge-request",
             None,
+            "charge-request",
             "refund-request",
         ],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
             TransactionEventType.CHARGE_SUCCESS,
-            TransactionEventType.CHARGE_REQUEST,
             TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
             TransactionEventType.REFUND_REQUEST,
         ],
         amounts=[
             authorize_value,
             charged_value,
-            charged_pending_value,
             refunded_value,
+            charged_pending_value,
             ongoing_pending_refund_value,
         ],
     )
@@ -1351,16 +1351,10 @@ def test_event_multiple_events_with_auth_charge_and_refund_without_psp_reference
     # then
     total_refunded = refunded_value
     total_pending_refund = ongoing_pending_refund_value
-    total_charged = charged_value - total_refunded - total_pending_refund
+    total_charged = charged_value - total_pending_refund
     total_pending_charge = charged_pending_value
 
-    total_authorize = (
-        authorize_value
-        - total_charged
-        - total_pending_charge
-        - total_refunded
-        - total_pending_refund
-    )
+    total_authorize = authorize_value - charged_pending_value
     transaction.refresh_from_db()
 
     _assert_amounts(

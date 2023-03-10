@@ -1072,91 +1072,14 @@ def create_manual_adjustment_events(
     transactionCreate or transactionUpdate
     """
     events_to_create: list[TransactionEvent] = []
-    authorized_to_add = Decimal(0)
-
-    if money_data.get("refunded_value") is not None:
-        prepare_manual_event(
-            events_to_create=events_to_create,
-            amount_field="refunded_value",
-            money_data=money_data,
-            event_type=TransactionEventType.REFUND_SUCCESS,
-            transaction=transaction,
-            app=app,
-            user=user,
-        )
-        # Take a difference between incoming refund value and the current one.
-        # The difference will be added to charged_value.
-        if "charged_value" in money_data:
-            money_data["charged_value"] += (
-                money_data["refunded_value"] - transaction.refunded_value
-            )
-        else:
-            # Current charged_value is
-            # assigned to the amount, as the during the preparation of the event it
-            # takes the difference between new amount and the current one.
-            money_data["charged_value"] = (
-                money_data["refunded_value"]
-                - transaction.refunded_value
-                + transaction.charged_value
-            )
-
-    if money_data.get("canceled_value") is not None:
-        prepare_manual_event(
-            events_to_create=events_to_create,
-            amount_field="canceled_value",
-            money_data=money_data,
-            event_type=TransactionEventType.CANCEL_SUCCESS,
-            transaction=transaction,
-            app=app,
-            user=user,
-        )
-        authorized_to_add += money_data["canceled_value"] - transaction.canceled_value
-
-    if money_data.get("charged_value") is not None:
-        prepare_manual_event(
-            events_to_create=events_to_create,
-            amount_field="charged_value",
-            money_data=money_data,
-            event_type=TransactionEventType.CHARGE_SUCCESS,
-            transaction=transaction,
-            app=app,
-            user=user,
-        )
-        authorized_to_add += money_data["charged_value"] - transaction.charged_value
-
-    # the authorized value is a sum of all rest amount fields, as during the
-    # re-calculation based on the transactionEvent, the authorize amount is subtracted
-    authorized_value = (
-        transaction.authorize_pending_value
-        + transaction.charged_value
-        + transaction.charge_pending_value
-        + transaction.refunded_value
-        + transaction.refund_pending_value
-        + transaction.cancel_pending_value
-        + transaction.canceled_value
-    )
-
     if "authorized_value" in money_data:
-        # in case when input has authorized value, we assign it to the current
-        # authorized amount.
-        input_authorized_value = money_data["authorized_value"]
-        authorized_value += input_authorized_value
-    if authorized_to_add:
-        if "authorized_value" not in money_data:
-            # if we don't modify the authorized_value we include current
-            # authorized_value to have the same authorized amount as before calling
-            # the function
-            authorized_value += transaction.authorized_value
-        # if the changes applied to the rest of the amount fields has an impact on
-        # authorize amount, we include the change to authorized value
-        authorized_value += authorized_to_add
-
-    if "authorized_value" in money_data or authorized_to_add is not Decimal(0):
+        authorized_value = money_data["authorized_value"]
         event_type = TransactionEventType.AUTHORIZATION_SUCCESS
         current_authorized_value = transaction.authorized_value
-
         if transaction.events.filter(type=event_type).exists():
             event_type = TransactionEventType.AUTHORIZATION_ADJUSTMENT
+            # adjust overwrite the amount of authorization so we need to set
+            # current auth value to 0, to match calculations
             current_authorized_value = Decimal(0)
         if transaction.authorized_value != authorized_value:
             events_to_create.append(
@@ -1169,6 +1092,33 @@ def create_manual_adjustment_events(
                     app,
                 )
             )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="charged_value",
+        money_data=money_data,
+        event_type=TransactionEventType.CHARGE_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="refunded_value",
+        money_data=money_data,
+        event_type=TransactionEventType.REFUND_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
+    prepare_manual_event(
+        events_to_create=events_to_create,
+        amount_field="canceled_value",
+        money_data=money_data,
+        event_type=TransactionEventType.CANCEL_SUCCESS,
+        transaction=transaction,
+        app=app,
+        user=user,
+    )
     if events_to_create:
         return TransactionEvent.objects.bulk_create(events_to_create)
     return []

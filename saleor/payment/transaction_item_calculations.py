@@ -235,25 +235,30 @@ def _get_authorize_events(events: Iterable[TransactionEvent]) -> List[Transactio
 def _handle_events_without_psp_reference(
     transaction: TransactionItem, events: List[TransactionEvent]
 ):
+    """Calculate the amounts for event without psp reference.
+
+    The events without a psp reference are the one that are reported by
+    transactionCreate or transactionUpdate. For transactionUpdate, we require a
+    manually reducing the amount by app, so there is no need to reduce the amount
+    from previous state as it is required for transaction events with psp reference
+    created by transactionEventReport.
+    """
+
     for event in events:
         if event.type == TransactionEventType.AUTHORIZATION_SUCCESS:
             transaction.authorized_value += event.amount_value
         elif event.type == TransactionEventType.AUTHORIZATION_ADJUSTMENT:
             transaction.authorized_value = event.amount_value
         elif event.type == TransactionEventType.CHARGE_SUCCESS:
-            transaction.authorized_value -= event.amount_value
             transaction.charged_value += event.amount_value
         elif event.type == TransactionEventType.CHARGE_BACK:
             transaction.charged_value -= event.amount_value
 
         elif event.type == TransactionEventType.REFUND_SUCCESS:
-            transaction.charged_value -= event.amount_value
             transaction.refunded_value += event.amount_value
         elif event.type == TransactionEventType.REFUND_REVERSE:
-            transaction.refunded_value -= event.amount_value
             transaction.charged_value += event.amount_value
         elif event.type == TransactionEventType.CANCEL_SUCCESS:
-            transaction.authorized_value -= event.amount_value
             transaction.canceled_value += event.amount_value
 
 

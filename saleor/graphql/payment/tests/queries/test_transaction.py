@@ -393,7 +393,7 @@ def test_transaction_event_by_user(
     # then
     content = get_graphql_content(response)
     events = content["data"]["transaction"]["events"]
-    assert len(events) == 3
+    assert len(events) == 2
     event_data = [event for event in events if event["pspReference"] == psp_reference][
         0
     ]
@@ -443,7 +443,7 @@ def test_transaction_event_by_app(
     # then
     content = get_graphql_content(response)
     events = content["data"]["transaction"]["events"]
-    assert len(events) == 3
+    assert len(events) == 2
     event_data = [event for event in events if event["pspReference"] == psp_reference][
         0
     ]
@@ -493,7 +493,7 @@ def test_transaction_event_by_reinstalled_app(
     # then
     content = get_graphql_content(response)
     events = content["data"]["transaction"]["events"]
-    assert len(events) == 3
+    assert len(events) == 2
     event_data = [event for event in events if event["pspReference"] == psp_reference][
         0
     ]
