@@ -875,9 +875,10 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     total_charged = order.total_charged_amount or Decimal("0")
     total_charged = quantize_price(total_charged, order.currency)
 
-    total_gross = order.total_gross_amount or Decimal(0)
+    current_total_gross = order.total_gross_amount - granted_refund_amount
+    current_total_gross = max(current_total_gross, Decimal("0"))
     current_total_gross = quantize_price(
-        total_gross - granted_refund_amount, order.currency
+        current_total_gross - granted_refund_amount, order.currency
     )
 
     if total_charged == 0 and current_total_gross == Decimal(0):
