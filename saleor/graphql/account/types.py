@@ -28,7 +28,7 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
-    ADDED_IN_311,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -52,6 +52,7 @@ from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
+    ChannelsByGroupIdLoader,
     CustomerEventsByUserLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
@@ -320,17 +321,16 @@ class User(ModelObjectType[models.User]):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
-    # TODO Owczar: Verify Added IN
-    accessibleChannels = NonNullList(
+    accessible_channels = NonNullList(
         Channel,
-        description="List of channels the user has access."
-        + ADDED_IN_311
+        description="List of channels the user has access to."
+        + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
-    restrictedAccessToChannel = graphene.Boolean(
+    restricted_access_to_channel = graphene.Boolean(
         required=True,
         description="Determine if user have restricted access to channels."
-        + ADDED_IN_311
+        + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
     avatar = ThumbnailField()
@@ -663,17 +663,16 @@ class Group(ModelObjectType[models.Group]):
             "True, if the currently authenticated user has rights to manage a group."
         ),
     )
-    # TODO Owczar: Verify Added IN
-    accessibleChannels = NonNullList(
+    accessible_channels = NonNullList(
         Channel,
-        description="List of channels the group has access."
-        + ADDED_IN_311
+        description="List of channels the group has access to."
+        + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
-    restrictedAccessToChannel = graphene.Boolean(
+    restricted_access_to_channel = graphene.Boolean(
         required=True,
         description="Determine if group have restricted access to channels."
-        + ADDED_IN_311
+        + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
 
@@ -699,6 +698,12 @@ class Group(ModelObjectType[models.Group]):
         if not user:
             return False
         return can_user_manage_group(user, root)
+
+    @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        # TODO: should return all channels when the group has `restictedAccessToChannel`
+        # set to False
+        return ChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info: ResolveInfo):

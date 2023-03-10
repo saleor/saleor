@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import DefaultDict, Iterable, Optional, Tuple, cast
 
-from ...account.models import Address, CustomerEvent, User
+from ...account.models import Address, CustomerEvent, Group, User
+from ...channel.models import Channel
 from ...permission.models import Permission
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
@@ -80,3 +81,22 @@ class PermissionByCodenameLoader(DataLoader):
             .in_bulk(field_name="codename")
         )
         return [permission_map.get(codename) for codename in keys]
+
+
+class ChannelsByGroupIdLoader(DataLoader):
+    context_key = "channels_by_group"
+
+    def batch_load(self, keys):
+        GroupChannels = Group.channels.through
+        group_channels = GroupChannels.objects.filter(group_id__in=keys)
+        channels_in_bulk = Channel.objects.using(self.database_connection_name).in_bulk(
+            group_channels.values("channel_id")
+        )
+
+        group_to_channels = defaultdict(list)
+        for group_id, channel_id in group_channels.values_list(
+            "group_id", "channel_id"
+        ):
+            group_to_channels[group_id].append(channels_in_bulk[channel_id])
+
+        return [group_to_channels.get(group_id, []) for group_id in keys]

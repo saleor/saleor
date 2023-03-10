@@ -8858,9 +8858,9 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
 
   """
-  List of channels the user has access.
+  List of channels the user has access to.
   
-  Added in Saleor 3.11.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -8869,7 +8869,7 @@ type User implements Node & ObjectWithMetadata {
   """
   Determine if user have restricted access to channels.
   
-  Added in Saleor 3.11.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10852,9 +10852,9 @@ type Group implements Node {
   userCanManage: Boolean!
 
   """
-  List of channels the group has access.
+  List of channels the group has access to.
   
-  Added in Saleor 3.11.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10863,7 +10863,7 @@ type Group implements Node {
   """
   Determine if group have restricted access to channels.
   
-  Added in Saleor 3.11.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -24342,18 +24342,6 @@ input PermissionGroupCreateInput {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  Determine if group have restricted access to channels.
-  
-  Added in Saleor 3.11.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  restrictedAccessToChannel: Boolean!
-
-  """List of channels to assign as accessible for this group."""
-  addChannels: [ID!]
-
   """Group name."""
   name: String!
 }
@@ -24376,18 +24364,6 @@ input PermissionGroupUpdateInput {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
-  """
-  Determine if group have restricted access to channels.
-  
-  Added in Saleor 3.11.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  restrictedAccessToChannel: Boolean!
-
-  """List of channels to assign as accessible for this group."""
-  addChannels: [ID!]
-
   """Group name."""
   name: String
 
@@ -24396,9 +24372,6 @@ input PermissionGroupUpdateInput {
 
   """List of users to unassign from this group."""
   removeUsers: [ID!]
-
-  """List of channels to unassign as accessible for this group."""
-  removeChannels: [ID!]
 }
 
 """

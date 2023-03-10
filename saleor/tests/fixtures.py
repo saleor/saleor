@@ -43,7 +43,6 @@ from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
 from ..core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ..core.payments import PaymentInterface
-from ..core.permissions.enums import get_permissions
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import zero_money
 from ..core.units import MeasurementUnits
@@ -88,6 +87,7 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment, TransactionItem
+from ..permission.enums import get_permissions
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
@@ -4980,19 +4980,21 @@ def permission_manage_payments():
 @pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(
-        name="Manage user groups.", restrictedAccessToChannel=False
+        name="Manage user groups.", restricted_access_to_channel=False
     )
     group.permissions.add(permission_manage_users)
 
     group.user_set.add(staff_users[1])
     return group
 
+
 @pytest.fixture
 def permission_group_all_perms_all_channels(
     permission_manage_users, staff_users, channel_USD, channel_PLN
 ):
     group = Group.objects.create(
-        name="All permissions for all channels.", restrictedAccessToChannel=False,
+        name="All permissions for all channels.",
+        restricted_access_to_channel=False,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)
@@ -5000,12 +5002,14 @@ def permission_group_all_perms_all_channels(
     group.user_set.add(staff_users[1])
     return group
 
+
 @pytest.fixture
 def permission_group_all_perms_channel_USD_only(
     permission_manage_users, staff_users, channel_USD, channel_PLN
 ):
     group = Group.objects.create(
-        name="All permissions for USD channel only.", restrictedAccessToChannel=True,
+        name="All permissions for USD channel only.",
+        restricted_access_to_channel=True,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)
@@ -5022,7 +5026,7 @@ def permission_group_all_perms_without_any_channel(
 ):
     group = Group.objects.create(
         name="All permissions without any channel access.",
-        restrictedAccessToChannel=True,
+        restricted_access_to_channel=True,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)

@@ -156,6 +156,10 @@ query ($id: ID!){
             email
         }
         userCanManage
+        accessibleChannels {
+            slug
+        }
+        restrictedAccessToChannel
     }
 }
 """
@@ -278,40 +282,25 @@ def test_query_permission_group_with_invalid_object_type(
     assert content["data"]["permissionGroup"] is None
 
 
-QUERY_PERMISSION_GROUP_CHANNEL_PERMISSION = """
-query ($id: ID!){
-    permissionGroup(id: $id){
-        id
-        name
-        accessibleChannels{
-            slug
-        }
-        restrictedAccessToChannel
-    }
-}
-"""
-
-
 def test_query_permission_group_without_restricted_access_to_channels(
     staff_api_client,
     staff_user,
     permission_group_all_perms_all_channels,
-    permission_manage_staff,
     channel_USD,
     channel_PLN,
 ):
     # given
     group = permission_group_all_perms_all_channels
+    group.user_set.add(staff_user)
 
     variables = {"id": graphene.Node.to_global_id("Group", group.id)}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_PERMISSION_GROUP, variables, permissions=[permission_manage_staff]
-    )
-    content = get_graphql_content(response)
+    response = staff_api_client.post_graphql(QUERY_PERMISSION_GROUP, variables)
 
     # then
+
+    content = get_graphql_content(response)
     permission_group_data = content["data"]["permissionGroup"]
     assert permission_group_data["name"] == group.name
     assert len(permission_group_data["accessibleChannels"]) == 2
