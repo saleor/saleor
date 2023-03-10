@@ -223,7 +223,7 @@ class ProductBulkCreate(BaseMutation):
         return base_fields_errors_count
 
     @classmethod
-    def add_indexes_to_errors(cls, index, error, index_error_map):
+    def add_indexes_to_errors(cls, index, error, index_error_map, path_prefix=None):
         for key, value in error.error_dict.items():
             for e in value:
                 code = (
@@ -231,9 +231,13 @@ class ProductBulkCreate(BaseMutation):
                     if e.code == ProductBulkCreateErrorCode.GRAPHQL_ERROR.value
                     else e.code
                 )
+                if path_prefix:
+                    path = to_camel_case(f"{path_prefix}.{key}")
+                else:
+                    path = to_camel_case(key)
                 index_error_map[index].append(
                     ProductBulkCreateError(
-                        path=to_camel_case(key),
+                        path=path,
                         message=e.messages[0],
                         code=code,
                     )
@@ -251,13 +255,18 @@ class ProductBulkCreate(BaseMutation):
                 )
                 cleaned_input["attributes"] = attributes
             except ValidationError as exc:
-                index_error_map[product_index].append(
-                    ProductBulkCreateError(
-                        path="attributes",
-                        message=exc.message,
-                        code=exc.code,
+                if hasattr(exc, "error_dict"):
+                    cls.add_indexes_to_errors(
+                        product_index, exc, index_error_map, "attributes"
                     )
-                )
+                else:
+                    index_error_map[product_index].append(
+                        ProductBulkCreateError(
+                            path="attributes",
+                            message=exc.message,
+                            code=exc.code,
+                        )
+                    )
                 attributes_errors_count += 1
         return attributes_errors_count
 
