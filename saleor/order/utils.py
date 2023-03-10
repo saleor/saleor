@@ -51,7 +51,7 @@ from . import (
     events,
 )
 from .fetch import OrderLineInfo
-from .models import Order, OrderLine
+from .models import Order, OrderGrantedRefund, OrderLine
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -863,7 +863,7 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
     )
 
 
-def update_order_charge_status(order: Order):
+def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     """Update the current charge status for the order.
 
     We treat the order as overcharged when the charged amount is bigger that order.total
@@ -876,15 +876,17 @@ def update_order_charge_status(order: Order):
     total_charged = quantize_price(total_charged, order.currency)
 
     total_gross = order.total_gross_amount or Decimal(0)
-    total_gross = quantize_price(total_gross, order.currency)
+    current_total_gross = quantize_price(
+        total_gross - granted_refund_amount, order.currency
+    )
 
-    if total_charged == 0 and total_gross == Decimal(0):
+    if total_charged == 0 and current_total_gross == Decimal(0):
         order.charge_status = OrderChargeStatus.FULL
     elif total_charged <= 0:
         order.charge_status = OrderChargeStatus.NONE
-    elif total_charged < total_gross:
+    elif total_charged < current_total_gross:
         order.charge_status = OrderChargeStatus.PARTIAL
-    elif total_charged == total_gross:
+    elif total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
     else:
         order.charge_status = OrderChargeStatus.OVERCHARGED
@@ -893,31 +895,36 @@ def update_order_charge_status(order: Order):
 def _update_order_total_charged(
     order: Order,
     order_payments: QuerySet["Payment"],
-    order_transactions: QuerySet["TransactionItem"],
+    order_transactions: Iterable["TransactionItem"],
 ):
     order.total_charged_amount = (
         sum(order_payments.values_list("captured_amount", flat=True)) or 0
     )
-    order.total_charged_amount += sum(
-        order_transactions.values_list("charged_value", flat=True)
-    )
+    for transaction in order_transactions:
+        order.total_charged_amount += transaction.charged_value
+        order.total_charged_amount += transaction.charge_pending_value
 
 
 def update_order_charge_data(
     order: Order,
     order_payments: Optional[QuerySet["Payment"]] = None,
     order_transactions: Optional[QuerySet["TransactionItem"]] = None,
+    order_granted_refunds: Optional[QuerySet["OrderGrantedRefund"]] = None,
     with_save=True,
 ):
     if order_payments is None:
         order_payments = order.payments.all()
     if order_transactions is None:
         order_transactions = order.payment_transactions.all()
-
+    if order_granted_refunds is None:
+        order_granted_refunds = order.granted_refunds.all()
+    granted_refund_amount = sum(
+        [refund.amount.amount for refund in order_granted_refunds]
+    )
     _update_order_total_charged(
         order, order_payments=order_payments, order_transactions=order_transactions
     )
-    update_order_charge_status(order)
+    update_order_charge_status(order, granted_refund_amount)
     if with_save:
         order.save(
             update_fields=["total_charged_amount", "charge_status", "updated_at"]
@@ -932,12 +939,14 @@ def _update_order_total_authorized(
     order.total_authorized_amount = get_total_authorized(
         order_payments, order.currency
     ).amount
-    order.total_authorized_amount += (
-        sum(order_transactions.values_list("authorized_value", flat=True)) or 0
-    )
+
+    for transaction in order_transactions:
+        order.total_authorized_amount += transaction.authorized_value
+        order.total_authorized_amount += transaction.authorize_pending_value
+    order.total_authorized_amount = max(order.total_authorized_amount, Decimal(0))
 
 
-def update_order_authorize_status(order: Order):
+def update_order_authorize_status(order: Order, granted_refund_amount: Decimal):
     """Update the current authorize status for the order.
 
     The order is fully authorized when total_authorized or total_charged funds
@@ -946,16 +955,19 @@ def update_order_authorize_status(order: Order):
     funds cover only part of the order.total
     The order is not authorized when total_authorized and total_charged funds are 0.
     """
-    total_covered = order.total_authorized_amount or Decimal("0")
-    if order.total_charged_amount and total_covered < order.total_charged_amount:
-        total_covered = order.total_charged_amount
-    total_gross = order.total_gross_amount or Decimal("0")
+    total_covered = (
+        order.total_authorized_amount + order.total_charged_amount
+    ) or Decimal(0)
+    total_covered = quantize_price(total_covered, order.currency)
+    current_total_gross = order.total_gross_amount - granted_refund_amount
+    current_total_gross = max(current_total_gross, Decimal("0"))
+    current_total_gross = quantize_price(current_total_gross, order.currency)
 
     if total_covered == 0 and order.total.gross.amount == Decimal(0):
         order.authorize_status = OrderAuthorizeStatus.FULL
     elif total_covered == 0:
         order.authorize_status = OrderAuthorizeStatus.NONE
-    elif total_covered >= total_gross:
+    elif total_covered >= current_total_gross:
         order.authorize_status = OrderAuthorizeStatus.FULL
     else:
         order.authorize_status = OrderAuthorizeStatus.PARTIAL
@@ -965,16 +977,22 @@ def update_order_authorize_data(
     order: Order,
     order_payments: Optional[QuerySet["Payment"]] = None,
     order_transactions: Optional[QuerySet["TransactionItem"]] = None,
+    order_granted_refunds: Optional[QuerySet["OrderGrantedRefund"]] = None,
     with_save=True,
 ):
     if order_payments is None:
         order_payments = order.payments.all()
     if order_transactions is None:
         order_transactions = order.payment_transactions.all()
+    if order_granted_refunds is None:
+        order_granted_refunds = order.granted_refunds.all()
+    granted_refund_amount = sum(
+        [refund.amount.amount for refund in order_granted_refunds]
+    )
     _update_order_total_authorized(
         order, order_payments=order_payments, order_transactions=order_transactions
     )
-    update_order_authorize_status(order)
+    update_order_authorize_status(order, granted_refund_amount)
     if with_save:
         order.save(
             update_fields=["total_authorized_amount", "authorize_status", "updated_at"]
@@ -984,16 +1002,19 @@ def update_order_authorize_data(
 def updates_amounts_for_order(order: Order, save: bool = True):
     order_payments = order.payments.all()
     order_transactions = order.payment_transactions.all()
+    order_granted_refunds = order.granted_refunds.all()
     update_order_charge_data(
         order=order,
         order_payments=order_payments,
         order_transactions=order_transactions,
+        order_granted_refunds=order_granted_refunds,
         with_save=False,
     )
     update_order_authorize_data(
         order=order,
         order_payments=order_payments,
         order_transactions=order_transactions,
+        order_granted_refunds=order_granted_refunds,
         with_save=False,
     )
     if save:

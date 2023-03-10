@@ -286,8 +286,9 @@ def test_order_mark_as_paid_with_transaction_creates_transaction_event(
     order.refresh_from_db()
     transaction = order.payment_transactions.get()
     assert transaction.charged_value == order.total.gross.amount
-    transaction_event = transaction.events.get()
-    assert transaction_event.type == TransactionEventType.CHARGE_SUCCESS
+    transaction_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
     assert transaction_event.amount_value == order.total.gross.amount
 
 

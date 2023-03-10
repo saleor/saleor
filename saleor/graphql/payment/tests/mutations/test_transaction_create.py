@@ -1631,12 +1631,15 @@ def test_transaction_create_creates_calculation_events(
         type=TransactionEventType.AUTHORIZATION_SUCCESS
     ).first()
     assert authorize_event
-    assert authorize_event.amount.amount == authorized_value
+    assert (
+        authorize_event.amount.amount
+        == authorized_value + charged_value + refunded_value + canceled_value
+    )
     charge_event = transaction.events.filter(
         type=TransactionEventType.CHARGE_SUCCESS
     ).first()
     assert charge_event
-    assert charge_event.amount.amount == charged_value
+    assert charge_event.amount.amount == charged_value + refunded_value
 
     refund_event = transaction.events.filter(
         type=TransactionEventType.REFUND_SUCCESS

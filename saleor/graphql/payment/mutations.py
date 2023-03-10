@@ -42,7 +42,10 @@ from ...payment.gateway import (
     request_charge_action,
     request_refund_action,
 )
-from ...payment.transaction_item_calculations import recalculate_transaction_amounts
+from ...payment.transaction_item_calculations import (
+    calculate_transaction_amount_based_on_events,
+    recalculate_transaction_amounts,
+)
 from ...payment.utils import (
     authorization_success_already_exists,
     create_failed_transaction_event,
@@ -1108,6 +1111,7 @@ class TransactionUpdate(TransactionCreate):
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
         if money_data:
+            calculate_transaction_amount_based_on_events(transaction=instance)
             create_manual_adjustment_events(
                 transaction=instance, money_data=money_data, user=user, app=app
             )

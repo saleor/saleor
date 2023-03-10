@@ -16,13 +16,30 @@ def create_event_for_authorized(TransactionItem, TransactionEvent):
     transaction_events = []
     authorized_transactions = TransactionItem.objects.exclude(
         authorized_value=Decimal(0)
-    ).values_list("id", "authorized_value", "currency")
-    for pk, amount, currency in authorized_transactions:
+    ).values_list(
+        "id",
+        "authorized_value",
+        "charged_value",
+        "refunded_value",
+        "canceled_value",
+        "currency",
+    )
+    for (
+        pk,
+        authorized_value,
+        charged_value,
+        refunded_value,
+        canceled_value,
+        currency,
+    ) in authorized_transactions:
         transaction_events.append(
             TransactionEvent(
                 transaction_id=pk,
                 type="authorization_success",
-                amount_value=amount,
+                amount_value=authorized_value
+                + charged_value
+                + refunded_value
+                + canceled_value,
                 currency=currency,
                 include_in_calculations=True,
                 message="Manual adjustment of the transaction.",
@@ -36,13 +53,13 @@ def create_event_for_charged(TransactionItem, TransactionEvent):
     transaction_events = []
     charged_transactions = TransactionItem.objects.exclude(
         charged_value=Decimal(0)
-    ).values_list("id", "charged_value", "currency")
-    for pk, amount, currency in charged_transactions:
+    ).values_list("id", "charged_value", "refunded_value", "currency")
+    for pk, charged_value, refunded_value, currency in charged_transactions:
         transaction_events.append(
             TransactionEvent(
                 transaction_id=pk,
                 type="charge_success",
-                amount_value=amount,
+                amount_value=charged_value + refunded_value,
                 currency=currency,
                 include_in_calculations=True,
                 message="Manual adjustment of the transaction.",
