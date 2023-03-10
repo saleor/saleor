@@ -1,0 +1,133 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "2023-03-03", "InvoiceDate": "2023-03-03", "TitleTransferCode":
+      "DEST", "TransactionType": "DIRECT", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202015500", "UnitPrice": "15.00", "UnitOfMeasure": null, "BilledUnits":
+      "3", "LineAmount": "15.00", "AlternateUnitPrice": "1.000", "TaxIncluded": false,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": null, "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": true, "OriginCountryCode":
+      "USA", "OriginJurisdiction": "VA", "OriginCounty": "", "OriginCity": "Richmond",
+      "OriginPostalCode": "23226", "OriginAddress1": "1100 Congress Ave", "OriginAddress2":
+      "", "UserData": "202015500", "CustomString1": null, "CustomString2": null, "CustomString3":
+      null, "CustomNumeric1": null, "CustomNumeric2": null, "CustomNumeric3": null},
+      {"InvoiceLine": 2, "ProductCode": "202165300", "UnitPrice": "1.99", "UnitOfMeasure":
+      null, "BilledUnits": "1", "LineAmount": "1.99", "AlternateUnitPrice": "1.000",
+      "TaxIncluded": false, "UnitQuantity": null, "UnitQuantityUnitOfMeasure": null,
+      "DestinationCountryCode": "USA", "DestinationJurisdiction": "VA", "DestinationAddress1":
+      "1100 Congress Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": true, "OriginCountryCode":
+      "USA", "OriginJurisdiction": "VA", "OriginCounty": "", "OriginCity": "Richmond",
+      "OriginPostalCode": "23226", "OriginAddress1": "1100 Congress Ave", "OriginAddress2":
+      "", "UserData": "202165300", "CustomString1": null, "CustomString2": null, "CustomString3":
+      null, "CustomNumeric1": null, "CustomNumeric2": null, "CustomNumeric3": null},
+      {"InvoiceLine": null, "ProductCode": "TAXFREIGHT", "UnitPrice": null, "UnitOfMeasure":
+      "EA", "BilledUnits": null, "LineAmount": "10.000", "AlternateUnitPrice": null,
+      "TaxIncluded": false, "UnitQuantity": null, "UnitQuantityUnitOfMeasure": null,
+      "DestinationCountryCode": "USA", "DestinationJurisdiction": "VA", "DestinationAddress1":
+      "1100 Congress Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": null, "OriginJurisdiction": null, "OriginCounty": null,
+      "OriginCity": null, "OriginPostalCode": null, "OriginAddress1": null, "OriginAddress2":
+      null, "UserData": "Shipping", "CustomString1": null, "CustomString2": null,
+      "CustomString3": null, "CustomNumeric1": null, "CustomNumeric2": null, "CustomNumeric3":
+      null}], "InvoiceNumber": null, "Discount": "4.0", "UserTranId": null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '3266'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.28.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO1bW2+jOBh9H2n+A+K5qQyEXOaNkjTDbNtkA9Od1WofXHBSJAJZA1WjUf/72uYS
+        c0162VG6parUiu/4wz7+jo8x4ufnT4Igfg8RtjD0DUf8Iojju5HkQAB7YDRc9fpAdnpjxen3hkO7
+        D9XRWFmpsnjGGuaNJBVIfUnpJ5fNCEZxSHOZsW2jMEzhSxTF2NcDB5EYSFMEEfQs+KhtgtiP6PXz
+        4WifPYR25AY+ASCa8C8aEISfyZ8KJknCgH+f5RgT/RMj30ZJT8/q2l65PioGDf8hcG1UDej0FniX
+        jkL8bmriPvgtxm7ouCwnjd7ywavAhl4ZcTO/mXKYBQ6c2I50GKF1gHeMD8B1GT66/voKPSCP0Wtp
+        Ft+ahK3dlvXLml9ouj7ngkuSM49qP0oRM76L0qBuzLQlF9ahZ8ceZBwTiOGzMlkU70tzsN7KIPsp
+        xH+PoR+5ER2RUhoRN/WlRtNHtNnS+6b3vOHuOUErhDFyakIm9FBIml/AEPHJuakgU+uH6Cbe3CFM
+        m3OtqRqSSkXOLfRixokMZCCpKgD8bUgOiN2A1ZWsSCQ+qkZJP2Y4iLcMpQ4HwyokK9BioVFGJyi0
+        sbvdl5NAtYUE3V1DLJDUQk+4hn68ImUcY4QFNnRhgcn4+BmMCVO+vUsKdsIP1nej+eoawZA0p+Et
+        tPkhkqqgAk1JLlRNovJMB5puGbd8LWYTnja9KJZL1mxhSgMw7I/FJPh09mqBy20Cl5sELncCfzuB
+        S+9T4NJAVTqBn7zAlRNzcFV6jbzrxW02yHrWLOrSOvM8TYO+0qLn8hA4yfXHR+u5VrSS+ua23CAr
+        upIKZFkkgro1ljPjxtCOElBJIfqbCGTKAmRIWeNfJZ7+iYlnMASFyXuefnTDOhH9SG1+2KIfSXon
+        +iFU/5nKZ2noX6/nN5MPKB/1xOQzn5mLl8vHtL6diHzA8GXyAaN3Ih9zMdUN7aqkIEGfk8gH1NHg
+        xB7SPvQeDgxfKaLz8fh1Iqo8eXV7uBbxDE9MPB99Dwfkd6Kfbg9HezE6Mfl8+D3cax+Bfpn9/J/2
+        cPRPohBeBVOMA1z7oq3pJRprkd2kNxqrYil2jcIQrpM+BFtWT/5amGN37fqC668CvGElJsQhDRDa
+        CSC5wkfJf0K076jgEVkKynn5bkwXKUt/QOyTlGKb3pVWOgggZaDclOOIY+nAY2HLgyEJXbieN19d
+        QYf0ua58uaUhpbt0jk8AmhchTNhDJWTNgwq9o4d8xwpK2AKEHh8nh83JwxIo9xg5FELp4F/rCTUH
+        zwvtt0pq/qXB6LzgvyVEJd1U/1pIRyktPNcVUl1i5K7vo2wRLLRsFCyJJXXatuLnoLaVv5hpV+lC
+        GkyYEJeufb8JSBFXIYsgJAtIPq2KLA9qULXDTEKa42CiSImGJbLjEfTAX9MrgvaAmvFyUzoXbwNc
+        XzuclA8QyCEPsFjOWaWSR7TxyeEOkcpBa5nl4sfTW21U5ZjHtBBNbfEAwxRygNo8S5VTFmojkwIO
+        sUgxtfTRwPG8cegqYSzYwhQbH8IlsuogZbIa01TZyqJuc6zIVR2ifqVKYjxZLfEqPVm8hSG6R5rA
+        CDa7xsQNbZonX2yVc1XJ4k85st0UZT5j0077vzfF8s7vBabI7z4rnii9zhNl8JaeWOppZ4mdJXaW
+        2FliZ4nPs8Qaz6hYIjjvD9stMVkrzC2y3eKRUOnsqljyR+FrnnKb3bbyQPc8t7W0H5fLqTH7ahVQ
+        R5poq3nltl1FFlVadDlmmZ3PdcbUGVNnTB/HmMx7d7stnHbW+xLIbSn5J3OO/bcc2eJJerDZQn+X
+        nPgqSvbakVoA/agjPWXNF01xulohMgcPaJK8E6BmqfQA/bUA+MJ+c3DqQsdAL2Pk1Zxvi5YbkSql
+        ZrdC+RH0ZGpaIj+m7N1QOkcTYznVSwhKMBPuNUlSvU36hQo7882/TikEGmwkQSwRzU+mZp8jp5if
+        QZG/+JLPcYSGNxx51AxibCNzF0ZoUwiQmd64EffZDnxA+aIhag+Qvleqcslex6QTWRxzVngE1U9K
+        LtkFcR3cd+/zp6d/AVEh2muINAAA
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1560'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Fri, 03 Mar 2023 11:06:35 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -1,0 +1,117 @@
+interactions:
+- request:
+    body: '{"EffectiveDate": "2022-04-27", "InvoiceDate": "2022-04-27", "TitleTransferCode":
+      "DEST", "TransactionType": "DIRECT", "TransactionLines": [{"InvoiceLine": 1,
+      "ProductCode": "202015500", "UnitPrice": "30.000", "UnitOfMeasure": "PAC", "BilledUnits":
+      "3", "LineAmount": "30.000", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": "USA", "OriginJurisdiction": "VA", "OriginCounty": "",
+      "OriginCity": "Richmond", "OriginPostalCode": "23226", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "UserData": "202015500", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}, {"InvoiceLine": 2, "ProductCode":
+      "202015500", "UnitPrice": "40.000", "UnitOfMeasure": "PAC", "BilledUnits": "2",
+      "LineAmount": "40.000", "AlternateUnitPrice": "1.000", "TaxIncluded": true,
+      "UnitQuantity": null, "UnitQuantityUnitOfMeasure": "EA", "DestinationCountryCode":
+      "USA", "DestinationJurisdiction": "VA", "DestinationAddress1": "1100 Congress
+      Ave", "DestinationAddress2": "", "DestinationCounty": "", "DestinationCity":
+      "Richmond", "DestinationPostalCode": "23226", "SaleCountryCode": "USA", "SaleAddress1":
+      "1100 Congress Ave", "SaleAddress2": "", "SaleJurisdiction": "VA", "SaleCounty":
+      "", "SaleCity": "Richmond", "SalePostalCode": "23226", "Discounted": false,
+      "OriginCountryCode": "USA", "OriginJurisdiction": "VA", "OriginCounty": "",
+      "OriginCity": "Richmond", "OriginPostalCode": "23226", "OriginAddress1": "1100
+      Congress Ave", "OriginAddress2": "", "UserData": "202015500", "CustomString1":
+      null, "CustomString2": null, "CustomString3": null, "CustomNumeric1": null,
+      "CustomNumeric2": null, "CustomNumeric3": null}], "InvoiceNumber": "1", "Discount":
+      "0", "UserTranId": null}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate, br
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '2263'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.27.1
+      x-company-id:
+      - '1337'
+    method: POST
+    uri: https://excisesbx.avalara.com/api/v1/AvaTaxExcise/transactions/create
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAEAO1aXW+bOhi+n7T/gLhuIgP5aHdHCevYSZMs0GpH0y5cMJklAjkGokZT//tsvmI+
+        09OeHSVrpEqp/Dy8th+/j19j8fP9O0EQ70JELAJ9wxE/CKIzlMBo6I56tvvg9gYKdHuXwLV7g4Fi
+        S5dDyb1CjniRPFg8NADDK4qnrWYEozhkoczYtlEYZuwlimLia4GDKAayCEEEPQs+qusg9iParvSv
+        RvvgIbQjHPiUgFjAbwwQhJ/pT42TBkmI3y8Kjon+iZFvo2Sg0kXTs1PsozJo+NsA26gOaKwLsstm
+        Id6ZqrgHP8cEhw5OYjL0ngengQ29KmMocYwFCZzYjjQYoVVAdkylPuAGDB+xv5qiLfIScS0+OgWt
+        3SYZk8k1L2msvP2m0m7GD1EGzeYznUM16NmxBxNZKcPwk8RYlLtjIdIhDhQAyuP8EkM/wlHTFIqV
+        lvqyXEL0R7TesD6z/mZcfyb0UEg51zBERQT5sl/ueUqXzA/RLF4/IMJCcBFYkqcZiJx76MXJvGUg
+        A2k4BKAizQSFNsGb/ToKVG1LFyz1q9AT7o3ljTEzePm1mBCaZLs0Jyb8yKnKLMmzSWk8lBglTyVV
+        s4x7fhVyEbMnrzlITwA6pfxhMYWeLl7tEPnIHDIag9Ly/DuTaIZ1JCaRwEtMAvry5emYhKr9d+aR
+        paF9up3PJn+kR5Qj88j8xly83COm9flIPALGL/QIOB2PmAtdM9RpxSaCNqfIH2mWQZdZ5DazyL/N
+        LG/6yDV65ZFLGffHg/OR6791yPDIHPLWj1zKK49c/6dJ3sqRa3RkHnnzR67R6XjkxI5c7Ce1AZ/q
+        OiEB4SzCY7Q1s1bVHNytGWe/A+8tHW8uFLrGnjd3p9ChCd20WpwZsolpxo26LBFUL0LEp4tVYTas
+        KevRQ75jBRVuiXLn42hB6IhZarG0BtUhI4dxmB5KH1Qfnbu3CIYxSQIv1L+aB9vA1GqjyFe8Rta1
+        T61k2kWdr5bobCn27qlN8SNBePUjyveL0qOtiU2xOcEr7HdtjgWpa5MsR9rVhpCB6bYiLrH9Yx34
+        TgNlEYTUaEU+KLI8amA1TjOFVMchKAwlBkv0BCBogb9iLYK6Re18uS0cJpuANCcd3Wki7Cdb7QEB
+        OeYBFasx61LyjC49Od4hUTlqo7Ic/nx56w/VNeY5HUKzCnJAYUY5IG0Rpa5pAnWJyQiHVGScRvkY
+        8HzdOHZdsATsUCqZHyIVsZooVbFaw9TVylHcjpW1amI071QpxovVgdflyfEOhdhZYgIj2F5uJji0
+        WRzutANy+KkgdhdTmQ/YdiY9hWI6OFBM5dMvpvUpnovpuZiei+m5mJ6L6e8tpuk/+ZXP/nOSfDOm
+        Q1hvoL9LP91QlHHeTqsX+7Ake6suNmFRd11EF2GLJukFBxuU3AODnjy2APiQ/BXkrCzvy65UhZ4T
+        5WOMPP4lvpgMjmgGs4OBy9Y+RSe6aYn8dPM7sGz9JsZS1yoMJn5i6lsapN5N9gENSt9sr0Z1oKVi
+        pYwlYvHp6SOPsb/zKa2uyDe+5GMhoeUap0DNICY2MndhhNYlgCbBGkfcV0VwywVVt5Ddn9W1TK6d
+        soUszznPyX02psc6boD74b1/9/QL1ViYTiYlAAA=
+    headers:
+      Cache-Control:
+      - no-store, no-cache
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1226'
+      Content-Security-Policy:
+      - 'default-src ''self''; font-src ''self'' use.typekit.net fonts.gstatic.com
+        data: ; img-src ''self'' p.typekit.net *.walkme.com *.cloudfront.net data:
+        ; script-src ''self'' ''unsafe-inline'' ''unsafe-eval'' use.typekit.net *.walkme.com
+        *.cloudfront.net; style-src  ''self'' ''unsafe-inline'' use.typekit.net; connect-src
+        ''self'' performance.typekit.net ec.walkme.com; frame-src ''self'' s3.amazonaws.com
+        *.s3.amazonaws.com;'
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Wed, 27 Apr 2022 13:28:12 GMT
+      Feature-Policy:
+      - geolocation 'none'; midi 'none'; notifications 'none'; push 'none'; sync-xhr
+        'self'; microphone 'none'; camera 'none'; magnetometer 'none'; gyroscope 'none';
+        speaker 'none'; vibrate 'none'; fullscreen 'none'; payment 'none';
+      Referrer-Policy:
+      - strict-origin-when-cross-origin
+      Server:
+      - ''
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains
+      X-Content-Type-Options:
+      - nosniff
+      X-Frame-Options:
+      - sameorigin
+      X-Permitted-Cross-Domain-Policies:
+      - none
+      X-XSS-Protection:
+      - 1; mode=block
+    status:
+      code: 200
+      message: OK
+version: 1
