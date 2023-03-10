@@ -71,10 +71,10 @@ from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
-    ADDED_IN_312,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT,
+    PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
 from ..core.enums import (
     PaymentGatewayInitializeErrorCode,
@@ -656,32 +656,32 @@ class TransactionUpdateInput(graphene.InputObjectType):
     status = graphene.String(
         description=(
             "Status of the transaction."
-            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
             + " The `status` is not needed. The amounts can be used to define "
             "the current status of transactions."
         ),
     )
     type = graphene.String(
         description="Payment type used for this transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
         + " Use `name` and `message` instead.",
     )
     name = graphene.String(
-        description="Payment name of the transaction." + ADDED_IN_312
+        description="Payment name of the transaction." + ADDED_IN_313
     )
     message = graphene.String(
-        description="The message of the transaction." + ADDED_IN_312
+        description="The message of the transaction." + ADDED_IN_313
     )
 
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
-            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
             + " Use `pspReference` instead."
         )
     )
     psp_reference = graphene.String(
-        description=("PSP Reference of the transaction. " + ADDED_IN_312)
+        description=("PSP Reference of the transaction. " + ADDED_IN_313)
     )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
@@ -692,11 +692,11 @@ class TransactionUpdateInput(graphene.InputObjectType):
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
     amount_voided = MoneyInput(
         description="Amount voided by this transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
         + " Use `amountCanceled` instead."
     )
     amount_canceled = MoneyInput(
-        description="Amount canceled by this transaction." + ADDED_IN_312
+        description="Amount canceled by this transaction." + ADDED_IN_313
     )
 
     metadata = graphene.List(
@@ -712,7 +712,7 @@ class TransactionUpdateInput(graphene.InputObjectType):
     external_url = graphene.String(
         description=(
             "The url that will allow to redirect user to "
-            "payment provider page with transaction event details." + ADDED_IN_312
+            "payment provider page with transaction event details." + ADDED_IN_313
         )
     )
 
@@ -726,27 +726,27 @@ class TransactionEventInput(graphene.InputObjectType):
         TransactionEventStatusEnum,
         required=False,
         description="Current status of the payment transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
         + " Status will be calculated by Saleor.",
     )
     reference = graphene.String(
         description=(
             "Reference of the transaction. "
-            + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
             + " Use `pspReference` instead."
         )
     )
 
     psp_reference = graphene.String(
-        description=("PSP Reference related to this action." + ADDED_IN_312)
+        description=("PSP Reference related to this action." + ADDED_IN_313)
     )
     name = graphene.String(
         description="Name of the transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_312_INPUT
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
         + " Use `message` instead. `name` field will be added to `message`."
     )
     message = graphene.String(
-        description="The message related to the event." + ADDED_IN_312
+        description="The message related to the event." + ADDED_IN_313
     )
 
 
@@ -934,13 +934,14 @@ class TransactionCreate(BaseMutation):
         if app and app.identifier:
             app_identifier = app.identifier
         return transaction.events.create(
-            status=transaction_event_input["status"],
+            status=transaction_event_input.get("status"),
             psp_reference=psp_reference,
             message=cls.create_event_message(transaction_event_input),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
             app=app,
+            type=TransactionEventType.INFO,
         )
 
     @classmethod
@@ -988,7 +989,7 @@ class TransactionCreate(BaseMutation):
                     user=user,
                     app=app,
                     reference=psp_reference,
-                    status=transaction_event["status"],
+                    status=transaction_event.get("status"),
                     message=cls.create_event_message(transaction_event),
                 )
         money_data = cls.get_money_data_from_input(transaction_data)
@@ -1373,7 +1374,7 @@ class TransactionEventReport(ModelMutation):
     class Meta:
         description = (
             "Report the event for the transaction."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
@@ -1505,7 +1506,7 @@ class TransactionEventReport(ModelMutation):
         return cls(
             already_processed=already_processed,
             transaction=transaction,
-            transaction_event=payment_models.TransactionEvent.objects.first(),
+            transaction_event=transaction_event,
             errors=[],
         )
 
@@ -1626,7 +1627,7 @@ class PaymentGatewayInitialize(TransactionSessionBase):
             "Initializes a payment gateway session. It triggers the webhook "
             "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
             "If `paymentGateways` is not provided, the webhook will be send to all "
-            "subscribed payment gateways." + ADDED_IN_312 + PREVIEW_FEATURE
+            "subscribed payment gateways." + ADDED_IN_313 + PREVIEW_FEATURE
         )
         error_type_class = common_types.PaymentGatewayInitializeError
 
@@ -1751,7 +1752,7 @@ class TransactionInitialize(TransactionSessionBase):
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionInitializeError
@@ -1834,7 +1835,7 @@ class TransactionProcess(BaseMutation):
         description = (
             "Processes a transaction session. It triggers the webhook "
             "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
         error_type_class = common_types.TransactionProcessError

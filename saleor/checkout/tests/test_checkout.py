@@ -256,19 +256,24 @@ def test_last_change_update_foreign_key(checkout, shipping_method):
 
 
 @pytest.mark.parametrize(
-    "total, min_spent_amount, min_checkout_items_quantity, "
+    "total, min_spent_amount, min_checkout_items_quantity, once_per_order, "
     "discount_value, discount_value_type, expected_value",
     [
-        (20, 20, 2, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
-        (20, None, None, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
-        (20, 20, 2, 5, DiscountValueType.FIXED, Decimal("5.00")),
-        (20, None, None, 5, DiscountValueType.FIXED, Decimal("5.00")),
+        (20, 20, 2, False, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
+        (20, None, None, False, 50, DiscountValueType.PERCENTAGE, Decimal("10.00")),
+        (20, 20, 2, False, 5, DiscountValueType.FIXED, Decimal("5.00")),
+        (20, None, None, False, 5, DiscountValueType.FIXED, Decimal("5.00")),
+        (20, 20, 2, True, 50, DiscountValueType.PERCENTAGE, Decimal("5.00")),
+        (20, None, None, True, 50, DiscountValueType.PERCENTAGE, Decimal("5.00")),
+        (20, 20, 2, True, 5, DiscountValueType.FIXED, Decimal("5.00")),
+        (20, None, None, True, 5, DiscountValueType.FIXED, Decimal("5.00")),
     ],
 )
-def test_get_discount_for_checkout_value_voucher(
+def test_get_discount_for_checkout_value_entire_order_voucher(
     total,
     min_spent_amount,
     min_checkout_items_quantity,
+    once_per_order,
     discount_value,
     discount_value_type,
     expected_value,
@@ -276,11 +281,13 @@ def test_get_discount_for_checkout_value_voucher(
     channel_USD,
     checkout_with_items,
 ):
+    # given
     voucher = Voucher.objects.create(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         min_checkout_items_quantity=min_checkout_items_quantity,
+        apply_once_per_order=once_per_order,
     )
     VoucherChannelListing.objects.create(
         voucher=voucher,
@@ -308,7 +315,7 @@ def test_get_discount_for_checkout_value_voucher(
     lines = [
         CheckoutLineInfo(
             line=line,
-            channel_listing=line.variant.product.channel_listings.first(),
+            channel_listing=line.variant.channel_listings.first(),
             collections=[],
             product=line.variant.product,
             variant=line.variant,
@@ -317,9 +324,163 @@ def test_get_discount_for_checkout_value_voucher(
         for line in checkout_with_items.lines.all()
     ]
     manager = get_plugins_manager()
+
+    # when
     discount = get_voucher_discount_for_checkout(
         manager, voucher, checkout_info, lines, None, []
     )
+
+    # then
+    assert discount == Money(expected_value, "USD")
+
+
+@pytest.mark.parametrize(
+    "prices, min_spent_amount, min_checkout_items_quantity, once_per_order, "
+    "discount_value, discount_value_type, expected_value",
+    [
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            20,
+            2,
+            False,
+            50,
+            DiscountValueType.PERCENTAGE,
+            Decimal("15.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            None,
+            None,
+            False,
+            50,
+            DiscountValueType.PERCENTAGE,
+            Decimal("15.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            20,
+            2,
+            False,
+            5,
+            DiscountValueType.FIXED,
+            Decimal("10.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            None,
+            None,
+            False,
+            5,
+            DiscountValueType.FIXED,
+            Decimal("10.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            20,
+            2,
+            True,
+            50,
+            DiscountValueType.PERCENTAGE,
+            Decimal("5.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            None,
+            None,
+            True,
+            50,
+            DiscountValueType.PERCENTAGE,
+            Decimal("5.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            20,
+            2,
+            True,
+            5,
+            DiscountValueType.FIXED,
+            Decimal("5.00"),
+        ),
+        (
+            [Money(10, "USD"), Money(20, "USD")],
+            None,
+            None,
+            True,
+            5,
+            DiscountValueType.FIXED,
+            Decimal("5.00"),
+        ),
+    ],
+)
+def test_get_discount_for_checkout_value_specific_product_voucher(
+    prices,
+    min_spent_amount,
+    min_checkout_items_quantity,
+    once_per_order,
+    discount_value,
+    discount_value_type,
+    expected_value,
+    monkeypatch,
+    channel_USD,
+    checkout_with_items,
+):
+    # given
+    voucher = Voucher.objects.create(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=discount_value_type,
+        min_checkout_items_quantity=min_checkout_items_quantity,
+        apply_once_per_order=once_per_order,
+    )
+    VoucherChannelListing.objects.create(
+        voucher=voucher,
+        channel=channel_USD,
+        discount=Money(discount_value, channel_USD.currency_code),
+        min_spent_amount=(min_spent_amount if min_spent_amount is not None else None),
+    )
+    variants = [line.variant for line in checkout_with_items.lines.all()]
+    voucher.variants.add(*variants)
+
+    checkout = Mock(spec=checkout_with_items, channel=channel_USD)
+    monkeypatch.setattr(
+        "saleor.checkout.utils.get_base_lines_prices",
+        Mock(return_value=prices),
+    )
+    subtotal = sum(prices, start=Money(0, "USD"))
+    monkeypatch.setattr(
+        "saleor.checkout.base_calculations.base_checkout_subtotal",
+        lambda *args: subtotal,
+    )
+    checkout_info = CheckoutInfo(
+        checkout=checkout,
+        shipping_address=None,
+        billing_address=None,
+        channel=channel_USD,
+        user=None,
+        tax_configuration=channel_USD.tax_configuration,
+        valid_pick_up_points=[],
+        delivery_method_info=get_delivery_method_info(None, None),
+        all_shipping_methods=[],
+    )
+    lines = [
+        CheckoutLineInfo(
+            line=line,
+            channel_listing=line.variant.channel_listings.first(),
+            collections=[],
+            product=line.variant.product,
+            variant=line.variant,
+            product_type=line.variant.product.product_type,
+        )
+        for line in checkout_with_items.lines.all()
+    ]
+    manager = get_plugins_manager()
+
+    # when
+    discount = get_voucher_discount_for_checkout(
+        manager, voucher, checkout_info, lines, None, []
+    )
+
+    # then
     assert discount == Money(expected_value, "USD")
 
 
@@ -327,13 +488,18 @@ def test_get_discount_for_checkout_value_voucher(
 def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
+    # given
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_voucher)
     quantity = calculate_checkout_quantity(lines)
     checkout_info = fetch_checkout_info(checkout_with_voucher, lines, [], manager)
     manager = get_plugins_manager()
     address = checkout_with_voucher.shipping_address
+
+    # when
     get_voucher_discount_for_checkout(manager, voucher, checkout_info, lines, address)
+
+    # then
     subtotal = base_calculations.base_checkout_subtotal(
         lines, checkout_info.channel, checkout_with_voucher.currency, []
     )
@@ -499,7 +665,8 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
     ).gross
 
     # then
-    assert any([line.voucher is not None for line in lines])
+    assert [line.voucher is not None for line in lines].count(True) == 1
+
     for line in lines:
         line.voucher = None
     subtotal_without_voucher = manager.calculate_checkout_subtotal(
@@ -1392,7 +1559,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     assert is_paid
 
 
-def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
+def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
