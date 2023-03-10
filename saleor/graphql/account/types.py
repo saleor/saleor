@@ -560,6 +560,7 @@ class User(ModelObjectType[models.User]):
 
 class UserCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         node = User
 
 
@@ -696,4 +697,5 @@ class Group(ModelObjectType[models.Group]):
 
 class GroupCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         node = Group

@@ -180,7 +180,6 @@ class BaseMutation(graphene.Mutation):
         cls._validate_permissions(permissions)
 
         _meta.auto_permission_message = auto_permission_message
-        _meta.doc_category = doc_category
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
@@ -191,6 +190,8 @@ class BaseMutation(graphene.Mutation):
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
             description = f"{description} {permissions_msg}"
+
+        cls.doc_category = doc_category
 
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options

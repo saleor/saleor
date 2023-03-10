@@ -1,11 +1,12 @@
 import graphene
+from graphene.types.inputobjecttype import InputObjectTypeOptions
 
 from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..enums import OrderDirection
-from .base import BaseInputObjectType, BaseInputObjectTypeOptions
+from .base import BaseInputObjectType
 
 
-class SortInputMeta(BaseInputObjectTypeOptions):
+class SortInputMeta(InputObjectTypeOptions):
     sort_enum = None
 
 

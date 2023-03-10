@@ -1,12 +1,7 @@
-from typing import Optional
-
-from graphene.types.enum import Enum, EnumOptions
-from graphene.types.inputobjecttype import InputObjectType, InputObjectTypeOptions
-from graphene.types.objecttype import ObjectType, ObjectTypeOptions
-
-
-class BaseObjectOptions(ObjectTypeOptions):
-    doc_category: Optional[str] = None
+from graphene.relay.connection import Connection
+from graphene.types.enum import Enum
+from graphene.types.inputobjecttype import InputObjectType
+from graphene.types.objecttype import ObjectType
 
 
 class BaseObjectType(ObjectType):
@@ -20,11 +15,7 @@ class BaseObjectType(ObjectType):
         doc_category=None,
         **options,
     ):
-        if not _meta:
-            _meta = BaseObjectOptions(cls)
-
-        _meta.doc_category = doc_category
-
+        cls.doc_category = doc_category
         super(BaseObjectType, cls).__init_subclass_with_meta__(
             interfaces=interfaces,
             possible_types=possible_types,
@@ -34,27 +25,15 @@ class BaseObjectType(ObjectType):
         )
 
 
-class BaseInputObjectTypeOptions(InputObjectTypeOptions):
-    doc_category: Optional[str] = None
-
-
 class BaseInputObjectType(InputObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls, container=None, _meta=None, doc_category=None, **options
     ):
-        if not _meta:
-            _meta = BaseInputObjectTypeOptions(cls)
-
-        _meta.doc_category = doc_category
-
+        cls.doc_category = doc_category
         super(BaseInputObjectType, cls).__init_subclass_with_meta__(
-            _meta=_meta, **options
+            container=container, _meta=_meta, **options
         )
-
-
-class BaseEnumOptions(EnumOptions):
-    doc_category: Optional[str] = None
 
 
 class BaseEnum(Enum):
@@ -62,11 +41,21 @@ class BaseEnum(Enum):
     def __init_subclass_with_meta__(
         cls, enum=None, _meta=None, doc_category=None, **options
     ):
-        if not _meta:
-            _meta = BaseEnumOptions(cls)
-
-        _meta.doc_category = doc_category
-
+        cls.doc_category = doc_category
         super(BaseEnum, cls).__init_subclass_with_meta__(
             enum=enum, _meta=_meta, **options
+        )
+
+
+class BaseConnection(Connection):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(
+        cls, node=None, name=None, doc_category=None, **options
+    ):
+        cls.doc_category = doc_category
+        super(BaseConnection, cls).__init_subclass_with_meta__(
+            node=node, name=name, **options
         )

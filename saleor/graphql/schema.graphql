@@ -12065,7 +12065,7 @@ type ChoiceValue {
   verbose: String
 }
 
-type UserCountableConnection {
+type UserCountableConnection @doc(category: "Users") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [UserCountableEdge!]!
@@ -12126,7 +12126,7 @@ enum UserSortField @doc(category: "Users") {
   LAST_MODIFIED_AT
 }
 
-type GroupCountableConnection {
+type GroupCountableConnection @doc(category: "Users") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GroupCountableEdge!]!

@@ -4,13 +4,14 @@ import graphene
 from django.db import models
 from django_filters.filterset import FILTER_FOR_DBFIELD_DEFAULTS, BaseFilterSet
 from graphene import Argument, InputField, String
+from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
 from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
-from .base import BaseInputObjectType, BaseInputObjectTypeOptions
+from .base import BaseInputObjectType
 from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from .converter import convert_form_field
 
@@ -55,7 +56,7 @@ class FilterInputObjectType(BaseInputObjectType):
         cls.model = model
 
         if not _meta:
-            _meta = BaseInputObjectTypeOptions(cls)
+            _meta = InputObjectTypeOptions(cls)
 
         fields = cls.get_filtering_args_from_filterset()
         fields = yank_fields_from_attrs(fields, _as=InputField)
