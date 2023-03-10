@@ -25,6 +25,10 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
                         channels
                     }
                     productVariant{
+                        metadata {
+                            key
+                            value
+                        }
                         id
                         name
                         sku
@@ -77,7 +81,16 @@ def test_product_variant_bulk_update(
     old_name = variant.name
     new_name = "new-random-name"
 
-    variants = [{"id": variant_id, "name": new_name}]
+    metadata_key = "md key"
+    metadata_value = "md value"
+
+    variants = [
+        {
+            "id": variant_id,
+            "name": new_name,
+            "metadata": [{"key": metadata_key, "value": metadata_value}],
+        }
+    ]
 
     variables = {"productId": product_id, "variants": variants}
 
@@ -93,7 +106,10 @@ def test_product_variant_bulk_update(
     # then
     assert not data["results"][0]["errors"]
     assert data["count"] == 1
-    assert data["results"][0]["productVariant"]["name"] == new_name
+    variant_data = data["results"][0]["productVariant"]
+    assert variant_data["name"] == new_name
+    assert variant_data["metadata"][0]["key"] == metadata_key
+    assert variant_data["metadata"][0]["value"] == metadata_value
     assert product_with_single_variant.variants.count() == 1
     assert old_name != new_name
     assert product_variant_created_webhook_mock.call_count == data["count"]

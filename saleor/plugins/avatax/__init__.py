@@ -352,15 +352,13 @@ def generate_request_data_from_checkout_lines(
             voucher.type == VoucherType.SHIPPING if voucher else False
         )
 
-        tax_class = getattr(delivery_method, "tax_class", None)
-        if tax_class:
-            append_shipping_to_data(
-                data=data,
-                shipping_price_amount=price.amount if price else None,
-                shipping_tax_code=config.shipping_tax_code,
-                prices_entered_with_tax=prices_entered_with_tax,
-                discounted=is_shipping_discount,
-            )
+        append_shipping_to_data(
+            data=data,
+            shipping_price_amount=price.amount if price else None,
+            shipping_tax_code=config.shipping_tax_code,
+            prices_entered_with_tax=prices_entered_with_tax,
+            discounted=is_shipping_discount,
+        )
 
     return data
 
@@ -425,17 +423,13 @@ def get_order_lines_data(
             type=OrderDiscountType.MANUAL
         ).exists()
 
-        # Calculate shipping tax if there is a shipping_tax_class assigned to the order,
-        # or if there is at least tax_class name set (this might be the case when tax
-        # class was assigned but it was removed from DB).
-        if order.shipping_tax_class_id or order.shipping_tax_class_name:
-            append_shipping_to_data(
-                data=data,
-                shipping_price_amount=shipping_price if shipping_price else None,
-                shipping_tax_code=config.shipping_tax_code,
-                prices_entered_with_tax=prices_entered_with_tax,
-                discounted=shipping_discounted,
-            )
+        append_shipping_to_data(
+            data=data,
+            shipping_price_amount=shipping_price if shipping_price else None,
+            shipping_tax_code=config.shipping_tax_code,
+            prices_entered_with_tax=prices_entered_with_tax,
+            discounted=shipping_discounted,
+        )
     return data
 
 
