@@ -13,7 +13,9 @@ from ..types import User
 class UserBulkSetActive(BaseBulkMutation):
     class Arguments:
         ids = NonNullList(
-            graphene.ID, required=True, description="List of user IDs to (de)activate)."
+            graphene.ID,
+            required=True,
+            description="List of user IDs to activate/deactivate.",
         )
         is_active = graphene.Boolean(
             required=True, description="Determine if users will be set active or not."

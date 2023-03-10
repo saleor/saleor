@@ -14,7 +14,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
-from ...core.descriptions import ADDED_IN_312, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import CustomerBulkUpdateError, NonNullList
@@ -76,7 +76,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Updates customers." + ADDED_IN_312 + PREVIEW_FEATURE
+        description = "Updates customers." + ADDED_IN_313 + PREVIEW_FEATURE
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
 

@@ -220,7 +220,7 @@ class PluginsManager(PaymentInterface):
         address: "Address",
         address_type: Optional[str],
         user: Optional["User"],
-        save=True,
+        save: bool = True,
     ) -> "Address":
         default_value = address
         return self.__run_method_on_plugins(

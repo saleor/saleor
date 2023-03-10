@@ -40,7 +40,7 @@ class AnonymizePlugin(BasePlugin):
         address_type: Optional[str],
         user: Optional["User"],
         previous_value: "Address",
-        save=True,
+        save: bool = True,
     ) -> "Address":
         if address.phone:
             address.phone = ""  # type: ignore
