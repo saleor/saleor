@@ -548,19 +548,8 @@ def _create_order(
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
     )
-    if checkout.discount:
-        # store voucher as a fixed value as it this the simplest solution for now.
-        # This will be solved when we refactor the voucher logic to use .discounts
-        # relations
-        order.discounts.create(
-            type=OrderDiscountType.VOUCHER,
-            value_type=DiscountValueType.FIXED,
-            value=checkout.discount.amount,
-            name=checkout.discount_name,
-            translated_name=checkout.translated_discount_name,
-            currency=checkout.currency,
-            amount_value=checkout.discount_amount,
-        )
+
+    _handle_checkout_discount(order, checkout)
 
     order_lines = []
     for line_info in order_lines_info:
