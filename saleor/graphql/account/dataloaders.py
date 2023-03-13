@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import DefaultDict, Iterable, List, Optional, Tuple, cast
+from typing import DefaultDict, Iterable, List, Optional, Set, Tuple, cast
 
 from ...account.models import Address, CustomerEvent, Group, User
 from ...channel.models import Channel
@@ -83,21 +83,22 @@ class PermissionByCodenameLoader(DataLoader):
         return [permission_map.get(codename) for codename in keys]
 
 
-class AccessibleChannelsByGroupIdLoader(DataLoader):
-    context_key = "accessiblechannels_by_group"
-
-    def batch_load(self, keys):
+class AccessibleChannelsMixin:
+    @classmethod
+    def get_group_to_channels_map(cls, db_connection_name, group_ids):
         groups_with_no_channel_restriction = Group.objects.using(
-            self.database_connection_name
-        ).filter(id__in=keys, restricted_access_to_channel=False)
+            db_connection_name
+        ).filter(id__in=group_ids, restricted_access_to_channel=False)
         groups_with_channel_restriction = Group.objects.using(
-            self.database_connection_name
-        ).filter(id__in=keys, restricted_access_to_channel=True)
+            db_connection_name
+        ).filter(id__in=group_ids, restricted_access_to_channel=True)
 
         group_to_channels: DefaultDict[int, List["Channel"]] = defaultdict(list)
         if groups_with_channel_restriction:
-            group_to_channels = self.get_group_channels(
-                groups_with_channel_restriction.values("id"), group_to_channels
+            group_to_channels = cls.get_group_channels(
+                db_connection_name,
+                groups_with_channel_restriction.values("id"),
+                group_to_channels,
             )
 
         if groups_with_no_channel_restriction:
@@ -107,12 +108,13 @@ class AccessibleChannelsByGroupIdLoader(DataLoader):
             ):
                 group_to_channels[group_id] = channels
 
-        return [group_to_channels.get(group_id, []) for group_id in keys]
+        return group_to_channels
 
-    def get_group_channels(self, keys, group_to_channels):
+    @classmethod
+    def get_group_channels(cls, db_connection_name, group_ids, group_to_channels):
         GroupChannels = Group.channels.through
-        group_channels = GroupChannels.objects.filter(group_id__in=keys)
-        channels_in_bulk = Channel.objects.using(self.database_connection_name).in_bulk(
+        group_channels = GroupChannels.objects.filter(group_id__in=group_ids)
+        channels_in_bulk = Channel.objects.using(db_connection_name).in_bulk(
             group_channels.values_list("channel_id", flat=True)
         )
 
@@ -122,3 +124,64 @@ class AccessibleChannelsByGroupIdLoader(DataLoader):
             group_to_channels[group_id].append(channels_in_bulk[channel_id])
 
         return group_to_channels
+
+
+class AccessibleChannelsByGroupIdLoader(DataLoader, AccessibleChannelsMixin):
+    context_key = "accessiblechannels_by_group"
+
+    def batch_load(self, keys):
+        group_to_channels = self.get_group_to_channels_map(
+            self.database_connection_name, keys
+        )
+        return [group_to_channels.get(group_id, []) for group_id in keys]
+
+
+class AccessibleChannelsByUserIdLoader(DataLoader, AccessibleChannelsMixin):
+    context_key = "accessiblechannels_by_user"
+
+    def batch_load(self, keys):
+        UserGroup = User.groups.through
+        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
+            user_id__in=keys
+        )
+        groups = Group.objects.using(self.database_connection_name).filter(
+            id__in=user_groups.values("group_id")
+        )
+
+        group_to_channels = self.get_group_to_channels_map(
+            self.database_connection_name, groups.values_list("id", flat=True)
+        )
+
+        user_to_channels: DefaultDict[int, Set["Channel"]] = defaultdict(set)
+        for user_id, group_id in user_groups.values_list("user_id", "group_id"):
+            user_to_channels[user_id].update(group_to_channels[group_id])
+
+        return [list(user_to_channels[user_id]) for user_id in keys]
+
+
+class RestrictedChannelAccessByUserIdLoader(DataLoader):
+    context_key = "restrictedchannelaccess_by_user"
+
+    def batch_load(self, keys):
+        UserGroup = User.groups.through
+        user_groups = UserGroup.objects.using(self.database_connection_name).filter(
+            user_id__in=keys
+        )
+        groups = Group.objects.using(self.database_connection_name).filter(
+            id__in=user_groups.values("group_id")
+        )
+
+        group_id_to_restricted_access = {
+            group_id: restricted_access
+            for group_id, restricted_access in groups.values_list(
+                "id", "restricted_access_to_channel"
+            )
+        }
+
+        user_to_restricted_access: DefaultDict[int, bool] = defaultdict(lambda: True)
+        for user_id, group_id in user_groups.values_list("user_id", "group_id"):
+            user_to_restricted_access[user_id] &= group_id_to_restricted_access[
+                group_id
+            ]
+
+        return [user_to_restricted_access[user_id] for user_id in keys]

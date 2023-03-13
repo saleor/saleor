@@ -53,7 +53,9 @@ from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
     AccessibleChannelsByGroupIdLoader,
+    AccessibleChannelsByUserIdLoader,
     CustomerEventsByUserLoader,
+    RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
@@ -461,6 +463,18 @@ class User(ModelObjectType[models.User]):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        # Sum of channels from all user groups. If at least one group has
+        # `restrictedAccessToChannel` set to False - all channels are returned
+        return AccessibleChannelsByUserIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_restricted_access_to_channel(root: models.Group, info: ResolveInfo):
+        # Returns False if at least one user group has `restrictedAccessToChannel`
+        # set to False
+        return RestrictedChannelAccessByUserIdLoader(info.context).load(root.id)
+
+    @staticmethod
     def resolve_note(root: models.User, _info: ResolveInfo):
         return root.note
 
@@ -701,8 +715,6 @@ class Group(ModelObjectType[models.Group]):
 
     @staticmethod
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
-        # TODO: should return all channels when the group has `restictedAccessToChannel`
-        # set to False
         return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
