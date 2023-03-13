@@ -16,6 +16,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_38,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -192,6 +193,23 @@ class AppManifestWebhook(graphene.ObjectType):
         return root["targetUrl"]
 
 
+class AppManifestRequiredSaleorVersion(graphene.ObjectType):
+    constraint = graphene.String(
+        required=True,
+        description=(
+            "Required Saleor version as semver range." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    satisfied = graphene.Boolean(
+        required=True,
+        description=(
+            "Informs if the Saleor version matches the required one."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+
+
 class Manifest(graphene.ObjectType):
     identifier = graphene.String(required=True)
     version = graphene.String(required=True)
@@ -223,6 +241,14 @@ class Manifest(graphene.ObjectType):
             + ADDED_IN_38
             + PREVIEW_FEATURE
         )
+    )
+    required_saleor_version = graphene.Field(
+        AppManifestRequiredSaleorVersion,
+        description=(
+            "Determines the app's required Saleor version as semver range."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
     )
 
     class Meta:

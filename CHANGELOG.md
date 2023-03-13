@@ -10,7 +10,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 - Upgrade GraphiQL to `2.4.0` for playground - #12271 by @zaiste
 
+- Add new object type `AppManifestRequiredSaleorVersion` - #12164 by @przlada
+  - Add new optional field `Manifest.requiredSaleorVersion`
+  - Add `requiredSaleorVersion` validation to `appInstall` and `appFetchManifest` mutations
+
 ### Other changes
+
+### Saleor Apps
+
+- Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
 
 # 3.12.0
 

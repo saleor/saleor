@@ -23328,6 +23328,7 @@ enum AppErrorCode {
   UNIQUE
   OUT_OF_SCOPE_APP
   OUT_OF_SCOPE_PERMISSION
+  UNSUPPORTED_SALEOR_VERSION
 }
 
 input AppInput {
@@ -23493,6 +23494,15 @@ type Manifest {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   audience: String
+
+  """
+  Determines the app's required Saleor version as semver range.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  requiredSaleorVersion: AppManifestRequiredSaleorVersion
 }
 
 type AppManifestExtension {
@@ -23527,6 +23537,26 @@ type AppManifestWebhook {
 
   """The url to receive the payload."""
   targetUrl: String!
+}
+
+type AppManifestRequiredSaleorVersion {
+  """
+  Required Saleor version as semver range.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  constraint: String!
+
+  """
+  Informs if the Saleor version matches the required one.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  satisfied: Boolean!
 }
 
 """
