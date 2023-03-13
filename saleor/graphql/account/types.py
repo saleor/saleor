@@ -329,7 +329,7 @@ class User(ModelObjectType[models.User]):
         + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
-    restricted_access_to_channel = graphene.Boolean(
+    restricted_access_to_channels = graphene.Boolean(
         required=True,
         description="Determine if user have restricted access to channels."
         + ADDED_IN_313
@@ -465,12 +465,12 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
         # Sum of channels from all user groups. If at least one group has
-        # `restrictedAccessToChannel` set to False - all channels are returned
+        # `restrictedAccessToChannels` set to False - all channels are returned
         return AccessibleChannelsByUserIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_restricted_access_to_channel(root: models.Group, info: ResolveInfo):
-        # Returns False if at least one user group has `restrictedAccessToChannel`
+    def resolve_restricted_access_to_channels(root: models.Group, info: ResolveInfo):
+        # Returns False if at least one user group has `restrictedAccessToChannels`
         # set to False
         return RestrictedChannelAccessByUserIdLoader(info.context).load(root.id)
 
@@ -683,7 +683,7 @@ class Group(ModelObjectType[models.Group]):
         + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
-    restricted_access_to_channel = graphene.Boolean(
+    restricted_access_to_channels = graphene.Boolean(
         required=True,
         description="Determine if group have restricted access to channels."
         + ADDED_IN_313

@@ -160,7 +160,7 @@ query ($id: ID!){
         accessibleChannels {
             slug
         }
-        restrictedAccessToChannel
+        restrictedAccessToChannels
     }
 }
 """
@@ -304,7 +304,7 @@ def test_query_permission_group_without_restricted_access_to_channels(
     content = get_graphql_content(response)
     group_data = content["data"]["permissionGroup"]
     assert group_data["name"] == group.name
-    assert group_data["restrictedAccessToChannel"] is False
+    assert group_data["restrictedAccessToChannels"] is False
     assert len(group_data["accessibleChannels"]) == 2
 
 
@@ -331,7 +331,7 @@ def test_query_permission_group_with_restricted_access_to_channels(
     content = get_graphql_content(response)
     group_data = content["data"]["permissionGroup"]
     assert group_data["name"] == group.name
-    assert group_data["restrictedAccessToChannel"] is True
+    assert group_data["restrictedAccessToChannels"] is True
     assert len(group_data["accessibleChannels"]) == 1
     assert group_data["accessibleChannels"][0]["slug"] == channel_USD.slug
 
@@ -359,5 +359,5 @@ def test_query_permission_group_with_restricted_access_to_channels_no_channels_a
     content = get_graphql_content(response)
     group_data = content["data"]["permissionGroup"]
     assert group_data["name"] == group.name
-    assert group_data["restrictedAccessToChannel"] is True
+    assert group_data["restrictedAccessToChannels"] is True
     assert len(group_data["accessibleChannels"]) == 0

@@ -88,10 +88,10 @@ class AccessibleChannelsMixin:
     def get_group_to_channels_map(cls, db_connection_name, group_ids):
         groups_with_no_channel_restriction = Group.objects.using(
             db_connection_name
-        ).filter(id__in=group_ids, restricted_access_to_channel=False)
+        ).filter(id__in=group_ids, restricted_access_to_channels=False)
         groups_with_channel_restriction = Group.objects.using(
             db_connection_name
-        ).filter(id__in=group_ids, restricted_access_to_channel=True)
+        ).filter(id__in=group_ids, restricted_access_to_channels=True)
 
         group_to_channels: DefaultDict[int, List["Channel"]] = defaultdict(list)
         if groups_with_channel_restriction:
@@ -174,7 +174,7 @@ class RestrictedChannelAccessByUserIdLoader(DataLoader):
         group_id_to_restricted_access = {
             group_id: restricted_access
             for group_id, restricted_access in groups.values_list(
-                "id", "restricted_access_to_channel"
+                "id", "restricted_access_to_channels"
             )
         }
 

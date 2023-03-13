@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="group",
-            name="restricted_access_to_channel",
+            name="restricted_access_to_channels",
             field=models.BooleanField(default=False),
         ),
     ]

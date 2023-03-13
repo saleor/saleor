@@ -4980,7 +4980,7 @@ def permission_manage_payments():
 @pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(
-        name="Manage user groups.", restricted_access_to_channel=False
+        name="Manage user groups.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_users)
 
@@ -4994,7 +4994,7 @@ def permission_group_all_perms_all_channels(
 ):
     group = Group.objects.create(
         name="All permissions for all channels.",
-        restricted_access_to_channel=False,
+        restricted_access_to_channels=False,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)
@@ -5009,7 +5009,7 @@ def permission_group_all_perms_channel_USD_only(
 ):
     group = Group.objects.create(
         name="All permissions for USD channel only.",
-        restricted_access_to_channel=True,
+        restricted_access_to_channels=True,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)
@@ -5026,7 +5026,7 @@ def permission_group_all_perms_without_any_channel(
 ):
     group = Group.objects.create(
         name="All permissions without any channel access.",
-        restricted_access_to_channel=True,
+        restricted_access_to_channels=True,
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)

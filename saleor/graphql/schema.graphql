@@ -8873,7 +8873,7 @@ type User implements Node & ObjectWithMetadata {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  restrictedAccessToChannel: Boolean!
+  restrictedAccessToChannels: Boolean!
   avatar(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -10867,7 +10867,7 @@ type Group implements Node {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  restrictedAccessToChannel: Boolean!
+  restrictedAccessToChannels: Boolean!
 }
 
 """History log of the customer."""
