@@ -21,6 +21,7 @@ from ..core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ..core.fields import PermissionsField
@@ -196,9 +197,9 @@ class OrderSettings(ObjectType):
     default_transaction_flow_strategy = TransactionFlowStrategyEnum(
         required=True,
         description=(
-            "Determine the transaction flow strategy to be used, and include the "
-            "selected option in the payload sent to the payment app as a requested "
-            "action for the transaction." + PREVIEW_FEATURE + ADDED_IN_312
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
 

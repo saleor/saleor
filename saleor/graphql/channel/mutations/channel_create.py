@@ -12,6 +12,7 @@ from ...core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ...core.mutations import ModelMutation
@@ -61,9 +62,9 @@ class OrderSettingsInput(graphene.InputObjectType):
     default_transaction_flow_strategy = TransactionFlowStrategyEnum(
         required=False,
         description=(
-            "Determine the transaction flow strategy to be used, and include the "
-            "selected option in the payload sent to the payment app as a requested "
-            "action for the transaction." + PREVIEW_FEATURE + ADDED_IN_312
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
 
@@ -156,10 +157,9 @@ class ChannelCreate(ModelMutation):
             if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
                 cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
 
-            default_transaction_strategy = order_settings.get(
+            if default_transaction_strategy := order_settings.get(
                 "default_transaction_flow_strategy"
-            )
-            if default_transaction_strategy:
+            ):
                 cleaned_input[
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy

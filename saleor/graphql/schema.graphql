@@ -4916,11 +4916,11 @@ type OrderSettings {
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
   """
-  Determine the transaction flow strategy to be used, and include the selected option in the payload sent to the payment app as a requested action for the transaction.
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  Added in Saleor 3.12.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
@@ -23801,11 +23801,11 @@ input OrderSettingsInput {
   markAsPaidStrategy: MarkAsPaidStrategyEnum
 
   """
-  Determine the transaction flow strategy to be used, and include the selected option in the payload sent to the payment app as a requested action for the transaction.
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
-  Added in Saleor 3.12.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }

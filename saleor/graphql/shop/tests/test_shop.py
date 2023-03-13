@@ -1361,6 +1361,7 @@ def test_order_settings_update_by_staff(
     assert (
         response_settings["defaultTransactionFlowStrategy"]
         == TransactionFlowStrategyEnum.CHARGE.name
+        == channel_USD.default_transaction_flow_strategy.upper()
     )
     channel_PLN.refresh_from_db()
     channel_USD.refresh_from_db()
@@ -1427,6 +1428,7 @@ def test_order_settings_update_by_app(
     assert (
         response_settings["defaultTransactionFlowStrategy"]
         == TransactionFlowStrategyEnum.CHARGE.name
+        == channel_USD.default_transaction_flow_strategy.upper()
     )
     channel_PLN.refresh_from_db()
     channel_USD.refresh_from_db()
