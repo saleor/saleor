@@ -120,7 +120,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         errors["requiredSaleorVersion"].append(e)
 
     try:
-        clean_author(manifest_data.get("author"))
+        manifest_data["author"] = clean_author(manifest_data.get("author"))
     except ValidationError as e:
         errors["author"].append(e)
 
@@ -332,8 +332,11 @@ def clean_required_saleor_version(
 
 
 def clean_author(author) -> Optional[str]:
-    if author is None or (isinstance(author, str) and author.strip()):
-        return author
+    if author is None:
+        return None
+    if isinstance(author, str):
+        if clean := author.strip():
+            return clean
     raise ValidationError(
         "Incorrect value for field: author", code=AppErrorCode.INVALID.value
     )
