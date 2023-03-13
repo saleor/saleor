@@ -1564,18 +1564,14 @@ class Order(ModelObjectType[models.Order]):
                     zero_money(root.currency),
                 )
                 total_charged = prices.Money(Decimal(0), root.currency)
-                total_refunded = prices.Money(Decimal(0), root.currency)
 
                 for transaction in transactions:
                     total_charged += transaction.amount_charged
                     total_charged += transaction.amount_charge_pending
-                    total_refunded += transaction.amount_refunded
-                    total_refunded += transaction.amount_refund_pending
-                charged_refunded_difference = total_charged - total_refunded
                 order_granted_refunds_difference = (
                     root.total.gross - total_granted_refund
                 )
-                return charged_refunded_difference - order_granted_refunds_difference
+                return total_charged - order_granted_refunds_difference
 
         granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)

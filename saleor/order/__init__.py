@@ -227,9 +227,9 @@ class OrderAuthorizeStatus:
     """Determine a current authorize status for order.
 
     We treat the order as fully authorized when the sum of authorized and charged funds
-    cover the order.total.
+    cover the `order.total`-`order.totalGrantedRefund`.
     We treat the order as partially authorized when the sum of authorized and charged
-    funds covers only part of the order.total
+    funds covers only part of the `order.total`-`order.totalGrantedRefund`.
     We treat the order as not authorized when the sum of authorized and charged funds is
     0.
 
@@ -261,15 +261,13 @@ class OrderAuthorizeStatus:
 class OrderChargeStatus:
     """Determine the current charge status for the order.
 
-    An order is considered overcharged when the difference between the sum of the
-    transactionItem's charge amounts and the sum of the transactionItem's refund
-    amounts exceeds the value of `order.total` - `order.totalGrantedRefund`.
-    If the difference between the sum of the transactionItem's charge amounts and the
-    sum of the transactionItem's refund amounts equals
+    An order is considered overcharged when the sum of the
+    transactionItem's charge amounts exceeds the value of
+    `order.total` - `order.totalGrantedRefund`.
+    If the sum of the transactionItem's charge amounts equals
     `order.total` - `order.totalGrantedRefund`, we consider the order to be fully
     charged.
-    If the difference between the sum of the transactionItem's charge amounts and the
-    sum of the transactionItem's refund amounts only covers a part of the
+    If the sum of the transactionItem's charge amounts covers a part of the
     `order.total` - `order.totalGrantedRefund`, we treat the order as partially charged.
 
     NONE - the funds are not charged.
