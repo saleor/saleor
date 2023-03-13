@@ -20,6 +20,7 @@ from ...account.utils import (
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
@@ -43,6 +44,21 @@ class PermissionGroupInput(graphene.InputObjectType):
 
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
+    restricted_access_to_channels = graphene.Boolean(
+        description=(
+            "Determine if the group have restricted access to channels.  DEFAULT: False"
+        )
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+        default_value=False,
+        required=False,
+    )
+    add_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to assign to this group."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
 
 
 class PermissionGroupCreate(ModelMutation):
@@ -64,14 +80,15 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
-        add_permissions = cleaned_data.get("add_permissions")
         with traced_atomic_transaction():
-            if add_permissions:
+            if add_permissions := cleaned_data.get("add_permissions"):
                 instance.permissions.add(*add_permissions)
 
-            users = cleaned_data.get("add_users")
-            if users:
+            if users := cleaned_data.get("add_users"):
                 instance.user_set.add(*users)
+
+            if channels := cleaned_data.get("add_channels"):
+                instance.channels.add(*channels)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

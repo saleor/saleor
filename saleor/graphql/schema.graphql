@@ -10861,7 +10861,7 @@ type Group implements Node {
   accessibleChannels: [Channel!]
 
   """
-  Determine if group have restricted access to channels.
+  Determine if the group have restricted access to channels.
   
   Added in Saleor 3.13.
   
@@ -24344,6 +24344,24 @@ input PermissionGroupCreateInput {
 
   """Group name."""
   name: String!
+
+  """
+  Determine if the group have restricted access to channels.  DEFAULT: False
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannels: Boolean = false
+
+  """
+  List of channels to assign to this group.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addChannels: [ID!]
 }
 
 """

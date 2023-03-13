@@ -7,6 +7,7 @@ from freezegun import freeze_time
 
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import Group, User
+from ....channel.models import Channel
 from ....core.utils.json_serializer import CustomJsonEncoder
 from ....permission.enums import AccountPermissions, AppPermission, OrderPermissions
 from ....webhook.event_types import WebhookEventAsyncType
@@ -28,6 +29,10 @@ PERMISSION_GROUP_CREATE_MUTATION = """
                 }
                 users {
                     email
+                }
+                restrictedAccessToChannels
+                accessibleChannels {
+                    slug
                 }
             }
             errors{
@@ -74,6 +79,8 @@ def test_permission_group_create_mutation(
 
     group = Group.objects.get()
     assert permission_group_data["name"] == group.name == variables["input"]["name"]
+    assert permission_group_data["restrictedAccessToChannels"] is False
+    assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
     permissions = {
         permission["name"] for permission in permission_group_data["permissions"]
     }
@@ -511,6 +518,66 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
         == {user.email for user in staff_users}
         == set(group.user_set.all().values_list("email", flat=True))
     )
+
+
+def test_permission_group_create_mutation_restricted_access_to_channels(
+    staff_users,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_apps,
+    channel_PLN,
+    channel_USD,
+):
+    staff_user = staff_users[0]
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    query = PERMISSION_GROUP_CREATE_MUTATION
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            "addPermissions": [
+                AccountPermissions.MANAGE_USERS.name,
+                AppPermission.MANAGE_APPS.name,
+            ],
+            "addUsers": [
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
+            ],
+            "restrictedAccessToChannels": True,
+            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.id)],
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    permission_group_data = data["group"]
+
+    group = Group.objects.get()
+    assert permission_group_data["name"] == group.name == variables["input"]["name"]
+    assert permission_group_data["restrictedAccessToChannels"] is True
+    assert len(permission_group_data["accessibleChannels"]) == 1
+    assert permission_group_data["accessibleChannels"][0]["slug"] == channel_PLN.slug
+    permissions = {
+        permission["name"] for permission in permission_group_data["permissions"]
+    }
+    assert set(group.permissions.all().values_list("name", flat=True)) == permissions
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+        == set(perm.lower() for perm in variables["input"]["addPermissions"])
+    )
+    assert (
+        {user["email"] for user in permission_group_data["users"]}
+        == {user.email for user in staff_users}
+        == set(group.user_set.all().values_list("email", flat=True))
+    )
+    assert data["errors"] == []
 
 
 PERMISSION_GROUP_UPDATE_MUTATION = """
