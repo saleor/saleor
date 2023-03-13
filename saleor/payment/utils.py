@@ -1149,10 +1149,9 @@ def create_transaction_event_from_request_and_webhook_response(
     app: App,
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
-    request_event_type = cast(str, request_event.type)
     transaction_request_response, error_msg = _get_parsed_transaction_action_data(
         transaction_webhook_response=transaction_webhook_response,
-        event_type=request_event_type,
+        event_type=request_event.type,
     )
     if not transaction_request_response:
         return create_failed_transaction_event(request_event, cause=error_msg or "")

@@ -171,8 +171,7 @@ class TransactionEvent(models.Model):
     type = models.CharField(
         max_length=128,
         choices=TransactionEventType.CHOICES,
-        blank=True,
-        null=True,
+        default=TransactionEventType.INFO,
     )
     amount = MoneyField(amount_field="amount_value", currency_field="currency")
     amount_value = models.DecimalField(

@@ -37,6 +37,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ..core.scalars import JSON, PositiveDecimal
@@ -1562,7 +1563,7 @@ class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
         description = (
             "Event sent when transaction action is requested."
             + ADDED_IN_34
-            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.13 "
+            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
             + "(Preview Feature). Use `TransactionChargeRequested`, "
             + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
         )
@@ -1575,7 +1576,7 @@ class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
         enable_dry_run = False
         description = (
             "Event sent when transaction charge is requested."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 
@@ -1587,7 +1588,7 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
         enable_dry_run = False
         description = (
             "Event sent when transaction refund is requested."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 
@@ -1599,7 +1600,7 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
         enable_dry_run = False
         description = (
             "Event sent when transaction cancelation is requested."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 
@@ -1623,7 +1624,7 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
         enable_dry_run = False
         description = (
             "Event sent when user wants to initialize the payment gateway."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 
@@ -1718,7 +1719,7 @@ class TransactionInitializeSession(TransactionSessionBase):
         interfaces = (Event,)
         description = (
             "Event sent when user starts processing the payment."
-            + ADDED_IN_312
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 
@@ -1729,8 +1730,8 @@ class TransactionProcessSession(TransactionSessionBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Event sent when user has additional payment actionn to process."
-            + ADDED_IN_312
+            "Event sent when user has additional payment action to process."
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         )
 

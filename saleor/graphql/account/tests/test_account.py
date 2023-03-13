@@ -5278,6 +5278,7 @@ REQUEST_PASSWORD_RESET_MUTATION = """
             errors {
                 field
                 message
+                code
             }
         }
     }

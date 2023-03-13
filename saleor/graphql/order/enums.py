@@ -11,7 +11,7 @@ from ...order import (
     OrderStatus,
     error_codes,
 )
-from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD
+from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
 
 
 def order_event_enum_description(enum):
@@ -19,12 +19,12 @@ def order_event_enum_description(enum):
         return "The different order event types. "
     if enum == OrderEventsEnum.TRANSACTION_VOID_REQUESTED:
         return (
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD} "
+            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
             "Use `TRANSACTION_CANCEL_REQUESTED` instead."
         )
     if enum == OrderEventsEnum.TRANSACTION_CAPTURE_REQUESTED:
         return (
-            f"{PREVIEW_FEATURE_DEPRECATED_IN_312_FIELD} "
+            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
             "Use `TRANSACTION_CHARGE_REQUESTED` instead."
         )
     return None
