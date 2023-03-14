@@ -525,13 +525,14 @@ def fetch_checkout_data(
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
+    force_status_update: bool = False,
 ):
     """Fetch checkout data.
 
     This function refreshes prices if they have expired. If the checkout total has
     changed as a result, it will update the payment statuses accordingly.
     """
-    total_gross = checkout_info.checkout.total.gross
+    previous_total_gross = checkout_info.checkout.total.gross
     checkout_info, lines = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
         manager=manager,
@@ -541,7 +542,7 @@ def fetch_checkout_data(
         force_update=force_update,
     )
     current_total_gross = checkout_info.checkout.total.gross
-    if current_total_gross != total_gross:
+    if current_total_gross != previous_total_gross or force_status_update:
         update_checkout_payment_statuses(
             checkout=checkout_info.checkout,
             checkout_total_gross=current_total_gross,

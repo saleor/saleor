@@ -3,6 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....order import OrderAuthorizeStatus, OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionEventStatus, TransactionEventType
@@ -339,6 +340,10 @@ def test_transaction_create_for_checkout_by_app(
     )
 
     # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -1021,6 +1026,9 @@ def test_transaction_create_for_checkout_by_staff(
     )
 
     # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]

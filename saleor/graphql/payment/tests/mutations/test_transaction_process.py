@@ -3,6 +3,7 @@ from decimal import Decimal
 import mock
 
 from .....channel import TransactionFlowStrategy
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....core.prices import quantize_price
 from .....payment import TransactionEventType
 from .....payment.interface import (
@@ -207,6 +208,7 @@ def test_for_checkout_without_data(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -217,6 +219,8 @@ def test_for_checkout_without_data(
         mocked_process=mocked_process,
         charged_value=expected_amount,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
@@ -315,6 +319,7 @@ def test_for_checkout_with_data(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -326,6 +331,8 @@ def test_for_checkout_with_data(
         charged_value=expected_amount,
         data=expected_data,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
@@ -425,6 +432,7 @@ def test_checkout_with_pending_amount(
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
 
     # then
+    checkout.refresh_from_db()
     content = get_graphql_content(response)
     _assert_fields(
         content=content,
@@ -437,6 +445,8 @@ def test_checkout_with_pending_amount(
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")
@@ -535,6 +545,7 @@ def test_checkout_with_action_required_response(
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
 
     # then
+    checkout.refresh_from_db()
     content = get_graphql_content(response)
     _assert_fields(
         content=content,
@@ -545,6 +556,8 @@ def test_checkout_with_action_required_response(
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_process_session")

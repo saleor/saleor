@@ -1668,7 +1668,7 @@ class WebhookPlugin(BasePlugin):
                         gtw for gtw in app_gateways if currency in gtw.currencies
                     ]
                 gateways.extend(app_gateways)
-        currency = currency or checkout.currency if checkout else None
+        currency = checkout.currency if checkout else currency
         if currency:
             webhooks = get_webhooks_for_event(
                 WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION

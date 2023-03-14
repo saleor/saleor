@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Optional, Union, cast, overload
+from typing import Any, Dict, Iterable, Optional, Union, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -15,10 +15,12 @@ from django.utils import timezone
 from ..account.models import User
 from ..app.models import App
 from ..channel import TransactionFlowStrategy
+from ..checkout.actions import transaction_amounts_for_checkout_updated
 from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
+from ..discount import DiscountInfo
 from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.models import Order
@@ -1058,6 +1060,8 @@ def update_order_with_transaction_details(transaction: TransactionItem):
 def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
+    manager: "PluginsManager",
+    discounts: Optional[Iterable["DiscountInfo"]],
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
     request_event_type = "session-request"
@@ -1140,7 +1144,12 @@ def create_transaction_event_for_transaction_session(
                 "psp_reference",
             ]
         )
-        update_order_with_transaction_details(transaction_item)
+        if transaction_item.order_id:
+            update_order_with_transaction_details(transaction_item)
+        elif transaction_item.checkout_id:
+            transaction_amounts_for_checkout_updated(
+                transaction_item, discounts, manager
+            )
     return event
 
 
@@ -1172,7 +1181,13 @@ def create_transaction_event_from_request_and_webhook_response(
 
     transaction_item = request_event.transaction
     recalculate_transaction_amounts(transaction_item)
-    update_order_with_transaction_details(transaction_item)
+
+    if transaction_item.order_id:
+        update_order_with_transaction_details(transaction_item)
+    elif transaction_item.checkout_id:
+        discounts = fetch_active_discounts()
+        manager = get_plugins_manager()
+        transaction_amounts_for_checkout_updated(transaction_item, discounts, manager)
     return event
 
 
@@ -1335,6 +1350,7 @@ def handle_transaction_initialize_session(
     action: str,
     app: App,
     manager: PluginsManager,
+    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     transaction_item = create_transaction_item(
         source_object=source_object, user=None, app=app, psp_reference=None
@@ -1361,7 +1377,11 @@ def handle_transaction_initialize_session(
     data = response.data if response else None
 
     created_event = create_transaction_event_for_transaction_session(
-        request_event, app, data
+        request_event,
+        app,
+        transaction_webhook_response=data,
+        manager=manager,
+        discounts=discounts,
     )
     return created_event.transaction, created_event, data
 
@@ -1374,6 +1394,7 @@ def handle_transaction_process_session(
     app: App,
     manager: PluginsManager,
     request_event: TransactionEvent,
+    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     session_data = TransactionSessionData(
         transaction=transaction_item,
@@ -1391,6 +1412,10 @@ def handle_transaction_process_session(
     data = response.data if response else None
 
     created_event = create_transaction_event_for_transaction_session(
-        request_event, app, data
+        request_event,
+        app,
+        transaction_webhook_response=data,
+        manager=manager,
+        discounts=discounts,
     )
     return created_event, data

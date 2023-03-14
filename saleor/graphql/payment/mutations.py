@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -13,7 +13,11 @@ from ...app.models import App
 from ...channel import TransactionFlowStrategy
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
-from ...checkout.calculations import calculate_checkout_total_with_gift_cards
+from ...checkout.actions import transaction_amounts_for_checkout_updated
+from ...checkout.calculations import (
+    calculate_checkout_total_with_gift_cards,
+    fetch_checkout_data,
+)
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
@@ -101,7 +105,9 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 
 if TYPE_CHECKING:
     from ...account.models import User
+    from ...discount import DiscountInfo
     from ...order.models import Order
+    from ...plugins.manager import PluginsManager
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -1013,6 +1019,12 @@ class TransactionCreate(BaseMutation):
                     "search_vector",
                 ]
             )
+        if transaction_data.get("checkout_id") and money_data:
+            discounts = load_discounts(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
+            transaction_amounts_for_checkout_updated(
+                new_transaction, discounts, manager
+            )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
@@ -1097,6 +1109,7 @@ class TransactionUpdate(TransactionCreate):
         transaction_data: dict,
         user: Optional["User"],
         app: Optional["App"],
+        info: ResolveInfo,
     ):
         money_data = cls.get_money_data_from_input(transaction_data)
         psp_reference = transaction_data.get(
@@ -1128,6 +1141,10 @@ class TransactionUpdate(TransactionCreate):
         if instance.order_id:
             order = cast(order_models.Order, instance.order)
             cls.update_order(order, money_data, psp_reference)
+        if instance.checkout_id and money_data:
+            discounts = load_discounts(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
+            transaction_amounts_for_checkout_updated(instance, discounts, manager)
 
     @classmethod
     def update_order(
@@ -1177,7 +1194,7 @@ class TransactionUpdate(TransactionCreate):
         if transaction:
             cls.validate_transaction_input(instance, transaction)
             cls.cleanup_metadata_data(transaction)
-            cls.update_transaction(instance, transaction, user, app)
+            cls.update_transaction(instance, transaction, user, app, info)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, instance, user, app)
@@ -1502,6 +1519,12 @@ class TransactionEventReport(ModelMutation):
                         "search_vector",
                     ]
                 )
+            if transaction.checkout_id:
+                discounts = load_discounts(info.context)
+                manager = get_plugin_manager_promise(info.context).get()
+                transaction_amounts_for_checkout_updated(
+                    transaction, discounts, manager
+                )
 
         return cls(
             already_processed=already_processed,
@@ -1535,7 +1558,13 @@ class TransactionSessionBase(BaseMutation):
 
     @classmethod
     def clean_source_object(
-        cls, info, id, incorrect_type_error_code: str, not_found_error: str
+        cls,
+        info,
+        id,
+        incorrect_type_error_code: str,
+        not_found_error: str,
+        manager: "PluginsManager",
+        discounts: Optional[Iterable["DiscountInfo"]],
     ) -> Union[checkout_models.Checkout, order_models.Order]:
         source_object_type, source_object_id = from_global_id_or_error(
             id, raise_error=False
@@ -1560,6 +1589,16 @@ class TransactionSessionBase(BaseMutation):
                 .filter(pk=source_object_id)
                 .first()
             )
+            if source_object:
+                lines, _ = fetch_checkout_lines(source_object)
+                discounts = discounts or []
+                checkout_info = fetch_checkout_info(
+                    source_object, lines, discounts, manager
+                )
+                checkout_info, _ = fetch_checkout_data(
+                    checkout_info, manager, lines, discounts=discounts
+                )
+                source_object = checkout_info.checkout
         else:
             source_object = (
                 order_models.Order.objects.select_related("channel")
@@ -1684,13 +1723,16 @@ class PaymentGatewayInitialize(TransactionSessionBase):
 
     @classmethod
     def perform_mutation(cls, root, info, *, id, amount=None, payment_gateways=None):
+        discounts = load_discounts(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         source_object = cls.clean_source_object(
             info,
             id,
             PaymentGatewayInitializeErrorCode.INVALID.value,
             PaymentGatewayInitializeErrorCode.NOT_FOUND.value,
+            discounts=discounts,
+            manager=manager,
         )
-        manager = get_plugin_manager_promise(info.context).get()
         payment_gateways_data = []
         if payment_gateways:
             payment_gateways_data = [
@@ -1784,6 +1826,8 @@ class TransactionInitialize(TransactionSessionBase):
     def perform_mutation(
         cls, root, info, *, id, payment_gateway, amount=None, action=None
     ):
+        discounts = load_discounts(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(
             app_identifier=payment_gateway["id"], data=payment_gateway.get("data")
         )
@@ -1792,11 +1836,16 @@ class TransactionInitialize(TransactionSessionBase):
             id,
             TransactionInitializeErrorCode.INVALID.value,
             TransactionInitializeErrorCode.NOT_FOUND.value,
+            discounts=discounts,
+            manager=manager,
         )
         action = cls.clean_action(info, action, source_object.channel)
-        amount = cls.get_amount(source_object, amount)
+
+        amount = cls.get_amount(
+            source_object,
+            amount,
+        )
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
-        manager = get_plugin_manager_promise(info.context).get()
         transaction, event, data = handle_transaction_initialize_session(
             source_object=source_object,
             payment_gateway=payment_gateway_data,
@@ -1804,6 +1853,7 @@ class TransactionInitialize(TransactionSessionBase):
             action=action,
             app=app,
             manager=manager,
+            discounts=discounts,
         )
         return cls(transaction=transaction, transaction_event=event, data=data)
 
@@ -1949,6 +1999,7 @@ class TransactionProcess(BaseMutation):
         app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,
             source_object=source_object,
@@ -1959,6 +2010,7 @@ class TransactionProcess(BaseMutation):
             action=action,
             manager=manager,
             request_event=request_event,
+            discounts=discounts,
         )
 
         transaction_item.refresh_from_db()
