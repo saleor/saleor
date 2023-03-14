@@ -25,6 +25,7 @@ class AccountErrorCode(Enum):
     PASSWORD_TOO_COMMON = "password_too_common"
     PASSWORD_TOO_SHORT = "password_too_short"
     PASSWORD_TOO_SIMILAR = "password_too_similar"
+    PASSWORD_RESET_ALREADY_REQUESTED = "password_reset_already_requested"
     REQUIRED = "required"
     UNIQUE = "unique"
     JWT_SIGNATURE_EXPIRED = "signature_has_expired"
