@@ -1,4 +1,5 @@
 import copy
+from datetime import timedelta
 from decimal import Decimal
 
 import graphene
@@ -7,9 +8,11 @@ from django.utils import timezone
 
 from .....account.models import Address
 from .....order import OrderOrigin, OrderStatus
+from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import Order, OrderEvent, OrderLine
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
+from ...bulk_mutations.order_bulk_create import MINUTES_DIFF
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
@@ -168,7 +171,7 @@ def order_bulk_input(
             "gross": 120,
             "net": 100,
         },
-        "shippingTaxRate": 20,
+        "shippingTaxRate": 0.2,
     }
     line = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
@@ -189,7 +192,7 @@ def order_bulk_input(
             "gross": 120,
             "net": 100,
         },
-        "taxRate": 20,
+        "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
     }
@@ -259,13 +262,12 @@ def test_order_bulk_create(
     assert not order["collectionPointName"]
     assert order["shippingMethodName"] == shipping_method_channel_PLN.name
     assert order["shippingTaxClassName"] == default_tax_class.name
-    # assert order["shippingTaxRate"] == 20 TypeError: 'OrderLinesByOrderIdLoader'
-    # assert order["shippingPrice"]["gross"]["amount"] == 120
-    # assert order["shippingPrice"]["net"]["amount"] == 100
-    # assert order["total"]["gross"]["amount"] == 120
-    # assert order["total"]["net"]["amount"] == 100
-    # assert order["undiscountedTotal"]["gross"]["amount"] == 120
-    # assert order["undiscountedTotal"]["net"]["amount"] == 100
+    assert order["shippingPrice"]["gross"]["amount"] == 120
+    assert order["shippingPrice"]["net"]["amount"] == 100
+    assert order["total"]["gross"]["amount"] == 120
+    assert order["total"]["net"]["amount"] == 100
+    assert order["undiscountedTotal"]["gross"]["amount"] == 120
+    assert order["undiscountedTotal"]["net"]["amount"] == 100
     assert order["redirectUrl"] == "https://www.example.com"
     assert order["origin"] == OrderOrigin.BULK_CREATE.upper()
     assert order["weight"]["value"] == 10.15
@@ -284,13 +286,13 @@ def test_order_bulk_create(
     assert db_order.shipping_method_name == shipping_method_channel_PLN.name
     assert db_order.shipping_tax_class == default_tax_class
     assert db_order.shipping_tax_class_name == default_tax_class.name
-    # assert db_order.shipping_tax_rate == 20  # TypeError: 'OrderLinesByOrderIdLoader'
-    # assert db_order.shipping_price_gross_amount == 120
-    # assert db_order.shipping_price_net_amount == 100
-    # assert db_order.total_gross_amount == 120
-    # assert db_order.total_net_amount == 100
-    # assert db_order.undiscounted_total_gross_amount == 120
-    # assert db_order.undiscounted_total_net_amount == 100
+    assert db_order.shipping_tax_rate == 0.2
+    assert db_order.shipping_price_gross_amount == 120
+    assert db_order.shipping_price_net_amount == 100
+    assert db_order.total_gross_amount == 120
+    assert db_order.total_net_amount == 100
+    assert db_order.undiscounted_total_gross_amount == 120
+    assert db_order.undiscounted_total_net_amount == 100
     assert db_order.redirect_url == "https://www.example.com"
     assert db_order.origin == OrderOrigin.BULK_CREATE
     assert db_order.weight.g == 10.15 * 1000
@@ -309,8 +311,8 @@ def test_order_bulk_create(
     assert line["isShippingRequired"]
     assert line["quantity"] == 5
     assert line["quantityFulfilled"] == 0
-    # assert line["unitPrice"]["gross"]["amount"] == Decimal(120/5)
-    # assert line["unitPrice"]["net"]["amount"] == Decimal(100/5)
+    assert line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
     assert line["taxClass"]["id"] == graphene.Node.to_global_id(
         "TaxClass", default_tax_class.id
     )
@@ -324,8 +326,8 @@ def test_order_bulk_create(
     assert db_line.is_shipping_required
     assert db_line.quantity == 5
     assert db_line.quantity_fulfilled == 0
-    # assert db_line.unit_price.gross.amount == Decimal(120/5)
-    # assert db_line.unit_price.net.amount == Decimal(100/5)
+    assert db_line.unit_price.gross.amount == Decimal(120 / 5)
+    assert db_line.unit_price.net.amount == Decimal(100 / 5)
     assert db_line.tax_class == default_tax_class
     assert db_line.tax_class_name == "Line Tax Class Name"
     assert db_line.currency == "PLN"
@@ -338,7 +340,7 @@ def test_order_bulk_create(
 
     note = order["events"][0]
     assert note["message"] == "Test message"
-    # assert note["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
+    assert note["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert not note["app"]
     db_event = OrderEvent.objects.get()
     assert db_event.parameters["message"] == "Test message"
@@ -419,3 +421,428 @@ def test_order_bulk_create_error_policy(
 
     # then
     assert Order.objects.count() == orders_count + expected_order_count
+
+
+def test_order_bulk_create_error_negative_weight(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["weight"] = -5
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Product can't have negative weight."
+    assert error["field"] == "weight"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_future_date(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["createdAt"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Order input contains future date."
+    assert error["field"] == "createdAt"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_invalid_redirect_url(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["redirectUrl"] = "www.invalid-url.com"
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "Invalid redirect url: Invalid URL. "
+        "Please check if URL is in RFC 1808 format.."
+    )
+    assert error["field"] == "redirectUrl"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_invalid_address(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["billingAddress"] = {"firstName": "John"}
+    order["shippingAddress"] = {"postalCode": "abc-123"}
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error_1 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error_1["message"] == "Invalid billing address."
+    assert error_1["field"] == "billingAddress"
+    assert error_1["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    error_2 = content["data"]["orderBulkCreate"]["results"][0]["errors"][1]
+    assert error_2["message"] == "Invalid shipping address."
+    assert error_2["field"] == "shippingAddress"
+    assert error_2["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_order_calculations(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    assert True
+
+
+def test_order_bulk_create_no_shipping_method_price(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["deliveryMethod"]["shippingPrice"] = None
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+    assert Order.objects.count() == orders_count + 1
+
+
+def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehouse(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+    warehouse,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["deliveryMethod"]["warehouseId"] = graphene.Node.to_global_id(
+        "Warehouse", warehouse.id
+    )
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "Can't provide both warehouse and shipping method IDs"
+        " in deliveryMethod field."
+    )
+    assert error["field"] == "deliveryMethod"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_warehouse_delivery_method(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+    warehouse,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["deliveryMethod"]["warehouseId"] = graphene.Node.to_global_id(
+        "Warehouse", warehouse.id
+    )
+    order["deliveryMethod"]["shippingMethodId"] = None
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert order["collectionPointName"] == warehouse.name
+    assert not order["shippingMethodName"]
+
+    db_order = Order.objects.get()
+    assert db_order.collection_point == warehouse
+    assert db_order.collection_point_name == warehouse.name
+    assert not db_order.shipping_method
+    assert not db_order.shipping_method_name
+
+    assert Order.objects.count() == orders_count + 1
+
+
+def test_order_bulk_create_error_no_delivery_method_provided(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["deliveryMethod"]["shippingMethodId"] = None
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "No delivery method provided."
+    assert error["field"] == "deliveryMethod"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_note_with_future_date(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["notes"][0]["date"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Note input contains future date."
+    assert error["field"] == "date"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_non_existing_variant(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["variantId"] = None
+    order["lines"][0]["variantSku"] = "non-existing-sku"
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+    assert errors[0]["message"] == "At least one order line can't be created."
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert (
+        errors[1]["message"]
+        == "ProductVariant instance with sku=non-existing-sku doesn't exist."
+    )
+    assert not errors[1]["field"]
+    assert not errors[1]["code"]
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_user_not_found(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["user"]["email"] = "non-existing-user@example.com"
+    order["user"]["id"] = None
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"]
+        == "User instance with email=non-existing-user@example.com doesn't exist."
+    )
+    assert not error["field"]
+    assert not error["code"]
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_get_instance_with_multiple_keys(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["user"]["email"] = "non-existing-user@example.com"
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "Only one of [id, email, external_reference] arguments"
+        " can be provided to resolve User instance."
+    )
+    assert not error["field"]
+    assert not error["code"]
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_get_instance_with_no_keys(
+    staff_api_client,
+    permission_manage_orders,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["user"]["id"] = None
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "One of [id, email, external_reference] arguments"
+        " must be provided to resolve User instance."
+    )
+    assert not error["field"]
+    assert not error["code"]
+
+    assert Order.objects.count() == orders_count
