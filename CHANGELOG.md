@@ -15,6 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add `requiredSaleorVersion` validation to `appInstall` and `appFetchManifest` mutations
 
 ### Other changes
+- Create order discounts for all voucher types - #12272 by @IKarbowiak
 
 ### Saleor Apps
 
