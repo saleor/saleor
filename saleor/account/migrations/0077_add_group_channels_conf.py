@@ -20,4 +20,11 @@ class Migration(migrations.Migration):
             name="restricted_access_to_channels",
             field=models.BooleanField(default=False),
         ),
+        migrations.RunSQL(
+            """
+                ALTER TABLE account_group
+                ALTER COLUMN restricted_access_to_channels
+                SET DEFAULT false;
+            """
+        ),
     ]
