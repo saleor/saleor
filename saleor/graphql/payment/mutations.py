@@ -838,7 +838,7 @@ class TransactionCreate(BaseMutation):
             )
         if (
             order.channel.automatically_confirm_all_new_orders
-            and order.status is OrderStatus.UNCONFIRMED
+            and order.status == OrderStatus.UNCONFIRMED
         ):
             updated_fields["status"] = OrderStatus.UNFULFILLED
         Order.objects.filter(id=order_id).update(**updated_fields)

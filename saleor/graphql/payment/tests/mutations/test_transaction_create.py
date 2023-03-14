@@ -3,7 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from .....order import OrderEvents
+from .....order import OrderEvents, OrderStatus
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionStatus
 from .....payment.error_codes import TransactionCreateErrorCode
@@ -678,3 +678,55 @@ def test_creates_transaction_event_for_checkout(
     assert event.name == event_name
     assert event.status == event_status
     assert event.reference == event_reference
+
+
+def test_creates_transaction_automatically_confirm(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    order_with_lines.status = OrderStatus.UNCONFIRMED
+    order_with_lines.save()
+    order_with_lines.channel.automatically_confirm_all_new_orders = True
+    order_with_lines.channel.save()
+
+    status = "Failed authorized for 10$"
+    type = "Credit Card"
+    reference = "PSP reference - 123"
+    available_actions = []
+    authorized_value = Decimal("0")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    event_reference = "PSP-ref"
+    event_name = "Test"
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "reference": reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+        "transaction_event": {
+            "status": TransactionStatusEnum.SUCCESS.name,
+            "reference": event_reference,
+            "name": event_name,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+
+    order_with_lines.refresh_from_db()
+    assert order_with_lines.status == OrderStatus.UNFULFILLED
