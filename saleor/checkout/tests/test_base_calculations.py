@@ -749,11 +749,15 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
     manager = get_plugins_manager()
     channel = checkout_with_item.channel
     currency = checkout_with_item.currency
-    discount_amount = Money(5, currency)
+
     checkout_with_item.shipping_method = shipping_method
+    # only line vouchers are applied on based price so this discount won't be included
+    # in base price
+    discount_amount = Money(5, currency)
     checkout_with_item.voucher_code = voucher_percentage.code
     checkout_with_item.discount = discount_amount
     checkout_with_item.save()
+
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
 
@@ -768,23 +772,30 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
     expected_price = (
         net * checkout_with_item.lines.first().quantity
         + shipping_channel_listings.price
-        - discount_amount
     )
     assert total == expected_price
 
 
-def test_base_checkout_total_high_discount_on_entire_order(
+def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
     checkout_with_item, shipping_method, voucher_percentage
 ):
     # given
-    manager = get_plugins_manager()
-    currency = checkout_with_item.currency
+    voucher_percentage.apply_once_per_order = True
+    voucher_percentage.save(update_fields=["apply_once_per_order"])
 
-    discount_amount = Money(100, currency)
+    voucher_channel_listing = voucher_percentage.channel_listings.first()
+    voucher_channel_listing.discount_value = 100
+    voucher_channel_listing.save(update_fields=["discount_value"])
+
+    manager = get_plugins_manager()
+
     checkout_with_item.shipping_method = shipping_method
     checkout_with_item.voucher_code = voucher_percentage.code
-    checkout_with_item.discount = discount_amount
-    checkout_with_item.save()
+    checkout_with_item.save(update_fields=["shipping_method", "voucher_code"])
+
+    line = checkout_with_item.lines.first()
+    line.quantity = 1
+    line.save(update_fields=["quantity"])
 
     shipping_price = shipping_method.channel_listings.get(
         channel=checkout_with_item.channel

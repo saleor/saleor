@@ -10,7 +10,11 @@ from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum, TransactionEventStatusEnum
+from ...enums import (
+    TransactionActionEnum,
+    TransactionEventStatusEnum,
+    TransactionEventTypeEnum,
+)
 
 TEST_SERVER_DOMAIN = "testserver.com"
 
@@ -485,7 +489,6 @@ def test_transaction_create_create_event_for_order_by_app(
         TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
-    transaction_status = "PENDING"
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
@@ -502,7 +505,6 @@ def test_transaction_create_create_event_for_order_by_app(
             },
         },
         "transaction_event": {
-            "status": transaction_status,
             "pspReference": transaction_reference,
             "message": transaction_name,
         },
@@ -521,7 +523,7 @@ def test_transaction_create_create_event_for_order_by_app(
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
-        "status": transaction_status.lower(),
+        "status": None,
     }
 
 
@@ -712,7 +714,6 @@ def test_creates_transaction_event_for_order_by_app(
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
-    event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_message = "Failed authorization"
     event_name = "Depreceated field attached to message."
@@ -731,7 +732,6 @@ def test_creates_transaction_event_for_order_by_app(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "message": event_message,
             "name": event_name,
@@ -753,7 +753,6 @@ def test_creates_transaction_event_for_order_by_app(
     event_data = events_data[0]
     assert event_data["message"] == event_message + " " + event_name
     assert event_data["name"] == event_message + " " + event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == ""
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
@@ -761,7 +760,7 @@ def test_creates_transaction_event_for_order_by_app(
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_message + " " + event_name
-    assert event.status == event_status
+    assert event.status is None
     assert event.psp_reference == event_psp_reference
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
@@ -783,7 +782,6 @@ def test_creates_transaction_event_for_checkout_by_app(
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
-    event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
     event_name = "Failed authorization"
 
@@ -802,7 +800,6 @@ def test_creates_transaction_event_for_checkout_by_app(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
             "name": event_name,
         },
@@ -823,14 +820,12 @@ def test_creates_transaction_event_for_checkout_by_app(
     event_data = events_data[0]
     assert event_data["message"] == event_name
     assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
     assert event.message == event_name
-    assert event.status == event_status
     assert event.psp_reference == event_psp_reference
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
@@ -1445,6 +1440,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
+    assert event_data["type"] == TransactionEventTypeEnum.INFO.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
@@ -1454,6 +1450,7 @@ def test_creates_transaction_event_for_order_by_staff(
     assert event.user == staff_api_client.user
     assert event.app_identifier is None
     assert event.app is None
+    assert event.type == TransactionEventType.INFO
 
 
 def test_creates_transaction_event_for_checkout_by_staff(
@@ -1516,6 +1513,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event_data["status"] == TransactionEventStatusEnum.SUCCESS.name
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
+    assert event_data["type"] == TransactionEventTypeEnum.INFO.name
 
     assert transaction.events.count() == 2
     event = transaction.events.exclude(
@@ -1527,6 +1525,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     assert event.user == staff_api_client.user
     assert event.app_identifier is None
     assert event.app is None
+    assert event.type == TransactionEventType.INFO
 
 
 def test_transaction_create_external_url_incorrect_url_format_by_app(

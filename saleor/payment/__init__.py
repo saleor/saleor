@@ -150,7 +150,7 @@ class TransactionAction:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
     VOID - Represents a void action. This field will be removed
-    in Saleor 3.13 (Preview Feature). Use `CANCEL` instead.
+    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
     CANCEL - Represents a cancel action. Added in Saleor 3.12.
     """
 
@@ -192,6 +192,7 @@ class TransactionEventType:
     CANCEL_SUCCESS - represents success cancel.
     CANCEL_FAILURE - represents failure cancel.
     CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
     """
 
     AUTHORIZATION_SUCCESS = "authorization_success"
@@ -211,6 +212,7 @@ class TransactionEventType:
     CANCEL_SUCCESS = "cancel_success"
     CANCEL_FAILURE = "cancel_failure"
     CANCEL_REQUEST = "cancel_request"
+    INFO = "info"
 
     CHOICES = [
         (AUTHORIZATION_SUCCESS, "Represents success authorization"),
@@ -233,6 +235,7 @@ class TransactionEventType:
         (CANCEL_SUCCESS, "Represents success cancel"),
         (CANCEL_FAILURE, "Represents failure cancel"),
         (CANCEL_REQUEST, "Represents cancel request"),
+        (INFO, "Represents an info event"),
     ]
 
 
