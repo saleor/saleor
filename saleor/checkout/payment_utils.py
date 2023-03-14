@@ -77,4 +77,6 @@ def update_checkout_payment_statuses(
     )
     _update_charge_status(checkout, checkout_total_gross, total_charged_amount)
     if save:
-        checkout.save(update_fields=["authorize_status", "charge_status"])
+        checkout.save(
+            update_fields=["authorize_status", "charge_status", "last_change"]
+        )

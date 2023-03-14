@@ -8,6 +8,7 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
 )
+from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_money, zero_taxed_money
 from ...permission.enums import (
@@ -78,7 +79,6 @@ from .utils import prevent_sync_event_circular_query
 
 if TYPE_CHECKING:
     from ...account.models import Address
-    from ...checkout.calculations import fetch_checkout_data
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...discount import DiscountInfo
     from ...plugins.manager import PluginsManager
@@ -876,7 +876,12 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
         return item_type
 
-    def resolve_authorize_status(self, root: models.Checkout, info):
+    @classmethod
+    def resolve_updated_at(cls, root: models.Checkout, _info):
+        return root.last_change
+
+    @classmethod
+    def resolve_authorize_status(cls, root: models.Checkout, info):
         def _resolve_authorize_status(data):
             address, lines, checkout_info, discounts, manager, transactions = data
             fetch_checkout_data(
@@ -895,7 +900,8 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
         return Promise.all(dataloaders).then(_resolve_authorize_status)
 
-    def resolve_charge_status(self, root: models.Checkout, info):
+    @classmethod
+    def resolve_charge_status(cls, root: models.Checkout, info):
         def _resolve_charge_status(data):
             address, lines, checkout_info, discounts, manager, transactions = data
             fetch_checkout_data(
@@ -925,16 +931,12 @@ class Checkout(ModelObjectType[models.Checkout]):
                 address=address,
                 discounts=discounts,
             )
-            order_total = max(taxed_total, zero_taxed_money(root.currency))
+            checkout_total = max(taxed_total, zero_taxed_money(root.currency))
             total_charged = zero_money(root.currency)
-            total_refunded = zero_money(root.currency)
             for transaction in transactions:
                 total_charged += transaction.amount_charged
                 total_charged += transaction.amount_charge_pending
-                total_refunded += transaction.amount_refunded
-                total_refunded += transaction.amount_refund_pending
-            charged_refunded_difference = total_charged - total_refunded
-            return charged_refunded_difference - order_total.gross
+            return total_charged - checkout_total.gross
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
         dataloaders.append(
