@@ -77,7 +77,7 @@ from .base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
 )
-from .calculations import fetch_checkout_prices_if_expired
+from .calculations import fetch_checkout_data
 from .checkout_cleaner import (
     _validate_gift_cards,
     clean_checkout_payment,
@@ -807,7 +807,7 @@ def complete_checkout_pre_payment_part(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_prices_if_expired(checkout_info, manager, lines, discounts=discounts)
+    fetch_checkout_data(checkout_info, manager, lines, discounts=discounts)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug

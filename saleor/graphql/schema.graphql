@@ -9062,7 +9062,10 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   metafields(keys: [String!]): Metadata
   created: DateTime!
-  lastChange: DateTime!
+
+  """Time of last modification of the given checkout."""
+  updatedAt: DateTime!
+  lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
   user: User
   channel: Channel!
   billingAddress: Address
@@ -9150,6 +9153,15 @@ type Checkout implements Node & ObjectWithMetadata {
   """
   totalPrice: TaxedMoney!
 
+  """
+  The difference between the paid and the checkout total amount.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  totalBalance: Money!
+
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
 
@@ -9170,6 +9182,24 @@ type Checkout implements Node & ObjectWithMetadata {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
+
+  """
+  The authorize status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  authorizeStatus: CheckoutAuthorizeStatusEnum!
+
+  """
+  The charge status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  chargeStatus: CheckoutChargeStatusEnum!
 }
 
 """
@@ -11171,6 +11201,49 @@ enum TransactionEventTypeEnum {
 
 union UserOrApp = User | App
 
+"""
+Determine a current authorize status for checkout.
+
+    We treat the checkout as fully authorized when the sum of authorized and charged
+    funds cover the checkout.total.
+    We treat the checkout as partially authorized when the sum of authorized and charged
+    funds covers only part of the checkout.total
+    We treat the checkout as not authorized when the sum of authorized and charged funds
+    is 0.
+
+    NONE - the funds are not authorized
+    PARTIAL - the cover funds don't cover fully the checkout's total
+    FULL - the cover funds covers the checkout's total
+"""
+enum CheckoutAuthorizeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+}
+
+"""
+Determine the current charge status for the checkout.
+
+    The checkout is considered overcharged when the sum of the transactionItem's charge
+    amounts exceeds the value of `checkout.total`.
+    If the sum of the transactionItem's charge amounts equals
+    `checkout.total`, we consider the checkout to be fully charged.
+    If the sum of the transactionItem's charge amounts covers a part of the
+    `checkout.total`, we treat the checkout as partially charged.
+
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the checkout's total
+    FULL - the funds that are charged fully cover the checkout's total
+    OVERCHARGED - the charged funds are bigger than checkout's total
+"""
+enum CheckoutChargeStatusEnum {
+  NONE
+  PARTIAL
+  FULL
+  OVERCHARGED
+}
+
 type CheckoutCountableConnection {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
@@ -12308,6 +12381,9 @@ input CheckoutFilterInput {
   search: String
   metadata: [MetadataFilter!]
   channels: [ID!]
+  updatedAt: DateRangeInput
+  authorizeStatus: [CheckoutAuthorizeStatusEnum!]
+  chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
 type CheckoutLineCountableConnection {

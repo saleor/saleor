@@ -187,7 +187,7 @@ def test_get_taxes_for_order_with_sync_subscription(
 
 
 @freeze_time()
-@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
+@mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request,
