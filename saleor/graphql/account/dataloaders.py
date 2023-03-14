@@ -83,20 +83,20 @@ class PermissionByCodenameLoader(DataLoader):
         return [permission_map.get(codename) for codename in keys]
 
 
-class AccessibleChannelsMixin:
-    @classmethod
-    def get_group_to_channels_map(cls, db_connection_name, group_ids):
+class BaseAccessibleChannels(DataLoader):
+    abstract = True
+
+    def get_group_to_channels_map(self, group_ids):
         groups_with_no_channel_restriction = Group.objects.using(
-            db_connection_name
+            self.database_connection_name
         ).filter(id__in=group_ids, restricted_access_to_channels=False)
         groups_with_channel_restriction = Group.objects.using(
-            db_connection_name
+            self.database_connection_name
         ).filter(id__in=group_ids, restricted_access_to_channels=True)
 
         group_to_channels: DefaultDict[int, List["Channel"]] = defaultdict(list)
         if groups_with_channel_restriction:
-            group_to_channels = cls.get_group_channels(
-                db_connection_name,
+            group_to_channels = self.get_group_channels(
                 groups_with_channel_restriction.values("id"),
                 group_to_channels,
             )
@@ -110,11 +110,10 @@ class AccessibleChannelsMixin:
 
         return group_to_channels
 
-    @classmethod
-    def get_group_channels(cls, db_connection_name, group_ids, group_to_channels):
+    def get_group_channels(self, group_ids, group_to_channels):
         GroupChannels = Group.channels.through
         group_channels = GroupChannels.objects.filter(group_id__in=group_ids)
-        channels_in_bulk = Channel.objects.using(db_connection_name).in_bulk(
+        channels_in_bulk = Channel.objects.using(self.database_connection_name).in_bulk(
             group_channels.values_list("channel_id", flat=True)
         )
 
@@ -126,17 +125,15 @@ class AccessibleChannelsMixin:
         return group_to_channels
 
 
-class AccessibleChannelsByGroupIdLoader(DataLoader, AccessibleChannelsMixin):
+class AccessibleChannelsByGroupIdLoader(BaseAccessibleChannels):
     context_key = "accessiblechannels_by_group"
 
     def batch_load(self, keys):
-        group_to_channels = self.get_group_to_channels_map(
-            self.database_connection_name, keys
-        )
+        group_to_channels = self.get_group_to_channels_map(keys)
         return [group_to_channels.get(group_id, []) for group_id in keys]
 
 
-class AccessibleChannelsByUserIdLoader(DataLoader, AccessibleChannelsMixin):
+class AccessibleChannelsByUserIdLoader(BaseAccessibleChannels):
     context_key = "accessiblechannels_by_user"
 
     def batch_load(self, keys):
@@ -149,7 +146,7 @@ class AccessibleChannelsByUserIdLoader(DataLoader, AccessibleChannelsMixin):
         )
 
         group_to_channels = self.get_group_to_channels_map(
-            self.database_connection_name, groups.values_list("id", flat=True)
+            groups.values_list("id", flat=True)
         )
 
         user_to_channels: DefaultDict[int, Set["Channel"]] = defaultdict(set)

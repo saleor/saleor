@@ -331,7 +331,10 @@ class User(ModelObjectType[models.User]):
     )
     restricted_access_to_channels = graphene.Boolean(
         required=True,
-        description="Determine if user have restricted access to channels."
+        description=(
+            "Determine if user have restricted access to channels. False if at least "
+            "one user group has `restrictedAccessToChannels` set to False."
+        )
         + ADDED_IN_313
         + PREVIEW_FEATURE,
     )

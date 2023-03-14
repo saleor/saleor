@@ -8867,7 +8867,7 @@ type User implements Node & ObjectWithMetadata {
   accessibleChannels: [Channel!]
 
   """
-  Determine if user have restricted access to channels.
+  Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
   
   Added in Saleor 3.13.
   
