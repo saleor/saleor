@@ -67,6 +67,6 @@ def new_get_by_natural_key(self, domain):
 
 
 def patch_contrib_sites():
-    SiteManager.get_current = new_get_current  # type: ignore[assignment] # hack
-    SiteManager.clear_cache = new_clear_cache  # type: ignore[assignment] # hack
-    SiteManager.get_by_natural_key = new_get_by_natural_key  # type: ignore[assignment] # hack # noqa: E501
+    SiteManager.get_current = new_get_current  # type: ignore[method-assign] # hack
+    SiteManager.clear_cache = new_clear_cache  # type: ignore[method-assign] # hack
+    SiteManager.get_by_natural_key = new_get_by_natural_key  # type: ignore[method-assign] # hack # noqa: E501
