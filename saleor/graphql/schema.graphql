@@ -22271,6 +22271,7 @@ type OrderBulkCreateError {
 enum OrderBulkCreateErrorCode {
   GRAPHQL_ERROR
   REQUIRED
+  INVALID
 }
 
 input OrderBulkCreateInput {
@@ -22457,7 +22458,7 @@ input OrderBulkCreateDeliveryMethodInput {
   shippingPrice: TaxedMoneyInput
 
   """Tax rate of the shipping."""
-  shippingTaxRate: Float
+  shippingTaxRate: PositiveDecimal
 
   """The ID of the tax class."""
   shippingTaxClassId: ID

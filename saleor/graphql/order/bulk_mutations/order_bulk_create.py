@@ -13,6 +13,7 @@ from ....channel.models import Channel
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....order import OrderEvents, OrderOrigin
+from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
@@ -40,7 +41,8 @@ MAX_ORDERS = 50
 @dataclass
 class OrderBulkError:
     message: str
-    code: Optional[str] = None
+    code: Optional[OrderBulkCreateErrorCode] = None
+    field: Optional[str] = None
 
 
 @dataclass
@@ -105,7 +107,7 @@ class OrderAmounts:
     total_net: Decimal
     undiscounted_total_gross: Decimal
     undiscounted_total_net: Decimal
-    shipping_tax_rate: int
+    shipping_tax_rate: Decimal
 
 
 class TaxedMoneyInput(graphene.InputObjectType):
@@ -131,7 +133,7 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
     shipping_price = graphene.Field(
         TaxedMoneyInput, description="The price of the shipping."
     )
-    shipping_tax_rate = graphene.Float(description="Tax rate of the shipping.")
+    shipping_tax_rate = PositiveDecimal(description="Tax rate of the shipping.")
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
 
@@ -336,18 +338,34 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def validate_order_input(cls, order_input, errors: List[OrderBulkError]):
         weight = order_input.get("weight")
         if weight and weight.value < 0:
-            errors.append(OrderBulkError(message="Product can't have negative weight."))
+            errors.append(
+                OrderBulkError(
+                    message="Product can't have negative weight.",
+                    field="weight",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
 
         date = order_input.get("created_at")
         if date and not cls.is_datetime_valid(date):
-            errors.append(OrderBulkError(message="Order input contains future date."))
+            errors.append(
+                OrderBulkError(
+                    message="Order input contains future date.",
+                    field="createdAt",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
 
         if redirect_url := order_input.get("redirect_url"):
             try:
                 validate_storefront_url(redirect_url)
             except ValidationError as err:
                 errors.append(
-                    OrderBulkError(message=f"Invalid redirect url: {err.message}.")
+                    OrderBulkError(
+                        message=f"Invalid redirect url: {err.message}.",
+                        field="redirectUrl",
+                        code=OrderBulkCreateErrorCode.INVALID,
+                    )
                 )
 
         # TODO validate status (wait for fulfillments)
@@ -420,10 +438,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         billing_address_input = order_input["billing_address"]
         try:
             billing_address = cls.validate_address(billing_address_input)
-        except Exception as err:
+        except Exception:
             errors.append(
                 OrderBulkError(
-                    message=f'Billing address error: {getattr(err, "message", "")}'
+                    message="Invalid billing address.",
+                    field="billingAddress",
+                    code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
 
@@ -431,10 +451,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if shipping_address_input := order_input.get("shipping_address"):
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
-            except Exception as err:
+            except Exception:
                 errors.append(
                     OrderBulkError(
-                        message=f'Shipping address error: {getattr(err, "message", "")}'
+                        message="Invalid shipping address.",
+                        field="shippingAddress",
+                        code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
 
@@ -462,7 +484,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # calculate shipping amounts
         shipping_price_net_amount = Decimal(0)
         shipping_price_gross_amount = Decimal(0)
-        shipping_price_tax_rate = delivery_input.get("shipping_tax_rate", 0)
+        shipping_price_tax_rate = Decimal(delivery_input.get("shipping_tax_rate", 0))
 
         if delivery_method.shipping_method:
             if shipping_price := delivery_input.get("shipping_price"):
@@ -486,7 +508,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 if db_price_amount:
                     shipping_price_net_amount = Decimal(db_price_amount)
                     shipping_price_gross_amount = Decimal(
-                        shipping_price_net_amount * shipping_price_tax_rate / 100
+                        shipping_price_net_amount * (1 + shipping_price_tax_rate)
                     )
 
         # calculate lines
@@ -522,7 +544,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Can't provide both warehouse and shipping method IDs "
-                    "in deliveryMethod field."
+                    "in deliveryMethod field.",
+                    field="deliveryMethod",
+                    code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
 
@@ -553,7 +577,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         delivery_method = None
         if not warehouse and not shipping_method:
-            errors.append(OrderBulkError(message="No delivery method provided."))
+            errors.append(
+                OrderBulkError(
+                    message="No delivery method provided.",
+                    field="deliveryMethod",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
         else:
             delivery_method = DeliveryMethod(
                 warehouse=warehouse,
@@ -570,7 +600,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         errors: List[OrderBulkError] = []
         date = note_input.get("date")
         if date and not cls.is_datetime_valid(date):
-            errors.append(OrderBulkError(message="Note input contains future date."))
+            errors.append(
+                OrderBulkError(
+                    message="Note input contains future date.",
+                    field="date",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
             date = None
 
         user, app = None, None
@@ -651,7 +687,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_line_net_amount = order_line_input["total_price"]["net"]
         order_line_quantity = order_line_input["quantity"]
 
-        # TODO take into account quantity / fulfilled
         order_line_unit_price_net_amount = Decimal(
             order_line_net_amount / order_line_quantity
         )
@@ -717,8 +752,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
         if not all([line.line for line in order_lines_with_errors]):
-            errors.append(OrderBulkError("At least one order line can't be created."))
-            return OrderWithErrors(order=None, errors=errors, lines=[], notes=[])
+            errors.append(
+                OrderBulkError(
+                    message="At least one order line can't be created.",
+                    field="lines",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
+            return OrderWithErrors(
+                order=None, errors=errors, lines=order_lines_with_errors, notes=[]
+            )
         # TODO check if multiple order lines contains the same variant
 
         # calculate order amounts
@@ -812,7 +855,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     addresses.append(billing_address)
                 if shipping_address := order.order.shipping_address:
                     addresses.append(shipping_address)
-        # TODO remove address duplicates
         Address.objects.bulk_create(addresses)
 
         Order.objects.bulk_create(
@@ -832,7 +874,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         # TODO post save actions
-        # TODO Order.updatedAt - set to current timestamp after bulk creation finished
         # TODO add webhook ORDER_BULK_CREATED
         # TODO handle tax class matedata, is needed ?
         # TODO error codes
