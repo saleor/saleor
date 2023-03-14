@@ -1758,11 +1758,9 @@ class TransactionInitialize(TransactionSessionBase):
         error_type_class = common_types.TransactionInitializeError
 
     @classmethod
-    def clean_action(cls, info, action: Optional[str]):
+    def clean_action(cls, info, action: Optional[str], channel: "Channel"):
         if not action:
-            # FIXME: This will be changed in future PR when we will extend channel to
-            # handle transaction flow
-            return TransactionFlowStrategy.CHARGE
+            return channel.default_transaction_flow_strategy
         app = get_app_promise(info.context).get()
         if not app or not app.has_perm(PaymentPermissions.HANDLE_PAYMENTS):
             raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
@@ -1786,7 +1784,6 @@ class TransactionInitialize(TransactionSessionBase):
     def perform_mutation(
         cls, root, info, *, id, payment_gateway, amount=None, action=None
     ):
-        action = cls.clean_action(info, action)
         payment_gateway_data = PaymentGatewayData(
             app_identifier=payment_gateway["id"], data=payment_gateway.get("data")
         )
@@ -1796,6 +1793,7 @@ class TransactionInitialize(TransactionSessionBase):
             TransactionInitializeErrorCode.INVALID.value,
             TransactionInitializeErrorCode.NOT_FOUND.value,
         )
+        action = cls.clean_action(info, action, source_object.channel)
         amount = cls.get_amount(source_object, amount)
         app = cls.clean_app_from_payment_gateway(payment_gateway_data)
         manager = get_plugin_manager_promise(info.context).get()
@@ -1841,15 +1839,13 @@ class TransactionProcess(BaseMutation):
         error_type_class = common_types.TransactionProcessError
 
     @classmethod
-    def get_action(cls, event: payment_models.TransactionEvent):
+    def get_action(cls, event: payment_models.TransactionEvent, channel: "Channel"):
         if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
             return TransactionFlowStrategy.AUTHORIZATION
         elif event.type == TransactionEventType.CHARGE_REQUEST:
             return TransactionFlowStrategy.CHARGE
 
-        # FIXME: This will be changed in future PR when we will extend channel to
-        # handle transaction flow
-        return TransactionFlowStrategy.CHARGE
+        return channel.default_transaction_flow_strategy
 
     @classmethod
     def get_source_object(
@@ -1951,7 +1947,7 @@ class TransactionProcess(BaseMutation):
         app = cls.clean_payment_app(transaction_item)
         app_identifier = app.identifier
         app_identifier = cast(str, app_identifier)
-        action = cls.get_action(request_event)
+        action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,

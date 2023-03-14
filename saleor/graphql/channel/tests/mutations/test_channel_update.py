@@ -12,7 +12,11 @@ from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
+from ...enums import (
+    AllocationStrategyEnum,
+    MarkAsPaidStrategyEnum,
+    TransactionFlowStrategyEnum,
+)
 
 CHANNEL_UPDATE_MUTATION = """
     mutation UpdateChannel($id: ID!,$input: ChannelUpdateInput!){
@@ -36,6 +40,7 @@ CHANNEL_UPDATE_MUTATION = """
                     automaticallyConfirmAllNewOrders
                     automaticallyFulfillNonShippableGiftCard
                     markAsPaidStrategy
+                    defaultTransactionFlowStrategy
                 }
             }
             errors{
@@ -918,4 +923,45 @@ def test_channel_update_order_mark_as_paid_strategy(
     assert (
         channel_USD.order_mark_as_paid_strategy
         == MarkAsPaidStrategyEnum.TRANSACTION_FLOW.value
+    )
+
+
+def test_channel_update_default_transaction_flow_strategy(
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "defaultTransactionFlowStrategy": (
+                    TransactionFlowStrategyEnum.AUTHORIZATION.name
+                ),
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    assert (
+        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.AUTHORIZATION.name
+    )
+    channel_USD.refresh_from_db()
+    assert (
+        channel_USD.default_transaction_flow_strategy
+        == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
