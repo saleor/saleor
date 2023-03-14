@@ -4,7 +4,11 @@ from django.core.exceptions import ValidationError
 from ... import __version__
 from ...app.validators import AppURLValidator
 from ..error_codes import AppErrorCode
-from ..manifest_validations import clean_required_saleor_version, parse_version
+from ..manifest_validations import (
+    clean_author,
+    clean_required_saleor_version,
+    parse_version,
+)
 
 
 def test_validate_url():
@@ -56,3 +60,8 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
     with pytest.raises(ValidationError) as error:
         clean_required_saleor_version("^3.13", True, "3.12.1")
     assert error.value.code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
+
+
+@pytest.mark.parametrize("author,cleaned", [(None, None), (" Acme Ltd ", "Acme Ltd")])
+def test_clean_author(author, cleaned):
+    assert clean_author(author) == cleaned

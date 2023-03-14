@@ -250,6 +250,9 @@ class Manifest(graphene.ObjectType):
             + PREVIEW_FEATURE
         ),
     )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
+    )
 
     class Meta:
         description = "The manifest definition."
@@ -336,6 +339,9 @@ class App(ModelObjectType[models.App]):
     version = graphene.String(description="Version number of the app.")
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app."
+    )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
     )
     extensions = NonNullList(
         AppExtension,

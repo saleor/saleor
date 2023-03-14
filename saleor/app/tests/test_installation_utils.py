@@ -132,6 +132,40 @@ def test_install_app_when_saleor_version_unsupported(
     assert errors[0].code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
 
 
+def test_install_app_with_author(app_manifest, app_installation, monkeypatch):
+    # given
+    app_manifest["author"] = "Acme Ltd"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+    assert app.author == app_manifest["author"]
+
+
+def test_install_app_with_empty_author(app_manifest, app_installation, monkeypatch):
+    # given
+    app_manifest["author"] = " "
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        install_app(app_installation, activate=True)
+
+    # then
+    errors = validation_error.value.error_dict["author"]
+    assert len(errors) == 1
+    assert errors[0].code == AppErrorCode.INVALID.value
+
+
 @freeze_time("2022-05-12 12:00:00")
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")

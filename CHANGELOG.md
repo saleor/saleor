@@ -9,10 +9,10 @@ All notable, unreleased changes to this project will be documented in this file.
 ### GraphQL API
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 - Upgrade GraphiQL to `2.4.0` for playground - #12271 by @zaiste
-
 - Add new object type `AppManifestRequiredSaleorVersion` - #12164 by @przlada
   - Add new optional field `Manifest.requiredSaleorVersion`
   - Add `requiredSaleorVersion` validation to `appInstall` and `appFetchManifest` mutations
+- Add new field `author` to `Manifest` and `App` object types - #12166 by @przlada
 
 ### Other changes
 - Create order discounts for all voucher types - #12272 by @IKarbowiak
@@ -20,6 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
+- Add new field `author` to the App manifest - #12166 by @przlada
 
 # 3.12.0
 

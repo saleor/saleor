@@ -119,6 +119,11 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     except ValidationError as e:
         errors["requiredSaleorVersion"].append(e)
 
+    try:
+        manifest_data["author"] = clean_author(manifest_data.get("author"))
+    except ValidationError as e:
+        errors["author"].append(e)
+
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
     )
@@ -324,3 +329,14 @@ def clean_required_saleor_version(
         msg = f"Saleor version {saleor_version} is not supported by the app."
         raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
     return {"constraint": required_version, "satisfied": satisfied}
+
+
+def clean_author(author) -> Optional[str]:
+    if author is None:
+        return None
+    if isinstance(author, str):
+        if clean := author.strip():
+            return clean
+    raise ValidationError(
+        "Incorrect value for field: author", code=AppErrorCode.INVALID.value
+    )
