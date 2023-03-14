@@ -50,3 +50,4 @@ class OrderGrantRefundUpdateErrorCode(Enum):
 class OrderBulkCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     REQUIRED = "required"
+    INVALID = "invalid"
