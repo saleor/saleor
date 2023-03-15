@@ -324,7 +324,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta:
         ordering = ("-number",)
-        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
+        permissions = (
+            (OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),
+            (OrderPermissions.MANAGE_ORDERS_IMPORT.codename, "Manage orders import."),
+        )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             GinIndex(

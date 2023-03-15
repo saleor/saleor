@@ -2082,6 +2082,11 @@ def permission_manage_orders():
 
 
 @pytest.fixture
+def permission_manage_orders_import():
+    return Permission.objects.get(codename="manage_orders_import")
+
+
+@pytest.fixture
 def permission_manage_checkouts():
     return Permission.objects.get(codename="manage_checkouts")
 

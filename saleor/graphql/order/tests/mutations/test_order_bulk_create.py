@@ -11,7 +11,7 @@ from .....order import OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import Order, OrderEvent, OrderLine
 from ....core.enums import ErrorPolicyEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MINUTES_DIFF
 
 ORDER_BULK_CREATE = """
@@ -61,15 +61,13 @@ ORDER_BULK_CREATE = """
                             id
                         }
                         taxClassName
+                        taxRate
                     }
                     billingAddress{
                         postalCode
                     }
                     shippingAddress{
                         postalCode
-                    }
-                    shippingMethods {
-                        id
                     }
                     shippingMethodName
                     shippingTaxClass{
@@ -100,7 +98,6 @@ ORDER_BULK_CREATE = """
                             amount
                         }
                     }
-
                     events {
                         message
                         user {
@@ -222,6 +219,8 @@ def order_bulk_input(
 def test_order_bulk_create(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
     order_bulk_input,
     app,
     channel_PLN,
@@ -240,7 +239,11 @@ def test_order_bulk_create(
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -286,7 +289,7 @@ def test_order_bulk_create(
     assert db_order.shipping_method_name == shipping_method_channel_PLN.name
     assert db_order.shipping_tax_class == default_tax_class
     assert db_order.shipping_tax_class_name == default_tax_class.name
-    assert db_order.shipping_tax_rate == 0.2
+    assert db_order.shipping_tax_rate == Decimal("0.2")
     assert db_order.shipping_price_gross_amount == 120
     assert db_order.shipping_price_net_amount == 100
     assert db_order.total_gross_amount == 120
@@ -317,6 +320,7 @@ def test_order_bulk_create(
         "TaxClass", default_tax_class.id
     )
     assert line["taxClassName"] == "Line Tax Class Name"
+    assert line["taxRate"] == 0.2
     db_line = OrderLine.objects.get()
     assert db_line.variant == variant
     assert db_line.product_name == "Product Name"
@@ -330,6 +334,7 @@ def test_order_bulk_create(
     assert db_line.unit_price.net.amount == Decimal(100 / 5)
     assert db_line.tax_class == default_tax_class
     assert db_line.tax_class_name == "Line Tax Class Name"
+    assert db_line.tax_rate == Decimal("0.2")
     assert db_line.currency == "PLN"
     assert db_order.lines.first() == db_line
 
@@ -357,6 +362,7 @@ def test_order_bulk_create(
 def test_order_bulk_create_multiple_orders(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -366,7 +372,10 @@ def test_order_bulk_create_multiple_orders(
     order_1 = order_bulk_input
     order_2 = order_bulk_input
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order_1, order_2]}
 
     # when
@@ -387,6 +396,126 @@ def test_order_bulk_create_multiple_orders(
     assert OrderLine.objects.count() == order_lines_count + 2
 
 
+def test_order_bulk_create_multiple_lines(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+    product_variant_list,
+):
+    # given
+    orders_count = Order.objects.count()
+    lines_count = OrderLine.objects.count()
+
+    order = order_bulk_input
+    line_2 = copy.deepcopy(order["lines"][0])
+    variant_2 = product_variant_list[2]
+    line_2["variantId"] = graphene.Node.to_global_id("ProductVariant", variant_2.id)
+    line_2["totalPrice"]["gross"] = 60
+    line_2["totalPrice"]["net"] = 50
+    order["lines"].append(line_2)
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+
+    line_1 = order["lines"][0]
+    assert line_1["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert line_1["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    line_2 = order["lines"][1]
+    assert line_2["unitPrice"]["gross"]["amount"] == Decimal(60 / 5)
+    assert line_2["unitPrice"]["net"]["amount"] == Decimal(50 / 5)
+
+    db_lines = OrderLine.objects.all()
+    db_line_1 = db_lines[0]
+    assert db_line_1.unit_price.gross.amount == Decimal(120 / 5)
+    assert db_line_1.unit_price.net.amount == Decimal(100 / 5)
+    db_line_2 = db_lines[1]
+    assert db_line_2.unit_price.gross.amount == Decimal(60 / 5)
+    assert db_line_2.unit_price.net.amount == Decimal(50 / 5)
+
+    assert order["total"]["gross"]["amount"] == 180
+    assert order["total"]["net"]["amount"] == 150
+    db_order = Order.objects.get()
+    assert db_order.total_gross_amount == 180
+    assert db_order.total_net_amount == 150
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderLine.objects.count() == lines_count + 2
+
+
+def test_order_bulk_create_multiple_notes(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    permission_manage_apps,
+    order_bulk_input,
+    customer_user,
+    app,
+):
+    # given
+    orders_count = Order.objects.count()
+    events_count = OrderEvent.objects.count()
+
+    note_1 = {
+        "message": "User message",
+        "date": timezone.now(),
+        "userId": graphene.Node.to_global_id("User", customer_user.id),
+    }
+    note_2 = {
+        "message": "App message",
+        "date": timezone.now(),
+        "appId": graphene.Node.to_global_id("App", app.id),
+    }
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+        permission_manage_apps,
+    )
+    order_bulk_input["notes"] = [note_1, note_2]
+
+    variables = {"orders": [order_bulk_input]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+    event_1 = content["data"]["orderBulkCreate"]["results"][0]["order"]["events"][0]
+    assert event_1["message"] == note_1["message"]
+    assert event_1["user"]["id"] == note_1["userId"]
+    event_2 = content["data"]["orderBulkCreate"]["results"][0]["order"]["events"][1]
+    assert event_2["message"] == note_2["message"]
+    assert event_2["app"]["id"] == note_2["appId"]
+
+    db_events = OrderEvent.objects.all()
+    db_event_1 = db_events[0]
+    assert db_event_1.parameters["message"] == note_1["message"]
+    assert db_event_1.user == customer_user
+    db_event_2 = db_events[1]
+    assert db_event_2.parameters["message"] == note_2["message"]
+    assert db_event_2.app == app
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderEvent.objects.count() == events_count + 2
+
+
 @pytest.mark.parametrize(
     "error_policy,expected_order_count",
     [
@@ -400,6 +529,7 @@ def test_order_bulk_create_error_policy(
     expected_order_count,
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
     app,
 ):
@@ -410,7 +540,10 @@ def test_order_bulk_create_error_policy(
     order_2 = copy.deepcopy(order_bulk_input)
     order_2["notes"][0]["appId"] = graphene.Node.to_global_id("App", app.id)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {
         "errorPolicy": error_policy,
         "orders": [order_1, order_2],
@@ -423,9 +556,26 @@ def test_order_bulk_create_error_policy(
     assert Order.objects.count() == orders_count + expected_order_count
 
 
+def test_order_bulk_create_no_permissions(
+    staff_api_client,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    variables = {"orders": [order_bulk_input]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+
+    # then
+    assert_no_permission(response)
+    assert Order.objects.count() == orders_count
+
+
 def test_order_bulk_create_error_negative_weight(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -434,7 +584,10 @@ def test_order_bulk_create_error_negative_weight(
     order = order_bulk_input
     order["weight"] = -5
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -452,9 +605,10 @@ def test_order_bulk_create_error_negative_weight(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_error_future_date(
+def test_order_bulk_create_error_order_future_date(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -463,7 +617,10 @@ def test_order_bulk_create_error_future_date(
     order = order_bulk_input
     order["createdAt"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -484,6 +641,7 @@ def test_order_bulk_create_error_future_date(
 def test_order_bulk_create_error_invalid_redirect_url(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -492,7 +650,10 @@ def test_order_bulk_create_error_invalid_redirect_url(
     order = order_bulk_input
     order["redirectUrl"] = "www.invalid-url.com"
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -516,6 +677,7 @@ def test_order_bulk_create_error_invalid_redirect_url(
 def test_order_bulk_create_error_invalid_address(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -525,7 +687,10 @@ def test_order_bulk_create_error_invalid_address(
     order["billingAddress"] = {"firstName": "John"}
     order["shippingAddress"] = {"postalCode": "abc-123"}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -548,17 +713,10 @@ def test_order_bulk_create_error_invalid_address(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_order_calculations(
-    staff_api_client,
-    permission_manage_orders,
-    order_bulk_input,
-):
-    assert True
-
-
 def test_order_bulk_create_no_shipping_method_price(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -567,7 +725,10 @@ def test_order_bulk_create_no_shipping_method_price(
     order = order_bulk_input
     order["deliveryMethod"]["shippingPrice"] = None
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -576,8 +737,12 @@ def test_order_bulk_create_no_shipping_method_price(
 
     # then
     assert content["data"]["orderBulkCreate"]["count"] == 1
-    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+    db_order = Order.objects.get()
+    assert db_order.shipping_price_net_amount == 10
+    assert db_order.shipping_price_gross_amount == 12
 
     assert Order.objects.count() == orders_count + 1
 
@@ -585,6 +750,7 @@ def test_order_bulk_create_no_shipping_method_price(
 def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehouse(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
     warehouse,
 ):
@@ -596,7 +762,10 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
         "Warehouse", warehouse.id
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -620,6 +789,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
 def test_order_bulk_create_warehouse_delivery_method(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
     warehouse,
 ):
@@ -632,7 +802,10 @@ def test_order_bulk_create_warehouse_delivery_method(
     )
     order["deliveryMethod"]["shippingMethodId"] = None
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -658,6 +831,7 @@ def test_order_bulk_create_warehouse_delivery_method(
 def test_order_bulk_create_error_no_delivery_method_provided(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -666,7 +840,10 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     order = order_bulk_input
     order["deliveryMethod"]["shippingMethodId"] = None
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -687,6 +864,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
 def test_order_bulk_create_error_note_with_future_date(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -695,7 +873,10 @@ def test_order_bulk_create_error_note_with_future_date(
     order = order_bulk_input
     order["notes"][0]["date"] = timezone.now() + timedelta(minutes=MINUTES_DIFF + 1)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -716,6 +897,7 @@ def test_order_bulk_create_error_note_with_future_date(
 def test_order_bulk_create_error_non_existing_variant(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -725,7 +907,10 @@ def test_order_bulk_create_error_non_existing_variant(
     order["lines"][0]["variantId"] = None
     order["lines"][0]["variantSku"] = "non-existing-sku"
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -754,6 +939,7 @@ def test_order_bulk_create_error_non_existing_variant(
 def test_order_bulk_create_error_user_not_found(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -763,7 +949,10 @@ def test_order_bulk_create_error_user_not_found(
     order["user"]["email"] = "non-existing-user@example.com"
     order["user"]["id"] = None
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -787,6 +976,7 @@ def test_order_bulk_create_error_user_not_found(
 def test_order_bulk_create_error_get_instance_with_multiple_keys(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -795,7 +985,10 @@ def test_order_bulk_create_error_get_instance_with_multiple_keys(
     order = order_bulk_input
     order["user"]["email"] = "non-existing-user@example.com"
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
@@ -819,6 +1012,7 @@ def test_order_bulk_create_error_get_instance_with_multiple_keys(
 def test_order_bulk_create_error_get_instance_with_no_keys(
     staff_api_client,
     permission_manage_orders,
+    permission_manage_orders_import,
     order_bulk_input,
 ):
     # given
@@ -827,7 +1021,10 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
     order = order_bulk_input
     order["user"]["id"] = None
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
     variables = {"orders": [order]}
 
     # when
