@@ -51,3 +51,7 @@ class OrderBulkCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     REQUIRED = "required"
     INVALID = "invalid"
+    LIMIT_EXCEEDED = "limit_exceeded"
+    DELIVERY_METHOD_ERROR = "delivery_method_error"
+    ORDER_LINE_ERROR = "order_line_error"
+    NOTE_ERROR = "note_error"

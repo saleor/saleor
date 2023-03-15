@@ -781,7 +781,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
         " in deliveryMethod field."
     )
     assert error["field"] == "deliveryMethod"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+    assert error["code"] == OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR.name
 
     assert Order.objects.count() == orders_count
 
@@ -856,7 +856,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "No delivery method provided."
     assert error["field"] == "deliveryMethod"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+    assert error["code"] == OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR.name
 
     assert Order.objects.count() == orders_count
 
@@ -889,7 +889,7 @@ def test_order_bulk_create_error_note_with_future_date(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Note input contains future date."
     assert error["field"] == "date"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+    assert error["code"] == OrderBulkCreateErrorCode.NOTE_ERROR.name
 
     assert Order.objects.count() == orders_count
 

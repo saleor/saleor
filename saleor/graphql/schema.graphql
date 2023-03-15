@@ -22416,6 +22416,10 @@ enum OrderBulkCreateErrorCode {
   GRAPHQL_ERROR
   REQUIRED
   INVALID
+  LIMIT_EXCEEDED
+  DELIVERY_METHOD_ERROR
+  ORDER_LINE_ERROR
+  NOTE_ERROR
 }
 
 input OrderBulkCreateInput {
