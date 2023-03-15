@@ -136,4 +136,41 @@ class Migration(migrations.Migration):
                 max_length=255,
             ),
         ),
+        migrations.AlterField(
+            model_name="order",
+            name="authorize_status",
+            field=models.CharField(
+                choices=[
+                    ("none", "The funds are not authorized"),
+                    (
+                        "partial",
+                        "The funds that are authorized and charged don't cover fully "
+                        "the order's total",
+                    ),
+                    (
+                        "full",
+                        "The funds that are authorized and charged fully cover the "
+                        "order's total",
+                    ),
+                ],
+                db_index=True,
+                default="none",
+                max_length=32,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="order",
+            name="charge_status",
+            field=models.CharField(
+                choices=[
+                    ("none", "The order is not charged."),
+                    ("partial", "The order is partially charged"),
+                    ("full", "The order is fully charged"),
+                    ("overcharged", "The order is overcharged"),
+                ],
+                db_index=True,
+                default="none",
+                max_length=32,
+            ),
+        ),
     ]
