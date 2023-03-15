@@ -84,8 +84,6 @@ class PermissionByCodenameLoader(DataLoader):
 
 
 class BaseAccessibleChannels(DataLoader):
-    abstract = True
-
     def get_group_to_channels_map(self, group_ids):
         groups_with_no_channel_restriction = Group.objects.using(
             self.database_connection_name
