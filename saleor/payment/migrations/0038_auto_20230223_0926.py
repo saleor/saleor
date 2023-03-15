@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db import migrations, models
+from django.utils import timezone
 import django.db.models.deletion
 
 
@@ -269,5 +270,10 @@ class Migration(migrations.Migration):
             model_name="transactionitem",
             name="status",
             field=models.CharField(blank=True, default="", max_length=512, null=True),
+        ),
+        migrations.AlterField(
+            model_name="transactionevent",
+            name="created_at",
+            field=models.DateTimeField(default=timezone.now),
         ),
     ]
