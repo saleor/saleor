@@ -325,9 +325,11 @@ class User(ModelObjectType[models.User]):
     )
     accessible_channels = NonNullList(
         Channel,
-        description="List of channels the user has access to."
-        + ADDED_IN_313
-        + PREVIEW_FEATURE,
+        description=(
+            "List of channels the user has access to. The sum of channels from all "
+            "user groups. If at least one group has `restrictedAccessToChannels` "
+            "set to False - all channels are returned." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
     )
     restricted_access_to_channels = graphene.Boolean(
         required=True,

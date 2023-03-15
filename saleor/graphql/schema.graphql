@@ -8858,7 +8858,7 @@ type User implements Node & ObjectWithMetadata {
   editableGroups: [Group!]
 
   """
-  List of channels the user has access to.
+  List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
   
   Added in Saleor 3.13.
   
