@@ -8,6 +8,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import JSONField
+from django.utils import timezone
 from django_prices.models import MoneyField
 from prices import Money
 
@@ -160,7 +161,7 @@ class TransactionItem(ModelWithMetadata):
 
 
 class TransactionEvent(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         max_length=128,
         choices=TransactionStatus.CHOICES,
