@@ -9524,12 +9524,15 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action.
+    VOID - Represents a void action. This field will be removed
+    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
 enum TransactionActionEnum {
   CHARGE
   REFUND
   VOID
+  CANCEL
 }
 
 """Represents an order in the shop."""
