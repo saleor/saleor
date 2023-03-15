@@ -20,11 +20,18 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    ADDED_IN_313,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -48,7 +55,10 @@ from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
+    AccessibleChannelsByGroupIdLoader,
+    AccessibleChannelsByUserIdLoader,
     CustomerEventsByUserLoader,
+    RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
@@ -321,6 +331,23 @@ class User(ModelObjectType[models.User]):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
+    accessible_channels = NonNullList(
+        Channel,
+        description=(
+            "List of channels the user has access to. The sum of channels from all "
+            "user groups. If at least one group has `restrictedAccessToChannels` "
+            "set to False - all channels are returned." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if user have restricted access to channels. False if at least "
+            "one user group has `restrictedAccessToChannels` set to False."
+        )
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
     avatar = ThumbnailField()
     events = PermissionsField(
         NonNullList(CustomerEvent),
@@ -448,6 +475,18 @@ class User(ModelObjectType[models.User]):
     @staticmethod
     def resolve_editable_groups(root: models.User, _info: ResolveInfo):
         return get_groups_which_user_can_manage(root)
+
+    @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        # Sum of channels from all user groups. If at least one group has
+        # `restrictedAccessToChannels` set to False - all channels are returned
+        return AccessibleChannelsByUserIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_restricted_access_to_channels(root: models.Group, info: ResolveInfo):
+        # Returns False if at least one user group has `restrictedAccessToChannels`
+        # set to False
+        return RestrictedChannelAccessByUserIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_note(root: models.User, _info: ResolveInfo):
@@ -657,6 +696,18 @@ class Group(ModelObjectType[models.Group]):
             "True, if the currently authenticated user has rights to manage a group."
         ),
     )
+    accessible_channels = NonNullList(
+        Channel,
+        description="List of channels the group has access to."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        required=True,
+        description="Determine if group have restricted access to channels."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = "Represents permission group data."
@@ -681,6 +732,10 @@ class Group(ModelObjectType[models.Group]):
         if not user:
             return False
         return can_user_manage_group(user, root)
+
+    @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info: ResolveInfo):

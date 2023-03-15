@@ -27,6 +27,7 @@ from ....account.search import (
     generate_user_fields_search_document_value,
     prepare_user_search_document_value,
 )
+from ....channel.models import Channel
 from ....checkout import AddressType
 from ....core.jwt import create_token
 from ....core.notify_events import NotifyEventType
@@ -197,6 +198,10 @@ FULL_USER_QUERY = """
             editableGroups {
                 name
             }
+            restrictedAccessToChannels
+            accessibleChannels {
+                slug
+            }
             giftCards(first: 10) {
                 edges {
                     node {
@@ -261,6 +266,8 @@ def test_query_customer_user(
     assert data["avatar"]["url"]
     assert data["languageCode"] == settings.LANGUAGE_CODE.upper()
     assert len(data["editableGroups"]) == 0
+    assert data["restrictedAccessToChannels"] is True
+    assert len(data["accessibleChannels"]) == 0
 
     assert len(data["addresses"]) == user.addresses.count()
     for address in data["addresses"]:
@@ -526,6 +533,8 @@ def test_query_staff_user(
         group2.name,
         group4.name,
     }
+    assert data["restrictedAccessToChannels"] is False
+    assert len(data["accessibleChannels"]) == Channel.objects.count()
 
     formated_user_permissions_result = [
         {
@@ -975,6 +984,76 @@ def test_query_user_avatar_no_image(staff_api_client, permission_manage_staff):
     data = content["data"]["user"]
     assert data["id"]
     assert not data["avatar"]
+
+
+USER_CHANNEL_ACCESSIBILITY_QUERY = """
+    query User($id: ID) {
+        user(id: $id) {
+            id
+            restrictedAccessToChannels
+            accessibleChannels {
+                slug
+            }
+        }
+    }
+"""
+
+
+def test_query_user_channel_accessibility_restricted_access_to_channels(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    user = staff_api_client.user
+    user.groups.add(permission_group_all_perms_channel_USD_only)
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_CHANNEL_ACCESSIBILITY_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["id"]
+    assert data["restrictedAccessToChannels"] is True
+    assert len(data["accessibleChannels"]) == 1
+    assert data["accessibleChannels"][0]["slug"] == channel_USD.slug
+
+
+def test_query_user_channel_accessibility_not_restricted_access(
+    staff_api_client,
+    permission_group_all_perms_all_channels,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    user = staff_api_client.user
+    user.groups.add(
+        permission_group_all_perms_all_channels,
+        permission_group_all_perms_channel_USD_only,
+    )
+
+    id = graphene.Node.to_global_id("User", user.pk)
+    variables = {"id": id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        USER_CHANNEL_ACCESSIBILITY_QUERY, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["id"]
+    assert data["restrictedAccessToChannels"] is False
+    assert len(data["accessibleChannels"]) == Channel.objects.count()
 
 
 def test_query_customers(staff_api_client, user_api_client, permission_manage_users):
