@@ -2923,6 +2923,7 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
+  MANAGE_ORDERS_IMPORT
   MANAGE_PAGES
   MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   HANDLE_PAYMENTS
@@ -14972,7 +14973,7 @@ type Mutation {
   """
   Creates multiple orders. 
   
-  Requires one of the following permissions: MANAGE_ORDERS.
+  Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
   """
   orderBulkCreate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
@@ -22377,7 +22378,7 @@ type OrderBulkCancel @doc(category: "Orders") {
 """
 Creates multiple orders. 
 
-Requires one of the following permissions: MANAGE_ORDERS.
+Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
 """
 type OrderBulkCreate {
   """Returns how many objects were created."""
