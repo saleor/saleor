@@ -10,6 +10,7 @@ from django.utils import timezone
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
 from ....order import OrderEvents, OrderOrigin
@@ -219,6 +220,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         required=True,
         description="Price of the order line excluding applied discount.",
     )
+    # TODO is line tax rate needed if we have total gross and net required ?
     tax_rate = graphene.Float(required=True, description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
@@ -326,7 +328,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Creates multiple orders."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
         error_type_class = OrderBulkCreateError
         error_type_field = "bulk_order_errors"
 
@@ -712,6 +714,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             unit_price_gross_amount=order_line_unit_price_gross_amount,
             total_price_net_amount=order_line_net_amount,
             total_price_gross_amount=order_line_gross_amount,
+            tax_rate=Decimal(order_line_input["tax_rate"]),
             tax_class=line_tax_class,
             tax_class_name=order_line_input.get("tax_class_name", line_tax_class.name),
         )
@@ -815,6 +818,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.weight = order_input.get("weight", zero_weight())
         order.tracking_client_id = order_input.get("tracking_client_id")
         order.currency = order_input["currency"]
+        order.should_refresh_prices = False
         update_order_display_gross_prices(order)
         # TODO charged
         # TODO authourized
@@ -847,6 +851,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return orders_with_errors
 
     @classmethod
+    @traced_atomic_transaction()
     def save_data(cls, orders_with_errors: List[OrderWithErrors]):
         addresses = []
         for order in orders_with_errors:
