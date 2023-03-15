@@ -901,9 +901,7 @@ def _update_order_total_charged(
     order.total_charged_amount = (
         sum(order_payments.values_list("captured_amount", flat=True)) or 0
     )
-    for transaction in order_transactions:
-        order.total_charged_amount += transaction.charged_value
-        order.total_charged_amount += transaction.charge_pending_value
+    order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
 
 
 def update_order_charge_data(
@@ -940,20 +938,18 @@ def _update_order_total_authorized(
     order.total_authorized_amount = get_total_authorized(
         order_payments, order.currency
     ).amount
-
-    for transaction in order_transactions:
-        order.total_authorized_amount += transaction.authorized_value
-        order.total_authorized_amount += transaction.authorize_pending_value
-    order.total_authorized_amount = max(order.total_authorized_amount, Decimal(0))
+    order.total_authorized_amount += sum(
+        [tr.authorized_value for tr in order_transactions]
+    )
 
 
 def update_order_authorize_status(order: Order, granted_refund_amount: Decimal):
     """Update the current authorize status for the order.
 
     The order is fully authorized when total_authorized or total_charged funds
-    cover the order.total
+    cover the order.total - order granted refunds
     The order is partially authorized when total_authorized or total_charged
-    funds cover only part of the order.total
+    funds cover only part of the order.total - order granted refunds
     The order is not authorized when total_authorized and total_charged funds are 0.
     """
     total_covered = (
