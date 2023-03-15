@@ -13,7 +13,7 @@ def rename_order_events(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0163_alter_orderevent_type"),
+        ("order", "0162_order_granted_refund"),
     ]
     operations = [
         migrations.RunPython(
