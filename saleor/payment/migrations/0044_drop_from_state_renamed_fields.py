@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
             database_operations=[
                 migrations.AlterField(
                     model_name="transactionevent",
-                    name="psp_reference",
+                    name="name",
                     field=models.CharField(
                         blank=True, default="", max_length=512, null=True
                     ),
