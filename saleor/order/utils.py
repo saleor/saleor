@@ -866,10 +866,12 @@ def remove_discount_from_order_line(order_line: OrderLine, order: "Order"):
 def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
     """Update the current charge status for the order.
 
-    We treat the order as overcharged when the charged amount is bigger that order.total
-    We treat the order as fully charged when the charged amount is equal to order.total.
+    We treat the order as overcharged when the charged amount is bigger that
+    order.total - order granted refund
+    We treat the order as fully charged when the charged amount is equal to
+    order.total - order granted refund.
     We treat the order as partially charged when the charged amount covers only part of
-    the order.total
+    the order.total - order granted refund
     We treat the order as not charged when the charged amount is 0.
     """
     total_charged = order.total_charged_amount or Decimal("0")
@@ -881,14 +883,12 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
         current_total_gross - granted_refund_amount, order.currency
     )
 
-    if total_charged == 0 and current_total_gross == Decimal(0):
+    if total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
     elif total_charged <= 0:
         order.charge_status = OrderChargeStatus.NONE
     elif total_charged < current_total_gross:
         order.charge_status = OrderChargeStatus.PARTIAL
-    elif total_charged == current_total_gross:
-        order.charge_status = OrderChargeStatus.FULL
     else:
         order.charge_status = OrderChargeStatus.OVERCHARGED
 
