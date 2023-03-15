@@ -11,6 +11,7 @@ from graphene.utils.str_converters import to_camel_case
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 from ...account.models import Group, User
+from ...channel.models import Channel
 from ...core.exceptions import PermissionDenied
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions
@@ -510,3 +511,18 @@ def check_is_owner_or_has_one_of_perms(
     """
     if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
+
+
+def get_user_accessible_channels(user: User):
+    UserGroup = User.groups.through
+    user_groups = UserGroup.objects.filter(user_id=user.id)
+
+    groups = Group.objects.filter(id__in=user_groups.values("group_id"))
+
+    if groups.filter(restricted_access_to_channels=False).exists():
+        return Channel.objects.all()
+
+    GroupChannels = Group.channels.through
+    group_channels = GroupChannels.objects.filter(group_id__in=groups.values("id"))
+
+    return Channel.objects.filter(id__in=group_channels.values("channel_id"))
