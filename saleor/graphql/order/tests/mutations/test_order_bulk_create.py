@@ -70,6 +70,14 @@ ORDER_BULK_CREATE = """
                         }
                         taxClassName
                         taxRate
+                        taxClassMetadata {
+                            key
+                            value
+                        }
+                        taxClassPrivateMetadata {
+                            key
+                            value
+                        }
                     }
                     billingAddress{
                         postalCode
@@ -82,6 +90,14 @@ ORDER_BULK_CREATE = """
                         name
                     }
                     shippingTaxClassName
+                    shippingTaxClassMetadata {
+                        key
+                        value
+                    }
+                    shippingTaxClassPrivateMetadata {
+                        key
+                        value
+                    }
                     shippingPrice {
                         gross {
                             amount
@@ -177,6 +193,18 @@ def order_bulk_input(
             "net": 100,
         },
         "shippingTaxRate": 0.2,
+        "shippingTaxClassMetadata": [
+            {
+                "key": "md key",
+                "value": "md value",
+            }
+        ],
+        "shippingTaxClassPrivateMetadata": [
+            {
+                "key": "pmd key",
+                "value": "pmd value",
+            }
+        ],
     }
     line = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
@@ -200,6 +228,18 @@ def order_bulk_input(
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
+        "taxClassMetadata": [
+            {
+                "key": "md key",
+                "value": "md value",
+            }
+        ],
+        "taxClassPrivateMetadata": [
+            {
+                "key": "pmd key",
+                "value": "pmd value",
+            }
+        ],
     }
     note = {
         "message": "Test message",
@@ -224,6 +264,7 @@ def order_bulk_input(
     }
 
 
+# TODO split this test
 def test_order_bulk_create(
     staff_api_client,
     permission_manage_orders,
@@ -273,6 +314,10 @@ def test_order_bulk_create(
     assert not order["collectionPointName"]
     assert order["shippingMethodName"] == shipping_method_channel_PLN.name
     assert order["shippingTaxClassName"] == default_tax_class.name
+    assert order["shippingTaxClassMetadata"][0]["key"] == "md key"
+    assert order["shippingTaxClassMetadata"][0]["value"] == "md value"
+    assert order["shippingTaxClassPrivateMetadata"][0]["key"] == "pmd key"
+    assert order["shippingTaxClassPrivateMetadata"][0]["value"] == "pmd value"
     assert order["shippingPrice"]["gross"]["amount"] == 120
     assert order["shippingPrice"]["net"]["amount"] == 100
     assert order["total"]["gross"]["amount"] == 120
@@ -298,6 +343,8 @@ def test_order_bulk_create(
     assert db_order.shipping_tax_class == default_tax_class
     assert db_order.shipping_tax_class_name == default_tax_class.name
     assert db_order.shipping_tax_rate == Decimal("0.2")
+    assert db_order.shipping_tax_class_metadata["md key"] == "md value"
+    assert db_order.shipping_tax_class_private_metadata["pmd key"] == "pmd value"
     assert db_order.shipping_price_gross_amount == 120
     assert db_order.shipping_price_net_amount == 100
     assert db_order.total_gross_amount == 120
@@ -333,6 +380,10 @@ def test_order_bulk_create(
     )
     assert line["taxClassName"] == "Line Tax Class Name"
     assert line["taxRate"] == 0.2
+    assert line["taxClassMetadata"][0]["key"] == "md key"
+    assert line["taxClassMetadata"][0]["value"] == "md value"
+    assert line["taxClassPrivateMetadata"][0]["key"] == "pmd key"
+    assert line["taxClassPrivateMetadata"][0]["value"] == "pmd value"
     db_line = OrderLine.objects.get()
     assert db_line.variant == variant
     assert db_line.product_name == "Product Name"
@@ -353,6 +404,8 @@ def test_order_bulk_create(
     assert db_line.tax_class == default_tax_class
     assert db_line.tax_class_name == "Line Tax Class Name"
     assert db_line.tax_rate == Decimal("0.2")
+    assert db_line.tax_class_metadata["md key"] == "md value"
+    assert db_line.tax_class_private_metadata["pmd key"] == "pmd value"
     assert db_line.currency == "PLN"
     assert db_order.lines.first() == db_line
 
