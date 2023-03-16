@@ -15,7 +15,14 @@ from ...core.utils.json_serializer import CustomJsonEncoder
 from ...graphql.core.context import SaleorContext
 from ...graphql.webhook.subscription_payload import initialize_request
 from ...payment import PaymentError, TransactionKind
-from ...payment.interface import PaymentGatewayData, TransactionSessionData
+from ...payment.interface import (
+    GatewayResponse,
+    PaymentData,
+    PaymentGateway,
+    PaymentGatewayData,
+    TransactionActionData,
+    TransactionSessionData,
+)
 from ...payment.models import Payment, TransactionItem
 from ...thumbnail.models import Thumbnail
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -82,12 +89,6 @@ if TYPE_CHECKING:
     from ...menu.models import Menu, MenuItem
     from ...order.models import Fulfillment, Order
     from ...page.models import Page, PageType
-    from ...payment.interface import (
-        GatewayResponse,
-        PaymentData,
-        PaymentGateway,
-        TransactionActionData,
-    )
     from ...product.models import (
         Category,
         Collection,
@@ -1667,6 +1668,26 @@ class WebhookPlugin(BasePlugin):
                         gtw for gtw in app_gateways if currency in gtw.currencies
                     ]
                 gateways.extend(app_gateways)
+        currency = checkout.currency if checkout else currency
+        if currency:
+            webhooks = get_webhooks_for_event(
+                WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION
+            )
+            for webhook in webhooks:
+                app = webhook.app
+                if not app or not app.identifier:
+                    continue
+                name = app.name or ""
+                gateways.append(
+                    PaymentGateway(
+                        id=app.identifier,
+                        name=name,
+                        currencies=[
+                            currency,
+                        ],
+                        config=[],
+                    )
+                )
         return gateways
 
     def transaction_item_metadata_updated(

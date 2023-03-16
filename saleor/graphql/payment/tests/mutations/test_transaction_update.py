@@ -3,6 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....order import OrderEvents
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
@@ -2154,3 +2155,47 @@ def test_transaction_update_creates_calculation_event(
         amount_value=canceled_value - current_canceled_value,
     ).first()
     assert cancel_event
+
+
+def test_transaction_create_for_checkout_updates_payment_statuses(
+    checkout_with_items,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_items.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+    authorized_value = Decimal("12")
+    charged_value = Decimal("13")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL

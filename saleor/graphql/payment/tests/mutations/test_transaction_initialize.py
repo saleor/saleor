@@ -3,6 +3,9 @@ from decimal import Decimal
 import mock
 
 from .....channel import TransactionFlowStrategy
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from .....checkout.calculations import fetch_checkout_data
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....core.prices import quantize_price
 from .....payment import TransactionEventType
 from .....payment.interface import (
@@ -123,8 +126,8 @@ def _assert_fields(
             Decimal(transaction_data["chargedAmount"]["amount"]), source_object.currency
         )
         == charged_value
-        == transaction.charged_value
     )
+    assert charged_value == transaction.charged_value
 
     assert response_data["transactionEvent"]
     assert response_data["transactionEvent"]["type"] == response_event_type.upper()
@@ -201,6 +204,7 @@ def test_for_checkout_without_payment_gateway_data(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -211,6 +215,8 @@ def test_for_checkout_without_payment_gateway_data(
         mocked_initialize=mocked_initialize,
         charged_value=expected_amount,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -298,6 +304,7 @@ def test_checkout_with_pending_amount(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -309,6 +316,8 @@ def test_checkout_with_pending_amount(
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -398,6 +407,7 @@ def test_checkout_with_action_required_response(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -407,6 +417,8 @@ def test_checkout_with_action_required_response(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -493,6 +505,7 @@ def test_checkout_with_action_required_response_and_missing_psp_reference(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -502,6 +515,8 @@ def test_checkout_with_action_required_response_and_missing_psp_reference(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -560,16 +575,22 @@ def test_checkout_when_amount_is_not_provided(
     checkout_with_prices,
     webhook_app,
     transaction_session_response,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
 
     expected_psp_reference = "ppp-123"
     expected_response = transaction_session_response.copy()
-    expected_response["amount"] = str(checkout.total_gross_amount)
+    expected_response["amount"] = str(checkout_info.checkout.total_gross_amount)
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
     mocked_initialize.return_value = PaymentGatewayData(
@@ -588,6 +609,7 @@ def test_checkout_when_amount_is_not_provided(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -598,6 +620,8 @@ def test_checkout_when_amount_is_not_provided(
         mocked_initialize=mocked_initialize,
         charged_value=checkout.total_gross_amount,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -720,9 +744,17 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
     webhook_app,
     transaction_session_response,
     transaction_item_generator,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+    checkout = checkout_info.checkout
+
     expected_charged_amount = Decimal("10")
     expected_authorized_amount = Decimal("3")
     transaction_item_generator(
@@ -757,6 +789,7 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -767,6 +800,8 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
         mocked_initialize=mocked_initialize,
         charged_value=checkout.total_gross_amount - expected_charged_amount,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")
@@ -778,9 +813,16 @@ def test_app_with_action_field_and_handle_payments(
     transaction_session_response,
     transaction_item_generator,
     permission_manage_payments,
+    plugins_manager,
 ):
     # given
     checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -807,6 +849,7 @@ def test_app_with_action_field_and_handle_payments(
 
     # then
     content = get_graphql_content(response)
+    checkout.refresh_from_db()
     _assert_fields(
         content=content,
         source_object=checkout,
@@ -819,6 +862,8 @@ def test_app_with_action_field_and_handle_payments(
         authorized_value=checkout.total_gross_amount,
         action_type=TransactionFlowStrategy.AUTHORIZATION,
     )
+    assert checkout.charge_status == CheckoutChargeStatus.NONE
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
 
 
 @mock.patch("saleor.plugins.manager.PluginsManager.transaction_initialize_session")

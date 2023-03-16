@@ -928,6 +928,7 @@ def test_create_transaction_event_for_transaction_session_success_response(
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
+    plugins_manager,
 ):
     # given
     expected_amount = Decimal("15")
@@ -940,7 +941,11 @@ def test_create_transaction_event_for_transaction_session_success_response(
     )
     # when
     response_event = create_transaction_event_for_transaction_session(
-        request_event, webhook_app, response
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
     )
 
     # then
@@ -966,6 +971,7 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
+    plugins_manager,
 ):
     # given
     expected_amount = Decimal("15")
@@ -981,7 +987,11 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
     )
     # when
     response_event = create_transaction_event_for_transaction_session(
-        request_event, webhook_app, response
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
     )
 
     # then
@@ -1010,6 +1020,7 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
+    plugins_manager,
 ):
     # given
     expected_amount = Decimal("15")
@@ -1026,7 +1037,11 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
     )
     # when
     response_event = create_transaction_event_for_transaction_session(
-        request_event, webhook_app, response
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
     )
 
     # then
@@ -1051,6 +1066,7 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
+    plugins_manager,
 ):
     # given
     expected_amount = Decimal("15")
@@ -1067,7 +1083,11 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     )
     # when
     response_event = create_transaction_event_for_transaction_session(
-        request_event, webhook_app, response
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
     )
 
     # then

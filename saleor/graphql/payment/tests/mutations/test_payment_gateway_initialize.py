@@ -2,6 +2,8 @@ from decimal import Decimal
 
 import mock
 
+from .....checkout.calculations import fetch_checkout_data
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....payment.interface import PaymentGatewayData
 from ....core.enums import PaymentGatewayConfigErrorCode
 from ....core.utils import to_global_id_or_none
@@ -39,12 +41,16 @@ mutation PaymentGatewayInitialize(
 
 @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
 def test_for_checkout_without_payment_gateways(
-    mocked_initialize,
-    user_api_client,
-    checkout_with_prices,
+    mocked_initialize, user_api_client, checkout_with_prices, plugins_manager
 ):
     # given
     checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+    checkout = checkout_info.checkout
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
 
@@ -108,12 +114,17 @@ def test_for_order_without_payment_gateways(
 
 @mock.patch("saleor.plugins.manager.PluginsManager.payment_gateway_initialize_session")
 def test_for_checkout_with_payment_gateways(
-    mocked_initialize,
-    user_api_client,
-    checkout_with_prices,
+    mocked_initialize, user_api_client, checkout_with_prices, plugins_manager
 ):
     # given
     checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+    checkout = checkout_info.checkout
+
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
     expected_input_data = {"input": "json"}

@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.utils import timezone
 
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
@@ -799,3 +800,62 @@ def test_transaction_event_report_authorize_event_already_exists(
     ).first()
     assert event
     assert event.include_in_calculations is False
+
+
+def test_transaction_event_updates_checkout_payment_statuses(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    checkout_with_items,
+):
+    # given
+    checkout = checkout_with_items
+    current_charged_value = Decimal("20")
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction = transaction_item_generator(
+        app=app_api_client.app, checkout_id=checkout.pk
+    )
+    transaction_item_generator(
+        app=app_api_client.app,
+        checkout_id=checkout.pk,
+        charged_value=current_charged_value,
+    )
+    transaction_id = to_global_id_or_none(transaction)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    checkout.refresh_from_db()
+
+    assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
