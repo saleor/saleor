@@ -49,6 +49,14 @@ ORDER_BULK_CREATE = """
                                 amount
                             }
                         }
+                        totalPrice {
+                            gross {
+                                amount
+                            }
+                            net {
+                                amount
+                            }
+                        }
                         undiscountedUnitPrice{
                             gross {
                                 amount
@@ -316,6 +324,10 @@ def test_order_bulk_create(
     assert line["quantityFulfilled"] == 0
     assert line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
     assert line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert line["totalPrice"]["gross"]["amount"] == 120
+    assert line["totalPrice"]["net"]["amount"] == 100
     assert line["taxClass"]["id"] == graphene.Node.to_global_id(
         "TaxClass", default_tax_class.id
     )
@@ -332,6 +344,12 @@ def test_order_bulk_create(
     assert db_line.quantity_fulfilled == 0
     assert db_line.unit_price.gross.amount == Decimal(120 / 5)
     assert db_line.unit_price.net.amount == Decimal(100 / 5)
+    assert db_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)
+    assert db_line.undiscounted_unit_price.net.amount == Decimal(100 / 5)
+    assert db_line.total_price.gross.amount == 120
+    assert db_line.total_price.net.amount == 100
+    assert db_line.undiscounted_total_price.gross.amount == 120
+    assert db_line.undiscounted_total_price.net.amount == 100
     assert db_line.tax_class == default_tax_class
     assert db_line.tax_class_name == "Line Tax Class Name"
     assert db_line.tax_rate == Decimal("0.2")
@@ -894,7 +912,7 @@ def test_order_bulk_create_error_note_with_future_date(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_error_non_existing_variant(
+def test_order_bulk_create_error_non_existing_instance(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
@@ -936,7 +954,7 @@ def test_order_bulk_create_error_non_existing_variant(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_error_user_not_found(
+def test_order_bulk_create_error_instance_not_found(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
@@ -1042,4 +1060,137 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
     assert not error["field"]
     assert not error["code"]
 
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_invalid_quantity(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["quantity"] = 0.2
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert errors[1]["message"] == "Invalid quantity; must be integer greater then 1."
+    assert errors[1]["field"] == "quantity"
+    assert errors[1]["code"] == OrderBulkCreateErrorCode.INVALID_QUANTITY.name
+
+    assert errors[0]["message"] == "At least one order line can't be created."
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.ORDER_LINE_ERROR.name
+    assert Order.objects.count() == orders_count
+
+
+# 5, 0, 0.2, 100, 100
+@pytest.mark.parametrize(
+    "quantity,quantity_fulfilled,total_net,undiscounted_net,message,code,field",
+    [
+        (
+            -5,
+            0,
+            100,
+            100,
+            "Invalid quantity; must be integer greater then 1.",
+            OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
+            "quantity",
+        ),
+        (
+            5,
+            -2,
+            100,
+            100,
+            "Invalid quantity; must be integer greater then 0.",
+            OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
+            "quantityFulfilled",
+        ),
+        (
+            5,
+            7,
+            100,
+            100,
+            "Quantity fulfilled can't be greater then quantity.",
+            OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
+            "quantityFulfilled",
+        ),
+        (
+            5,
+            0,
+            300,
+            100,
+            "Net price can't be greater then gross price.",
+            OrderBulkCreateErrorCode.PRICE_ERROR.name,
+            "totalPrice",
+        ),
+        (
+            5,
+            0,
+            100,
+            300,
+            "Net price can't be greater then gross price.",
+            OrderBulkCreateErrorCode.PRICE_ERROR.name,
+            "undiscountedTotalPrice",
+        ),
+    ],
+)
+def test_order_bulk_create_error_order_line_calculations(
+    quantity,
+    quantity_fulfilled,
+    total_net,
+    undiscounted_net,
+    message,
+    code,
+    field,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["quantity"] = quantity
+    order["lines"][0]["quantityFulfilled"] = quantity_fulfilled
+    order["lines"][0]["totalPrice"]["net"] = total_net
+    order["lines"][0]["undiscountedTotalPrice"]["net"] = undiscounted_net
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert errors[1]["message"] == message
+    assert errors[1]["field"] == field
+    assert errors[1]["code"] == code
+
+    assert errors[0]["message"] == "At least one order line can't be created."
+    assert errors[0]["field"] == "lines"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.ORDER_LINE_ERROR.name
     assert Order.objects.count() == orders_count

@@ -22273,10 +22273,13 @@ enum OrderBulkCreateErrorCode {
   GRAPHQL_ERROR
   REQUIRED
   INVALID
+  NOT_FOUND
   LIMIT_EXCEEDED
-  DELIVERY_METHOD_ERROR
+  TOO_MANY_IDENTIFIERS
+  FUTURE_DATE
   ORDER_LINE_ERROR
-  NOTE_ERROR
+  INVALID_QUANTITY
+  PRICE_ERROR
 }
 
 input OrderBulkCreateInput {
@@ -22429,7 +22432,7 @@ input OrderBulkCreateOrderLineInput {
   undiscountedTotalPrice: TaxedMoneyInput!
 
   """Tax rate of the order line."""
-  taxRate: Float!
+  taxRate: PositiveDecimal!
 
   """The ID of the tax class."""
   taxClassId: ID
