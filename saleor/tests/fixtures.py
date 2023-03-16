@@ -6,7 +6,7 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import List, Optional
+from typing import Callable, List, Optional
 from unittest.mock import MagicMock, Mock
 
 import graphene
@@ -91,7 +91,7 @@ from ..order.utils import (
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
-from ..payment.models import Payment, TransactionItem
+from ..payment.models import Payment, TransactionEvent, TransactionItem
 from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..payment.utils import create_manual_adjustment_events
 from ..permission.models import Permission
@@ -5557,6 +5557,32 @@ def transaction_item_generator():
         return transaction
 
     return create_transaction
+
+
+@pytest.fixture
+def transaction_events_generator() -> (
+    Callable[
+        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+    ]
+):
+    def factory(
+        psp_references: List[str],
+        types: List[str],
+        amounts: List[Decimal],
+        transaction: TransactionItem,
+    ):
+        return TransactionEvent.objects.bulk_create(
+            TransactionEvent(
+                transaction=transaction,
+                psp_reference=reference,
+                type=event_type,
+                amount_value=amount,
+                include_in_calculations=True,
+            )
+            for reference, event_type, amount in zip(psp_references, types, amounts)
+        )
+
+    return factory
 
 
 @pytest.fixture

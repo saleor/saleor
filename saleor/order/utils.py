@@ -895,9 +895,9 @@ def _update_order_total_charged(
     order_payments: QuerySet["Payment"],
     order_transactions: QuerySet["TransactionItem"],
 ):
-    order.total_charged_amount = (
-        sum(order_payments.values_list("captured_amount", flat=True)) or 0
-    )
+    order.total_charged_amount = sum(
+        order_payments.values_list("captured_amount", flat=True)
+    ) or Decimal(0)
     order.total_charged_amount += sum(
         order_transactions.values_list("charged_value", flat=True)
     )
@@ -932,9 +932,9 @@ def _update_order_total_authorized(
     order.total_authorized_amount = get_total_authorized(
         order_payments, order.currency
     ).amount
-    order.total_authorized_amount += (
-        sum(order_transactions.values_list("authorized_value", flat=True)) or 0
-    )
+    order.total_authorized_amount += sum(
+        order_transactions.values_list("authorized_value", flat=True)
+    ) or Decimal(0)
 
 
 def update_order_authorize_status(order: Order):
