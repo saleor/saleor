@@ -885,7 +885,7 @@ def update_order_charge_status(order: Order, granted_refund_amount: Decimal):
 
     if total_charged == current_total_gross:
         order.charge_status = OrderChargeStatus.FULL
-    elif total_charged <= 0:
+    elif total_charged <= Decimal(0):
         order.charge_status = OrderChargeStatus.NONE
     elif total_charged < current_total_gross:
         order.charge_status = OrderChargeStatus.PARTIAL
@@ -898,9 +898,9 @@ def _update_order_total_charged(
     order_payments: QuerySet["Payment"],
     order_transactions: Iterable["TransactionItem"],
 ):
-    order.total_charged_amount = (
-        sum(order_payments.values_list("captured_amount", flat=True)) or 0
-    )
+    order.total_charged_amount = sum(
+        order_payments.values_list("captured_amount", flat=True)
+    ) or Decimal(0)
     order.total_charged_amount += sum([tr.charged_value for tr in order_transactions])
 
 
@@ -960,9 +960,9 @@ def update_order_authorize_status(order: Order, granted_refund_amount: Decimal):
     current_total_gross = max(current_total_gross, Decimal("0"))
     current_total_gross = quantize_price(current_total_gross, order.currency)
 
-    if total_covered == 0 and order.total.gross.amount == Decimal(0):
+    if total_covered == Decimal(0) and order.total.gross.amount == Decimal(0):
         order.authorize_status = OrderAuthorizeStatus.FULL
-    elif total_covered == 0:
+    elif total_covered == Decimal(0):
         order.authorize_status = OrderAuthorizeStatus.NONE
     elif total_covered >= current_total_gross:
         order.authorize_status = OrderAuthorizeStatus.FULL
