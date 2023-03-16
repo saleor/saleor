@@ -1194,3 +1194,37 @@ def test_order_bulk_create_error_order_line_calculations(
     assert errors[0]["field"] == "lines"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.ORDER_LINE_ERROR.name
     assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_calculate_order_line_tax_rate(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["taxRate"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["orderBulkCreate"]
+    assert data["count"] == 1
+    assert not data["results"][0]["errors"]
+    assert data["results"][0]["order"]["lines"][0]["taxRate"] == 0.2
+
+    db_line = OrderLine.objects.get()
+    assert db_line.tax_rate == Decimal("0.2")
+
+    assert Order.objects.count() == orders_count + 1
