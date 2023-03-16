@@ -1784,6 +1784,7 @@ enum WebhookEventTypeEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
 
   """
   A checkout metadata is updated.
@@ -2398,6 +2399,7 @@ enum WebhookEventTypeAsyncEnum {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
 
   """
   A checkout metadata is updated.
@@ -3092,6 +3094,7 @@ enum WebhookSampleEventTypeEnum {
   PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
@@ -27413,6 +27416,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
+Event sent when checkout is fully paid with transactions.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutFullyPaid implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
