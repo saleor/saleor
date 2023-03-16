@@ -28,6 +28,11 @@ subscription {
         __typename
         ... on Checkout{
           id
+          totalPrice{
+            gross{
+              amount
+            }
+          }
         }
         ... on Order{
           id
@@ -98,6 +103,7 @@ def test_transaction_initialize_session_checkout_with_data(
         "sourceObject": {
             "__typename": "Checkout",
             "id": checkout_id,
+            "totalPrice": {"gross": {"amount": 0.0}},
         },
     }
 
@@ -161,6 +167,7 @@ def test_transaction_initialize_session_checkout_without_data(
         "sourceObject": {
             "__typename": "Checkout",
             "id": checkout_id,
+            "totalPrice": {"gross": {"amount": 0.0}},
         },
     }
 

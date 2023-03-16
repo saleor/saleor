@@ -105,7 +105,7 @@ def create_deliveries_for_subscriptions(
             subscribable_object=subscribable_object,
             subscription_query=webhook.subscription_query,
             request=initialize_request(
-                requestor, event_type in WebhookEventSyncType.ALL
+                requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
             ),
             app=webhook.app,
         )
@@ -152,7 +152,9 @@ def create_delivery_for_subscription_sync_event(
         return None
 
     if not request:
-        request = initialize_request(requestor, event_type in WebhookEventSyncType.ALL)
+        request = initialize_request(
+            requestor, event_type in WebhookEventSyncType.ALL, event_type=event_type
+        )
 
     data = generate_payload_from_subscription(
         event_type=event_type,
@@ -280,7 +282,10 @@ def trigger_all_webhooks_sync(
         if webhook.subscription_query:
             if request_context is None:
                 request_context = initialize_request(
-                    requestor, event_type in WebhookEventSyncType.ALL, allow_replica
+                    requestor,
+                    event_type in WebhookEventSyncType.ALL,
+                    allow_replica,
+                    event_type=event_type,
                 )
 
             delivery = create_delivery_for_subscription_sync_event(
