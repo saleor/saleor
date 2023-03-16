@@ -513,7 +513,10 @@ def check_is_owner_or_has_one_of_perms(
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
 
 
-def get_user_accessible_channels(user: User):
+def get_user_accessible_channels(user: Optional[User]):
+    if not user:
+        return Channel.objects.none()
+
     UserGroup = User.groups.through
     user_groups = UserGroup.objects.filter(user_id=user.id)
 

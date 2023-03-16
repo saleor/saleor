@@ -2,23 +2,31 @@ from uuid import UUID
 
 from django.db.models import Q
 
+from ...app.models import App
 from ...channel.models import Channel
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
+from ..account.utils import get_user_accessible_channels
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.tracing import traced_resolver
+from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-def resolve_orders(_info, channel_slug):
+def resolve_orders(info, channel_slug):
     qs = models.Order.objects.non_draft()
     if channel_slug:
         qs = qs.filter(channel__slug=str(channel_slug))
-    return qs
+
+    requestor = get_user_or_app_from_context(info.context)
+    if isinstance(requestor, App):
+        return qs
+    accessible_channels = get_user_accessible_channels(requestor)
+    return qs.filter(channel_id__in=accessible_channels.values("id"))
 
 
 def resolve_draft_orders(_info):

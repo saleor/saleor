@@ -4978,9 +4978,31 @@ def permission_manage_payments():
 
 
 @pytest.fixture
+def permission_group_manage_orders(permission_manage_orders, staff_users):
+    group = Group.objects.create(
+        name="Manage user group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_orders)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_shipping(permission_manage_shipping, staff_users):
+    group = Group.objects.create(
+        name="Manage shipping group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_shipping)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(
-        name="Manage user groups.", restricted_access_to_channels=False
+        name="Manage user group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_users)
 

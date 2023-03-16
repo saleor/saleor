@@ -8,7 +8,9 @@ from ...core.enums import ReportingPeriod
 from ...tests.utils import assert_no_permission, get_graphql_content
 
 
-def test_homepage_events(order_events, staff_api_client, permission_manage_orders):
+def test_homepage_events(
+    order_events, staff_api_client, permission_group_manage_orders
+):
     query = """
     {
         homepageEvents(first: 20) {
@@ -22,9 +24,8 @@ def test_homepage_events(order_events, staff_api_client, permission_manage_order
         }
     }
     """
-    response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_orders]
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     edges = content["data"]["homepageEvents"]["edges"]
     only_types = {"PLACED", "PLACED_FROM_DRAFT", "ORDER_FULLY_PAID"}
@@ -59,19 +60,18 @@ query Orders($period: ReportingPeriod, $channel: String) {
 
 def test_orders_total(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_USD,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
 
     # then
     content = get_graphql_content(response)
@@ -81,19 +81,18 @@ def test_orders_total(
 
 def test_orders_total_channel_pln(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_PLN,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines_channel_PLN
     variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_PLN.slug}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
 
     # then
     content = get_graphql_content(response)
@@ -103,17 +102,16 @@ def test_orders_total_channel_pln(
 
 def test_orders_total_not_existing_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"period": ReportingPeriod.TODAY.name, "channel": "not-existing"}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
 
     # then
     content = get_graphql_content(response)
@@ -122,19 +120,18 @@ def test_orders_total_not_existing_channel(
 
 def test_orders_total_as_staff(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_USD,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_USD.slug}
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
 
     # then
     content = get_graphql_content(response)
@@ -207,12 +204,13 @@ QUERY_ORDER_TODAY_COUNT = """
 
 def test_orders_total_count_without_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_USD,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
             "gte": str(date.today() - timedelta(days=3)),
@@ -221,9 +219,7 @@ def test_orders_total_count_without_channel(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TODAY_COUNT, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
 
     # then
     content = get_graphql_content(response)
@@ -232,12 +228,13 @@ def test_orders_total_count_without_channel(
 
 def test_orders_total_count_channel_USD(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_USD,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
             "gte": str(date.today() - timedelta(days=3)),
@@ -247,9 +244,7 @@ def test_orders_total_count_channel_USD(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TODAY_COUNT, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
 
     # then
     content = get_graphql_content(response)
@@ -258,12 +253,13 @@ def test_orders_total_count_channel_USD(
 
 def test_orders_total_count_channel_PLN(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_PLN,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
             "gte": str(date.today() - timedelta(days=3)),
@@ -273,9 +269,7 @@ def test_orders_total_count_channel_PLN(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TODAY_COUNT, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
 
     # then
     content = get_graphql_content(response)
@@ -284,12 +278,13 @@ def test_orders_total_count_channel_PLN(
 
 def test_orders_total_count_as_staff(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     order_with_lines_channel_PLN,
     channel_USD,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "created": {
             "gte": str(date.today() - timedelta(days=3)),
@@ -299,9 +294,7 @@ def test_orders_total_count_as_staff(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_TODAY_COUNT, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_TODAY_COUNT, variables)
 
     # then
     content = get_graphql_content(response)
