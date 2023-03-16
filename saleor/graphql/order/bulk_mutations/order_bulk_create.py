@@ -72,6 +72,8 @@ class DeliveryMethod:
     warehouse: Optional[Warehouse]
     shipping_method: Optional[ShippingMethod]
     shipping_tax_class: Optional[TaxClass]
+    shipping_tax_class_metadata: Optional[List[Dict[str, str]]]
+    shipping_tax_class_private_metadata: Optional[List[Dict[str, str]]]
 
 
 @dataclass
@@ -134,6 +136,12 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
     shipping_tax_rate = PositiveDecimal(description="Tax rate of the shipping.")
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
+    shipping_tax_class_metadata = NonNullList(
+        MetadataInput, description="Metadata of the tax class."
+    )
+    shipping_tax_class_private_metadata = NonNullList(
+        MetadataInput, description="Private metadata of the tax class."
+    )
 
 
 class OrderBulkCreateNoteInput(graphene.InputObjectType):
@@ -222,10 +230,16 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
+    tax_class_metadata = NonNullList(
+        MetadataInput, description="Metadata of the tax class."
+    )
+    tax_class_private_metadata = NonNullList(
+        MetadataInput, description="Private metadata of the tax class."
+    )
 
 
 class OrderBulkCreateInput(graphene.InputObjectType):
-    number = graphene.Int(description="Unique number of the order.")
+    number = graphene.String(description="Unique string identifier of the order.")
     external_reference = graphene.String(description="External ID of the order.")
     channel = graphene.String(
         required=True, description="Slug of the channel associated with the order."
@@ -286,6 +300,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     # TODO invoices = [OrderBulkCreateInvoiceInput!]
     # TODO transactions: [TransactionCreateInput!]!
     # TODO discounts (? need to be added/calculated if any ?)
+    # TODO handle order number
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
@@ -549,6 +564,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls, input: Dict[str, Any], errors: List[OrderBulkError], object_storage
     ) -> Optional[DeliveryMethod]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
+        shipping_tax_class_metadata, shipping_tax_class_private_metadata = None, None
 
         is_warehouse_delivery = input.get("warehouse_id")
         is_shipping_delivery = input.get("shipping_method_id")
@@ -586,6 +602,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 key_map={"shipping_tax_class_id": "id"},
                 object_storage=object_storage,
             )
+            shipping_tax_class_metadata = input.get("shipping_tax_class_metadata")
+            shipping_tax_class_private_metadata = input.get(
+                "shipping_tax_class_private_metadata"
+            )
 
         delivery_method = None
         if not warehouse and not shipping_method:
@@ -601,6 +621,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 warehouse=warehouse,
                 shipping_method=shipping_method,
                 shipping_tax_class=shipping_tax_class,
+                shipping_tax_class_metadata=shipping_tax_class_metadata,
+                shipping_tax_class_private_metadata=shipping_tax_class_private_metadata,
             )
 
         return delivery_method
@@ -786,6 +808,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
         )
 
+        if not variant:
+            return None
+
         line_tax_class = cls.get_instance_with_errors(
             input=order_line_input,
             errors=errors,
@@ -793,9 +818,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             key_map={"tax_class_id": "id"},
             object_storage=object_storage,
         )
-
-        if not variant and not line_tax_class:
-            return None
+        tax_class_name = order_line_input.get(
+            "tax_class_name", line_tax_class.name if line_tax_class else None
+        )
 
         line_amounts = cls.make_order_line_calculations(order_line_input, errors)
         if not line_amounts:
@@ -825,8 +850,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_total_price_gross_amount=line_amounts.undiscounted_total_gross,
             tax_rate=line_amounts.tax_rate,
             tax_class=line_tax_class,
-            tax_class_name=order_line_input.get("tax_class_name", line_tax_class.name),
+            tax_class_name=tax_class_name,
         )
+
+        if metadata := order_line_input.get("tax_class_metadata"):
+            for data in metadata:
+                order_line.tax_class_metadata.update({data["key"]: data["value"]})
+        if private_metadata := order_line_input.get("tax_class_private_metadata"):
+            for data in private_metadata:
+                order_line.tax_class_private_metadata.update(
+                    {data["key"]: data["value"]}
+                )
         return order_line
 
     @classmethod
@@ -942,6 +976,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_instance.currency = order_input["currency"]
         order_instance.should_refresh_prices = False
         update_order_display_gross_prices(order_instance)
+
+        if metadata := delivery_method.shipping_tax_class_metadata:
+            for data in metadata:
+                order_instance.shipping_tax_class_metadata.update(
+                    {data["key"]: data["value"]}
+                )
+        if private_metadata := delivery_method.shipping_tax_class_private_metadata:
+            for data in private_metadata:
+                order_instance.shipping_tax_class_private_metadata.update(
+                    {data["key"]: data["value"]}
+                )
+
         # TODO charged
         # TODO authourized
         # TODO voucher

@@ -22284,8 +22284,8 @@ enum OrderBulkCreateErrorCode {
 }
 
 input OrderBulkCreateInput {
-  """Unique number of the order."""
-  number: Int
+  """Unique string identifier of the order."""
+  number: String
 
   """External ID of the order."""
   externalReference: String
@@ -22440,6 +22440,12 @@ input OrderBulkCreateOrderLineInput {
 
   """The name of the tax class."""
   taxClassName: String
+
+  """Metadata of the tax class."""
+  taxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  taxClassPrivateMetadata: [MetadataInput!]
 }
 
 input TaxedMoneyInput {
@@ -22474,6 +22480,12 @@ input OrderBulkCreateDeliveryMethodInput {
 
   """The name of the tax class."""
   shippingTaxClassName: String
+
+  """Metadata of the tax class."""
+  shippingTaxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  shippingTaxClassPrivateMetadata: [MetadataInput!]
 }
 
 input OrderBulkCreateFulfillmentInput {
