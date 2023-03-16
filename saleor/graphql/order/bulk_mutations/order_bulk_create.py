@@ -216,8 +216,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         required=True,
         description="Price of the order line excluding applied discount.",
     )
-    # TODO is line tax rate needed if we have total gross and net required ?
-    tax_rate = PositiveDecimal(required=True, description="Tax rate of the order line.")
+    tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
 
@@ -670,7 +669,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
         quantity = line_input["quantity"]
         quantity_fulfilled = line_input["quantity_fulfilled"]
-        tax_rate = line_input["tax_rate"]
+        tax_rate = line_input.get("tax_rate", None)
 
         is_error = False
         if quantity < 1 or int(quantity) != quantity:
@@ -728,6 +727,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         undiscounted_unit_price_gross_amount = Decimal(
             undiscounted_gross_amount / quantity
         )
+
+        if tax_rate is None and net_amount > 0:
+            tax_rate = Decimal(gross_amount / net_amount - 1)
 
         return LineAmounts(
             total_gross=gross_amount,
