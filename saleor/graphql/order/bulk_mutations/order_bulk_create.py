@@ -92,6 +92,21 @@ class OrderAmounts:
     shipping_tax_rate: Decimal
 
 
+@dataclass
+class LineAmounts:
+    total_gross: Decimal
+    total_net: Decimal
+    unit_gross: Decimal
+    unit_net: Decimal
+    undiscounted_total_gross: Decimal
+    undiscounted_total_net: Decimal
+    undiscounted_unit_gross: Decimal
+    undiscounted_unit_net: Decimal
+    quantity: int
+    quantity_fulfilled: int
+    tax_rate: Decimal
+
+
 class TaxedMoneyInput(graphene.InputObjectType):
     gross = PositiveDecimal(required=True, description="Gross value of an item.")
     net = PositiveDecimal(required=True, description="Net value of an item.")
@@ -202,7 +217,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         description="Price of the order line excluding applied discount.",
     )
     # TODO is line tax rate needed if we have total gross and net required ?
-    tax_rate = graphene.Float(required=True, description="Tax rate of the order line.")
+    tax_rate = PositiveDecimal(required=True, description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
 
@@ -335,7 +350,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="Order input contains future date.",
                     field="createdAt",
-                    code=OrderBulkCreateErrorCode.INVALID,
+                    code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
 
@@ -385,7 +400,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         try:
             instance = get_instance(input, model, key_map, instance_storage)
         except ValidationError as err:
-            errors.append(OrderBulkError(message=str(err.message)))
+            errors.append(
+                OrderBulkError(
+                    message=str(err.message),
+                    code=OrderBulkCreateErrorCode.NOT_FOUND,
+                )
+            )
         return instance
 
     @classmethod
@@ -529,7 +549,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     message="Can't provide both warehouse and shipping method IDs "
                     "in deliveryMethod field.",
                     field="deliveryMethod",
-                    code=OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR,
+                    code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
                 )
             )
 
@@ -564,7 +584,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="No delivery method provided.",
                     field="deliveryMethod",
-                    code=OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR,
+                    code=OrderBulkCreateErrorCode.REQUIRED,
                 )
             )
         else:
@@ -590,7 +610,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="Note input contains future date.",
                     field="date",
-                    code=OrderBulkCreateErrorCode.NOTE_ERROR,
+                    code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
             date = timezone.now()
@@ -624,7 +644,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Note input contains both user and app identifier.",
-                    code=OrderBulkCreateErrorCode.NOTE_ERROR,
+                    code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
                     field="notes",
                 )
             )
@@ -639,6 +659,89 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         return event
+
+    @classmethod
+    def make_order_line_calculations(
+        cls, line_input: Dict[str, Any], errors: List[OrderBulkError]
+    ) -> Optional[LineAmounts]:
+        gross_amount = line_input["total_price"]["gross"]
+        net_amount = line_input["total_price"]["net"]
+        undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
+        undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
+        quantity = line_input["quantity"]
+        quantity_fulfilled = line_input["quantity_fulfilled"]
+        tax_rate = line_input["tax_rate"]
+
+        is_error = False
+        if quantity < 1 or int(quantity) != quantity:
+            errors.append(
+                OrderBulkError(
+                    message="Invalid quantity; must be integer greater then 1.",
+                    field="quantity",
+                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                )
+            )
+            is_error = True
+        if quantity_fulfilled < 0 or int(quantity_fulfilled) != quantity_fulfilled:
+            errors.append(
+                OrderBulkError(
+                    message="Invalid quantity; must be integer greater then 0.",
+                    field="quantityFulfilled",
+                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                )
+            )
+            is_error = True
+        if quantity_fulfilled > quantity:
+            errors.append(
+                OrderBulkError(
+                    message="Quantity fulfilled can't be greater then quantity.",
+                    field="quantityFulfilled",
+                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                )
+            )
+            is_error = True
+        if gross_amount < net_amount:
+            errors.append(
+                OrderBulkError(
+                    message="Net price can't be greater then gross price.",
+                    field="totalPrice",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+            is_error = True
+        if undiscounted_gross_amount < undiscounted_net_amount:
+            errors.append(
+                OrderBulkError(
+                    message="Net price can't be greater then gross price.",
+                    field="undiscountedTotalPrice",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+            is_error = True
+
+        if is_error:
+            return None
+
+        unit_price_net_amount = Decimal(net_amount / quantity)
+        unit_price_gross_amount = Decimal(gross_amount / quantity)
+        undiscounted_unit_price_net_amount = Decimal(undiscounted_net_amount / quantity)
+        undiscounted_unit_price_gross_amount = Decimal(
+            undiscounted_gross_amount / quantity
+        )
+
+        return LineAmounts(
+            total_gross=gross_amount,
+            total_net=net_amount,
+            unit_gross=unit_price_gross_amount,
+            unit_net=unit_price_net_amount,
+            undiscounted_total_gross=undiscounted_gross_amount,
+            undiscounted_total_net=undiscounted_net_amount,
+            undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
+            undiscounted_unit_net=undiscounted_unit_price_net_amount,
+            quantity=quantity,
+            quantity_fulfilled=quantity_fulfilled,
+            tax_rate=tax_rate,
+        )
 
     @classmethod
     def create_single_order_line(
@@ -672,16 +775,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if not all([variant, line_tax_class]):
             return None
 
-        order_line_gross_amount = order_line_input["total_price"]["gross"]
-        order_line_net_amount = order_line_input["total_price"]["net"]
-        order_line_quantity = order_line_input["quantity"]
-
-        order_line_unit_price_net_amount = Decimal(
-            order_line_net_amount / order_line_quantity
-        )
-        order_line_unit_price_gross_amount = Decimal(
-            order_line_gross_amount / order_line_quantity
-        )
+        line_amounts = cls.make_order_line_calculations(order_line_input, errors)
+        if not line_amounts:
+            return None
 
         order_line = OrderLine(
             order=order,
@@ -694,14 +790,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             created_at=order_line_input["created_at"],
             is_shipping_required=order_line_input["is_shipping_required"],
             is_gift_card=order_line_input["is_gift_card"],
-            quantity=order_line_quantity,
-            quantity_fulfilled=order_line_input["quantity_fulfilled"],
             currency=order_input["currency"],
-            unit_price_net_amount=order_line_unit_price_net_amount,
-            unit_price_gross_amount=order_line_unit_price_gross_amount,
-            total_price_net_amount=order_line_net_amount,
-            total_price_gross_amount=order_line_gross_amount,
-            tax_rate=Decimal(order_line_input["tax_rate"]),
+            quantity=line_amounts.quantity,
+            quantity_fulfilled=line_amounts.quantity_fulfilled,
+            unit_price_net_amount=line_amounts.unit_net,
+            unit_price_gross_amount=line_amounts.unit_gross,
+            total_price_net_amount=line_amounts.total_net,
+            total_price_gross_amount=line_amounts.total_gross,
+            undiscounted_unit_price_net_amount=line_amounts.undiscounted_unit_net,
+            undiscounted_unit_price_gross_amount=line_amounts.undiscounted_unit_gross,
+            undiscounted_total_price_net_amount=line_amounts.undiscounted_total_net,
+            undiscounted_total_price_gross_amount=line_amounts.undiscounted_total_gross,
+            tax_rate=line_amounts.tax_rate,
             tax_class=line_tax_class,
             tax_class_name=order_line_input.get("tax_class_name", line_tax_class.name),
         )
@@ -756,7 +856,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="At least one order line can't be created.",
                     field="lines",
-                    code=OrderBulkCreateErrorCode.INVALID,
+                    code=OrderBulkCreateErrorCode.ORDER_LINE_ERROR,
                 )
             )
             return order
