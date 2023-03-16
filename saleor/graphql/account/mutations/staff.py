@@ -28,6 +28,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import (
     BaseMutation,
     ModelDeleteMutation,
@@ -38,7 +39,6 @@ from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.validators.file import clean_image_file
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
-from .. import DOC_CATEGORY_USERS
 from ..i18n import I18nMixin
 from ..utils import (
     CustomerDeleteMixin,

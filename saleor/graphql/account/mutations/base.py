@@ -33,6 +33,7 @@ from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
 from ...core.descriptions import ADDED_IN_310
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
@@ -42,7 +43,6 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError, BaseInputObjectType
 from ...plugins.dataloaders import get_plugin_manager_promise
-from .. import DOC_CATEGORY_USERS
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"

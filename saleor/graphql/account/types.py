@@ -25,6 +25,7 @@ from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
@@ -45,7 +46,6 @@ from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
-from . import DOC_CATEGORY_USERS
 from .dataloaders import (
     CustomerEventsByUserLoader,
     ThumbnailByUserIdSizeAndFormatLoader,

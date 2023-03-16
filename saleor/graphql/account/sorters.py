@@ -1,7 +1,7 @@
 from django.db.models import Count, QuerySet
 
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.types import BaseEnum, SortInputObjectType
-from . import DOC_CATEGORY_USERS
 
 
 class UserSortField(BaseEnum):

@@ -5,11 +5,11 @@ from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
-from . import DOC_CATEGORY_USERS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter

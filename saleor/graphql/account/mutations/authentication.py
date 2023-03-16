@@ -28,11 +28,11 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import get_permissions_from_names
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_AUTH
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ...plugins.dataloaders import get_plugin_manager_promise
-from .. import DOC_CATEGORY_AUTH
 from ..types import User
 
 

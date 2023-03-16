@@ -20,12 +20,12 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, BaseInputObjectType, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
-from .. import DOC_CATEGORY_USERS
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User

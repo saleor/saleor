@@ -17,7 +17,7 @@ type Query {
   webhook(
     """ID of the webhook."""
     id: ID!
-  ): Webhook
+  ): Webhook @doc(category: "Webhooks")
 
   """
   List of all available webhook events.
@@ -49,7 +49,7 @@ type Query {
     Added in Saleor 3.10.
     """
     externalReference: String
-  ): Warehouse
+  ): Warehouse @doc(category: "Products")
 
   """
   List of warehouses.
@@ -120,7 +120,7 @@ type Query {
   taxConfiguration(
     """ID of a tax configuration."""
     id: ID!
-  ): TaxConfiguration
+  ): TaxConfiguration @doc(category: "Taxes")
 
   """
   List of tax configurations.
@@ -146,7 +146,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): TaxConfigurationCountableConnection
+  ): TaxConfigurationCountableConnection @doc(category: "Taxes")
 
   """
   Look up a tax class.
@@ -160,7 +160,7 @@ type Query {
   taxClass(
     """ID of a tax class."""
     id: ID!
-  ): TaxClass
+  ): TaxClass @doc(category: "Taxes")
 
   """
   List of tax classes.
@@ -189,7 +189,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): TaxClassCountableConnection
+  ): TaxClassCountableConnection @doc(category: "Taxes")
 
   """
   Tax class rates grouped by country.
@@ -199,10 +199,10 @@ type Query {
   taxCountryConfiguration(
     """Country for which to return tax class rates."""
     countryCode: CountryCode!
-  ): TaxCountryConfiguration
+  ): TaxCountryConfiguration @doc(category: "Taxes")
 
   "\\n\\nRequires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP."
-  taxCountryConfigurations: [TaxCountryConfiguration!]
+  taxCountryConfigurations: [TaxCountryConfiguration!] @doc(category: "Taxes")
 
   """
   Look up a stock by ID
@@ -212,7 +212,7 @@ type Query {
   stock(
     """ID of an warehouse"""
     id: ID!
-  ): Stock
+  ): Stock @doc(category: "Products")
 
   """
   List of stocks.
@@ -263,7 +263,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): ShippingZone
+  ): ShippingZone @doc(category: "Shipping")
 
   """
   List of the shop's shipping zones.
@@ -350,7 +350,7 @@ type Query {
 
     """Slug of the category"""
     slug: String
-  ): Category
+  ): Category @doc(category: "Products")
 
   """
   Look up a collection by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -411,7 +411,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Product
+  ): Product @doc(category: "Products")
 
   """
   List of the shop's products. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -443,7 +443,7 @@ type Query {
   productType(
     """ID of the product type."""
     id: ID!
-  ): ProductType
+  ): ProductType @doc(category: "Products")
 
   """List of the shop's product types."""
   productTypes(
@@ -485,7 +485,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): ProductVariant
+  ): ProductVariant @doc(category: "Products")
 
   """
   List of product variants. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -549,7 +549,7 @@ type Query {
   payment(
     """ID of the payment."""
     id: ID!
-  ): Payment
+  ): Payment @doc(category: "Payments")
 
   """
   List of payments.
@@ -585,7 +585,7 @@ type Query {
   transaction(
     """ID of a transaction."""
     id: ID!
-  ): TransactionItem
+  ): TransactionItem @doc(category: "Payments")
 
   """Look up a page by ID or slug."""
   page(
@@ -594,7 +594,7 @@ type Query {
 
     """The slug of the page."""
     slug: String
-  ): Page
+  ): Page @doc(category: "Pages")
 
   """List of the shop's pages."""
   pages(
@@ -621,7 +621,7 @@ type Query {
   pageType(
     """ID of the page type."""
     id: ID!
-  ): PageType
+  ): PageType @doc(category: "Pages")
 
   """List of the page types."""
   pageTypes(
@@ -674,7 +674,7 @@ type Query {
     Added in Saleor 3.10.
     """
     externalReference: String
-  ): Order
+  ): Order @doc(category: "Orders")
 
   """
   List of orders.
@@ -746,7 +746,7 @@ type Query {
   orderByToken(
     """The order's token."""
     token: UUID!
-  ): Order @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  ): Order @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Look up a navigation menu by ID or name."""
   menu(
@@ -832,7 +832,7 @@ type Query {
   giftCard(
     """ID of the gift card."""
     id: ID!
-  ): GiftCard
+  ): GiftCard @doc(category: "Gift cards")
 
   """
   List of gift cards.
@@ -954,7 +954,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Sale
+  ): Sale @doc(category: "Discounts")
 
   """
   List of the shop's sales.
@@ -1002,7 +1002,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Voucher
+  ): Voucher @doc(category: "Discounts")
 
   """
   List of the shop's vouchers.
@@ -1092,7 +1092,7 @@ type Query {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): Checkout
+  ): Checkout @doc(category: "Checkout")
 
   """
   List of checkouts.
@@ -1162,7 +1162,7 @@ type Query {
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     slug: String
-  ): Channel
+  ): Channel @doc(category: "Channels")
 
   """
   List of all channels.
@@ -1227,7 +1227,7 @@ type Query {
     Added in Saleor 3.10.
     """
     externalReference: String
-  ): Attribute
+  ): Attribute @doc(category: "Attributes")
 
   """
   List of all apps installations
@@ -1269,7 +1269,7 @@ type Query {
   app(
     """ID of the app."""
     id: ID
-  ): App
+  ): App @doc(category: "Apps")
 
   """
   List of all extensions.
@@ -1309,7 +1309,7 @@ type Query {
   appExtension(
     """ID of the app extension."""
     id: ID!
-  ): AppExtension
+  ): AppExtension @doc(category: "Apps")
 
   """Returns address validation rules."""
   addressValidationRules(
@@ -1444,7 +1444,7 @@ type Query {
 }
 
 """Webhook."""
-type Webhook implements Node {
+type Webhook implements Node @doc(category: "Webhooks") {
   id: ID!
   name: String!
 
@@ -1508,7 +1508,7 @@ interface Node {
 }
 
 """Webhook event."""
-type WebhookEvent {
+type WebhookEvent @doc(category: "Webhooks") {
   """Display name of the event."""
   name: String!
 
@@ -1998,7 +1998,7 @@ enum WebhookEventTypeEnum {
 }
 
 """Synchronous webhook event."""
-type WebhookEventSync {
+type WebhookEventSync @doc(category: "Webhooks") {
   """Display name of the event."""
   name: String!
 
@@ -2058,7 +2058,7 @@ enum WebhookEventTypeSyncEnum {
 }
 
 """Asynchronous webhook event."""
-type WebhookEventAsync {
+type WebhookEventAsync @doc(category: "Webhooks") {
   """Display name of the event."""
   name: String!
 
@@ -2500,7 +2500,7 @@ enum WebhookEventTypeAsyncEnum {
 }
 
 """Represents app data."""
-type App implements Node & ObjectWithMetadata {
+type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -2752,7 +2752,7 @@ type AppToken implements Node {
 }
 
 """Represents app data."""
-type AppExtension implements Node {
+type AppExtension implements Node @doc(category: "Apps") {
   id: ID!
 
   """List of the app extension's permissions."""
@@ -2896,7 +2896,7 @@ type EventDeliveryAttemptCountableEdge {
 }
 
 """Event delivery attempts."""
-type EventDeliveryAttempt implements Node {
+type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
   id: ID!
 
   """Event delivery creation date and time."""
@@ -3081,7 +3081,7 @@ enum WebhookSampleEventTypeEnum {
 }
 
 """Represents warehouse."""
-type Warehouse implements Node & ObjectWithMetadata {
+type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3309,7 +3309,7 @@ type ShippingZoneCountableEdge {
 """
 Represents a shipping zone in the shop. Zones are the concept used only for grouping shipping methods in the dashboard, and are never exposed to the customers directly.
 """
-type ShippingZone implements Node & ObjectWithMetadata {
+type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3402,7 +3402,7 @@ type Money {
 """
 Shipping method are the methods you'll use to get customer's orders to them. They are directly exposed to the customers.
 """
-type ShippingMethodType implements Node & ObjectWithMetadata {
+type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shipping") {
   """Shipping method ID."""
   id: ID!
 
@@ -4341,7 +4341,7 @@ enum LanguageCodeEnum {
 }
 
 """Represents shipping method channel listing."""
-type ShippingMethodChannelListing implements Node {
+type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
   id: ID!
   channel: Channel!
   maximumOrderPrice: Money
@@ -4350,7 +4350,7 @@ type ShippingMethodChannelListing implements Node {
 }
 
 """Represents channel."""
-type Channel implements Node {
+type Channel implements Node @doc(category: "Channels") {
   id: ID!
 
   """Slug of the channel."""
@@ -4855,7 +4855,7 @@ type OrderSettings {
 }
 
 """Represents shipping method postal code rule."""
-type ShippingMethodPostalCodeRule implements Node {
+type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
   """The ID of the object."""
   id: ID!
 
@@ -4893,7 +4893,7 @@ type ProductCountableEdge {
 }
 
 """Represents an individual item for sale in the storefront."""
-type Product implements Node & ObjectWithMetadata {
+type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5110,7 +5110,7 @@ type Product implements Node & ObjectWithMetadata {
 """
 Represents a type of product. It defines what attributes are available to products of this type.
 """
-type ProductType implements Node & ObjectWithMetadata {
+type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5260,7 +5260,7 @@ Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxClass implements Node & ObjectWithMetadata {
+type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
   id: ID!
 
@@ -5324,7 +5324,7 @@ Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxClassCountryRate {
+type TaxClassCountryRate @doc(category: "Taxes") {
   """Country in which this tax rate applies."""
   country: CountryDisplay!
 
@@ -5338,7 +5338,7 @@ type TaxClassCountryRate {
 """
 Custom attribute of a product. Attributes can be assigned to products and variants at the product type level.
 """
-type Attribute implements Node & ObjectWithMetadata {
+type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5579,7 +5579,7 @@ type AttributeValueCountableEdge {
 }
 
 """Represents a value of an attribute."""
-type AttributeValue implements Node {
+type AttributeValue implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Name of a value displayed in the interface."""
@@ -5865,7 +5865,7 @@ input MeasurementUnitsEnumFilterInput {
 """
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
 """
-type Category implements Node & ObjectWithMetadata {
+type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6300,7 +6300,7 @@ type CategoryTranslation implements Node {
 }
 
 """Represents a version of a product such as different size or color."""
-type ProductVariant implements Node & ObjectWithMetadata {
+type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6626,7 +6626,7 @@ type ProductImage {
 }
 
 """Represents a product media."""
-type ProductMedia implements Node & ObjectWithMetadata {
+type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """
@@ -6805,7 +6805,7 @@ type DigitalContentUrl implements Node {
 scalar UUID
 
 """Represents stock."""
-type Stock implements Node {
+type Stock implements Node @doc(category: "Products") {
   id: ID!
   warehouse: Warehouse!
   productVariant: ProductVariant!
@@ -7209,7 +7209,7 @@ type TranslatableItemEdge {
 
 union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
-type ProductTranslatableContent implements Node {
+type ProductTranslatableContent implements Node @doc(category: "Products") {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -7242,7 +7242,7 @@ type ProductTranslatableContent implements Node {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type AttributeValueTranslatableContent implements Node {
+type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
   id: ID!
   name: String!
 
@@ -7273,7 +7273,7 @@ type AttributeValueTranslatableContent implements Node {
   attribute: AttributeTranslatableContent
 }
 
-type AttributeTranslatableContent implements Node {
+type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
   id: ID!
   name: String!
 
@@ -7317,7 +7317,7 @@ type CollectionTranslatableContent implements Node {
   collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type CategoryTranslatableContent implements Node {
+type CategoryTranslatableContent implements Node @doc(category: "Products") {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -7347,7 +7347,7 @@ type CategoryTranslatableContent implements Node {
   category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type ProductVariantTranslatableContent implements Node {
+type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
   id: ID!
   name: String!
 
@@ -7364,7 +7364,7 @@ type ProductVariantTranslatableContent implements Node {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type PageTranslatableContent implements Node {
+type PageTranslatableContent implements Node @doc(category: "Pages") {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -7426,7 +7426,7 @@ type PageTranslation implements Node {
 """
 A static page that can be manually added by a shop operator through the dashboard.
 """
-type Page implements Node & ObjectWithMetadata {
+type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7517,7 +7517,7 @@ type Page implements Node & ObjectWithMetadata {
 """
 Represents a type of page. It defines what attributes are available to pages of this type.
 """
-type PageType implements Node & ObjectWithMetadata {
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7601,7 +7601,7 @@ type PageType implements Node & ObjectWithMetadata {
   hasPages: Boolean
 }
 
-type ShippingMethodTranslatableContent implements Node {
+type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
   id: ID!
   name: String!
 
@@ -7626,7 +7626,7 @@ type ShippingMethodTranslatableContent implements Node {
   shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type SaleTranslatableContent implements Node {
+type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   id: ID!
   name: String!
 
@@ -7655,7 +7655,7 @@ type SaleTranslation implements Node {
 """
 Sales allow creating discounts for categories, collections or products and are visible to all the customers.
 """
-type Sale implements Node & ObjectWithMetadata {
+type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7851,7 +7851,7 @@ type SaleChannelListing implements Node {
   currency: String!
 }
 
-type VoucherTranslatableContent implements Node {
+type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   id: ID!
   name: String
 
@@ -7880,7 +7880,7 @@ type VoucherTranslation implements Node {
 """
 Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
 """
-type Voucher implements Node & ObjectWithMetadata {
+type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8057,7 +8057,7 @@ enum VoucherTypeEnum {
 }
 
 """Represents voucher channel listing."""
-type VoucherChannelListing implements Node {
+type VoucherChannelListing implements Node @doc(category: "Discounts") {
   id: ID!
   channel: Channel!
   discountValue: Float!
@@ -8244,7 +8244,7 @@ Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxConfiguration implements Node & ObjectWithMetadata {
+type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
   id: ID!
 
@@ -8329,7 +8329,7 @@ Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxConfigurationPerCountry {
+type TaxConfigurationPerCountry @doc(category: "Taxes") {
   """Country in which this configuration applies."""
   country: CountryDisplay!
 
@@ -8347,7 +8347,7 @@ type TaxConfigurationPerCountry {
   displayGrossPrices: Boolean!
 }
 
-type TaxConfigurationCountableConnection {
+type TaxConfigurationCountableConnection @doc(category: "Taxes") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [TaxConfigurationCountableEdge!]!
@@ -8364,12 +8364,12 @@ type TaxConfigurationCountableEdge {
   cursor: String!
 }
 
-input TaxConfigurationFilterInput {
+input TaxConfigurationFilterInput @doc(category: "Taxes") {
   metadata: [MetadataFilter!]
   ids: [ID!]
 }
 
-type TaxClassCountableConnection {
+type TaxClassCountableConnection @doc(category: "Taxes") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [TaxClassCountableEdge!]!
@@ -8386,7 +8386,7 @@ type TaxClassCountableEdge {
   cursor: String!
 }
 
-input TaxClassSortingInput {
+input TaxClassSortingInput @doc(category: "Taxes") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -8394,12 +8394,12 @@ input TaxClassSortingInput {
   field: TaxClassSortField!
 }
 
-enum TaxClassSortField {
+enum TaxClassSortField @doc(category: "Taxes") {
   """Sort tax classes by name."""
   NAME
 }
 
-input TaxClassFilterInput {
+input TaxClassFilterInput @doc(category: "Taxes") {
   metadata: [MetadataFilter!]
   ids: [ID!]
   countries: [CountryCode!]
@@ -8412,7 +8412,7 @@ Added in Saleor 3.9.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TaxCountryConfiguration {
+type TaxCountryConfiguration @doc(category: "Taxes") {
   """A country for which tax class rates are grouped."""
   country: CountryDisplay!
 
@@ -8917,7 +8917,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 }
 
 """Checkout object."""
-type Checkout implements Node & ObjectWithMetadata {
+type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9079,7 +9079,7 @@ type Checkout implements Node & ObjectWithMetadata {
 """
 A gift card is a prepaid electronic payment card accepted in stores. They can be used during checkout by providing a valid gift card codes.
 """
-type GiftCard implements Node & ObjectWithMetadata {
+type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9343,13 +9343,13 @@ Added in Saleor 3.1.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardTag implements Node {
+type GiftCardTag implements Node @doc(category: "Gift cards") {
   id: ID!
   name: String!
 }
 
 """Represents an item in the checkout."""
-type CheckoutLine implements Node & ObjectWithMetadata {
+type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   id: ID!
 
   """
@@ -9444,7 +9444,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionItem implements Node & ObjectWithMetadata {
+type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The ID of the object."""
   id: ID!
 
@@ -9548,7 +9548,7 @@ enum TransactionActionEnum {
 }
 
 """Represents an order in the shop."""
-type Order implements Node & ObjectWithMetadata {
+type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9868,7 +9868,7 @@ enum OrderStatus {
 }
 
 """Represents order fulfillment."""
-type Fulfillment implements Node & ObjectWithMetadata {
+type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9943,14 +9943,14 @@ enum FulfillmentStatus {
 }
 
 """Represents line of the fulfillment."""
-type FulfillmentLine implements Node {
+type FulfillmentLine implements Node @doc(category: "Orders") {
   id: ID!
   quantity: Int!
   orderLine: OrderLine
 }
 
 """Represents order line of particular order."""
-type OrderLine implements Node & ObjectWithMetadata {
+type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   id: ID!
 
   """
@@ -10313,7 +10313,7 @@ enum OrderChargeStatusEnum {
 }
 
 """Represents a payment of a given type."""
-type Payment implements Node & ObjectWithMetadata {
+type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -10419,7 +10419,7 @@ type Payment implements Node & ObjectWithMetadata {
 }
 
 """An object representing a single payment."""
-type Transaction implements Node {
+type Transaction implements Node @doc(category: "Payments") {
   id: ID!
   created: DateTime!
   payment: Payment!
@@ -10465,7 +10465,7 @@ type CreditCard {
 }
 
 """History log of the order."""
-type OrderEvent implements Node {
+type OrderEvent implements Node @doc(category: "Orders") {
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -10651,7 +10651,7 @@ enum TransactionStatus {
 }
 
 """Contains all details related to the applied discount to the order."""
-type OrderDiscount implements Node {
+type OrderDiscount implements Node @doc(category: "Discounts") {
   id: ID!
   type: OrderDiscountType!
   name: String
@@ -10748,7 +10748,7 @@ enum AddressTypeEnum {
 }
 
 """Represents transaction's event."""
-type TransactionEvent implements Node {
+type TransactionEvent implements Node @doc(category: "Payments") {
   """The ID of the object."""
   id: ID!
   createdAt: DateTime!
@@ -11960,7 +11960,7 @@ enum AttributeSortField {
 }
 
 """Represents ongoing installation of app."""
-type AppInstallation implements Node & Job {
+type AppInstallation implements Node & Job @doc(category: "Apps") {
   id: ID!
 
   """Job status."""
@@ -12186,7 +12186,7 @@ type Mutation {
   webhookCreate(
     """Fields required to create a webhook."""
     input: WebhookCreateInput!
-  ): WebhookCreate
+  ): WebhookCreate @doc(category: "Webhooks")
 
   """
   Delete a webhook. Before the deletion, the webhook is deactivated to pause any deliveries that are already scheduled. The deletion might fail if delivery is in progress. In such a case, the webhook is not deleted but remains deactivated. 
@@ -12196,7 +12196,7 @@ type Mutation {
   webhookDelete(
     """ID of a webhook to delete."""
     id: ID!
-  ): WebhookDelete
+  ): WebhookDelete @doc(category: "Webhooks")
 
   """
   Updates a webhook subscription. 
@@ -12209,7 +12209,7 @@ type Mutation {
 
     """Fields required to update a webhook."""
     input: WebhookUpdateInput!
-  ): WebhookUpdate
+  ): WebhookUpdate @doc(category: "Webhooks")
 
   """
   Retries event delivery. 
@@ -12263,7 +12263,7 @@ type Mutation {
   createWarehouse(
     """Fields required to create warehouse."""
     input: WarehouseCreateInput!
-  ): WarehouseCreate
+  ): WarehouseCreate @doc(category: "Products")
 
   """
   Updates given warehouse. 
@@ -12276,7 +12276,7 @@ type Mutation {
 
     """Fields required to update warehouse."""
     input: WarehouseUpdateInput!
-  ): WarehouseUpdate
+  ): WarehouseUpdate @doc(category: "Products")
 
   """
   Deletes selected warehouse. 
@@ -12286,7 +12286,7 @@ type Mutation {
   deleteWarehouse(
     """ID of a warehouse to delete."""
     id: ID!
-  ): WarehouseDelete
+  ): WarehouseDelete @doc(category: "Products")
 
   """
   Add shipping zone to given warehouse. 
@@ -12299,7 +12299,7 @@ type Mutation {
 
     """List of shipping zone IDs."""
     shippingZoneIds: [ID!]!
-  ): WarehouseShippingZoneAssign
+  ): WarehouseShippingZoneAssign @doc(category: "Products")
 
   """
   Remove shipping zone from given warehouse. 
@@ -12312,7 +12312,7 @@ type Mutation {
 
     """List of shipping zone IDs."""
     shippingZoneIds: [ID!]!
-  ): WarehouseShippingZoneUnassign
+  ): WarehouseShippingZoneUnassign @doc(category: "Products")
 
   """
   Create a tax class.
@@ -12326,7 +12326,7 @@ type Mutation {
   taxClassCreate(
     """Fields required to create a tax class."""
     input: TaxClassCreateInput!
-  ): TaxClassCreate
+  ): TaxClassCreate @doc(category: "Taxes")
 
   """
   Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
@@ -12340,7 +12340,7 @@ type Mutation {
   taxClassDelete(
     """ID of a tax class to delete."""
     id: ID!
-  ): TaxClassDelete
+  ): TaxClassDelete @doc(category: "Taxes")
 
   """
   Update a tax class.
@@ -12357,7 +12357,7 @@ type Mutation {
 
     """Fields required to update a tax class."""
     input: TaxClassUpdateInput!
-  ): TaxClassUpdate
+  ): TaxClassUpdate @doc(category: "Taxes")
 
   """
   Update tax configuration for a channel.
@@ -12374,7 +12374,7 @@ type Mutation {
 
     """Fields required to update the tax configuration."""
     input: TaxConfigurationUpdateInput!
-  ): TaxConfigurationUpdate
+  ): TaxConfigurationUpdate @doc(category: "Taxes")
 
   """
   Update tax class rates for a specific country.
@@ -12451,7 +12451,7 @@ type Mutation {
   staffNotificationRecipientCreate(
     """Fields required to create a staff notification recipient."""
     input: StaffNotificationRecipientInput!
-  ): StaffNotificationRecipientCreate
+  ): StaffNotificationRecipientCreate @doc(category: "Users")
 
   """
   Updates a staff notification recipient. 
@@ -12464,7 +12464,7 @@ type Mutation {
 
     """Fields required to update a staff notification recipient."""
     input: StaffNotificationRecipientInput!
-  ): StaffNotificationRecipientUpdate
+  ): StaffNotificationRecipientUpdate @doc(category: "Users")
 
   """
   Delete staff notification recipient. 
@@ -12474,7 +12474,7 @@ type Mutation {
   staffNotificationRecipientDelete(
     """ID of a staff notification recipient to delete."""
     id: ID!
-  ): StaffNotificationRecipientDelete
+  ): StaffNotificationRecipientDelete @doc(category: "Users")
 
   """
   Updates site domain of the shop. 
@@ -12567,7 +12567,7 @@ type Mutation {
   shippingPriceCreate(
     """Fields required to create a shipping price."""
     input: ShippingPriceInput!
-  ): ShippingPriceCreate
+  ): ShippingPriceCreate @doc(category: "Shipping")
 
   """
   Deletes a shipping price. 
@@ -12600,7 +12600,7 @@ type Mutation {
 
     """Fields required to update a shipping price."""
     input: ShippingPriceInput!
-  ): ShippingPriceUpdate
+  ): ShippingPriceUpdate @doc(category: "Shipping")
 
   """
   Creates/updates translations for a shipping method. 
@@ -12614,7 +12614,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ShippingPriceTranslate
+  ): ShippingPriceTranslate @doc(category: "Shipping")
 
   """
   Exclude products from shipping price. 
@@ -12650,7 +12650,7 @@ type Mutation {
   shippingZoneCreate(
     """Fields required to create a shipping zone."""
     input: ShippingZoneCreateInput!
-  ): ShippingZoneCreate
+  ): ShippingZoneCreate @doc(category: "Shipping")
 
   """
   Deletes a shipping zone. 
@@ -12660,7 +12660,7 @@ type Mutation {
   shippingZoneDelete(
     """ID of a shipping zone to delete."""
     id: ID!
-  ): ShippingZoneDelete
+  ): ShippingZoneDelete @doc(category: "Shipping")
 
   """
   Deletes shipping zones. 
@@ -12683,7 +12683,7 @@ type Mutation {
 
     """Fields required to update a shipping zone."""
     input: ShippingZoneUpdateInput!
-  ): ShippingZoneUpdate
+  ): ShippingZoneUpdate @doc(category: "Shipping")
 
   """
   Assign attributes to a given product type. 
@@ -12739,7 +12739,7 @@ type Mutation {
     ID of the parent category. If empty, category will be top level category.
     """
     parent: ID
-  ): CategoryCreate
+  ): CategoryCreate @doc(category: "Products")
 
   """
   Deletes a category. 
@@ -12749,7 +12749,7 @@ type Mutation {
   categoryDelete(
     """ID of a category to delete."""
     id: ID!
-  ): CategoryDelete
+  ): CategoryDelete @doc(category: "Products")
 
   """
   Deletes categories. 
@@ -12772,7 +12772,7 @@ type Mutation {
 
     """Fields required to update a category."""
     input: CategoryInput!
-  ): CategoryUpdate
+  ): CategoryUpdate @doc(category: "Products")
 
   """
   Creates/updates translations for a category. 
@@ -12786,7 +12786,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): CategoryTranslate
+  ): CategoryTranslate @doc(category: "Products")
 
   """
   Adds products to a collection. 
@@ -12905,7 +12905,7 @@ type Mutation {
   productCreate(
     """Fields required to create a product."""
     input: ProductCreateInput!
-  ): ProductCreate
+  ): ProductCreate @doc(category: "Products")
 
   """
   Deletes a product. 
@@ -12922,7 +12922,7 @@ type Mutation {
 
     """ID of a product to delete."""
     id: ID
-  ): ProductDelete
+  ): ProductDelete @doc(category: "Products")
 
   """
   Deletes products. 
@@ -12952,7 +12952,7 @@ type Mutation {
 
     """Fields required to update a product."""
     input: ProductInput!
-  ): ProductUpdate
+  ): ProductUpdate @doc(category: "Products")
 
   """
   Creates/updates translations for a product. 
@@ -12966,7 +12966,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ProductTranslate
+  ): ProductTranslate @doc(category: "Products")
 
   """
   Manage product's availability in channels. 
@@ -13058,7 +13058,7 @@ type Mutation {
   productTypeCreate(
     """Fields required to create a product type."""
     input: ProductTypeInput!
-  ): ProductTypeCreate
+  ): ProductTypeCreate @doc(category: "Products")
 
   """
   Deletes a product type. 
@@ -13068,7 +13068,7 @@ type Mutation {
   productTypeDelete(
     """ID of a product type to delete."""
     id: ID!
-  ): ProductTypeDelete
+  ): ProductTypeDelete @doc(category: "Products")
 
   """
   Deletes product types. 
@@ -13091,7 +13091,7 @@ type Mutation {
 
     """Fields required to update a product type."""
     input: ProductTypeInput!
-  ): ProductTypeUpdate
+  ): ProductTypeUpdate @doc(category: "Products")
 
   """
   Reorder the attributes of a product type. 
@@ -13179,7 +13179,7 @@ type Mutation {
   productVariantCreate(
     """Fields required to create a product variant."""
     input: ProductVariantCreateInput!
-  ): ProductVariantCreate
+  ): ProductVariantCreate @doc(category: "Products")
 
   """
   Deletes a product variant. 
@@ -13203,7 +13203,7 @@ type Mutation {
     Added in Saleor 3.8.
     """
     sku: String
-  ): ProductVariantDelete
+  ): ProductVariantDelete @doc(category: "Products")
 
   """
   Creates product variants for a given product. 
@@ -13334,7 +13334,7 @@ type Mutation {
     Added in Saleor 3.8.
     """
     sku: String
-  ): ProductVariantUpdate
+  ): ProductVariantUpdate @doc(category: "Products")
 
   """
   Set default variant for a product. Mutation triggers PRODUCT_UPDATED webhook. 
@@ -13361,7 +13361,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ProductVariantTranslate
+  ): ProductVariantTranslate @doc(category: "Products")
 
   """
   Manage product variant prices in channels. 
@@ -13561,7 +13561,7 @@ type Mutation {
   pageCreate(
     """Fields required to create a page."""
     input: PageCreateInput!
-  ): PageCreate
+  ): PageCreate @doc(category: "Pages")
 
   """
   Deletes a page. 
@@ -13571,7 +13571,7 @@ type Mutation {
   pageDelete(
     """ID of a page to delete."""
     id: ID!
-  ): PageDelete
+  ): PageDelete @doc(category: "Pages")
 
   """
   Deletes pages. 
@@ -13607,7 +13607,7 @@ type Mutation {
 
     """Fields required to update a page."""
     input: PageInput!
-  ): PageUpdate
+  ): PageUpdate @doc(category: "Pages")
 
   """
   Creates/updates translations for a page. 
@@ -13621,7 +13621,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): PageTranslate
+  ): PageTranslate @doc(category: "Pages")
 
   """
   Create a new page type. 
@@ -13631,7 +13631,7 @@ type Mutation {
   pageTypeCreate(
     """Fields required to create page type."""
     input: PageTypeCreateInput!
-  ): PageTypeCreate
+  ): PageTypeCreate @doc(category: "Pages")
 
   """
   Update page type. 
@@ -13644,7 +13644,7 @@ type Mutation {
 
     """Fields required to update page type."""
     input: PageTypeUpdateInput!
-  ): PageTypeUpdate
+  ): PageTypeUpdate @doc(category: "Pages")
 
   """
   Delete a page type. 
@@ -13654,7 +13654,7 @@ type Mutation {
   pageTypeDelete(
     """ID of the page type to delete."""
     id: ID!
-  ): PageTypeDelete
+  ): PageTypeDelete @doc(category: "Pages")
 
   """
   Delete page types. 
@@ -13739,7 +13739,7 @@ type Mutation {
   draftOrderCreate(
     """Fields required to create an order."""
     input: DraftOrderCreateInput!
-  ): DraftOrderCreate
+  ): DraftOrderCreate @doc(category: "Orders")
 
   """
   Deletes a draft order. 
@@ -13756,7 +13756,7 @@ type Mutation {
 
     """ID of a product to delete."""
     id: ID
-  ): DraftOrderDelete
+  ): DraftOrderDelete @doc(category: "Orders")
 
   """
   Deletes draft orders. 
@@ -13796,7 +13796,7 @@ type Mutation {
 
     """Fields required to update an order."""
     input: DraftOrderInput!
-  ): DraftOrderUpdate
+  ): DraftOrderUpdate @doc(category: "Orders")
 
   """
   Adds note to the order. 
@@ -13842,7 +13842,7 @@ type Mutation {
   orderConfirm(
     """ID of an order to confirm."""
     id: ID!
-  ): OrderConfirm
+  ): OrderConfirm @doc(category: "Orders")
 
   """
   Creates new fulfillments for an order. 
@@ -13961,7 +13961,7 @@ type Mutation {
 
     """Fields required to update an order line."""
     input: OrderLineInput!
-  ): OrderLineUpdate
+  ): OrderLineUpdate @doc(category: "Orders")
 
   """
   Adds discount to the order. 
@@ -14066,7 +14066,7 @@ type Mutation {
 
     """Fields required to update an order."""
     input: OrderUpdateInput!
-  ): OrderUpdate
+  ): OrderUpdate @doc(category: "Orders")
 
   """
   Updates a shipping method of the order. Requires shipping method ID to update, when null is passed then currently assigned shipping method is removed. 
@@ -14362,7 +14362,7 @@ type Mutation {
   giftCardCreate(
     """Fields required to create a gift card."""
     input: GiftCardCreateInput!
-  ): GiftCardCreate
+  ): GiftCardCreate @doc(category: "Gift cards")
 
   """
   Delete gift card.
@@ -14376,7 +14376,7 @@ type Mutation {
   giftCardDelete(
     """ID of the gift card to delete."""
     id: ID!
-  ): GiftCardDelete
+  ): GiftCardDelete @doc(category: "Gift cards")
 
   """
   Deactivate a gift card. 
@@ -14399,7 +14399,7 @@ type Mutation {
 
     """Fields required to update a gift card."""
     input: GiftCardUpdateInput!
-  ): GiftCardUpdate
+  ): GiftCardUpdate @doc(category: "Gift cards")
 
   """
   Resend a gift card.
@@ -14530,7 +14530,7 @@ type Mutation {
   saleCreate(
     """Fields required to create a sale."""
     input: SaleInput!
-  ): SaleCreate
+  ): SaleCreate @doc(category: "Discounts")
 
   """
   Deletes a sale. 
@@ -14540,7 +14540,7 @@ type Mutation {
   saleDelete(
     """ID of a sale to delete."""
     id: ID!
-  ): SaleDelete
+  ): SaleDelete @doc(category: "Discounts")
 
   """
   Deletes sales. 
@@ -14563,7 +14563,7 @@ type Mutation {
 
     """Fields required to update a sale."""
     input: SaleInput!
-  ): SaleUpdate
+  ): SaleUpdate @doc(category: "Discounts")
 
   """
   Adds products, categories, collections to a voucher. 
@@ -14603,7 +14603,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): SaleTranslate
+  ): SaleTranslate @doc(category: "Discounts")
 
   """
   Manage sale's availability in channels. 
@@ -14626,7 +14626,7 @@ type Mutation {
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
-  ): VoucherCreate
+  ): VoucherCreate @doc(category: "Discounts")
 
   """
   Deletes a voucher. 
@@ -14636,7 +14636,7 @@ type Mutation {
   voucherDelete(
     """ID of a voucher to delete."""
     id: ID!
-  ): VoucherDelete
+  ): VoucherDelete @doc(category: "Discounts")
 
   """
   Deletes vouchers. 
@@ -14659,7 +14659,7 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate
+  ): VoucherUpdate @doc(category: "Discounts")
 
   """
   Adds products, categories, collections to a voucher. 
@@ -14699,7 +14699,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): VoucherTranslate
+  ): VoucherTranslate @doc(category: "Discounts")
 
   """
   Manage voucher's availability in channels. 
@@ -14863,7 +14863,7 @@ type Mutation {
   checkoutCreate(
     """Fields required to create checkout."""
     input: CheckoutCreateInput!
-  ): CheckoutCreate
+  ): CheckoutCreate @doc(category: "Checkout")
 
   """
   Sets the customer as the owner of the checkout. 
@@ -15272,7 +15272,7 @@ type Mutation {
   channelCreate(
     """Fields required to create channel."""
     input: ChannelCreateInput!
-  ): ChannelCreate
+  ): ChannelCreate @doc(category: "Channels")
 
   """
   Update a channel.
@@ -15286,7 +15286,7 @@ type Mutation {
 
     """Fields required to update a channel."""
     input: ChannelUpdateInput!
-  ): ChannelUpdate
+  ): ChannelUpdate @doc(category: "Channels")
 
   """
   Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
@@ -15299,7 +15299,7 @@ type Mutation {
 
     """Fields required to delete a channel."""
     input: ChannelDeleteInput
-  ): ChannelDelete
+  ): ChannelDelete @doc(category: "Channels")
 
   """
   Activate a channel. 
@@ -15342,7 +15342,7 @@ type Mutation {
   attributeCreate(
     """Fields required to create an attribute."""
     input: AttributeCreateInput!
-  ): AttributeCreate
+  ): AttributeCreate @doc(category: "Attributes")
 
   """
   Deletes an attribute. 
@@ -15359,7 +15359,7 @@ type Mutation {
 
     """ID of an attribute to delete."""
     id: ID
-  ): AttributeDelete
+  ): AttributeDelete @doc(category: "Attributes")
 
   """
   Updates attribute. 
@@ -15379,7 +15379,7 @@ type Mutation {
 
     """Fields required to update an attribute."""
     input: AttributeUpdateInput!
-  ): AttributeUpdate
+  ): AttributeUpdate @doc(category: "Attributes")
 
   """
   Creates/updates translations for an attribute. 
@@ -15393,7 +15393,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): AttributeTranslate
+  ): AttributeTranslate @doc(category: "Attributes")
 
   """
   Deletes attributes. 
@@ -15426,7 +15426,7 @@ type Mutation {
 
     """Fields required to create an AttributeValue."""
     input: AttributeValueCreateInput!
-  ): AttributeValueCreate
+  ): AttributeValueCreate @doc(category: "Attributes")
 
   """
   Deletes a value of an attribute. 
@@ -15443,7 +15443,7 @@ type Mutation {
 
     """ID of a value to delete."""
     id: ID
-  ): AttributeValueDelete
+  ): AttributeValueDelete @doc(category: "Attributes")
 
   """
   Updates value of an attribute. 
@@ -15463,7 +15463,7 @@ type Mutation {
 
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
-  ): AttributeValueUpdate
+  ): AttributeValueUpdate @doc(category: "Attributes")
 
   """
   Creates/updates translations for an attribute value. 
@@ -15477,7 +15477,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslate
+  ): AttributeValueTranslate @doc(category: "Attributes")
 
   """
   Reorder the values of an attribute. 
@@ -15498,7 +15498,7 @@ type Mutation {
   appCreate(
     """Fields required to create a new app."""
     input: AppInput!
-  ): AppCreate
+  ): AppCreate @doc(category: "Apps")
 
   """
   Updates an existing app. 
@@ -15511,7 +15511,7 @@ type Mutation {
 
     """Fields required to update an existing app."""
     input: AppInput!
-  ): AppUpdate
+  ): AppUpdate @doc(category: "Apps")
 
   """
   Deletes an app. 
@@ -15521,7 +15521,7 @@ type Mutation {
   appDelete(
     """ID of an app to delete."""
     id: ID!
-  ): AppDelete
+  ): AppDelete @doc(category: "Apps")
 
   """
   Creates a new token. 
@@ -15555,7 +15555,7 @@ type Mutation {
   appInstall(
     """Fields required to install a new app."""
     input: AppInstallInput!
-  ): AppInstall
+  ): AppInstall @doc(category: "Apps")
 
   """
   Retry failed installation of new app. 
@@ -15568,7 +15568,7 @@ type Mutation {
 
     """ID of failed installation."""
     id: ID!
-  ): AppRetryInstall
+  ): AppRetryInstall @doc(category: "Apps")
 
   """
   Delete failed installation. 
@@ -15578,7 +15578,7 @@ type Mutation {
   appDeleteFailedInstallation(
     """ID of failed installation to delete."""
     id: ID!
-  ): AppDeleteFailedInstallation
+  ): AppDeleteFailedInstallation @doc(category: "Apps")
 
   """
   Fetch and validate manifest. 
@@ -15595,7 +15595,7 @@ type Mutation {
   appActivate(
     """ID of app to activate."""
     id: ID!
-  ): AppActivate
+  ): AppActivate @doc(category: "Apps")
 
   """
   Deactivate the app. 
@@ -15605,7 +15605,7 @@ type Mutation {
   appDeactivate(
     """ID of app to deactivate."""
     id: ID!
-  ): AppDeactivate
+  ): AppDeactivate @doc(category: "Apps")
 
   """Create JWT token."""
   tokenCreate(
@@ -16099,7 +16099,7 @@ Creates a new webhook subscription.
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
-type WebhookCreate {
+type WebhookCreate @doc(category: "Webhooks") {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
   webhook: Webhook
@@ -16190,7 +16190,7 @@ Delete a webhook. Before the deletion, the webhook is deactivated to pause any d
 
 Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
-type WebhookDelete {
+type WebhookDelete @doc(category: "Webhooks") {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
   webhook: Webhook
@@ -16201,7 +16201,7 @@ Updates a webhook subscription.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type WebhookUpdate {
+type WebhookUpdate @doc(category: "Webhooks") {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WebhookError!]!
   webhook: Webhook
@@ -16357,7 +16357,7 @@ Creates new warehouse.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type WarehouseCreate {
+type WarehouseCreate @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -16422,7 +16422,7 @@ Updates given warehouse.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type WarehouseUpdate {
+type WarehouseUpdate @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -16472,7 +16472,7 @@ Deletes selected warehouse.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type WarehouseDelete {
+type WarehouseDelete @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -16483,7 +16483,7 @@ Add shipping zone to given warehouse.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type WarehouseShippingZoneAssign {
+type WarehouseShippingZoneAssign @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -16494,7 +16494,7 @@ Remove shipping zone from given warehouse.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type WarehouseShippingZoneUnassign {
+type WarehouseShippingZoneUnassign @doc(category: "Products") {
   warehouseErrors: [WarehouseError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [WarehouseError!]!
   warehouse: Warehouse
@@ -16509,12 +16509,12 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
-type TaxClassCreate {
+type TaxClassCreate @doc(category: "Taxes") {
   errors: [TaxClassCreateError!]!
   taxClass: TaxClass
 }
 
-type TaxClassCreateError {
+type TaxClassCreateError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -16537,7 +16537,7 @@ enum TaxClassCreateErrorCode {
   NOT_FOUND
 }
 
-input TaxClassCreateInput {
+input TaxClassCreateInput @doc(category: "Taxes") {
   """Name of the tax class."""
   name: String!
 
@@ -16545,7 +16545,7 @@ input TaxClassCreateInput {
   createCountryRates: [CountryRateInput!]
 }
 
-input CountryRateInput {
+input CountryRateInput @doc(category: "Taxes") {
   """Country in which this rate applies."""
   countryCode: CountryCode!
 
@@ -16564,7 +16564,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
-type TaxClassDelete {
+type TaxClassDelete @doc(category: "Taxes") {
   errors: [TaxClassDeleteError!]!
   taxClass: TaxClass
 }
@@ -16598,7 +16598,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
-type TaxClassUpdate {
+type TaxClassUpdate @doc(category: "Taxes") {
   errors: [TaxClassUpdateError!]!
   taxClass: TaxClass
 }
@@ -16661,7 +16661,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
-type TaxConfigurationUpdate {
+type TaxConfigurationUpdate @doc(category: "Taxes") {
   errors: [TaxConfigurationUpdateError!]!
   taxConfiguration: TaxConfiguration
 }
@@ -16936,7 +16936,7 @@ Creates a new staff notification recipient.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type StaffNotificationRecipientCreate {
+type StaffNotificationRecipientCreate @doc(category: "Users") {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
@@ -16982,7 +16982,7 @@ Updates a staff notification recipient.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type StaffNotificationRecipientUpdate {
+type StaffNotificationRecipientUpdate @doc(category: "Users") {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
@@ -16993,7 +16993,7 @@ Delete staff notification recipient.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type StaffNotificationRecipientDelete {
+type StaffNotificationRecipientDelete @doc(category: "Users") {
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
@@ -17342,7 +17342,7 @@ Creates a new shipping price.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingPriceCreate {
+type ShippingPriceCreate @doc(category: "Shipping") {
   """A shipping zone to which the shipping method belongs."""
   shippingZone: ShippingZone
   shippingMethod: ShippingMethodType
@@ -17432,7 +17432,7 @@ Updates a new shipping price.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingPriceUpdate {
+type ShippingPriceUpdate @doc(category: "Shipping") {
   """A shipping zone to which the shipping method belongs."""
   shippingZone: ShippingZone
   shippingMethod: ShippingMethodType
@@ -17445,7 +17445,7 @@ Creates/updates translations for a shipping method.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ShippingPriceTranslate {
+type ShippingPriceTranslate @doc(category: "Shipping") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   shippingMethod: ShippingMethodType
@@ -17496,7 +17496,7 @@ Creates a new shipping zone.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingZoneCreate {
+type ShippingZoneCreate @doc(category: "Shipping") {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
   shippingZone: ShippingZone
@@ -17529,7 +17529,7 @@ Deletes a shipping zone.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingZoneDelete {
+type ShippingZoneDelete @doc(category: "Shipping") {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
   shippingZone: ShippingZone
@@ -17552,7 +17552,7 @@ Updates a new shipping zone.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingZoneUpdate {
+type ShippingZoneUpdate @doc(category: "Shipping") {
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
   shippingZone: ShippingZone
@@ -17704,7 +17704,7 @@ Creates a new category.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type CategoryCreate {
+type CategoryCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   category: Category
@@ -17774,7 +17774,7 @@ Deletes a category.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type CategoryDelete {
+type CategoryDelete @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   category: Category
@@ -17797,7 +17797,7 @@ Updates a category.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type CategoryUpdate {
+type CategoryUpdate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   category: Category
@@ -17808,7 +17808,7 @@ Creates/updates translations for a category.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type CategoryTranslate {
+type CategoryTranslate @doc(category: "Products") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   category: Category
@@ -18124,7 +18124,7 @@ Creates a new product.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductCreate {
+type ProductCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   product: Product
@@ -18288,7 +18288,7 @@ Deletes a product.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductDelete {
+type ProductDelete @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   product: Product
@@ -18311,7 +18311,7 @@ Updates an existing product.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductUpdate {
+type ProductUpdate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   product: Product
@@ -18395,7 +18395,7 @@ Creates/updates translations for a product.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ProductTranslate {
+type ProductTranslate @doc(category: "Products") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   product: Product
@@ -18601,7 +18601,7 @@ Creates a new product type.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type ProductTypeCreate {
+type ProductTypeCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productType: ProductType
@@ -18657,7 +18657,7 @@ Deletes a product type.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type ProductTypeDelete {
+type ProductTypeDelete @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productType: ProductType
@@ -18680,7 +18680,7 @@ Updates an existing product type.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type ProductTypeUpdate {
+type ProductTypeUpdate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productType: ProductType
@@ -18833,7 +18833,7 @@ Creates a new variant for a product.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductVariantCreate {
+type ProductVariantCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
@@ -18924,7 +18924,7 @@ Deletes a product variant.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductVariantDelete {
+type ProductVariantDelete @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
@@ -19463,7 +19463,7 @@ Updates an existing variant for product.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductVariantUpdate {
+type ProductVariantUpdate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   productVariant: ProductVariant
@@ -19543,7 +19543,7 @@ Creates/updates translations for a product variant.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ProductVariantTranslate {
+type ProductVariantTranslate @doc(category: "Products") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   productVariant: ProductVariant
@@ -19936,7 +19936,7 @@ Creates a new page.
 
 Requires one of the following permissions: MANAGE_PAGES.
 """
-type PageCreate {
+type PageCreate @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   page: Page
@@ -20018,7 +20018,7 @@ Deletes a page.
 
 Requires one of the following permissions: MANAGE_PAGES.
 """
-type PageDelete {
+type PageDelete @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   page: Page
@@ -20053,7 +20053,7 @@ Updates an existing page.
 
 Requires one of the following permissions: MANAGE_PAGES.
 """
-type PageUpdate {
+type PageUpdate @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   page: Page
@@ -20102,7 +20102,7 @@ Creates/updates translations for a page.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type PageTranslate {
+type PageTranslate @doc(category: "Pages") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   page: PageTranslatableContent
@@ -20126,7 +20126,7 @@ Create a new page type.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type PageTypeCreate {
+type PageTypeCreate @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   pageType: PageType
@@ -20148,7 +20148,7 @@ Update page type.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type PageTypeUpdate {
+type PageTypeUpdate @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   pageType: PageType
@@ -20173,7 +20173,7 @@ Delete a page type.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type PageTypeDelete {
+type PageTypeDelete @doc(category: "Pages") {
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PageError!]!
   pageType: PageType
@@ -20256,7 +20256,7 @@ Creates a new draft order.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type DraftOrderCreate {
+type DraftOrderCreate @doc(category: "Orders") {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
   order: Order
@@ -20328,7 +20328,7 @@ Deletes a draft order.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type DraftOrderDelete {
+type DraftOrderDelete @doc(category: "Orders") {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
   order: Order
@@ -20363,7 +20363,7 @@ Updates a draft order.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type DraftOrderUpdate {
+type DraftOrderUpdate @doc(category: "Orders") {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
   order: Order
@@ -20459,7 +20459,7 @@ Confirms an unconfirmed order by changing status to unfulfilled.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type OrderConfirm {
+type OrderConfirm @doc(category: "Orders") {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
@@ -20720,7 +20720,7 @@ Updates an order line of an order.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type OrderLineUpdate {
+type OrderLineUpdate @doc(category: "Orders") {
   """Related order."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20839,7 +20839,7 @@ Updates an order.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type OrderUpdate {
+type OrderUpdate @doc(category: "Orders") {
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
   order: Order
@@ -21349,7 +21349,7 @@ Creates a new gift card.
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardCreate {
+type GiftCardCreate @doc(category: "Gift cards") {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -21446,7 +21446,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardDelete {
+type GiftCardDelete @doc(category: "Gift cards") {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -21469,7 +21469,7 @@ Update a gift card.
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardUpdate {
+type GiftCardUpdate @doc(category: "Gift cards") {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -21758,7 +21758,7 @@ Creates a new sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleCreate {
+type SaleCreate @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -21827,7 +21827,7 @@ Deletes a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleDelete {
+type SaleDelete @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -21850,7 +21850,7 @@ Updates a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleUpdate {
+type SaleUpdate @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -21903,7 +21903,7 @@ Creates/updates translations for a sale.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type SaleTranslate {
+type SaleTranslate @doc(category: "Discounts") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   sale: Sale
@@ -21942,7 +21942,7 @@ Creates a new voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherCreate {
+type VoucherCreate @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -22007,7 +22007,7 @@ Deletes a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherDelete {
+type VoucherDelete @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -22030,7 +22030,7 @@ Updates a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherUpdate {
+type VoucherUpdate @doc(category: "Discounts") {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -22065,7 +22065,7 @@ Creates/updates translations for a voucher.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type VoucherTranslate {
+type VoucherTranslate @doc(category: "Discounts") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   voucher: Voucher
@@ -22366,7 +22366,7 @@ type CheckoutComplete {
 }
 
 """Create a new checkout."""
-type CheckoutCreate {
+type CheckoutCreate @doc(category: "Checkout") {
   """
   Whether the checkout was created or the current active one was returned. Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart with an active checkout.
   """
@@ -22710,7 +22710,7 @@ Creates new channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 """
-type ChannelCreate {
+type ChannelCreate @doc(category: "Channels") {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -22824,7 +22824,7 @@ Update a channel.
 Requires one of the following permissions: MANAGE_CHANNELS.
 Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
 """
-type ChannelUpdate {
+type ChannelUpdate @doc(category: "Channels") {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -22893,7 +22893,7 @@ Delete a channel. Orders associated with the deleted channel will be moved to th
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 """
-type ChannelDelete {
+type ChannelDelete @doc(category: "Channels") {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -22944,7 +22944,7 @@ type ChannelReorderWarehouses {
 }
 
 """Creates an attribute."""
-type AttributeCreate {
+type AttributeCreate @doc(category: "Attributes") {
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
@@ -23080,7 +23080,7 @@ Deletes an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type AttributeDelete {
+type AttributeDelete @doc(category: "Attributes") {
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
   attribute: Attribute
@@ -23091,7 +23091,7 @@ Updates attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type AttributeUpdate {
+type AttributeUpdate @doc(category: "Attributes") {
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
@@ -23198,7 +23198,7 @@ Creates/updates translations for an attribute.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type AttributeTranslate {
+type AttributeTranslate @doc(category: "Attributes") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   attribute: Attribute
@@ -23233,7 +23233,7 @@ Creates a value for an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type AttributeValueCreate {
+type AttributeValueCreate @doc(category: "Attributes") {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23246,7 +23246,7 @@ Deletes a value of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type AttributeValueDelete {
+type AttributeValueDelete @doc(category: "Attributes") {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23259,7 +23259,7 @@ Updates value of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type AttributeValueUpdate {
+type AttributeValueUpdate @doc(category: "Attributes") {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23272,7 +23272,7 @@ Creates/updates translations for an attribute value.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type AttributeValueTranslate {
+type AttributeValueTranslate @doc(category: "Attributes") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   attributeValue: AttributeValue
@@ -23307,7 +23307,7 @@ type AttributeReorderValues {
 """
 Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
-type AppCreate {
+type AppCreate @doc(category: "Apps") {
   """The newly created authentication token."""
   authToken: String
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23363,7 +23363,7 @@ Updates an existing app.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppUpdate {
+type AppUpdate @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -23374,7 +23374,7 @@ Deletes an app.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppDelete {
+type AppDelete @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -23423,7 +23423,7 @@ type AppTokenVerify {
 """
 Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 """
-type AppInstall {
+type AppInstall @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
@@ -23448,7 +23448,7 @@ Retry failed installation of new app.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppRetryInstall {
+type AppRetryInstall @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
@@ -23459,7 +23459,7 @@ Delete failed installation.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppDeleteFailedInstallation {
+type AppDeleteFailedInstallation @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
@@ -23592,7 +23592,7 @@ Activate the app.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppActivate {
+type AppActivate @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -23603,7 +23603,7 @@ Deactivate the app.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppDeactivate {
+type AppDeactivate @doc(category: "Apps") {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -24435,7 +24435,7 @@ interface Event {
   issuingPrincipal: IssuingPrincipal
 
   """The application receiving the webhook."""
-  recipient: App
+  recipient: App @doc(category: "Apps")
 }
 
 union IssuingPrincipal = App | User

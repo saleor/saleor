@@ -5,8 +5,8 @@ import graphene
 from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
-from ...account import DOC_CATEGORY_USERS
 from ...account.enums import AddressTypeEnum
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
@@ -124,7 +124,7 @@ class Error(BaseObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
@@ -190,7 +190,7 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
@@ -253,7 +253,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 

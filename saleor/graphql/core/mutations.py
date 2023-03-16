@@ -42,6 +42,7 @@ from ...permission.utils import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.utils import ext_ref_to_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
@@ -636,6 +637,10 @@ class ModelMutation(BaseMutation):
             raise ImproperlyConfigured("model is required for ModelMutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
+
+        doc_category_key = f"{model._meta.app_label}.{model.__name__}"
+        if "doc_category" not in options and doc_category_key in DOC_CATEGORY_MAP:
+            options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         if exclude is None:
             exclude = []

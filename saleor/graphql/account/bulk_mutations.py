@@ -8,10 +8,10 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...permission.enums import AccountPermissions
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError
 from ..plugins.dataloaders import get_plugin_manager_promise
-from . import DOC_CATEGORY_USERS
 from .types import User
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 

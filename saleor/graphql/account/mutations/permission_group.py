@@ -20,12 +20,12 @@ from ...account.utils import (
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import NonNullList, PermissionGroupError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
-from .. import DOC_CATEGORY_USERS
 from ..types import Group
 
 
