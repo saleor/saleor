@@ -29,9 +29,13 @@ def resolve_orders(info, channel_slug):
     return qs.filter(channel_id__in=accessible_channels.values("id"))
 
 
-def resolve_draft_orders(_info):
+def resolve_draft_orders(info):
     qs = models.Order.objects.drafts()
-    return qs
+    requestor = get_user_or_app_from_context(info.context)
+    if isinstance(requestor, App):
+        return qs
+    accessible_channels = get_user_accessible_channels(requestor)
+    return qs.filter(channel_id__in=accessible_channels.values("id"))
 
 
 @traced_resolver

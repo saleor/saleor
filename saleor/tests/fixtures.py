@@ -3291,6 +3291,16 @@ def order_list(customer_user, channel_USD):
 
 
 @pytest.fixture
+def draft_order_list(order_list):
+    for order in order_list:
+        order.status = OrderStatus.DRAFT
+        order.origin = OrderOrigin.DRAFT
+
+    Order.objects.bulk_update(order_list, ["status", "origin"])
+    return order_list
+
+
+@pytest.fixture
 def product_with_image(product, image, media_root):
     ProductMedia.objects.create(product=product, image=image)
     return product
