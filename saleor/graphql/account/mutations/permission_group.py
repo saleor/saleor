@@ -20,6 +20,7 @@ from ...account.utils import (
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -40,6 +41,12 @@ class PermissionGroupInput(BaseInputObjectType):
         description="List of users to assign to this group.",
         required=False,
     )
+    add_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to assign to this group."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -47,6 +54,15 @@ class PermissionGroupInput(BaseInputObjectType):
 
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
+    restricted_access_to_channels = graphene.Boolean(
+        description=(
+            "Determine if the group has restricted access to channels.  DEFAULT: False"
+        )
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+        default_value=False,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -72,14 +88,18 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
-        add_permissions = cleaned_data.get("add_permissions")
         with traced_atomic_transaction():
-            if add_permissions:
+            if add_permissions := cleaned_data.get("add_permissions"):
                 instance.permissions.add(*add_permissions)
 
-            users = cleaned_data.get("add_users")
-            if users:
+            if users := cleaned_data.get("add_users"):
                 instance.user_set.add(*users)
+
+            if cleaned_data.get("restricted_access_to_channels") is False:
+                instance.channels.clear()
+
+            if channels := cleaned_data.get("add_channels"):
+                instance.channels.add(*channels)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
@@ -88,6 +108,8 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+        cls.clean_channels(data, instance)
+
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         user = info.context.user
@@ -178,6 +200,12 @@ class PermissionGroupCreate(ModelMutation):
             cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
+    def clean_channels(cls, data: dict, group: models.Group):
+        """Clean adding channels when the group hasn't restricted access to channels."""
+        if data.get("restricted_access_to_channels") is False:
+            data["add_channels"] = []
+
+    @classmethod
     def update_errors(
         cls,
         errors: Dict[str, List[ValidationError]],
@@ -201,6 +229,18 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
     remove_users = NonNullList(
         graphene.ID,
         description="List of users to unassign from this group.",
+        required=False,
+    )
+    remove_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to unassign from this group."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        description="Determine if the group has restricted access to channels."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -230,13 +270,13 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
-            remove_users = cleaned_data.get("remove_users")
             with traced_atomic_transaction():
-                if remove_users:
+                if remove_users := cleaned_data.get("remove_users"):
                     instance.user_set.remove(*remove_users)
-                remove_permissions = cleaned_data.get("remove_permissions")
-                if remove_permissions:
+                if remove_permissions := cleaned_data.get("remove_permissions"):
                     instance.permissions.remove(*remove_permissions)
+                if remove_channels := cleaned_data.get("remove_channels"):
+                    instance.channels.remove(*remove_channels)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
@@ -256,9 +296,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
+        channel_fields = ("add_channels", "remove_channels", "channels")
 
         cls.check_duplicates(errors, data, permission_fields)
         cls.check_duplicates(errors, data, user_fields)
+        cls.check_duplicates(errors, data, channel_fields)
 
         if errors:
             raise ValidationError(errors)
@@ -277,6 +319,16 @@ class PermissionGroupUpdate(PermissionGroupCreate):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
+
+    @classmethod
+    def clean_channels(cls, data: dict, group: models.Group):
+        """Clean channels when the group hasn't restricted access to channels."""
+        restricted_access = data.get("restricted_access_to_channels")
+        if restricted_access is False or (
+            restricted_access is None and group.restricted_access_to_channels is False
+        ):
+            data["add_channels"] = []
+            data["remove_channels"] = []
 
     @classmethod
     def clean_permissions(

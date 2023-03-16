@@ -704,7 +704,7 @@ class Group(ModelObjectType[models.Group]):
     )
     restricted_access_to_channels = graphene.Boolean(
         required=True,
-        description="Determine if group have restricted access to channels."
+        description="Determine if the group have restricted access to channels."
         + ADDED_IN_313
         + PREVIEW_FEATURE,
     )
