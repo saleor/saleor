@@ -10870,7 +10870,7 @@ type Group implements Node {
   accessibleChannels: [Channel!]
 
   """
-  Determine if group have restricted access to channels.
+  Determine if the group have restricted access to channels.
   
   Added in Saleor 3.13.
   
@@ -24370,6 +24370,9 @@ type PermissionGroupError {
 
   """List of user IDs which causes the error."""
   users: [ID!]
+
+  """List of chnnels IDs which causes the error."""
+  channels: [ID!]
 }
 
 """An enumeration."""
@@ -24391,8 +24394,26 @@ input PermissionGroupCreateInput {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
+  """
+  List of channels to assign to this group.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addChannels: [ID!]
+
   """Group name."""
   name: String!
+
+  """
+  Determine if the group has restricted access to channels.  DEFAULT: False
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannels: Boolean = false
 }
 
 """
@@ -24413,6 +24434,15 @@ input PermissionGroupUpdateInput {
   """List of users to assign to this group."""
   addUsers: [ID!]
 
+  """
+  List of channels to assign to this group.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addChannels: [ID!]
+
   """Group name."""
   name: String
 
@@ -24421,6 +24451,24 @@ input PermissionGroupUpdateInput {
 
   """List of users to unassign from this group."""
   removeUsers: [ID!]
+
+  """
+  List of channels to unassign from this group.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeChannels: [ID!]
+
+  """
+  Determine if the group has restricted access to channels.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannels: Boolean
 }
 
 """
