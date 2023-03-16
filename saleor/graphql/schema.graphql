@@ -22432,7 +22432,7 @@ input OrderBulkCreateOrderLineInput {
   undiscountedTotalPrice: TaxedMoneyInput!
 
   """Tax rate of the order line."""
-  taxRate: PositiveDecimal!
+  taxRate: PositiveDecimal
 
   """The ID of the tax class."""
   taxClassId: ID
