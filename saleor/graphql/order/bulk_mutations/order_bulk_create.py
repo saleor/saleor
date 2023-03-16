@@ -378,7 +378,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         model,
         key_map: Dict[str, str],
         errors: List[OrderBulkError],
-        instance_storage: Dict[str, Any],
+        object_storage: Dict[str, Any],
     ):
         """Resolve instance based on input data, model and `key_map` argument provided.
 
@@ -387,7 +387,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model: database model associated with searched instance
             key_map: mapping between keys from input and keys from database
             errors: error list to be updated if an error occur
-            instance_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
+            object_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
                               and instances as values; it is used to search for already
                               resolved instances
 
@@ -397,12 +397,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         """
         instance = None
         try:
-            instance = get_instance(input, model, key_map, instance_storage)
+            instance = get_instance(
+                input, model, key_map, object_storage, OrderBulkCreateErrorCode
+            )
         except ValidationError as err:
             errors.append(
                 OrderBulkError(
                     message=str(err.message),
-                    code=OrderBulkCreateErrorCode.NOT_FOUND,
+                    code=OrderBulkCreateErrorCode(err.code),
                 )
             )
         return instance
@@ -412,7 +414,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls,
         order_input: Dict[str, Any],
         errors: List[OrderBulkError],
-        instance_storage: Dict[str, Any],
+        object_storage: Dict[str, Any],
     ) -> Optional[InstancesRelatedToOrder]:
         """Get all instances of objects needed to create an order."""
 
@@ -425,7 +427,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "email": "email",
                 "external_reference": "external_reference",
             },
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
 
         channel = cls.get_instance_with_errors(
@@ -433,7 +435,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
             model=Channel,
             key_map={"channel": "slug"},
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
 
         billing_address: Optional[Address] = None
@@ -480,6 +482,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_lines: List[OrderLine],
         channel: Channel,
         delivery_input: Dict[str, Any],
+        object_storage: Dict[str, Any],
     ) -> OrderAmounts:
         """Calculate all order amount fields."""
 
@@ -497,7 +500,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             else:
                 # TODO discuss if it make sense to get it from database
-                db_price_amount = (
+                lookup_key = f"shipping_price_{delivery_method.shipping_method.id}"
+                db_price_amount = object_storage.get(lookup_key) or (
                     ShippingMethodChannelListing.objects.values_list(
                         "price_amount", flat=True
                     )
@@ -512,16 +516,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     shipping_price_gross_amount = Decimal(
                         shipping_price_net_amount * (1 + shipping_price_tax_rate)
                     )
+                    object_storage[lookup_key] = db_price_amount
 
         # calculate lines
         order_total_gross_amount = Decimal(
             sum((line.total_price_gross_amount for line in order_lines))
         )
-        order_undiscounted_total_gross_amount = Decimal(order_total_gross_amount)
+        order_undiscounted_total_gross_amount = Decimal(
+            sum((line.undiscounted_total_price_gross_amount for line in order_lines))
+        )
         order_total_net_amount = Decimal(
             sum((line.total_price_net_amount for line in order_lines))
         )
-        order_undiscounted_total_net_amount = Decimal(order_total_net_amount)
+        order_undiscounted_total_net_amount = Decimal(
+            sum((line.undiscounted_total_price_net_amount for line in order_lines))
+        )
 
         return OrderAmounts(
             shipping_price_gross=shipping_price_gross_amount,
@@ -535,7 +544,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def get_delivery_method(
-        cls, input: Dict[str, Any], errors: List[OrderBulkError], instance_storage
+        cls, input: Dict[str, Any], errors: List[OrderBulkError], object_storage
     ) -> Optional[DeliveryMethod]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
 
@@ -558,7 +567,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=Warehouse,
                 key_map={"warehouse_id": "id"},
-                instance_storage=instance_storage,
+                object_storage=object_storage,
             )
 
         if is_shipping_delivery:
@@ -567,14 +576,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=ShippingMethod,
                 key_map={"shipping_method_id": "id"},
-                instance_storage=instance_storage,
+                object_storage=object_storage,
             )
             shipping_tax_class = cls.get_instance_with_errors(
                 input=input,
                 errors=errors,
                 model=TaxClass,
                 key_map={"shipping_tax_class_id": "id"},
-                instance_storage=instance_storage,
+                object_storage=object_storage,
             )
 
         delivery_method = None
@@ -600,7 +609,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls,
         note_input,
         order: Order,
-        instance_storage: Dict[str, Any],
+        object_storage: Dict[str, Any],
         errors: List[OrderBulkError],
     ) -> Optional[OrderEvent]:
         date = note_input.get("date")
@@ -626,7 +635,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=User,
                 key_map=user_key_map,
-                instance_storage=instance_storage,
+                object_storage=object_storage,
             )
 
         if note_input.get("app_id"):
@@ -635,7 +644,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors=errors,
                 model=App,
                 key_map={"app_id": "id"},
-                instance_storage=instance_storage,
+                object_storage=object_storage,
             )
 
         if user and app:
@@ -750,7 +759,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls,
         order_line_input: Dict[str, Any],
         order: Order,
-        instance_storage,
+        object_storage,
         order_input: Dict[str, Any],
         errors: List[OrderBulkError],
     ) -> Optional[OrderLine]:
@@ -763,7 +772,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "variant_external_reference": "external_reference",
                 "variant_sku": "sku",
             },
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
 
         line_tax_class = cls.get_instance_with_errors(
@@ -771,7 +780,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=errors,
             model=TaxClass,
             key_map={"tax_class_id": "id"},
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
 
         if not all([variant, line_tax_class]):
@@ -811,7 +820,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def create_single_order(
-        cls, order_input, instance_storage: Dict[str, Any]
+        cls, order_input, object_storage: Dict[str, Any]
     ) -> OrderWithErrors:
         order = OrderWithErrors(
             order=None,
@@ -828,13 +837,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         instances = cls.get_instances_related_to_order(
             order_input=order_input,
             errors=order.order_errors,
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
         delivery_input = order_input["delivery_method"]
         delivery_method = cls.get_delivery_method(
             input=delivery_input,
             errors=order.order_errors,
-            instance_storage=instance_storage,
+            object_storage=object_storage,
         )
         if not instances or not delivery_method:
             return order
@@ -845,7 +854,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             if order_line := cls.create_single_order_line(
                 order_line_input,
                 order_instance,
-                instance_storage,
+                object_storage,
                 order_input,
                 order.lines_errors,
             ):
@@ -866,14 +875,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
-            delivery_method, order.lines, instances.channel, delivery_input
+            delivery_method,
+            order.lines,
+            instances.channel,
+            delivery_input,
+            object_storage,
         )
 
         # create notes
         if notes_input := order_input.get("notes"):
             for note_input in notes_input:
                 if note := cls.create_single_note(
-                    note_input, order_instance, instance_storage, order.notes_errors
+                    note_input, order_instance, object_storage, order.notes_errors
                 ):
                     order.notes.append(note)
 
@@ -981,9 +994,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             return OrderBulkCreate(count=0, results=result)
 
         orders: List[OrderWithErrors] = []
-        instance_storage: Dict[str, Any] = {}
+        # Create dictionary, which stores already resolved objects:
+        #   - key for instances: "{model_name}_{key_name}_{key_value}"
+        #   - key for shipping prices: "shipping_price_{shipping_method_id}"
+        object_storage: Dict[str, Any] = {}
         for order_input in orders_input:
-            orders.append(cls.create_single_order(order_input, instance_storage))
+            orders.append(cls.create_single_order(order_input, object_storage))
 
         cls.handle_error_policy(orders, data["error_policy"])
         cls.save_data(orders)
