@@ -651,7 +651,7 @@ def test_order_bulk_create_error_order_future_date(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order input contains future date."
     assert error["field"] == "createdAt"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+    assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
 
@@ -799,7 +799,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
         " in deliveryMethod field."
     )
     assert error["field"] == "deliveryMethod"
-    assert error["code"] == OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR.name
+    assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
 
@@ -874,7 +874,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "No delivery method provided."
     assert error["field"] == "deliveryMethod"
-    assert error["code"] == OrderBulkCreateErrorCode.DELIVERY_METHOD_ERROR.name
+    assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
 
@@ -907,7 +907,7 @@ def test_order_bulk_create_error_note_with_future_date(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Note input contains future date."
     assert error["field"] == "date"
-    assert error["code"] == OrderBulkCreateErrorCode.NOTE_ERROR.name
+    assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
 
@@ -942,14 +942,14 @@ def test_order_bulk_create_error_non_existing_instance(
 
     assert errors[0]["message"] == "At least one order line can't be created."
     assert errors[0]["field"] == "lines"
-    assert errors[0]["code"] == OrderBulkCreateErrorCode.INVALID.name
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.ORDER_LINE_ERROR.name
 
     assert (
         errors[1]["message"]
         == "ProductVariant instance with sku=non-existing-sku doesn't exist."
     )
     assert not errors[1]["field"]
-    assert not errors[1]["code"]
+    assert errors[1]["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
 
@@ -986,7 +986,7 @@ def test_order_bulk_create_error_instance_not_found(
         == "User instance with email=non-existing-user@example.com doesn't exist."
     )
     assert not error["field"]
-    assert not error["code"]
+    assert error["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
 
@@ -1022,7 +1022,7 @@ def test_order_bulk_create_error_get_instance_with_multiple_keys(
         " can be provided to resolve User instance."
     )
     assert not error["field"]
-    assert not error["code"]
+    assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
 
@@ -1058,7 +1058,7 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
         " must be provided to resolve User instance."
     )
     assert not error["field"]
-    assert not error["code"]
+    assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
 
