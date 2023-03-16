@@ -14979,7 +14979,7 @@ type Mutation {
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum = reject_everything
 
-    """Input list of orders to create."""
+    """Input list of orders to create. Orders limit: 50."""
     orders: [OrderBulkCreateInput!]!
   ): OrderBulkCreate
 
@@ -22417,12 +22417,13 @@ enum OrderBulkCreateErrorCode {
   REQUIRED
   INVALID
   NOT_FOUND
-  LIMIT_EXCEEDED
+  ORDER_NUMBER_LIMIT
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
   ORDER_LINE_ERROR
   INVALID_QUANTITY
   PRICE_ERROR
+  NOTE_LENGTH
 }
 
 input OrderBulkCreateInput {
@@ -22512,7 +22513,7 @@ input OrderBulkCreateUserInput {
 }
 
 input OrderBulkCreateNoteInput {
-  """Note message."""
+  """Note message. Max characters: 200."""
   message: String!
 
   """The date associated with the message."""

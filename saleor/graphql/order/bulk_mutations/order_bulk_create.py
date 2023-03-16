@@ -37,6 +37,7 @@ from .utils import get_instance
 
 MINUTES_DIFF = 5
 MAX_ORDERS = 50
+MAX_NOTE_LENGTH = 200
 
 
 @dataclass
@@ -136,7 +137,9 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
 
 
 class OrderBulkCreateNoteInput(graphene.InputObjectType):
-    message = graphene.String(required=True, description="Note message.")
+    message = graphene.String(
+        required=True, description=f"Note message. Max characters: {MAX_NOTE_LENGTH}."
+    )
     date = graphene.DateTime(description="The date associated with the message.")
     user_id = graphene.ID(description="The user ID associated with the message.")
     user_email = graphene.ID(description="The user email associated with the message.")
@@ -310,7 +313,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         orders = NonNullList(
             OrderBulkCreateInput,
             required=True,
-            description="Input list of orders to create.",
+            description=f"Input list of orders to create. Orders limit: {MAX_ORDERS}.",
         )
         error_policy = ErrorPolicyEnum(
             required=False,
@@ -499,7 +502,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     shipping_price_gross_amount / shipping_price_net_amount - 1
                 )
             else:
-                # TODO discuss if it make sense to get it from database
                 lookup_key = f"shipping_price_{delivery_method.shipping_method.id}"
                 db_price_amount = object_storage.get(lookup_key) or (
                     ShippingMethodChannelListing.objects.values_list(
@@ -554,8 +556,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if is_warehouse_delivery and is_shipping_delivery:
             errors.append(
                 OrderBulkError(
-                    message="Can't provide both warehouse and shipping method IDs "
-                    "in deliveryMethod field.",
+                    message="Can't provide both warehouse and shipping method IDs.",
                     field="deliveryMethod",
                     code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
                 )
@@ -612,6 +613,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage: Dict[str, Any],
         errors: List[OrderBulkError],
     ) -> Optional[OrderEvent]:
+        if len(note_input["message"]) > MAX_NOTE_LENGTH:
+            errors.append(
+                OrderBulkError(
+                    message=f"Note message exceeds character limit: {MAX_NOTE_LENGTH}.",
+                    field="message",
+                    code=OrderBulkCreateErrorCode.NOTE_LENGTH,
+                )
+            )
+            return None
+
         date = note_input.get("date")
         if date and not cls.is_datetime_valid(date):
             errors.append(
@@ -680,7 +691,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         quantity_fulfilled = line_input["quantity_fulfilled"]
         tax_rate = line_input.get("tax_rate", None)
 
-        is_error = False
+        is_exit_error = False
         if quantity < 1 or int(quantity) != quantity:
             errors.append(
                 OrderBulkError(
@@ -689,7 +700,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
-            is_error = True
+            is_exit_error = True
         if quantity_fulfilled < 0 or int(quantity_fulfilled) != quantity_fulfilled:
             errors.append(
                 OrderBulkError(
@@ -698,7 +709,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
-            is_error = True
+            is_exit_error = True
         if quantity_fulfilled > quantity:
             errors.append(
                 OrderBulkError(
@@ -707,7 +718,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
-            is_error = True
+            is_exit_error = True
         if gross_amount < net_amount:
             errors.append(
                 OrderBulkError(
@@ -716,7 +727,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
-            is_error = True
+            is_exit_error = True
         if undiscounted_gross_amount < undiscounted_net_amount:
             errors.append(
                 OrderBulkError(
@@ -725,9 +736,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
-            is_error = True
+            is_exit_error = True
 
-        if is_error:
+        if is_exit_error:
             return None
 
         unit_price_net_amount = Decimal(net_amount / quantity)
@@ -783,7 +794,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
         )
 
-        if not all([variant, line_tax_class]):
+        if not variant and not line_tax_class:
             return None
 
         line_amounts = cls.make_order_line_calculations(order_line_input, errors)
@@ -871,7 +882,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
             return order
-        # TODO check if multiple order lines contains the same variant
+        # TODO check if multiple order lines contains the same variant (fulfillments)
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
@@ -982,13 +993,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # TODO post save actions
         # TODO add webhook ORDER_BULK_CREATED
         # TODO handle tax class matedata, is needed ?
-        # TODO error codes
 
         orders_input = data["orders"]
         if len(orders_input) > MAX_ORDERS:
             error = OrderBulkError(
                 message=f"Number of orders exceeds limit: {MAX_ORDERS}.",
-                code=OrderBulkCreateErrorCode.LIMIT_EXCEEDED,
+                code=OrderBulkCreateErrorCode.ORDER_NUMBER_LIMIT,
             )
             result = OrderBulkCreateResult(order=None, error=error)
             return OrderBulkCreate(count=0, results=result)

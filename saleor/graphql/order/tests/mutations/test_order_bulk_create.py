@@ -7,12 +7,12 @@ import pytest
 from django.utils import timezone
 
 from .....account.models import Address
-from .....order import OrderOrigin, OrderStatus
+from .....order import OrderEvents, OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import Order, OrderEvent, OrderLine
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...bulk_mutations.order_bulk_create import MINUTES_DIFF
+from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
@@ -369,6 +369,7 @@ def test_order_bulk_create(
     assert db_event.parameters["message"] == "Test message"
     assert db_event.user == customer_user
     assert not db_event.app
+    assert db_event.type == OrderEvents.NOTE_ADDED
     assert db_order.events.first() == db_event
 
     assert Order.objects.count() == orders_count + 1
@@ -794,10 +795,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
     assert content["data"]["orderBulkCreate"]["count"] == 0
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert (
-        error["message"] == "Can't provide both warehouse and shipping method IDs"
-        " in deliveryMethod field."
-    )
+    assert error["message"] == "Can't provide both warehouse and shipping method IDs."
     assert error["field"] == "deliveryMethod"
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
@@ -910,6 +908,43 @@ def test_order_bulk_create_error_note_with_future_date(
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_note_exceeds_character_limit(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    events_count = OrderEvent.objects.count()
+
+    order = order_bulk_input
+    order["notes"][0]["message"] = "x" * (MAX_NOTE_LENGTH + 1)
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order], "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == f"Note message exceeds character limit: {MAX_NOTE_LENGTH}."
+    )
+    assert error["field"] == "message"
+    assert error["code"] == OrderBulkCreateErrorCode.NOTE_LENGTH.name
+
+    assert Order.objects.count() == orders_count + 1
+    assert OrderEvent.objects.count() == events_count
 
 
 def test_order_bulk_create_error_non_existing_instance(
