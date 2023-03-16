@@ -24358,7 +24358,7 @@ input PermissionGroupCreateInput {
   name: String!
 
   """
-  Determine if the group have restricted access to channels.  DEFAULT: False
+  Determine if the group has restricted access to channels.  DEFAULT: False
   
   Added in Saleor 3.13.
   
@@ -24413,7 +24413,7 @@ input PermissionGroupUpdateInput {
   removeChannels: [ID!]
 
   """
-  Determine if the group have restricted access to channels.
+  Determine if the group has restricted access to channels.
   
   Added in Saleor 3.13.
   
