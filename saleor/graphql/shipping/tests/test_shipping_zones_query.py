@@ -340,3 +340,54 @@ def test_query_shipping_zone_search_by_channels_no_matter_of_input(
     assert len(data) == 1
     assert data[0]["node"]["name"] == shipping_zone_pln.name
     assert data[0]["node"]["id"] == shipping_zone_pln_id
+
+
+SHIPPING_METHOD_TAX_CLASS_QUERY = """
+    query ShippingQuery($id: ID!) {
+        shippingZone(id: $id) {
+            name
+            shippingMethods {
+                id
+                taxClass {
+                    id
+                }
+            }
+        }
+    }
+"""
+
+
+def test_shipping_method_tax_class_query_by_app(
+    app_api_client, shipping_zone, permission_manage_shipping
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+    }
+
+    # when
+    app_api_client.app.permissions.add(permission_manage_shipping)
+    response = app_api_client.post_graphql(SHIPPING_METHOD_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["shippingZone"]["shippingMethods"][0]["taxClass"]["id"]
+
+
+def test_shipping_method_tax_class_query_by_staff(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("ShippingZone", shipping_zone.id),
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    response = staff_api_client.post_graphql(SHIPPING_METHOD_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["shippingZone"]["shippingMethods"][0]["taxClass"]["id"]
