@@ -573,3 +573,55 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
         order_data["lines"][0]["thumbnail"]["url"]
         == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
+
+
+QUERY_LINE_TAX_CLASS_QUERY = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    lines {
+                        id
+                        taxClass {
+                            id
+                        }
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+def test_order_line_tax_class_query_by_staff(
+    staff_api_client,
+    permission_manage_orders,
+    order_line,
+):
+    # given
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_LINE_TAX_CLASS_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["lines"][0]["taxClass"]["id"]
+
+
+def test_order_line_tax_class_query_by_app(
+    app_api_client,
+    permission_manage_orders,
+    order_line,
+):
+    # given
+    app_api_client.app.permissions.add(permission_manage_orders)
+
+    # when
+    response = app_api_client.post_graphql(QUERY_LINE_TAX_CLASS_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    assert order_data["lines"][0]["taxClass"]["id"]
