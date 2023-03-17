@@ -3528,6 +3528,7 @@ def order_line(order, variant):
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        tax_class=variant.product.tax_class,
     )
 
 
