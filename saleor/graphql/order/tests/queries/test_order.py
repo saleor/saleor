@@ -477,10 +477,7 @@ def test_order_query_shows_non_draft_orders(
     assert len(edges) == Order.objects.non_draft().count()
 
 
-def test_orders_with_channel(
-    staff_api_client, permission_group_manage_orders, orders, channel_USD
-):
-    query = """
+QUERY_ORDERS_WITH_CHANNEL = """
     query OrdersQuery($channel: String) {
         orders(first: 10, channel: $channel) {
             edges {
@@ -490,14 +487,41 @@ def test_orders_with_channel(
             }
         }
     }
-    """
+"""
+
+
+def test_orders_with_channel(
+    staff_api_client, permission_group_manage_orders, orders, channel_USD
+):
+    # given
+    query = QUERY_ORDERS_WITH_CHANNEL
 
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"channel": channel_USD.slug}
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     edges = get_graphql_content(response)["data"]["orders"]["edges"]
 
     assert len(edges) == 3
+
+
+def test_orders_with_channel_no_access_to_channel(
+    staff_api_client, permission_group_all_perms_channel_USD_only, orders, channel_JPY
+):
+    # given
+    query = QUERY_ORDERS_WITH_CHANNEL
+
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    variables = {"channel": channel_JPY.slug}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
 
 
 def test_orders_without_channel(

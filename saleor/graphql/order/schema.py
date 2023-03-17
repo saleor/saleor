@@ -150,8 +150,6 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
-        # TODO: check if requestor has access to specify channel,
-        # if not raise validaiton error
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):

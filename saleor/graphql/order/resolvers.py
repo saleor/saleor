@@ -5,6 +5,7 @@ from django.db.models import Q
 from ...account.models import User
 from ...app.models import App
 from ...channel.models import Channel
+from ...core.exceptions import PermissionDenied
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.utils import sum_order_totals
@@ -26,6 +27,12 @@ def resolve_orders(info, channel_slug):
     if isinstance(requestor, App):
         return qs
     accessible_channels = get_user_accessible_channels(requestor)
+    if channel_slug and channel_slug not in [
+        channel.slug for channel in accessible_channels
+    ]:
+        raise PermissionDenied(
+            message=f"You do not have access to the {channel_slug} channel."
+        )
     return qs.filter(channel_id__in=accessible_channels.values("id"))
 
 
