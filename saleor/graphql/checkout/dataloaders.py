@@ -18,6 +18,7 @@ from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
 from ..discount.dataloaders import (
+    CheckoutLineDiscountsByCheckoutLineIdLoader,
     VoucherByCodeLoader,
     VoucherInfoByVoucherCodeLoader,
     load_discounts,
@@ -52,9 +53,15 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
     def batch_load(self, keys):
         def with_checkout_lines(results):
             checkouts, checkout_lines = results
-            variants_pks = list(
-                {line.variant_id for lines in checkout_lines for line in lines}
-            )
+
+            variants_pks = set()
+            lines_pks = set()
+            for lines in checkout_lines:
+                for line in lines:
+                    lines_pks.add(line.id)
+                    variants_pks.add(line.variant_id)
+            lines_pks = list(lines_pks)
+            variants_pks = list(variants_pks)
             if not variants_pks:
                 return [[] for _ in keys]
 
@@ -70,6 +77,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                     channel_listings,
                     voucher_infos,
                     channels,
+                    checkout_lines_discounts,
                 ) = results
                 variants_map = dict(zip(variants_pks, variants))
                 products_map = dict(zip(variants_pks, products))
@@ -80,6 +88,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                     zip(variant_ids_channel_ids, channel_listings)
                 )
                 channels = dict(zip(channel_pks, channels))
+                checkout_lines_discounts = dict(
+                    zip(lines_pks, checkout_lines_discounts)
+                )
 
                 lines_info_map = defaultdict(list)
                 voucher_infos_map = {
@@ -99,8 +110,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
-                                # TODO Owczar add dataloader.
-                                discounts=[],
+                                discounts=checkout_lines_discounts[line.id],
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
                             )
@@ -126,6 +136,9 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                         )
                 return [lines_info_map[key] for key in keys]
 
+            checkout_lines_discounts = CheckoutLineDiscountsByCheckoutLineIdLoader(
+                self.context
+            ).load_many(lines_pks)
             variants = ProductVariantByIdLoader(self.context).load_many(variants_pks)
             products = ProductByVariantIdLoader(self.context).load_many(variants_pks)
             product_types = ProductTypeByVariantIdLoader(self.context).load_many(
@@ -166,6 +179,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                     channel_listings,
                     voucher_infos,
                     channels,
+                    checkout_lines_discounts,
                 ]
             ).then(with_variants_products_collections)
 

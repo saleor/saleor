@@ -22,6 +22,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import add_voucher_to_checkout
 from ....core.prices import quantize_price
 from ....discount import DiscountValueType, VoucherType
+from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
@@ -1601,6 +1602,12 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout_with_item)}
 
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    # To properly apply a sale at checkout, we need to generate discount objects.
+    generate_sale_discount_objects_for_checkout(checkout_info, lines)
+
     # when
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1610,7 +1617,7 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
-    manager = get_plugins_manager()
+    checkout_with_item.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
 
@@ -1654,14 +1661,15 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         [],
         line_info.line.price_override,
     )
+    undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
     assert (
         data["lines"][0]["undiscountedUnitPrice"]["amount"]
         == undiscounted_unit_price.amount
     )
     assert (
-        data["lines"][0]["undiscountedTotalPrice"]["amount"]
-        == undiscounted_unit_price.amount * line_info.line.quantity
+        data["lines"][0]["undiscountedTotalPrice"]["amount"] == undiscounted_total_price
     )
+    assert line_total_price.gross.amount < undiscounted_total_price
 
 
 def test_checkout_display_gross_prices_use_default(user_api_client, checkout_with_item):

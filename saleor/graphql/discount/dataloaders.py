@@ -6,6 +6,7 @@ from django.db.models import F
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
+    CheckoutLineDiscount,
     OrderDiscount,
     Sale,
     SaleChannelListing,
@@ -242,3 +243,16 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
 
 def load_discounts(request):
     return DiscountsByDateTimeLoader(request).load(request.request_time).get()
+
+
+class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
+    context_key = "checkout_line_discounts_by_checkout_line_id"
+
+    def batch_load(self, keys):
+        discounts = CheckoutLineDiscount.objects.using(
+            self.database_connection_name
+        ).filter(line_id__in=keys)
+        discount_map = defaultdict(list)
+        for discount in discounts:
+            discount_map[discount.line_id].append(discount)
+        return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
