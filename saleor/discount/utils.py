@@ -591,23 +591,23 @@ def _apply_fixed_sale_on_lines(
                 line_info.channel_listing, line.price_override
             )
             base_unit_price = cast(Money, base_unit_price)
-            base_line_total_price = base_unit_price * quantity
 
             channel_listing = sale_info.channel_listings.get(line_info.channel.slug)
             if not channel_listing:
                 continue
-            price_with_applied_sale = apply_discount_to_value(
+            unit_price_with_applied_sale = apply_discount_to_value(
                 channel_listing.discount_value,
                 sale.type,
                 channel_listing.currency,
-                base_line_total_price,
+                base_unit_price,
             )
-            price_with_applied_sale = cast(Money, price_with_applied_sale)
-            discount = min(
-                base_line_total_price - price_with_applied_sale,
-                base_line_total_price,
+            unit_price_with_applied_sale = cast(Money, unit_price_with_applied_sale)
+            unit_discount = min(
+                base_unit_price - unit_price_with_applied_sale,
+                base_unit_price,
             )
-            discount_amount = discount.amount
+            total_discount = unit_discount * quantity
+            discount_amount = total_discount.amount
             if (
                 sales_data_by_line_map[line.id].get(
                     "best_discount_amount", Decimal("-Inf")

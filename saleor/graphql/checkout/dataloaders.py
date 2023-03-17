@@ -99,6 +99,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                                 product=products_map[line.variant_id],
                                 product_type=product_types_map[line.variant_id],
                                 collections=collections_map[line.variant_id],
+                                # TODO Owczar add dataloader.
                                 discounts=[],
                                 tax_class=tax_class_map[line.variant_id],
                                 channel=channels[checkout.channel_id],
@@ -118,12 +119,10 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                         voucher.type == VoucherType.SPECIFIC_PRODUCT
                         or voucher.apply_once_per_order
                     ):
-                        discounts = load_discounts(self.context)
                         apply_voucher_to_checkout_line(
                             voucher_info=voucher_info,
                             checkout=checkout,
                             lines_info=lines_info_map[checkout.pk],
-                            discounts=discounts,
                         )
                 return [lines_info_map[key] for key in keys]
 

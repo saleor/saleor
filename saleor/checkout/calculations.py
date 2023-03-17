@@ -9,6 +9,7 @@ from ..checkout import base_calculations
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
+from ..discount.utils import generate_sale_discount_objects_for_checkout
 from ..payment.models import TransactionItem
 from ..tax import TaxCalculationStrategy
 from ..tax.calculations.checkout import update_checkout_prices_with_flat_rates
@@ -260,6 +261,10 @@ def _fetch_checkout_prices_if_expired(
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
+
+    # TODO Owczar: remove discounts param
+    discounts = []
+    generate_sale_discount_objects_for_checkout(checkout_info, lines)
 
     if prices_entered_with_tax:
         # If prices are entered with tax, we need to always calculate it anyway, to

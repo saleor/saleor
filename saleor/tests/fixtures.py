@@ -38,11 +38,7 @@ from ..attribute.models import (
 )
 from ..attribute.utils import associate_attribute_values_to_instance
 from ..checkout import base_calculations
-from ..checkout.fetch import (
-    fetch_active_discounts,
-    fetch_checkout_info,
-    fetch_checkout_lines,
-)
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
@@ -65,6 +61,7 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
+from ..discount.utils import fetch_active_discounts
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation

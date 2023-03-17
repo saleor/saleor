@@ -58,7 +58,7 @@ def invalidate_checkout_prices(
     discounts: Optional[Iterable["DiscountInfo"]] = None,
     *,
     recalculate_discount: bool = True,
-    save: bool
+    save: bool,
 ) -> List[str]:
     """Mark checkout as ready for prices recalculation."""
     checkout = checkout_info.checkout
@@ -437,7 +437,6 @@ def get_prices_of_discounted_specific_product(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[Money]:
     """Get prices of variants belonging to the discounted specific products.
 
@@ -449,7 +448,7 @@ def get_prices_of_discounted_specific_product(
     discounted_lines: Iterable["CheckoutLineInfo"] = get_discounted_lines(
         lines, voucher_info
     )
-    line_prices = get_base_lines_prices(checkout_info, discounted_lines, discounts)
+    line_prices = get_base_lines_prices(checkout_info, discounted_lines)
 
     return line_prices
 
@@ -457,7 +456,6 @@ def get_prices_of_discounted_specific_product(
 def get_base_lines_prices(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Optional[Iterable[DiscountInfo]],
 ):
     """Get base total price of checkout lines without voucher discount applied."""
     line_prices = []
@@ -468,9 +466,13 @@ def get_base_lines_prices(
             line_info.collections,
             checkout_info.channel,
             line_info.channel_listing,
-            discounts or [],
+            [],
             line_info.line.price_override,
         )
+        line_price = line_unit_price * line.quantity
+        for discount in line_info.discounts:
+            line_price -= Money(discount.amount_value, line_price.currency)
+        line_unit_price = line_price / line.quantity
         line_prices.extend([line_unit_price] * line.quantity)
     return line_prices
 
@@ -490,7 +492,7 @@ def get_voucher_discount_for_checkout(
     validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         if voucher.apply_once_per_order:
-            prices = get_base_lines_prices(checkout_info, lines, discounts)
+            prices = get_base_lines_prices(checkout_info, lines)
             return voucher.get_discount_amount_for(min(prices), checkout_info.channel)
         subtotal = base_calculations.base_checkout_subtotal(
             lines,
@@ -524,7 +526,7 @@ def _get_products_voucher_discount(
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(
-            manager, checkout_info, lines, voucher, discounts
+            manager, checkout_info, lines, voucher
         )
     if not prices:
         msg = "This offer is only valid for selected items."

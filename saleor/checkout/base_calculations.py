@@ -81,6 +81,11 @@ def _calculate_base_line_unit_price(
     The price does not include the entire order discount.
     """
     variant = line_info.variant
+    currency = line_info.channel_listing.currency
+
+    # We shouldn't include discounts twice.
+    discounts = [] if line_info.discounts else discounts
+
     variant_price = variant.get_price(
         line_info.product,
         line_info.collections,
@@ -90,16 +95,22 @@ def _calculate_base_line_unit_price(
         line_info.line.price_override,
     )
 
+    for discount in line_info.discounts:
+        total_discount_amount_for_line = discount.amount_value
+        unit_discount_amount = total_discount_amount_for_line / line_info.line.quantity
+        unit_discount = Money(unit_discount_amount, currency)
+        variant_price -= unit_discount
+
     if line_info.voucher and not line_info.voucher.apply_once_per_order:
         unit_price = max(
             variant_price
             - line_info.voucher.get_discount_amount_for(variant_price, channel=channel),
-            zero_money(variant_price.currency),
+            zero_money(currency),
         )
     else:
         unit_price = variant_price
 
-    return quantize_price(unit_price, unit_price.currency)
+    return quantize_price(unit_price, currency)
 
 
 def calculate_undiscounted_base_line_total_price(

@@ -80,6 +80,128 @@ def test_create_fixed_sale(checkout_lines_info, checkout_info, new_sale):
 
 
 @freeze_time("2020-12-12 12:00:00")
+def test_create_fixed_sale_multiple_quantity_in_lines(
+    checkout_lines_with_multiple_quantity_info,
+    checkout_info,
+    new_sale,
+):
+    # given
+    line_info1 = checkout_lines_with_multiple_quantity_info[0]
+    product_line1 = line_info1.product
+
+    sale = new_sale
+    sale.products.add(product_line1)
+    discount_info_for_new_sale = generate_discount_info(
+        sale, products_pks={product_line1.pk}
+    )
+
+    sale_channel_listing = sale.channel_listings.get()
+    expected_discount_amount = (
+        sale_channel_listing.discount_value * line_info1.line.quantity
+    )
+
+    # when
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info,
+        checkout_lines_with_multiple_quantity_info,
+        [discount_info_for_new_sale],
+    )
+
+    # then
+    assert len(line_info1.discounts) == 1
+    now = timezone.now()
+    discount_from_info = line_info1.discounts[0]
+    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    assert discount_from_info.line == discount_from_db.line == line_info1.line
+    assert discount_from_info.created_at == discount_from_db.created_at == now
+    assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
+    assert (
+        discount_from_info.value_type
+        == discount_from_db.value_type
+        == DiscountValueType.FIXED
+    )
+    assert (
+        discount_from_info.value
+        == discount_from_db.value
+        == sale_channel_listing.discount_value
+    )
+    assert (
+        discount_from_info.amount_value
+        == discount_from_db.amount_value
+        == expected_discount_amount
+    )
+    assert discount_from_info.currency == discount_from_db.currency == "USD"
+    assert discount_from_info.name == discount_from_db.name == sale.name
+    assert (
+        discount_from_info.translated_name == discount_from_db.translated_name is None
+    )
+    assert discount_from_info.reason == discount_from_db.reason is None
+    assert discount_from_info.sale == discount_from_db.sale == sale
+    assert discount_from_info.voucher == discount_from_db.voucher is None
+
+    for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
+        assert not checkout_line_info.discounts
+
+
+def test_create_fixed_sale_multiple_quantity_in_lines_more_then_total(
+    checkout_lines_with_multiple_quantity_info,
+    checkout_info,
+    new_sale,
+):
+    # given
+    discount_value = Decimal(15)
+    line_info1 = checkout_lines_with_multiple_quantity_info[0]
+    product_line1 = line_info1.product
+
+    sale = new_sale
+    sale.products.add(product_line1)
+    sale_channel_listing = sale.channel_listings.get()
+    sale_channel_listing.discount_value = discount_value
+    sale_channel_listing.save()
+    discount_info_for_new_sale = generate_discount_info(
+        sale, products_pks={product_line1.pk}
+    )
+
+    expected_discount_amount = (
+        sale_channel_listing.discount_value * line_info1.line.quantity
+    )
+    base_unit_price = line_info1.variant.get_base_price(
+        line_info1.channel_listing, line_info1.line.price_override
+    )
+    expected_discount_amount = (base_unit_price * line_info1.line.quantity).amount
+
+    # when
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info,
+        checkout_lines_with_multiple_quantity_info,
+        [discount_info_for_new_sale],
+    )
+
+    # then
+    assert discount_value > base_unit_price.amount
+    assert len(line_info1.discounts) == 1
+    discount_from_info = line_info1.discounts[0]
+    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    assert discount_from_info.line == discount_from_db.line == line_info1.line
+    assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
+    assert (
+        discount_from_info.value_type
+        == discount_from_db.value_type
+        == DiscountValueType.FIXED
+    )
+    assert discount_from_info.value == discount_from_db.value == discount_value
+    assert (
+        discount_from_info.amount_value
+        == discount_from_db.amount_value
+        == expected_discount_amount
+    )
+    assert discount_from_info.currency == discount_from_db.currency == "USD"
+
+    for checkout_line_info in checkout_lines_with_multiple_quantity_info[1:]:
+        assert not checkout_line_info.discounts
+
+
+@freeze_time("2020-12-12 12:00:00")
 def test_create_percentage_sale(
     checkout_lines_info, checkout_info, new_sale_percentage
 ):
