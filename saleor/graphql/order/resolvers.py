@@ -16,7 +16,7 @@ from ..utils.filters import filter_by_period
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-def resolve_orders(info, requesting_user=None, requestor_has_access_to_all=True, ids=None, channel_slug=None):
+def resolve_orders(info, channel_slug=None, requesting_user=None, requestor_has_access_to_all=True, ids=None):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Order.objects.using(database_connection_name).non_draft()
     if channel_slug:
