@@ -2,11 +2,11 @@ from uuid import UUID
 
 from django.db.models import Q
 
+from ...account.models import User
 from ...app.models import App
 from ...channel.models import Channel
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
-from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
 from ..account.utils import get_user_accessible_channels
 from ..channel.utils import get_default_channel_slug_or_graphql_error
@@ -65,14 +65,23 @@ def resolve_order(id):
     return models.Order.objects.filter(lookup).first()
 
 
-def resolve_homepage_events():
+def resolve_homepage_events(info):
     # Filter only selected events to be displayed on homepage.
     types = [
         OrderEvents.PLACED,
         OrderEvents.PLACED_FROM_DRAFT,
         OrderEvents.ORDER_FULLY_PAID,
     ]
-    return OrderEvent.objects.filter(type__in=types)
+    lookup = Q(type__in=types)
+    requestor = get_user_or_app_from_context(info.context)
+    if isinstance(requestor, User):
+        # get order events from orders that user has access to
+        accessible_channels = get_user_accessible_channels(requestor)
+        accessible_orders = models.Order.objects.filter(
+            channel_id__in=accessible_channels.values("id")
+        )
+        lookup &= Q(order_id__in=accessible_orders.values("id"))
+    return models.OrderEvent.objects.filter(lookup)
 
 
 def resolve_order_by_token(token):

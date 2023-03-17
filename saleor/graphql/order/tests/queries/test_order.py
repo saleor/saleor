@@ -1512,6 +1512,8 @@ def test_query_orders_by_app(
     response = app_api_client.post_graphql(
         QUERY_ORDERS, permissions=(permission_manage_orders,)
     )
+
+    # then
     content = get_graphql_content(response)
     assert len(content["data"]["orders"]["edges"]) == len(order_list)
 
@@ -1519,7 +1521,6 @@ def test_query_orders_by_app(
 def test_query_orders_by_customer(
     order_list,
     user_api_client,
-    permission_manage_orders,
     channel_PLN,
     channel_JPY,
     channel_USD,

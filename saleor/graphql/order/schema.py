@@ -135,7 +135,7 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_homepage_events(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_homepage_events()
+        qs = resolve_homepage_events(info)
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
@@ -150,6 +150,8 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
+        # TODO: check if requestor has access to specify channel,
+        # if not raise validaiton error
         if sort_field_from_kwargs(kwargs) == OrderSortField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -188,6 +190,8 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders_total(_root, info: ResolveInfo, *, period, channel=None):
+        # TODO: check if requestor has access to specify channel,
+        # if not raise validaiton error
         return resolve_orders_total(info, period, channel)
 
     @staticmethod

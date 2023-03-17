@@ -1,32 +1,73 @@
 from datetime import date, timedelta
 
+import pytest
 from prices import Money
 
 from ....order import OrderEvents
-from ....order.models import OrderEvent
+from ....order.models import Order, OrderEvent
 from ...core.enums import ReportingPeriod
 from ...tests.utils import assert_no_permission, get_graphql_content
 
-
-def test_homepage_events(
-    order_events, staff_api_client, permission_group_manage_orders
-):
-    query = """
-    {
-        homepageEvents(first: 20) {
-            edges {
-                node {
-                    date
-                    type
-                    orderNumber
-                }
+QUERY_HOMEPAGE_EVENTS = """
+{
+    homepageEvents(first: 20) {
+        edges {
+            node {
+                date
+                type
+                orderNumber
             }
         }
     }
-    """
+}
+"""
+
+
+@pytest.fixture
+def order_events_from_different_channels(
+    order_events,
+    order_list,
+    channel_PLN,
+    channel_JPY,
+    channel_USD,
+):
+    order_list[0].channel = channel_PLN
+    order_list[1].channel = channel_JPY
+    order_list[2].channel = channel_USD
+    Order.objects.bulk_update(order_list, ["channel"])
+
+    events = list(
+        OrderEvent.objects.filter(
+            type__in=[
+                OrderEvents.PLACED,
+                OrderEvents.PLACED_FROM_DRAFT,
+                OrderEvents.ORDER_FULLY_PAID,
+            ]
+        )
+    )
+
+    events[0].order = order_list[0]
+    events[1].order = order_list[1]
+    events[2].order = order_list[2]
+    OrderEvent.objects.bulk_update(events, ["order"])
+
+    return order_events
+
+
+def test_homepage_events(
+    order_events_from_different_channels,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    # given
+    query = QUERY_HOMEPAGE_EVENTS
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query)
+
+    # when
     content = get_graphql_content(response)
+
+    # then
     edges = content["data"]["homepageEvents"]["edges"]
     only_types = {"PLACED", "PLACED_FROM_DRAFT", "ORDER_FULLY_PAID"}
     assert {edge["node"]["type"] for edge in edges} == only_types
@@ -40,6 +81,87 @@ def test_homepage_events(
         ).values_list("order__number", flat=True)
     )
     assert {int(edge["node"]["orderNumber"]) for edge in edges} == expected_numbers
+
+
+def test_query_homepage_events_by_user_with_restricted_access_to_channels(
+    order_events_from_different_channels,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_USD,
+):
+    # given
+    user = staff_api_client.user
+    permission_group_all_perms_channel_USD_only.user_set.add(user)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_HOMEPAGE_EVENTS)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["homepageEvents"]["edges"]) == 1
+    event = OrderEvent.objects.filter(
+        type__in=[
+            OrderEvents.PLACED,
+            OrderEvents.PLACED_FROM_DRAFT,
+            OrderEvents.ORDER_FULLY_PAID,
+        ],
+        order__channel=channel_USD,
+    ).first()
+    assert content["data"]["homepageEvents"]["edges"][0]["node"]["orderNumber"] == str(
+        event.order.number
+    )
+
+
+def test_query_homepage_by_user_with_restricted_access_to_channels_no_acc_channels(
+    order_events_from_different_channels,
+    staff_api_client,
+    permission_group_all_perms_without_any_channel,
+):
+    """Ensure that query returns no orders when user has no accessible channels."""
+    # given
+    user = staff_api_client.user
+    permission_group_all_perms_without_any_channel.user_set.add(user)
+
+    # when
+    response = staff_api_client.post_graphql(QUERY_HOMEPAGE_EVENTS)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["homepageEvents"]["edges"]) == 0
+
+
+def test_query_homepage_by_app(
+    order_events_from_different_channels,
+    app_api_client,
+    permission_manage_orders,
+):
+    # when
+    response = app_api_client.post_graphql(
+        QUERY_HOMEPAGE_EVENTS, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = OrderEvent.objects.filter(
+        type__in=[
+            OrderEvents.PLACED,
+            OrderEvents.PLACED_FROM_DRAFT,
+            OrderEvents.ORDER_FULLY_PAID,
+        ]
+    )
+    assert len(content["data"]["homepageEvents"]["edges"]) == events.count()
+
+
+def test_query_homepage_by_customer(
+    order_events_from_different_channels,
+    order_list,
+    user_api_client,
+):
+    # when
+    response = user_api_client.post_graphql(QUERY_HOMEPAGE_EVENTS)
+
+    # then
+    assert_no_permission(response)
 
 
 QUERY_ORDER_TOTAL = """
