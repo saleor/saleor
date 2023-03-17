@@ -5036,6 +5036,16 @@ def permission_group_all_perms_all_channels(
 
 
 @pytest.fixture
+def permission_group_no_perms_all_channels(staff_users, channel_USD, channel_PLN):
+    group = Group.objects.create(
+        name="All permissions for all channels.",
+        restricted_access_to_channels=False,
+    )
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def permission_group_all_perms_channel_USD_only(
     permission_manage_users, staff_users, channel_USD, channel_PLN
 ):

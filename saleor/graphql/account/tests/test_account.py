@@ -140,6 +140,7 @@ FULL_USER_QUERY = """
                 edges {
                     node {
                         id
+                        number
                     }
                 }
             }
@@ -327,8 +328,8 @@ def test_query_customer_user_with_orders(
     staff_api_client,
     customer_user,
     order_list,
+    permission_group_manage_orders,
     permission_manage_users,
-    permission_manage_orders,
 ):
     # given
     query = FULL_USER_QUERY
@@ -349,12 +350,12 @@ def test_query_customer_user_with_orders(
 
     id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": id}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(
         query,
         variables,
-        permissions=[permission_manage_users, permission_manage_orders],
     )
 
     # then
@@ -470,6 +471,53 @@ def test_query_customer_user_with_orders_by_app_no_manage_orders_perm(
     assert_no_permission(response)
 
 
+def test_query_customer_user_with_orders_restricted_access_to_channel(
+    staff_api_client,
+    customer_user,
+    order_list,
+    permission_group_all_perms_channel_USD_only,
+    channel_USD,
+    channel_PLN,
+    channel_JPY,
+):
+    # given
+    query = FULL_USER_QUERY
+    order_unfulfilled = order_list[0]
+    order_unfulfilled.user = customer_user
+    order_unfulfilled.channel = channel_PLN
+
+    order_unconfirmed = order_list[1]
+    order_unconfirmed.status = OrderStatus.UNCONFIRMED
+    order_unconfirmed.user = customer_user
+    order_unconfirmed.channel = channel_USD
+
+    order_draft = order_list[2]
+    order_draft.status = OrderStatus.DRAFT
+    order_draft.user = customer_user
+    order_draft.channel = channel_JPY
+
+    Order.objects.bulk_update(
+        [order_unconfirmed, order_draft, order_unfulfilled],
+        ["user", "status", "channel"],
+    )
+
+    id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": id}
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    user = content["data"]["user"]
+    assert len(user["orders"]["edges"]) == 1
+    assert user["orders"]["edges"][0]["node"]["number"] == str(order_unconfirmed.number)
+
+
 def test_query_staff_user(
     staff_api_client,
     staff_user,
@@ -555,8 +603,10 @@ def test_query_staff_user_with_order_and_without_manage_orders_perm(
     staff_user,
     order_list,
     permission_manage_staff,
+    permission_group_no_perms_all_channels,
 ):
     # given
+    permission_group_no_perms_all_channels.user_set.add(staff_user)
     staff_user.user_permissions.add(permission_manage_staff)
 
     order_unfulfilled = order_list[0]
@@ -594,10 +644,11 @@ def test_query_staff_user_with_orders_and_manage_orders_perm(
     staff_user,
     order_list,
     permission_manage_staff,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
-    staff_user.user_permissions.add(permission_manage_staff, permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_user)
+    staff_user.user_permissions.add(permission_manage_staff)
 
     order_unfulfilled = order_list[0]
     order_unfulfilled.user = staff_user
@@ -1419,7 +1470,7 @@ def test_user_with_cancelled_fulfillments(
     staff_api_client,
     customer_user,
     permission_manage_users,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order_with_cancelled_fulfillment,
 ):
     query = """
@@ -1440,9 +1491,8 @@ def test_user_with_cancelled_fulfillments(
     """
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": user_id}
-    staff_api_client.user.user_permissions.add(
-        permission_manage_users, permission_manage_orders
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    staff_api_client.user.user_permissions.add(permission_manage_users)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     order_id = graphene.Node.to_global_id(
