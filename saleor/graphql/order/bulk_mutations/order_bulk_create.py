@@ -1038,7 +1038,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
         # TODO post save actions
         # TODO add webhook ORDER_BULK_CREATED
-        # TODO handle tax class matedata, is needed ?
 
         orders_input = data["orders"]
         if len(orders_input) > MAX_ORDERS:
