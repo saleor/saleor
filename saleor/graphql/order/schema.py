@@ -129,13 +129,13 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_homepage_events(_root, info, **kwargs):
-        qs = resolve_homepage_events()
+        qs = resolve_homepage_events(info)
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
-    def resolve_order(_root, _info, **data):
+    def resolve_order(_root, info, **data):
         _, id = from_global_id_or_error(data.get("id"), Order)
-        return resolve_order(id)
+        return resolve_order(info, id)
 
     @staticmethod
     def resolve_orders(_root, info, *, channel=None, **kwargs):
@@ -180,8 +180,8 @@ class OrderQueries(graphene.ObjectType):
         return resolve_orders_total(info, period, channel)
 
     @staticmethod
-    def resolve_order_by_token(_root, _info, *, token):
-        return resolve_order_by_token(token)
+    def resolve_order_by_token(_root, info, *, token):
+        return resolve_order_by_token(info, token)
 
 
 class OrderMutations(graphene.ObjectType):
