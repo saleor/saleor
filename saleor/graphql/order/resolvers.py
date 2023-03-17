@@ -28,8 +28,6 @@ def resolve_orders(info, requesting_user=None, requestor_has_access_to_all=True,
         qs = qs.filter(pk__in=db_ids)
     if requesting_user and not requestor_has_access_to_all:
         qs = qs.filter(user_id=requesting_user.id)
-    if not requestor_has_access_to_all:
-        qs = qs.exclude(status=OrderStatus.DRAFT)
     return qs
 
 
