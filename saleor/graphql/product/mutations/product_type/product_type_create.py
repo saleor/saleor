@@ -11,8 +11,10 @@ from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
+from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
 from ...types import ProductType
+from ..utils import clean_tax_code
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -49,7 +51,10 @@ class ProductTypeInput(graphene.InputObjectType):
     tax_code = graphene.String(
         description=(
             f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT}. "
-            "Use tax classes to control the tax calculation for a product type."
+            "Use tax classes to control the tax calculation for a product type. "
+            "If taxCode is provided, Saleor will try to find a tax class with given "
+            "code (codes are stored in metadata) and assign it. If no tax class is "
+            "found, it would be created and assigned."
         )
     )
     tax_class = graphene.ID(
@@ -108,8 +113,10 @@ class ProductTypeCreate(ModelMutation):
             error.code = ProductErrorCode.REQUIRED.value
             raise ValidationError({"slug": error})
 
-        cls.validate_attributes(cleaned_input)
+        manager = get_plugin_manager_promise(info.context).get()
+        clean_tax_code(cleaned_input, manager)
 
+        cls.validate_attributes(cleaned_input)
         return cleaned_input
 
     @classmethod
