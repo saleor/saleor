@@ -188,8 +188,6 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_orders_total(_root, info: ResolveInfo, *, period, channel=None):
-        # TODO: check if requestor has access to specify channel,
-        # if not raise validaiton error
         return resolve_orders_total(info, period, channel)
 
     @staticmethod

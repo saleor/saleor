@@ -26,6 +26,7 @@ def resolve_orders(info, channel_slug):
     requestor = get_user_or_app_from_context(info.context)
     if isinstance(requestor, App):
         return qs
+
     accessible_channels = get_user_accessible_channels(requestor)
     if channel_slug and channel_slug not in [
         channel.slug for channel in accessible_channels
@@ -46,12 +47,21 @@ def resolve_draft_orders(info):
 
 
 @traced_resolver
-def resolve_orders_total(_info, period, channel_slug):
+def resolve_orders_total(info, period, channel_slug):
     if channel_slug is None:
         channel_slug = get_default_channel_slug_or_graphql_error()
     channel = Channel.objects.filter(slug=str(channel_slug)).first()
     if not channel:
         return None
+
+    requestor = get_user_or_app_from_context(info.context)
+    if isinstance(requestor, User):
+        accessible_channels = get_user_accessible_channels(requestor)
+        if channel_slug not in [channel.slug for channel in accessible_channels]:
+            raise PermissionDenied(
+                message=f"You do not have access to the {channel_slug} channel."
+            )
+
     qs = (
         models.Order.objects.non_draft()
         .exclude(status=OrderStatus.CANCELED)

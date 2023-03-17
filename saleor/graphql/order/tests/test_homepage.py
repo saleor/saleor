@@ -261,6 +261,22 @@ def test_orders_total_as_staff(
     assert Money(amount, "USD") == order.total.gross
 
 
+def test_orders_total_no_access_to_channel(
+    staff_api_client, permission_group_all_perms_channel_USD_only, orders, channel_JPY
+):
+    # given
+    query = QUERY_ORDER_TOTAL
+
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    variables = {"period": ReportingPeriod.TODAY.name, "channel": channel_JPY.slug}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
 def test_orders_total_as_app(
     app_api_client,
     permission_manage_orders,
