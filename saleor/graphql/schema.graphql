@@ -18158,7 +18158,7 @@ input ProductCreateInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 
@@ -18345,7 +18345,7 @@ input ProductInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 
@@ -18632,7 +18632,7 @@ input ProductTypeInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type.
+  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 

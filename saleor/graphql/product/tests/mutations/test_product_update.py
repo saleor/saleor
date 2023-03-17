@@ -134,7 +134,6 @@ def test_update_product(
             "slug": product_slug,
             "description": other_description_json,
             "chargeTaxes": product_charge_taxes,
-            "taxCode": product_tax_rate,
             "attributes": [{"id": attribute_id, "values": [attr_value]}],
             "metadata": [{"key": metadata_key, "value": metadata_value}],
             "privateMetadata": [{"key": metadata_key, "value": metadata_value}],
