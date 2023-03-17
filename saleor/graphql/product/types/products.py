@@ -956,7 +956,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     external_reference = graphene.String(
         description=f"External ID of this product. {ADDED_IN_310}",
@@ -1592,7 +1595,10 @@ class ProductType(ModelObjectType[models.ProductType]):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     variant_attributes = NonNullList(
         Attribute,

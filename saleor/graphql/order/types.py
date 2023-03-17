@@ -619,7 +619,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         + ADDED_IN_39
         + PREVIEW_FEATURE,
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     tax_class_name = graphene.Field(
         graphene.String,
@@ -1014,7 +1017,10 @@ class Order(ModelObjectType[models.Order]):
         + ADDED_IN_39
         + PREVIEW_FEATURE,
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     shipping_tax_class_name = graphene.Field(
         graphene.String,
