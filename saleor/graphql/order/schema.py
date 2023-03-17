@@ -135,18 +135,18 @@ class OrderQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_homepage_events(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_homepage_events()
+        qs = resolve_homepage_events(info)
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
-    def resolve_order(_root, _info: ResolveInfo, *, external_reference=None, id=None):
+    def resolve_order(_root, info: ResolveInfo, *, external_reference=None, id=None):
         validate_one_of_args_is_in_query(
             "id", id, "external_reference", external_reference
         )
         if not id:
             id = ext_ref_to_global_id_or_error(models.Order, external_reference)
         _, id = from_global_id_or_error(id, Order)
-        return resolve_order(id)
+        return resolve_order(info, id)
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -191,8 +191,8 @@ class OrderQueries(graphene.ObjectType):
         return resolve_orders_total(info, period, channel)
 
     @staticmethod
-    def resolve_order_by_token(_root, _info: ResolveInfo, *, token):
-        return resolve_order_by_token(token)
+    def resolve_order_by_token(_root, info: ResolveInfo, *, token):
+        return resolve_order_by_token(info, token)
 
 
 class OrderMutations(graphene.ObjectType):
