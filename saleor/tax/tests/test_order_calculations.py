@@ -459,9 +459,7 @@ def test_update_taxes_for_order_lines(order_with_lines):
         )
         assert line.undiscounted_unit_price == line.unit_price
         assert line.total_price == TaxedMoney(
-            net=quantize_price(
-                line.base_unit_price / Decimal("1.23") * line.quantity, currency
-            ),
+            net=line.base_unit_price / Decimal("1.23") * line.quantity,
             gross=line.base_unit_price * line.quantity,
         )
         assert line.undiscounted_total_price == line.total_price
@@ -526,14 +524,12 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
             gross=line.base_unit_price,
         )
         assert line.total_price == TaxedMoney(
-            net=quantize_price(unit_gross / Decimal("1.23") * line.quantity, currency),
-            gross=quantize_price(unit_gross * line.quantity, currency),
+            net=unit_gross / Decimal("1.23") * line.quantity,
+            gross=unit_gross * line.quantity,
         )
         assert line.undiscounted_total_price == TaxedMoney(
-            net=quantize_price(
-                line.base_unit_price / Decimal("1.23") * line.quantity, currency
-            ),
-            gross=quantize_price(line.base_unit_price * line.quantity, currency),
+            net=line.base_unit_price / Decimal("1.23") * line.quantity,
+            gross=line.base_unit_price * line.quantity,
         )
         assert line.tax_rate == (line.unit_price.tax / line.unit_price.net).quantize(
             Decimal(".001")
@@ -587,9 +583,7 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
         )
         assert line.undiscounted_unit_price == line.unit_price
         assert line.total_price == TaxedMoney(
-            net=quantize_price(
-                line.base_unit_price / Decimal("1.23") * line.quantity, currency
-            ),
+            net=line.base_unit_price / Decimal("1.23") * line.quantity,
             gross=line.base_unit_price * line.quantity,
         )
         assert line.undiscounted_total_price == line.total_price

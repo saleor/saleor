@@ -65,7 +65,9 @@ def update_order_prices_with_flat_rates(
     order.shipping_tax_rate = normalize_tax_rate_for_db(shipping_tax_rate)
 
     # Calculate order total.
-    order.undiscounted_total = undiscounted_subtotal + order.base_shipping_price
+    order.undiscounted_total = quantize_price(
+        undiscounted_subtotal + order.base_shipping_price, order.currency
+    )
     order.total = _calculate_order_total(order, lines)
 
 
@@ -179,10 +181,9 @@ def update_taxes_for_order_lines(
         line.unit_price = quantize_price(unit_price, currency)
         line.undiscounted_unit_price = quantize_price(undiscounted_unit_price, currency)
 
-        line.total_price = quantize_price(unit_price * line.quantity, currency)
-        line.undiscounted_total_price = quantize_price(
-            undiscounted_unit_price * line.quantity, currency
-        )
+        line.total_price = unit_price * line.quantity
+        line.undiscounted_total_price = undiscounted_unit_price * line.quantity
+
         line.tax_rate = normalize_tax_rate_for_db(tax_rate)
 
     return lines, undiscounted_subtotal
