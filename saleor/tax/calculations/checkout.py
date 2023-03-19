@@ -80,6 +80,7 @@ def update_checkout_prices_with_flat_rates(
     subtotal = sum(
         [line_info.line.total_price for line_info in lines], zero_taxed_money(currency)
     )
+    subtotal = quantize_price(subtotal, currency)
     checkout.subtotal = subtotal
     checkout.total = subtotal + shipping_price
 
@@ -117,7 +118,7 @@ def calculate_checkout_line_total(
         prices_entered_with_tax,
     )
     quantity = checkout_line_info.line.quantity
-    return quantize_price(unit_taxed_price * quantity, unit_taxed_price.currency)
+    return unit_taxed_price * quantity
 
 
 def _calculate_checkout_line_unit_price(

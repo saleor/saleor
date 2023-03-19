@@ -79,6 +79,69 @@ def test_calculate_checkout_total(
     )
 
 
+@pytest.mark.parametrize(
+    "lines_price_overrides, expected_net, expected_gross",
+    [
+        (["1"], "1", "1.07"),
+        (["10"], "10", "10.7"),
+        (["100"], "100", "107"),
+        (["2.5"], "2.5", "2.68"),
+        (
+            [
+                "2.5",
+                "2.5",
+                "2.5",
+                "2.5",
+            ],
+            "10",
+            "10.70",
+        ),
+    ],
+)
+def test_calculate_checkout_total_with_rounding(
+    checkout,
+    address,
+    product,
+    shipping_zone,
+    discount_info,
+    voucher,
+    lines_price_overrides,
+    expected_net,
+    expected_gross,
+):
+    # given
+    variant = product.variants.first()
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+
+    for price_override in lines_price_overrides:
+        add_variant_to_checkout(checkout_info, variant, 1, force_new_line=True)
+        checkout.save()
+        line = checkout.lines.last()
+        line.price_override = Decimal(price_override)
+        line.save(update_fields=["price_override"])
+
+    prices_entered_with_tax = False
+
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    variant.product.tax_class.country_rates.update_or_create(
+        country=address.country, defaults={"rate": 7}
+    )
+
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+    )
+
+    # then
+    assert checkout.total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
 def test_calculate_checkout_total_no_tax_rates(
     checkout_with_item,
     address,
@@ -276,6 +339,7 @@ def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, addres
     line_price = calculate_checkout_line_total(
         checkout_info, lines, checkout_line_info, [], rate, prices_entered_with_tax
     )
+    line_price = quantize_price(line_price, checkout.currency)
 
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD") * line.quantity,
@@ -322,6 +386,7 @@ def test_calculate_checkout_line_total_voucher_on_entire_order(
     line_price = calculate_checkout_line_total(
         checkout_info, lines, checkout_line_info, [], rate, prices_entered_with_tax
     )
+    line_price = quantize_price(line_price, checkout.currency)
 
     # then
     currency = checkout.currency
