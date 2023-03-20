@@ -1,8 +1,8 @@
 from ....celeryconf import app
 from ...models import OrderEvent
 
-# Batch size of size 10000 is about 1MB memory usage in task
-BATCH_SIZE = 10000
+# Batch size of size 1000 is about 1MB memory usage in task
+BATCH_SIZE = 1000
 
 
 @app.task
@@ -13,6 +13,8 @@ def order_eventes_rename_transaction_void_events():
         OrderEvent.objects.filter(pk__in=ids).update(
             type="transaction_cancel_requested"
         )
+
+        del ids
         order_eventes_rename_transaction_void_events.delay()
 
 
@@ -24,4 +26,6 @@ def order_eventes_rename_transaction_capture_events():
         OrderEvent.objects.filter(pk__in=ids).update(
             type="transaction_charge_requested"
         )
+
+        del ids
         order_eventes_rename_transaction_capture_events.delay()
