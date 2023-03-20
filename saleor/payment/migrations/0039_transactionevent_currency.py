@@ -1,16 +1,16 @@
 from django.db import migrations
+from django.apps import apps as registry
+from django.db.models.signals import post_migrate
+
+from .tasks.saleor3_12 import set_default_currency_for_transaction_event_task
 
 
 def set_default_currency_for_transaction_event(apps, _schema_editor):
-    TransactionItem = apps.get_model("payment", "TransactionItem")
-    TransactionEvent = apps.get_model("payment", "TransactionEvent")
+    def on_migrations_complete(sender=None, **kwargs):
+        set_default_currency_for_transaction_event_task.delay()
 
-    for currency in (
-        TransactionItem.objects.values_list("currency", flat=True).distinct().order_by()
-    ):
-        TransactionEvent.objects.filter(
-            currency=None, transaction__currency=currency
-        ).update(currency=currency)
+    sender = registry.get_app_config("payment")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 class Migration(migrations.Migration):
