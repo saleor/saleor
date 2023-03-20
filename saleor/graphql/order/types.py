@@ -17,6 +17,8 @@ from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
+from ...graphql.core.federation.entities import federated_entity
+from ...graphql.order.resolvers import resolve_orders
 from ...order import OrderStatus, calculations, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -867,6 +869,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         return resolve_metadata(root.tax_class_private_metadata)
 
 
+@federated_entity("id")
 class Order(ModelObjectType[models.Order]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
@@ -1827,6 +1830,34 @@ class Order(ModelObjectType[models.Order]):
         if root.checkout_token:
             return graphene.Node.to_global_id("Checkout", root.checkout_token)
         return None
+
+    @staticmethod
+    def __resolve_references(roots: List["Order"], info):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = has_one_of_permissions(
+            requestor, [OrderPermissions.MANAGE_ORDERS]
+        )
+
+        roots_ids = []
+        for root in roots:
+            roots_ids.append(root.id)
+
+        if requestor:
+            qs = resolve_orders(
+                info,
+                requestor_has_access_to_all=requestor_has_access_to_all,
+                requesting_user=info.context.user,
+                ids=roots_ids,
+            )
+        else:
+            qs = models.Order.objects.none()
+
+        orders = {}
+        for order in qs:
+            global_id = graphene.Node.to_global_id("Order", order.id)
+            orders[global_id] = order
+
+        return [orders.get(root_id) for root_id in roots_ids]
 
 
 class OrderCountableConnection(CountableConnection):
