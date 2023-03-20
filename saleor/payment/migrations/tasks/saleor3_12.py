@@ -1,6 +1,7 @@
 from decimal import Decimal
 
-from django.db.models import F, Q, Case, OuterRef, Subquery, Exists, Func, When
+from django.contrib.postgres.functions import RandomUUID
+from django.db.models import Case, Exists, F, Func, OuterRef, Q, Subquery, When
 
 from ....celeryconf import app
 from ...models import TransactionEvent, TransactionItem
@@ -248,3 +249,14 @@ def set_default_currency_for_transaction_event_task():
         del ids
 
         set_default_currency_for_transaction_event_task.delay()
+
+
+@app.task
+def update_transaction_token_field():
+    transactions = list(TransactionItem.objects.filter(token__isnull=True)[:BATCH_SIZE])
+    for transaction in transactions:
+        transaction.token = RandomUUID()
+
+    if transactions:
+        TransactionItem.objects.bulk_update(transactions, ["token"])
+        update_transaction_token_field.delay()

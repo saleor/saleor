@@ -28,6 +28,8 @@ from . import (
 
 
 class TransactionItem(ModelWithMetadata):
+    token = models.UUIDField(null=True, unique=True)
+    use_old_id = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, null=True, default="")
