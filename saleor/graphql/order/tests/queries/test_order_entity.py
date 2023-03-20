@@ -4,7 +4,6 @@ from .....order import OrderStatus
 from .....order.models import Order
 from ....tests.utils import get_graphql_content
 
-
 ORDER_FEDERATION_QUERY = """
   query GetOrderInFederation($representations: [_Any]) {
     _entities(representations: $representations) {
@@ -65,7 +64,9 @@ def test_staff_query_order_by_id_without_permission_for_federation(
     assert content["data"]["_entities"] == [None]
 
 
-def test_customer_query_own_orders_for_federation(user_api_client, customer_user, order_list):
+def test_customer_query_own_orders_for_federation(
+    user_api_client, customer_user, order_list
+):
     order_unfulfilled = order_list[0]
     order_unfulfilled.user = customer_user
 
@@ -141,9 +142,7 @@ def test_customer_query_order_without_permission_for_federation(
     assert content["data"]["_entities"] == [None]
 
 
-def test_unauthenticated_query_order_for_federation(
-    api_client, fulfilled_order
-):
+def test_unauthenticated_query_order_for_federation(api_client, fulfilled_order):
     fulfilled_order_id = graphene.Node.to_global_id("Order", fulfilled_order.id)
     variables = {
         "representations": [

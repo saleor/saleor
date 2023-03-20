@@ -10,22 +10,18 @@ from ...order.utils import sum_order_totals
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.context import get_database_connection_name
 from ..core.tracing import traced_resolver
-from ..core.utils import from_global_id_or_error
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-def resolve_orders(info, channel_slug=None, requesting_user=None, requestor_has_access_to_all=True, ids=None):
+def resolve_orders(
+    info, channel_slug=None, requesting_user=None, requestor_has_access_to_all=False
+):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Order.objects.using(database_connection_name).non_draft()
     if channel_slug:
         qs = qs.filter(channel__slug=str(channel_slug))
-    if ids:
-        db_ids = [
-            from_global_id_or_error(node_id, "Order")[1] for node_id in ids
-        ]
-        qs = qs.filter(pk__in=db_ids)
     if requesting_user and not requestor_has_access_to_all:
         qs = qs.filter(user_id=requesting_user.id)
     return qs

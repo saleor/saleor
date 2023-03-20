@@ -15,10 +15,11 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.prices import quantize_price
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
+from ...graphql.core.federation.entities import federated_entity
+from ...graphql.core.federation.resolvers import resolve_federation_references
+from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
-from ...graphql.core.federation.entities import federated_entity
-from ...graphql.order.resolvers import resolve_orders
 from ...order import OrderStatus, calculations, models
 from ...order.models import FulfillmentStatus
 from ...order.utils import (
@@ -1838,26 +1839,16 @@ class Order(ModelObjectType[models.Order]):
             requestor, [OrderPermissions.MANAGE_ORDERS]
         )
 
-        roots_ids = []
-        for root in roots:
-            roots_ids.append(root.id)
-
         if requestor:
             qs = resolve_orders(
                 info,
                 requestor_has_access_to_all=requestor_has_access_to_all,
                 requesting_user=info.context.user,
-                ids=roots_ids,
             )
         else:
             qs = models.Order.objects.none()
 
-        orders = {}
-        for order in qs:
-            global_id = graphene.Node.to_global_id("Order", order.id)
-            orders[global_id] = order
-
-        return [orders.get(root_id) for root_id in roots_ids]
+        return resolve_federation_references(Order, roots, qs)
 
 
 class OrderCountableConnection(CountableConnection):
