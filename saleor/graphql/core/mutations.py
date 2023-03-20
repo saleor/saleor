@@ -607,7 +607,9 @@ class BaseMutation(graphene.Mutation):
         if isinstance(requestor, App):
             return
         accessible_channels = get_user_accessible_channels(info, requestor)
-        if object_channel_id not in [channel.id for channel in accessible_channels]:
+        if str(object_channel_id) not in [
+            str(channel.id) for channel in accessible_channels
+        ]:
             raise PermissionDenied(
                 message="You don't have access to the object's channel."
             )
@@ -828,6 +830,41 @@ class ModelWithExtRefMutation(ModelMutation):
         if object_id:
             model_type = cls.get_type_for_model()
             return cls.get_node_or_error(info, object_id, only_type=model_type, qs=qs)
+
+
+class ModelWithRestrictedChannelAccessMutation(ModelMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        """Perform model mutation.
+
+        Depending on the input data, `mutate` either creates a new instance or
+        updates an existing one. If `id` argument is present, it is assumed
+        that this is an "update" mutation. Otherwise, a new instance is
+        created based on the model associated with this mutation.
+        """
+        instance = cls.get_instance(info, **data)
+        channel_id = cls.get_instance_channel_id(instance, **data)
+        cls.check_channel_permissions(info, channel_id)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+        cls.post_save_action(info, instance, cleaned_input)
+        return cls.success_response(instance)
+
+    @classmethod
+    def get_instance_channel_id(cls, instance, **data):
+        """Retrieve the instance channel id for channel permission accessible check."""
+        raise NotImplementedError()
 
 
 class ModelDeleteMutation(ModelMutation):

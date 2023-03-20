@@ -37,11 +37,12 @@ ORDER_UPDATE_MUTATION = """
 def test_order_update(
     order_updated_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     graphql_address_data,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.user = None
     order.save()
@@ -60,9 +61,7 @@ def test_order_update(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     # then
@@ -87,19 +86,18 @@ def test_order_update(
 def test_order_update_with_draft_order(
     order_updated_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
     graphql_address_data,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.user = None
     order.save()
     email = "not_default@example.com"
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "email": email, "address": graphql_address_data}
-    response = staff_api_client.post_graphql(
-        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
     error = content["data"]["orderUpdate"]["errors"][0]
     assert error["field"] == "id"
@@ -111,10 +109,11 @@ def test_order_update_with_draft_order(
 def test_order_update_without_sku(
     plugin_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     graphql_address_data,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     ProductVariant.objects.update(sku=None)
     order_with_lines.lines.update(product_sku=None)
 
@@ -127,9 +126,7 @@ def test_order_update_without_sku(
     assert not order.billing_address.last_name == graphql_address_data["lastName"]
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "email": email, "address": graphql_address_data}
-    response = staff_api_client.post_graphql(
-        ORDER_UPDATE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
     content = get_graphql_content(response)
     assert not content["data"]["orderUpdate"]["errors"]
     data = content["data"]["orderUpdate"]["order"]
@@ -147,8 +144,12 @@ def test_order_update_without_sku(
 
 
 def test_order_update_anonymous_user_no_user_email(
-    staff_api_client, order_with_lines, permission_manage_orders, graphql_address_data
+    staff_api_client,
+    order_with_lines,
+    permission_group_manage_orders,
+    graphql_address_data,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.user = None
     order.save()
@@ -173,9 +174,7 @@ def test_order_update_anonymous_user_no_user_email(
     last_name = "Test lname"
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "address": graphql_address_data}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     get_graphql_content(response)
     order.refresh_from_db()
     order.shipping_address.refresh_from_db()
@@ -189,9 +188,10 @@ def test_order_update_user_email_existing_user(
     staff_api_client,
     order_with_lines,
     customer_user,
-    permission_manage_orders,
+    permission_group_manage_orders,
     graphql_address_data,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.user = None
     order.save()
@@ -215,9 +215,7 @@ def test_order_update_user_email_existing_user(
     email = customer_user.email
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "address": graphql_address_data, "email": email}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["orderUpdate"]["errors"]
     data = content["data"]["orderUpdate"]["order"]
@@ -261,9 +259,10 @@ ORDER_UPDATE_BY_EXTERNAL_REFERENCE = """
 
 
 def test_order_update_by_external_reference(
-    staff_api_client, permission_manage_orders, order, graphql_address_data
+    staff_api_client, permission_group_manage_orders, order, graphql_address_data
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
 
     ext_ref = "test-ext-ref"
@@ -277,9 +276,7 @@ def test_order_update_by_external_reference(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -296,9 +293,10 @@ def test_order_update_by_external_reference(
 
 
 def test_order_update_by_both_id_and_external_reference(
-    staff_api_client, permission_manage_orders
+    staff_api_client, permission_group_manage_orders
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
 
     variables = {
@@ -308,9 +306,7 @@ def test_order_update_by_both_id_and_external_reference(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -323,9 +319,10 @@ def test_order_update_by_both_id_and_external_reference(
 
 
 def test_order_update_by_external_reference_not_existing(
-    staff_api_client, permission_manage_orders, voucher_free_shipping
+    staff_api_client, permission_group_manage_orders, voucher_free_shipping
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
     ext_ref = "non-existing-ext-ref"
     variables = {
@@ -334,9 +331,7 @@ def test_order_update_by_external_reference_not_existing(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -346,9 +341,10 @@ def test_order_update_by_external_reference_not_existing(
 
 
 def test_order_update_with_non_unique_external_reference(
-    staff_api_client, permission_manage_orders, order, order_list
+    staff_api_client, permission_group_manage_orders, order, order_list
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_UPDATE_BY_EXTERNAL_REFERENCE
 
     ext_ref = "test-ext-ref"
@@ -360,9 +356,7 @@ def test_order_update_with_non_unique_external_reference(
     variables = {"id": order_id, "input": {"externalReference": ext_ref}}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
