@@ -597,6 +597,12 @@ def test_update_attribute_slug_and_name(
             "Provided values are not unique.",
             AttributeErrorCode.UNIQUE,
         ),
+        (
+            "Red color ",
+            "Red color",
+            "Provided values are not unique.",
+            AttributeErrorCode.UNIQUE,
+        ),
     ),
 )
 def test_update_attribute_and_add_attribute_values_errors(
