@@ -47,16 +47,17 @@ query Orders($period: ReportingPeriod, $channel: String) {
 """
 
 
-def test_orders_total(staff_api_client, permission_manage_orders, order_with_lines):
+def test_orders_total(
+    staff_api_client, permission_group_manage_orders, order_with_lines
+):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     variables = {"period": ReportingPeriod.TODAY.name}
 
     # when
     with warnings.catch_warnings(record=True) as warns:
-        response = staff_api_client.post_graphql(
-            QUERY_ORDER_TOTAL, variables, permissions=[permission_manage_orders]
-        )
+        response = staff_api_client.post_graphql(QUERY_ORDER_TOTAL, variables)
         content = get_graphql_content(response)
 
     # then

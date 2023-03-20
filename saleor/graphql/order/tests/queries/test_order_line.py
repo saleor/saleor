@@ -10,7 +10,9 @@ from ....core.enums import ThumbnailFormatEnum
 from ....tests.utils import get_graphql_content
 
 
-def test_order_line_query(staff_api_client, permission_manage_orders, fulfilled_order):
+def test_order_line_query(
+    staff_api_client, permission_group_manage_orders, fulfilled_order
+):
     order = fulfilled_order
     query = """
         query OrdersQuery {
@@ -80,7 +82,7 @@ def test_order_line_query(staff_api_client, permission_manage_orders, fulfilled_
     line.store_value_in_metadata({metadata_key: metadata_value})
     line.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -145,7 +147,7 @@ def test_order_line_query(staff_api_client, permission_manage_orders, fulfilled_
 
 
 def test_denormalized_tax_class_in_orderline_query(
-    staff_api_client, permission_manage_orders, fulfilled_order
+    staff_api_client, permission_group_manage_orders, fulfilled_order
 ):
     # given
     order = fulfilled_order
@@ -209,7 +211,7 @@ def test_denormalized_tax_class_in_orderline_query(
             }
         """
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     line_tax_class = order.lines.first().tax_class
     assert line_tax_class
 
@@ -242,7 +244,7 @@ def test_denormalized_tax_class_in_orderline_query(
 
 def test_order_line_with_allocations(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
 ):
     # given
@@ -267,7 +269,7 @@ def test_order_line_with_allocations(
             }
         }
     """
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(query)
@@ -315,7 +317,7 @@ query OrderQuery($id: ID!) {
 
 def test_query_order_line_stocks(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines_for_cc,
     warehouse,
     warehouse_for_cc,
@@ -325,14 +327,13 @@ def test_query_order_line_stocks(
     order = order_with_lines_for_cc
     variant = order.lines.first().variant
     variables = {"id": graphene.Node.to_global_id("Order", order.id)}
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # create the variant stock for not click and collect warehouse
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     # when
-    response = staff_api_client.post_graphql(
-        QUERY_ORDER_LINE_STOCKS, variables, permissions=(permission_manage_orders,)
-    )
+    response = staff_api_client.post_graphql(QUERY_ORDER_LINE_STOCKS, variables)
 
     # then
     content = get_graphql_content(response)
@@ -365,11 +366,11 @@ ORDERS_QUERY_LINE_THUMBNAIL = """
 
 def test_order_query_no_thumbnail(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
 ):
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL)
@@ -383,7 +384,7 @@ def test_order_query_no_thumbnail(
 
 def test_order_query_product_image_size_and_format_given_proxy_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     product_with_image,
     site_settings,
@@ -397,7 +398,7 @@ def test_order_query_product_image_size_and_format_given_proxy_url_returned(
         "format": format,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -416,7 +417,7 @@ def test_order_query_product_image_size_and_format_given_proxy_url_returned(
 
 def test_order_query_product_image_size_given_proxy_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     product_with_image,
     site_settings,
@@ -428,7 +429,7 @@ def test_order_query_product_image_size_given_proxy_url_returned(
         "size": 120,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -446,7 +447,7 @@ def test_order_query_product_image_size_given_proxy_url_returned(
 
 def test_order_query_product_image_size_given_thumbnail_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     product_with_image,
     site_settings,
@@ -463,7 +464,7 @@ def test_order_query_product_image_size_given_thumbnail_url_returned(
         "size": 120,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -480,7 +481,7 @@ def test_order_query_product_image_size_given_thumbnail_url_returned(
 
 def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     variant_with_image,
     site_settings,
@@ -494,7 +495,7 @@ def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
         "format": format,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -513,7 +514,7 @@ def test_order_query_variant_image_size_and_format_given_proxy_url_returned(
 
 def test_order_query_variant_image_size_given_proxy_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     variant_with_image,
     site_settings,
@@ -525,7 +526,7 @@ def test_order_query_variant_image_size_given_proxy_url_returned(
         "size": 120,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -543,7 +544,7 @@ def test_order_query_variant_image_size_given_proxy_url_returned(
 
 def test_order_query_variant_image_size_given_thumbnail_url_returned(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_line,
     variant_with_image,
     site_settings,
@@ -560,7 +561,7 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
         "size": 120,
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY_LINE_THUMBNAIL, variables)
@@ -595,11 +596,11 @@ QUERY_LINE_TAX_CLASS_QUERY = """
 
 def test_order_line_tax_class_query_by_staff(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_all_perms_all_channels,
     order_line,
 ):
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(QUERY_LINE_TAX_CLASS_QUERY)

@@ -35,9 +35,10 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
 
 
 def test_query_payments_filter_by_checkout(
-    payment_dummy, checkouts_list, permission_manage_orders, staff_api_client
+    payment_dummy, checkouts_list, permission_group_manage_orders, staff_api_client
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment1 = payment_dummy
     payment1.checkout = checkouts_list[0]
     payment1.save()
@@ -62,9 +63,7 @@ def test_query_payments_filter_by_checkout(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -77,9 +76,10 @@ def test_query_payments_filter_by_checkout(
 
 
 def test_query_payments_filter_by_one_id(
-    payments_dummy, permission_manage_orders, staff_api_client
+    payments_dummy, permission_group_manage_orders, staff_api_client
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     search_payment = payments_dummy[0]
 
     variables = {
@@ -89,9 +89,7 @@ def test_query_payments_filter_by_one_id(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -103,9 +101,10 @@ def test_query_payments_filter_by_one_id(
 
 
 def test_query_payments_filter_by_multiple_ids(
-    payments_dummy, permission_manage_orders, staff_api_client
+    payments_dummy, permission_group_manage_orders, staff_api_client
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     search_payments = payments_dummy[:2]
     search_payments_ids = [
         graphene.Node.to_global_id("Payment", payment.pk) for payment in search_payments
@@ -114,9 +113,7 @@ def test_query_payments_filter_by_multiple_ids(
     variables = {"filter": {"ids": search_payments_ids}}
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -131,15 +128,14 @@ def test_query_payments_filter_by_multiple_ids(
 
 
 def test_query_payments_filter_by_empty_id_list(
-    payments_dummy, permission_manage_orders, staff_api_client
+    payments_dummy, permission_group_manage_orders, staff_api_client
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"filter": {"ids": []}}
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -154,17 +150,16 @@ def test_query_payments_filter_by_empty_id_list(
 
 
 def test_query_payments_filter_by_not_existing_id(
-    payments_dummy, permission_manage_orders, staff_api_client
+    payments_dummy, permission_group_manage_orders, staff_api_client
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     search_pk = max([payment.pk for payment in payments_dummy]) + 1
     search_id = graphene.Node.to_global_id("Payment", search_pk)
     variables = {"filter": {"ids": [search_id]}}
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
