@@ -27,14 +27,15 @@ def resolve_orders(info, channel_slug):
     if isinstance(requestor, App):
         return qs
 
-    accessible_channels = get_user_accessible_channels(requestor)
+    accessible_channels = get_user_accessible_channels(info, requestor)
     if channel_slug and channel_slug not in [
         channel.slug for channel in accessible_channels
     ]:
         raise PermissionDenied(
             message=f"You do not have access to the {channel_slug} channel."
         )
-    return qs.filter(channel_id__in=accessible_channels.values("id"))
+    channel_ids = [channel.id for channel in accessible_channels]
+    return qs.filter(channel_id__in=channel_ids)
 
 
 def resolve_draft_orders(info):
@@ -42,8 +43,10 @@ def resolve_draft_orders(info):
     requestor = get_user_or_app_from_context(info.context)
     if isinstance(requestor, App):
         return qs
-    accessible_channels = get_user_accessible_channels(requestor)
-    return qs.filter(channel_id__in=accessible_channels.values("id"))
+
+    accessible_channels = get_user_accessible_channels(info, requestor)
+    channel_ids = [channel.id for channel in accessible_channels]
+    return qs.filter(channel_id__in=channel_ids)
 
 
 @traced_resolver
@@ -56,7 +59,7 @@ def resolve_orders_total(info, period, channel_slug):
 
     requestor = get_user_or_app_from_context(info.context)
     if isinstance(requestor, User):
-        accessible_channels = get_user_accessible_channels(requestor)
+        accessible_channels = get_user_accessible_channels(info, requestor)
         if channel_slug not in [channel.slug for channel in accessible_channels]:
             raise PermissionDenied(
                 message=f"You do not have access to the {channel_slug} channel."
@@ -93,10 +96,9 @@ def resolve_homepage_events(info):
     requestor = get_user_or_app_from_context(info.context)
     if isinstance(requestor, User):
         # get order events from orders that user has access to
-        accessible_channels = get_user_accessible_channels(requestor)
-        accessible_orders = models.Order.objects.filter(
-            channel_id__in=accessible_channels.values("id")
-        )
+        accessible_channels = get_user_accessible_channels(info, requestor)
+        channel_ids = [channel.id for channel in accessible_channels]
+        accessible_orders = models.Order.objects.filter(channel_id__in=channel_ids)
         lookup &= Q(order_id__in=accessible_orders.values("id"))
     return models.OrderEvent.objects.filter(lookup)
 

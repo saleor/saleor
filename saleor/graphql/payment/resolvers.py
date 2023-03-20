@@ -14,10 +14,9 @@ def resolve_payments(info):
     payments = models.Payment.objects.all()
     if isinstance(requestor, app_models.App):
         return payments
-    accessible_channels = get_user_accessible_channels(requestor)
-    orders = order_models.Order.objects.filter(
-        channel_id__in=accessible_channels.values("id")
-    )
+    accessible_channels = get_user_accessible_channels(info, requestor)
+    channel_ids = [channel.id for channel in accessible_channels]
+    orders = order_models.Order.objects.filter(channel_id__in=channel_ids)
     return payments.filter(order_id__in=orders.values("id"))
 
 
