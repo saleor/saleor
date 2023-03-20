@@ -924,6 +924,7 @@ def get_already_existing_event(event: TransactionEvent) -> Optional[TransactionE
     if event.type in [
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
         TransactionEventType.CHARGE_ACTION_REQUIRED,
+        TransactionEventType.INFO,
     ]:
         # We don't need to take into account the events that are only a record of
         # additional action required from the payment app.
