@@ -114,11 +114,11 @@ query ($sort_by: PermissionGroupSortingInput!) {
     (
         (
             {"field": "NAME", "direction": "ASC"},
-            ["Add", "Manage user groups.", "Remove"],
+            ["Add", "Manage user group.", "Remove"],
         ),
         (
             {"field": "NAME", "direction": "DESC"},
-            ["Remove", "Manage user groups.", "Add"],
+            ["Remove", "Manage user group.", "Add"],
         ),
     ),
 )

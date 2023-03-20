@@ -3314,6 +3314,16 @@ def order_list(customer_user, channel_USD):
 
 
 @pytest.fixture
+def draft_order_list(order_list):
+    for order in order_list:
+        order.status = OrderStatus.DRAFT
+        order.origin = OrderOrigin.DRAFT
+
+    Order.objects.bulk_update(order_list, ["status", "origin"])
+    return order_list
+
+
+@pytest.fixture
 def product_with_image(product, image, media_root):
     ProductMedia.objects.create(product=product, image=image)
     return product
@@ -5010,9 +5020,31 @@ def permission_manage_payments():
 
 
 @pytest.fixture
+def permission_group_manage_orders(permission_manage_orders, staff_users):
+    group = Group.objects.create(
+        name="Manage user group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_orders)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_shipping(permission_manage_shipping, staff_users):
+    group = Group.objects.create(
+        name="Manage shipping group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_shipping)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(
-        name="Manage user groups.", restricted_access_to_channels=False
+        name="Manage user group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_users)
 
@@ -5031,6 +5063,16 @@ def permission_group_all_perms_all_channels(
     permissions = get_permissions()
     group.permissions.add(*permissions)
 
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_no_perms_all_channels(staff_users, channel_USD, channel_PLN):
+    group = Group.objects.create(
+        name="All permissions for all channels.",
+        restricted_access_to_channels=False,
+    )
     group.user_set.add(staff_users[1])
     return group
 
