@@ -166,7 +166,9 @@ def create_event_for_canceled():
 
 @app.task
 def transaction_item_migrate_type_to_name():
-    qs = TransactionItem.objects.filter(Q(name__isnull=True) | Q(name=""))
+    qs = TransactionItem.objects.filter(
+        (Q(name__isnull=True) & Q(type__isnull=False)) | (Q(name="") & ~Q(type=""))
+    )
     ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
 
     if ids:
