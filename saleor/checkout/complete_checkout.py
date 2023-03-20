@@ -703,9 +703,9 @@ def _prepare_checkout_with_transactions(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
-    tracking_code,
-    redirect_url,
+    discounts: Iterable["DiscountInfo"],
+    tracking_code: Optional[str],
+    redirect_url: Optional[str],
 ):
     """Prepare checkout object with transactions to complete the checkout process."""
     clean_billing_address(checkout_info, CheckoutErrorCode)
@@ -713,7 +713,7 @@ def _prepare_checkout_with_transactions(
         raise ValidationError(
             {
                 "id": ValidationError(
-                    "The authorized amount doesn't cover the checkout's total amount",
+                    "The authorized amount doesn't cover the checkout's total amount.",
                     code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
                 )
             }
@@ -733,10 +733,10 @@ def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
-    tracking_code,
-    redirect_url,
-    payment,
+    discounts: Iterable["DiscountInfo"],
+    tracking_code: Optional[str],
+    redirect_url: Optional[str],
+    payment: Optional[Payment],
 ):
     """Prepare checkout object with payment to complete the checkout process."""
     clean_checkout_payment(
@@ -1333,14 +1333,14 @@ def complete_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    payment_data,
-    store_source,
-    discounts,
-    user,
-    app,
-    site_settings=None,
-    tracking_code=None,
-    redirect_url=None,
+    payment_data: Dict[Any, Any],
+    store_source: bool,
+    discounts: Iterable["DiscountInfo"],
+    user: Optional["User"],
+    app: Optional["App"],
+    site_settings: Optional["SiteSettings"] = None,
+    tracking_code: Optional[str] = None,
+    redirect_url: Optional[str] = None,
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:

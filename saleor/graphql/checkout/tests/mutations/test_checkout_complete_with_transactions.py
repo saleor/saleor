@@ -116,6 +116,8 @@ def test_checkout_without_any_transaction(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert data["errors"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["code"] == CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.name
 
 
 def test_checkout_with_total_0(

@@ -1721,10 +1721,6 @@ def test_complete_checkout_invalid_shipping_method(
     )
 
 
-# @pytest.mark.parametrize(
-#     "mark_as_paid_strategy",
-#     [MarkAsPaidStrategy.TRANSACTION_FLOW, MarkAsPaidStrategy.PAYMENT_FLOW],
-# )
 @mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
 def test_checkout_complete_pick_transaction_flow(
     mocked_flow,
@@ -1760,7 +1756,18 @@ def test_checkout_complete_pick_transaction_flow(
     )
 
     # then
-    assert mocked_flow.called
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
 
 
 @mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
@@ -1802,7 +1809,18 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
     )
 
     # then
-    assert mocked_flow.called
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
 
 
 @mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_payment")
@@ -1842,4 +1860,18 @@ def test_checkout_complete_pick_payment_flow(
     )
 
     # then
-    assert mocked_flow.called
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        site_settings=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
