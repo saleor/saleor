@@ -194,8 +194,11 @@ def _create_transaction_data(
     request_event: TransactionEvent,
 ):
     app_owner = None
-    if transaction.app_identifier:
+    if transaction.app_id:
+        app_owner = transaction.app
+    elif transaction.app_identifier:
         app_owner = App.objects.filter(identifier=transaction.app_identifier).first()
+
     return TransactionActionData(
         transaction=transaction,
         action_type=action_type,

@@ -1087,7 +1087,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
             2,
         ),
         (
-            {"authorized_value": Decimal("10"), "charged_value": Decimal("90")},
+            {"authorized_value": Decimal("10"), "charged_value": Decimal("80")},
             [OrderAuthorizeStatusEnum.PARTIAL.name],
             1,
         ),

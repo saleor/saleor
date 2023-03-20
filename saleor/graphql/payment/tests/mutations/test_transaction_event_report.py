@@ -349,7 +349,9 @@ def test_transaction_event_report_event_already_exists(
         psp_reference=psp_reference,
     )
 
-    already_existing_event = transaction.events.get()
+    already_existing_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
     transaction_id = to_global_id_or_none(transaction)
     variables = {
         "id": transaction_id,
@@ -402,7 +404,12 @@ def test_transaction_event_report_event_already_exists(
     transaction_event_data = transaction_report_data["transactionEvent"]
     assert transaction_event_data["id"] == to_global_id_or_none(already_existing_event)
 
-    assert TransactionEvent.objects.count() == 1
+    assert (
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.CHARGE_SUCCESS
+        ).count()
+        == 1
+    )
 
 
 def test_transaction_event_report_incorrect_amount_for_already_existing(

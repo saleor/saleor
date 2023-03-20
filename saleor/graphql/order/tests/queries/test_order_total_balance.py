@@ -124,7 +124,7 @@ def test_total_balance_only_refunded(
 ):
     # given
     order = fulfilled_order
-    transactions = TransactionItem.objects.bulk_create(
+    TransactionItem.objects.bulk_create(
         [
             TransactionItem(
                 order_id=order.id,
@@ -153,10 +153,7 @@ def test_total_balance_only_refunded(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_refunded = sum([t.refunded_value for t in transactions], Decimal(0))
-    total_balance = quantize_price(
-        -total_refunded - order.total.gross.amount, order.currency
-    )
+    total_balance = quantize_price(-order.total.gross.amount, order.currency)
     assert (
         quantize_price(Decimal(order_data["totalBalance"]["amount"]), order.currency)
         == total_balance
@@ -171,7 +168,7 @@ def test_total_balance_refunded_and_pending_refund(
 ):
     # given
     order = fulfilled_order
-    transactions = TransactionItem.objects.bulk_create(
+    TransactionItem.objects.bulk_create(
         [
             TransactionItem(
                 order_id=order.id,
@@ -200,11 +197,7 @@ def test_total_balance_refunded_and_pending_refund(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_refunded = sum([t.refunded_value for t in transactions], Decimal(0))
-    total_refunded += sum([t.refund_pending_value for t in transactions], Decimal(0))
-    total_balance = quantize_price(
-        -total_refunded - order.total.gross.amount, order.currency
-    )
+    total_balance = quantize_price(-order.total.gross.amount, order.currency)
     assert (
         quantize_price(Decimal(order_data["totalBalance"]["amount"]), order.currency)
         == total_balance
@@ -248,10 +241,9 @@ def test_total_balance_refunded_and_charged(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_refunded = sum([t.refunded_value for t in transactions], Decimal(0))
     total_charged = sum([t.charged_value for t in transactions], Decimal(0))
     total_balance = quantize_price(
-        total_charged - total_refunded - order.total.gross.amount, order.currency
+        total_charged - order.total.gross.amount, order.currency
     )
     assert (
         quantize_price(Decimal(order_data["totalBalance"]["amount"]), order.currency)
@@ -345,13 +337,10 @@ def test_total_balance_with_granted_refund_and_transactions(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    total_refunded = sum([t.refunded_value for t in transactions], Decimal(0))
-    total_refunded += sum([t.refund_pending_value for t in transactions], Decimal(0))
     total_charged = sum([t.charged_value for t in transactions], Decimal(0))
     total_charged += sum([t.charge_pending_value for t in transactions], Decimal(0))
     total_balance = quantize_price(
-        (total_charged - total_refunded)
-        - (order.total.gross.amount - granted_refund.amount_value),
+        total_charged - (order.total.gross.amount - granted_refund.amount_value),
         order.currency,
     )
     assert (

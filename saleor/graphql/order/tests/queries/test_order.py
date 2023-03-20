@@ -13,7 +13,9 @@ from .....order.models import Order
 from .....order.utils import (
     get_order_country,
     update_order_authorize_data,
+    update_order_authorize_status,
     update_order_charge_data,
+    update_order_charge_status,
 )
 from .....payment import ChargeStatus, TransactionAction
 from .....payment.models import TransactionEvent, TransactionItem
@@ -569,6 +571,7 @@ def test_order_query_authorize_status(
     assert fulfilled_order.total.gross.amount == Decimal("98.40")
     fulfilled_order.total_authorized_amount = total_authorized
     fulfilled_order.total_charged_amount = total_charged
+    update_order_authorize_status(fulfilled_order, Decimal(0))
     fulfilled_order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -607,6 +610,7 @@ def test_order_query_charge_status(
     assert fulfilled_order.total.gross.amount == Decimal("98.40")
     fulfilled_order.total_authorized_amount = total_authorized
     fulfilled_order.total_charged_amount = total_charged
+    update_order_charge_status(fulfilled_order, Decimal(0))
     fulfilled_order.save()
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
