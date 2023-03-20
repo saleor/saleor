@@ -17,6 +17,7 @@ from ...permission.enums import AccountPermissions
 from ...permission.utils import has_one_of_permissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo, SaleorContext
+from .dataloaders import AccessibleChannelsByUserIdLoader
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -510,3 +511,11 @@ def check_is_owner_or_has_one_of_perms(
     """
     if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
+
+
+def get_user_accessible_channels(info, user: Optional[User]):
+    return (
+        (AccessibleChannelsByUserIdLoader(info.context).load(user.id).get())
+        if user is not None
+        else []
+    )

@@ -1,5 +1,6 @@
 from ....account.models import Group, User
 from ....app.models import App
+from ....channel.models import Channel
 from ....permission.enums import (
     AccountPermissions,
     OrderPermissions,
@@ -17,6 +18,7 @@ from ..utils import (
     get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
+    get_user_accessible_channels,
     get_user_permissions,
     get_users_and_look_for_permissions_in_groups_with_manage_staff,
     is_owner_or_has_one_of_perms,
@@ -900,3 +902,51 @@ def test_requestor_has_access_no_access_by_staff(
 
     # then
     assert result is False
+
+
+def test_get_user_accessible_channels_all_channels(
+    staff_user, permission_group_all_perms_all_channels, info, channel_PLN, channel_USD
+):
+    # given
+    permission_group_all_perms_all_channels.user_set.add(staff_user)
+
+    # when
+    channels = get_user_accessible_channels(info, staff_user)
+
+    # then
+    assert len(channels) == Channel.objects.count()
+
+
+def test_get_user_accessible_channels_some_channels(
+    staff_user,
+    permission_group_all_perms_channel_USD_only,
+    info,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_user)
+
+    # when
+    channels = get_user_accessible_channels(info, staff_user)
+
+    # then
+    assert len(channels) == 1
+    assert channels[0] == channel_USD
+
+
+def test_get_user_accessible_channels_restricted_access_no_channels(
+    staff_user,
+    permission_group_all_perms_without_any_channel,
+    info,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    permission_group_all_perms_without_any_channel.user_set.add(staff_user)
+
+    # when
+    channels = get_user_accessible_channels(info, staff_user)
+
+    # then
+    assert len(channels) == 0

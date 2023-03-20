@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("channel", "0008_update_null_order_settings"),
-        ("account", "0076_fill_empty_passwords"),
+        ("account", "0077_merge_20230310_1107"),
     ]
 
     operations = [

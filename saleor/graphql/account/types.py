@@ -5,6 +5,7 @@ from typing import List, Optional, cast
 import graphene
 from django.contrib.auth import get_user_model
 from graphene import relay
+from promise import Promise
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -513,18 +514,34 @@ class User(ModelObjectType[models.User]):
             )
         requester = user_or_app
 
-        def _resolve_orders(orders):
+        def _resolve_orders(data):
+            orders = data[0]
+            accessible_channels = data[1] if len(data) == 2 else None
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
                 orders = [
                     order for order in orders if order.status != OrderStatus.DRAFT
                 ]
 
+            # Return only orders from channels that the user has access to.
+            # The app has access to all channels.
+            if root != user_or_app and accessible_channels is not None:
+                accessible_channels = [channel.id for channel in accessible_channels]
+                orders = [
+                    order for order in orders if order.channel_id in accessible_channels
+                ]
+
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
             )
 
-        return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
+        to_fetch = [OrdersByUserLoader(info.context).load(root.id)]
+        if isinstance(requester, models.User):
+            to_fetch.append(
+                AccessibleChannelsByUserIdLoader(info.context).load(requester.id)
+            )
+
+        return Promise.all(to_fetch).then(_resolve_orders)
 
     @staticmethod
     def resolve_avatar(
