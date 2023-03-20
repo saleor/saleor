@@ -1346,6 +1346,11 @@ def complete_checkout(
 ) -> Tuple[Optional[Order], bool, dict]:
     transactions = checkout_info.checkout.payment_transactions.all()
     fetch_checkout_data(checkout_info, manager, lines, discounts=discounts)
+
+    # When checkout is zero, we don't need any transaction to cover the checkout total.
+    # We check if checkout is zero, and we also check what flow for marking an order as
+    # paid is used. In case when we have TRANSACTION_FLOW we use transaction flow to
+    # finalize the checkout.
     checkout_is_zero = checkout_info.checkout.total.gross.amount == Decimal(0)
     if transactions or (
         checkout_is_zero
