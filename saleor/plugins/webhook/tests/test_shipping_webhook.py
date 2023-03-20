@@ -364,7 +364,7 @@ def test_order_shipping_methods(
     mocked_webhook,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     settings,
 ):
     # given
@@ -374,7 +374,7 @@ def test_order_shipping_methods(
     mocked_webhook.return_value = [
         ExcludedShippingMethod(excluded_shipping_method_id, webhook_reason)
     ]
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
     response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
     content = get_graphql_content(response)
@@ -398,7 +398,7 @@ def test_order_available_shipping_methods(
     mocked_webhook,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     settings,
     webhook_response,
     expected_count,
@@ -410,7 +410,7 @@ def test_order_available_shipping_methods(
         return webhook_response(order_with_lines.shipping_method)
 
     mocked_webhook.side_effect = respond
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     # when
     response = staff_api_client.post_graphql(ORDER_QUERY_SHIPPING_METHOD)
     content = get_graphql_content(response)
