@@ -32,6 +32,7 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
+from ...app.models import App
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
@@ -41,13 +42,17 @@ from ...permission.utils import (
     message_one_of_permissions_required,
     one_of_permissions_or_auth_filter_required,
 )
-from ..core import ResolveInfo
-from ..core.utils import ext_ref_to_global_id_or_error
+from ..account.utils import get_user_accessible_channels
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
 from ..plugins.dataloaders import get_plugin_manager_promise
-from ..utils import get_nodes, resolve_global_ids_to_primary_keys
+from ..utils import (
+    get_nodes,
+    get_user_or_app_from_context,
+    resolve_global_ids_to_primary_keys,
+)
+from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
 from .descriptions import DEPRECATED_IN_3X_FIELD
 from .types import (
@@ -58,7 +63,11 @@ from .types import (
     Upload,
     UploadError,
 )
-from .utils import from_global_id_or_error, snake_to_camel_case
+from .utils import (
+    ext_ref_to_global_id_or_error,
+    from_global_id_or_error,
+    snake_to_camel_case,
+)
 from .utils.error_codes import get_error_code_from_error
 
 
@@ -587,6 +596,20 @@ class BaseMutation(graphene.Mutation):
         if not meta_permission:
             raise NotImplementedError(
                 f"Couldn't resolve permission to item type: {type_name}. "
+            )
+
+    @classmethod
+    def check_channel_permissions(
+        cls, info: ResolveInfo, object_channel_id: Union[UUID, int]
+    ):
+        requestor = get_user_or_app_from_context(info.context)
+        # App has access to all channels
+        if isinstance(requestor, App):
+            return
+        accessible_channels = get_user_accessible_channels(info, requestor)
+        if object_channel_id not in [channel.id for channel in accessible_channels]:
+            raise PermissionDenied(
+                message="You don't have access to the object's channel."
             )
 
 
