@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
                 "ordering": ("-number",),
                 "permissions": (
                     ("manage_orders", "Manage orders."),
-                    ("manage_orders_import", "Manage orders import."),
+                    ("manage_orders_import", "Manage orders import"),
                 ),
             },
         ),
