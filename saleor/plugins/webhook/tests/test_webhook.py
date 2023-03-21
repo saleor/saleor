@@ -872,10 +872,15 @@ def test_checkout_fully_paid(
     settings,
     checkout_with_items,
 ):
+    # given
     mocked_get_webhooks_for_event.return_value = [any_webhook]
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_plugins_manager()
+
+    # when
     manager.checkout_fully_paid(checkout_with_items)
+
+    # then
     expected_data = generate_checkout_payload(checkout_with_items)
 
     mocked_webhook_trigger.assert_called_once_with(

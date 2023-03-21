@@ -1593,10 +1593,15 @@ def test_checkout_update(checkout, subscription_checkout_updated_webhook):
 
 
 def test_checkout_fully_paid(checkout, subscription_checkout_fully_paid_webhook):
+    # given
     webhooks = [subscription_checkout_fully_paid_webhook]
     event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
     deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+
+    # then
     expected_payload = json.dumps({"checkout": {"id": checkout_id}})
 
     assert deliveries[0].payload.payload == expected_payload
