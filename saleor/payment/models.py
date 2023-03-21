@@ -167,11 +167,7 @@ class TransactionEvent(models.Model):
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )
     external_url = models.URLField(blank=True, null=True)
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        null=True,
-        blank=True,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     type = models.CharField(
         max_length=128,
         choices=TransactionEventType.CHOICES,
