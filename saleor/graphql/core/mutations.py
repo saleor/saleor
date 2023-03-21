@@ -897,6 +897,35 @@ class ModelDeleteMutation(ModelMutation):
         return cls.success_response(instance)
 
 
+class ModelDeleteWithRestrictedChannelAccessMutation(ModelDeleteMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, external_reference=None, id=None
+    ):
+        """Perform a mutation that deletes a model instance."""
+        instance = cls.get_instance(info, external_reference=external_reference, id=id)
+        channel_id = cls.get_instance_channel_id(instance)
+        cls.check_channel_permissions(info, channel_id)
+
+        cls.clean_instance(info, instance)
+        db_id = instance.id
+        instance.delete()
+
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        instance.id = db_id
+        cls.post_save_action(info, instance, None)
+        return cls.success_response(instance)
+
+    @classmethod
+    def get_instance_channel_id(cls, instance):
+        """Retrieve the instance channel id for channel permission accessible check."""
+        raise NotImplementedError()
+
+
 class BaseBulkMutation(BaseMutation):
     count = graphene.Int(
         required=True, description="Returns how many objects were affected."
