@@ -258,7 +258,7 @@ class ProductQueries(graphene.ObjectType):
             description="ID of the product variant.",
         ),
         sku=graphene.Argument(
-            graphene.String, description="Sku of the product variant."
+            graphene.String, description="SKU of the product variant."
         ),
         external_reference=graphene.Argument(
             graphene.String, description=f"External ID of the product. {ADDED_IN_310}"

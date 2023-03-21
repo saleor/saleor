@@ -467,7 +467,7 @@ type Query {
     """ID of the product variant."""
     id: ID
 
-    """Sku of the product variant."""
+    """SKU of the product variant."""
     sku: String
 
     """
