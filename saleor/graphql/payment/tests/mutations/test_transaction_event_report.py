@@ -993,3 +993,76 @@ def test_transaction_event_updates_checkout_full_paid_with_pending_charge_amount
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
     mocked_fully_paid.assert_called_once_with(checkout)
+
+
+def test_transaction_event_report_with_info_event(
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+):
+    # given
+    transaction = transaction_item_generator(
+        app=app_api_client.app, authorized_value=Decimal("10")
+    )
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = to_global_id_or_none(transaction)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.INFO.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+     mutation TransactionEventReport(
+         $id: ID!
+         $type: TransactionEventTypeEnum!
+         $amount: PositiveDecimal!
+         $pspReference: String!
+         $time: DateTime
+         $externalUrl: String
+         $message: String
+     ) {
+         transactionEventReport(
+             id: $id
+             type: $type
+             amount: $amount
+             pspReference: $pspReference
+             time: $time
+             externalUrl: $externalUrl
+             message: $message
+         ) {
+             ...TransactionEventData
+         }
+     }
+     """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    response = get_graphql_content(response)
+    transaction_report_data = response["data"]["transactionEventReport"]
+    assert transaction_report_data["alreadyProcessed"] is False
+
+    event = TransactionEvent.objects.filter(type=TransactionEventType.INFO).first()
+    assert event
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.INFO.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.created_at == event_time
+    assert event.external_url == external_url
+    assert event.transaction == transaction
+    assert event.app_identifier == app_api_client.app.identifier
+    assert event.app == app_api_client.app
