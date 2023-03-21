@@ -21,4 +21,12 @@ class Migration(migrations.Migration):
                 max_length=255,
             ),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE channel_channel
+            ALTER COLUMN order_mark_as_paid_strategy
+            SET DEFAULT 'payment_flow';
+            """,
+            migrations.RunSQL.noop,
+        ),
     ]
