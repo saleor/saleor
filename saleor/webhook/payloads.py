@@ -1270,9 +1270,7 @@ def generate_checkout_payload_for_tax_calculation(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     total_amount = quantize_price(
-        base_calculations.base_checkout_total(
-            checkout_info, discount_infos, lines
-        ).amount,
+        base_calculations.base_checkout_total(checkout_info, lines).amount,
         checkout.currency,
     )
 

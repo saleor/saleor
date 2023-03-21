@@ -807,7 +807,7 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
 
     # when
-    total = base_checkout_total(checkout_info, [], checkout_lines)
+    total = base_checkout_total(checkout_info, checkout_lines)
 
     # then
     variant = checkout_with_item.lines.first().variant
@@ -850,7 +850,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
 
     # when
-    total = base_checkout_total(checkout_info, [], checkout_lines)
+    total = base_checkout_total(checkout_info, checkout_lines)
 
     # then
     assert total == shipping_price
@@ -875,7 +875,7 @@ def test_base_checkout_total_high_discount_on_shipping(
     checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
 
     # when
-    total = base_checkout_total(checkout_info, [], checkout_lines)
+    total = base_checkout_total(checkout_info, checkout_lines)
 
     # then
     variant = checkout_with_item.lines.first().variant

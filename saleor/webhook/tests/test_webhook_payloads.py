@@ -1716,9 +1716,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),
@@ -1819,9 +1817,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
         "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),
@@ -1902,9 +1898,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
         "user_public_metadata": {},
         "total_amount": str(
             quantize_price(
-                base_calculations.base_checkout_total(
-                    checkout_info, discounts_info, lines
-                ).amount,
+                base_calculations.base_checkout_total(checkout_info, lines).amount,
                 currency,
             )
         ),

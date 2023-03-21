@@ -205,7 +205,6 @@ def calculate_base_price_for_shipping_method(
 
 def base_checkout_total(
     checkout_info: "CheckoutInfo",
-    discounts: Iterable[DiscountInfo],
     lines: Iterable["CheckoutLineInfo"],
 ) -> Money:
     """Return the total cost of the checkout.
