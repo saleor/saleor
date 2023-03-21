@@ -984,6 +984,16 @@ class WebhookPlugin(BasePlugin):
                 checkout_data, event_type, webhooks, checkout, self.requestor
             )
 
+    def checkout_fully_paid(self, checkout: "Checkout", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
+        if webhooks := get_webhooks_for_event(event_type):
+            checkout_data = generate_checkout_payload(checkout, self.requestor)
+            trigger_webhooks_async(
+                checkout_data, event_type, webhooks, checkout, self.requestor
+            )
+
     def checkout_metadata_updated(
         self, checkout: "Checkout", previous_value: Any
     ) -> Any:

@@ -894,6 +894,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout.channel.slug,
         )
 
+    def checkout_fully_paid(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_fully_paid",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
+
     def checkout_metadata_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(

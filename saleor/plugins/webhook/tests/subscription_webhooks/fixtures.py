@@ -629,6 +629,13 @@ def subscription_checkout_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_checkout_fully_paid_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CHECKOUT_FULLY_PAID, WebhookEventAsyncType.CHECKOUT_FULLY_PAID
+    )
+
+
+@pytest.fixture
 def subscription_checkout_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CHECKOUT_METADATA_UPDATED,
