@@ -1283,6 +1283,18 @@ CHECKOUT_UPDATED = """
     }
 """
 
+CHECKOUT_FULLY_PAID = """
+    subscription{
+      event{
+        ...on CheckoutFullyPaid{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
 CHECKOUT_METADATA_UPDATED = """
     subscription{
       event{

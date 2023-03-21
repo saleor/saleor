@@ -5,6 +5,7 @@ from unittest import mock
 
 import pytest
 from django.http import HttpResponseNotFound, JsonResponse
+from mock import patch
 from prices import Money, TaxedMoney
 
 from ...channel import TransactionFlowStrategy
@@ -1282,3 +1283,21 @@ def test_manager_transaction_process_session(
 
     # then
     assert isinstance(response, PaymentGatewayData)
+
+
+@patch("saleor.plugins.tests.sample_plugins.PluginSample.checkout_fully_paid")
+def test_checkout_fully_paid(mocked_sample_method, checkout):
+    # given
+    plugins = [
+        "saleor.plugins.tests.sample_plugins.PluginSample",
+        "saleor.plugins.tests.sample_plugins.PluginInactive",
+    ]
+
+    manager = PluginsManager(plugins=plugins)
+
+    # when
+    manager.checkout_fully_paid(checkout)
+
+    # then
+
+    mocked_sample_method.assert_called_once_with(checkout, previous_value=None)

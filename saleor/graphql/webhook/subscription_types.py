@@ -1227,6 +1227,18 @@ class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
         )
 
 
+class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when checkout is fully paid with transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
 class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -2211,6 +2223,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: CollectionMetadataUpdated,
     WebhookEventAsyncType.CHECKOUT_CREATED: CheckoutCreated,
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
+    WebhookEventAsyncType.CHECKOUT_FULLY_PAID: CheckoutFullyPaid,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,
     WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,

@@ -333,6 +333,9 @@ class PluginSample(BasePlugin):
     ):
         return PaymentGatewayData(app_identifier="321", data=None, error="Some error")
 
+    def checkout_fully_paid(self, checkout):
+        return None
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"

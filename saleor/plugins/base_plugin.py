@@ -392,6 +392,12 @@ class BasePlugin:
     # updated.
     checkout_updated: Callable[["Checkout", Any], Any]
 
+    # Trigger when checkout is fully paid with transactions.
+    #
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # updated.
+    checkout_fully_paid: Callable[["Checkout", Any], Any]
+
     # Trigger when checkout metadata is updated.
     #
     # Overwrite this method if you need to trigger specific logic when a checkout

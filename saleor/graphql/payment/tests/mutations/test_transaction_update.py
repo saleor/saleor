@@ -2,8 +2,11 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from mock import patch
 
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from .....checkout.calculations import fetch_checkout_data
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderEvents
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
@@ -2199,3 +2202,53 @@ def test_transaction_create_for_checkout_updates_payment_statuses(
     checkout_with_items.refresh_from_db()
     assert checkout_with_items.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_create_for_checkout_fully_paid(
+    mocked_checkout_fully_paid,
+    checkout_with_prices,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+    plugins_manager,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_called_once_with(checkout)
