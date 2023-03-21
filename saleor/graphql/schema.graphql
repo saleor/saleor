@@ -14971,13 +14971,17 @@ type Mutation {
   ): OrderBulkCancel @doc(category: "Orders")
 
   """
-  Creates multiple orders. 
+  Creates multiple orders.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
   """
   orderBulkCreate(
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
-    errorPolicy: ErrorPolicyEnum = reject_everything
+    errorPolicy: ErrorPolicyEnum
 
     """Input list of orders to create. Orders limit: 50."""
     orders: [OrderBulkCreateInput!]!
@@ -22376,7 +22380,11 @@ type OrderBulkCancel @doc(category: "Orders") {
 }
 
 """
-Creates multiple orders. 
+Creates multiple orders.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
 """
@@ -22386,7 +22394,6 @@ type OrderBulkCreate {
 
   """List of the created orders."""
   results: [OrderBulkCreateResult!]!
-  bulkOrderErrors: [OrderBulkCreateError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderBulkCreateError!]!
 }
 
@@ -22417,7 +22424,7 @@ enum OrderBulkCreateErrorCode {
   REQUIRED
   INVALID
   NOT_FOUND
-  ORDER_NUMBER_LIMIT
+  BULK_LIMIT
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
   ORDER_LINE_ERROR
