@@ -25,6 +25,7 @@ from ....warehouse.models import Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
@@ -332,7 +333,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
@@ -340,27 +340,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
     class Meta:
-        description = "Creates multiple orders."
+        description = "Creates multiple orders." + ADDED_IN_313 + PREVIEW_FEATURE
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
         error_type_class = OrderBulkCreateError
-        error_type_field = "bulk_order_errors"
 
     @classmethod
     def is_datetime_valid(cls, date: datetime) -> bool:
+        """We accept future time values with 5 minutes from current time.
+
+        Some systems might have incorrect time that is in the future compared to Saleor.
+        At the same time, we don't want to create orders that are too far in the future.
+        """
         return date < timezone.now() + timedelta(minutes=MINUTES_DIFF)
 
     @classmethod
     def validate_order_input(cls, order_input, errors: List[OrderBulkError]):
-        weight = order_input.get("weight")
-        if weight and weight.value < 0:
-            errors.append(
-                OrderBulkError(
-                    message="Product can't have negative weight.",
-                    field="weight",
-                    code=OrderBulkCreateErrorCode.INVALID,
-                )
-            )
-
         date = order_input.get("created_at")
         if date and not cls.is_datetime_valid(date):
             errors.append(
@@ -1000,8 +994,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def handle_error_policy(
         cls,
         orders: List[OrderWithErrors],
-        policy: ErrorPolicy,
+        policy: Optional[str],
     ):
+        if not policy:
+            policy = ErrorPolicy.REJECT_EVERYTHING
+
         errors = [error for order in orders for error in order.get_all_errors()]
         if errors:
             for order in orders:
@@ -1043,7 +1040,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if len(orders_input) > MAX_ORDERS:
             error = OrderBulkError(
                 message=f"Number of orders exceeds limit: {MAX_ORDERS}.",
-                code=OrderBulkCreateErrorCode.ORDER_NUMBER_LIMIT,
+                code=OrderBulkCreateErrorCode.BULK_LIMIT,
             )
             result = OrderBulkCreateResult(order=None, error=error)
             return OrderBulkCreate(count=0, results=result)
@@ -1056,7 +1053,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for order_input in orders_input:
             orders.append(cls.create_single_order(order_input, object_storage))
 
-        cls.handle_error_policy(orders, data["error_policy"])
+        cls.handle_error_policy(orders, data.get("error_policy"))
         cls.save_data(orders)
 
         results = [

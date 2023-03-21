@@ -78,13 +78,14 @@ class JSON(GenericScalar):
 class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
-        weight = None
         if isinstance(value, dict):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
         if weight is None:
             raise GraphQLError(f"Unsupported value: {value}")
+        if weight.value < 0:
+            raise GraphQLError(f"Negative weight value. {weight}")
         return weight
 
     @staticmethod
