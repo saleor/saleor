@@ -6,7 +6,7 @@ from .....core.taxes import zero_money
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_UPDATE_QUERY = """
         mutation draftUpdate(
@@ -87,7 +87,7 @@ def test_draft_order_update_voucher_not_available(
 
 DRAFT_ORDER_UPDATE_MUTATION = """
     mutation draftUpdate(
-        $id: ID!, $voucher: ID!, $customerNote: String, $shippingAddress: AddressInput,
+        $id: ID!, $voucher: ID, $customerNote: String, $shippingAddress: AddressInput,
         $externalReference: String
     ) {
         draftOrderUpdate(
@@ -195,6 +195,67 @@ def test_draft_order_update_invalid_address(
         OrderErrorCode.REQUIRED.name,
     }
     assert {error["field"] for error in data["errors"]} == {"postalCode"}
+
+
+def test_draft_order_update_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    draft_order,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = draft_order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    assert not order.customer_note
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "customerNote": customer_note,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_draft_order_update_by_app(
+    app_api_client, permission_manage_orders, draft_order, channel_PLN
+):
+    # given
+    order = draft_order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    assert not order.customer_note
+
+    query = DRAFT_ORDER_UPDATE_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    customer_note = "Test customer note"
+    variables = {
+        "id": order_id,
+        "customerNote": customer_note,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    assert not data["errors"]
+    order.refresh_from_db()
+    assert order.customer_note == customer_note
+    assert order.search_vector
 
 
 def test_draft_order_update_doing_nothing_generates_no_events(
