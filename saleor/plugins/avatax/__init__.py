@@ -309,7 +309,6 @@ def generate_request_data_from_checkout_lines(
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
-            discounts,
         )
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like

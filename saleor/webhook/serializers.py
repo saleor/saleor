@@ -91,7 +91,7 @@ def serialize_checkout_lines_for_tax_calculation(
             ),
             "total_amount": quantize_price(
                 base_calculations.calculate_base_line_total_price(
-                    line_info, channel, discounts
+                    line_info, channel
                 ).amount,
                 checkout_info.checkout.currency,
             ),

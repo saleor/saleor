@@ -3,7 +3,10 @@ from decimal import Decimal
 from prices import Money, TaxedMoney
 
 from ...discount import DiscountValueType, VoucherType
-from ...discount.utils import get_product_discount_on_sale
+from ...discount.utils import (
+    create_or_update_discount_objects_from_sale_for_checkout,
+    get_product_discount_on_sale,
+)
 from ...plugins.manager import get_plugins_manager
 from ...tax.utils import calculate_tax_rate
 from ..base_calculations import (
@@ -63,7 +66,14 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     checkout_with_single_item, discount_info, category
 ):
     # given
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -74,7 +84,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -107,7 +117,14 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     line.price_override = price_override
     line.save(update_fields=["price_override"])
 
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -375,7 +392,14 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.discount = voucher_amount
     voucher_channel_listing.save()
     checkout_with_single_item.voucher_code = voucher.code
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -426,7 +450,7 @@ def test_calculate_base_line_total_price(checkout_with_single_item):
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -449,7 +473,14 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     checkout_line.quantity = quantity
     checkout_line.save()
 
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert not checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -460,7 +491,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -513,7 +544,7 @@ def test_calculate_base_line_total_price_with_fixed_voucher(
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -556,7 +587,7 @@ def test_calculate_base_line_total_price_with_percentage_voucher(
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -601,7 +632,7 @@ def test_calculate_base_line_total_price_with_discounts_apply_once_per_order(
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -638,7 +669,14 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -650,7 +688,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -697,7 +735,14 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     voucher_channel_listing.save()
 
     checkout_with_single_item.voucher_code = voucher.code
+    manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, [], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
     checkout_line_info = checkout_lines_info[0]
     assert checkout_line_info.voucher
     variant = checkout_line_info.variant
@@ -709,7 +754,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
 
     # when
     total_price = calculate_base_line_total_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then

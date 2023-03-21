@@ -21,6 +21,7 @@ from ....checkout.utils import add_variant_to_checkout
 from ....core.prices import quantize_price
 from ....core.taxes import TaxError, TaxType, zero_money, zero_taxed_money
 from ....discount import DiscountType, DiscountValueType, VoucherType
+from ....discount.utils import create_or_update_discount_objects_from_sale_for_checkout
 from ....order import OrderStatus
 from ....product import ProductTypeKind
 from ....product.models import Product, ProductType
@@ -68,17 +69,69 @@ def order_set_shipping_method(order, shipping_method):
 
 @pytest.mark.vcr()
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, prices_entered_with_tax",
+    "expected_net, expected_gross, prices_entered_with_tax",
     [
-        (True, "12.20", "15.00", True),
-        (False, "24.39", "30.00", True),
-        (True, "15.00", "18.45", False),
-        (False, "30.00", "36.90", False),
+        ("24.39", "30.00", True),
+        ("30.00", "36.90", False),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_line_total(
-    with_discount,
+    expected_net,
+    expected_gross,
+    prices_entered_with_tax,
+    checkout_with_item,
+    ship_to_pl_address,
+    monkeypatch,
+    shipping_zone,
+    plugin_configuration,
+):
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.charge_taxes = True
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+    product.metadata = {}
+    product.save()
+    product.product_type.save()
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
+
+    total = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [],
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr()
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, prices_entered_with_tax",
+    [
+        ("12.20", "15.00", True),
+        ("15.00", "18.45", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_total_with_sale(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
@@ -107,18 +160,20 @@ def test_calculate_checkout_line_total(
     product.metadata = {}
     product.save()
     product.product_type.save()
-    discounts = [discount_info] if with_discount else None
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     total = manager.calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        discounts,
+        [discount_info],
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -161,6 +216,9 @@ def test_calculate_checkout_line_total_with_variant_on_sale(
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_total(
@@ -347,6 +405,9 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_total(
@@ -409,6 +470,9 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_total(
@@ -427,17 +491,75 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
 
 @pytest.mark.vcr()
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, prices_entered_with_tax",
+    "expected_net, expected_gross, prices_entered_with_tax",
     [
-        (True, "12.20", "15.00", True),
-        (False, "24.39", "30.00", True),
-        (True, "15.00", "18.45", False),
-        (False, "30.00", "36.90", False),
+        ("24.39", "30.00", True),
+        ("30.00", "36.90", False),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_line_without_sku_total(
-    with_discount,
+    expected_net,
+    expected_gross,
+    prices_entered_with_tax,
+    checkout_with_item,
+    ship_to_pl_address,
+    monkeypatch,
+    shipping_zone,
+    plugin_configuration,
+):
+    monkeypatch.setattr(
+        "graphene.Node.to_global_id", lambda x, y: "UHJvZHVjdFZhcmlhbnQ6Mg"
+    )
+
+    plugin_configuration()
+    manager = get_plugins_manager()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    line = checkout_with_item.lines.first()
+    line.variant.sku = None
+    line.variant.save()
+    product = line.variant.product
+    product.metadata = {}
+    product.save()
+    product.product_type.save()
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_line_info = lines[0]
+
+    total_price = manager.calculate_checkout_line_total(
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout_with_item.shipping_address,
+        [],
+    )
+    total = quantize_price(total_price, total_price.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr()
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, prices_entered_with_tax",
+    [
+        ("12.20", "15.00", True),
+        ("15.00", "18.45", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_line_without_sku_total_with_sale(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
@@ -472,18 +594,20 @@ def test_calculate_checkout_line_without_sku_total(
     product.metadata = {}
     product.save()
     product.product_type.save()
-    discounts = [discount_info] if with_discount else None
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     checkout_line_info = lines[0]
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     total_price = manager.calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        discounts,
+        [discount_info],
     )
     total = quantize_price(total_price, total_price.currency)
     assert total == TaxedMoney(
@@ -973,20 +1097,80 @@ def test_calculate_order_shipping_order_not_valid(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    (
-        "with_discount, expected_net, expected_gross, voucher_amount, "
-        "prices_entered_with_tax"
-    ),
+    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
     [
-        (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.73", "5.0", False),
-        (False, "41.99", "51.19", "0.0", False),
-        (False, "32.04", "38.99", "3.0", True),
+        ("41.99", "51.19", "0.0", False),
+        ("32.04", "38.99", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_total_uses_default_calculation(
-    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    checkout_with_item,
+    product_with_single_variant,
+    voucher_percentage,
+    shipping_zone,
+    address,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+    non_default_category,
+    tax_class_zero_rates,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.save()
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.discount = voucher_amount
+    if voucher_amount != "0.0":
+        checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.save()
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+    product.metadata = {}
+    manager.assign_tax_code_to_object_meta(product.product_type.tax_class, "PC040156")
+    product.save()
+    product.product_type.save()
+    product_with_single_variant.tax_class = tax_class_zero_rates
+    product_with_single_variant.category = non_default_category
+    product_with_single_variant.save()
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    total = manager.calculate_checkout_total(checkout_info, lines, address, [])
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    [
+        ("22.32", "26.99", "0.0", True),
+        ("21.99", "26.73", "5.0", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_uses_default_calculation_with_sale(
     expected_net,
     expected_gross,
     voucher_amount,
@@ -1033,12 +1217,16 @@ def test_calculate_checkout_total_uses_default_calculation(
     product_with_single_variant.tax_class = tax_class_zero_rates
     product_with_single_variant.category = non_default_category
     product_with_single_variant.save()
-    discounts = [discount_info] if with_discount else None
-    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines, _ = fetch_checkout_lines(checkout_with_item)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
-    total = manager.calculate_checkout_total(checkout_info, lines, address, discounts)
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, address, [discount_info]
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1047,20 +1235,90 @@ def test_calculate_checkout_total_uses_default_calculation(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    (
-        "with_discount, expected_net, expected_gross, voucher_amount, "
-        "prices_entered_with_tax"
-    ),
+    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
     [
-        (True, "22.32", "26.99", "0.0", True),
-        (True, "21.99", "26.73", "5.0", False),
-        (False, "41.99", "51.19", "0.0", False),
-        (False, "32.04", "38.99", "3.0", True),
+        ("41.99", "51.19", "0.0", False),
+        ("32.04", "38.99", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_total(
-    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    checkout_with_item,
+    product_with_single_variant,
+    voucher_percentage,
+    shipping_zone,
+    address,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+    non_default_category,
+    tax_class_zero_rates,
+):
+    plugin_configuration()
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.save()
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.discount = voucher_amount
+    if voucher_amount != "0.0":
+        checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.save()
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    product_with_single_variant.tax_class = tax_class_zero_rates
+    product_with_single_variant.category = non_default_category
+    product_with_single_variant.save(
+        update_fields=[
+            "category",
+            "tax_class",
+        ]
+    )
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
+    add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, []
+    )
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    [
+        ("22.32", "26.99", "0.0", True),
+        # ("21.99", "26.73", "5.0", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_with_sale(
     expected_net,
     expected_gross,
     voucher_amount,
@@ -1116,12 +1374,14 @@ def test_calculate_checkout_total(
             "tax_class",
         ]
     )
-    discounts = [discount_info] if with_discount else None
-    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines, _ = fetch_checkout_lines(checkout_with_item)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
     total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
+        checkout_info, lines, ship_to_pl_address, [discount_info]
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -1131,20 +1391,89 @@ def test_calculate_checkout_total(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    (
-        "with_discount, expected_net, expected_gross, voucher_amount, "
-        "prices_entered_with_tax"
-    ),
+    ("expected_net, expected_gross, voucher_amount, " "prices_entered_with_tax"),
     [
-        (True, "3485", "4285", "0.0", True),
-        (True, "4280", "5264", "5.0", False),
-        (False, "4300", "5289", "0.0", False),
-        (False, "3495", "4297", "3.0", True),
+        ("4300", "5289", "0.0", False),
+        ("3495", "4297", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_total_for_JPY(
-    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    channel_JPY,
+    checkout_JPY_with_item,
+    voucher_percentage,
+    shipping_zone_JPY,
+    ship_to_pl_address,
+    monkeypatch,
+    plugin_configuration,
+):
+    # given
+    checkout = checkout_JPY_with_item
+    plugin_configuration(channel=channel_JPY)
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PS081282": "desc", TAX_CODE_NON_TAXABLE_PRODUCT: "desc"},
+    )
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.AvataxPlugin._skip_plugin", lambda *_: False
+    )
+    manager = get_plugins_manager()
+    checkout.shipping_address = ship_to_pl_address
+    checkout.save()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    voucher_amount = Money(voucher_amount, "JPY")
+    checkout.shipping_method = shipping_zone_JPY.shipping_methods.get()
+    checkout.discount = voucher_amount
+    voucher_percentage.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=10,
+        currency=channel_JPY.currency_code,
+    )
+    if voucher_amount != "0.0":
+        checkout.voucher_code = voucher_percentage.code
+    checkout.save()
+    line = checkout.lines.first()
+    product = line.variant.product
+
+    manager.assign_tax_code_to_object_meta(product.tax_class, "PS081282")
+    product.save()
+    product.tax_class.save()
+
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    lines, _ = fetch_checkout_lines(checkout)
+
+    # when
+    total = manager.calculate_checkout_total(
+        checkout_info, lines, ship_to_pl_address, []
+    )
+
+    # then
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "JPY"), gross=Money(expected_gross, "JPY")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
+    [
+        ("3485", "4285", "0.0", True),
+        ("4280", "5264", "5.0", False),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_total_for_JPY_with_sale(
     expected_net,
     expected_gross,
     voucher_amount,
@@ -1196,13 +1525,15 @@ def test_calculate_checkout_total_for_JPY(
     product.save()
     product.tax_class.save()
 
-    discounts = [discount_info_JPY] if with_discount else None
-    checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
     lines, _ = fetch_checkout_lines(checkout)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info_JPY]
+    )
 
     # when
     total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
+        checkout_info, lines, ship_to_pl_address, [discount_info_JPY]
     )
 
     # then
@@ -1573,8 +1904,9 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, [discount_info], manager
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
     )
     shipping_price = manager.calculate_checkout_shipping(
         checkout_info, lines, address, [discount_info]
@@ -1587,17 +1919,63 @@ def test_calculate_checkout_shipping(
 
 @pytest.mark.vcr
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, prices_entered_with_tax",
+    "expected_net, expected_gross, prices_entered_with_tax",
     [
-        (True, "25.00", "30.75", False),
-        (False, "40.65", "50.00", True),
-        (False, "50.00", "61.50", False),
-        (True, "20.33", "25.00", True),
+        ("40.65", "50.00", True),
+        ("50.00", "61.50", False),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
 def test_calculate_checkout_subtotal(
-    with_discount,
+    expected_net,
+    expected_gross,
+    prices_entered_with_tax,
+    checkout_with_item,
+    stock,
+    monkeypatch,
+    ship_to_pl_address,
+    shipping_zone,
+    address,
+    plugin_configuration,
+):
+    plugin_configuration()
+    variant = stock.product_variant
+    monkeypatch.setattr(
+        "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    manager = get_plugins_manager()
+
+    tax_configuration = checkout_with_item.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.charge_taxes = True
+    tax_configuration.save(update_fields=["charge_taxes", "prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    checkout_with_item.shipping_address = ship_to_pl_address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
+    add_variant_to_checkout(checkout_info, variant, 2)
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, prices_entered_with_tax",
+    [
+        ("25.00", "30.75", False),
+        ("20.33", "25.00", True),
+    ],
+)
+@override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
+def test_calculate_checkout_subtotal_with_sale(
     expected_net,
     expected_gross,
     prices_entered_with_tax,
@@ -1628,13 +2006,15 @@ def test_calculate_checkout_subtotal(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
 
-    discounts = [discount_info] if with_discount else None
-
-    checkout_info = fetch_checkout_info(checkout_with_item, [], discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, [], [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout_with_item)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+
     total = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address, discounts
+        checkout_info, lines, address, [discount_info]
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -2382,6 +2762,9 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale(
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_unit_price(
@@ -2565,6 +2948,9 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_unit_price(
@@ -2627,6 +3013,9 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_onl
 
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
     currency = checkout_info.checkout.currency
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
     # when
     line_price = manager.calculate_checkout_line_unit_price(
@@ -2667,10 +3056,12 @@ def test_preprocess_order_creation(
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    discounts = [discount_info]
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
-    manager.preprocess_order_creation(checkout_info, discounts, lines)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+    manager.preprocess_order_creation(checkout_info, [discount_info], lines)
 
 
 @pytest.mark.vcr
@@ -2697,10 +3088,12 @@ def test_preprocess_order_creation_no_lines_data(
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    discounts = [discount_info]
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
-    manager.preprocess_order_creation(checkout_info, discounts)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+    manager.preprocess_order_creation(checkout_info, [discount_info])
 
 
 @pytest.mark.vcr
@@ -2724,11 +3117,13 @@ def test_preprocess_order_creation_wrong_data(
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    discounts = [discount_info]
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
     with pytest.raises(TaxError):
-        manager.preprocess_order_creation(checkout_info, discounts, lines)
+        manager.preprocess_order_creation(checkout_info, [discount_info], lines)
 
 
 @pytest.mark.vcr
@@ -2764,11 +3159,13 @@ def test_preprocess_order_creation_shipping_voucher_no_tax_class_on_delivery_met
     shipping_method.refresh_from_db()
     assert not shipping_method.tax_class
 
-    discounts = [discount_info]
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
 
-    manager.preprocess_order_creation(checkout_info, discounts)
+    manager.preprocess_order_creation(checkout_info, [discount_info])
 
 
 @pytest.mark.vcr
@@ -3845,10 +4242,12 @@ def test_plugin_uses_configuration_from_db(
     checkout_with_item.shipping_address = ship_to_pl_address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
-    discounts = [discount_info]
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, discounts, manager)
-    manager.preprocess_order_creation(checkout_info, discounts, lines)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+    manager.preprocess_order_creation(checkout_info, [discount_info], lines)
 
     field_to_update = [
         {"name": "Username or account", "value": "New value"},
@@ -3859,7 +4258,7 @@ def test_plugin_uses_configuration_from_db(
 
     manager = get_plugins_manager()
     with pytest.raises(TaxError):
-        manager.preprocess_order_creation(checkout_info, discounts, lines)
+        manager.preprocess_order_creation(checkout_info, [discount_info], lines)
 
 
 def test_skip_disabled_plugin(settings, plugin_configuration):

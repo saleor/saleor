@@ -6473,6 +6473,7 @@ def checkout_with_prices(
 
     manager = get_plugins_manager()
     channel = checkout_with_items.channel
+    # TODO: Owczar consider drop discoutns
     discounts_info = fetch_active_discounts()
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
@@ -6482,7 +6483,7 @@ def checkout_with_prices(
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
-            line_info, channel, discounts_info
+            line_info, channel
         ).amount
         line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
 

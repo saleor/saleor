@@ -177,7 +177,7 @@ class PluginsManager(PaymentInterface):
         default_value: Any,
         *args,
         channel_slug: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Try to run a method with the given name on each declared active plugin."""
         value = default_value
@@ -390,7 +390,6 @@ class PluginsManager(PaymentInterface):
         default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
             checkout_info.channel,
-            discounts,
         )
         # apply entire order discount
         default_value = base_calculations.apply_checkout_discount_on_checkout_line(

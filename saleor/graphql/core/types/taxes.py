@@ -267,7 +267,6 @@ class TaxableObjectLine(BaseObjectType):
                             return base_calculations.calculate_base_line_total_price(
                                 line_info=line_info,
                                 channel=checkout_info.channel,
-                                discounts=discounts,
                             )
                     return None
 

@@ -219,7 +219,7 @@ class AvataxPlugin(BasePlugin):
                 # each line
                 base_value=SimpleLazyObject(
                     lambda: base_calculations.calculate_base_line_total_price(
-                        line, checkout_info.channel, discounts
+                        line, checkout_info.channel
                     )
                 ),
             )
@@ -398,7 +398,7 @@ class AvataxPlugin(BasePlugin):
             prices_entered_with_tax,
             base_value=SimpleLazyObject(
                 lambda: base_calculations.calculate_base_line_total_price(
-                    checkout_line_info, checkout_info.channel, discounts
+                    checkout_line_info, checkout_info.channel
                 )
             ),
         )
@@ -542,7 +542,7 @@ class AvataxPlugin(BasePlugin):
             prices_entered_with_tax,
             base_value=SimpleLazyObject(
                 lambda: base_calculations.calculate_base_line_total_price(
-                    checkout_line_info, checkout_info.channel, discounts
+                    checkout_line_info, checkout_info.channel
                 )
             ),
         )

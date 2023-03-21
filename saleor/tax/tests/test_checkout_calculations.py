@@ -7,6 +7,7 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import add_variant_to_checkout
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
+from ...discount.utils import create_or_update_discount_objects_from_sale_for_checkout
 from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
@@ -27,22 +28,17 @@ def _enable_flat_rates(checkout, prices_entered_with_tax):
 
 
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, voucher_amount, "
-    "prices_entered_with_tax",
+    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
     [
-        (True, "20.33", "25.00", "0.0", True),
-        (True, "20.00", "24.60", "5.0", False),
-        (False, "40.00", "49.20", "0.0", False),
-        (False, "30.08", "37.00", "3.0", True),
+        ("40.00", "49.20", "0.0", False),
+        ("30.08", "37.00", "3.0", True),
     ],
 )
 def test_calculate_checkout_total(
     checkout_with_item,
     address,
     shipping_zone,
-    discount_info,
     voucher,
-    with_discount,
     expected_net,
     expected_gross,
     voucher_amount,
@@ -63,14 +59,70 @@ def test_calculate_checkout_total(
     product = line.variant.product
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
-    discounts = [discount_info] if with_discount else None
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, discounts
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+    )
+
+    # then
+    assert checkout.total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
+    [
+        ("20.33", "25.00", "0.0", True),
+        ("20.00", "24.60", "5.0", False),
+    ],
+)
+def test_calculate_checkout_total_with_sale(
+    checkout_with_item,
+    address,
+    shipping_zone,
+    voucher,
+    discount_info,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+    channel_USD,
+):
+    # given
+    checkout = checkout_with_item
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    checkout.shipping_address = address
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.voucher_code = voucher.code
+    checkout.discount = voucher_amount
+    checkout.save()
+
+    line = checkout.lines.first()
+    product = line.variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+        [discount_info],
     )
 
     # then
@@ -145,22 +197,17 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
 
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, voucher_amount, "
-    "prices_entered_with_tax",
+    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
     [
-        (True, "20.33", "25.00", "0.0", True),
-        (True, "20.00", "24.60", "5.0", False),
-        (False, "40.00", "49.20", "0.0", False),
-        (False, "30.08", "37.00", "3.0", True),
+        ("40.00", "49.20", "0.0", False),
+        ("30.08", "37.00", "3.0", True),
     ],
 )
-def test_calculate_checkout_total_shipping_voucher(
+def test_calculate_checkout_total_with_shipping_voucher(
     checkout_with_item,
     address,
     shipping_zone,
-    discount_info,
     voucher_shipping_type,
-    with_discount,
     expected_net,
     expected_gross,
     voucher_amount,
@@ -184,13 +231,12 @@ def test_calculate_checkout_total_shipping_voucher(
     product = line.variant.product
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
-    discounts = [discount_info] if with_discount else None
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, discounts
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
     )
 
     # then
@@ -200,20 +246,74 @@ def test_calculate_checkout_total_shipping_voucher(
 
 
 @pytest.mark.parametrize(
-    "with_discount, expected_net, expected_gross, prices_entered_with_tax",
+    "expected_net, expected_gross, voucher_amount, prices_entered_with_tax",
     [
-        (True, "20.33", "25.00", True),
-        (False, "40.65", "50.00", True),
-        (True, "25.00", "30.75", False),
-        (False, "50.00", "61.50", False),
+        ("20.33", "25.00", "0.0", True),
+        ("20.00", "24.60", "5.0", False),
+    ],
+)
+def test_calculate_checkout_total_with_shipping_voucher_and_sale(
+    checkout_with_item,
+    address,
+    shipping_zone,
+    discount_info,
+    voucher_shipping_type,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    prices_entered_with_tax,
+):
+    # given
+    checkout = checkout_with_item
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    manager = get_plugins_manager()
+    checkout.shipping_address = address
+    checkout.save()
+    voucher_amount = Money(voucher_amount, "USD")
+
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.voucher_code = voucher_shipping_type.code
+    checkout.discount = voucher_amount
+    checkout.save()
+
+    line = checkout.lines.first()
+    product = line.variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+        [discount_info],
+    )
+
+    # then
+    assert checkout.total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, prices_entered_with_tax",
+    [
+        ("40.65", "50.00", True),
+        ("50.00", "61.50", False),
     ],
 )
 def test_calculate_checkout_subtotal(
     checkout_with_item,
     address,
     shipping_zone,
-    discount_info,
-    with_discount,
     expected_net,
     expected_gross,
     prices_entered_with_tax,
@@ -231,15 +331,67 @@ def test_calculate_checkout_subtotal(
     checkout.shipping_method = shipping_zone.shipping_methods.get()
     checkout.save()
 
-    discounts = [discount_info] if with_discount else None
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, [], [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, discounts
+        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+    )
+
+    # then
+    assert checkout.subtotal == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.parametrize(
+    "expected_net, expected_gross, prices_entered_with_tax",
+    [
+        ("20.33", "25.00", True),
+        ("25.00", "30.75", False),
+    ],
+)
+def test_calculate_checkout_subtotal_with_sale(
+    checkout_with_item,
+    address,
+    shipping_zone,
+    discount_info,
+    expected_net,
+    expected_gross,
+    prices_entered_with_tax,
+    stock,
+):
+    # given
+    checkout = checkout_with_item
+    _enable_flat_rates(checkout, prices_entered_with_tax)
+
+    variant = stock.product_variant
+    product = variant.product
+    product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_zone.shipping_methods.get()
+    checkout.save()
+
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], [discount_info], manager)
+    add_variant_to_checkout(checkout_info, variant, 2)
+    lines, _ = fetch_checkout_lines(checkout)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
+
+    # when
+    update_checkout_prices_with_flat_rates(
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
+        [discount_info],
     )
 
     # then

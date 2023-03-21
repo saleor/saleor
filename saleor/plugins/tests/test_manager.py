@@ -12,7 +12,10 @@ from ...channel import TransactionFlowStrategy
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.taxes import TaxType, zero_money, zero_taxed_money
-from ...discount.utils import fetch_catalogue_info
+from ...discount.utils import (
+    create_or_update_discount_objects_from_sale_for_checkout,
+    fetch_catalogue_info,
+)
 from ...graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ...payment.interface import (
     PaymentGateway,
@@ -165,6 +168,9 @@ def test_manager_calculates_checkout_total(
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
     )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
+    )
     taxed_total = manager.calculate_checkout_total(
         checkout_info, lines, None, [discount_info]
     )
@@ -184,6 +190,9 @@ def test_manager_calculates_checkout_subtotal(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
     )
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
         checkout_info, lines, None, [discount_info]
@@ -244,6 +253,9 @@ def test_manager_calculates_checkout_line_total(
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
         checkout_with_item, lines, [discount_info], manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, lines, [discount_info]
     )
     checkout_line_info = lines[0]
     taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
