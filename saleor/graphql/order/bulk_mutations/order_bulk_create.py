@@ -13,9 +13,9 @@ from ....channel.models import Channel
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....order import OrderEvents, OrderOrigin
+from ....order import FulfillmentStatus, OrderEvents, OrderOrigin
 from ....order.error_codes import OrderBulkCreateErrorCode
-from ....order.models import Order, OrderEvent, OrderLine
+from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
@@ -32,6 +32,7 @@ from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
+from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
 from .utils import get_instance
@@ -49,6 +50,12 @@ class OrderBulkError:
 
 
 @dataclass
+class OrderBulkFulfillment:
+    fulfillment: Fulfillment
+    lines: List[FulfillmentLine]
+
+
+@dataclass
 class OrderWithErrors:
     order: Optional[Order]
     order_errors: List[OrderBulkError]
@@ -56,10 +63,17 @@ class OrderWithErrors:
     lines_errors: List[OrderBulkError]
     notes: List[OrderEvent]
     notes_errors: List[OrderBulkError]
+    fulfillments: List[OrderBulkFulfillment]
+    fulfillments_errors: List[OrderBulkError]
     is_each_line_created: bool = True
 
     def get_all_errors(self) -> List[OrderBulkError]:
-        return self.order_errors + self.lines_errors + self.notes_errors
+        return (
+            self.order_errors
+            + self.lines_errors
+            + self.notes_errors
+            + self.fulfillments_errors
+        )
 
 
 @dataclass
@@ -173,7 +187,7 @@ class OrderBulkCreateFulfillStockInput(graphene.InputObjectType):
 
 class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
-    variant_sku = graphene.String(description="The sku of the product variant.")
+    variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
         description="The external ID of the product variant."
     )
@@ -192,7 +206,7 @@ class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
 
 class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
-    variant_sku = graphene.String(description="The sku of the product variant.")
+    variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
         description="The external ID of the product variant."
     )
@@ -297,6 +311,16 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
     )
+    stock_update_policy = StockUpdatePolicyEnum(
+        required=False,
+        description=(
+            "Determine how stocks should be updated, while processing fulfillment."
+        ),
+    )
+    # TODO invoices = [OrderBulkCreateInvoiceInput!]
+    # TODO transactions: [TransactionCreateInput!]!
+    # TODO discounts (? need to be added/calculated if any ?)
+    # TODO handle order number
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
@@ -355,7 +379,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Order input contains future date.",
-                    field="created_at",
+                    field="createdAt",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
@@ -367,7 +391,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors.append(
                     OrderBulkError(
                         message=f"Invalid redirect url: {err.message}.",
-                        field="redirect_url",
+                        field="redirectUrl",
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
@@ -453,7 +477,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Invalid billing address.",
-                    field="billing_address",
+                    field="billingAddress",
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
@@ -466,7 +490,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors.append(
                     OrderBulkError(
                         message="Invalid shipping address.",
-                        field="shipping_address",
+                        field="shippingAddress",
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
@@ -562,7 +586,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Can't provide both warehouse and shipping method IDs.",
-                    field="delivery_method",
+                    field="deliveryMethod",
                     code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
                 )
             )
@@ -601,7 +625,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="No delivery method provided.",
-                    field="delivery_method",
+                    field="deliveryMethod",
                     code=OrderBulkCreateErrorCode.REQUIRED,
                 )
             )
@@ -716,7 +740,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Invalid quantity; must be integer greater then 0.",
-                    field="quantity_fulfilled",
+                    field="quantityFulfilled",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -725,7 +749,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Quantity fulfilled can't be greater then quantity.",
-                    field="quantity_fulfilled",
+                    field="quantityFulfilled",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -734,7 +758,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    field="total_price",
+                    field="totalPrice",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -743,7 +767,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    field="undiscounted_total_price",
+                    field="undiscountedTotalPrice",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -853,6 +877,82 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return order_line
 
     @classmethod
+    def create_single_fulfillment(
+        cls,
+        fulfillment_input: Dict[str, Any],
+        order_lines_with_keys: Dict[int, OrderLine],
+        order: Order,
+        object_storage: Dict[str, Any],
+        errors: List[OrderBulkError],
+    ) -> OrderBulkFulfillment:
+        # TODO checks for availability, update stocks
+        # TODO check if multiple fulfillment lines contains the same variant
+        fulfillment = Fulfillment(
+            order=order,
+            status=FulfillmentStatus.FULFILLED,
+            tracking_number=fulfillment_input.get("tracking_code", ""),
+        )
+        # TODO why fulfillment doesn't have id now?
+        lines_input = fulfillment_input["lines"]
+        lines: List[FulfillmentLine] = []
+        for line_input in lines_input:
+            variant, errors = cls.get_instance_with_errors(
+                input=line_input,
+                errors=errors,
+                model=ProductVariant,
+                key_map={
+                    "variant_id": "id",
+                    "variant_external_reference": "external_reference",
+                    "variant_sku": "sku",
+                },
+                object_storage=object_storage,
+            )
+            if not variant:
+                continue
+
+            order_line = order_lines_with_keys.get(variant.id)
+            if not order_line:
+                errors.append(
+                    OrderBulkError(
+                        message=f"There is no related order line for given "
+                        f"variant: {variant.id} in fulfillment line."
+                    )
+                )
+                continue
+
+            stocks: List[OrderBulkStock] = []
+            for stock_input in line_input["stocks"]:
+                warehouse, errors = cls.get_instance_with_errors(
+                    input=stock_input,
+                    errors=errors,
+                    model=Warehouse,
+                    key_map={"warehouse_id": "id"},
+                    object_storage=object_storage,
+                )
+                if not warehouse:
+                    continue
+
+                stocks.append(
+                    OrderBulkStock(
+                        quantity=stock_input["quantity"], warehouse=warehouse
+                    )
+                )
+
+            lines.append(
+                FulfillmentLine(
+                    fulfillment=fulfillment,
+                    order_line=order_line,
+                    quantity=sum((stock.quantity for stock in stocks)),
+                )
+            )
+
+        return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
+
+    @classmethod
+    def check_availability(cls, lines: List[FulfillmentLine]):
+        pass
+
+    @classmethod
     def create_single_order(
         cls, order_input, object_storage: Dict[str, Any]
     ) -> OrderWithErrors:
@@ -863,6 +963,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             lines_errors=[],
             notes=[],
             notes_errors=[],
+            fulfillments=[],
+            fulfillments_errors=[],
         )
         cls.validate_order_input(order_input, order.order_errors)
         order_instance = Order()
@@ -905,6 +1007,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
             return order
+        # TODO check if multiple order lines contains the same variant (fulfillments)
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
@@ -923,6 +1026,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 ):
                     order.notes.append(note)
 
+        # create fulfillments
+        if fulfillments_input := order_input.get("fulfillments"):
+            order_lines_with_keys = {
+                line.variant.id: line for line in order.lines if line.variant
+            }
+            for fulfillment_input in fulfillments_input:
+                if fulfillment := cls.create_single_fulfillment(
+                    fulfillment_input,
+                    order_lines_with_keys,
+                    order_instance,
+                    object_storage,
+                    order.fulfillments_errors,
+                ):
+                    order.fulfillments.append(fulfillment)
+
+        # order.number = order_input.get("number")
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -975,6 +1094,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     {data["key"]: data["value"]}
                 )
 
+        # TODO charged
+        # TODO authourized
+        # TODO voucher
+        # TODO gift cards
+
         order.order = order_instance
         return order
 
@@ -1021,6 +1145,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
+        # TODO post save actions
+        # TODO add webhook ORDER_BULK_CREATED
+
         orders_input = data["orders"]
         if len(orders_input) > MAX_ORDERS:
             error = OrderBulkError(

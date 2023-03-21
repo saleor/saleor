@@ -175,6 +175,7 @@ def order_bulk_input(
     graphql_address_data,
     shipping_method_channel_PLN,
     variant,
+    warehouses,
 ):
     shipping_method = shipping_method_channel_PLN
     user = {
@@ -246,6 +247,25 @@ def order_bulk_input(
         "date": timezone.now(),
         "userId": graphene.Node.to_global_id("User", customer_user.id),
     }
+    fulfillment_line = {
+        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "stocks": [
+            {
+                "quantity": 3,
+                "warehouseId": graphene.Node.to_global_id(
+                    "Warehouse", warehouses[0].id
+                ),
+            },
+            {
+                "quantity": 2,
+                "warehouseId": graphene.Node.to_global_id(
+                    "Warehouse", warehouses[1].id
+                ),
+            },
+        ],
+    }
+    fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
@@ -258,6 +278,7 @@ def order_bulk_input(
         "deliveryMethod": delivery_method,
         "lines": [line],
         "notes": [note],
+        "fulfillments": [fulfillment],
         "weight": "10.15",
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",

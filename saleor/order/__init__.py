@@ -299,3 +299,22 @@ class FulfillmentLineData:
     line: "FulfillmentLine"
     quantity: int
     replace: bool = False
+
+
+class StockUpdatePolicy:
+    """Determine how stocks should be updated, while processing fulfillment.
+
+    NO_UPDATE - Stocks are not checked and not updated.
+    FORCE_UPDATE - Force update, if there is not enough stocks.
+    FAIL - Fail fulfillment, if there is not enough stocks.
+    """
+
+    NO_UPDATE = "no_update"
+    FORCE_UPDATE = "force_update"
+    FAIL = "fail_if_not_enough"
+
+    CHOICES = [
+        (NO_UPDATE, "Stocks are not checked and not updated."),
+        (FORCE_UPDATE, "Force update, if there is not enough stocks."),
+        (FAIL, "Fail fulfillment, if there is not enough stocks."),
+    ]

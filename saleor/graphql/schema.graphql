@@ -22350,6 +22350,9 @@ input OrderBulkCreateInput {
 
   """Fulfillments of the order."""
   fulfillments: [OrderBulkCreateFulfillmentInput!]
+
+  """Determine how stocks should be updated, while processing fulfillment."""
+  stockUpdatePolicy: StockUpdatePolicyEnum
 }
 
 input OrderBulkCreateUserInput {
@@ -22387,7 +22390,7 @@ input OrderBulkCreateOrderLineInput {
   """The ID of the product variant."""
   variantId: ID
 
-  """The sku of the product variant."""
+  """The SKU of the product variant."""
   variantSku: String
 
   """The external ID of the product variant."""
@@ -22494,7 +22497,7 @@ input OrderBulkCreateFulfillmentLineInput {
   """The ID of the product variant."""
   variantId: ID
 
-  """The sku of the product variant."""
+  """The SKU of the product variant."""
   variantSku: String
 
   """The external ID of the product variant."""
@@ -22513,6 +22516,19 @@ input OrderBulkCreateFulfillStockInput {
 
   """Name of the warehouse from which the item will be fulfilled."""
   warehouseName: String
+}
+
+"""
+Determine how stocks should be updated, while processing fulfillment.
+
+    NO_UPDATE - Stocks are not checked and not updated.
+    FORCE_UPDATE - Force update, if there is not enough stocks.
+    FAIL - Fail fulfillment, if there is not enough stocks.
+"""
+enum StockUpdatePolicyEnum {
+  NO_UPDATE
+  FORCE_UPDATE
+  FAIL_IF_NOT_ENOUGH
 }
 
 """
