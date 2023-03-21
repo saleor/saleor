@@ -170,7 +170,7 @@ class TransactionEvent(models.Model):
         null=True,
     )
     reference = models.CharField(max_length=512, blank=True, default="")
-    psp_reference = models.CharField(max_length=512, blank=True, default="")
+    psp_reference = models.CharField(max_length=512, blank=True, null=True)
 
     name = models.CharField(max_length=512, blank=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")

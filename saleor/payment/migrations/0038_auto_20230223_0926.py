@@ -74,15 +74,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="transactionevent",
             name="psp_reference",
-            field=models.CharField(blank=True, default="", max_length=512),
-        ),
-        migrations.RunSQL(
-            """
-            ALTER TABLE payment_transactionevent
-            ALTER COLUMN psp_reference
-            SET DEFAULT '';
-            """,
-            migrations.RunSQL.noop,
+            field=models.CharField(blank=True, max_length=512, null=True),
         ),
         migrations.AddField(
             model_name="transactionevent",
