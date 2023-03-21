@@ -1569,7 +1569,11 @@ class WebhookPlugin(BasePlugin):
             apps_identifier=apps_identifiers,
         )
 
-        request = initialize_request(self.requestor, sync_event=True)
+        request = initialize_request(
+            self.requestor,
+            sync_event=True,
+            event_type=WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION,
+        )
 
         for webhook in webhooks:
             self._payment_gateway_initialize_session_for_single_webhook(

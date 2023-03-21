@@ -16,6 +16,11 @@ subscription {
         __typename
         ... on Checkout{
           id
+          totalPrice{
+            gross{
+              amount
+            }
+          }
         }
         ... on Order{
           id
@@ -54,7 +59,11 @@ def test_payment_gateway_initialize_session_checkout_with_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "data": payload_data,
-        "sourceObject": {"__typename": "Checkout", "id": checkout_id},
+        "sourceObject": {
+            "__typename": "Checkout",
+            "id": checkout_id,
+            "totalPrice": {"gross": {"amount": 0.0}},
+        },
     }
 
 
@@ -83,7 +92,11 @@ def test_payment_gateway_initialize_session_checkout_without_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "data": None,
-        "sourceObject": {"__typename": "Checkout", "id": checkout_id},
+        "sourceObject": {
+            "__typename": "Checkout",
+            "id": checkout_id,
+            "totalPrice": {"gross": {"amount": 0.0}},
+        },
     }
 
 
