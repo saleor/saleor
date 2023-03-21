@@ -95,6 +95,7 @@ def _recalculate_base_amounts(
     failure: Optional[TransactionEvent],
     pending_amount_field_name: str,
     amount_field_name: str,
+    previous_amount_field_name: Optional[str],
 ):
     if _should_increase_pending_amount(request, success, failure):
         request = cast(TransactionEvent, request)
@@ -102,11 +103,25 @@ def _recalculate_base_amounts(
         setattr(
             transaction, pending_amount_field_name, pending_value + request.amount_value
         )
+        if previous_amount_field_name:
+            current_previous_amount = getattr(transaction, previous_amount_field_name)
+            setattr(
+                transaction,
+                previous_amount_field_name,
+                current_previous_amount - request.amount_value,
+            )
 
     if _should_increse_amount(success, failure):
         success = cast(TransactionEvent, success)
         current_value = getattr(transaction, amount_field_name)
         setattr(transaction, amount_field_name, current_value + success.amount_value)
+        if previous_amount_field_name:
+            current_previous_amount = getattr(transaction, previous_amount_field_name)
+            setattr(
+                transaction,
+                previous_amount_field_name,
+                current_previous_amount - success.amount_value,
+            )
 
 
 def _recalculate_authorization_amounts(
@@ -129,6 +144,7 @@ def _recalculate_authorization_amounts(
         failure,
         pending_amount_field_name="authorize_pending_value",
         amount_field_name="authorized_value",
+        previous_amount_field_name=None,
     )
 
 
@@ -150,6 +166,7 @@ def _recalculate_charge_amounts(
         failure,
         pending_amount_field_name="charge_pending_value",
         amount_field_name="charged_value",
+        previous_amount_field_name="authorized_value",
     )
 
 
@@ -162,6 +179,7 @@ def _recalculate_refund_amounts(
     reverse = refund_events.reverse
 
     if reverse:
+        transaction.charged_value += reverse.amount_value
         transaction.refunded_value -= reverse.amount_value
 
     _recalculate_base_amounts(
@@ -171,6 +189,7 @@ def _recalculate_refund_amounts(
         failure,
         pending_amount_field_name="refund_pending_value",
         amount_field_name="refunded_value",
+        previous_amount_field_name="charged_value",
     )
 
 
@@ -188,6 +207,7 @@ def _recalculate_cancel_amounts(
         failure,
         pending_amount_field_name="cancel_pending_value",
         amount_field_name="canceled_value",
+        previous_amount_field_name="authorized_value",
     )
 
 
@@ -215,12 +235,20 @@ def _get_authorize_events(events: Iterable[TransactionEvent]) -> List[Transactio
 def _handle_events_without_psp_reference(
     transaction: TransactionItem, events: List[TransactionEvent]
 ):
+    """Calculate the amounts for event without psp reference.
+
+    The events without a psp reference are the one that are reported by
+    transactionCreate or transactionUpdate. For transactionUpdate, we require a
+    manually reducing the amount by app, so there is no need to reduce the amount
+    from previous state as it is required for transaction events with psp reference
+    created by transactionEventReport.
+    """
+
     for event in events:
         if event.type == TransactionEventType.AUTHORIZATION_SUCCESS:
             transaction.authorized_value += event.amount_value
         elif event.type == TransactionEventType.AUTHORIZATION_ADJUSTMENT:
             transaction.authorized_value = event.amount_value
-
         elif event.type == TransactionEventType.CHARGE_SUCCESS:
             transaction.charged_value += event.amount_value
         elif event.type == TransactionEventType.CHARGE_BACK:
@@ -229,8 +257,7 @@ def _handle_events_without_psp_reference(
         elif event.type == TransactionEventType.REFUND_SUCCESS:
             transaction.refunded_value += event.amount_value
         elif event.type == TransactionEventType.REFUND_REVERSE:
-            transaction.refunded_value -= event.amount_value
-
+            transaction.charged_value += event.amount_value
         elif event.type == TransactionEventType.CANCEL_SUCCESS:
             transaction.canceled_value += event.amount_value
 
@@ -299,6 +326,29 @@ def _set_transaction_amounts_to_zero(transaction: TransactionItem):
     transaction.cancel_pending_value = Decimal("0")
 
 
+def calculate_transaction_amount_based_on_events(transaction: TransactionItem):
+    events: Iterable[TransactionEvent] = transaction.events.order_by(
+        "created_at"
+    ).exclude(include_in_calculations=False)
+
+    action_map = _initilize_action_map(events)
+    _set_transaction_amounts_to_zero(transaction)
+
+    _handle_events_without_psp_reference(transaction, action_map.without_psp_reference)
+
+    for authorize_events in action_map.authorization.values():
+        _recalculate_authorization_amounts(transaction, authorize_events)
+
+    for charge_events in action_map.charge.values():
+        _recalculate_charge_amounts(transaction, charge_events)
+
+    for refund_events in action_map.refund.values():
+        _recalculate_refund_amounts(transaction, refund_events)
+
+    for cancel_events in action_map.cancel.values():
+        _recalculate_cancel_amounts(transaction, cancel_events)
+
+
 def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = True):
     """Recalculate transaction amounts.
 
@@ -326,6 +376,7 @@ def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = T
     example the events created by Saleor to keep correct amounts). In that case
     the event amounts will be included in the transaction amounts.
     """
+    calculate_transaction_amount_based_on_events(transaction)
 
     events: Iterable[TransactionEvent] = transaction.events.order_by(
         "created_at"
@@ -347,6 +398,23 @@ def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = T
 
     for cancel_events in action_map.cancel.values():
         _recalculate_cancel_amounts(transaction, cancel_events)
+
+    transaction.authorized_value = max(transaction.authorized_value, Decimal("0"))
+    transaction.charged_value = max(transaction.charged_value, Decimal("0"))
+    transaction.refunded_value = max(transaction.refunded_value, Decimal("0"))
+    transaction.canceled_value = max(transaction.canceled_value, Decimal("0"))
+    transaction.authorize_pending_value = max(
+        transaction.authorize_pending_value, Decimal("0")
+    )
+    transaction.charge_pending_value = max(
+        transaction.charge_pending_value, Decimal("0")
+    )
+    transaction.refund_pending_value = max(
+        transaction.refund_pending_value, Decimal("0")
+    )
+    transaction.cancel_pending_value = max(
+        transaction.cancel_pending_value, Decimal("0")
+    )
 
     if save:
         transaction.save(

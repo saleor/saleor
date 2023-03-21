@@ -25,11 +25,7 @@ from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.models import Order
 from ..order.search import update_order_search_vector
-from ..order.utils import (
-    update_order_authorize_data,
-    update_order_charge_data,
-    updates_amounts_for_order,
-)
+from ..order.utils import update_order_authorize_data, updates_amounts_for_order
 from ..plugins.manager import PluginsManager, get_plugins_manager
 from . import (
     ChargeStatus,
@@ -549,7 +545,7 @@ def update_payment_charge_status(payment, transaction, changed_fields=None):
     transaction.already_processed = True
     transaction.save(update_fields=["already_processed"])
     if "captured_amount" in changed_fields and payment.order_id:
-        update_order_charge_data(payment.order)
+        updates_amounts_for_order(payment.order)
     if transaction_kind == TransactionKind.AUTH and payment.order_id:
         update_order_authorize_data(payment.order)
 

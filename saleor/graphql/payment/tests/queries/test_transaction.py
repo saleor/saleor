@@ -107,8 +107,9 @@ def _assert_transaction_fields(content, transaction_item, event):
     assert data["voidedAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["canceledAmount"]["amount"] == transaction_item.amount_canceled.amount
     assert data["chargedAmount"]["amount"] == transaction_item.amount_charged.amount
-    assert len(data["events"]) == 1
-    assert data["events"][0]["id"] == to_global_id_or_none(event)
+    events_data = [e for e in data["events"] if e["type"] == event.type.upper()]
+    assert len(events_data) == 1
+    assert events_data[0]["id"] == to_global_id_or_none(event)
     assert data["status"] == transaction_item.status
     assert data["type"] == transaction_item.name
     assert data["name"] == transaction_item.name
@@ -129,7 +130,9 @@ def test_transaction_created_by_app_query_by_app(
     app_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
-    event = transaction_item_created_by_app.events.get()
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -155,7 +158,9 @@ def test_transaction_creted_by_app_query_no_order(
     transaction_item_created_by_app.order = None
     transaction_item_created_by_app.save(update_fields=["order"])
 
-    event = transaction_item_created_by_app.events.get()
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -178,7 +183,9 @@ def test_transaction_created_by_app_query_by_staff(
     staff_api_client, transaction_item_created_by_app, permission_manage_payments, app
 ):
     # given
-    event = transaction_item_created_by_app.events.get()
+    event = transaction_item_created_by_app.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_app)}
 
@@ -217,7 +224,9 @@ def test_transaction_created_by_user_query_by_app(
     permission_manage_staff,
 ):
     # given
-    event = transaction_item_created_by_user.events.get()
+    event = transaction_item_created_by_user.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 
@@ -248,7 +257,9 @@ def test_transaction_creted_by_user_query_no_order(
     transaction_item_created_by_user.order = None
     transaction_item_created_by_user.save(update_fields=["order"])
 
-    event = transaction_item_created_by_user.events.get()
+    event = transaction_item_created_by_user.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 
@@ -276,7 +287,9 @@ def test_transaction_created_by_user_query_by_staff(
     permission_manage_staff,
 ):
     # given
-    event = transaction_item_created_by_user.events.get()
+    event = transaction_item_created_by_user.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
 
     variables = {"id": to_global_id_or_none(transaction_item_created_by_user)}
 

@@ -19,6 +19,29 @@ def _assert_amounts(
     refund_pending_value=Decimal("0"),
     cancel_pending_value=Decimal("0"),
 ):
+    assert sum(
+        [
+            transaction.authorized_value,
+            transaction.charged_value,
+            transaction.refunded_value,
+            transaction.canceled_value,
+            transaction.authorize_pending_value,
+            transaction.charge_pending_value,
+            transaction.refund_pending_value,
+            transaction.cancel_pending_value,
+        ]
+    ) == sum(
+        [
+            authorized_value,
+            charged_value,
+            refunded_value,
+            canceled_value,
+            authorize_pending_value,
+            charge_pending_value,
+            refund_pending_value,
+            cancel_pending_value,
+        ]
+    )
     assert transaction.authorized_value == authorized_value
     assert transaction.charged_value == charged_value
     assert transaction.refunded_value == refunded_value
@@ -781,15 +804,22 @@ def test_with_refund_reverse(transaction_item_generator, transaction_events_gene
     first_refund_value = Decimal("11.00")
     second_refund_value = Decimal("12.00")
     reverse_refund = Decimal("10.00")
+    charged_value = Decimal("40")
     transaction_events_generator(
         transaction=transaction,
-        psp_references=["1", "2", "3"],
+        psp_references=["1", "2", "3", "4"],
         types=[
             TransactionEventType.REFUND_SUCCESS,
             TransactionEventType.REFUND_SUCCESS,
             TransactionEventType.REFUND_REVERSE,
+            TransactionEventType.CHARGE_SUCCESS,
         ],
-        amounts=[first_refund_value, second_refund_value, reverse_refund],
+        amounts=[
+            first_refund_value,
+            second_refund_value,
+            reverse_refund,
+            charged_value,
+        ],
     )
 
     # when
@@ -800,6 +830,10 @@ def test_with_refund_reverse(transaction_item_generator, transaction_events_gene
     _assert_amounts(
         transaction,
         refund_pending_value=Decimal("0"),
+        charged_value=charged_value
+        - first_refund_value
+        - second_refund_value
+        + reverse_refund,
         refunded_value=first_refund_value + second_refund_value - reverse_refund,
     )
 
@@ -1035,12 +1069,12 @@ def test_event_without_psp_reference(
     # given
     transaction = transaction_item_generator()
     authorize_value = Decimal("110.00")
-    charge_value = Decimal("100.00")
+    charge_value = Decimal("50.00")
     first_refund_value = Decimal("30.0")
     second_refund_value = Decimal("11.00")
     transaction_events_generator(
         transaction=transaction,
-        psp_references=[None, None, None, None, "5"],
+        psp_references=[None, None, "3", "3", None],
         types=[
             TransactionEventType.AUTHORIZATION_SUCCESS,
             TransactionEventType.CHARGE_SUCCESS,
@@ -1065,7 +1099,7 @@ def test_event_without_psp_reference(
     _assert_amounts(
         transaction,
         authorized_value=authorize_value,
-        charged_value=charge_value,
+        charged_value=charge_value - first_refund_value,
         refunded_value=first_refund_value + second_refund_value,
     )
 
@@ -1139,14 +1173,396 @@ def test_event_multiple_events(
     recalculate_transaction_amounts(transaction)
 
     # then
+
+    # second pending refund is only use as for the first one we already received
+    # success notification
+    total_refund_pending = second_refund_pending_value
+
+    # total refund includes all success refund, and removes any refund reverse
+    total_refunded = first_refund_value - refund_reverse_value
+
+    total_charge_pending = charge_pending_value
+
+    # total charged is a sum of charges minus the amounts that were moved to refund or
+    # pending refund
+    total_charged = (
+        first_charge_value + second_charge_value - total_refunded - total_refund_pending
+    )
+
+    # total authorized is the amount left and accessible for authorization. The amount
+    # that was charged, refunded or canceled is subtracted from total authorize
+    total_authorized = (
+        authorize_adjustment_value
+        - total_charged
+        - total_charge_pending
+        - total_refunded
+        - total_refund_pending
+    )
+
     transaction.refresh_from_db()
+
     _assert_amounts(
         transaction,
-        authorized_value=authorize_adjustment_value,
-        charged_value=first_charge_value + second_charge_value - charge_back_value,
-        refunded_value=first_refund_value - refund_reverse_value,
+        authorized_value=total_authorized,
+        # charge back is reduced from charged value as we don't have this part of money
+        # anymore
+        charged_value=total_charged - charge_back_value,
+        refunded_value=total_refunded,
         charge_pending_value=charge_pending_value,
-        refund_pending_value=second_refund_pending_value,
+        refund_pending_value=total_refund_pending,
+    )
+
+
+def test_event_multiple_events_with_auth_charge_and_refund(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+
+    authorize_value = Decimal("250.00")
+
+    charged_value = Decimal("200")
+    charged_pending_value = Decimal("50")
+    refunded_value = Decimal("30")
+    ongoing_pending_refund_value = Decimal("15")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "authorization",
+            "charge",
+            "charge-pending",
+            "refund",
+            "refund-pending",
+        ],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            authorize_value,
+            charged_value,
+            charged_pending_value,
+            refunded_value,
+            ongoing_pending_refund_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    total_refunded = refunded_value
+    total_pending_refund = ongoing_pending_refund_value
+    total_charged = charged_value - total_refunded - total_pending_refund
+    total_pending_charge = charged_pending_value
+
+    total_authorize = (
+        authorize_value
+        - total_charged
+        - total_pending_charge
+        - total_refunded
+        - total_pending_refund
+    )
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        authorized_value=total_authorize,
+        charged_value=total_charged,
+        charge_pending_value=total_pending_charge,
+        refunded_value=total_refunded,
+        refund_pending_value=total_pending_refund,
+    )
+
+
+def test_event_multiple_events_with_auth_charge_and_refund_without_psp_references(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+
+    authorize_value = Decimal("250.00")
+
+    charged_value = Decimal("200")
+    charged_pending_value = Decimal("50")
+    refunded_value = Decimal("30")
+    ongoing_pending_refund_value = Decimal("15")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            None,
+            None,
+            None,
+            "charge-request",
+            "refund-request",
+        ],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.CHARGE_REQUEST,
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            authorize_value,
+            charged_value,
+            refunded_value,
+            charged_pending_value,
+            ongoing_pending_refund_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    total_refunded = refunded_value
+    total_pending_refund = ongoing_pending_refund_value
+    total_charged = charged_value - total_pending_refund
+    total_pending_charge = charged_pending_value
+
+    total_authorize = authorize_value - charged_pending_value
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        authorized_value=total_authorize,
+        charged_value=total_charged,
+        charge_pending_value=total_pending_charge,
+        refunded_value=total_refunded,
+        refund_pending_value=total_pending_refund,
+    )
+
+
+def test_event_multiple_events_with_auth_and_cancel(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+
+    authorize_value = Decimal("200.00")
+    authorize_adjustment_value = Decimal("250.00")
+
+    canceled_value = Decimal("11.00")
+    cancel_pending_value = Decimal("11")
+    ongoing_pending_value = Decimal("3")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            None,
+            "authorization-adjustment",
+            "cancel-ref",
+            "cancel-ref",
+            "ongoing_pending_value",
+        ],
+        types=[
+            TransactionEventType.AUTHORIZATION_SUCCESS,
+            TransactionEventType.AUTHORIZATION_ADJUSTMENT,
+            TransactionEventType.CANCEL_REQUEST,
+            TransactionEventType.CANCEL_SUCCESS,
+            TransactionEventType.CANCEL_REQUEST,
+        ],
+        amounts=[
+            authorize_value,
+            authorize_adjustment_value,
+            cancel_pending_value,
+            canceled_value,
+            ongoing_pending_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    total_canceled = canceled_value
+    total_pending_canceled = ongoing_pending_value
+
+    total_authorized = (
+        authorize_adjustment_value - total_canceled - total_pending_canceled
+    )
+
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        authorized_value=total_authorized,
+        canceled_value=total_canceled,
+        cancel_pending_value=total_pending_canceled,
+    )
+
+
+def test_event_multiple_events_with_charge_and_refund(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+
+    charged_value = Decimal("250.00")
+
+    refunded_value = Decimal("11.00")
+    refund_pending_value = Decimal("15")
+    ongoing_refund_pending_value = Decimal("3")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "charge",
+            "refund",
+            "refund",
+            "ongoing_refund_pending_value",
+        ],
+        types=[
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.REFUND_SUCCESS,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            charged_value,
+            refunded_value,
+            refund_pending_value,
+            ongoing_refund_pending_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    total_refuned = refunded_value
+    total_pending_refund = ongoing_refund_pending_value
+
+    total_charged = charged_value - total_refuned - total_pending_refund
+
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        charged_value=total_charged,
+        refunded_value=total_refuned,
+        refund_pending_value=total_pending_refund,
+    )
+
+
+def test_event_multiple_events_with_charge_and_failure_refund(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    transaction = transaction_item_generator()
+
+    charged_value = Decimal("250.00")
+
+    refunded_value = Decimal("11.00")
+    refund_pending_value = Decimal("15")
+    ongoing_refund_pending_value = Decimal("3")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "charge",
+            "refund",
+            "refund",
+            "ongoing_refund_pending_value",
+        ],
+        types=[
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            charged_value,
+            refund_pending_value,
+            refunded_value,
+            ongoing_refund_pending_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+    total_refuned = Decimal(0)
+    total_pending_refund = ongoing_refund_pending_value
+
+    total_charged = charged_value - total_refuned - total_pending_refund
+
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        charged_value=total_charged,
+        refunded_value=total_refuned,
+        refund_pending_value=total_pending_refund,
+    )
+
+
+def test_event_multiple_events_and_transaction_with_amounts(
+    transaction_item_generator, transaction_events_generator
+):
+    # given
+    currently_authorized = Decimal("30")
+    currently_charged = Decimal("200")
+    transaction = transaction_item_generator(
+        authorized_value=currently_authorized,
+        charged_value=currently_charged,
+    )
+    charged_value = Decimal("20.00")
+
+    refunded_value = Decimal("11.00")
+    refund_pending_value = Decimal("15")
+    ongoing_refund_pending_value = Decimal("3")
+
+    transaction_events_generator(
+        transaction=transaction,
+        psp_references=[
+            "charge",
+            "refund",
+            "refund",
+            "ongoing_refund_pending_value",
+        ],
+        types=[
+            TransactionEventType.CHARGE_SUCCESS,
+            TransactionEventType.REFUND_REQUEST,
+            TransactionEventType.REFUND_FAILURE,
+            TransactionEventType.REFUND_REQUEST,
+        ],
+        amounts=[
+            charged_value,
+            refund_pending_value,
+            refunded_value,
+            ongoing_refund_pending_value,
+        ],
+    )
+
+    # when
+    recalculate_transaction_amounts(transaction)
+
+    # then
+
+    total_refuned = Decimal(0)
+    total_pending_refund = ongoing_refund_pending_value
+
+    total_charged = max(
+        (currently_charged + charged_value - total_refuned - total_pending_refund),
+        Decimal("0"),
+    )
+
+    transaction.refresh_from_db()
+
+    _assert_amounts(
+        transaction,
+        authorized_value=currently_authorized - charged_value,
+        charged_value=total_charged,
+        refunded_value=total_refuned,
+        refund_pending_value=total_pending_refund,
     )
 
 

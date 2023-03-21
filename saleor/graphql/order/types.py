@@ -189,22 +189,6 @@ def get_payment_status_for_order(order):
     return status
 
 
-def get_total_charged(root: models.Order, info):
-    def _resolve_total_charged(transactions):
-        if transactions:
-            charged_money = prices.Money(Decimal(0), root.currency)
-            for transaction in transactions:
-                charged_money += transaction.amount_charged
-            return quantize_price(charged_money, root.currency)
-        return root.total_charged
-
-    return (
-        TransactionItemsByOrderIDLoader(info.context)
-        .load(root.id)
-        .then(_resolve_total_charged)
-    )
-
-
 class OrderGrantedRefund(ModelObjectType):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True, description="Time of creation.")
@@ -1562,11 +1546,11 @@ class Order(ModelObjectType[models.Order]):
 
     @staticmethod
     def resolve_total_captured(root: models.Order, info):
-        return get_total_charged(root, info)
+        return root.total_charged
 
     @staticmethod
     def resolve_total_charged(root: models.Order, info):
-        return get_total_charged(root, info)
+        return root.total_charged
 
     @staticmethod
     def resolve_total_balance(root: models.Order, info):
@@ -1580,18 +1564,14 @@ class Order(ModelObjectType[models.Order]):
                     zero_money(root.currency),
                 )
                 total_charged = prices.Money(Decimal(0), root.currency)
-                total_refunded = prices.Money(Decimal(0), root.currency)
 
                 for transaction in transactions:
                     total_charged += transaction.amount_charged
                     total_charged += transaction.amount_charge_pending
-                    total_refunded += transaction.amount_refunded
-                    total_refunded += transaction.amount_refund_pending
-                charged_refunded_difference = total_charged - total_refunded
                 order_granted_refunds_difference = (
                     root.total.gross - total_granted_refund
                 )
-                return charged_refunded_difference - order_granted_refunds_difference
+                return total_charged - order_granted_refunds_difference
 
         granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
         transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
@@ -1679,30 +1659,6 @@ class Order(ModelObjectType[models.Order]):
         return Promise.all([transactions, payments, fulfillments]).then(
             _resolve_payment_status
         )
-
-    @staticmethod
-    def resolve_authorize_status(root: models.Order, info):
-        total_covered = quantize_price(
-            root.total_authorized_amount + root.total_charged_amount, root.currency
-        )
-        total_gross = quantize_price(root.total_gross_amount, root.currency)
-        if total_covered == 0:
-            return OrderAuthorizeStatusEnum.NONE
-        if total_covered >= total_gross:
-            return OrderAuthorizeStatusEnum.FULL
-        return OrderAuthorizeStatusEnum.PARTIAL
-
-    @staticmethod
-    def resolve_charge_status(root: models.Order, info):
-        total_charged = quantize_price(root.total_charged_amount, root.currency)
-        total_gross = quantize_price(root.total_gross_amount, root.currency)
-        if total_charged <= 0:
-            return OrderChargeStatusEnum.NONE
-        if total_charged < total_gross:
-            return OrderChargeStatusEnum.PARTIAL
-        if total_charged == total_gross:
-            return OrderChargeStatusEnum.FULL
-        return OrderChargeStatusEnum.OVERCHARGED
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):

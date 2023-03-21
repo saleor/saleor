@@ -1,100 +1,29 @@
-from decimal import Decimal
-
 from django.db import migrations
+from django.apps import apps as registry
+from django.db.models.signals import post_migrate
+
+from .tasks.saleor3_12 import (
+    create_event_for_authorized,
+    create_event_for_canceled,
+    create_event_for_charged,
+    create_event_for_refunded,
+)
 
 
 def create_transaction_events(apps, schema_editor):
-    TransactionItem = apps.get_model("payment", "TransactionItem")
-    TransactionEvent = apps.get_model("payment", "TransactionEvent")
-    create_event_for_authorized(TransactionItem, TransactionEvent)
-    create_event_for_charged(TransactionItem, TransactionEvent)
-    create_event_for_refunded(TransactionItem, TransactionEvent)
-    create_event_for_canceled(TransactionItem, TransactionEvent)
+    def on_migrations_complete(sender=None, **kwargs):
+        create_event_for_authorized.delay()
+        create_event_for_canceled.delay()
+        create_event_for_charged.delay()
+        create_event_for_refunded.delay()
 
-
-def create_event_for_authorized(TransactionItem, TransactionEvent):
-    transaction_events = []
-    authorized_transactions = TransactionItem.objects.exclude(
-        authorized_value=Decimal(0)
-    ).values_list("id", "authorized_value", "currency")
-    for pk, amount, currency in authorized_transactions:
-        transaction_events.append(
-            TransactionEvent(
-                transaction_id=pk,
-                type="authorization_success",
-                amount_value=amount,
-                currency=currency,
-                include_in_calculations=True,
-                message="Manual adjustment of the transaction.",
-            )
-        )
-    if transaction_events:
-        TransactionEvent.objects.bulk_create(transaction_events)
-
-
-def create_event_for_charged(TransactionItem, TransactionEvent):
-    transaction_events = []
-    charged_transactions = TransactionItem.objects.exclude(
-        charged_value=Decimal(0)
-    ).values_list("id", "charged_value", "currency")
-    for pk, amount, currency in charged_transactions:
-        transaction_events.append(
-            TransactionEvent(
-                transaction_id=pk,
-                type="charge_success",
-                amount_value=amount,
-                currency=currency,
-                include_in_calculations=True,
-                message="Manual adjustment of the transaction.",
-            )
-        )
-    if transaction_events:
-        TransactionEvent.objects.bulk_create(transaction_events)
-
-
-def create_event_for_refunded(TransactionItem, TransactionEvent):
-    transaction_events = []
-    refunded_transactions = TransactionItem.objects.exclude(
-        refunded_value=Decimal(0)
-    ).values_list("id", "refunded_value", "currency")
-    for pk, amount, currency in refunded_transactions:
-        transaction_events.append(
-            TransactionEvent(
-                transaction_id=pk,
-                type="refund_success",
-                amount_value=amount,
-                currency=currency,
-                include_in_calculations=True,
-                message="Manual adjustment of the transaction.",
-            )
-        )
-    if transaction_events:
-        TransactionEvent.objects.bulk_create(transaction_events)
-
-
-def create_event_for_canceled(TransactionItem, TransactionEvent):
-    transaction_events = []
-    canceled_transactions = TransactionItem.objects.exclude(
-        canceled_value=Decimal(0)
-    ).values_list("id", "canceled_value", "currency")
-    for pk, amount, currency in canceled_transactions:
-        transaction_events.append(
-            TransactionEvent(
-                transaction_id=pk,
-                type="cancel_success",
-                amount_value=amount,
-                currency=currency,
-                include_in_calculations=True,
-                message="Manual adjustment of the transaction.",
-            )
-        )
-    if transaction_events:
-        TransactionEvent.objects.bulk_create(transaction_events)
+    sender = registry.get_app_config("payment")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("payment", "0040_auto_20220922_1146"),
+        ("payment", "0040_migrate_renamed_fields"),
     ]
 
     operations = [

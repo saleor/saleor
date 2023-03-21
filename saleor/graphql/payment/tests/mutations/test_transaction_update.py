@@ -11,6 +11,7 @@ from .....order import OrderEvents
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
+from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import TransactionActionEnum, TransactionEventStatusEnum
@@ -434,14 +435,20 @@ def test_transaction_update_amounts_by_app(
     app,
 ):
     # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    current_refunded_value = Decimal("3")
+    current_canceled_value = Decimal("4")
+
     transaction = transaction_item_generator(
         order_id=order.pk,
         app=app,
-        authorized_value=Decimal("1"),
-        charged_value=Decimal("2"),
-        canceled_value=Decimal("3"),
-        refunded_value=Decimal("4"),
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+        canceled_value=current_canceled_value,
+        refunded_value=current_refunded_value,
     )
+
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
@@ -458,6 +465,29 @@ def test_transaction_update_amounts_by_app(
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data[response_field]["amount"] == value
     assert getattr(transaction, db_field_name) == value
+    provided_amounts = {
+        "authorized_value": current_authorized_value,
+        "charged_value": current_charged_value,
+        "refunded_value": current_refunded_value,
+        "canceled_value": current_canceled_value,
+        "authorize_pending_value": Decimal(0),
+        "charge_pending_value": Decimal(0),
+        "refund_pending_value": Decimal(0),
+        "cancel_pending_value": Decimal(0),
+    }
+    provided_amounts[db_field_name] = value
+    assert sum(
+        [
+            transaction.authorized_value,
+            transaction.charged_value,
+            transaction.refunded_value,
+            transaction.canceled_value,
+            transaction.authorize_pending_value,
+            transaction.charge_pending_value,
+            transaction.refund_pending_value,
+            transaction.cancel_pending_value,
+        ]
+    ) == sum(provided_amounts.values())
 
 
 def test_transaction_update_for_order_increases_order_total_authorized_by_app(
@@ -2086,8 +2116,8 @@ def test_transaction_update_creates_calculation_event(
         canceled_value=current_canceled_value,
         refunded_value=current_refunded_value,
     )
-    authorized_value = Decimal("12")
-    charged_value = Decimal("13")
+    authorized_value = Decimal("20")
+    charged_value = Decimal("17")
     canceled_value = Decimal("14")
     refunded_value = Decimal("15")
 
@@ -2158,6 +2188,299 @@ def test_transaction_update_creates_calculation_event(
         amount_value=canceled_value - current_canceled_value,
     ).first()
     assert cancel_event
+
+
+@pytest.mark.parametrize(
+    "field_name, response_field, db_field_name, value, current_authorized_value, "
+    "current_charged_value, current_canceled_value, current_refunded_value,",
+    [
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("12"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("12"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+        ),
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("12"),
+            Decimal("0"),
+            Decimal("3"),
+            Decimal("1"),
+            Decimal("0"),
+        ),
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("12"),
+            Decimal("100"),
+            Decimal("3"),
+            Decimal("1"),
+            Decimal("0"),
+        ),
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("0"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountAuthorized",
+            "authorizedAmount",
+            "authorized_value",
+            Decimal("1"),
+            Decimal("3"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCharged",
+            "chargedAmount",
+            "charged_value",
+            Decimal("13"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCharged",
+            "chargedAmount",
+            "charged_value",
+            Decimal("13"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+        ),
+        (
+            "amountCharged",
+            "chargedAmount",
+            "charged_value",
+            Decimal("13"),
+            Decimal("0"),
+            Decimal("200"),
+            Decimal("0"),
+            Decimal("0"),
+        ),
+        (
+            "amountCharged",
+            "chargedAmount",
+            "charged_value",
+            Decimal("0"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("1"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("14"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("14"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("14"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("100"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("0"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountCanceled",
+            "canceledAmount",
+            "canceled_value",
+            Decimal("1"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountVoided",
+            "voidedAmount",
+            "canceled_value",
+            Decimal("14"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountRefunded",
+            "refundedAmount",
+            "refunded_value",
+            Decimal("15"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountRefunded",
+            "refundedAmount",
+            "refunded_value",
+            Decimal("15"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+        ),
+        (
+            "amountRefunded",
+            "refundedAmount",
+            "refunded_value",
+            Decimal("15"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("0"),
+            Decimal("100"),
+        ),
+        (
+            "amountRefunded",
+            "refundedAmount",
+            "refunded_value",
+            Decimal("0"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+        (
+            "amountRefunded",
+            "refundedAmount",
+            "refunded_value",
+            Decimal("1"),
+            Decimal("1"),
+            Decimal("2"),
+            Decimal("3"),
+            Decimal("4"),
+        ),
+    ],
+)
+def test_transaction_update_amounts_are_correct(
+    field_name,
+    response_field,
+    db_field_name,
+    value,
+    current_authorized_value,
+    current_charged_value,
+    current_canceled_value,
+    current_refunded_value,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    order,
+    app,
+):
+    # given
+    transaction = transaction_item_generator(
+        order_id=order.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+        canceled_value=current_canceled_value,
+        refunded_value=current_refunded_value,
+    )
+    recalculate_transaction_amounts(transaction)
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {field_name: {"amount": value, "currency": "USD"}},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data[response_field]["amount"] == value
+    assert getattr(transaction, db_field_name) == value
+    provided_amounts = {
+        "authorized_value": current_authorized_value,
+        "charged_value": current_charged_value,
+        "refunded_value": current_refunded_value,
+        "canceled_value": current_canceled_value,
+        "authorize_pending_value": Decimal(0),
+        "charge_pending_value": Decimal(0),
+        "refund_pending_value": Decimal(0),
+        "cancel_pending_value": Decimal(0),
+    }
+    provided_amounts[db_field_name] = value
+    assert sum(
+        [
+            transaction.authorized_value,
+            transaction.charged_value,
+            transaction.refunded_value,
+            transaction.canceled_value,
+            transaction.authorize_pending_value,
+            transaction.charge_pending_value,
+            transaction.refund_pending_value,
+            transaction.cancel_pending_value,
+        ]
+    ) == sum(provided_amounts.values())
 
 
 def test_transaction_create_for_checkout_updates_payment_statuses(

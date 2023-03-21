@@ -4910,9 +4910,11 @@ type OrderSettings {
   automaticallyFulfillNonShippableGiftCard: Boolean!
 
   """
-  Determine what strategy will be used to mark the order as paid. Based on the choosen option the proper object will be created and attached to the order, when order is manualy marked as paid.
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10577,16 +10579,17 @@ enum PaymentChargeStatusEnum {
 Determine a current authorize status for order.
 
     We treat the order as fully authorized when the sum of authorized and charged funds
-    cover the order.total.
+    cover the `order.total`-`order.totalGrantedRefund`.
     We treat the order as partially authorized when the sum of authorized and charged
-    funds covers only part of the order.total
+    funds covers only part of the `order.total`-`order.totalGrantedRefund`.
     We treat the order as not authorized when the sum of authorized and charged funds is
     0.
 
     NONE - the funds are not authorized
-    PARTIAL - the funds that are authorized or charged don't cover fully the order's
-    total
-    FULL - the funds that are authorized or charged fully cover the order's total
+    PARTIAL - the funds that are authorized and charged don't cover fully the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are authorized and charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
 """
 enum OrderAuthorizeStatusEnum {
   NONE
@@ -10597,15 +10600,22 @@ enum OrderAuthorizeStatusEnum {
 """
 Determine the current charge status for the order.
 
-    We treat the order as overcharged when the charged amount is bigger that order.total
-    We treat the order as fully charged when the charged amount is equal to order.total.
-    We treat the order as partially charged when the charged amount covers only part of
-    the order.total
+    An order is considered overcharged when the sum of the
+    transactionItem's charge amounts exceeds the value of
+    `order.total` - `order.totalGrantedRefund`.
+    If the sum of the transactionItem's charge amounts equals
+    `order.total` - `order.totalGrantedRefund`, we consider the order to be fully
+    charged.
+    If the sum of the transactionItem's charge amounts covers a part of the
+    `order.total` - `order.totalGrantedRefund`, we treat the order as partially charged.
 
     NONE - the funds are not charged.
-    PARTIAL - the funds that are charged don't cover the order's total
-    FULL - the funds that are charged fully cover the order's total
-    OVERCHARGED - the charged funds are bigger than order's total
+    PARTIAL - the funds that are charged don't cover the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
+    OVERCHARGED - the charged funds are bigger than the
+    `order.total`-`order.totalGrantedRefund`
 """
 enum OrderChargeStatusEnum {
   NONE
@@ -23871,9 +23881,11 @@ input OrderSettingsInput {
   automaticallyFulfillNonShippableGiftCard: Boolean
 
   """
-  Determine what strategy will be used to mark the order as paid. Based on the choosen option the proper object will be created and attached to the order, when order is manualy marked as paid.
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """

@@ -341,7 +341,9 @@ def test_mark_as_paid_with_transaction(admin_user, draft_order):
     assert draft_order.charge_status == OrderChargeStatus.FULL
     assert draft_order.total_charged.amount == transaction.charged_value
 
-    transaction_event = transaction.events.get()
+    transaction_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
     assert transaction_event.amount_value == draft_order.total.gross.amount
     assert transaction_event.type == TransactionEventType.CHARGE_SUCCESS
 

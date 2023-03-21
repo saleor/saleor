@@ -104,7 +104,6 @@ All notable, unreleased changes to this project will be documented in this file.
     - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
     - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
     - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
-    - When calling `transactionUpdate` mutation, the amounts from the previous state should not be reduced.
 
 ### GraphQL API
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ

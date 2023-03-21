@@ -187,10 +187,11 @@ class OrderSettings(ObjectType):
         required=True,
         description=(
             "Determine what strategy will be used to mark the order as paid. "
-            "Based on the choosen option the proper object will be created "
-            "and attached to the order, when order is manualy marked as paid."
+            "Based on the chosen option, the proper object will be created "
+            "and attached to the order when it's manually marked as paid."
             "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
+            + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
     )
