@@ -12,7 +12,7 @@ from .....order import OrderEvents, OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.interface import OrderTaxedPricesData
 from ....discount.enums import DiscountValueTypeEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_DISCOUNT_ADD = """
 mutation OrderDiscountAdd($orderId: ID!, $input: OrderDiscountCommonInput!){
@@ -514,7 +514,7 @@ def test_update_order_line_discount(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
     order = draft_order_with_fixed_discount_order
@@ -543,7 +543,7 @@ def test_update_order_line_discount(
             "reason": reason,
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
@@ -582,12 +582,99 @@ def test_update_order_line_discount(
     assert discount_data["amount_value"] == str(unit_discount.amount)
 
 
+def test_update_order_line_discount_by_user_no_channel_access(
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    order.channel = channel_PLN
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "channel"])
+    line_to_discount = order.lines.first()
+
+    value = Decimal("5")
+    reason = "New reason for unit discount"
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": value,
+            "reason": reason,
+        },
+    }
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_update_order_line_discount_by_app(
+    draft_order_with_fixed_discount_order,
+    app_api_client,
+    permission_manage_orders,
+    channel_PLN,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    order.channel = channel_PLN
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "channel"])
+    line_to_discount = order.lines.first()
+
+    value = Decimal("5")
+    reason = "New reason for unit discount"
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line_to_discount.pk),
+        "input": {
+            "valueType": DiscountValueTypeEnum.FIXED.name,
+            "value": value,
+            "reason": reason,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_LINE_DISCOUNT_UPDATE, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountUpdate"]
+
+    line_to_discount.refresh_from_db()
+
+    errors = data["errors"]
+    assert not errors
+
+    unit_discount = line_to_discount.unit_discount
+
+    event = order.events.get()
+    assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_UPDATED
+    parameters = event.parameters
+    lines = parameters.get("lines", {})
+    assert len(lines) == 1
+
+    line_data = lines[0]
+    assert line_data.get("line_pk") == str(line_to_discount.pk)
+    discount_data = line_data.get("discount")
+
+    assert discount_data["value"] == str(value)
+    assert discount_data["value_type"] == DiscountValueTypeEnum.FIXED.value
+    assert discount_data["amount_value"] == str(unit_discount.amount)
+
+
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_update_order_line_discount_line_with_discount(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
     order = draft_order_with_fixed_discount_order
@@ -637,7 +724,7 @@ def test_update_order_line_discount_line_with_discount(
         },
     }
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
@@ -681,7 +768,9 @@ def test_update_order_line_discount_line_with_discount(
 
 
 def test_update_order_line_discount_order_is_not_draft(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_manage_orders,
 ):
     draft_order_with_fixed_discount_order.status = OrderStatus.UNFULFILLED
     draft_order_with_fixed_discount_order.save()
@@ -696,7 +785,7 @@ def test_update_order_line_discount_order_is_not_draft(
             "reason": "New reason for unit discount",
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_UPDATE, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountUpdate"]
@@ -738,7 +827,7 @@ def test_delete_discount_from_order_line(
     status,
     draft_order_with_fixed_discount_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     order = draft_order_with_fixed_discount_order
     order.status = status
@@ -767,7 +856,7 @@ def test_delete_discount_from_order_line(
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountRemove"]
@@ -793,9 +882,130 @@ def test_delete_discount_from_order_line(
     assert line_data.get("line_pk") == str(line.pk)
 
 
-def test_delete_order_line_discount_order_is_not_draft(
-    draft_order_with_fixed_discount_order, staff_api_client, permission_manage_orders
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
+def test_delete_discount_from_order_line_by_user_no_channel_access(
+    mocked_calculate_order_line_total,
+    mocked_calculate_order_line_unit,
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
 ):
+    # given
+    order = draft_order_with_fixed_discount_order
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order.channel = channel_PLN
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "channel"])
+    line = order.lines.first()
+
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price, line.undiscounted_base_unit_price
+    )
+    line_undiscounted_total_price = line_undiscounted_price * line.quantity
+
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+    mocked_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_total_price,
+        price_with_discounts=line_undiscounted_total_price,
+    )
+
+    line.unit_discount_amount = Decimal("2.5")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.unit_discount_value = Decimal("2.5")
+    line.save()
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
+@patch("saleor.plugins.manager.PluginsManager.calculate_order_line_total")
+def test_delete_discount_from_order_line_by_app(
+    mocked_calculate_order_line_total,
+    mocked_calculate_order_line_unit,
+    draft_order_with_fixed_discount_order,
+    app_api_client,
+    permission_manage_orders,
+    channel_PLN,
+):
+    # given
+    order = draft_order_with_fixed_discount_order
+    order.channel = channel_PLN
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "channel"])
+    line = order.lines.first()
+
+    line_undiscounted_price = TaxedMoney(
+        line.undiscounted_base_unit_price, line.undiscounted_base_unit_price
+    )
+    line_undiscounted_total_price = line_undiscounted_price * line.quantity
+
+    mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_price,
+        price_with_discounts=line_undiscounted_price,
+    )
+    mocked_calculate_order_line_total.return_value = OrderTaxedPricesData(
+        undiscounted_price=line_undiscounted_total_price,
+        price_with_discounts=line_undiscounted_total_price,
+    )
+
+    line.unit_discount_amount = Decimal("2.5")
+    line.unit_discount_type = DiscountValueType.FIXED
+    line.unit_discount_value = Decimal("2.5")
+    line.save()
+
+    variables = {
+        "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_LINE_DISCOUNT_REMOVE, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineDiscountRemove"]
+
+    errors = data["errors"]
+    assert len(errors) == 0
+
+    line.refresh_from_db()
+
+    assert line.unit_price == line_undiscounted_price
+    assert line.total_price == line_undiscounted_total_price
+    unit_discount = line.unit_discount
+    currency = order.currency
+    assert unit_discount == Money(Decimal(0), currency=currency)
+
+    event = order.events.get()
+    assert event.type == OrderEvents.ORDER_LINE_DISCOUNT_REMOVED
+    parameters = event.parameters
+    lines = parameters.get("lines", {})
+    assert len(lines) == 1
+
+    line_data = lines[0]
+    assert line_data.get("line_pk") == str(line.pk)
+
+
+def test_delete_order_line_discount_order_is_not_draft(
+    draft_order_with_fixed_discount_order,
+    staff_api_client,
+    permission_group_manage_orders,
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     draft_order_with_fixed_discount_order.status = OrderStatus.UNFULFILLED
     draft_order_with_fixed_discount_order.save()
 
@@ -809,7 +1019,6 @@ def test_delete_order_line_discount_order_is_not_draft(
     variables = {
         "orderLineId": graphene.Node.to_global_id("OrderLine", line.pk),
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDER_LINE_DISCOUNT_REMOVE, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineDiscountRemove"]
