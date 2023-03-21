@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 def calculate_base_line_unit_price(
     line_info: "CheckoutLineInfo",
     channel: "Channel",
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Calculate line unit price including discounts and vouchers.
 

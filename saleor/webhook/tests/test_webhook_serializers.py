@@ -158,7 +158,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
             line_info, checkout_info.channel
         ).amount
         unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info, checkout_info.channel, discounts_info
+            line_info, checkout_info.channel
         ).amount
 
         assert data == {

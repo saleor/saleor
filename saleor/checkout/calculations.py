@@ -492,7 +492,7 @@ def _get_checkout_base_prices(
         quantity = line.quantity
 
         unit_price = base_calculations.calculate_base_line_unit_price(
-            line_info, checkout_info.channel, discounts
+            line_info, checkout_info.channel
         )
         total_price = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info, lines, line_info, discounts, unit_price * quantity

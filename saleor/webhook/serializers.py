@@ -85,7 +85,7 @@ def serialize_checkout_lines_for_tax_calculation(
             "charge_taxes": charge_taxes,
             "unit_amount": quantize_price(
                 base_calculations.calculate_base_line_unit_price(
-                    line_info, channel, discounts
+                    line_info, channel
                 ).amount,
                 checkout_info.checkout.currency,
             ),

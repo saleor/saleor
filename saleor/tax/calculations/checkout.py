@@ -133,7 +133,6 @@ def _calculate_checkout_line_unit_price(
     unit_price = base_calculations.calculate_base_line_unit_price(
         checkout_line_info,
         channel,
-        discounts,
     )
     total_price = base_calculations.apply_checkout_discount_on_checkout_line(
         checkout_info,

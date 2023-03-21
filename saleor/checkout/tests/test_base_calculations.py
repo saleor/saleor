@@ -26,7 +26,7 @@ def test_calculate_base_line_unit_price(checkout_with_single_item):
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -53,7 +53,7 @@ def test_calculate_base_line_unit_price_with_custom_price(checkout_with_single_i
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -135,7 +135,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -177,7 +177,7 @@ def test_calculate_base_line_unit_price_with_fixed_voucher(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -216,7 +216,7 @@ def test_calculate_base_line_unit_price_with_fixed_voucher_custom_prices(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -249,7 +249,7 @@ def test_calculate_base_line_unit_price_with_percentage_voucher(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -290,7 +290,7 @@ def test_calculate_base_line_unit_price_with_percentage_voucher_custom_prices(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -327,7 +327,7 @@ def test_calculate_base_line_unit_price_with_discounts_apply_once_per_order(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -369,7 +369,7 @@ def test_calculate_base_line_unit_price_with_discounts_once_per_order_custom_pri
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
@@ -411,7 +411,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
 
     # when
     unit_price = calculate_base_line_unit_price(
-        checkout_line_info, checkout_with_single_item.channel, discounts=[discount_info]
+        checkout_line_info, checkout_with_single_item.channel
     )
 
     # then
