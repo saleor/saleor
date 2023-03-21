@@ -9,12 +9,13 @@ ___
 <!--   -->
 
 ### Acceptance Criteria 
-<!-- Conditions that a feature must satisfy to be approved by QA
-Examples:  
+<!-- Conditions that a feature must satisfy to be approved by QA 
 - Functional use case:
-  - Permissions: Object/Field must be fetched by authenticated app and staff user (with `MANAGE_ORDERS') 
-  - All `Checkout`, `Order` mutations should work with both new and old field (id, token) 
-  - Error should be handled according to new policy 'policy_name' 
+  - Permissions: As USER/APP with permision `XYZ' I should be able to 'action" 
+  - Webhooks: Webhook `name` event should be sent for every updated `instance name`
+  - Support for old versions: After updating, it is possible to retrieve data created in older (3.1, 3.5, 3.7) Saleor versions.
+  - Error handling: Should be handled according to 'policy_name' 
+  - Other use-cases: ID or externalReference can be used to identify object
 - Non-functional use case 
   - X objects can be updated in one mutation
 -->
@@ -36,13 +37,12 @@ Examples:
 
 
 ## 4. UML diagrams
-<!-- You can render UML diagrams using [Mermaid](https://mermaidjs.github.io/). For example, this will produce a sequence diagram: -->
+<!-- You can render UML diagrams using [Mermaid](https://mermaidjs.github.io/). -->
 ```mermaid
 ```
 
 ## 5. To Do list
-<!-- 
-Everything from developer perspective
+<!-- Everything from developer perspective
 e.g.: 
 - add models
 - migrations
@@ -55,7 +55,7 @@ e.g.:
 <!-- 
 Put here additional info of what it would be good to check along with new changes.
 e.g.: 
-- Check feature with all tax systems 
+- Check feature with tax systems 
 - Test with overrode prices
  -->
 - [ ] 
