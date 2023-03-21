@@ -32,7 +32,7 @@ class CustomerBulkResult(graphene.ObjectType):
     errors = NonNullList(
         CustomerBulkUpdateError,
         required=False,
-        description="List of errors occurred on update attempt.",
+        description="List of errors that occurred during the update attempt.",
     )
 
 
@@ -68,7 +68,6 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
@@ -317,18 +316,18 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             shipping_address_input = data.pop(SHIPPING_ADDRESS_FIELD, None)
             billing_address_input = data.pop(BILLING_ADDRESS_FIELD, None)
 
-            filter_customer = list(
+            filtered_customers = list(
                 filter(
                     cls._get_customer(customer_id, external_ref),
                     customers_list,
                 )
             )
-            if filter_customer:
+            if filtered_customers:
                 try:
                     shipping_address = None
                     billing_address = None
 
-                    old_instance = filter_customer[0]
+                    old_instance = filtered_customers[0]
                     new_instance = cls.construct_instance(copy(old_instance), data)
                     cls.clean_instance(info, new_instance)
 
@@ -378,8 +377,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     def save_customers(cls, instances_data_with_errors_list, manager):
         old_instances = []
         customers_to_update = []
-        address_to_create = []
-        address_to_update = []
+        addresses_to_create = []
+        addresses_to_update = []
 
         customer_instance_new_addresses_map: dict = defaultdict(list)
 
@@ -397,10 +396,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     shipping_address, "shipping", customer, save=False
                 )
                 if customer.default_shipping_address:
-                    address_to_update.append(shipping_address)
+                    addresses_to_update.append(shipping_address)
                 else:
                     customer.default_shipping_address = shipping_address
-                    address_to_create.append(shipping_address)
+                    addresses_to_create.append(shipping_address)
                     customer_instance_new_addresses_map[customer].append(
                         shipping_address
                     )
@@ -411,17 +410,17 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
 
                 if customer.default_billing_address:
-                    address_to_update.append(billing_address)
+                    addresses_to_update.append(billing_address)
                 else:
                     customer.default_billing_address = billing_address
-                    address_to_create.append(billing_address)
+                    addresses_to_create.append(billing_address)
                     customer_instance_new_addresses_map[customer].append(
                         shipping_address
                     )
 
-        models.Address.objects.bulk_create(address_to_create)
+        models.Address.objects.bulk_create(addresses_to_create)
         models.Address.objects.bulk_update(
-            address_to_update,
+            addresses_to_update,
             fields=[
                 "first_name",
                 "last_name",
@@ -551,7 +550,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
     @classmethod
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         index_error_map: dict = defaultdict(list)
 
         cleaned_inputs_map = cls.clean_customers(
@@ -562,7 +561,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             info, cleaned_inputs_map, index_error_map
         )
 
-        if any([True if error else False for error in index_error_map.values()]):
+        if any([bool(error) for error in index_error_map.values()]):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = cls.get_results(instances_data_with_errors_list, True)
                 return CustomerBulkUpdate(count=0, results=results)

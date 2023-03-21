@@ -16001,7 +16001,7 @@ type Mutation {
     customers: [CustomerBulkUpdateInput!]!
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
-    errorPolicy: ErrorPolicyEnum = reject_everything
+    errorPolicy: ErrorPolicyEnum
   ): CustomerBulkUpdate
 
   """
@@ -24204,7 +24204,7 @@ type CustomerBulkResult {
   """Customer data."""
   customer: User
 
-  """List of errors occurred on update attempt."""
+  """List of errors that occurred during the update attempt."""
   errors: [CustomerBulkUpdateError!]
 }
 

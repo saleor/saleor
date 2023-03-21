@@ -33,7 +33,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         count = len(instances)
         if not errors and count:
             clean_instance_ids = [instance.pk for instance in instances]
-            qs = models.User.objects.filter(pk__in=clean_instance_ids)
+            qs = models.User.objects.filter(pk__in=clean_instance_ids, is_staff=True)
             cls.bulk_action(info, qs, **data)
         else:
             count = 0

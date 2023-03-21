@@ -10,8 +10,11 @@ from ....tests.utils import get_graphql_content
 from ...tests.utils import convert_dict_keys_to_camel_case
 
 CUSTOMER_BULK_UPDATE_MUTATION = """
-    mutation CustomerBulkUpdate($customers: [CustomerBulkUpdateInput!]!){
-        customerBulkUpdate(customers: $customers){
+    mutation CustomerBulkUpdate(
+        $customers: [CustomerBulkUpdateInput!]!,
+        $errorPolicy: ErrorPolicyEnum
+    ){
+        customerBulkUpdate(customers: $customers, errorPolicy: $errorPolicy){
             results{
                 errors {
                     path
