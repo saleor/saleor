@@ -15,6 +15,9 @@ from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.prices import quantize_price
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
+from ...graphql.core.federation.entities import federated_entity
+from ...graphql.core.federation.resolvers import resolve_federation_references
+from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, calculations, models
@@ -867,6 +870,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         return resolve_metadata(root.tax_class_private_metadata)
 
 
+@federated_entity("id")
 class Order(ModelObjectType[models.Order]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
@@ -1827,6 +1831,24 @@ class Order(ModelObjectType[models.Order]):
         if root.checkout_token:
             return graphene.Node.to_global_id("Checkout", root.checkout_token)
         return None
+
+    @staticmethod
+    def __resolve_references(roots: List["Order"], info):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = has_one_of_permissions(
+            requestor, [OrderPermissions.MANAGE_ORDERS]
+        )
+
+        if requestor:
+            qs = resolve_orders(
+                info,
+                requestor_has_access_to_all=requestor_has_access_to_all,
+                requesting_user=info.context.user,
+            )
+        else:
+            qs = models.Order.objects.none()
+
+        return resolve_federation_references(Order, roots, qs)
 
 
 class OrderCountableConnection(CountableConnection):
