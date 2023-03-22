@@ -600,18 +600,19 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def check_channel_permissions(
-        cls, info: ResolveInfo, object_channel_id: Union[UUID, int]
+        cls, info: ResolveInfo, channel_ids: Iterable[Union[UUID, int]]
     ):
         requestor = get_user_or_app_from_context(info.context)
         # App has access to all channels
         if isinstance(requestor, App):
             return
         accessible_channels = get_user_accessible_channels(info, requestor)
-        if str(object_channel_id) not in [
-            str(channel.id) for channel in accessible_channels
-        ]:
+        accessible_channel_ids = {str(channel.id) for channel in accessible_channels}
+        channel_ids = {str(channel_id) for channel_id in channel_ids}
+        invalid_channel_ids = channel_ids - accessible_channel_ids
+        if invalid_channel_ids:
             raise PermissionDenied(
-                message="You don't have access to the object's channel."
+                message="You don't have access to some objects' channel."
             )
 
 
@@ -847,7 +848,7 @@ class ModelWithRestrictedChannelAccessMutation(ModelMutation):
         """
         instance = cls.get_instance(info, **data)
         channel_id = cls.get_instance_channel_id(instance, **data)
-        cls.check_channel_permissions(info, channel_id)
+        cls.check_channel_permissions(info, [channel_id])
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         metadata_list = cleaned_input.pop("metadata", None)
@@ -862,7 +863,7 @@ class ModelWithRestrictedChannelAccessMutation(ModelMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def get_instance_channel_id(cls, instance, **data):
+    def get_instance_channel_id(cls, instance, **data) -> Union[UUID, int]:
         """Retrieve the instance channel id for channel permission accessible check."""
         raise NotImplementedError()
 
@@ -908,7 +909,7 @@ class ModelDeleteWithRestrictedChannelAccessMutation(ModelDeleteMutation):
         """Perform a mutation that deletes a model instance."""
         instance = cls.get_instance(info, external_reference=external_reference, id=id)
         channel_id = cls.get_instance_channel_id(instance)
-        cls.check_channel_permissions(info, channel_id)
+        cls.check_channel_permissions(info, [channel_id])
 
         cls.clean_instance(info, instance)
         db_id = instance.id
@@ -921,7 +922,7 @@ class ModelDeleteWithRestrictedChannelAccessMutation(ModelDeleteMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def get_instance_channel_id(cls, instance):
+    def get_instance_channel_id(cls, instance) -> Union[UUID, int]:
         """Retrieve the instance channel id for channel permission accessible check."""
         raise NotImplementedError()
 
@@ -1052,6 +1053,73 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, _info: ResolveInfo, queryset, /):
         queryset.delete()
+
+
+class BaseBulkWithRestrictedChannelAccessMutation(ModelDeleteMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls, _root, info: ResolveInfo, /, *, ids, **data
+    ) -> Tuple[int, Optional[ValidationError]]:
+        """Perform a mutation that deletes a list of model instances."""
+        clean_instance_ids = []
+        errors_dict: Dict[str, List[ValidationError]] = {}
+        # Allow to pass empty list for dummy mutation
+        if not ids:
+            return 0, None
+        instance_model = cls._meta.model
+        model_type = cls.get_type_for_model()
+        if not model_type:
+            raise ImproperlyConfigured(
+                f"GraphQL type for model {cls._meta.model.__name__} could not be "
+                f"resolved for {cls.__name__}"
+            )
+
+        try:
+            instances = cls.get_nodes_or_error(
+                ids, "id", model_type, schema=info.schema
+            )
+        except ValidationError as error:
+            return 0, error
+
+        channel_ids = cls.get_channel_ids(instances)
+        cls.check_channel_permissions(info, channel_ids)
+
+        for instance, node_id in zip(instances, ids):
+            instance_errors = []
+
+            # catch individual validation errors to raise them later as
+            # a single error
+            try:
+                cls.clean_instance(info, instance)
+            except ValidationError as e:
+                msg = ". ".join(e.messages)
+                instance_errors.append(msg)
+
+            if not instance_errors:
+                clean_instance_ids.append(instance.pk)
+            else:
+                instance_errors_msg = ". ".join(instance_errors)
+                ValidationError({node_id: instance_errors_msg}).update_error_dict(
+                    errors_dict
+                )
+
+        if errors_dict:
+            errors = ValidationError(errors_dict)
+        else:
+            errors = None
+        count = len(clean_instance_ids)
+        if count:
+            qs = instance_model.objects.filter(pk__in=clean_instance_ids)
+            cls.bulk_action(info, qs, **data)
+        return count, errors
+
+    @classmethod
+    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+        """Get the instances channel ids for channel permission accessible check."""
+        raise NotImplementedError()
 
 
 class FileUpload(BaseMutation):

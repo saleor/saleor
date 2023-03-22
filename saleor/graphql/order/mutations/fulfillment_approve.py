@@ -75,7 +75,7 @@ class FulfillmentApprove(BaseMutation):
         user = cast(User, user)
         fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         order = fulfillment.order
-        cls.check_channel_permissions(info, order.channel_id)
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_input(info, fulfillment)
 
         manager = get_plugin_manager_promise(info.context).get()

@@ -50,7 +50,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
 
         order = fulfillment.order
-        cls.check_channel_permissions(info, order.channel_id)
+        cls.check_channel_permissions(info, [order.channel_id])
 
         tracking_number = input.get("tracking_number") or ""
         fulfillment.tracking_number = tracking_number
