@@ -206,12 +206,10 @@ def validate_voucher_for_checkout(
     voucher: "Voucher",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Optional[Iterable[DiscountInfo]],
 ):
     from ..checkout import base_calculations
     from ..checkout.utils import calculate_checkout_quantity
 
-    # TODO Owczar: drop discounts
     quantity = calculate_checkout_quantity(lines)
     subtotal = base_calculations.base_checkout_subtotal(
         lines,

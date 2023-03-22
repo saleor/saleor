@@ -489,7 +489,7 @@ def get_voucher_discount_for_checkout(
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    validate_voucher_for_checkout(manager, voucher, checkout_info, lines, discounts)
+    validate_voucher_for_checkout(manager, voucher, checkout_info, lines)
     if voucher.type == VoucherType.ENTIRE_ORDER:
         if voucher.apply_once_per_order:
             prices = get_base_lines_prices(checkout_info, lines)
