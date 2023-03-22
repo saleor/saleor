@@ -516,7 +516,6 @@ def test_calculate_checkout_line_unit_price(checkout_with_item, shipping_zone, a
         lines,
         checkout_line_info,
         channel,
-        [],
         rate,
         prices_entered_with_tax,
     )
@@ -566,7 +565,6 @@ def test_calculate_checkout_line_unit_price_with_voucher_one_line(
         lines,
         checkout_line_info,
         channel,
-        [],
         rate,
         prices_entered_with_tax,
     )
@@ -633,7 +631,6 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines(
         lines,
         checkout_line_info,
         channel,
-        [],
         rate,
         prices_entered_with_tax,
     )
@@ -710,7 +707,6 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines_last_lin
         lines,
         checkout_line_info,
         channel,
-        [],
         rate,
         prices_entered_with_tax,
     )
@@ -769,7 +765,6 @@ def test_calculate_checkout_line_unit_price_with_shipping_voucher(
         lines,
         checkout_line_info,
         channel,
-        [],
         rate,
         prices_entered_with_tax,
     )

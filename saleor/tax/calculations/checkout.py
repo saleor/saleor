@@ -112,7 +112,6 @@ def calculate_checkout_line_total(
         lines,
         checkout_line_info,
         checkout_info.channel,
-        discounts,
         tax_rate,
         prices_entered_with_tax,
     )
@@ -125,7 +124,6 @@ def _calculate_checkout_line_unit_price(
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
     channel: "Channel",
-    discounts: Iterable["DiscountInfo"],
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ):
