@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
         ),
         migrations.RunSQL(
             """
-            ALTER TABLE payment_transactionevent
-            ALTER COLUMN include_in_calculations
+            ALTER TABLE payment_transactionitem
+            ALTER COLUMN use_old_id
             SET DEFAULT true;
             """,
             migrations.RunSQL.noop,
