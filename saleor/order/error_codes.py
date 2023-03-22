@@ -53,6 +53,7 @@ class OrderBulkCreateErrorCode(Enum):
     INVALID = "invalid"
     NOT_FOUND = "not_found"
     BULK_LIMIT = "bulk_limit"
+    DUPLICATE_ITEM = "duplicate_item"
     TOO_MANY_IDENTIFIERS = "too_many_identifiers"
     FUTURE_DATE = "future_date"
     ORDER_LINE_ERROR = "order_line_error"

@@ -9,7 +9,14 @@ from django.utils import timezone
 from .....account.models import Address
 from .....order import OrderEvents, OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
-from .....order.models import Order, OrderEvent, OrderLine
+from .....order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    FulfillmentStatus,
+    Order,
+    OrderEvent,
+    OrderLine,
+)
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
@@ -153,6 +160,9 @@ ORDER_BULK_CREATE = """
                                 id
                             }
                         }
+                        trackingNumber
+                        fulfillmentOrder
+                        status
                     }
                 }
                 errors {
@@ -217,7 +227,6 @@ def order_bulk_input(
         "isShippingRequired": True,
         "isGiftCard": False,
         "quantity": 5,
-        "quantityFulfilled": 0,
         "totalPrice": {
             "gross": 120,
             "net": 100,
@@ -305,6 +314,8 @@ def test_order_bulk_create(
     order_lines_count = OrderLine.objects.count()
     order_events_count = OrderEvent.objects.count()
     address_count = Address.objects.count()
+    fulfillments_count = Fulfillment.objects.count()
+    fulfillment_lines_count = FulfillmentLine.objects.count()
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -379,56 +390,56 @@ def test_order_bulk_create(
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
 
-    line = order["lines"][0]
-    assert line["variant"]["id"] == graphene.Node.to_global_id(
+    order_line = order["lines"][0]
+    assert order_line["variant"]["id"] == graphene.Node.to_global_id(
         "ProductVariant", variant.id
     )
-    assert line["productName"] == "Product Name"
-    assert line["variantName"] == "Variant Name"
-    assert line["translatedProductName"] == "Nazwa Produktu"
-    assert line["translatedVariantName"] == "Nazwa Wariantu"
-    assert line["isShippingRequired"]
-    assert line["quantity"] == 5
-    assert line["quantityFulfilled"] == 0
-    assert line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
-    assert line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
-    assert line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
-    assert line["totalPrice"]["gross"]["amount"] == 120
-    assert line["totalPrice"]["net"]["amount"] == 100
-    assert line["taxClass"]["id"] == graphene.Node.to_global_id(
+    assert order_line["productName"] == "Product Name"
+    assert order_line["variantName"] == "Variant Name"
+    assert order_line["translatedProductName"] == "Nazwa Produktu"
+    assert order_line["translatedVariantName"] == "Nazwa Wariantu"
+    assert order_line["isShippingRequired"]
+    assert order_line["quantity"] == 5
+    assert order_line["quantityFulfilled"] == 0
+    assert order_line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert order_line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
+    assert order_line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert order_line["totalPrice"]["gross"]["amount"] == 120
+    assert order_line["totalPrice"]["net"]["amount"] == 100
+    assert order_line["taxClass"]["id"] == graphene.Node.to_global_id(
         "TaxClass", default_tax_class.id
     )
-    assert line["taxClassName"] == "Line Tax Class Name"
-    assert line["taxRate"] == 0.2
-    assert line["taxClassMetadata"][0]["key"] == "md key"
-    assert line["taxClassMetadata"][0]["value"] == "md value"
-    assert line["taxClassPrivateMetadata"][0]["key"] == "pmd key"
-    assert line["taxClassPrivateMetadata"][0]["value"] == "pmd value"
-    db_line = OrderLine.objects.get()
-    assert db_line.variant == variant
-    assert db_line.product_name == "Product Name"
-    assert db_line.variant_name == "Variant Name"
-    assert db_line.translated_product_name == "Nazwa Produktu"
-    assert db_line.translated_variant_name == "Nazwa Wariantu"
-    assert db_line.is_shipping_required
-    assert db_line.quantity == 5
-    assert db_line.quantity_fulfilled == 0
-    assert db_line.unit_price.gross.amount == Decimal(120 / 5)
-    assert db_line.unit_price.net.amount == Decimal(100 / 5)
-    assert db_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)
-    assert db_line.undiscounted_unit_price.net.amount == Decimal(100 / 5)
-    assert db_line.total_price.gross.amount == 120
-    assert db_line.total_price.net.amount == 100
-    assert db_line.undiscounted_total_price.gross.amount == 120
-    assert db_line.undiscounted_total_price.net.amount == 100
-    assert db_line.tax_class == default_tax_class
-    assert db_line.tax_class_name == "Line Tax Class Name"
-    assert db_line.tax_rate == Decimal("0.2")
-    assert db_line.tax_class_metadata["md key"] == "md value"
-    assert db_line.tax_class_private_metadata["pmd key"] == "pmd value"
-    assert db_line.currency == "PLN"
-    assert db_order.lines.first() == db_line
+    assert order_line["taxClassName"] == "Line Tax Class Name"
+    assert order_line["taxRate"] == 0.2
+    assert order_line["taxClassMetadata"][0]["key"] == "md key"
+    assert order_line["taxClassMetadata"][0]["value"] == "md value"
+    assert order_line["taxClassPrivateMetadata"][0]["key"] == "pmd key"
+    assert order_line["taxClassPrivateMetadata"][0]["value"] == "pmd value"
+    db_order_line = OrderLine.objects.get()
+    assert db_order_line.variant == variant
+    assert db_order_line.product_name == "Product Name"
+    assert db_order_line.variant_name == "Variant Name"
+    assert db_order_line.translated_product_name == "Nazwa Produktu"
+    assert db_order_line.translated_variant_name == "Nazwa Wariantu"
+    assert db_order_line.is_shipping_required
+    assert db_order_line.quantity == 5
+    assert db_order_line.quantity_fulfilled == 0
+    assert db_order_line.unit_price.gross.amount == Decimal(120 / 5)
+    assert db_order_line.unit_price.net.amount == Decimal(100 / 5)
+    assert db_order_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)
+    assert db_order_line.undiscounted_unit_price.net.amount == Decimal(100 / 5)
+    assert db_order_line.total_price.gross.amount == 120
+    assert db_order_line.total_price.net.amount == 100
+    assert db_order_line.undiscounted_total_price.gross.amount == 120
+    assert db_order_line.undiscounted_total_price.net.amount == 100
+    assert db_order_line.tax_class == default_tax_class
+    assert db_order_line.tax_class_name == "Line Tax Class Name"
+    assert db_order_line.tax_rate == Decimal("0.2")
+    assert db_order_line.tax_class_metadata["md key"] == "md value"
+    assert db_order_line.tax_class_private_metadata["pmd key"] == "pmd value"
+    assert db_order_line.currency == "PLN"
+    assert db_order.lines.first() == db_order_line
 
     assert order["billingAddress"]["postalCode"] == graphql_address_data["postalCode"]
     assert order["shippingAddress"]["postalCode"] == graphql_address_data["postalCode"]
@@ -446,10 +457,31 @@ def test_order_bulk_create(
     assert db_event.type == OrderEvents.NOTE_ADDED
     assert db_order.events.first() == db_event
 
+    fulfillment = order["fulfillments"][0]
+    assert fulfillment["trackingNumber"] == "abc-123"
+    assert fulfillment["fulfillmentOrder"] == 1
+    assert fulfillment["status"] == FulfillmentStatus.FULFILLED.upper()
+    db_fulfillment = Fulfillment.objects.get()
+    assert db_fulfillment.order_id == db_order.id
+    assert db_fulfillment.tracking_number == "abc-123"
+    assert db_fulfillment.fulfillment_order == 1
+    assert db_fulfillment.status == FulfillmentStatus.FULFILLED
+
+    fulfillment_line = fulfillment["lines"][0]
+    assert fulfillment_line["quantity"] == 5
+    assert fulfillment_line["orderLine"]["id"] == order_line["id"]
+    db_fulfillment_line = FulfillmentLine.objects.get()
+    assert db_fulfillment_line.quantity == 5
+    assert db_fulfillment_line.order_line_id == db_order_line.id
+    assert db_fulfillment_line.fulfillment_id == db_fulfillment.id
+    assert db_fulfillment.lines.all()[0].id == db_fulfillment_line.id
+
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert Address.objects.count() == address_count + 2
     assert OrderEvent.objects.count() == order_events_count + 1
+    assert Fulfillment.objects.count() == fulfillments_count + 1
+    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
 
 
 def test_order_bulk_create_multiple_orders(

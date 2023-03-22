@@ -22269,6 +22269,7 @@ enum OrderBulkCreateErrorCode {
   INVALID
   NOT_FOUND
   BULK_LIMIT
+  DUPLICATE_ITEM
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
   ORDER_LINE_ERROR
@@ -22419,9 +22420,6 @@ input OrderBulkCreateOrderLineInput {
 
   """Number of items in the order line"""
   quantity: Int!
-
-  """Number of items in the order line, which have been already fulfilled."""
-  quantityFulfilled: Int!
 
   """Price of the order line."""
   totalPrice: TaxedMoneyInput!

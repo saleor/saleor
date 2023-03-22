@@ -50,9 +50,21 @@ class OrderBulkError:
 
 
 @dataclass
+class OrderBulkStock:
+    quantity: int
+    warehouse: Warehouse
+
+
+@dataclass
+class OrderBulkFulfillmentLine:
+    line: FulfillmentLine
+    stocks: List[OrderBulkStock]
+
+
+@dataclass
 class OrderBulkFulfillment:
     fulfillment: Fulfillment
-    lines: List[FulfillmentLine]
+    lines: List[OrderBulkFulfillmentLine]
 
 
 @dataclass
@@ -75,11 +87,20 @@ class OrderWithErrors:
             + self.fulfillments_errors
         )
 
+    def order_lines_duplicates(self) -> bool:
+        return len(set(line.variant.id for line in self.lines if line.variant)) != len(
+            self.lines
+        )
 
-@dataclass
-class OrderBulkStock:
-    quantity: int
-    warehouse: Warehouse
+    def set_fulfillment_id(self):
+        for fulfillment in self.fulfillments:
+            for line in fulfillment.lines:
+                line.line.fulfillment_id = fulfillment.fulfillment.id
+
+    def get_all_fulfillment_lines(self) -> List[FulfillmentLine]:
+        return [
+            line.line for fulfillment in self.fulfillments for line in fulfillment.lines
+        ]
 
 
 @dataclass
@@ -121,7 +142,6 @@ class LineAmounts:
     undiscounted_unit_gross: Decimal
     undiscounted_unit_net: Decimal
     quantity: int
-    quantity_fulfilled: int
     tax_rate: Decimal
 
 
@@ -197,7 +217,7 @@ class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
 
 
 class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
-    trackingCode = graphene.String(description="Fulfillments tracking code.")
+    tracking_code = graphene.String(description="Fulfillments tracking code.")
     lines = NonNullList(
         OrderBulkCreateFulfillmentLineInput,
         description="List of items informing how to fulfill the order.",
@@ -228,11 +248,6 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     is_gift_card = graphene.Boolean(required=True, description="Gift card flag.")
     quantity = graphene.Int(
         required=True, description="Number of items in the order line"
-    )
-    quantity_fulfilled = graphene.Int(
-        required=True,
-        description="Number of items in the order line, "
-        "which have been already fulfilled.",
     )
     total_price = graphene.Field(
         TaxedMoneyInput, required=True, description="Price of the order line."
@@ -723,7 +738,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
         undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
         quantity = line_input["quantity"]
-        quantity_fulfilled = line_input["quantity_fulfilled"]
         tax_rate = line_input.get("tax_rate", None)
 
         is_exit_error = False
@@ -732,24 +746,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="Invalid quantity; must be integer greater then 1.",
                     field="quantity",
-                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
-                )
-            )
-            is_exit_error = True
-        if quantity_fulfilled < 0 or int(quantity_fulfilled) != quantity_fulfilled:
-            errors.append(
-                OrderBulkError(
-                    message="Invalid quantity; must be integer greater then 0.",
-                    field="quantityFulfilled",
-                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
-                )
-            )
-            is_exit_error = True
-        if quantity_fulfilled > quantity:
-            errors.append(
-                OrderBulkError(
-                    message="Quantity fulfilled can't be greater then quantity.",
-                    field="quantityFulfilled",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -796,7 +792,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
             undiscounted_unit_net=undiscounted_unit_price_net_amount,
             quantity=quantity,
-            quantity_fulfilled=quantity_fulfilled,
             tax_rate=tax_rate,
         )
 
@@ -852,7 +847,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             is_gift_card=order_line_input["is_gift_card"],
             currency=order_input["currency"],
             quantity=line_amounts.quantity,
-            quantity_fulfilled=line_amounts.quantity_fulfilled,
+            # quantity_fulfilled=line_amounts.quantity_fulfilled,
             unit_price_net_amount=line_amounts.unit_net,
             unit_price_gross_amount=line_amounts.unit_gross,
             total_price_net_amount=line_amounts.total_net,
@@ -891,12 +886,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order=order,
             status=FulfillmentStatus.FULFILLED,
             tracking_number=fulfillment_input.get("tracking_code", ""),
+            fulfillment_order=1,
         )
         # TODO why fulfillment doesn't have id now?
         lines_input = fulfillment_input["lines"]
-        lines: List[FulfillmentLine] = []
+        lines: List[OrderBulkFulfillmentLine] = []
         for line_input in lines_input:
-            variant, errors = cls.get_instance_with_errors(
+            variant = cls.get_instance_with_errors(
                 input=line_input,
                 errors=errors,
                 model=ProductVariant,
@@ -922,7 +918,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
             stocks: List[OrderBulkStock] = []
             for stock_input in line_input["stocks"]:
-                warehouse, errors = cls.get_instance_with_errors(
+                warehouse = cls.get_instance_with_errors(
                     input=stock_input,
                     errors=errors,
                     model=Warehouse,
@@ -937,20 +933,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         quantity=stock_input["quantity"], warehouse=warehouse
                     )
                 )
-
-            lines.append(
-                FulfillmentLine(
-                    fulfillment=fulfillment,
-                    order_line=order_line,
-                    quantity=sum((stock.quantity for stock in stocks)),
-                )
+            fulfillment_line = FulfillmentLine(
+                fulfillment=fulfillment,
+                order_line=order_line,
+                quantity=sum((stock.quantity for stock in stocks)),
             )
 
-        return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
+            lines.append(OrderBulkFulfillmentLine(fulfillment_line, stocks))
 
-    @classmethod
-    def check_availability(cls, lines: List[FulfillmentLine]):
-        pass
+        return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
 
     @classmethod
     def create_single_order(
@@ -1007,7 +998,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
             return order
-        # TODO check if multiple order lines contains the same variant (fulfillments)
+
+        if order.order_lines_duplicates():
+            order.order_errors.append(
+                OrderBulkError(
+                    message="Multiple order lines contain the same product variant.",
+                    field="lines",
+                    code=OrderBulkCreateErrorCode.DUPLICATE_ITEM,
+                )
+            )
+            return order
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
@@ -1041,7 +1041,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 ):
                     order.fulfillments.append(fulfillment)
 
-        # order.number = order_input.get("number")
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -1140,6 +1139,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         notes = [note for order in orders for note in order.notes if order.order]
         OrderEvent.objects.bulk_create(notes)
+
+        fulfillments = [
+            fulfillment.fulfillment
+            for order in orders
+            for fulfillment in order.fulfillments
+            if order.order
+        ]
+        Fulfillment.objects.bulk_create(fulfillments)
+        for order in orders:
+            order.set_fulfillment_id()
+        fulfillment_lines: List[FulfillmentLine] = sum(
+            [order.get_all_fulfillment_lines() for order in orders if order.order], []
+        )
+        FulfillmentLine.objects.bulk_create(fulfillment_lines)
 
         return orders
 
