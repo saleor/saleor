@@ -1,79 +1,40 @@
-from decimal import Decimal
-
 from django.db import migrations
+from django.apps import apps as registry
+from django.db.models.signals import post_migrate
 
-BATCH_SIZE = 10000
-
-
-def add_tax_to_undiscounted_price(
-    price, prices_entered_with_tax, tax_rate
-):
-    untaxed_price = price.net
-    tax_rate = Decimal(1 + tax_rate)
-
-    if prices_entered_with_tax:
-        net_amount = untaxed_price.amount / tax_rate
-        gross_amount = untaxed_price.amount
-    else:
-        net_amount = untaxed_price.amount
-        gross_amount = untaxed_price.amount * tax_rate
-    price.net.amount = net_amount
-    price.gross.amount = gross_amount
-
-
-def queryset_in_batches(queryset):
-    """Slice a queryset into batches.
-
-    Input queryset should be sorted be pk.
-    """
-    start_pk = 0
-
-    while True:
-        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
-        pks = list(qs.values_list("pk", flat=True))
-
-        if not pks:
-            break
-
-        yield pks
-
-        start_pk = pks[-1]
-
-
-def recalculate_tax_to_price(price, prices_entered_with_tax, tax_rate):
-    net_amount = price.net_amount_field
-    gross_amount = price.gross_amount_field
-    if net_amount == gross_amount and all([net_amount != 0, gross_amount != 0]):
-        add_tax_to_undiscounted_price(
-            price,
-            prices_entered_with_tax,
-            tax_rate
-        )
+from .tasks.saleor3_9 import recalculate_undiscounted_prices
+from django.db.models import Q, F
 
 
 def recalculate_undiscounted_prices_for_order(apps, _schema_editor):
+    def on_migrations_complete(sender=None, **kwargs):
+        recalculate_undiscounted_prices.delay()
+
+    # Make sure that there are OrderLines that needs to be updated
+    # to prevent running unneeded task
     OrderLine = apps.get_model("order", "OrderLine")
-    queryset = OrderLine.objects.all()
-    for batch_pks in queryset_in_batches(queryset):
-        order_lines = OrderLine.objects.filter(pk__in=batch_pks)
-        for line in order_lines:
-            prices_entered_with_tax = (
-                line.order.channel.tax_configuration.prices_entered_with_tax
+    if not OrderLine.objects.filter(
+        (
+            Q(
+                undiscounted_unit_price_net_amount=F(
+                    "undiscounted_unit_price_gross_amount"
+                )
             )
-            tax_rate = line.tax_rate
-            recalculate_tax_to_price(
-                line.undiscounted_unit_price, prices_entered_with_tax, tax_rate
+            | Q(
+                undiscounted_total_price_net_amount=F(
+                    "undiscounted_total_price_gross_amount"
+                )
             )
-            recalculate_tax_to_price(
-                line.undiscounted_total_price, prices_entered_with_tax, tax_rate
-            )
-            line.save(
-                update_fields=["undiscounted_unit_price", "undiscounted_total_price"]
-            )
+        )
+        & Q(tax_rate__gt=0)
+    ):
+        return
+
+    sender = registry.get_app_config("order")
+    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("order", "0160_merge_20221215_1253"),
     ]
@@ -81,6 +42,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(
             recalculate_undiscounted_prices_for_order,
-            reverse_code=migrations.RunPython.noop
+            reverse_code=migrations.RunPython.noop,
         ),
     ]

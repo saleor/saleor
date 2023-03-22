@@ -57,7 +57,7 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
-from ..tax.calculations import calculate_flat_rate_tax, add_tax_to_undiscounted_price
+from ..tax.calculations import add_tax_to_undiscounted_price
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,

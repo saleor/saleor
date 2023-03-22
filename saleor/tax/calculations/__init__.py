@@ -37,6 +37,5 @@ def add_tax_to_undiscounted_price(
     net = Money(net_amount, currency)
     gross = Money(gross_amount, currency)
     return TaxedMoney(
-        net=quantize_price(net, currency),
-        gross=quantize_price(gross, currency)
+        net=quantize_price(net, currency), gross=quantize_price(gross, currency)
     )
