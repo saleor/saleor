@@ -862,8 +862,13 @@ class BaseBulkMutation(BaseMutation):
             raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
+
         _meta.model = model
         _meta.object_type = object_type
+
+        doc_category_key = f"{model._meta.app_label}.{model.__name__}"
+        if "doc_category" not in kwargs and doc_category_key in DOC_CATEGORY_MAP:
+            kwargs["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 

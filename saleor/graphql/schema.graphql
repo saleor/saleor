@@ -12587,7 +12587,7 @@ type Mutation {
   shippingPriceBulkDelete(
     """List of shipping price IDs to delete."""
     ids: [ID!]!
-  ): ShippingPriceBulkDelete
+  ): ShippingPriceBulkDelete @doc(category: "Shipping")
 
   """
   Updates a new shipping price. 
@@ -12670,7 +12670,7 @@ type Mutation {
   shippingZoneBulkDelete(
     """List of shipping zone IDs to delete."""
     ids: [ID!]!
-  ): ShippingZoneBulkDelete
+  ): ShippingZoneBulkDelete @doc(category: "Shipping")
 
   """
   Updates a new shipping zone. 
@@ -12759,7 +12759,7 @@ type Mutation {
   categoryBulkDelete(
     """List of category IDs to delete."""
     ids: [ID!]!
-  ): CategoryBulkDelete
+  ): CategoryBulkDelete @doc(category: "Products")
 
   """
   Updates a category. 
@@ -12932,7 +12932,7 @@ type Mutation {
   productBulkDelete(
     """List of product IDs to delete."""
     ids: [ID!]!
-  ): ProductBulkDelete
+  ): ProductBulkDelete @doc(category: "Products")
 
   """
   Updates an existing product. 
@@ -13022,7 +13022,7 @@ type Mutation {
   productMediaBulkDelete(
     """List of product media IDs to delete."""
     ids: [ID!]!
-  ): ProductMediaBulkDelete
+  ): ProductMediaBulkDelete @doc(category: "Products")
 
   """
   Changes ordering of the product media. 
@@ -13078,7 +13078,7 @@ type Mutation {
   productTypeBulkDelete(
     """List of product type IDs to delete."""
     ids: [ID!]!
-  ): ProductTypeBulkDelete
+  ): ProductTypeBulkDelete @doc(category: "Products")
 
   """
   Updates an existing product type. 
@@ -13262,7 +13262,7 @@ type Mutation {
     Added in Saleor 3.8.
     """
     skus: [String!]
-  ): ProductVariantBulkDelete
+  ): ProductVariantBulkDelete @doc(category: "Products")
 
   """
   Creates stocks for product variant. 
@@ -13581,7 +13581,7 @@ type Mutation {
   pageBulkDelete(
     """List of page IDs to delete."""
     ids: [ID!]!
-  ): PageBulkDelete
+  ): PageBulkDelete @doc(category: "Pages")
 
   """
   Publish pages. 
@@ -13594,7 +13594,7 @@ type Mutation {
 
     """Determine if pages will be published or not."""
     isPublished: Boolean!
-  ): PageBulkPublish
+  ): PageBulkPublish @doc(category: "Pages")
 
   """
   Updates an existing page. 
@@ -13664,7 +13664,7 @@ type Mutation {
   pageTypeBulkDelete(
     """List of page type IDs to delete"""
     ids: [ID!]!
-  ): PageTypeBulkDelete
+  ): PageTypeBulkDelete @doc(category: "Pages")
 
   """
   Assign attributes to a given page type. 
@@ -13766,7 +13766,7 @@ type Mutation {
   draftOrderBulkDelete(
     """List of draft order IDs to delete."""
     ids: [ID!]!
-  ): DraftOrderBulkDelete
+  ): DraftOrderBulkDelete @doc(category: "Orders")
 
   """
   Deletes order lines. 
@@ -13776,7 +13776,7 @@ type Mutation {
   draftOrderLinesBulkDelete(
     """List of order lines IDs to delete."""
     ids: [ID!]!
-  ): DraftOrderLinesBulkDelete @deprecated(reason: "This field will be removed in Saleor 4.0.")
+  ): DraftOrderLinesBulkDelete @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Updates a draft order. 
@@ -14099,7 +14099,7 @@ type Mutation {
   orderBulkCancel(
     """List of orders IDs to cancel."""
     ids: [ID!]!
-  ): OrderBulkCancel
+  ): OrderBulkCancel @doc(category: "Orders")
 
   """
   Delete metadata of an object. To use it, you need to have access to the modified object.
@@ -14458,7 +14458,7 @@ type Mutation {
   giftCardBulkDelete(
     """List of gift card IDs to delete."""
     ids: [ID!]!
-  ): GiftCardBulkDelete
+  ): GiftCardBulkDelete @doc(category: "Gift cards")
 
   """
   Activate gift cards.
@@ -14472,7 +14472,7 @@ type Mutation {
   giftCardBulkActivate(
     """List of gift card IDs to activate."""
     ids: [ID!]!
-  ): GiftCardBulkActivate
+  ): GiftCardBulkActivate @doc(category: "Gift cards")
 
   """
   Deactivate gift cards.
@@ -14486,7 +14486,7 @@ type Mutation {
   giftCardBulkDeactivate(
     """List of gift card IDs to deactivate."""
     ids: [ID!]!
-  ): GiftCardBulkDeactivate
+  ): GiftCardBulkDeactivate @doc(category: "Gift cards")
 
   """
   Update plugin configuration. 
@@ -14550,7 +14550,7 @@ type Mutation {
   saleBulkDelete(
     """List of sale IDs to delete."""
     ids: [ID!]!
-  ): SaleBulkDelete
+  ): SaleBulkDelete @doc(category: "Discounts")
 
   """
   Updates a sale. 
@@ -14646,7 +14646,7 @@ type Mutation {
   voucherBulkDelete(
     """List of voucher IDs to delete."""
     ids: [ID!]!
-  ): VoucherBulkDelete
+  ): VoucherBulkDelete @doc(category: "Discounts")
 
   """
   Updates a voucher. 
@@ -15403,7 +15403,7 @@ type Mutation {
   attributeBulkDelete(
     """List of attribute IDs to delete."""
     ids: [ID!]!
-  ): AttributeBulkDelete
+  ): AttributeBulkDelete @doc(category: "Attributes")
 
   """
   Deletes values of attributes. 
@@ -15413,7 +15413,7 @@ type Mutation {
   attributeValueBulkDelete(
     """List of attribute value IDs to delete."""
     ids: [ID!]!
-  ): AttributeValueBulkDelete
+  ): AttributeValueBulkDelete @doc(category: "Attributes")
 
   """
   Creates a value for an attribute. 
@@ -17420,7 +17420,7 @@ Deletes shipping prices.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingPriceBulkDelete {
+type ShippingPriceBulkDelete @doc(category: "Shipping") {
   """Returns how many objects were affected."""
   count: Int!
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17540,7 +17540,7 @@ Deletes shipping zones.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingZoneBulkDelete {
+type ShippingZoneBulkDelete @doc(category: "Shipping") {
   """Returns how many objects were affected."""
   count: Int!
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17785,7 +17785,7 @@ Deletes categories.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type CategoryBulkDelete {
+type CategoryBulkDelete @doc(category: "Products") {
   """Returns how many objects were affected."""
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18299,7 +18299,7 @@ Deletes products.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductBulkDelete {
+type ProductBulkDelete @doc(category: "Products") {
   """Returns how many objects were affected."""
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18560,7 +18560,7 @@ Deletes product media.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductMediaBulkDelete {
+type ProductMediaBulkDelete @doc(category: "Products") {
   """Returns how many objects were affected."""
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18668,7 +18668,7 @@ Deletes product types.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type ProductTypeBulkDelete {
+type ProductTypeBulkDelete @doc(category: "Products") {
   """Returns how many objects were affected."""
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -19370,7 +19370,7 @@ Deletes product variants.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ProductVariantBulkDelete {
+type ProductVariantBulkDelete @doc(category: "Products") {
   """Returns how many objects were affected."""
   count: Int!
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20029,7 +20029,7 @@ Deletes pages.
 
 Requires one of the following permissions: MANAGE_PAGES.
 """
-type PageBulkDelete {
+type PageBulkDelete @doc(category: "Pages") {
   """Returns how many objects were affected."""
   count: Int!
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20041,7 +20041,7 @@ Publish pages.
 
 Requires one of the following permissions: MANAGE_PAGES.
 """
-type PageBulkPublish {
+type PageBulkPublish @doc(category: "Pages") {
   """Returns how many objects were affected."""
   count: Int!
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20184,7 +20184,7 @@ Delete page types.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type PageTypeBulkDelete {
+type PageTypeBulkDelete @doc(category: "Pages") {
   """Returns how many objects were affected."""
   count: Int!
   pageErrors: [PageError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20339,7 +20339,7 @@ Deletes draft orders.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type DraftOrderBulkDelete {
+type DraftOrderBulkDelete @doc(category: "Orders") {
   """Returns how many objects were affected."""
   count: Int!
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20351,7 +20351,7 @@ Deletes order lines.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type DraftOrderLinesBulkDelete {
+type DraftOrderLinesBulkDelete @doc(category: "Orders") {
   """Returns how many objects were affected."""
   count: Int!
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -20899,7 +20899,7 @@ Cancels orders.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type OrderBulkCancel {
+type OrderBulkCancel @doc(category: "Orders") {
   """Returns how many objects were affected."""
   count: Int!
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -21620,7 +21620,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardBulkDelete {
+type GiftCardBulkDelete @doc(category: "Gift cards") {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
@@ -21635,7 +21635,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardBulkActivate {
+type GiftCardBulkActivate @doc(category: "Gift cards") {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
@@ -21650,7 +21650,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type GiftCardBulkDeactivate {
+type GiftCardBulkDeactivate @doc(category: "Gift cards") {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
@@ -21838,7 +21838,7 @@ Deletes sales.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleBulkDelete {
+type SaleBulkDelete @doc(category: "Discounts") {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22018,7 +22018,7 @@ Deletes vouchers.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherBulkDelete {
+type VoucherBulkDelete @doc(category: "Discounts") {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23209,7 +23209,7 @@ Deletes attributes.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type AttributeBulkDelete {
+type AttributeBulkDelete @doc(category: "Attributes") {
   """Returns how many objects were affected."""
   count: Int!
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23221,7 +23221,7 @@ Deletes values of attributes.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 """
-type AttributeValueBulkDelete {
+type AttributeValueBulkDelete @doc(category: "Attributes") {
   """Returns how many objects were affected."""
   count: Int!
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
