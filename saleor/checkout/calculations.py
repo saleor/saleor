@@ -262,8 +262,6 @@ def _fetch_checkout_prices_if_expired(
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
     should_charge_tax = charge_taxes and not checkout.tax_exemption
 
-    # TODO Owczar: remove discounts param
-    discounts = []
     generate_sale_discount_objects_for_checkout(checkout_info, lines)
 
     if prices_entered_with_tax:
@@ -300,7 +298,8 @@ def _fetch_checkout_prices_if_expired(
             )
         else:
             # Calculate net prices without taxes.
-            _get_checkout_base_prices(checkout, checkout_info, lines, discounts)
+            _get_checkout_base_prices(checkout, checkout_info, lines)
+
     checkout.price_expiration = timezone.now() + settings.CHECKOUT_PRICES_TTL
     checkout.save(
         update_fields=[
@@ -474,11 +473,7 @@ def _get_checkout_base_prices(
     checkout: "Checkout",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> None:
-    if not discounts:
-        discounts = []
-
     currency = checkout_info.checkout.currency
     subtotal = zero_money(currency)
 

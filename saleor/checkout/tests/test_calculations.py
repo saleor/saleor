@@ -311,7 +311,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
-    _get_checkout_base_prices(checkout, checkout_info, lines, [])
+    _get_checkout_base_prices(checkout, checkout_info, lines)
     checkout.save()
     checkout.lines.bulk_update(
         [line_info.line for line_info in lines],
