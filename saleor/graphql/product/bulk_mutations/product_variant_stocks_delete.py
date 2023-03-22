@@ -8,6 +8,7 @@ from ....product import models
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, StockError
 from ...core.validators import validate_one_of_args_is_in_mutation
@@ -39,6 +40,7 @@ class ProductVariantStocksDelete(BaseMutation):
 
     class Meta:
         description = "Delete stocks from product variant."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
         error_type_field = "stock_errors"

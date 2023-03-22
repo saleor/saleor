@@ -383,7 +383,8 @@ class ExternalAuthenticationUrl(BaseMutation):
         )
 
     class Meta:
-        description = "Prepare external authentication url for user by custom plugin."
+        description = "Prepare external authentication URL for user by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -423,6 +424,7 @@ class ExternalObtainAccessTokens(BaseMutation):
 
     class Meta:
         description = "Obtain external access tokens for user by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

@@ -20,10 +20,11 @@ from ....core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
 )
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError, SeoInput
+from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.mutations import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -31,7 +32,7 @@ from ...types import Product
 from ..utils import clean_tax_code
 
 
-class ProductInput(graphene.InputObjectType):
+class ProductInput(BaseInputObjectType):
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
@@ -84,8 +85,11 @@ class ProductInput(graphene.InputObjectType):
         description="External ID of this product." + ADDED_IN_310, required=False
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class StockInput(graphene.InputObjectType):
+
+class StockInput(BaseInputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
@@ -93,12 +97,18 @@ class StockInput(graphene.InputObjectType):
         required=True, description="Quantity of items available for sell."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class StockUpdateInput(graphene.InputObjectType):
+
+class StockUpdateInput(BaseInputObjectType):
     stock = graphene.ID(required=True, description="Stock.")
     quantity = graphene.Int(
         required=True, description="Quantity of items available for sell."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductCreateInput(ProductInput):
@@ -107,6 +117,9 @@ class ProductCreateInput(ProductInput):
         name="productType",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]

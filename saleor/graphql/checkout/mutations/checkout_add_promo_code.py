@@ -10,6 +10,7 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout_prices
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -45,6 +46,7 @@ class CheckoutAddPromoCode(BaseMutation):
 
     class Meta:
         description = "Adds a gift card or a voucher to a checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 

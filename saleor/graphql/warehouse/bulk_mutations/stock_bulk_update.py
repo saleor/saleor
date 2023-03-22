@@ -9,15 +9,21 @@ from ....permission.enums import ProductPermissions
 from ....warehouse import models
 from ....warehouse.error_codes import StockBulkUpdateErrorCode
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation
-from ...core.types import NonNullList, StockBulkUpdateError
+from ...core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    NonNullList,
+    StockBulkUpdateError,
+)
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Stock
 
 
-class StockBulkResult(graphene.ObjectType):
+class StockBulkResult(BaseObjectType):
     stock = graphene.Field(Stock, required=False, description="Stock data.")
     errors = NonNullList(
         StockBulkUpdateError,
@@ -25,8 +31,11 @@ class StockBulkResult(graphene.ObjectType):
         description="List of errors occurred on create or update attempt.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class StockBulkUpdateInput(graphene.InputObjectType):
+
+class StockBulkUpdateInput(BaseInputObjectType):
     variant_id = graphene.ID(required=False, description="Variant ID.")
     variant_external_reference = graphene.String(
         required=False, description="Variant external reference."
@@ -38,6 +47,9 @@ class StockBulkUpdateInput(graphene.InputObjectType):
     quantity = graphene.Int(
         required=True, description="Quantity of items available for sell."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class StockBulkUpdate(BaseMutation):
@@ -74,6 +86,7 @@ class StockBulkUpdate(BaseMutation):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockBulkUpdateError
 
