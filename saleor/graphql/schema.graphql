@@ -24,7 +24,7 @@ type Query {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  webhookEvents: [WebhookEvent!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
+  webhookEvents: [WebhookEvent!] @doc(category: "Webhooks") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `WebhookEventTypeAsyncEnum` and `WebhookEventTypeSyncEnum` to get available event types.")
 
   """
   Retrieve a sample payload for a given webhook event based on real data. It can be useful for some integrations where sample payload is required.
@@ -32,7 +32,7 @@ type Query {
   webhookSamplePayload(
     """Name of the requested event type."""
     eventType: WebhookSampleEventTypeEnum!
-  ): JSONString
+  ): JSONString @doc(category: "Webhooks")
 
   """
   Look up a warehouse by ID.
@@ -71,7 +71,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): WarehouseCountableConnection
+  ): WarehouseCountableConnection @doc(category: "Products")
 
   """
   Returns a list of all translatable items of a given kind.
@@ -233,7 +233,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): StockCountableConnection
+  ): StockCountableConnection @doc(category: "Products")
 
   """Return information about the shop."""
   shop: Shop!
@@ -243,14 +243,14 @@ type Query {
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
-  orderSettings: OrderSettings @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` query to fetch the `orderSettings` field instead.")
+  orderSettings: OrderSettings @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `channel` query to fetch the `orderSettings` field instead.")
 
   """
   Gift card related settings from site settings.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
-  giftCardSettings: GiftCardSettings!
+  giftCardSettings: GiftCardSettings! @doc(category: "Gift cards")
 
   """
   Look up a shipping zone by ID.
@@ -288,7 +288,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): ShippingZoneCountableConnection
+  ): ShippingZoneCountableConnection @doc(category: "Shipping")
 
   """
   Look up digital content by ID.
@@ -298,7 +298,7 @@ type Query {
   digitalContent(
     """ID of the digital content."""
     id: ID!
-  ): DigitalContent
+  ): DigitalContent @doc(category: "Products")
 
   """
   List of digital content.
@@ -317,7 +317,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): DigitalContentCountableConnection
+  ): DigitalContentCountableConnection @doc(category: "Products")
 
   """List of the shop's categories."""
   categories(
@@ -341,7 +341,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): CategoryCountableConnection
+  ): CategoryCountableConnection @doc(category: "Products")
 
   """Look up a category by ID or slug."""
   category(
@@ -364,7 +364,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): Collection
+  ): Collection @doc(category: "Products")
 
   """
   List of the shop's collections. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -390,7 +390,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): CollectionCountableConnection
+  ): CollectionCountableConnection @doc(category: "Products")
 
   """
   Look up a product by ID. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -437,7 +437,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): ProductCountableConnection
+  ): ProductCountableConnection @doc(category: "Products")
 
   """Look up a product type by ID."""
   productType(
@@ -464,7 +464,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): ProductTypeCountableConnection
+  ): ProductTypeCountableConnection @doc(category: "Products")
 
   """
   Look up a product variant by ID or SKU. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
@@ -514,7 +514,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): ProductVariantCountableConnection
+  ): ProductVariantCountableConnection @doc(category: "Products")
 
   """
   List of top selling products.
@@ -539,7 +539,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): ProductVariantCountableConnection
+  ): ProductVariantCountableConnection @doc(category: "Products")
 
   """
   Look up a payment by ID.
@@ -571,7 +571,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): PaymentCountableConnection
+  ): PaymentCountableConnection @doc(category: "Payments")
 
   """
   Look up a transaction by ID.
@@ -615,7 +615,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): PageCountableConnection
+  ): PageCountableConnection @doc(category: "Pages")
 
   """Look up a page type by ID."""
   pageType(
@@ -642,7 +642,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): PageTypeCountableConnection
+  ): PageTypeCountableConnection @doc(category: "Pages")
 
   """
   List of activity events to display on homepage (at the moment it only contains order-events).
@@ -702,7 +702,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): OrderCountableConnection
+  ): OrderCountableConnection @doc(category: "Orders")
 
   """
   List of draft orders.
@@ -727,7 +727,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): OrderCountableConnection
+  ): OrderCountableConnection @doc(category: "Orders")
 
   """
   Return the total sales amount from a specific period.
@@ -740,7 +740,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): TaxedMoney
+  ): TaxedMoney @doc(category: "Orders")
 
   """Look up an order by token."""
   orderByToken(
@@ -869,7 +869,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): GiftCardCountableConnection
+  ): GiftCardCountableConnection @doc(category: "Gift cards")
 
   """
   List of gift card currencies.
@@ -880,7 +880,7 @@ type Query {
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
-  giftCardCurrencies: [String!]!
+  giftCardCurrencies: [String!]! @doc(category: "Gift cards")
 
   """
   List of gift card tags.
@@ -906,7 +906,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): GiftCardTagCountableConnection
+  ): GiftCardTagCountableConnection @doc(category: "Gift cards")
 
   """
   Look up a plugin by ID.
@@ -989,7 +989,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): SaleCountableConnection
+  ): SaleCountableConnection @doc(category: "Discounts")
 
   """
   Look up a voucher by ID.
@@ -1037,7 +1037,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): VoucherCountableConnection
+  ): VoucherCountableConnection @doc(category: "Discounts")
 
   """
   Look up a export file by ID.
@@ -1075,7 +1075,7 @@ type Query {
   ): ExportFileCountableConnection
 
   """List of all tax rates available from tax gateway."""
-  taxTypes: [TaxType!]
+  taxTypes: [TaxType!] @doc(category: "Taxes")
 
   """Look up a checkout by token and slug of channel."""
   checkout(
@@ -1128,7 +1128,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): CheckoutCountableConnection
+  ): CheckoutCountableConnection @doc(category: "Checkout")
 
   """
   List of checkout lines.
@@ -1147,7 +1147,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): CheckoutLineCountableConnection
+  ): CheckoutLineCountableConnection @doc(category: "Checkout")
 
   """Look up a channel by ID or slug."""
   channel(
@@ -1169,7 +1169,7 @@ type Query {
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
-  channels: [Channel!]
+  channels: [Channel!] @doc(category: "Channels")
 
   """List of the shop's attributes."""
   attributes(
@@ -11345,7 +11345,7 @@ enum OrderSortField {
   FULFILLMENT_STATUS
 }
 
-input OrderFilterInput {
+input OrderFilterInput @doc(category: "Orders") {
   paymentStatus: [PaymentChargeStatusEnum!]
   status: [OrderStatusFilter!]
   customer: String
@@ -11375,7 +11375,7 @@ enum OrderStatusFilter {
   CANCELED
 }
 
-input OrderDraftFilterInput {
+input OrderDraftFilterInput @doc(category: "Orders") {
   customer: String
   created: DateRangeInput
   search: String

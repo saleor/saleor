@@ -4,6 +4,7 @@ from ...channel import models as channel_models
 from ...permission.enums import GiftcardPermissions, OrderPermissions
 from ..channel.types import OrderSettings
 from ..core.descriptions import DEPRECATED_IN_3X_FIELD, DEPRECATED_IN_3X_MUTATION
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
 from ..core.fields import PermissionsField
 from ..site.dataloaders import load_site_callback
 from ..translations.mutations import ShopSettingsTranslate
@@ -39,12 +40,14 @@ class ShopQueries(graphene.ObjectType):
             "Use the `channel` query to fetch the `orderSettings` field instead."
         ),
         permissions=[OrderPermissions.MANAGE_ORDERS],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     gift_card_settings = PermissionsField(
         GiftCardSettings,
         description="Gift card related settings from site settings.",
         required=True,
         permissions=[GiftcardPermissions.MANAGE_GIFT_CARD],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
 
     def resolve_shop(self, _info):
