@@ -31,11 +31,12 @@ def test_order_fulfill(
     mock_create_fulfillments,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     count_queries,
 ):
     order = order_with_lines
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -58,9 +59,7 @@ def test_order_fulfill(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -76,11 +75,12 @@ def test_order_fulfill_with_gift_cards(
     order,
     gift_card_non_shippable_order_line,
     gift_card_shippable_order_line,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     count_queries,
 ):
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = (
         gift_card_non_shippable_order_line,
@@ -109,9 +109,7 @@ def test_order_fulfill_with_gift_cards(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]

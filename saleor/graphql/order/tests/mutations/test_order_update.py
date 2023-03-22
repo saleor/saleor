@@ -5,7 +5,7 @@ import graphene
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....product.models import ProductVariant
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_UPDATE_MUTATION = """
     mutation orderUpdate(
@@ -62,6 +62,92 @@ def test_order_update(
 
     # when
     response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["orderUpdate"]["errors"]
+    data = content["data"]["orderUpdate"]["order"]
+    assert data["userEmail"] == email
+    assert data["externalReference"] == external_reference
+
+    order.refresh_from_db()
+    order.shipping_address.refresh_from_db()
+    order.billing_address.refresh_from_db()
+    assert order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert order.billing_address.last_name == graphql_address_data["lastName"]
+    assert order.user_email == email
+    assert order.user is None
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.external_reference == external_reference
+    order_updated_webhook_mock.assert_called_once_with(order)
+
+
+def test_order_update_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    graphql_address_data,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+
+    order.user = None
+    order.channel = channel_PLN
+    order.save(update_fields=["channel", "user"])
+
+    email = "not_default@example.com"
+    assert not order.user_email == email
+    assert not order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert not order.billing_address.last_name == graphql_address_data["lastName"]
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "id": order_id,
+        "email": email,
+        "address": graphql_address_data,
+        "externalReference": external_reference,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_UPDATE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_update_by_app(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    graphql_address_data,
+):
+    # given
+    order = order_with_lines
+    order.user = None
+    order.save()
+    email = "not_default@example.com"
+    assert not order.user_email == email
+    assert not order.shipping_address.first_name == graphql_address_data["firstName"]
+    assert not order.billing_address.last_name == graphql_address_data["lastName"]
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    external_reference = "test-ext-ref"
+
+    variables = {
+        "id": order_id,
+        "email": email,
+        "address": graphql_address_data,
+        "externalReference": external_reference,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_UPDATE_MUTATION, variables, permissions=(permission_manage_orders,)
+    )
     content = get_graphql_content(response)
 
     # then
