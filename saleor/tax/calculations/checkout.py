@@ -54,7 +54,6 @@ def update_checkout_prices_with_flat_rates(
             checkout_info,
             lines,
             line_info,
-            discounts,
             tax_rate,
             prices_entered_with_tax,
         )
@@ -103,7 +102,6 @@ def calculate_checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable["DiscountInfo"],
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:

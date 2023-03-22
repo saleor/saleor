@@ -426,7 +426,7 @@ def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, addres
     checkout_line_info = lines[0]
 
     line_price = calculate_checkout_line_total(
-        checkout_info, lines, checkout_line_info, [], rate, prices_entered_with_tax
+        checkout_info, lines, checkout_line_info, rate, prices_entered_with_tax
     )
 
     assert line_price == TaxedMoney(
@@ -472,7 +472,7 @@ def test_calculate_checkout_line_total_voucher_on_entire_order(
 
     # when
     line_price = calculate_checkout_line_total(
-        checkout_info, lines, checkout_line_info, [], rate, prices_entered_with_tax
+        checkout_info, lines, checkout_line_info, rate, prices_entered_with_tax
     )
 
     # then
