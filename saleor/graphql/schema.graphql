@@ -1211,7 +1211,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): AttributeCountableConnection
+  ): AttributeCountableConnection @doc(category: "Attributes")
 
   """Look up an attribute by ID, slug or external reference."""
   attribute(
@@ -5561,7 +5561,7 @@ enum MeasurementUnitsEnum {
   TONNE
 }
 
-type AttributeValueCountableConnection {
+type AttributeValueCountableConnection @doc(category: "Attributes") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [AttributeValueCountableEdge!]!
@@ -5670,7 +5670,7 @@ value as specified by
 """
 scalar Date
 
-input AttributeChoicesSortingInput {
+input AttributeChoicesSortingInput @doc(category: "Attributes") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -5678,7 +5678,7 @@ input AttributeChoicesSortingInput {
   field: AttributeChoicesSortField!
 }
 
-enum AttributeChoicesSortField {
+enum AttributeChoicesSortField @doc(category: "Attributes") {
   """Sort attribute choice by name."""
   NAME
 
@@ -5686,7 +5686,7 @@ enum AttributeChoicesSortField {
   SLUG
 }
 
-input AttributeValueFilterInput {
+input AttributeValueFilterInput @doc(category: "Attributes") {
   search: String
   ids: [ID!]
 }
@@ -5727,7 +5727,7 @@ Represents assigned attribute to variant with variant selection attached.
 
 Added in Saleor 3.1.
 """
-type AssignedVariantAttribute {
+type AssignedVariantAttribute @doc(category: "Attributes") {
   """Attribute assigned to variant."""
   attribute: Attribute!
 
@@ -5737,7 +5737,7 @@ type AssignedVariantAttribute {
   variantSelection: Boolean!
 }
 
-type AttributeCountableConnection {
+type AttributeCountableConnection @doc(category: "Attributes") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [AttributeCountableEdge!]!
@@ -5754,7 +5754,7 @@ type AttributeCountableEdge {
   cursor: String!
 }
 
-input AttributeFilterInput {
+input AttributeFilterInput @doc(category: "Attributes") {
   valueRequired: Boolean
   isVariantOnly: Boolean
   visibleInStorefront: Boolean
@@ -5792,7 +5792,7 @@ Added in Saleor 3.11.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-input AttributeWhereInput {
+input AttributeWhereInput @doc(category: "Attributes") {
   valueRequired: Boolean
   visibleInStorefront: Boolean
   filterableInDashboard: Boolean
@@ -5830,7 +5830,7 @@ input StringFilterInput {
   oneOf: [String!]
 }
 
-input AttributeInputTypeEnumFilterInput {
+input AttributeInputTypeEnumFilterInput @doc(category: "Attributes") {
   """The value equal to."""
   eq: AttributeInputTypeEnum
 
@@ -5838,7 +5838,7 @@ input AttributeInputTypeEnumFilterInput {
   oneOf: [AttributeInputTypeEnum!]
 }
 
-input AttributeEntityTypeEnumFilterInput {
+input AttributeEntityTypeEnumFilterInput @doc(category: "Attributes") {
   """The value equal to."""
   eq: AttributeEntityTypeEnum
 
@@ -5846,7 +5846,7 @@ input AttributeEntityTypeEnumFilterInput {
   oneOf: [AttributeEntityTypeEnum!]
 }
 
-input AttributeTypeEnumFilterInput {
+input AttributeTypeEnumFilterInput @doc(category: "Attributes") {
   """The value equal to."""
   eq: AttributeTypeEnum
 
@@ -5854,7 +5854,7 @@ input AttributeTypeEnumFilterInput {
   oneOf: [AttributeTypeEnum!]
 }
 
-input MeasurementUnitsEnumFilterInput {
+input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
   """The value equal to."""
   eq: MeasurementUnitsEnum
 
@@ -6100,7 +6100,7 @@ input ProductFilterInput {
   channel: String
 }
 
-input AttributeInput {
+input AttributeInput @doc(category: "Attributes") {
   """Internal representation of an attribute name."""
   slug: String!
 
@@ -6583,7 +6583,7 @@ input AddressInput {
 }
 
 """Represents a custom attribute."""
-type SelectedAttribute {
+type SelectedAttribute @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   attribute: Attribute!
 
@@ -11920,7 +11920,7 @@ type CheckoutLineCountableEdge {
   cursor: String!
 }
 
-input AttributeSortingInput {
+input AttributeSortingInput @doc(category: "Attributes") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -11928,7 +11928,7 @@ input AttributeSortingInput {
   field: AttributeSortField!
 }
 
-enum AttributeSortField {
+enum AttributeSortField @doc(category: "Attributes") {
   """Sort attributes by name"""
   NAME
 
@@ -15490,7 +15490,7 @@ type Mutation {
 
     """The list of reordering operations for given attribute values."""
     moves: [ReorderInput!]!
-  ): AttributeReorderValues
+  ): AttributeReorderValues @doc(category: "Attributes")
 
   """
   Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
@@ -18206,7 +18206,7 @@ input ProductCreateInput {
   productType: ID!
 }
 
-input AttributeValueInput {
+input AttributeValueInput @doc(category: "Attributes") {
   """ID of the selected attribute."""
   id: ID
 
@@ -18273,7 +18273,7 @@ Represents attribute value. If no ID provided, value will be resolved.
 
 Added in Saleor 3.9.
 """
-input AttributeValueSelectableTypeInput {
+input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
 
@@ -22973,7 +22973,7 @@ enum AttributeErrorCode {
   UNIQUE
 }
 
-input AttributeCreateInput {
+input AttributeCreateInput @doc(category: "Attributes") {
   """The input type to use for entering attribute values in the dashboard."""
   inputType: AttributeInputTypeEnum
 
@@ -23036,7 +23036,7 @@ input AttributeCreateInput {
   externalReference: String
 }
 
-input AttributeValueCreateInput {
+input AttributeValueCreateInput @doc(category: "Attributes") {
   """
   Represent value of the attribute value (e.g. color values for swatch attributes).
   """
@@ -23097,7 +23097,7 @@ type AttributeUpdate @doc(category: "Attributes") {
   errors: [AttributeError!]!
 }
 
-input AttributeUpdateInput {
+input AttributeUpdateInput @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
   name: String
 
@@ -23154,7 +23154,7 @@ input AttributeUpdateInput {
   externalReference: String
 }
 
-input AttributeValueUpdateInput {
+input AttributeValueUpdateInput @doc(category: "Attributes") {
   """
   Represent value of the attribute value (e.g. color values for swatch attributes).
   """
@@ -23297,7 +23297,7 @@ Reorder the values of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 """
-type AttributeReorderValues {
+type AttributeReorderValues @doc(category: "Attributes") {
   """Attribute from which values are reordered."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
