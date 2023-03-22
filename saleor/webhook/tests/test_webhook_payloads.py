@@ -1651,8 +1651,6 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     checkout.discount_name = voucher.name
     checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
 
-    discounts_info = fetch_active_discounts()
-
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
     tax_configuration.save(update_fields=["prices_entered_with_tax"])
@@ -1726,7 +1724,6 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 
@@ -1751,8 +1748,6 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     checkout.discount_amount = discount_amount
     checkout.discount_name = voucher.name
     checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
-
-    discounts_info = fetch_active_discounts()
 
     tax_configuration = checkout.channel.tax_configuration
     tax_configuration.prices_entered_with_tax = prices_entered_with_tax
@@ -1827,7 +1822,6 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 
@@ -1838,7 +1832,6 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     checkout_with_digital_item,
 ):
     prices_entered_with_tax = True
-    discounts_info = fetch_active_discounts()
     checkout = checkout_with_digital_item
     currency = checkout.currency
 
@@ -1853,8 +1846,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     )
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     payload = json.loads(
@@ -1907,7 +1899,6 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
         checkout_info,
         lines,
-        discounts_info,
     )
 
 

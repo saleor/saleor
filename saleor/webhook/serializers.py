@@ -75,7 +75,6 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[dict]:
     channel = checkout_info.channel
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
