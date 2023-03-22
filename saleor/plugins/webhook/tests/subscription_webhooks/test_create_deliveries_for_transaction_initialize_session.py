@@ -92,7 +92,7 @@ def test_transaction_initialize_session_checkout_with_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "merchantReference": graphene.Node.to_global_id(
-            "TransactionItem", transaction.pk
+            "TransactionItem", transaction.token
         ),
         "action": {
             "amount": amount,
@@ -156,7 +156,7 @@ def test_transaction_initialize_session_checkout_without_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "merchantReference": graphene.Node.to_global_id(
-            "TransactionItem", transaction.pk
+            "TransactionItem", transaction.token
         ),
         "action": {
             "amount": amount,
@@ -221,7 +221,7 @@ def test_transaction_initialize_session_order_with_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "merchantReference": graphene.Node.to_global_id(
-            "TransactionItem", transaction.pk
+            "TransactionItem", transaction.token
         ),
         "action": {
             "amount": amount,
@@ -284,7 +284,7 @@ def test_transaction_initialize_session_order_without_data(
     assert delivery.payload.payload
     assert json.loads(delivery.payload.payload) == {
         "merchantReference": graphene.Node.to_global_id(
-            "TransactionItem", transaction.pk
+            "TransactionItem", transaction.token
         ),
         "action": {
             "amount": amount,

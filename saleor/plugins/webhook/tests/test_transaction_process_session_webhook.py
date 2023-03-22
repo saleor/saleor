@@ -59,7 +59,7 @@ def _assert_with_subscription(
     payload = {
         "data": request_data,
         "merchantReference": graphene.Node.to_global_id(
-            "TransactionItem", transaction.pk
+            "TransactionItem", transaction.token
         ),
         "action": {
             "amount": amount,
@@ -94,7 +94,9 @@ def _assert_with_static_payload(
         "amount": str(amount),
         "currency": "USD",
         "action_type": action_type.upper(),
-        "transaction_id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_id": graphene.Node.to_global_id(
+            "TransactionItem", transaction.token
+        ),
     }
     _assert_fields(payload, webhook, expected_response, response, mock_request)
 

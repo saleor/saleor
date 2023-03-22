@@ -23,6 +23,14 @@ class Migration(migrations.Migration):
                 max_length=32,
             ),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE checkout_checkout
+            ALTER COLUMN authorize_status
+            SET DEFAULT 'none';
+            """,
+            migrations.RunSQL.noop,
+        ),
         migrations.AddField(
             model_name="checkout",
             name="charge_status",
@@ -37,5 +45,13 @@ class Migration(migrations.Migration):
                 default="none",
                 max_length=32,
             ),
+        ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE checkout_checkout
+            ALTER COLUMN charge_status
+            SET DEFAULT 'none';
+            """,
+            migrations.RunSQL.noop,
         ),
     ]

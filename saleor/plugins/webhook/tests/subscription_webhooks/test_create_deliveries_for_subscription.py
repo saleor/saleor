@@ -1942,7 +1942,7 @@ def test_transaction_item_metadata_updated(
     webhooks = [subscription_transaction_item_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED
     transaction_item_id = graphene.Node.to_global_id(
-        "TransactionItem", transaction_item_created_by_app.id
+        "TransactionItem", transaction_item_created_by_app.token
     )
 
     # when

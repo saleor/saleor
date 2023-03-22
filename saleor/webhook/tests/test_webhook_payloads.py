@@ -1235,7 +1235,7 @@ def test_generate_transaction_item_metadata_updated_payload(
     # then
     assert payload == {
         "id": graphene.Node.to_global_id(
-            "TransactionItem", transaction_item_created_by_user.id
+            "TransactionItem", transaction_item_created_by_user.token
         ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }

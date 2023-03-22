@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import mock
 import pytest
 
@@ -204,7 +205,10 @@ def test_for_checkout_without_data(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item), "data": None}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -260,7 +264,10 @@ def test_for_order_without_data(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item), "data": None}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": None,
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -315,7 +322,10 @@ def test_for_checkout_with_data(
         app_identifier=expected_app_identifier, data=expected_response
     )
     expected_data = {"some": "json-data"}
-    variables = {"id": to_global_id_or_none(transaction_item), "data": expected_data}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": expected_data,
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -373,7 +383,10 @@ def test_for_order_with_data(
     )
 
     expected_data = {"some": "json-data"}
-    variables = {"id": to_global_id_or_none(transaction_item), "data": expected_data}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
+        "data": expected_data,
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -429,7 +442,9 @@ def test_checkout_with_pending_amount(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -486,7 +501,9 @@ def test_order_with_pending_amount(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -542,7 +559,9 @@ def test_checkout_with_action_required_response(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -597,7 +616,9 @@ def test_order_with_action_required_response(
         app_identifier=expected_app_identifier, data=expected_response
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -633,7 +654,9 @@ def test_transaction_already_processed(
     )
     transaction_event = transaction_item.events.get()
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -643,7 +666,9 @@ def test_transaction_already_processed(
     content = get_graphql_content(response)
     response_data = content["data"]["transactionProcess"]
     transaction_data = response_data["transaction"]
-    assert transaction_data["id"] == to_global_id_or_none(transaction_item)
+    assert transaction_data["id"] == graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
     assert response_data["transactionEvent"]["type"] == transaction_event.type.upper()
     assert response_data["transactionEvent"]["id"] == to_global_id_or_none(
         transaction_event
@@ -668,7 +693,9 @@ def test_request_event_is_missing(
         app=webhook_app,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -704,7 +731,9 @@ def test_transaction_doesnt_have_source_object(
         type=TransactionEventType.CHARGE_REQUEST,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -734,7 +763,9 @@ def test_transaction_doesnt_have_app_identifier(
         type=TransactionEventType.CHARGE_REQUEST,
     )
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -774,7 +805,9 @@ def test_app_attached_to_transaction_doesnt_exist(
     )
     webhook_app.delete()
 
-    variables = {"id": to_global_id_or_none(transaction_item)}
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token)
+    }
 
     # when
     response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
@@ -839,7 +872,7 @@ def test_checkout_fully_paid(
     )
 
     variables = {
-        "id": to_global_id_or_none(transaction_item),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.token),
         "paymentGateway": {"id": expected_app_identifier, "data": None},
     }
 
@@ -854,3 +887,37 @@ def test_checkout_fully_paid(
     mocked_fully_paid.assert_called_once_with(checkout)
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+
+def test_transaction_process_doesnt_accept_old_id(
+    user_api_client,
+    order_with_lines,
+    webhook_app,
+    transaction_session_response,
+    transaction_item_generator,
+):
+    # given
+    order = order_with_lines
+    expected_app_identifier = "webhook.app.identifier"
+    webhook_app.identifier = expected_app_identifier
+    webhook_app.save()
+
+    transaction_item = transaction_item_generator(
+        order_id=order.pk, app=webhook_app, use_old_id=True
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+    }
+
+    # when
+    response = user_api_client.post_graphql(TRANSACTION_PROCESS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    response_data = content["data"]["transactionProcess"]
+    assert len(response_data["errors"]) == 1
+    assert response_data["errors"][0]["field"] == "id"
+    assert (
+        response_data["errors"][0]["code"] == TransactionProcessErrorCode.INVALID.name
+    )

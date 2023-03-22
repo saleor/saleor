@@ -1714,7 +1714,7 @@ class TransactionSessionBase(SubscriptionObjectType, AbstractType):
         cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
     ):
         transaction = cls.resolve_transaction(root, _info)
-        return graphene.Node.to_global_id("TransactionItem", transaction.pk)
+        return graphene.Node.to_global_id("TransactionItem", transaction.token)
 
     @classmethod
     def resolve_action(
