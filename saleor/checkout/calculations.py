@@ -277,7 +277,6 @@ def _fetch_checkout_prices_if_expired(
             lines,
             prices_entered_with_tax,
             address,
-            discounts,
         )
 
         if not should_charge_tax:
@@ -298,7 +297,6 @@ def _fetch_checkout_prices_if_expired(
                 lines,
                 prices_entered_with_tax,
                 address,
-                discounts,
             )
         else:
             # Calculate net prices without taxes.
@@ -342,7 +340,6 @@ def _calculate_and_add_tax(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # Call the tax plugins.
