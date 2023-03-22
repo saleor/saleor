@@ -346,9 +346,7 @@ def _calculate_and_add_tax(
 ):
     if tax_calculation_strategy == TaxCalculationStrategy.TAX_APP:
         # Call the tax plugins.
-        _apply_tax_data_from_plugins(
-            checkout, manager, checkout_info, lines, address, discounts
-        )
+        _apply_tax_data_from_plugins(checkout, manager, checkout_info, lines, address)
         # Get the taxes calculated with apps and apply to checkout.
         tax_data = manager.get_taxes_for_checkout(checkout_info, lines)
         _apply_tax_data(checkout, lines, tax_data)
@@ -427,10 +425,10 @@ def _apply_tax_data_from_plugins(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> None:
-    if not discounts:
-        discounts = []
+    # The default parameter is deprecated in the manager. Logic inside plugins
+    # should use discount objects attached to lines
+    discounts: Iterable["DiscountInfo"] = []
 
     for line_info in lines:
         line = line_info.line
