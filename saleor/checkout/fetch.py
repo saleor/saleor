@@ -554,7 +554,6 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
-        discounts,
     )
 
     # if a voucher is applied to shipping, we don't want to subtract the discount amount

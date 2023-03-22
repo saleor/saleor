@@ -211,12 +211,12 @@ def validate_voucher_for_checkout(
     from ..checkout import base_calculations
     from ..checkout.utils import calculate_checkout_quantity
 
+    # TODO Owczar: drop discounts
     quantity = calculate_checkout_quantity(lines)
     subtotal = base_calculations.base_checkout_subtotal(
         lines,
         checkout_info.channel,
         checkout_info.checkout.currency,
-        discounts,
     )
 
     customer_email = cast(str, checkout_info.get_customer_email())

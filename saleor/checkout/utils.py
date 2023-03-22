@@ -498,7 +498,6 @@ def get_voucher_discount_for_checkout(
             lines,
             checkout_info.channel,
             checkout_info.checkout.currency,
-            discounts,
         )
         return voucher.get_discount_amount_for(subtotal, checkout_info.channel)
     if voucher.type == VoucherType.SHIPPING:
@@ -624,7 +623,6 @@ def recalculate_checkout_discount(
                 lines,
                 checkout_info.channel,
                 checkout_info.checkout.currency,
-                discounts,
             )
             checkout.discount = (
                 min(discount, subtotal)

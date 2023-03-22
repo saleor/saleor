@@ -507,7 +507,7 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 
     # then
     subtotal = base_calculations.base_checkout_subtotal(
-        lines, checkout_info.channel, checkout_with_voucher.currency, []
+        lines, checkout_info.channel, checkout_with_voucher.currency
     )
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(

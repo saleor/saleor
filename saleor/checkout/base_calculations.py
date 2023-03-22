@@ -232,7 +232,6 @@ def base_checkout_subtotal(
     checkout_lines: Iterable["CheckoutLineInfo"],
     channel: "Channel",
     currency: str,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Return the checkout subtotal value.
 
