@@ -252,7 +252,6 @@ def base_checkout_subtotal(
 
 def checkout_total(
     checkout_info: "CheckoutInfo",
-    discounts: Iterable[DiscountInfo],
     lines: Iterable["CheckoutLineInfo"],
 ) -> Money:
     """Return the total cost of the checkout including discounts and vouchers.

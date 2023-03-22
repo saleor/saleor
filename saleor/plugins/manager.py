@@ -240,7 +240,6 @@ class PluginsManager(PaymentInterface):
 
         default_value = base_calculations.checkout_total(
             checkout_info,
-            discounts,
             lines,
         )
         taxed_default_value = TaxedMoney(net=default_value, gross=default_value)
