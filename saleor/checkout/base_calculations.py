@@ -12,7 +12,7 @@ from prices import Money
 
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
-from ..discount import DiscountInfo, VoucherType
+from ..discount import VoucherType
 
 if TYPE_CHECKING:
     from ..channel.models import Channel
@@ -290,7 +290,6 @@ def apply_checkout_discount_on_checkout_line(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable["DiscountInfo"],
     line_total_price: Money,
 ):
     """Calculate the checkout line price with discounts.
@@ -337,7 +336,7 @@ def apply_checkout_discount_on_checkout_line(
     last_element = lines[-1].line.id == checkout_line_info.line.id
     if last_element:
         discount_amount = _calculate_discount_for_last_element(
-            lines_total_prices, total_price, total_discount_amount, currency
+            lines_total_prices, total_price, total_discount_amount
         )
     else:
         discount_amount = line_total_price.amount / total_price * total_discount_amount
@@ -348,7 +347,7 @@ def apply_checkout_discount_on_checkout_line(
 
 
 def _calculate_discount_for_last_element(
-    lines_total_prices, total_price, total_discount_amount, currency
+    lines_total_prices, total_price, total_discount_amount
 ):
     """Calculate the discount for last element.
 

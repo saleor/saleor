@@ -138,7 +138,6 @@ def _calculate_checkout_line_unit_price(
         checkout_info,
         lines,
         checkout_line_info,
-        discounts,
         unit_price * quantity,
     )
     unit_price = total_price / quantity

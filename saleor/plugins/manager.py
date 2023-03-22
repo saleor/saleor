@@ -395,7 +395,6 @@ class PluginsManager(PaymentInterface):
             checkout_info,
             lines,
             checkout_line_info,
-            discounts,
             default_value,
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
@@ -458,7 +457,6 @@ class PluginsManager(PaymentInterface):
             checkout_info,
             lines,
             checkout_line_info,
-            discounts,
             default_value * quantity,
         )
         default_taxed_value = TaxedMoney(

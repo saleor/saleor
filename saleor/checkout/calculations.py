@@ -495,7 +495,7 @@ def _get_checkout_base_prices(
             line_info, checkout_info.channel
         )
         total_price = base_calculations.apply_checkout_discount_on_checkout_line(
-            checkout_info, lines, line_info, discounts, unit_price * quantity
+            checkout_info, lines, line_info, unit_price * quantity
         )
         line_total_price = quantize_price(total_price, currency)
         subtotal += line_total_price
