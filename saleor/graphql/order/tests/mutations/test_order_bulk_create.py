@@ -400,7 +400,7 @@ def test_order_bulk_create(
     assert order_line["translatedVariantName"] == "Nazwa Wariantu"
     assert order_line["isShippingRequired"]
     assert order_line["quantity"] == 5
-    assert order_line["quantityFulfilled"] == 0
+    assert order_line["quantityFulfilled"] == 5
     assert order_line["unitPrice"]["gross"]["amount"] == Decimal(120 / 5)
     assert order_line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
@@ -424,7 +424,7 @@ def test_order_bulk_create(
     assert db_order_line.translated_variant_name == "Nazwa Wariantu"
     assert db_order_line.is_shipping_required
     assert db_order_line.quantity == 5
-    assert db_order_line.quantity_fulfilled == 0
+    assert db_order_line.quantity_fulfilled == 5
     assert db_order_line.unit_price.gross.amount == Decimal(120 / 5)
     assert db_order_line.unit_price.net.amount == Decimal(100 / 5)
     assert db_order_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)

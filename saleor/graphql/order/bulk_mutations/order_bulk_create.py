@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -101,6 +102,23 @@ class OrderWithErrors:
         return [
             line.line for fulfillment in self.fulfillments for line in fulfillment.lines
         ]
+
+    def update_quantity_fulfilled(self):
+        map = self.orderline_quantityfulfilled_map
+        for order_line in self.lines:
+            order_line.quantity_fulfilled = map.get(order_line.id, 0)
+
+    @property
+    def variant_orderline_map(self) -> Dict[int, OrderLine]:
+        return {line.variant.id: line for line in self.lines if line.variant}
+
+    @property
+    def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
+        return {
+            line.line.order_line.id: line.line.quantity
+            for fulfillment in self.fulfillments
+            for line in fulfillment.lines
+        }
 
 
 @dataclass
@@ -1028,13 +1046,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         # create fulfillments
         if fulfillments_input := order_input.get("fulfillments"):
-            order_lines_with_keys = {
-                line.variant.id: line for line in order.lines if line.variant
-            }
             for fulfillment_input in fulfillments_input:
                 if fulfillment := cls.create_single_fulfillment(
                     fulfillment_input,
-                    order_lines_with_keys,
+                    order.variant_orderline_map,
                     order_instance,
                     object_storage,
                     order.fulfillments_errors,
@@ -1134,6 +1149,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         Order.objects.bulk_create([order.order for order in orders if order.order])
 
+        for order in orders:
+            order.update_quantity_fulfilled()
         order_lines = [line for order in orders for line in order.lines if order.order]
         OrderLine.objects.bulk_create(order_lines)
 
