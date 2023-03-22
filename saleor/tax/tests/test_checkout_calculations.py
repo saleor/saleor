@@ -65,7 +65,7 @@ def test_calculate_checkout_total(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+        checkout, checkout_info, lines, prices_entered_with_tax, address
     )
 
     # then
@@ -122,7 +122,6 @@ def test_calculate_checkout_total_with_sale(
         lines,
         prices_entered_with_tax,
         address,
-        [discount_info],
     )
 
     # then
@@ -154,7 +153,7 @@ def test_calculate_checkout_total_no_tax_rates(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+        checkout, checkout_info, lines, prices_entered_with_tax, address
     )
 
     # then
@@ -187,7 +186,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+        checkout, checkout_info, lines, prices_entered_with_tax, address
     )
 
     # then
@@ -236,7 +235,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+        checkout, checkout_info, lines, prices_entered_with_tax, address
     )
 
     # then
@@ -294,7 +293,6 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
         lines,
         prices_entered_with_tax,
         address,
-        [discount_info],
     )
 
     # then
@@ -338,7 +336,11 @@ def test_calculate_checkout_subtotal(
 
     # when
     update_checkout_prices_with_flat_rates(
-        checkout, checkout_info, lines, prices_entered_with_tax, address, []
+        checkout,
+        checkout_info,
+        lines,
+        prices_entered_with_tax,
+        address,
     )
 
     # then
@@ -391,7 +393,6 @@ def test_calculate_checkout_subtotal_with_sale(
         lines,
         prices_entered_with_tax,
         address,
-        [discount_info],
     )
 
     # then

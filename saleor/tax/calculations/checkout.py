@@ -6,7 +6,6 @@ from prices import TaxedMoney
 from ...checkout import base_calculations
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
-from ...discount import DiscountInfo
 from ..models import TaxClassCountryRate
 from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
 from . import calculate_flat_rate_tax
@@ -24,11 +23,7 @@ def update_checkout_prices_with_flat_rates(
     lines: Iterable["CheckoutLineInfo"],
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
-    if not discounts:
-        discounts = []
-
     country_code = (
         address.country.code if address else checkout_info.channel.default_country.code
     )

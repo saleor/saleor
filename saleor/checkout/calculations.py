@@ -355,7 +355,7 @@ def _calculate_and_add_tax(
     else:
         # Get taxes calculated with flat rates and apply to checkout.
         update_checkout_prices_with_flat_rates(
-            checkout, checkout_info, lines, prices_entered_with_tax, address, discounts
+            checkout, checkout_info, lines, prices_entered_with_tax, address
         )
 
 
