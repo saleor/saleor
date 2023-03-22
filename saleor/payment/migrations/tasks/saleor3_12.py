@@ -266,12 +266,23 @@ def set_default_currency_for_transaction_event_task():
         set_default_currency_for_transaction_event_task.delay()
 
 
-@app.task
-def update_transaction_token_field():
-    transactions = list(TransactionItem.objects.filter(token__isnull=True)[:BATCH_SIZE])
+def update_transaction_token_field(transaction_item_class, batch_size=None):
+    transactions = transaction_item_class.objects.filter(token__isnull=True)
+    if batch_size:
+        transactions = transactions[:BATCH_SIZE]
+
     for transaction in transactions:
         transaction.token = RandomUUID()
 
     if transactions:
-        TransactionItem.objects.bulk_update(transactions, ["token"])
-        update_transaction_token_field.delay()
+        return transaction_item_class.objects.bulk_update(transactions, ["token"])
+    return None
+
+
+@app.task
+def update_transaction_token_field_task():
+    updated_transactions = update_transaction_token_field(
+        transaction_item_class=TransactionItem, batch_size=BATCH_SIZE
+    )
+    if updated_transactions:
+        update_transaction_token_field_task.delay()
