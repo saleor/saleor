@@ -214,9 +214,7 @@ def test_order_lines_create_by_user_no_channel_access(
 
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
 def test_order_lines_create_by_app(
-    product_variant_out_of_stock_webhook_mock,
     order_updated_webhook_mock,
     draft_order_updated_webhook_mock,
     order_with_lines,
@@ -228,9 +226,8 @@ def test_order_lines_create_by_app(
     # given
     query = ORDER_LINES_CREATE_MUTATION
     order = order_with_lines
-    order.channel = channel_PLN
     order.status = OrderStatus.UNCONFIRMED
-    order.save(update_fields=["status", "channel"])
+    order.save(update_fields=["status"])
     variant = variant_with_many_stocks
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
@@ -243,12 +240,13 @@ def test_order_lines_create_by_app(
     )
 
     # then
-    assert_proper_webhook_called_once(
-        order,
-        OrderStatus.UNCONFIRMED,
-        draft_order_updated_webhook_mock,
-        order_updated_webhook_mock,
-    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
+
     assert OrderEvent.objects.count() == 1
     event = OrderEvent.objects.last()
     assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
@@ -257,12 +255,12 @@ def test_order_lines_create_by_app(
     assert event.parameters["lines"] == [
         {"item": str(line), "line_pk": str(line.pk), "quantity": quantity}
     ]
-
-    content = get_graphql_content(response)
-    data = content["data"]["orderLinesCreate"]
-    assert data["orderLines"][0]["productSku"] == variant.sku
-    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
-    assert data["orderLines"][0]["quantity"] == quantity
+    assert_proper_webhook_called_once(
+        order,
+        OrderStatus.UNCONFIRMED,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
