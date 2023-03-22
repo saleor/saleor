@@ -845,6 +845,7 @@ class TransactionCreate(BaseMutation):
             reference=transaction_event_input.get("reference", ""),
             name=transaction_event_input.get("name", ""),
             transaction=transaction,
+            currency=transaction.currency,
         )
 
     @classmethod
