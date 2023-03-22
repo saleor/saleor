@@ -1055,7 +1055,7 @@ class ModelBulkDeleteMutation(BaseBulkMutation):
         queryset.delete()
 
 
-class BaseBulkWithRestrictedChannelAccessMutation(ModelDeleteMutation):
+class BaseBulkWithRestrictedChannelAccessMutation(BaseBulkMutation):
     class Meta:
         abstract = True
 
