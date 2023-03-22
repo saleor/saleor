@@ -1234,7 +1234,7 @@ type Query {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  appsInstallations: [AppInstallation!]!
+  appsInstallations: [AppInstallation!]! @doc(category: "Apps")
 
   """
   List of the apps.
@@ -1259,7 +1259,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): AppCountableConnection
+  ): AppCountableConnection @doc(category: "Apps")
 
   """
   Look up an app by ID. If ID is not provided, return the currently authenticated app.
@@ -1295,7 +1295,7 @@ type Query {
 
     """Return the last n elements from the list."""
     last: Int
-  ): AppExtensionCountableConnection
+  ): AppExtensionCountableConnection @doc(category: "Apps")
 
   """
   Look up an app extension by ID.
@@ -2741,7 +2741,7 @@ enum AppTypeEnum {
 }
 
 """Represents token data."""
-type AppToken implements Node {
+type AppToken implements Node @doc(category: "Apps") {
   id: ID!
 
   """Name of the authenticated token."""
@@ -11978,7 +11978,7 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
   manifestUrl: String!
 }
 
-type AppCountableConnection {
+type AppCountableConnection @doc(category: "Apps") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [AppCountableEdge!]!
@@ -11995,13 +11995,13 @@ type AppCountableEdge {
   cursor: String!
 }
 
-input AppFilterInput {
+input AppFilterInput @doc(category: "Apps") {
   search: String
   isActive: Boolean
   type: AppTypeEnum
 }
 
-input AppSortingInput {
+input AppSortingInput @doc(category: "Apps") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12009,7 +12009,7 @@ input AppSortingInput {
   field: AppSortField!
 }
 
-enum AppSortField {
+enum AppSortField @doc(category: "Apps") {
   """Sort apps by name."""
   NAME
 
@@ -12017,7 +12017,7 @@ enum AppSortField {
   CREATION_DATE
 }
 
-type AppExtensionCountableConnection {
+type AppExtensionCountableConnection @doc(category: "Apps") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [AppExtensionCountableEdge!]!
@@ -12034,7 +12034,7 @@ type AppExtensionCountableEdge {
   cursor: String!
 }
 
-input AppExtensionFilterInput {
+input AppExtensionFilterInput @doc(category: "Apps") {
   mount: [AppExtensionMountEnum!]
   target: AppExtensionTargetEnum
 }
@@ -15547,7 +15547,7 @@ type Mutation {
   appTokenVerify(
     """App token to verify."""
     token: String!
-  ): AppTokenVerify
+  ): AppTokenVerify @doc(category: "Apps")
 
   """
   Install new app by using app manifest. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
@@ -15585,7 +15585,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  appFetchManifest(manifestUrl: String!): AppFetchManifest
+  appFetchManifest(manifestUrl: String!): AppFetchManifest @doc(category: "Apps")
 
   """
   Activate the app. 
@@ -23350,7 +23350,7 @@ enum AppErrorCode {
   UNSUPPORTED_SALEOR_VERSION
 }
 
-input AppInput {
+input AppInput @doc(category: "Apps") {
   """Name of the app."""
   name: String
 
@@ -23393,7 +23393,7 @@ type AppTokenCreate {
   appToken: AppToken
 }
 
-input AppTokenInput {
+input AppTokenInput @doc(category: "Apps") {
   """Name of the token."""
   name: String
 
@@ -23413,7 +23413,7 @@ type AppTokenDelete {
 }
 
 """Verify provided app token."""
-type AppTokenVerify {
+type AppTokenVerify @doc(category: "Apps") {
   """Determine if token is valid or not."""
   valid: Boolean!
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23429,7 +23429,7 @@ type AppInstall @doc(category: "Apps") {
   appInstallation: AppInstallation
 }
 
-input AppInstallInput {
+input AppInstallInput @doc(category: "Apps") {
   """Name of the app to install."""
   appName: String
 
@@ -23470,14 +23470,14 @@ Fetch and validate manifest.
 
 Requires one of the following permissions: MANAGE_APPS.
 """
-type AppFetchManifest {
+type AppFetchManifest @doc(category: "Apps") {
   manifest: Manifest
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
 }
 
 """The manifest definition."""
-type Manifest {
+type Manifest @doc(category: "Apps") {
   identifier: String!
   version: String!
   name: String!
@@ -23533,7 +23533,7 @@ type Manifest {
   author: String
 }
 
-type AppManifestExtension {
+type AppManifestExtension @doc(category: "Apps") {
   """List of the app extension's permissions."""
   permissions: [Permission!]!
 
@@ -23550,7 +23550,7 @@ type AppManifestExtension {
   target: AppExtensionTargetEnum!
 }
 
-type AppManifestWebhook {
+type AppManifestWebhook @doc(category: "Apps") {
   """The name of the webhook."""
   name: String!
 
@@ -23567,7 +23567,7 @@ type AppManifestWebhook {
   targetUrl: String!
 }
 
-type AppManifestRequiredSaleorVersion {
+type AppManifestRequiredSaleorVersion @doc(category: "Apps") {
   """
   Required Saleor version as semver range.
   
