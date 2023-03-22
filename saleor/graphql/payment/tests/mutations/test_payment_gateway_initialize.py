@@ -53,9 +53,12 @@ def test_for_checkout_without_payment_gateways(
     checkout = checkout_info.checkout
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
+    expected_response = {"data": expected_data}
 
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
 
     variables = {"id": to_global_id_or_none(checkout), "paymentGateways": None}
@@ -87,9 +90,12 @@ def test_for_order_without_payment_gateways(
     order = order_with_lines
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
+    expected_response = {"data": expected_data}
 
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
 
     variables = {"id": to_global_id_or_none(order), "paymentGateways": None}
@@ -128,9 +134,12 @@ def test_for_checkout_with_payment_gateways(
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
     expected_input_data = {"input": "json"}
+    expected_response = {"data": expected_data}
 
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
 
     variables = {
@@ -177,9 +186,12 @@ def test_for_order_with_payment_gateways(
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
     expected_input_data = {"input": "json"}
+    expected_response = {"data": expected_data}
 
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
 
     variables = {
@@ -225,11 +237,14 @@ def test_for_checkout_with_payment_gateways_and_amount(
     checkout = checkout_with_prices
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
+    expected_response = {"data": expected_data}
     expected_input_data = {"input": "json"}
     excpected_amount = Decimal(30)
 
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
 
     variables = {
@@ -276,10 +291,13 @@ def test_for_order_with_payment_gateways_and_amount(
     order = order_with_lines
     expected_app_identifier = "app.id"
     expected_data = {"json": "data"}
+    expected_response = {"data": expected_data}
     expected_input_data = {"input": "json"}
     excpected_amount = Decimal(30)
     mocked_initialize.return_value = [
-        PaymentGatewayData(app_identifier=expected_app_identifier, data=expected_data)
+        PaymentGatewayData(
+            app_identifier=expected_app_identifier, data=expected_response
+        )
     ]
     variables = {
         "id": to_global_id_or_none(order),
@@ -556,6 +574,7 @@ def test_for_checkout_with_multiple_payment_gateways(
     excpected_amount = Decimal(30)
     first_expected_app_identifier = "app.id"
     first_expected_data = {"json": "data"}
+    first_expected_response = {"data": first_expected_data}
     first_expected_input_data = {"input": "json"}
 
     second_expected_input_data = {"input": "json2"}
@@ -571,7 +590,7 @@ def test_for_checkout_with_multiple_payment_gateways(
 
     mocked_initialize.return_value = [
         PaymentGatewayData(
-            app_identifier=first_expected_app_identifier, data=first_expected_data
+            app_identifier=first_expected_app_identifier, data=first_expected_response
         ),
         PaymentGatewayData(
             app_identifier=second_expected_app_identifier, error=second_error_msg
@@ -662,6 +681,7 @@ def test_for_order_with_multiple_payment_gateways(
     excpected_amount = Decimal(30)
     first_expected_app_identifier = "app.id"
     first_expected_data = {"json": "data"}
+    first_expected_response = {"data": first_expected_data}
     first_expected_input_data = {"input": "json"}
 
     second_expected_input_data = {"input": "json2"}
@@ -677,7 +697,7 @@ def test_for_order_with_multiple_payment_gateways(
 
     mocked_initialize.return_value = [
         PaymentGatewayData(
-            app_identifier=first_expected_app_identifier, data=first_expected_data
+            app_identifier=first_expected_app_identifier, data=first_expected_response
         ),
         PaymentGatewayData(
             app_identifier=second_expected_app_identifier, error=second_error_msg

@@ -32,6 +32,7 @@ mutation TransactionInitialize(
     id: $id
     paymentGateway: $paymentGateway
   ) {
+    data
     transaction {
       id
       authorizedAmount {
@@ -91,9 +92,11 @@ def _assert_fields(
     charged_value=Decimal(0),
     charge_pending_value=Decimal(0),
     authorize_pending_value=Decimal(0),
+    returned_data=None,
 ):
     assert not content["data"]["transactionInitialize"]["errors"]
     response_data = content["data"]["transactionInitialize"]
+    assert response_data["data"] == returned_data
     transaction_data = response_data["transaction"]
     transaction = source_object.payment_transactions.last()
     assert transaction
@@ -215,6 +218,7 @@ def test_for_checkout_without_payment_gateway_data(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=expected_amount,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -264,6 +268,7 @@ def test_for_order_without_payment_gateway_data(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=expected_amount,
+        returned_data=expected_response["data"],
     )
     order.refresh_from_db()
     assert order.total_authorized_amount == Decimal(0)
@@ -316,6 +321,7 @@ def test_checkout_with_pending_amount(
         mocked_initialize=mocked_initialize,
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -366,6 +372,7 @@ def test_order_with_pending_amount(
         mocked_initialize=mocked_initialize,
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
+        returned_data=expected_response["data"],
     )
 
     order.refresh_from_db()
@@ -417,6 +424,7 @@ def test_checkout_with_action_required_response(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
@@ -465,6 +473,7 @@ def test_order_with_action_required_response(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
+        returned_data=expected_response["data"],
     )
 
     order.refresh_from_db()
@@ -515,6 +524,7 @@ def test_checkout_with_action_required_response_and_missing_psp_reference(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
@@ -562,6 +572,7 @@ def test_order_with_action_required_response_and_missing_psp_reference(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
+        returned_data=expected_response["data"],
     )
 
     order.refresh_from_db()
@@ -620,6 +631,7 @@ def test_checkout_when_amount_is_not_provided(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=checkout.total_gross_amount,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -669,6 +681,7 @@ def test_order_when_amount_is_not_provided(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=order.total_gross_amount,
+        returned_data=expected_response["data"],
     )
 
     order.refresh_from_db()
@@ -730,6 +743,7 @@ def test_order_with_transaction_when_amount_is_not_provided(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=order.total_gross_amount - expected_charged_amount,
+        returned_data=expected_response["data"],
     )
 
     order.refresh_from_db()
@@ -800,6 +814,7 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
         app_identifier=webhook_app.identifier,
         mocked_initialize=mocked_initialize,
         charged_value=checkout.total_gross_amount - expected_charged_amount,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.FULL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -834,6 +849,7 @@ def test_app_with_action_field_and_handle_payments(
     expected_response["result"] = TransactionEventType.AUTHORIZATION_SUCCESS.upper()
     expected_response["amount"] = str(checkout.total_gross_amount)
     expected_response["pspReference"] = expected_psp_reference
+    del expected_response["data"]
     mocked_initialize.return_value = PaymentGatewayData(
         app_identifier=expected_app_identifier, data=expected_response
     )
@@ -862,6 +878,7 @@ def test_app_with_action_field_and_handle_payments(
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
         authorized_value=checkout.total_gross_amount,
         action_type=TransactionFlowStrategy.AUTHORIZATION,
+        returned_data=None,
     )
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
@@ -917,6 +934,7 @@ def test_uses_default_channel_action(
         charged_value=expected_amount,
         action_type=TransactionFlowStrategy.AUTHORIZATION,
         request_event_type=TransactionEventType.AUTHORIZATION_REQUEST,
+        returned_data=expected_response["data"],
     )
 
 
