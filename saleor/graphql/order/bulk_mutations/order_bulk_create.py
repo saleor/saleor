@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -35,6 +36,7 @@ from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
 from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
+from ..mutations.order_fulfill import OrderFulfillStockInput
 from ..types import Order as OrderType
 from .utils import get_instance
 
@@ -59,7 +61,7 @@ class OrderBulkStock:
 @dataclass
 class OrderBulkFulfillmentLine:
     line: FulfillmentLine
-    stocks: List[OrderBulkStock]
+    stock: OrderBulkStock
 
 
 @dataclass
@@ -114,11 +116,11 @@ class OrderWithErrors:
 
     @property
     def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
-        return {
-            line.line.order_line.id: line.line.quantity
-            for fulfillment in self.fulfillments
-            for line in fulfillment.lines
-        }
+        map: Dict[UUID, int] = defaultdict(int)
+        for fulfillment in self.fulfillments:
+            for line in fulfillment.lines:
+                map[line.line.order_line.id] += line.line.quantity
+        return map
 
 
 @dataclass
@@ -210,28 +212,13 @@ class OrderBulkCreateNoteInput(graphene.InputObjectType):
     app_id = graphene.ID(description="The app ID associated with the message.")
 
 
-class OrderBulkCreateFulfillStockInput(graphene.InputObjectType):
-    quantity = graphene.Int(
-        description="The number of line items to be fulfilled from given warehouse.",
-        required=True,
-    )
-    warehouse_id = graphene.ID(
-        description="ID of the warehouse from which the item will be fulfilled.",
-    )
-    warehouse_name = graphene.String(
-        description="Name of the warehouse from which the item will be fulfilled.",
-    )
-
-
 class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
     variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
         description="The external ID of the product variant."
     )
-    stocks = NonNullList(
-        OrderBulkCreateFulfillStockInput, description="List of stock items."
-    )
+    stocks = NonNullList(OrderFulfillStockInput, description="List of stock items.")
 
 
 class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
@@ -906,7 +893,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             tracking_number=fulfillment_input.get("tracking_code", ""),
             fulfillment_order=1,
         )
-        # TODO why fulfillment doesn't have id now?
+
         lines_input = fulfillment_input["lines"]
         lines: List[OrderBulkFulfillmentLine] = []
         for line_input in lines_input:
@@ -934,30 +921,26 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 continue
 
-            stocks: List[OrderBulkStock] = []
             for stock_input in line_input["stocks"]:
                 warehouse = cls.get_instance_with_errors(
                     input=stock_input,
                     errors=errors,
                     model=Warehouse,
-                    key_map={"warehouse_id": "id"},
+                    key_map={"warehouse": "id"},
                     object_storage=object_storage,
                 )
                 if not warehouse:
                     continue
 
-                stocks.append(
-                    OrderBulkStock(
-                        quantity=stock_input["quantity"], warehouse=warehouse
-                    )
+                stock = OrderBulkStock(
+                    quantity=stock_input["quantity"], warehouse=warehouse
                 )
-            fulfillment_line = FulfillmentLine(
-                fulfillment=fulfillment,
-                order_line=order_line,
-                quantity=sum((stock.quantity for stock in stocks)),
-            )
-
-            lines.append(OrderBulkFulfillmentLine(fulfillment_line, stocks))
+                fulfillment_line = FulfillmentLine(
+                    fulfillment=fulfillment,
+                    order_line=order_line,
+                    quantity=stock_input["quantity"],
+                )
+                lines.append(OrderBulkFulfillmentLine(fulfillment_line, stock))
 
         return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
 

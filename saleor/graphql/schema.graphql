@@ -22502,18 +22502,7 @@ input OrderBulkCreateFulfillmentLineInput {
   variantExternalReference: String
 
   """List of stock items."""
-  stocks: [OrderBulkCreateFulfillStockInput!]
-}
-
-input OrderBulkCreateFulfillStockInput {
-  """The number of line items to be fulfilled from given warehouse."""
-  quantity: Int!
-
-  """ID of the warehouse from which the item will be fulfilled."""
-  warehouseId: ID
-
-  """Name of the warehouse from which the item will be fulfilled."""
-  warehouseName: String
+  stocks: [OrderFulfillStockInput!]
 }
 
 """

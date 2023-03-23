@@ -261,15 +261,11 @@ def order_bulk_input(
         "stocks": [
             {
                 "quantity": 3,
-                "warehouseId": graphene.Node.to_global_id(
-                    "Warehouse", warehouses[0].id
-                ),
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[0].id),
             },
             {
                 "quantity": 2,
-                "warehouseId": graphene.Node.to_global_id(
-                    "Warehouse", warehouses[1].id
-                ),
+                "warehouse": graphene.Node.to_global_id("Warehouse", warehouses[1].id),
             },
         ],
     }
@@ -467,21 +463,28 @@ def test_order_bulk_create(
     assert db_fulfillment.fulfillment_order == 1
     assert db_fulfillment.status == FulfillmentStatus.FULFILLED
 
-    fulfillment_line = fulfillment["lines"][0]
-    assert fulfillment_line["quantity"] == 5
-    assert fulfillment_line["orderLine"]["id"] == order_line["id"]
-    db_fulfillment_line = FulfillmentLine.objects.get()
-    assert db_fulfillment_line.quantity == 5
-    assert db_fulfillment_line.order_line_id == db_order_line.id
-    assert db_fulfillment_line.fulfillment_id == db_fulfillment.id
-    assert db_fulfillment.lines.all()[0].id == db_fulfillment_line.id
+    fulfillment_line_1 = fulfillment["lines"][0]
+    assert fulfillment_line_1["quantity"] == 3
+    assert fulfillment_line_1["orderLine"]["id"] == order_line["id"]
+    fulfillment_line_2 = fulfillment["lines"][1]
+    assert fulfillment_line_2["quantity"] == 2
+    assert fulfillment_line_2["orderLine"]["id"] == order_line["id"]
+    db_fulfillment_line_1, db_fulfillment_line_2 = FulfillmentLine.objects.all()
+    assert db_fulfillment_line_1.quantity == 3
+    assert db_fulfillment_line_1.order_line_id == db_order_line.id
+    assert db_fulfillment_line_1.fulfillment_id == db_fulfillment.id
+    assert db_fulfillment.lines.all()[0].id == db_fulfillment_line_1.id
+    assert db_fulfillment_line_2.quantity == 2
+    assert db_fulfillment_line_2.order_line_id == db_order_line.id
+    assert db_fulfillment_line_2.fulfillment_id == db_fulfillment.id
+    assert db_fulfillment.lines.all()[1].id == db_fulfillment_line_2.id
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert Address.objects.count() == address_count + 2
     assert OrderEvent.objects.count() == order_events_count + 1
     assert Fulfillment.objects.count() == fulfillments_count + 1
-    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
+    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 2
 
 
 def test_order_bulk_create_multiple_orders(
