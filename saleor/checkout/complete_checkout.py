@@ -628,6 +628,7 @@ def _prepare_checkout(
     tracking_code,
     redirect_url,
 ):
+    # TODO Owczar: Consider drop discounts
     checkout = checkout_info.checkout
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     if not checkout_info.channel.is_active:
@@ -705,7 +706,6 @@ def _prepare_checkout_with_payment(
         manager,
         checkout_info,
         lines,
-        discounts,
         CheckoutErrorCode,
         last_payment=payment,
     )

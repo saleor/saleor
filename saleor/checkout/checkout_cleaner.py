@@ -86,11 +86,9 @@ def clean_checkout_payment(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
     error_code: Type[CheckoutErrorCode],
     last_payment: Optional[payment_models.Payment],
 ):
-    # TODO Owczar drop discounts
     clean_billing_address(checkout_info, error_code)
     if not is_fully_paid(manager, checkout_info, lines):
         gateway.payment_refund_or_void(

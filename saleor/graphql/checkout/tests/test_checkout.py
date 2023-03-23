@@ -2076,7 +2076,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
 
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     clean_checkout_payment(
-        manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+        manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
     )
 
 
@@ -2143,7 +2143,7 @@ def test_clean_checkout_no_billing_address(
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
         )
     msg = "Billing address is not set"
     assert e.value.error_dict["billing_address"][0].message == msg
@@ -2162,7 +2162,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
     with pytest.raises(ValidationError) as e:
         clean_checkout_payment(
-            manager, checkout_info, lines, None, CheckoutErrorCode, last_payment=payment
+            manager, checkout_info, lines, CheckoutErrorCode, last_payment=payment
         )
 
     msg = "Provided payment methods can not cover the checkout's total amount"
