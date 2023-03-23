@@ -4,15 +4,24 @@ from django.apps import apps as registry
 from django.db import migrations
 from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_12 import update_transaction_token_field
+from ... import __version__
+from .tasks.saleor3_12 import (
+    update_transaction_token_field,
+    update_transaction_token_field_task,
+)
 
 
-def update_transaction_uuid_field(apps, _schema_editor):
+def update_transaction_token_field_migration(apps, _schema_editor):
+    TransactionItem = apps.get_model("payment", "TransactionItem")
+
     def on_migrations_complete(sender=None, **kwargs):
-        update_transaction_token_field.delay()
+        update_transaction_token_field_task.delay()
 
-    sender = registry.get_app_config("account")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    if __version__.startswith("3.12"):
+        sender = registry.get_app_config("account")
+        post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    else:
+        update_transaction_token_field(transaction_item_class=TransactionItem)
 
 
 class Migration(migrations.Migration):
@@ -22,6 +31,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(
-            update_transaction_uuid_field, reverse_code=migrations.RunPython.noop
+            update_transaction_token_field_migration,
+            reverse_code=migrations.RunPython.noop,
         ),
     ]
