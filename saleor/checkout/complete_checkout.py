@@ -252,7 +252,6 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
-        discounts=discounts,
     )
 
     price_override = checkout_line_info.line.price_override
