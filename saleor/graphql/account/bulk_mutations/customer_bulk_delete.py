@@ -3,6 +3,7 @@ import graphene
 from ....account import models
 from ....permission.enums import AccountPermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import AccountError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -23,6 +24,7 @@ class UserBulkDelete(ModelBulkDeleteMutation):
 class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     class Meta:
         description = "Deletes customers."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)

@@ -16002,7 +16002,7 @@ type Mutation {
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
-  ): CustomerBulkUpdate
+  ): CustomerBulkUpdate @doc(category: "Users")
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -24191,7 +24191,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_USERS.
 """
-type CustomerBulkUpdate {
+type CustomerBulkUpdate @doc(category: "Users") {
   """Returns how many objects were created."""
   count: Int!
 
@@ -24200,7 +24200,7 @@ type CustomerBulkUpdate {
   errors: [CustomerBulkUpdateError!]!
 }
 
-type CustomerBulkResult {
+type CustomerBulkResult @doc(category: "Users") {
   """Customer data."""
   customer: User
 
@@ -24233,7 +24233,7 @@ enum CustomerBulkUpdateErrorCode {
   MAX_LENGTH
 }
 
-input CustomerBulkUpdateInput {
+input CustomerBulkUpdateInput @doc(category: "Users") {
   """ID of a customer to update."""
   id: ID
 

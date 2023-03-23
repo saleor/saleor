@@ -15,9 +15,15 @@ from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import CustomerBulkUpdateErrorCode, ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import CustomerBulkUpdateError, NonNullList
+from ...core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    CustomerBulkUpdateError,
+    NonNullList,
+)
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
@@ -27,7 +33,7 @@ from ..mutations.staff import CustomerInput
 from ..types import User
 
 
-class CustomerBulkResult(graphene.ObjectType):
+class CustomerBulkResult(BaseObjectType):
     customer = graphene.Field(User, required=False, description="Customer data.")
     errors = NonNullList(
         CustomerBulkUpdateError,
@@ -35,8 +41,11 @@ class CustomerBulkResult(graphene.ObjectType):
         description="List of errors that occurred during the update attempt.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
-class CustomerBulkUpdateInput(graphene.InputObjectType):
+
+class CustomerBulkUpdateInput(BaseInputObjectType):
     id = graphene.ID(description="ID of a customer to update.", required=False)
     external_reference = graphene.String(
         required=False,
@@ -45,6 +54,9 @@ class CustomerBulkUpdateInput(graphene.InputObjectType):
     input = CustomerInput(
         description="Fields required to update a customer.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class CustomerBulkUpdate(BaseMutation, I18nMixin):
@@ -76,6 +88,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Updates customers." + ADDED_IN_313 + PREVIEW_FEATURE
+        doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = CustomerBulkUpdateError
 

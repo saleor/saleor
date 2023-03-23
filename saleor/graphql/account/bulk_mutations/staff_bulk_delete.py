@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from ....account import models
 from ....permission.enums import AccountPermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.types import StaffError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import User
@@ -18,6 +19,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         description = (
             "Deletes staff users. Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
