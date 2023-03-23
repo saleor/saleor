@@ -194,6 +194,7 @@ def _create_line_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
+    # TODO Owczar: Drop discounts
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -245,7 +246,6 @@ def _create_line_for_order(
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=checkout_line_info,
-        discounts=discounts,
     )
     tax_rate = calculations.checkout_line_tax_rate(
         manager=manager,

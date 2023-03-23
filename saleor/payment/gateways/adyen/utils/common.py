@@ -260,6 +260,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
+    # TODO Owczar: Consider drop discounts
     checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
     currency = payment_information.currency
     country_code = checkout.get_country()
@@ -274,7 +275,6 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
             checkout_info=checkout_info,
             lines=lines,
             checkout_line_info=line_info,
-            discounts=discounts,
         )
         unit_gross = unit_price.gross.amount
         unit_net = unit_price.net.amount
