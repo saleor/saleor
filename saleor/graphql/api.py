@@ -1,3 +1,4 @@
+import graphql
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 
@@ -25,7 +26,12 @@ from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
 from .tax.schema import TaxMutations, TaxQueries
 from .translations.schema import TranslationQueries
-from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
+from .warehouse.schema import (
+    StockMutations,
+    StockQueries,
+    WarehouseMutations,
+    WarehouseQueries,
+)
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
@@ -80,6 +86,7 @@ class Mutation(
     ProductMutations,
     ShippingMutations,
     ShopMutations,
+    StockMutations,
     TaxMutations,
     WarehouseMutations,
     WebhookMutations,
@@ -87,9 +94,29 @@ class Mutation(
     pass
 
 
+GraphQLDocDirective = graphql.GraphQLDirective(
+    name="doc",
+    description="Groups fields and operations into named groups.",
+    args={
+        "category": graphql.GraphQLArgument(
+            type_=graphql.GraphQLNonNull(graphql.GraphQLString),
+            description="Name of the grouping category",
+        )
+    },
+    locations=[
+        graphql.DirectiveLocation.ENUM,
+        graphql.DirectiveLocation.FIELD,
+        graphql.DirectiveLocation.FIELD_DEFINITION,
+        graphql.DirectiveLocation.INPUT_OBJECT,
+        graphql.DirectiveLocation.OBJECT,
+    ],
+)
+
+
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
     types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
+    directives=graphql.specified_directives + [GraphQLDocDirective],
 )

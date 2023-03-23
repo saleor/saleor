@@ -1,9 +1,8 @@
-import graphene
+from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
+from ..core.types import BaseEnum, SortInputObjectType
 
-from ..core.types import SortInputObjectType
 
-
-class AttributeSortField(graphene.Enum):
+class AttributeSortField(BaseEnum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
     VALUE_REQUIRED = ["value_required", "name", "slug"]
@@ -13,6 +12,9 @@ class AttributeSortField(graphene.Enum):
     FILTERABLE_IN_DASHBOARD = ["filterable_in_dashboard", "name", "slug"]
     STOREFRONT_SEARCH_POSITION = ["storefront_search_position", "name", "pk"]
     AVAILABLE_IN_GRID = ["available_in_grid", "name", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @property
     def description(self):
@@ -50,13 +52,17 @@ class AttributeSortField(graphene.Enum):
 
 class AttributeSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         sort_enum = AttributeSortField
         type_name = "attributes"
 
 
-class AttributeChoicesSortField(graphene.Enum):
+class AttributeChoicesSortField(BaseEnum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
     @property
     def description(self):
@@ -71,5 +77,6 @@ class AttributeChoicesSortField(graphene.Enum):
 
 class AttributeChoicesSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         sort_enum = AttributeChoicesSortField
         type_name = "attribute choices"

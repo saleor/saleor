@@ -18,6 +18,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, OrderError
 from ...discount.dataloaders import load_discounts
@@ -49,6 +50,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
     class Meta:
         description = "Create order lines for an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

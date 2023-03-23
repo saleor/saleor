@@ -21,10 +21,11 @@ from ....shipping.utils import (
 )
 from ...channel.types import ChannelContext
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import NonNullList, ShippingError
+from ...core.types import BaseInputObjectType, NonNullList, ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product import types as product_types
 from ...shipping import types as shipping_types
@@ -709,6 +710,7 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -734,12 +736,15 @@ class ShippingPriceDelete(BaseMutation):
         )
 
 
-class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
+class ShippingPriceExcludeProductsInput(BaseInputObjectType):
     products = NonNullList(
         graphene.ID,
         description="List of products which will be excluded.",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceExcludeProducts(BaseMutation):
@@ -750,13 +755,13 @@ class ShippingPriceExcludeProducts(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping price.")
-
         input = ShippingPriceExcludeProductsInput(
             description="Exclude products input.", required=True
         )
 
     class Meta:
         description = "Exclude products from shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -806,6 +811,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     class Meta:
         description = "Remove product from excluded list for shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

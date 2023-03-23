@@ -20,6 +20,7 @@ JWT_REFRESH_TYPE = "refresh"
 JWT_THIRDPARTY_ACCESS_TYPE = "thirdparty"
 JWT_REFRESH_TOKEN_COOKIE_NAME = "refreshToken"
 
+APP_KEY_FIELD = "app"
 PERMISSIONS_FIELD = "permissions"
 USER_PERMISSION_FIELD = "user_permissions"
 JWT_SALEOR_OWNER_NAME = "saleor"
@@ -160,22 +161,22 @@ def get_user_from_access_payload(payload: dict, request=None) -> Optional[User]:
 def _create_access_token_for_third_party_actions(
     permissions: Iterable["Permission"],
     user: "User",
-    type: str,
-    object_id: int,
-    object_payload_key: str,
-    audience: Optional[str],
+    app: "App",
+    extra: Optional[Dict[str, Any]] = None,
 ):
     app_permission_enums = get_permission_names(permissions)
 
     permissions = user.effective_permissions
     user_permission_enums = get_permission_names(permissions)
     additional_payload = {
-        object_payload_key: graphene.Node.to_global_id(type, object_id),
+        APP_KEY_FIELD: graphene.Node.to_global_id("App", app.id),
         PERMISSIONS_FIELD: list(app_permission_enums & user_permission_enums),
         USER_PERMISSION_FIELD: list(user_permission_enums),
     }
-    if audience:
-        additional_payload["aud"] = audience
+    if app.audience:
+        additional_payload["aud"] = app.audience
+    if extra:
+        additional_payload.update(extra)
 
     payload = jwt_user_payload(
         user,
@@ -196,12 +197,7 @@ def create_access_token_for_app(app: "App", user: "User"):
     """
     app_permissions = app.permissions.all()
     return _create_access_token_for_third_party_actions(
-        permissions=app_permissions,
-        user=user,
-        type="App",
-        object_id=app.id,
-        object_payload_key="app",
-        audience=app.audience,
+        permissions=app_permissions, user=user, app=app
     )
 
 
@@ -211,11 +207,10 @@ def create_access_token_for_app_extension(
     user: "User",
     app: "App",
 ):
+    app_extension_id = graphene.Node.to_global_id("AppExtension", app_extension.id)
     return _create_access_token_for_third_party_actions(
         permissions=permissions,
         user=user,
-        type="AppExtension",
-        object_id=app_extension.id,
-        object_payload_key="app_extension",
-        audience=app.audience,
+        app=app,
+        extra={"app_extension": app_extension_id},
     )

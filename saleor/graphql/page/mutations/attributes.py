@@ -15,6 +15,7 @@ from ...attribute.mutations import (
 )
 from ...attribute.types import Attribute
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_PAGES
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import NonNullList, PageError
@@ -38,6 +39,7 @@ class PageAttributeAssign(BaseMutation):
         )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         description = "Assign attributes to a given page type."
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -131,6 +133,7 @@ class PageAttributeUnassign(BaseMutation):
 
     class Meta:
         description = "Unassign attributes from a given page type."
+        doc_category = DOC_CATEGORY_PAGES
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -168,6 +171,7 @@ class PageTypeReorderAttributes(BaseReorderAttributesMutation):
 
     class Meta:
         description = "Reorder the attributes of a page type."
+        doc_category = DOC_CATEGORY_PAGES
         permissions = (PageTypePermissions.MANAGE_PAGE_TYPES_AND_ATTRIBUTES,)
         error_type_class = PageError
         error_type_field = "page_errors"
@@ -213,6 +217,7 @@ class PageReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder page attribute values."
+        doc_category = DOC_CATEGORY_PAGES
         permissions = (PagePermissions.MANAGE_PAGES,)
         error_type_class = PageError
         error_type_field = "page_errors"

@@ -7,6 +7,7 @@ from ....app.installation_utils import REQUEST_TIMEOUT
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
@@ -21,6 +22,7 @@ class AppFetchManifest(BaseMutation):
 
     class Meta:
         description = "Fetch and validate manifest."
+        doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -71,6 +73,8 @@ class AppFetchManifest(BaseMutation):
             extensions=cleaned_data.get("extensions", []),
             webhooks=cleaned_data.get("webhooks", []),
             audience=cleaned_data.get("audience"),
+            required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
+            author=cleaned_data.get("author"),
         )
 
     @classmethod
