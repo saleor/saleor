@@ -33,6 +33,7 @@ from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
 from ...core.descriptions import ADDED_IN_310
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
@@ -40,7 +41,7 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types import AccountError
+from ...core.types import AccountError, BaseInputObjectType
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
 
@@ -83,6 +84,7 @@ class SetPassword(CreateToken):
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -159,6 +161,7 @@ class RequestPasswordReset(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -251,6 +254,7 @@ class ConfirmAccount(BaseMutation):
         description = (
             "Confirm user account with token sent by email during registration."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -297,6 +301,7 @@ class PasswordChange(BaseMutation):
 
     class Meta:
         description = "Change the password of the logged in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -447,7 +452,7 @@ class BaseAddressDelete(ModelDeleteMutation):
         return response
 
 
-class UserInput(graphene.InputObjectType):
+class UserInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     email = graphene.String(description="The unique email address of the user.")
@@ -455,7 +460,7 @@ class UserInput(graphene.InputObjectType):
     note = graphene.String(description="A note about the user.")
 
 
-class UserAddressInput(graphene.InputObjectType):
+class UserAddressInput(BaseInputObjectType):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )

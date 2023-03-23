@@ -27,7 +27,7 @@ from ...channel.exceptions import ChannelNotDefined, NoDefaultChannel
 from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.enums import OrderDirection
-from ..core.types import NonNullList
+from ..core.types import BaseConnection, NonNullList
 from ..utils.sorting import sort_queryset_for_connection
 
 if TYPE_CHECKING:
@@ -608,7 +608,7 @@ def _handle_or_filter_input(filter_input, queryset, args, filterset_class, reque
 #     return queryset
 
 
-class NonNullConnection(Connection):
+class NonNullConnection(BaseConnection):
     class Meta:
         abstract = True
 

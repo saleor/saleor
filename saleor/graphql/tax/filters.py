@@ -2,6 +2,7 @@ from django.db.models import Exists, OuterRef
 
 from ...tax import models
 from ..account.enums import CountryCodeEnum
+from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -29,6 +30,7 @@ class TaxConfigurationFilter(MetadataFilterBase):
 
 class TaxConfigurationFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_TAXES
         filterset_class = TaxConfigurationFilter
 
 
@@ -45,4 +47,5 @@ class TaxClassFilter(MetadataFilterBase):
 
 class TaxClassFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_TAXES
         filterset_class = TaxClassFilter

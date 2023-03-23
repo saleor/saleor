@@ -7,13 +7,14 @@ from .....product import models
 from .....product.error_codes import CollectionErrorCode, ProductErrorCode
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
-from ....core.types import CollectionError, NonNullList
+from ....core.types import BaseInputObjectType, CollectionError, NonNullList
 from ....core.utils.reordering import perform_reordering
 from ...types import Collection, Product
 
 
-class MoveProductInput(graphene.InputObjectType):
+class MoveProductInput(BaseInputObjectType):
     product_id = graphene.ID(
         description="The ID of the product to move.", required=True
     )
@@ -26,6 +27,9 @@ class MoveProductInput(graphene.InputObjectType):
         )
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class CollectionReorderProducts(BaseMutation):
     collection = graphene.Field(
@@ -34,6 +38,7 @@ class CollectionReorderProducts(BaseMutation):
 
     class Meta:
         description = "Reorder the products of a collection."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"

@@ -10,6 +10,7 @@ from .....warehouse.management import deactivate_preorder_for_variant
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -34,6 +35,7 @@ class ProductVariantPreorderDeactivate(BaseMutation):
             + ADDED_IN_31
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
 

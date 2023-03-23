@@ -20,9 +20,10 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import AccountError, NonNullList
+from ...core.types import AccountError, BaseInputObjectType, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import AddressTypeEnum
@@ -36,7 +37,7 @@ from .base import (
 )
 
 
-class AccountBaseInput(graphene.InputObjectType):
+class AccountBaseInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     language_code = graphene.Argument(
@@ -70,6 +71,10 @@ class AccountRegisterInput(AccountBaseInput):
         )
     )
 
+    class Meta:
+        description = "Fields required to create a user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class AccountRegister(ModelMutation):
     class Arguments:
@@ -83,6 +88,7 @@ class AccountRegister(ModelMutation):
 
     class Meta:
         description = "Register a new user."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -167,6 +173,10 @@ class AccountInput(AccountBaseInput):
         description="Shipping address of the customer."
     )
 
+    class Meta:
+        description = "Fields required to update the user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class AccountUpdate(BaseCustomerCreate):
     class Arguments:
@@ -177,6 +187,7 @@ class AccountUpdate(BaseCustomerCreate):
 
     class Meta:
         description = "Updates the account of the logged-in user."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -212,6 +223,7 @@ class AccountRequestDeletion(BaseMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        doc_category = DOC_CATEGORY_USERS
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -247,6 +259,7 @@ class AccountDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Remove user account."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         error_type_class = AccountError
@@ -308,6 +321,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
     class Meta:
         description = "Create a new address for the customer."
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -353,6 +367,7 @@ class AccountAddressUpdate(BaseAddressUpdate):
             "Updates an address of the logged-in user. Requires one of the following "
             "permissions: MANAGE_USERS, IS_OWNER."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         model = models.Address
@@ -366,6 +381,7 @@ class AccountAddressDelete(BaseAddressDelete):
             "Delete an address of the logged-in user. Requires one of the following "
             "permissions: MANAGE_USERS, IS_OWNER."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -383,6 +399,7 @@ class AccountSetDefaultAddress(BaseMutation):
 
     class Meta:
         description = "Sets a default address for the authenticated user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -437,6 +454,7 @@ class RequestEmailChange(BaseMutation):
 
     class Meta:
         description = "Request email change of the logged in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -517,6 +535,7 @@ class ConfirmEmailChange(BaseMutation):
 
     class Meta:
         description = "Confirm the email change of the logged-in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

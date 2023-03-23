@@ -9,6 +9,7 @@ from ...warehouse import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..core.utils.resolvers import resolve_by_global_id_or_ext_ref
@@ -44,6 +45,7 @@ class WarehouseQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
             ShippingPermissions.MANAGE_SHIPPING,
         ],
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
     warehouses = FilterConnectionField(
         WarehouseCountableConnection,
@@ -55,6 +57,7 @@ class WarehouseQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
             ShippingPermissions.MANAGE_SHIPPING,
         ],
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
 
     @staticmethod
@@ -84,12 +87,14 @@ class StockQueries(graphene.ObjectType):
         description="Look up a stock by ID",
         id=graphene.ID(required=True, description="ID of an warehouse"),
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
     stocks = FilterConnectionField(
         StockCountableConnection,
         description="List of stocks.",
         filter=StockFilterInput(),
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
+        doc_category=DOC_CATEGORY_PRODUCTS,
     )
 
     @staticmethod

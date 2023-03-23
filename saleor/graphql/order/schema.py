@@ -8,8 +8,14 @@ from ...permission.enums import OrderPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
-from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+from ..core.fields import (
+    BaseField,
+    ConnectionField,
+    FilterConnectionField,
+    PermissionsField,
+)
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
@@ -66,11 +72,13 @@ def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
 
 class OrderFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
 
 
 class OrderDraftFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = DraftOrderFilter
 
 
@@ -85,13 +93,14 @@ class OrderQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
-    order = graphene.Field(
+    order = BaseField(
         Order,
         description="Look up an order by ID or external reference.",
         id=graphene.Argument(graphene.ID, description="ID of an order."),
         external_reference=graphene.Argument(
             graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
         ),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders = FilterConnectionField(
         OrderCountableConnection,
@@ -104,6 +113,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
@@ -113,6 +123,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders_total = PermissionsField(
         TaxedMoney,
@@ -125,12 +136,14 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_by_token = graphene.Field(
+    order_by_token = BaseField(
         Order,
         description="Look up an order by token.",
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
 
     @staticmethod

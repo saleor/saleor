@@ -5,6 +5,7 @@ from ...shipping import models
 from ..channel.types import ChannelContext
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
+from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import ShippingPriceTranslate
@@ -36,6 +37,7 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="Look up a shipping zone by ID.",
         permissions=[ShippingPermissions.MANAGE_SHIPPING],
+        doc_category=DOC_CATEGORY_SHIPPING,
     )
     shipping_zones = FilterConnectionField(
         ShippingZoneCountableConnection,
@@ -47,6 +49,7 @@ class ShippingQueries(graphene.ObjectType):
         ),
         description="List of the shop's shipping zones.",
         permissions=[ShippingPermissions.MANAGE_SHIPPING],
+        doc_category=DOC_CATEGORY_SHIPPING,
     )
 
     @staticmethod

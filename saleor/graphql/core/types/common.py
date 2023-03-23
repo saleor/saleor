@@ -6,6 +6,7 @@ from django.core.files.storage import default_storage
 
 from ....core.utils import build_absolute_uri
 from ...account.enums import AddressTypeEnum
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
@@ -57,6 +58,7 @@ from ..enums import (
 )
 from ..scalars import Date, PositiveDecimal
 from ..tracing import traced_resolver
+from .base import BaseObjectType
 from .money import VAT
 from .upload import Upload
 
@@ -96,7 +98,7 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description="Full name of the language.", required=True)
 
 
-class Permission(graphene.ObjectType):
+class Permission(BaseObjectType):
     code = PermissionEnum(description="Internal code for permission.", required=True)
     name = graphene.String(
         description="Describe action(s) allowed to do by permission.", required=True
@@ -106,7 +108,7 @@ class Permission(graphene.ObjectType):
         description = "Represents a permission object in a friendly form."
 
 
-class Error(graphene.ObjectType):
+class Error(BaseObjectType):
     field = graphene.String(
         description=(
             "Name of a field that caused the error. A value of `null` indicates that "
@@ -122,9 +124,13 @@ class Error(graphene.ObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
+
+    class Meta:
+        description = "Represents errors in account mutations."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AppError(Error):
@@ -184,7 +190,7 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
@@ -247,7 +253,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(
+    address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
 
