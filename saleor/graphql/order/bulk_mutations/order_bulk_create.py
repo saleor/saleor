@@ -23,7 +23,7 @@ from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....tax.models import TaxClass
-from ....warehouse.models import Warehouse
+from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
@@ -82,14 +82,6 @@ class OrderWithErrors:
     fulfillments_errors: List[OrderBulkError]
     is_each_line_created: bool = True
 
-    def get_all_errors(self) -> List[OrderBulkError]:
-        return (
-            self.order_errors
-            + self.lines_errors
-            + self.notes_errors
-            + self.fulfillments_errors
-        )
-
     def order_lines_duplicates(self) -> bool:
         return len(set(line.variant.id for line in self.lines if line.variant)) != len(
             self.lines
@@ -100,15 +92,31 @@ class OrderWithErrors:
             for line in fulfillment.lines:
                 line.line.fulfillment_id = fulfillment.fulfillment.id
 
-    def get_all_fulfillment_lines(self) -> List[FulfillmentLine]:
-        return [
-            line.line for fulfillment in self.fulfillments for line in fulfillment.lines
-        ]
-
-    def update_quantity_fulfilled(self):
+    def set_quantity_fulfilled(self):
         map = self.orderline_quantityfulfilled_map
         for order_line in self.lines:
             order_line.quantity_fulfilled = map.get(order_line.id, 0)
+
+    def set_fulfillment_order(self):
+        order = 1
+        for fulfillment in self.fulfillments:
+            fulfillment.fulfillment.fulfillment_order = order
+            order += 1
+
+    @property
+    def all_errors(self) -> List[OrderBulkError]:
+        return (
+            self.order_errors
+            + self.lines_errors
+            + self.notes_errors
+            + self.fulfillments_errors
+        )
+
+    @property
+    def all_fulfillment_lines(self) -> List[FulfillmentLine]:
+        return [
+            line.line for fulfillment in self.fulfillments for line in fulfillment.lines
+        ]
 
     @property
     def variant_orderline_map(self) -> Dict[int, OrderLine]:
@@ -121,6 +129,18 @@ class OrderWithErrors:
             for line in fulfillment.lines:
                 map[line.line.order_line.id] += line.line.quantity
         return map
+
+    @property
+    def unique_variant_ids(self) -> List[int]:
+        return list(set([line.variant.id for line in self.lines if line.variant]))
+
+    @property
+    def unique_warehouse_ids(self) -> List[UUID]:
+        return [
+            line.stock.warehouse.id
+            for fulfillment in self.fulfillments
+            for line in fulfillment.lines
+        ]
 
 
 @dataclass
@@ -1100,6 +1120,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return order
 
     @classmethod
+    def handle_stocks(cls, orders: List[OrderWithErrors]):
+        variant_ids: List[int] = sum(
+            [order.unique_variant_ids for order in orders if order.order], []
+        )
+        warehouse_ids: List[UUID] = sum(
+            [order.unique_warehouse_ids for order in orders if order.order], []
+        )
+
+        stocks = Stock.objects.filter(
+            warehouse__id__in=warehouse_ids, product_variant__id__in=variant_ids
+        ).all()
+        pass
+
+    @classmethod
     def handle_error_policy(
         cls,
         orders: List[OrderWithErrors],
@@ -1108,19 +1142,23 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if not policy:
             policy = ErrorPolicy.REJECT_EVERYTHING
 
-        errors = [error for order in orders for error in order.get_all_errors()]
+        errors = [error for order in orders for error in order.all_errors]
         if errors:
             for order in orders:
                 if policy == ErrorPolicy.REJECT_EVERYTHING:
                     order.order = None
                 elif policy == ErrorPolicy.REJECT_FAILED_ROWS:
-                    if order.get_all_errors():
+                    if order.all_errors:
                         order.order = None
         return orders
 
     @classmethod
     @traced_atomic_transaction()
     def save_data(cls, orders: List[OrderWithErrors]):
+        for order in orders:
+            order.set_quantity_fulfilled()
+            order.set_fulfillment_order()
+
         addresses = []
         for order in orders:
             if order.order:
@@ -1132,8 +1170,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         Order.objects.bulk_create([order.order for order in orders if order.order])
 
-        for order in orders:
-            order.update_quantity_fulfilled()
         order_lines = [line for order in orders for line in order.lines if order.order]
         OrderLine.objects.bulk_create(order_lines)
 
@@ -1150,7 +1186,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for order in orders:
             order.set_fulfillment_id()
         fulfillment_lines: List[FulfillmentLine] = sum(
-            [order.get_all_fulfillment_lines() for order in orders if order.order], []
+            [order.all_fulfillment_lines for order in orders if order.order], []
         )
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
 
@@ -1179,10 +1215,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             orders.append(cls.create_single_order(order_input, object_storage))
 
         cls.handle_error_policy(orders, data.get("error_policy"))
+        cls.handle_stocks(orders)
         cls.save_data(orders)
 
         results = [
-            OrderBulkCreateResult(order=order.order, errors=order.get_all_errors())
+            OrderBulkCreateResult(order=order.order, errors=order.all_errors)
             for order in orders
         ]
         count = sum([order.order is not None for order in orders])
