@@ -15,6 +15,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...discount.dataloaders import load_discounts
@@ -57,6 +58,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
 
     class Meta:
         description = "Update billing address in the existing checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 

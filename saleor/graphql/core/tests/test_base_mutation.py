@@ -4,9 +4,12 @@ import graphene
 import pytest
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 from graphql import GraphQLError
 from graphql.execution import ExecutionResult
 
+from ....core.jwt import create_access_token
+from ....graphql.tests.utils import get_graphql_content
 from ....order.models import Order
 from ....permission.enums import ProductPermissions
 from ....plugins.tests.sample_plugins import PluginSample
@@ -419,3 +422,36 @@ def test_base_mutation_get_node_by_pk_with_qs_for_product(product):
 
     # then
     assert node.id == product.id
+
+
+def test_expired_token_error(user_api_client, channel_USD):
+    # given
+    user = user_api_client.user
+    with freeze_time("2023-01-01 12:00:00"):
+        expired_access_token = create_access_token(user)
+        user_api_client.token = expired_access_token
+
+    mutation = """
+      mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
+        checkoutCreate(input: $checkoutInput) {
+          checkout {
+            id
+          }
+          errors {
+            field
+            message
+            code
+          }
+        }
+      }
+    """
+
+    # when
+    variables = {"checkoutInput": {"channel": channel_USD.slug, "lines": []}}
+    response = user_api_client.post_graphql(mutation, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+
+    # then
+    error = content["errors"][0]
+    assert error["message"] == "Signature has expired"
+    assert error["extensions"]["exception"]["code"] == "ExpiredSignatureError"

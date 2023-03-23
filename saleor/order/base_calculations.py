@@ -17,7 +17,7 @@ def base_order_shipping(order: "Order") -> Money:
     return order.base_shipping_price
 
 
-def _base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
+def base_order_subtotal(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     currency = order.currency
     subtotal = zero_money(currency)
     for line in lines:
@@ -39,7 +39,7 @@ def base_order_total(order: "Order", lines: Iterable["OrderLine"]) -> Money:
     (OrderDiscounts with type `order_discount.type == OrderDiscountType.MANUAL`).
     """
     currency = order.currency
-    subtotal = _base_order_subtotal(order, lines)
+    subtotal = base_order_subtotal(order, lines)
     shipping_price = order.base_shipping_price
     order_discounts = order.discounts.all()
     order_discounts_to_update = []

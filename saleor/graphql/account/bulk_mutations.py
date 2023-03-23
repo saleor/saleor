@@ -8,6 +8,7 @@ from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ...permission.enums import AccountPermissions
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.types import AccountError, NonNullList, StaffError
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -28,6 +29,7 @@ class UserBulkDelete(ModelBulkDeleteMutation):
 class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
     class Meta:
         description = "Deletes customers."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
@@ -54,6 +56,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         description = (
             "Deletes staff users. Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -107,6 +110,7 @@ class UserBulkSetActive(BaseBulkMutation):
 
     class Meta:
         description = "Activate or deactivate users."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)

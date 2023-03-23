@@ -14,8 +14,9 @@ from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import NonNullList, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -24,7 +25,7 @@ from ..types import Fulfillment, Order, OrderLine
 from ..utils import prepare_insufficient_stock_order_validation_errors
 
 
-class OrderFulfillStockInput(graphene.InputObjectType):
+class OrderFulfillStockInput(BaseInputObjectType):
     quantity = graphene.Int(
         description="The number of line items to be fulfilled from given warehouse.",
         required=True,
@@ -34,8 +35,11 @@ class OrderFulfillStockInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderFulfillLineInput(graphene.InputObjectType):
+
+class OrderFulfillLineInput(BaseInputObjectType):
     order_line_id = graphene.ID(
         description="The ID of the order line.", name="orderLineId"
     )
@@ -45,8 +49,11 @@ class OrderFulfillLineInput(graphene.InputObjectType):
         description="List of stock items to create.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderFulfillInput(graphene.InputObjectType):
+
+class OrderFulfillInput(BaseInputObjectType):
     lines = NonNullList(
         OrderFulfillLineInput,
         required=True,
@@ -65,13 +72,19 @@ class OrderFulfillInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
+
+class FulfillmentUpdateTrackingInput(BaseInputObjectType):
     tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         default_value=False,
         description="If true, send an email notification to the customer.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderFulfill(BaseMutation):
@@ -88,6 +101,7 @@ class OrderFulfill(BaseMutation):
 
     class Meta:
         description = "Creates new fulfillments for an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

@@ -12,6 +12,7 @@ from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
+from jwt import InvalidTokenError
 
 from ...account.models import User
 from ...app.models import App
@@ -44,6 +45,7 @@ REVERSED_DIRECTION = {
 ALLOWED_ERRORS = [
     CircularSubscriptionSyncEvent,
     GraphQLError,
+    InvalidTokenError,
     PermissionDenied,
     ReadOnlyException,
     ValidationError,
@@ -290,7 +292,10 @@ def format_error(error, handled_exceptions):
     # If DEBUG mode is disabled we allow only certain error messages to be returned in
     # the API. This prevents from leaking internals that might be included in Python
     # exceptions' error messages.
-    if type(exc) not in ALLOWED_ERRORS and not settings.DEBUG:
+    is_allowed_err = type(exc) in ALLOWED_ERRORS or any(
+        [isinstance(exc, allowed_err) for allowed_err in ALLOWED_ERRORS]
+    )
+    if not is_allowed_err and not settings.DEBUG:
         result["message"] = INTERNAL_ERROR_MESSAGE
 
     result["extensions"]["exception"] = {"code": type(exc).__name__}

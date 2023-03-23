@@ -25,6 +25,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -77,6 +78,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Update shipping address in the existing checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 

@@ -101,7 +101,7 @@ class ProcessedImage:
     ):
         self.image_path = image_path
         self.size = size
-        self.format = format
+        self.format = format.upper() if format else None
         self.storage = storage
 
     def create_thumbnail(self):

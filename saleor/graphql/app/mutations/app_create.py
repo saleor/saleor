@@ -2,9 +2,10 @@ import graphene
 
 from ....app import models
 from ....permission.enums import AppPermission, get_permissions
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
-from ...core.types import AppError, NonNullList
+from ...core.types import AppError, BaseInputObjectType, NonNullList
 from ...decorators import staff_member_required
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_user_or_app_from_context
@@ -12,12 +13,15 @@ from ..types import App
 from ..utils import ensure_can_manage_permissions
 
 
-class AppInput(graphene.InputObjectType):
+class AppInput(BaseInputObjectType):
     name = graphene.String(description="Name of the app.")
     permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this app.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
 
 class AppCreate(ModelMutation):
