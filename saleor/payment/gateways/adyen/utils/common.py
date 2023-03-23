@@ -343,7 +343,6 @@ def request_data_for_gateway_config(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
 
     country = address.country if address else None

@@ -97,12 +97,12 @@ def calculate_checkout_total_with_gift_cards(
     discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     total = (
+        # TODO Owczar: Drop discounts
         checkout_total(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=address,
-            discounts=discounts,
         )
         - checkout_info.checkout.get_total_gift_cards_balance()
     )
@@ -116,7 +116,6 @@ def checkout_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
@@ -125,7 +124,6 @@ def checkout_total(
 
     It takes in account all plugins.
     """
-    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_data(
         checkout_info,

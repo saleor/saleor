@@ -67,7 +67,6 @@ def test_checkout_totals_use_discounts(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=discounts,
     )
     assert data["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount

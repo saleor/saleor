@@ -89,7 +89,6 @@ def test_checkout_add_voucher_for_entire_order(api_client, checkout_with_item, v
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
-        discounts=[],
     )
 
     # when
