@@ -17,16 +17,23 @@ from .....order.models import (
     OrderEvent,
     OrderLine,
 )
+from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
+from ...enums import StockUpdatePolicyEnum
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
         $orders: [OrderBulkCreateInput!]!,
-        $errorPolicy: ErrorPolicyEnum
+        $errorPolicy: ErrorPolicyEnum,
+        $stockUpdatePolicy: StockUpdatePolicyEnum
     ) {
-        orderBulkCreate(orders: $orders, errorPolicy: $errorPolicy) {
+        orderBulkCreate(
+            orders: $orders,
+            errorPolicy: $errorPolicy,
+            stockUpdatePolicy: $stockUpdatePolicy
+        ) {
             count
             results {
                 order {
@@ -286,7 +293,63 @@ def order_bulk_input(
     }
 
 
-# TODO split this test
+@pytest.fixture()
+def order_bulk_input_with_multiple_order_lines_and_fulfillments(
+    order_bulk_input,
+    product_variant_list,
+    warehouses,
+):
+    order = order_bulk_input
+    order_line_1 = order["lines"][0]
+    order_line_2 = copy.deepcopy(order["lines"][0])
+
+    order_line_1["variantId"] = graphene.Node.to_global_id(
+        "ProductVariant", product_variant_list[0].id
+    )
+    order_line_2["variantId"] = graphene.Node.to_global_id(
+        "ProductVariant", product_variant_list[1].id
+    )
+
+    order_line_1["quantity"] = 10
+    order_line_2["quantity"] = 50
+
+    warehouse_1_id = (graphene.Node.to_global_id("Warehouse", warehouses[0].id),)
+    warehouse_2_id = (graphene.Node.to_global_id("Warehouse", warehouses[1].id),)
+
+    fulfillment_1_line_1 = {}
+    fulfillment_1_line_1["variantId"] = order_line_1["variantId"]
+    fulfillment_1_line_1_stock_1 = {"quantity": 3, "warehouse": warehouse_1_id}
+    fulfillment_1_line_1_stock_2 = {"quantity": 2, "warehouse": warehouse_2_id}
+    fulfillment_1_line_1["stocks"] = [
+        fulfillment_1_line_1_stock_1,
+        fulfillment_1_line_1_stock_2,
+    ]
+    fulfillment_1 = {"trackingCode": "abc-1", "lines": [fulfillment_1_line_1]}
+
+    fulfillment_2_line_1 = {}
+    fulfillment_2_line_1["variantId"] = order_line_1["variantId"]
+    fulfillment_2_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
+    fulfillment_2_line_1["stocks"] = [fulfillment_2_line_1_stock_1]
+
+    fulfillment_2_line_2 = {}
+    fulfillment_2_line_2["variantId"] = order_line_2["variantId"]
+    fulfillment_2_line_2_stock_1 = {"quantity": 33, "warehouse": warehouse_1_id}
+    fulfillment_2_line_2_stock_2 = {"quantity": 17, "warehouse": warehouse_2_id}
+    fulfillment_2_line_2["stocks"] = [
+        fulfillment_2_line_2_stock_1,
+        fulfillment_2_line_2_stock_2,
+    ]
+    fulfillment_2 = {
+        "trackingCode": "abc-2",
+        "lines": [fulfillment_2_line_1, fulfillment_2_line_2],
+    }
+
+    order["lines"] = [order_line_1, order_line_2]
+    order["fulfillments"] = [fulfillment_1, fulfillment_2]
+
+    return order
+
+
 def test_order_bulk_create(
     staff_api_client,
     permission_manage_orders,
@@ -476,157 +539,6 @@ def test_order_bulk_create(
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
 
 
-def test_order_bulk_create_multiple_fulfillments(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    fulfillments_count = Fulfillment.objects.count()
-    fulfillment_lines_count = FulfillmentLine.objects.count()
-
-    order = order_bulk_input
-    order_line_1 = order["lines"][0]
-    order_line_2 = copy.deepcopy(order["lines"][0])
-
-    order_line_1["variantId"] = graphene.Node.to_global_id(
-        "ProductVariant", product_variant_list[0].id
-    )
-    order_line_2["variantId"] = graphene.Node.to_global_id(
-        "ProductVariant", product_variant_list[1].id
-    )
-
-    order_line_1["quantity"] = 10
-    order_line_2["quantity"] = 50
-
-    warehouse_1_id = (graphene.Node.to_global_id("Warehouse", warehouses[0].id),)
-    warehouse_2_id = (graphene.Node.to_global_id("Warehouse", warehouses[1].id),)
-
-    fulfillment_1_line_1 = {}
-    fulfillment_1_line_1["variantId"] = order_line_1["variantId"]
-    fulfillment_1_line_1_stock_1 = {"quantity": 3, "warehouse": warehouse_1_id}
-    fulfillment_1_line_1_stock_2 = {"quantity": 2, "warehouse": warehouse_2_id}
-    fulfillment_1_line_1["stocks"] = [
-        fulfillment_1_line_1_stock_1,
-        fulfillment_1_line_1_stock_2,
-    ]
-    fulfillment_1 = {"trackingCode": "abc-1", "lines": [fulfillment_1_line_1]}
-
-    fulfillment_2_line_1 = {}
-    fulfillment_2_line_1["variantId"] = order_line_1["variantId"]
-    fulfillment_2_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
-    fulfillment_2_line_1["stocks"] = [fulfillment_2_line_1_stock_1]
-
-    fulfillment_2_line_2 = {}
-    fulfillment_2_line_2["variantId"] = order_line_2["variantId"]
-    fulfillment_2_line_2_stock_1 = {"quantity": 33, "warehouse": warehouse_1_id}
-    fulfillment_2_line_2_stock_2 = {"quantity": 17, "warehouse": warehouse_2_id}
-    fulfillment_2_line_2["stocks"] = [
-        fulfillment_2_line_2_stock_1,
-        fulfillment_2_line_2_stock_2,
-    ]
-    fulfillment_2 = {
-        "trackingCode": "abc-2",
-        "lines": [fulfillment_2_line_1, fulfillment_2_line_2],
-    }
-
-    order["lines"] = [order_line_1, order_line_2]
-    order["fulfillments"] = [fulfillment_1, fulfillment_2]
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {"orders": [order]}
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["errors"]
-
-    order = data[0]["order"]
-    order_line_1, order_line_2 = order["lines"]
-    db_order = Order.objects.get()
-    db_order_line_1, db_order_line_2 = OrderLine.objects.all()
-
-    fulfillment_1, fulfillment_2 = order["fulfillments"]
-    assert fulfillment_1["trackingNumber"] == "abc-1"
-    assert fulfillment_1["fulfillmentOrder"] == 1
-    assert fulfillment_1["status"] == FulfillmentStatus.FULFILLED.upper()
-    db_fulfillment_1, db_fulfillment_2 = Fulfillment.objects.all()
-    assert db_fulfillment_1.order_id == db_order.id
-    assert db_fulfillment_1.tracking_number == "abc-1"
-    assert db_fulfillment_1.fulfillment_order == 1
-    assert db_fulfillment_1.status == FulfillmentStatus.FULFILLED
-
-    fulfillment_1_line_1, fulfillment_1_line_2 = fulfillment_1["lines"]
-    assert fulfillment_1_line_1["quantity"] == 3
-    assert fulfillment_1_line_1["orderLine"]["id"] == order_line_1["id"]
-    assert fulfillment_1_line_2["quantity"] == 2
-    assert fulfillment_1_line_2["orderLine"]["id"] == order_line_1["id"]
-
-    (
-        db_fulfillment_1_line_1,
-        db_fulfillment_1_line_2,
-        db_fulfillment_2_line_1,
-        db_fulfillment_2_line_2,
-        db_fulfillment_2_line_3,
-    ) = FulfillmentLine.objects.all()
-    assert db_fulfillment_1_line_1.quantity == 3
-    assert db_fulfillment_1_line_1.order_line_id == db_order_line_1.id
-    assert db_fulfillment_1_line_1.fulfillment_id == db_fulfillment_1.id
-    assert db_fulfillment_1.lines.all()[0].id == db_fulfillment_1_line_1.id
-    assert db_fulfillment_1_line_2.quantity == 2
-    assert db_fulfillment_1_line_2.order_line_id == db_order_line_1.id
-    assert db_fulfillment_1_line_2.fulfillment_id == db_fulfillment_1.id
-    assert db_fulfillment_1.lines.all()[1].id == db_fulfillment_1_line_2.id
-
-    assert fulfillment_2["trackingNumber"] == "abc-2"
-    assert fulfillment_2["fulfillmentOrder"] == 2
-    assert fulfillment_2["status"] == FulfillmentStatus.FULFILLED.upper()
-    assert db_fulfillment_2.order_id == db_order.id
-    assert db_fulfillment_2.tracking_number == "abc-2"
-    assert db_fulfillment_2.fulfillment_order == 2
-    assert db_fulfillment_2.status == FulfillmentStatus.FULFILLED
-
-    (
-        fulfillment_2_line_1,
-        fulfillment_2_line_2,
-        fulfillment_2_line_3,
-    ) = fulfillment_2["lines"]
-    assert fulfillment_2_line_1["quantity"] == 5
-    assert fulfillment_2_line_1["orderLine"]["id"] == order_line_1["id"]
-    assert fulfillment_2_line_2["quantity"] == 33
-    assert fulfillment_2_line_2["orderLine"]["id"] == order_line_2["id"]
-    assert fulfillment_2_line_3["quantity"] == 17
-    assert fulfillment_2_line_3["orderLine"]["id"] == order_line_2["id"]
-
-    assert db_fulfillment_2_line_1.quantity == 5
-    assert db_fulfillment_2_line_1.order_line_id == db_order_line_1.id
-    assert db_fulfillment_2_line_1.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[0].id == db_fulfillment_2_line_1.id
-    assert db_fulfillment_2_line_2.quantity == 33
-    assert db_fulfillment_2_line_2.order_line_id == db_order_line_2.id
-    assert db_fulfillment_2_line_2.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[1].id == db_fulfillment_2_line_2.id
-    assert db_fulfillment_2_line_3.quantity == 17
-    assert db_fulfillment_2_line_3.order_line_id == db_order_line_2.id
-    assert db_fulfillment_2_line_3.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[2].id == db_fulfillment_2_line_3.id
-
-    assert Fulfillment.objects.count() == fulfillments_count + 2
-    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 5
-
-
 def test_order_bulk_create_multiple_orders(
     staff_api_client,
     permission_manage_orders,
@@ -782,6 +694,169 @@ def test_order_bulk_create_multiple_notes(
 
     assert Order.objects.count() == orders_count + 1
     assert OrderEvent.objects.count() == events_count + 2
+
+
+def test_order_bulk_create_multiple_fulfillments(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+):
+    # given
+    fulfillments_count = Fulfillment.objects.count()
+    fulfillment_lines_count = FulfillmentLine.objects.count()
+
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    order = data[0]["order"]
+    order_line_1, order_line_2 = order["lines"]
+    db_order = Order.objects.get()
+    db_order_line_1, db_order_line_2 = OrderLine.objects.all()
+
+    fulfillment_1, fulfillment_2 = order["fulfillments"]
+    assert fulfillment_1["trackingNumber"] == "abc-1"
+    assert fulfillment_1["fulfillmentOrder"] == 1
+    assert fulfillment_1["status"] == FulfillmentStatus.FULFILLED.upper()
+    db_fulfillment_1, db_fulfillment_2 = Fulfillment.objects.all()
+    assert db_fulfillment_1.order_id == db_order.id
+    assert db_fulfillment_1.tracking_number == "abc-1"
+    assert db_fulfillment_1.fulfillment_order == 1
+    assert db_fulfillment_1.status == FulfillmentStatus.FULFILLED
+
+    fulfillment_1_line_1, fulfillment_1_line_2 = fulfillment_1["lines"]
+    assert fulfillment_1_line_1["quantity"] == 3
+    assert fulfillment_1_line_1["orderLine"]["id"] == order_line_1["id"]
+    assert fulfillment_1_line_2["quantity"] == 2
+    assert fulfillment_1_line_2["orderLine"]["id"] == order_line_1["id"]
+
+    (
+        db_fulfillment_1_line_1,
+        db_fulfillment_1_line_2,
+        db_fulfillment_2_line_1,
+        db_fulfillment_2_line_2,
+        db_fulfillment_2_line_3,
+    ) = FulfillmentLine.objects.all()
+    assert db_fulfillment_1_line_1.quantity == 3
+    assert db_fulfillment_1_line_1.order_line_id == db_order_line_1.id
+    assert db_fulfillment_1_line_1.fulfillment_id == db_fulfillment_1.id
+    assert db_fulfillment_1.lines.all()[0].id == db_fulfillment_1_line_1.id
+    assert db_fulfillment_1_line_2.quantity == 2
+    assert db_fulfillment_1_line_2.order_line_id == db_order_line_1.id
+    assert db_fulfillment_1_line_2.fulfillment_id == db_fulfillment_1.id
+    assert db_fulfillment_1.lines.all()[1].id == db_fulfillment_1_line_2.id
+
+    assert fulfillment_2["trackingNumber"] == "abc-2"
+    assert fulfillment_2["fulfillmentOrder"] == 2
+    assert fulfillment_2["status"] == FulfillmentStatus.FULFILLED.upper()
+    assert db_fulfillment_2.order_id == db_order.id
+    assert db_fulfillment_2.tracking_number == "abc-2"
+    assert db_fulfillment_2.fulfillment_order == 2
+    assert db_fulfillment_2.status == FulfillmentStatus.FULFILLED
+
+    (
+        fulfillment_2_line_1,
+        fulfillment_2_line_2,
+        fulfillment_2_line_3,
+    ) = fulfillment_2["lines"]
+    assert fulfillment_2_line_1["quantity"] == 5
+    assert fulfillment_2_line_1["orderLine"]["id"] == order_line_1["id"]
+    assert fulfillment_2_line_2["quantity"] == 33
+    assert fulfillment_2_line_2["orderLine"]["id"] == order_line_2["id"]
+    assert fulfillment_2_line_3["quantity"] == 17
+    assert fulfillment_2_line_3["orderLine"]["id"] == order_line_2["id"]
+
+    assert db_fulfillment_2_line_1.quantity == 5
+    assert db_fulfillment_2_line_1.order_line_id == db_order_line_1.id
+    assert db_fulfillment_2_line_1.fulfillment_id == db_fulfillment_2.id
+    assert db_fulfillment_2.lines.all()[0].id == db_fulfillment_2_line_1.id
+    assert db_fulfillment_2_line_2.quantity == 33
+    assert db_fulfillment_2_line_2.order_line_id == db_order_line_2.id
+    assert db_fulfillment_2_line_2.fulfillment_id == db_fulfillment_2.id
+    assert db_fulfillment_2.lines.all()[1].id == db_fulfillment_2_line_2.id
+    assert db_fulfillment_2_line_3.quantity == 17
+    assert db_fulfillment_2_line_3.order_line_id == db_order_line_2.id
+    assert db_fulfillment_2_line_3.fulfillment_id == db_fulfillment_2.id
+    assert db_fulfillment_2.lines.all()[2].id == db_fulfillment_2_line_3.id
+
+    assert Fulfillment.objects.count() == fulfillments_count + 2
+    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 5
+
+
+def test_order_bulk_create_stock_update(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+    product_variant_list,
+    warehouses,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+
+    variant_1 = product_variant_list[0]
+    variant_2 = product_variant_list[1]
+    warehouse_1 = warehouses[0]
+    warehouse_2 = warehouses[1]
+
+    stock_variant_1_warehouse_1 = Stock.objects.create(
+        product_variant=variant_1, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_1_warehouse_2 = Stock.objects.create(
+        product_variant=variant_1, warehouse=warehouse_2, quantity=100
+    )
+    stock_variant_2_warehouse_1 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_2_warehouse_2 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_2, quantity=100
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.FAIL.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    stock_variant_1_warehouse_1.refresh_from_db()
+    stock_variant_1_warehouse_2.refresh_from_db()
+    stock_variant_2_warehouse_1.refresh_from_db()
+    stock_variant_2_warehouse_2.refresh_from_db()
+
+    assert stock_variant_1_warehouse_1.quantity == 92
+    assert stock_variant_1_warehouse_2.quantity == 98
+    assert stock_variant_2_warehouse_1.quantity == 67
+    assert stock_variant_2_warehouse_2.quantity == 83
 
 
 @pytest.mark.parametrize(
@@ -1350,13 +1425,11 @@ def test_order_bulk_create_error_invalid_quantity(
     assert Order.objects.count() == orders_count
 
 
-# 5, 0, 0.2, 100, 100
 @pytest.mark.parametrize(
-    "quantity,quantity_fulfilled,total_net,undiscounted_net,message,code,field",
+    "quantity,total_net,undiscounted_net,message,code,field",
     [
         (
             -5,
-            0,
             100,
             100,
             "Invalid quantity; must be integer greater then 1.",
@@ -1365,25 +1438,6 @@ def test_order_bulk_create_error_invalid_quantity(
         ),
         (
             5,
-            -2,
-            100,
-            100,
-            "Invalid quantity; must be integer greater then 0.",
-            OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
-            "quantity_fulfilled",
-        ),
-        (
-            5,
-            7,
-            100,
-            100,
-            "Quantity fulfilled can't be greater then quantity.",
-            OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
-            "quantity_fulfilled",
-        ),
-        (
-            5,
-            0,
             300,
             100,
             "Net price can't be greater then gross price.",
@@ -1392,7 +1446,6 @@ def test_order_bulk_create_error_invalid_quantity(
         ),
         (
             5,
-            0,
             100,
             300,
             "Net price can't be greater then gross price.",
@@ -1403,7 +1456,6 @@ def test_order_bulk_create_error_invalid_quantity(
 )
 def test_order_bulk_create_error_order_line_calculations(
     quantity,
-    quantity_fulfilled,
     total_net,
     undiscounted_net,
     message,
@@ -1419,7 +1471,6 @@ def test_order_bulk_create_error_order_line_calculations(
 
     order = order_bulk_input
     order["lines"][0]["quantity"] = quantity
-    order["lines"][0]["quantityFulfilled"] = quantity_fulfilled
     order["lines"][0]["totalPrice"]["net"] = total_net
     order["lines"][0]["undiscountedTotalPrice"]["net"] = undiscounted_net
 

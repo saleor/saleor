@@ -14790,6 +14790,11 @@ type Mutation {
 
     """Input list of orders to create. Orders limit: 50."""
     orders: [OrderBulkCreateInput!]!
+
+    """
+    Determine how stock should be updated, while processing fulfillment. DEFAULT: no_update
+    """
+    stockUpdatePolicy: StockUpdatePolicyEnum
   ): OrderBulkCreate
 
   """
@@ -22276,6 +22281,7 @@ enum OrderBulkCreateErrorCode {
   INVALID_QUANTITY
   PRICE_ERROR
   NOTE_LENGTH
+  INSUFFICIENT_STOCK
 }
 
 input OrderBulkCreateInput {
@@ -22351,9 +22357,6 @@ input OrderBulkCreateInput {
 
   """Fulfillments of the order."""
   fulfillments: [OrderBulkCreateFulfillmentInput!]
-
-  """Determine how stocks should be updated, while processing fulfillment."""
-  stockUpdatePolicy: StockUpdatePolicyEnum
 }
 
 input OrderBulkCreateUserInput {
@@ -22515,7 +22518,7 @@ Determine how stocks should be updated, while processing fulfillment.
 enum StockUpdatePolicyEnum {
   NO_UPDATE
   FORCE_UPDATE
-  FAIL_IF_NOT_ENOUGH
+  FAIL
 }
 
 """

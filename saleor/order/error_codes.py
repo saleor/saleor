@@ -60,3 +60,4 @@ class OrderBulkCreateErrorCode(Enum):
     INVALID_QUANTITY = "invalid_quantity"
     PRICE_ERROR = "price_error"
     NOTE_LENGTH = "note_length"
+    INSUFFICIENT_STOCK = "insufficient_stock"

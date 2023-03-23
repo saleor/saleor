@@ -311,7 +311,7 @@ class StockUpdatePolicy:
 
     NO_UPDATE = "no_update"
     FORCE_UPDATE = "force_update"
-    FAIL = "fail_if_not_enough"
+    FAIL = "fail"
 
     CHOICES = [
         (NO_UPDATE, "Stocks are not checked and not updated."),
