@@ -195,7 +195,6 @@ def create_order(payment, checkout, manager):
             checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address or checkout.billing_address,
-            discounts=discounts,
         )
         # when checkout total value is different than total amount from payments
         # it means that some products has been removed during the payment was completed

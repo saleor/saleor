@@ -429,7 +429,6 @@ def _prepare_order_data(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
 
     base_shipping_price = base_checkout_delivery_price(checkout_info, lines)
@@ -1098,7 +1097,6 @@ def _create_order_from_checkout(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
-        discounts=discounts,
     )
 
     # voucher

@@ -205,7 +205,6 @@ def test_checkout_complete_with_inactive_channel(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=[],
     )
     payment = payment_dummy
     payment.is_active = True

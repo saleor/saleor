@@ -887,6 +887,7 @@ def is_fully_paid(
 
     Note that these payments may not be captured or charged at all.
     """
+    # TODO Owczar: drop discounts
     checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
@@ -896,7 +897,6 @@ def is_fully_paid(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     checkout_total = max(
         checkout_total, zero_taxed_money(checkout_total.currency)

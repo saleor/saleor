@@ -94,10 +94,8 @@ def calculate_checkout_total_with_gift_cards(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     total = (
-        # TODO Owczar: Drop discounts
         checkout_total(
             manager=manager,
             checkout_info=checkout_info,
