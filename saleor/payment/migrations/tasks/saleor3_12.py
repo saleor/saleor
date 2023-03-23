@@ -267,17 +267,18 @@ def set_default_currency_for_transaction_event_task():
 
 
 def update_transaction_token_field(transaction_item_class, batch_size=None):
-    transactions = transaction_item_class.objects.filter(token__isnull=True)
+    transaction_ids = transaction_item_class.objects.filter(
+        token__isnull=True
+    ).values_list("id", flat=True)
+
     fully_processed = True
     if batch_size:
-        transactions = transactions[:BATCH_SIZE]
-
-    for transaction in transactions:
-        transaction.token = RandomUUID()
-
-    if transactions:
+        transaction_ids = transaction_ids[:BATCH_SIZE]
+    if transaction_ids:
+        transaction_item_class.objects.filter(id__in=transaction_ids).update(
+            token=Case(When(token__isnull=True, then=RandomUUID()), default="token")
+        )
         fully_processed = False
-        transaction_item_class.objects.bulk_update(transactions, ["token"])
     return fully_processed
 
 
