@@ -32,7 +32,6 @@ from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphql.error import GraphQLError
 
-from ...app.models import App
 from ...core.error_codes import MetadataErrorCode
 from ...core.exceptions import PermissionDenied
 from ...core.utils.events import call_event
@@ -43,15 +42,12 @@ from ...permission.utils import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..account.utils import get_user_accessible_channels
+from ..app.dataloaders import get_app_promise
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from ..payment.utils import metadata_contains_empty_key
 from ..plugins.dataloaders import get_plugin_manager_promise
-from ..utils import (
-    get_nodes,
-    get_user_or_app_from_context,
-    resolve_global_ids_to_primary_keys,
-)
+from ..utils import get_nodes, resolve_global_ids_to_primary_keys
 from . import ResolveInfo
 from .context import disallow_replica_in_context, setup_context_user
 from .descriptions import DEPRECATED_IN_3X_FIELD
@@ -602,11 +598,10 @@ class BaseMutation(graphene.Mutation):
     def check_channel_permissions(
         cls, info: ResolveInfo, channel_ids: Iterable[Union[UUID, int]]
     ):
-        requestor = get_user_or_app_from_context(info.context)
         # App has access to all channels
-        if isinstance(requestor, App):
+        if get_app_promise(info.context).get():
             return
-        accessible_channels = get_user_accessible_channels(info, requestor)
+        accessible_channels = get_user_accessible_channels(info, info.context.user)
         accessible_channel_ids = {str(channel.id) for channel in accessible_channels}
         channel_ids = {str(channel_id) for channel_id in channel_ids}
         invalid_channel_ids = channel_ids - accessible_channel_ids
