@@ -317,7 +317,6 @@ def test_checkout_add_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=[],
     )
 
     variables = {
@@ -371,7 +370,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
 
     assert subtotal > subtotal_discounted
@@ -391,7 +389,6 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + Money(
@@ -440,7 +437,6 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert subtotal > subtotal_discounted
     variables = {
@@ -459,7 +455,6 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
@@ -506,7 +501,6 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert subtotal > subtotal_discounted
     variables = {
@@ -525,7 +519,6 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
 
     assert not data["errors"]
@@ -574,7 +567,6 @@ def test_checkout_add_category_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert subtotal > subtotal_discounted
     variables = {
@@ -593,7 +585,6 @@ def test_checkout_add_category_code_checkout_with_sale(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
     assert not data["errors"]
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
@@ -651,7 +642,6 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address,
-        discounts=[],
     )
 
     variables = {

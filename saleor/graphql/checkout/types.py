@@ -636,7 +636,6 @@ class Checkout(ModelObjectType[models.Checkout]):
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))

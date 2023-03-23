@@ -74,13 +74,11 @@ def checkout_subtotal(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
     It takes in account all plugins.
     """
-    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_data(
         checkout_info,

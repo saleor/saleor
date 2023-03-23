@@ -1634,7 +1634,6 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_info=checkout_info,
         lines=lines,
         address=checkout_with_item.shipping_address,
-        discounts=[discount_info],
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
