@@ -33,7 +33,6 @@ def checkout_shipping_price(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 

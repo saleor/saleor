@@ -417,6 +417,7 @@ def _prepare_order_data(
 
     :raises NotApplicable InsufficientStock:
     """
+    # TODO Owczar: check discounts param
     checkout = checkout_info.checkout
     order_data = {}
     address = (
@@ -437,7 +438,6 @@ def _prepare_order_data(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,
@@ -1083,6 +1083,7 @@ def _create_order_from_checkout(
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ):
+    # TODO Owczar: check discounts param
     from ..order.utils import add_gift_cards_to_order
 
     site_settings = Site.objects.get_current().settings
@@ -1114,7 +1115,6 @@ def _create_order_from_checkout(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
         address=address,
-        discounts=discounts,
     )
     shipping_tax_rate = calculations.checkout_shipping_tax_rate(
         manager=manager,

@@ -95,6 +95,7 @@ def get_dataloaders_for_fetching_checkout_data(
     Promise[list["DiscountInfo"]],
     Promise["PluginsManager"],
 ]:
+    # TODO Owczar: drop discounts
     address_id = root.shipping_address_id or root.billing_address_id
     address = AddressByIdLoader(info.context).load(address_id) if address_id else None
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
@@ -652,7 +653,6 @@ class Checkout(ModelObjectType[models.Checkout]):
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))

@@ -225,7 +225,6 @@ def get_shipping_data(manager, checkout_info, lines, discounts):
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     total_gross = shipping_total.gross.amount
     total_net = shipping_total.net.amount
