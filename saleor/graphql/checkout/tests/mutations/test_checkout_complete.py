@@ -19,7 +19,8 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
-from .....discount import DiscountType
+from .....discount import DiscountType, DiscountValueType
+from .....discount.models import Sale, SaleChannelListing
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -1198,6 +1199,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
+    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
@@ -1388,6 +1390,113 @@ def test_checkout_complete_product_on_sale(
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
+    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.payments.exists()
+    order_payment = order.payments.first()
+    assert order_payment == payment
+    assert payment.transactions.count() == 1
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+
+def test_checkout_complete_product_on_many_sales(
+    user_api_client,
+    checkout_with_item,
+    sale,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    small_sale = Sale.objects.create(type=DiscountValueType.FIXED)
+    SaleChannelListing.objects.create(
+        sale=small_sale,
+        discount_value=1,
+        currency=checkout.channel.currency_code,
+        channel=checkout.channel,
+    )
+
+    small_sale.variants.add(checkout_line_variant)
+    sale.variants.add(checkout_line_variant)
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=address,
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    assert Sale.objects.count() > 1
+    assert (
+        Sale.variants.through.objects.filter(
+            productvariant_id=checkout_line_variant.id
+        ).count()
+        > 1
+    )
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+
+    order_line = order.lines.first()
+    assert order.total == total
+    assert order.undiscounted_total == total + (
+        order_line.undiscounted_total_price - order_line.total_price
+    )
+
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()
@@ -1483,6 +1592,7 @@ def test_checkout_with_voucher_on_specific_product_complete_with_product_on_sale
 
     assert checkout_line_quantity == order_line.quantity
     assert checkout_line_variant == order_line.variant
+    assert order_line.sale_id == graphene.Node.to_global_id("Sale", sale.id)
     assert order.shipping_address == address
     assert order.shipping_method == checkout.shipping_method
     assert order.payments.exists()

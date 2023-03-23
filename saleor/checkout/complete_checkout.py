@@ -37,7 +37,6 @@ from ..discount import DiscountInfo, DiscountType, DiscountValueType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
-    get_sale_id_applied_as_a_discount,
     increase_voucher_usage,
     release_voucher_usage,
 )
@@ -185,7 +184,6 @@ def _create_line_for_order(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable[DiscountInfo],
     products_translation: Dict[int, Optional[str]],
     variants_translation: Dict[int, Optional[str]],
     prices_entered_with_tax: bool,
@@ -194,7 +192,6 @@ def _create_line_for_order(
 
     :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
-    # TODO Owczar: Drop discounts
     checkout_line = checkout_line_info.line
     quantity = checkout_line.quantity
     variant = checkout_line_info.variant
@@ -254,21 +251,10 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
     )
 
-    price_override = checkout_line_info.line.price_override
-    channel_listing = checkout_line_info.channel_listing
-    price = (
-        channel_listing.price
-        if price_override is None
-        else Money(price_override, channel_listing.currency)
-    )
-    sale_id = get_sale_id_applied_as_a_discount(
-        product=checkout_line_info.product,
-        price=price,
-        discounts=discounts,
-        collections=checkout_line_info.collections,
-        channel=checkout_info.channel,
-        variant_id=checkout_line_info.variant.id,
-    )
+    sale_id = None
+    for discount in checkout_line_info.discounts:
+        if discount.type == DiscountType.SALE and discount.sale:
+            sale_id = discount.sale.id
 
     voucher_code = None
     if checkout_line_info.voucher:
@@ -339,7 +325,6 @@ def _create_lines_for_order(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
     prices_entered_with_tax: bool,
 ) -> Iterable[OrderLineInfo]:
     """Create a lines for the given order.
@@ -394,7 +379,6 @@ def _create_lines_for_order(
             checkout_info,
             lines,
             checkout_line_info,
-            discounts,
             product_translations,
             variants_translation,
             prices_entered_with_tax,
@@ -453,7 +437,6 @@ def _prepare_order_data(
         manager,
         checkout_info,
         lines,
-        discounts,
         prices_entered_with_tax,
     )
     undiscounted_total = (
@@ -969,11 +952,11 @@ def _create_order_lines_from_checkout_lines(
     order_pk: Union[str, UUID],
     prices_entered_with_tax: bool,
 ) -> List[OrderLineInfo]:
+    # TODO Owczar: Drop discounts
     order_lines_info = _create_lines_for_order(
         manager,
         checkout_info,
         lines,
-        discounts,
         prices_entered_with_tax,
     )
     order_lines = []
