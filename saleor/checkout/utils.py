@@ -881,13 +881,11 @@ def is_fully_paid(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
 ):
     """Check if provided payment methods cover the checkout's total amount.
 
     Note that these payments may not be captured or charged at all.
     """
-    # TODO Owczar: drop discounts
     checkout = checkout_info.checkout
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])

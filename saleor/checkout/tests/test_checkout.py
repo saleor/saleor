@@ -1563,7 +1563,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines)
     assert is_paid
 
 
@@ -1593,7 +1593,7 @@ def test_is_fully_paid_mg_payments(checkout_with_item, payment_dummy):
     payment2.currency = total.gross.currency
     payment2.checkout = checkout
     payment2.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines)
     assert is_paid
 
 
@@ -1615,7 +1615,7 @@ def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     payment.currency = total.gross.currency
     payment.checkout = checkout
     payment.save()
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines)
     assert not is_paid
 
 
@@ -1624,7 +1624,7 @@ def test_is_fully_paid_no_payment(checkout_with_item):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    is_paid = is_fully_paid(manager, checkout_info, lines, None)
+    is_paid = is_fully_paid(manager, checkout_info, lines)
     assert not is_paid
 
 
