@@ -315,6 +315,7 @@ def set_default_currency_for_transaction_event_task():
 
 def update_transaction_token_field(transaction_item_class, batch_size=None):
     transactions = transaction_item_class.objects.filter(token__isnull=True)
+    fully_processed = True
     if batch_size:
         transactions = transactions[:BATCH_SIZE]
 
@@ -322,14 +323,15 @@ def update_transaction_token_field(transaction_item_class, batch_size=None):
         transaction.token = RandomUUID()
 
     if transactions:
-        return transaction_item_class.objects.bulk_update(transactions, ["token"])
-    return None
+        fully_processed = False
+        transaction_item_class.objects.bulk_update(transactions, ["token"])
+    return fully_processed
 
 
 @app.task
 def update_transaction_token_field_task():
-    updated_transactions = update_transaction_token_field(
+    fully_processed = update_transaction_token_field(
         transaction_item_class=TransactionItem, batch_size=BATCH_SIZE
     )
-    if updated_transactions:
+    if not fully_processed:
         update_transaction_token_field_task.delay()
