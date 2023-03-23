@@ -29,6 +29,7 @@ mutation TransactionProcess(
     id: $id
     data: $data
   ) {
+    data
     transaction {
       id
       authorizedAmount {
@@ -90,9 +91,11 @@ def _assert_fields(
     charged_value=Decimal(0),
     charge_pending_value=Decimal(0),
     authorize_pending_value=Decimal(0),
+    returned_data=None,
 ):
     assert not content["data"]["transactionProcess"]["errors"]
     response_data = content["data"]["transactionProcess"]
+    assert response_data["data"] == returned_data
     transaction_data = response_data["transaction"]
     transaction = source_object.payment_transactions.last()
     assert transaction
@@ -201,6 +204,7 @@ def test_for_checkout_without_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
+    del expected_response["data"]
     mocked_process.return_value = PaymentGatewayData(
         app_identifier=expected_app_identifier, data=expected_response
     )
@@ -225,6 +229,7 @@ def test_for_checkout_without_data(
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
         charged_value=expected_amount,
+        returned_data=None,
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -260,6 +265,7 @@ def test_for_order_without_data(
     expected_response["amount"] = expected_amount
     expected_response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
     expected_response["pspReference"] = expected_psp_reference
+    del expected_response["data"]
     mocked_process.return_value = PaymentGatewayData(
         app_identifier=expected_app_identifier, data=expected_response
     )
@@ -283,6 +289,7 @@ def test_for_order_without_data(
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
         charged_value=expected_amount,
+        returned_data=None,
     )
 
 
@@ -343,6 +350,7 @@ def test_for_checkout_with_data(
         mocked_process=mocked_process,
         charged_value=expected_amount,
         data=expected_data,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -403,6 +411,7 @@ def test_for_order_with_data(
         mocked_process=mocked_process,
         charged_value=expected_amount,
         data=expected_data,
+        returned_data=expected_response["data"],
     )
 
 
@@ -462,6 +471,7 @@ def test_checkout_with_pending_amount(
         mocked_process=mocked_process,
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.PARTIAL
     assert checkout.authorize_status == CheckoutAuthorizeStatus.PARTIAL
@@ -520,6 +530,7 @@ def test_order_with_pending_amount(
         mocked_process=mocked_process,
         charge_pending_value=expected_amount,
         request_event_include_in_calculations=True,
+        returned_data=expected_response["data"],
     )
 
 
@@ -577,6 +588,7 @@ def test_checkout_with_action_required_response(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
+        returned_data=expected_response["data"],
     )
     assert checkout.charge_status == CheckoutChargeStatus.NONE
     assert checkout.authorize_status == CheckoutAuthorizeStatus.NONE
@@ -633,6 +645,7 @@ def test_order_with_action_required_response(
         response_event_type=TransactionEventType.CHARGE_ACTION_REQUIRED,
         app_identifier=webhook_app.identifier,
         mocked_process=mocked_process,
+        returned_data=expected_response["data"],
     )
 
 

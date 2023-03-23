@@ -1371,16 +1371,17 @@ def handle_transaction_initialize_session(
     )
     response = manager.transaction_initialize_session(session_data)
 
-    data = response.data if response else None
+    response_data = response.data if response else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
-        transaction_webhook_response=data,
+        transaction_webhook_response=response_data,
         manager=manager,
         discounts=discounts,
     )
-    return created_event.transaction, created_event, data
+    data_to_return = response_data.get("data") if response_data else None
+    return created_event.transaction, created_event, data_to_return
 
 
 def handle_transaction_process_session(
@@ -1406,13 +1407,14 @@ def handle_transaction_process_session(
 
     response = manager.transaction_process_session(session_data)
 
-    data = response.data if response else None
+    response_data = response.data if response else None
 
     created_event = create_transaction_event_for_transaction_session(
         request_event,
         app,
-        transaction_webhook_response=data,
+        transaction_webhook_response=response_data,
         manager=manager,
         discounts=discounts,
     )
-    return created_event, data
+    data_to_return = response_data.get("data") if response_data else None
+    return created_event, data_to_return
