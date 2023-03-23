@@ -45,7 +45,6 @@ def checkout_shipping_price(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     return quantize_price(checkout_info.checkout.shipping_price, currency)
 
@@ -67,7 +66,6 @@ def checkout_shipping_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     return checkout_info.checkout.shipping_tax_rate
 
@@ -84,13 +82,13 @@ def checkout_subtotal(
 
     It takes in account all plugins.
     """
+    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_data(
         checkout_info,
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     return quantize_price(checkout_info.checkout.subtotal, currency)
 
@@ -131,13 +129,13 @@ def checkout_total(
 
     It takes in account all plugins.
     """
+    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     checkout_info, _ = fetch_checkout_data(
         checkout_info,
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     return quantize_price(checkout_info.checkout.total, currency)
 
@@ -169,6 +167,7 @@ def checkout_line_total(
 
     It takes in account all plugins.
     """
+    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
@@ -176,7 +175,6 @@ def checkout_line_total(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     return quantize_price(checkout_line.total_price, currency)
@@ -194,6 +192,7 @@ def checkout_line_unit_price(
 
     It takes in account all plugins.
     """
+    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
@@ -201,7 +200,6 @@ def checkout_line_unit_price(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
     unit_price = checkout_line.total_price / checkout_line.quantity
@@ -226,7 +224,6 @@ def checkout_line_tax_rate(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
     )
     checkout_line_info = _find_checkout_line_info(lines, checkout_line_info)
     return checkout_line_info.line.tax_rate
@@ -237,7 +234,6 @@ def _fetch_checkout_prices_if_expired(
     manager: "PluginsManager",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
 ) -> Tuple["CheckoutInfo", Iterable["CheckoutLineInfo"]]:
     """Fetch checkout prices with taxes.
@@ -534,7 +530,6 @@ def fetch_checkout_data(
         manager=manager,
         lines=lines,
         address=address,
-        discounts=discounts,
         force_update=force_update,
     )
     current_total_gross = checkout_info.checkout.total.gross

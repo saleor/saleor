@@ -87,16 +87,14 @@ def test_apply_tax_data(checkout_with_items, checkout_lines, tax_data):
 @pytest.fixture
 def fetch_kwargs(checkout_with_items, plugins_manager):
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
     return {
         "checkout_info": fetch_checkout_info(
-            checkout_with_items, lines, discounts, plugins_manager
+            checkout_with_items, lines, [], plugins_manager
         ),
         "manager": plugins_manager,
         "lines": lines,
         "address": checkout_with_items.shipping_address
         or checkout_with_items.billing_address,
-        "discounts": discounts,
     }
 
 
@@ -403,7 +401,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
         "manager": manager,
         "lines": lines_info,
         "address": checkout.shipping_address or checkout.billing_address,
-        "discounts": discounts,
     }
 
     # when
@@ -463,7 +460,6 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
         "manager": manager,
         "lines": lines_info,
         "address": checkout.shipping_address or checkout.billing_address,
-        "discounts": discounts,
     }
 
     # when

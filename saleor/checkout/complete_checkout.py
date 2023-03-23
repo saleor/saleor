@@ -33,12 +33,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import (
-    DiscountInfo,
-    DiscountType,
-    DiscountValueType,
-    VoucherType,
-)
+from ..discount import DiscountInfo, DiscountType, DiscountValueType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
@@ -839,7 +834,8 @@ def complete_checkout_pre_payment_part(
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
 
-    fetch_checkout_data(checkout_info, manager, lines, discounts=discounts)
+    # TODO Owczar: Drop discounts
+    fetch_checkout_data(checkout_info, manager, lines)
 
     checkout = checkout_info.checkout
     channel_slug = checkout_info.channel.slug
