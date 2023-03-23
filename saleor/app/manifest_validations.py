@@ -32,6 +32,7 @@ class RequiredSaleorVersionSpec(NpmSpec):
     class Parser(NpmSpec.Parser):
         @classmethod
         def range(cls, operator, target):
+            # change prerelease policy from `same-patch` to `natural`
             return Range(operator, target, prerelease_policy=Range.PRERELEASE_NATURAL)
 
 
