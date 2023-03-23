@@ -54,7 +54,6 @@ def checkout_shipping_tax_rate(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Decimal:
     """Return checkout shipping tax rate.
 
