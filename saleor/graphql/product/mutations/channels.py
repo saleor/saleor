@@ -29,9 +29,11 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Date, PositiveDecimal
 from ...core.types import (
+    BaseInputObjectType,
     CollectionChannelListingError,
     NonNullList,
     ProductChannelListingError,
@@ -53,7 +55,7 @@ if TYPE_CHECKING:
 ErrorType = DefaultDict[str, List[ValidationError]]
 
 
-class PublishableChannelListingInput(graphene.InputObjectType):
+class PublishableChannelListingInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
@@ -67,6 +69,9 @@ class PublishableChannelListingInput(graphene.InputObjectType):
     published_at = graphene.types.datetime.DateTime(
         description="Publication date time. ISO 8601 standard." + ADDED_IN_33
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductChannelListingAddInput(PublishableChannelListingInput):
@@ -105,8 +110,11 @@ class ProductChannelListingAddInput(PublishableChannelListingInput):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductChannelListingUpdateInput(graphene.InputObjectType):
+
+class ProductChannelListingUpdateInput(BaseInputObjectType):
     update_channels = NonNullList(
         ProductChannelListingAddInput,
         description=(
@@ -119,6 +127,9 @@ class ProductChannelListingUpdateInput(graphene.InputObjectType):
         description="List of channels from which the product should be unassigned.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductChannelListingUpdate(BaseChannelListingMutation):
@@ -133,6 +144,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage product's availability in channels."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
@@ -372,7 +384,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
         )
 
 
-class ProductVariantChannelListingAddInput(graphene.InputObjectType):
+class ProductVariantChannelListingAddInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     price = PositiveDecimal(
         required=True, description="Price of the particular variant in channel."
@@ -385,6 +397,9 @@ class ProductVariantChannelListingAddInput(graphene.InputObjectType):
             + PREVIEW_FEATURE
         )
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantChannelListingUpdate(BaseMutation):
@@ -411,6 +426,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
 
     class Meta:
         description = "Manage product variant prices in channels."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductChannelListingError
         error_type_field = "product_channel_listing_errors"
@@ -562,7 +578,7 @@ class ProductVariantChannelListingUpdate(BaseMutation):
         )
 
 
-class CollectionChannelListingUpdateInput(graphene.InputObjectType):
+class CollectionChannelListingUpdateInput(BaseInputObjectType):
     add_channels = NonNullList(
         PublishableChannelListingInput,
         description="List of channels to which the collection should be assigned.",
@@ -573,6 +589,9 @@ class CollectionChannelListingUpdateInput(graphene.InputObjectType):
         description="List of channels from which the collection should be unassigned.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class CollectionChannelListingUpdate(BaseChannelListingMutation):
@@ -591,6 +610,7 @@ class CollectionChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage collection's availability in channels."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionChannelListingError
         error_type_field = "collection_channel_listing_errors"

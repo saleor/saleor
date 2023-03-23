@@ -9,6 +9,7 @@ from .....product.tasks import update_products_discounted_prices_of_catalogues_t
 from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -30,6 +31,7 @@ class CollectionAddProducts(BaseMutation):
 
     class Meta:
         description = "Adds products to a collection."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"

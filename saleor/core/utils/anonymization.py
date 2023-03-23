@@ -55,7 +55,7 @@ def anonymize_order(order: "Order") -> "Order":
     """
     anonymized_order = copy.deepcopy(order)
     # Prevent accidental saving of the instance
-    anonymized_order.save = _fake_save  # type: ignore[assignment]
+    anonymized_order.save = _fake_save  # type: ignore[method-assign]
     fake_user = generate_fake_user()
     anonymized_order.user = fake_user
     anonymized_order.user_email = fake_user.email
@@ -74,7 +74,7 @@ def anonymize_checkout(checkout: "Checkout") -> "Checkout":
     """
     anonymized_checkout = copy.deepcopy(checkout)
     # Prevent accidental saving of the instance
-    anonymized_checkout.save = _fake_save  # type: ignore[assignment]
+    anonymized_checkout.save = _fake_save  # type: ignore[method-assign]
     fake_user = generate_fake_user()
     anonymized_checkout.user = fake_user
     anonymized_checkout.email = fake_user.email

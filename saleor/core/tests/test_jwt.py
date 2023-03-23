@@ -3,8 +3,42 @@ import jwt
 from cryptography.hazmat.primitives import serialization
 from django.urls import reverse
 
-from ..jwt import create_access_token_for_app_extension, jwt_decode, jwt_encode
+from ..jwt import (
+    create_access_token_for_app,
+    create_access_token_for_app_extension,
+    jwt_decode,
+    jwt_encode,
+)
 from ..utils import build_absolute_uri
+
+
+def test_create_access_token_for_app(
+    app,
+    staff_user,
+    permission_manage_apps,
+    permission_manage_products,
+    site_settings,
+):
+    # given
+    staff_user.user_permissions.set(
+        [permission_manage_apps, permission_manage_products]
+    )
+    app.permissions.add(permission_manage_products)
+    audience = f"https://{site_settings.site.domain}.com/app-123"
+    app.audience = audience
+    app.save()
+
+    # when
+    access_token = create_access_token_for_app(app=app, user=staff_user)
+
+    # then
+    decoded_token = jwt_decode(access_token, verify_expiration=False, verify_aud=False)
+    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
+    assert decoded_token["permissions"] == ["MANAGE_PRODUCTS"]
+    assert set(decoded_token["user_permissions"]) == {"MANAGE_APPS", "MANAGE_PRODUCTS"}
+    assert int(decode_app_id) == app.id
+    assert decoded_token["aud"] == audience
+    assert decoded_token["iss"] == build_absolute_uri(reverse("api"))
 
 
 def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
@@ -41,10 +75,12 @@ def test_create_access_token_for_app_extension_staff_user_with_more_permissions(
     _, decode_extension_id = graphene.Node.from_global_id(
         decoded_token["app_extension"]
     )
+    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
     assert set(decoded_token["user_permissions"]) == set(
         ["MANAGE_CHANNELS", "MANAGE_APPS", "MANAGE_PRODUCTS"]
     )
     assert int(decode_extension_id) == extension.id
+    assert int(decode_app_id) == app.id
     assert decoded_token["aud"] == audience
     assert decoded_token["iss"] == build_absolute_uri(reverse("api"))
 
@@ -84,8 +120,10 @@ def test_create_access_token_for_app_extension_with_more_permissions(
     _, decode_extension_id = graphene.Node.from_global_id(
         decoded_token["app_extension"]
     )
+    _, decode_app_id = graphene.Node.from_global_id(decoded_token["app"])
     assert decoded_token["user_permissions"] == ["MANAGE_PRODUCTS"]
     assert int(decode_extension_id) == extension.id
+    assert int(decode_app_id) == app.id
     assert decoded_token["aud"] == audience
 
 

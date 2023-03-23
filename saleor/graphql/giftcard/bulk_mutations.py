@@ -14,16 +14,17 @@ from ...permission.enums import GiftcardPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.scalars import Date
-from ..core.types import GiftCardError, NonNullList, PriceInput
+from ..core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
 from ..core.validators import validate_price_precision
 from ..plugins.dataloaders import get_plugin_manager_promise
 from .mutations import GiftCardCreate
 from .types import GiftCard
 
 
-class GiftCardBulkCreateInput(graphene.InputObjectType):
+class GiftCardBulkCreateInput(BaseInputObjectType):
     count = graphene.Int(required=True, description="The number of cards to issue.")
     balance = graphene.Field(
         PriceInput, description="Balance of the gift card.", required=True
@@ -36,6 +37,9 @@ class GiftCardBulkCreateInput(graphene.InputObjectType):
     is_active = graphene.Boolean(
         required=True, description="Determine if gift card is active."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardBulkCreate(BaseMutation):
@@ -58,6 +62,7 @@ class GiftCardBulkCreate(BaseMutation):
 
     class Meta:
         description = "Create gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError

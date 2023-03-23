@@ -2,6 +2,7 @@ import graphene
 
 from ....permission.enums import AppPermission
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types import WebhookError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -18,6 +19,7 @@ class EventDeliveryRetry(BaseMutation):
 
     class Meta:
         description = "Retries event delivery."
+        doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = WebhookError
 

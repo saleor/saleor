@@ -6,6 +6,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -30,6 +31,7 @@ class ProductMediaReorder(BaseMutation):
 
     class Meta:
         description = "Changes ordering of the product media."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

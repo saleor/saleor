@@ -4,7 +4,8 @@ from ...attribute import models
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310, ADDED_IN_311, PREVIEW_FEATURE
-from ..core.fields import FilterConnectionField
+from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
+from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils.resolvers import resolve_by_global_id_slug_or_ext_ref
 from ..translations.mutations import AttributeTranslate, AttributeValueTranslate
 from .bulk_mutations import AttributeBulkDelete, AttributeValueBulkDelete
@@ -40,8 +41,9 @@ class AttributeQueries(graphene.ObjectType):
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
+        doc_category=DOC_CATEGORY_ATTRIBUTES,
     )
-    attribute = graphene.Field(
+    attribute = BaseField(
         Attribute,
         id=graphene.Argument(graphene.ID, description="ID of the attribute."),
         slug=graphene.Argument(graphene.String, description="Slug of the attribute."),
@@ -49,6 +51,7 @@ class AttributeQueries(graphene.ObjectType):
             graphene.String, description=f"External ID of the attribute. {ADDED_IN_310}"
         ),
         description="Look up an attribute by ID, slug or external reference.",
+        doc_category=DOC_CATEGORY_ATTRIBUTES,
     )
 
     def resolve_attributes(self, info: ResolveInfo, *, search=None, **kwargs):

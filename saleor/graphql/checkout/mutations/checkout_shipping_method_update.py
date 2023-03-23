@@ -18,6 +18,7 @@ from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -51,6 +52,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     class Meta:
         description = "Updates the shipping method of the checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 

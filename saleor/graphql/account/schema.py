@@ -5,7 +5,8 @@ from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310
-from ..core.fields import FilterConnectionField, PermissionsField
+from ..core.doc_category import DOC_CATEGORY_USERS
+from ..core.fields import BaseField, FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
@@ -82,21 +83,24 @@ from .types import (
 
 class CustomerFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = CustomerFilter
 
 
 class PermissionGroupFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = PermissionGroupFilter
 
 
 class StaffUserInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         filterset_class = StaffUserFilter
 
 
 class AccountQueries(graphene.ObjectType):
-    address_validation_rules = graphene.Field(
+    address_validation_rules = BaseField(
         AddressValidationData,
         description="Returns address validation rules.",
         country_code=graphene.Argument(
@@ -111,13 +115,15 @@ class AccountQueries(graphene.ObjectType):
         city_area=graphene.Argument(
             graphene.String, description="Sublocality like a district."
         ),
+        doc_category=DOC_CATEGORY_USERS,
     )
-    address = graphene.Field(
+    address = BaseField(
         Address,
         id=graphene.Argument(
             graphene.ID, description="ID of an address.", required=True
         ),
         description="Look up an address by ID.",
+        doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(
         UserCountableConnection,
@@ -125,6 +131,7 @@ class AccountQueries(graphene.ObjectType):
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
         permissions=[OrderPermissions.MANAGE_ORDERS, AccountPermissions.MANAGE_USERS],
+        doc_category=DOC_CATEGORY_USERS,
     )
     permission_groups = FilterConnectionField(
         GroupCountableConnection,
@@ -134,6 +141,7 @@ class AccountQueries(graphene.ObjectType):
         sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
         description="List of permission groups.",
         permissions=[AccountPermissions.MANAGE_STAFF],
+        doc_category=DOC_CATEGORY_USERS,
     )
     permission_group = PermissionsField(
         Group,
@@ -142,14 +150,20 @@ class AccountQueries(graphene.ObjectType):
         ),
         description="Look up permission group by ID.",
         permissions=[AccountPermissions.MANAGE_STAFF],
+        doc_category=DOC_CATEGORY_USERS,
     )
-    me = graphene.Field(User, description="Return the currently authenticated user.")
+    me = BaseField(
+        User,
+        description="Return the currently authenticated user.",
+        doc_category=DOC_CATEGORY_USERS,
+    )
     staff_users = FilterConnectionField(
         UserCountableConnection,
         filter=StaffUserInput(description="Filtering options for staff users."),
         sort_by=UserSortingInput(description="Sort staff users."),
         description="List of the shop's staff users.",
         permissions=[AccountPermissions.MANAGE_STAFF],
+        doc_category=DOC_CATEGORY_USERS,
     )
     user = PermissionsField(
         User,
@@ -166,6 +180,7 @@ class AccountQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
         description="Look up a user by ID or email address.",
+        doc_category=DOC_CATEGORY_USERS,
     )
 
     @staticmethod

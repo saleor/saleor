@@ -14,6 +14,7 @@ from ....permission.enums import CheckoutPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...discount.dataloaders import load_discounts
@@ -39,6 +40,9 @@ class OrderCreateFromCheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderCreateFromCheckout(BaseMutation):
@@ -79,6 +83,7 @@ class OrderCreateFromCheckout(BaseMutation):
             + ADDED_IN_32
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError

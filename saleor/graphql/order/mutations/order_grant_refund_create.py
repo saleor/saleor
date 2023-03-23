@@ -3,6 +3,7 @@ import graphene
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error
@@ -40,6 +41,7 @@ class OrderGrantRefundCreate(BaseMutation):
         )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderGrantRefundCreateError
+        doc_category = DOC_CATEGORY_ORDERS
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

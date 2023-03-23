@@ -5,6 +5,7 @@ Can be dropped once we upgrade from the legacy version of GraphQL Core.
 
 from typing import Callable, Dict, List, Optional, Union, cast
 
+from graphene.types.definitions import GrapheneObjectType
 from graphql.language.printer import print_ast
 from graphql.type.definition import (
     GraphQLArgument,
@@ -117,6 +118,22 @@ def is_schema_of_common_names(schema: GraphQLSchema) -> bool:
     return not subscription_type or subscription_type.name == "Subscription"
 
 
+def print_object_directives(type_) -> str:
+    doc_category = getattr(type_.graphene_type, "doc_category", None)
+    return f' @doc(category: "{doc_category}")' if doc_category else ""
+
+
+def print_field_directives(field, name) -> str:
+    # Get doc_category for `type Query` fields.
+    doc_category = getattr(field.resolver, "doc_category", None)
+
+    # Get doc_category for `type Mutation` fields.
+    if not doc_category and hasattr(field.type, "graphene_type"):
+        doc_category = getattr(field.type.graphene_type, "doc_category", None)
+
+    return f' @doc(category: "{doc_category}")' if doc_category else ""
+
+
 def print_type(type_: GraphQLNamedType) -> str:
     if isinstance(type_, GraphQLScalarType):
         type_ = type_
@@ -150,12 +167,14 @@ def print_implemented_interfaces(type_: GraphQLObjectType) -> str:
     return " implements " + " & ".join(i.name for i in interfaces) if interfaces else ""
 
 
-def print_object(type_: GraphQLObjectType) -> str:
+def print_object(type_: GrapheneObjectType) -> str:
+    include_field_directives = type_.name in ["Mutation", "Query"]
     return (
         print_description(type_)
         + f"type {type_.name}"
         + print_implemented_interfaces(type_)
-        + print_fields(type_)
+        + print_object_directives(type_)
+        + print_fields(type_, include_field_directives)
     )
 
 
@@ -176,7 +195,12 @@ def print_enum(type_: GraphQLEnumType) -> str:
         + print_deprecated(v.deprecation_reason)
         for i, v in enumerate(type_.values)
     ]
-    return print_description(type_) + f"enum {type_.name}" + print_block(values)
+    return (
+        print_description(type_)
+        + f"enum {type_.name}"
+        + print_object_directives(type_)
+        + print_block(values)
+    )
 
 
 def print_input_object(type_: GraphQLInputObjectType) -> str:
@@ -184,15 +208,24 @@ def print_input_object(type_: GraphQLInputObjectType) -> str:
         print_description(field, "  ", not i) + "  " + print_input_value(name, field)
         for i, (name, field) in enumerate(type_.fields.items())
     ]
-    return print_description(type_) + f"input {type_.name}" + print_block(fields)
+    return (
+        print_description(type_)
+        + f"input {type_.name}"
+        + print_object_directives(type_)
+        + print_block(fields)
+    )
 
 
-def print_fields(type_: Union[GraphQLObjectType, GraphQLInterfaceType]) -> str:
+def print_fields(
+    type_: Union[GraphQLObjectType, GraphQLInterfaceType],
+    include_field_directives: bool = True,
+) -> str:
     fields = [
         print_description(field, "  ", not i)
         + f"  {name}"
         + print_args(field.args, "  ")
         + f": {field.type}"
+        + (print_field_directives(field, name) if include_field_directives else "")
         + print_deprecated(field.deprecation_reason)
         for i, (name, field) in enumerate(type_.fields.items())
     ]

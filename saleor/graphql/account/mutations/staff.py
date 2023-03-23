@@ -28,6 +28,7 @@ from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import (
     BaseMutation,
     ModelDeleteMutation,
@@ -72,6 +73,10 @@ class StaffCreateInput(StaffInput):
         )
     )
 
+    class Meta:
+        description = "Fields required to create a staff user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class StaffUpdateInput(StaffInput):
     remove_groups = NonNullList(
@@ -82,10 +87,15 @@ class StaffUpdateInput(StaffInput):
         required=False,
     )
 
+    class Meta:
+        description = "Fields required to update a staff user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class CustomerCreate(BaseCustomerCreate):
     class Meta:
         description = "Creates a new customer."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -107,6 +117,7 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
     class Meta:
         description = "Updates an existing customer."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -189,6 +200,7 @@ class UserDelete(UserDeleteMixin, ModelDeleteMutation, ModelWithExtRefMutation):
 class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a customer."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
@@ -225,6 +237,7 @@ class StaffCreate(ModelMutation):
             "Creates a new staff user. "
             "Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -377,6 +390,7 @@ class StaffUpdate(StaffCreate):
             "Updates an existing staff user. "
             "Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -517,6 +531,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         description = (
             "Deletes a staff user. Apps are not allowed to perform this mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_STAFF,)
@@ -561,6 +576,7 @@ class AddressCreate(ModelMutation, I18nMixin):
 
     class Meta:
         description = "Creates user address."
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
@@ -599,6 +615,7 @@ class AddressCreate(ModelMutation, I18nMixin):
 class AddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address."
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
@@ -609,6 +626,7 @@ class AddressUpdate(BaseAddressUpdate):
 class AddressDelete(BaseAddressDelete):
     class Meta:
         description = "Deletes an address."
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         permissions = (AccountPermissions.MANAGE_USERS,)
@@ -628,6 +646,7 @@ class AddressSetDefault(BaseMutation):
 
     class Meta:
         description = "Sets a default address for the given user."
+        doc_category = DOC_CATEGORY_USERS
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -676,6 +695,7 @@ class UserAvatarUpdate(BaseMutation):
             "as a `multipart` request. More detailed specs of the upload format can be "
             "found here: https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
@@ -700,6 +720,7 @@ class UserAvatarDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a user avatar. Only for staff members."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)

@@ -1,11 +1,13 @@
-import graphene
+from ..core.doc_category import DOC_CATEGORY_APPS
+from ..core.types import BaseEnum, SortInputObjectType
 
-from ..core.types import SortInputObjectType
 
-
-class AppSortField(graphene.Enum):
+class AppSortField(BaseEnum):
     NAME = ["name", "pk"]
     CREATION_DATE = ["created_at", "name", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
     @property
     def description(self):
@@ -17,5 +19,6 @@ class AppSortField(graphene.Enum):
 
 class AppSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_APPS
         sort_enum = AppSortField
         type_name = "apps"

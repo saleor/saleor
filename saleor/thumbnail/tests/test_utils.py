@@ -4,8 +4,10 @@ import graphene
 import pytest
 from django.core.files import File
 
+from .. import ThumbnailFormat
 from ..models import Thumbnail
 from ..utils import (
+    ProcessedImage,
     get_image_or_proxy_url,
     get_thumbnail_size,
     prepare_image_proxy_url,
@@ -93,3 +95,20 @@ def test_get_image_or_proxy_url_thumbnail_url_returned(collection, media_root):
 
     # then
     assert url == thumbnail.image.url
+
+
+@pytest.mark.parametrize("thumb_format", [ThumbnailFormat.WEBP, ThumbnailFormat.AVIF])
+def test_processed_image_preprocess_method_called(category_with_image, thumb_format):
+    # given
+    image_path = category_with_image.background_image.name
+    processed_image = ProcessedImage(image_path, 128, thumb_format)
+    preprocess_method_name = f"preprocess_{thumb_format.upper()}"
+    preprocess_mock = MagicMock()
+    preprocess_mock.side_effect = getattr(processed_image, preprocess_method_name)
+    setattr(processed_image, preprocess_method_name, preprocess_mock)
+
+    # when
+    processed_image.create_thumbnail()
+
+    # then
+    preprocess_mock.assert_called_once()
