@@ -1,5 +1,6 @@
 from django.contrib.postgres.functions import RandomUUID
 from django.db import migrations
+from django.db.models import Case, When
 
 
 # This data migration is handled in the 0043 with celery tasks.
@@ -8,11 +9,9 @@ from django.db import migrations
 def populate_transaction_item_token(apps, schema_editor):
     TransactionItem = apps.get_model("payment", "TransactionItem")
 
-    transactions = TransactionItem.objects.filter(token__isnull=True)
-    for transaction in transactions:
-        transaction.token = RandomUUID()
-
-    transactions.bulk_update(transactions, ["token"])
+    TransactionItem.objects.filter(token__isnull=True).update(
+        token=Case(When(token__isnull=True, then=RandomUUID()), default="token")
+    )
 
 
 class Migration(migrations.Migration):
