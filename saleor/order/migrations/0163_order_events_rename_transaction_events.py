@@ -1,20 +1,51 @@
 from django.db import migrations
-from django.apps import apps as registry
-from django.db.models.signals import post_migrate
 
-from .tasks.saleor3_13 import (
-    order_events_rename_transaction_capture_events_task,
-    order_events_rename_transaction_void_events_task,
-)
+BATCH_SIZE = 1000
+
+
+def queryset_in_batches(qs):
+    def batch_ids():
+        length = len(ids)
+        for index in range(0, length, BATCH_SIZE):
+            yield ids[index : min(index + BATCH_SIZE, length)]
+
+    ids = qs.values_list("pk", flat=True)
+    for ids_batch in batch_ids():
+        yield ids_batch
+
+
+def update_type_to_transaction_cancel_requested(qs):
+    qs.update(type="transaction_cancel_requested")
+
+
+def order_events_rename_transaction_void_events(OrderEvent):
+    query_set = OrderEvent.objects.filter(type="transaction_void_requested").order_by(
+        "-pk"
+    )
+
+    for ids_batch in queryset_in_batches(query_set):
+        qs = OrderEvent.objects.filter(pk__in=ids_batch)
+        update_type_to_transaction_cancel_requested(qs)
+
+
+def update_type_to_transaction_charge_requested(qs):
+    qs.update(type="transaction_charge_requested")
+
+
+def order_events_rename_transaction_capture_events(OrderEvent):
+    query_set = OrderEvent.objects.filter(
+        type="transaction_capture_requested"
+    ).order_by("-pk")
+
+    for ids_batch in queryset_in_batches(query_set):
+        qs = OrderEvent.objects.filter(pk__in=ids_batch)
+        update_type_to_transaction_charge_requested(qs)
 
 
 def rename_order_events(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        order_events_rename_transaction_void_events_task.delay()
-        order_events_rename_transaction_capture_events_task.delay()
-
-    sender = registry.get_app_config("order")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    OrderEvent = apps.get_model("order", "OrderEvent")
+    order_events_rename_transaction_capture_events(OrderEvent)
+    order_events_rename_transaction_void_events(OrderEvent)
 
 
 class Migration(migrations.Migration):
