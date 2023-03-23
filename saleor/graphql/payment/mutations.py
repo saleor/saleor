@@ -83,6 +83,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
+from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import (
     PaymentGatewayInitializeErrorCode,
     TransactionEventReportErrorCode,
@@ -91,6 +92,7 @@ from ..core.enums import (
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import JSON, UUID, PositiveDecimal
+from ..core.types import BaseInputObjectType
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_or_error
 from ..discount.dataloaders import load_discounts
@@ -113,7 +115,7 @@ if TYPE_CHECKING:
     from ...plugins.manager import PluginsManager
 
 
-class PaymentInput(graphene.InputObjectType):
+class PaymentInput(BaseInputObjectType):
     gateway = graphene.Field(
         graphene.String,
         description="A gateway to use with that payment.",
@@ -153,6 +155,9 @@ class PaymentInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="Related checkout object.")
@@ -179,6 +184,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Create a new payment for given checkout."
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
@@ -405,6 +411,7 @@ class PaymentCapture(BaseMutation):
 
     class Meta:
         description = "Captures the authorized payment amount."
+        doc_category = DOC_CATEGORY_PAYMENTS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -438,6 +445,7 @@ class PaymentCapture(BaseMutation):
 class PaymentRefund(PaymentCapture):
     class Meta:
         description = "Refunds the captured payment amount."
+        doc_category = DOC_CATEGORY_PAYMENTS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -476,6 +484,7 @@ class PaymentVoid(BaseMutation):
 
     class Meta:
         description = "Voids the authorized payment."
+        doc_category = DOC_CATEGORY_PAYMENTS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -521,6 +530,7 @@ class PaymentInitialize(BaseMutation):
 
     class Meta:
         description = "Initializes payment process when it is required by gateway."
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
@@ -588,7 +598,7 @@ class CardInput(graphene.InputObjectType):
     )
 
 
-class PaymentCheckBalanceInput(graphene.InputObjectType):
+class PaymentCheckBalanceInput(BaseInputObjectType):
     gateway_id = graphene.types.String(
         description="An ID of a payment gateway to check.", required=True
     )
@@ -598,6 +608,9 @@ class PaymentCheckBalanceInput(graphene.InputObjectType):
         required=True,
     )
     card = CardInput(description="Information about card.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentCheckBalance(BaseMutation):
@@ -610,6 +623,7 @@ class PaymentCheckBalance(BaseMutation):
 
     class Meta:
         description = "Check payment balance."
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
@@ -661,7 +675,7 @@ class PaymentCheckBalance(BaseMutation):
             )
 
 
-class TransactionUpdateInput(graphene.InputObjectType):
+class TransactionUpdateInput(BaseInputObjectType):
     status = graphene.String(
         description=(
             "Status of the transaction."
@@ -725,12 +739,18 @@ class TransactionUpdateInput(graphene.InputObjectType):
         )
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionCreateInput(TransactionUpdateInput):
     ...
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
-class TransactionEventInput(graphene.InputObjectType):
+
+class TransactionEventInput(BaseInputObjectType):
     status = graphene.Field(
         TransactionEventStatusEnum,
         required=False,
@@ -758,6 +778,9 @@ class TransactionEventInput(graphene.InputObjectType):
         description="The message related to the event." + ADDED_IN_313
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionCreate(BaseMutation):
     transaction = graphene.Field(TransactionItem)
@@ -779,6 +802,7 @@ class TransactionCreate(BaseMutation):
         description = (
             "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
@@ -1059,6 +1083,7 @@ class TransactionUpdate(TransactionCreate):
             + f"{AuthorizationFilters.OWNER.name} "
             + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem
@@ -1240,6 +1265,7 @@ class TransactionRequestAction(BaseMutation):
         description = (
             "Request an action for payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionRequestActionError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
@@ -1403,6 +1429,7 @@ class TransactionEventReport(ModelMutation):
         )
         error_type_class = common_types.TransactionEventReportError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+        doc_category = DOC_CATEGORY_PAYMENTS
         model = payment_models.TransactionEvent
         object_type = TransactionEvent
         auto_permission_message = False
@@ -1546,7 +1573,7 @@ class PaymentGatewayConfig(graphene.ObjectType):
     errors = common_types.NonNullList(common_types.PaymentGatewayConfigError)
 
 
-class PaymentGatewayToInitialize(graphene.InputObjectType):
+class PaymentGatewayToInitialize(BaseInputObjectType):
     id = graphene.String(
         required=True,
         description="The identifier of the payment gateway app to initialize.",
@@ -1554,6 +1581,9 @@ class PaymentGatewayToInitialize(graphene.InputObjectType):
     data = graphene.Field(
         JSON, description="The data that will be passed to the payment gateway."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionSessionBase(BaseMutation):
@@ -1666,6 +1696,7 @@ class PaymentGatewayInitialize(TransactionSessionBase):
         )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes a payment gateway session. It triggers the webhook "
             "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
@@ -1798,6 +1829,7 @@ class TransactionInitialize(TransactionSessionBase):
         )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Initializes a transaction session. It triggers the webhook "
             "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
@@ -1887,6 +1919,7 @@ class TransactionProcess(BaseMutation):
         )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
         description = (
             "Processes a transaction session. It triggers the webhook "
             "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "

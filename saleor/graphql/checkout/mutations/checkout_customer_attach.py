@@ -8,6 +8,7 @@ from ....permission.enums import AccountPermissions
 from ...account.types import User
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -46,6 +47,7 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
         permissions = (

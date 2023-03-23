@@ -11,6 +11,7 @@ from ....product import models
 from ....warehouse import models as warehouse_models
 from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.types import BulkStockError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -26,6 +27,7 @@ from .product_variant_stocks_create import ProductVariantStocksCreate
 class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     class Meta:
         description = "Update stocks for product variant."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"

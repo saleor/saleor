@@ -20,15 +20,16 @@ from ...attribute.types import Attribute
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
-from ...core.types import NonNullList, ProductError
+from ...core.types import BaseInputObjectType, NonNullList, ProductError
 from ...core.utils.reordering import perform_reordering
 from ...product.types import Product, ProductType, ProductVariant
 from ..enums import ProductAttributeType
 
 
-class ProductAttributeAssignInput(graphene.InputObjectType):
+class ProductAttributeAssignInput(BaseInputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = ProductAttributeType(
         required=True, description="The attribute type to be assigned as."
@@ -42,8 +43,11 @@ class ProductAttributeAssignInput(graphene.InputObjectType):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
+
+class ProductAttributeAssignmentUpdateInput(BaseInputObjectType):
     id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     variant_selection = graphene.Boolean(
         required=True,
@@ -53,6 +57,9 @@ class ProductAttributeAssignmentUpdateInput(graphene.InputObjectType):
             + ADDED_IN_31
         ),
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class VariantAssignmentValidationMixin:
@@ -104,6 +111,7 @@ class ProductAttributeAssign(BaseMutation, VariantAssignmentValidationMixin):
 
     class Meta:
         description = "Assign attributes to a given product type."
+        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -319,6 +327,7 @@ class ProductAttributeUnassign(BaseMutation):
 
     class Meta:
         description = "Un-assign attributes from a given product type."
+        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -373,7 +382,7 @@ class ProductAttributeAssignmentUpdate(BaseMutation, VariantAssignmentValidation
             "Update attributes assigned to product variant for given product type."
             + ADDED_IN_31
         )
-
+        doc_category = DOC_CATEGORY_PRODUCTS
         error_type_class = ProductError
         error_type_field = "product_errors"
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
@@ -554,6 +563,7 @@ class ProductTypeReorderAttributes(BaseReorderAttributesMutation):
 
     class Meta:
         description = "Reorder the attributes of a product type."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -619,6 +629,7 @@ class ProductReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder product attribute values."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -675,6 +686,7 @@ class ProductVariantReorderAttributeValues(BaseReorderAttributeValuesMutation):
 
     class Meta:
         description = "Reorder product variant attribute values."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

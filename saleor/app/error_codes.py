@@ -16,3 +16,4 @@ class AppErrorCode(Enum):
     UNIQUE = "unique"
     OUT_OF_SCOPE_APP = "out_of_scope_app"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
+    UNSUPPORTED_SALEOR_VERSION = "unsupported_saleor_version"

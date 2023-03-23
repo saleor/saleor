@@ -3,7 +3,6 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....checkout import AddressType
@@ -28,9 +27,10 @@ from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36, ADDED_IN_310, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import NonNullList, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -43,10 +43,13 @@ from ..utils import (
 )
 
 
-class OrderLineInput(graphene.InputObjectType):
+class OrderLineInput(BaseInputObjectType):
     quantity = graphene.Int(
         description="Number of variant items ordered.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderLineCreateInput(OrderLineInput):
@@ -62,8 +65,11 @@ class OrderLineCreateInput(OrderLineInput):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class DraftOrderInput(InputObjectType):
+
+class DraftOrderInput(BaseInputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
@@ -92,6 +98,9 @@ class DraftOrderInput(InputObjectType):
         description="External ID of this order." + ADDED_IN_310, required=False
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class DraftOrderCreateInput(DraftOrderInput):
     lines = NonNullList(
@@ -100,6 +109,9 @@ class DraftOrderCreateInput(DraftOrderInput):
             "Variant line input consisting of variant ID and quantity of products."
         ),
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class DraftOrderCreate(ModelMutation, I18nMixin):

@@ -20,17 +20,19 @@ from ....core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     RICH_CONTENT,
 )
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError, SeoInput
+from ....core.types import BaseInputObjectType, NonNullList, ProductError, SeoInput
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....meta.mutations import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Product
+from ..utils import clean_tax_code
 
 
-class ProductInput(graphene.InputObjectType):
+class ProductInput(BaseInputObjectType):
     attributes = NonNullList(AttributeValueInput, description="List of attributes.")
     category = graphene.ID(description="ID of the product's category.", name="category")
     charge_taxes = graphene.Boolean(
@@ -58,7 +60,10 @@ class ProductInput(graphene.InputObjectType):
     tax_code = graphene.String(
         description=(
             f"Tax rate for enabled tax gateway. {DEPRECATED_IN_3X_INPUT} "
-            "Use tax classes to control the tax calculation for a product."
+            "Use tax classes to control the tax calculation for a product. "
+            "If taxCode is provided, Saleor will try to find a tax class with given "
+            "code (codes are stored in metadata) and assign it. If no tax class is "
+            "found, it would be created and assigned."
         )
     )
     seo = SeoInput(description="Search engine optimization fields.")
@@ -80,8 +85,11 @@ class ProductInput(graphene.InputObjectType):
         description="External ID of this product." + ADDED_IN_310, required=False
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class StockInput(graphene.InputObjectType):
+
+class StockInput(BaseInputObjectType):
     warehouse = graphene.ID(
         required=True, description="Warehouse in which stock is located."
     )
@@ -89,12 +97,18 @@ class StockInput(graphene.InputObjectType):
         required=True, description="Quantity of items available for sell."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class StockUpdateInput(graphene.InputObjectType):
+
+class StockUpdateInput(BaseInputObjectType):
     stock = graphene.ID(required=True, description="Stock.")
     quantity = graphene.Int(
         required=True, description="Quantity of items available for sell."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductCreateInput(ProductInput):
@@ -103,6 +117,9 @@ class ProductCreateInput(ProductInput):
         name="productType",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
@@ -177,6 +194,9 @@ class ProductCreate(ModelMutation):
                 )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        manager = get_plugin_manager_promise(info.context).get()
+        clean_tax_code(cleaned_input, manager)
 
         clean_seo_fields(cleaned_input)
         return cleaned_input

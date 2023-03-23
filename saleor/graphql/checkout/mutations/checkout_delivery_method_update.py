@@ -30,6 +30,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -65,6 +66,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             "Updates the delivery method (shipping method or pick up point) "
             "of the checkout." + ADDED_IN_31 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
 
     @classmethod

@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....order import models
 from ....permission.enums import OrderPermissions
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import Error
@@ -41,6 +42,7 @@ class OrderGrantRefundUpdate(ModelMutation):
         error_type_class = OrderGrantRefundUpdateError
         model = models.OrderGrantedRefund
         object_type = OrderGrantedRefund
+        doc_category = DOC_CATEGORY_ORDERS
 
     @classmethod
     def validate_input(cls, amount, reason):

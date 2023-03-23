@@ -59,6 +59,7 @@ class App(ModelWithMetadata):
     version = models.CharField(max_length=60, blank=True, null=True)
     audience = models.CharField(blank=True, null=True, max_length=256)
     is_installed = models.BooleanField(default=True)
+    author = models.CharField(blank=True, null=True, max_length=60)
     objects = AppManager()
 
     class Meta(ModelWithMetadata.Meta):

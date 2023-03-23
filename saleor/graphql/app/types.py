@@ -16,11 +16,13 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
     ADDED_IN_38,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.federation import federated_entity, resolve_federation_references
-from ..core.types import Job, ModelObjectType, NonNullList, Permission
+from ..core.types import BaseObjectType, Job, ModelObjectType, NonNullList, Permission
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
@@ -66,7 +68,7 @@ def has_access_to_app_public_meta(root, info: ResolveInfo, app) -> bool:
     return requester.has_perm(AppPermission.MANAGE_APPS)
 
 
-class AppManifestExtension(graphene.ObjectType):
+class AppManifestExtension(BaseObjectType):
     permissions = NonNullList(
         Permission,
         description="List of the app extension's permissions.",
@@ -85,6 +87,9 @@ class AppManifestExtension(graphene.ObjectType):
     target = AppExtensionTargetEnum(
         description="Type of way how app extension will be opened.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
     def resolve_target(root, _info: ResolveInfo):
@@ -159,10 +164,11 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
 
 class AppExtensionCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_APPS
         node = AppExtension
 
 
-class AppManifestWebhook(graphene.ObjectType):
+class AppManifestWebhook(BaseObjectType):
     name = graphene.String(description="The name of the webhook.", required=True)
     async_events = NonNullList(
         WebhookEventTypeAsyncEnum,
@@ -179,6 +185,9 @@ class AppManifestWebhook(graphene.ObjectType):
         description="The url to receive the payload.", required=True
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
+
     @staticmethod
     def resolve_async_events(root, _info: ResolveInfo):
         return [WebhookEventTypeAsyncEnum[name] for name in root.get("asyncEvents", [])]
@@ -192,7 +201,27 @@ class AppManifestWebhook(graphene.ObjectType):
         return root["targetUrl"]
 
 
-class Manifest(graphene.ObjectType):
+class AppManifestRequiredSaleorVersion(BaseObjectType):
+    constraint = graphene.String(
+        required=True,
+        description=(
+            "Required Saleor version as semver range." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    satisfied = graphene.Boolean(
+        required=True,
+        description=(
+            "Informs if the Saleor version matches the required one."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
+
+
+class Manifest(BaseObjectType):
     identifier = graphene.String(required=True)
     version = graphene.String(required=True)
     name = graphene.String(required=True)
@@ -224,9 +253,21 @@ class Manifest(graphene.ObjectType):
             + PREVIEW_FEATURE
         )
     )
+    required_saleor_version = graphene.Field(
+        AppManifestRequiredSaleorVersion,
+        description=(
+            "Determines the app's required Saleor version as semver range."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
+    )
 
     class Meta:
         description = "The manifest definition."
+        doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
     def resolve_extensions(root, _info: ResolveInfo):
@@ -235,13 +276,14 @@ class Manifest(graphene.ObjectType):
         return root.extensions
 
 
-class AppToken(graphene.ObjectType):
+class AppToken(BaseObjectType):
     id = graphene.GlobalID(required=True)
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
         description = "Represents token data."
+        doc_category = DOC_CATEGORY_APPS
         interfaces = [graphene.relay.Node]
         permissions = (AppPermission.MANAGE_APPS,)
 
@@ -310,6 +352,9 @@ class App(ModelObjectType[models.App]):
     version = graphene.String(description="Version number of the app.")
     access_token = graphene.String(
         description="JWT token used to authenticate by thridparty app."
+    )
+    author = graphene.String(
+        description=("The App's author name." + ADDED_IN_313 + PREVIEW_FEATURE)
     )
     extensions = NonNullList(
         AppExtension,
@@ -384,6 +429,7 @@ class App(ModelObjectType[models.App]):
 
 class AppCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_APPS
         node = App
 
 

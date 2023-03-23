@@ -9,6 +9,7 @@ from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
@@ -43,6 +44,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_configurations = FilterConnectionField(
         TaxConfigurationCountableConnection,
@@ -54,6 +56,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_class = PermissionsField(
         TaxClass,
@@ -65,6 +68,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_classes = FilterConnectionField(
         TaxClassCountableConnection,
@@ -75,6 +79,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_country_configuration = PermissionsField(
         TaxCountryConfiguration,
@@ -88,6 +93,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_country_configurations = PermissionsField(
         NonNullList(
@@ -99,6 +105,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
 
     @staticmethod

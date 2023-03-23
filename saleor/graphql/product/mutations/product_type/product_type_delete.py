@@ -9,6 +9,7 @@ from .....order import models as order_models
 from .....permission.enums import ProductTypePermissions
 from .....product import models
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import ProductError
 from ...types import ProductType
@@ -20,6 +21,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Deletes a product type."
+        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.ProductType
         object_type = ProductType
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)

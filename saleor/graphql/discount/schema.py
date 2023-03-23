@@ -4,6 +4,7 @@ from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
@@ -48,6 +49,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     sales = FilterConnectionField(
         SaleCountableConnection,
@@ -66,6 +68,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     voucher = PermissionsField(
         Voucher,
@@ -79,6 +82,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     vouchers = FilterConnectionField(
         VoucherCountableConnection,
@@ -97,6 +101,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
 
     @staticmethod

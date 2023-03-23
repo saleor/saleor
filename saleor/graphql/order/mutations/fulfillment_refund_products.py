@@ -9,8 +9,9 @@ from ....payment import PaymentError
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.scalars import PositiveDecimal
-from ...core.types import NonNullList, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Fulfillment, Order
 from .fulfillment_refund_and_return_product_base import (
@@ -18,7 +19,7 @@ from .fulfillment_refund_and_return_product_base import (
 )
 
 
-class OrderRefundLineInput(graphene.InputObjectType):
+class OrderRefundLineInput(BaseInputObjectType):
     order_line_id = graphene.ID(
         description="The ID of the order line to refund.",
         name="orderLineId",
@@ -29,8 +30,11 @@ class OrderRefundLineInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
+
+class OrderRefundFulfillmentLineInput(BaseInputObjectType):
     fulfillment_line_id = graphene.ID(
         description="The ID of the fulfillment line to refund.",
         name="fulfillmentLineId",
@@ -41,8 +45,11 @@ class OrderRefundFulfillmentLineInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderRefundProductsInput(graphene.InputObjectType):
+
+class OrderRefundProductsInput(BaseInputObjectType):
     order_lines = NonNullList(
         OrderRefundLineInput,
         description="List of unfulfilled lines to refund.",
@@ -63,6 +70,9 @@ class OrderRefundProductsInput(graphene.InputObjectType):
         default_value=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     fulfillment = graphene.Field(Fulfillment, description="A refunded fulfillment.")
@@ -79,6 +89,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
 
     class Meta:
         description = "Refund products."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"

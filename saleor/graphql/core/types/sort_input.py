@@ -1,15 +1,16 @@
 import graphene
-from graphene.types.objecttype import ObjectTypeOptions
+from graphene.types.inputobjecttype import InputObjectTypeOptions
 
 from ..descriptions import DEPRECATED_IN_3X_INPUT
 from ..enums import OrderDirection
+from .base import BaseInputObjectType
 
 
-class SortInputMeta(ObjectTypeOptions):
+class SortInputMeta(InputObjectTypeOptions):
     sort_enum = None
 
 
-class SortInputObjectType(graphene.InputObjectType):
+class SortInputObjectType(BaseInputObjectType):
     direction = graphene.Argument(
         OrderDirection,
         required=True,

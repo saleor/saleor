@@ -55,7 +55,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
-    clean_manifest_data(manifest_data)
+    clean_manifest_data(manifest_data, raise_for_saleor_version=True)
 
     app = App.objects.create(
         name=app_installation.app_name,
@@ -73,6 +73,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         type=AppType.THIRDPARTY,
         audience=manifest_data.get("audience"),
         is_installed=False,
+        author=manifest_data.get("author"),
     )
 
     app.permissions.set(app_installation.permissions.all())
