@@ -329,7 +329,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
 
                     old_instance = filtered_customers[0]
                     new_instance = cls.construct_instance(copy(old_instance), data)
-                    cls.clean_instance(info, new_instance)
+                    new_instance.full_clean(exclude=["password"])
 
                     if shipping_address_input:
                         shipping_address = cls.update_address(
