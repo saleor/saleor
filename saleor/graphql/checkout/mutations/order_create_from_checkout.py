@@ -105,7 +105,7 @@ class OrderCreateFromCheckout(BaseMutation):
         id,
         metadata=None,
         private_metadata=None,
-        remove_checkout
+        remove_checkout,
     ):
         user = info.context.user
         checkout = cls.get_node_or_error(
@@ -127,6 +127,7 @@ class OrderCreateFromCheckout(BaseMutation):
 
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+        # TODO: Consider drop discounts.
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(
             checkout, checkout_lines, discounts, manager
@@ -136,7 +137,6 @@ class OrderCreateFromCheckout(BaseMutation):
             checkout_info=checkout_info,
             lines=checkout_lines,
             unavailable_variant_pks=unavailable_variant_pks,
-            discounts=discounts,
             manager=manager,
         )
         app = get_app_promise(info.context).get()
