@@ -1,0 +1,56 @@
+version: "3.4"
+
+services:
+  saleor:
+    image: saleor
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+    command: ["python", "-m", "saleor"]
+    env_file:
+      - common.env
+      - backend.env
+
+  dashboard:
+    image: ghcr.io/saleor/saleor-dashboard:3.12.3
+    ports:
+      - 9000:80
+    restart: unless-stopped
+
+  db:
+    image: library/postgres:13-alpine
+    restart: unless-stopped
+    volumes:
+      - saleor-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=saleor
+      - POSTGRES_PASSWORD=saleor
+
+  redis:
+    image: library/redis:5.0-alpine
+    restart: unless-stopped
+    volumes:
+      - saleor-redis:/data
+
+  worker:
+    image: saleor
+    build:
+      context: ..
+      dockerfile: ./Dockerfile
+    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
+    restart: unless-stopped
+    env_file:
+      - common.env
+      - backend.env
+    depends_on:
+      - redis
+    volumes:
+      # shared volume between worker and api for media
+      - saleor-media:/app/media
+
+volumes:
+  saleor-db:
+    driver: local
+  saleor-redis:
+    driver: local
+  saleor-media:

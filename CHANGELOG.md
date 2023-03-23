@@ -18,6 +18,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Create order discounts for all voucher types - #12272 by @IKarbowiak
+- Core now supports Dev Containers for local development - #12391 by @patrys
 
 ### Saleor Apps
 
