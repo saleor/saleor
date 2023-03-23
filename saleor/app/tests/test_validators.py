@@ -36,6 +36,7 @@ def test_parse_version():
         ("^3.12.0-0 <=3.14", "3.12.0-a", True),
         ("^3.12", "4.0.0", False),
         ("^3.12", "3.12.0-a", False),
+        ("^3.12", "3.13.0-a", True),
     ],
 )
 def test_clean_required_saleor_version(required_version, version, satisfied):
