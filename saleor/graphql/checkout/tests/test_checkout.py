@@ -1519,7 +1519,6 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
-        discounts=[],
     )
     assert (
         data["lines"][0]["unitPrice"]["gross"]["amount"]
@@ -1642,7 +1641,6 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_info=checkout_info,
         lines=lines,
         checkout_line_info=line_info,
-        discounts=[discount_info],
     )
     assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
         line_total_price.gross.amount / line_info.line.quantity, 2

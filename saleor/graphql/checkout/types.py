@@ -271,9 +271,6 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     def resolve_total_price(root, info: ResolveInfo):
         def with_checkout(data):
             checkout, manager = data
-            discounts = DiscountsByDateTimeLoader(info.context).load(
-                info.context.request_time
-            )
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
@@ -282,7 +279,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             )
 
             def calculate_line_total_price(data):
-                (discounts, checkout_info, lines) = data
+                (checkout_info, lines) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -290,13 +287,10 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
-                            discounts=discounts,
                         )
                 return None
 
-            return Promise.all([discounts, checkout_info, lines]).then(
-                calculate_line_total_price
-            )
+            return Promise.all([checkout_info, lines]).then(calculate_line_total_price)
 
         return Promise.all(
             [

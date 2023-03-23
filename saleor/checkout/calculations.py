@@ -153,13 +153,11 @@ def checkout_line_total(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     checkout_line_info: "CheckoutLineInfo",
-    discounts: Iterable[DiscountInfo] = [],
 ) -> TaxedMoney:
     """Return the total price of provided line, taxes included.
 
     It takes in account all plugins.
     """
-    # TODO Owczar: Drop discounts
     currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_data(
