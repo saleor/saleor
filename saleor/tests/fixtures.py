@@ -5532,6 +5532,7 @@ def transaction_item_generator():
         if available_actions is None:
             available_actions = []
         transaction = TransactionItem.objects.create(
+            token=uuid.uuid4(),
             name=name,
             message=message,
             psp_reference=psp_reference,

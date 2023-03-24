@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from django.db.models import F, Q, Case, OuterRef, Subquery, Exists, Func, When
+from django.db.models import Case, Exists, F, Func, OuterRef, Q, Subquery, When
 
 from ....celeryconf import app
 from ...models import TransactionEvent, TransactionItem

@@ -1,3 +1,4 @@
+import uuid
 from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast
 
@@ -947,6 +948,8 @@ class TransactionCreate(BaseMutation):
         if app and app.identifier:
             app_identifier = app.identifier
         return payment_models.TransactionItem.objects.create(
+            token=uuid.uuid4(),
+            use_old_id=True,
             **transaction_input,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
