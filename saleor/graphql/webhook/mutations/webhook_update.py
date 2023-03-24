@@ -10,14 +10,15 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
-from ...core.types import NonNullList, WebhookError
+from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from .. import enums
 from ..types import Webhook
 from . import WebhookCreate
 
 
-class WebhookUpdateInput(graphene.InputObjectType):
+class WebhookUpdateInput(BaseInputObjectType):
     name = graphene.String(description="The new name of the webhook.", required=False)
     target_url = graphene.String(
         description="The url to receive the payload.", required=False
@@ -66,6 +67,9 @@ class WebhookUpdateInput(graphene.InputObjectType):
         f"{ADDED_IN_312}{PREVIEW_FEATURE}",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 class WebhookUpdate(WebhookCreate):

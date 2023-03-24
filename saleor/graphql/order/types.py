@@ -74,12 +74,14 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     Image,
     ModelObjectType,
     Money,
@@ -186,7 +188,7 @@ def get_payment_status_for_order(order):
     return status
 
 
-class OrderDiscount(graphene.ObjectType):
+class OrderDiscount(BaseObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -200,6 +202,9 @@ class OrderDiscount(graphene.ObjectType):
         required=False, description="Explanation for the applied discount."
     )
     amount = graphene.Field(Money, description="Returns amount of discount.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEventDiscountObject(OrderDiscount):
@@ -217,13 +222,16 @@ class OrderEventDiscountObject(OrderDiscount):
     )
 
 
-class OrderEventOrderLineObject(graphene.ObjectType):
+class OrderEventOrderLineObject(BaseObjectType):
     quantity = graphene.Int(description="The variant quantity.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
     item_name = graphene.String(description="The variant name.")
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order line."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEvent(ModelObjectType[models.OrderEvent]):

@@ -7,6 +7,7 @@ from ...product.models import Product, ProductVariant
 from ...warehouse import WarehouseClickAndCollectOption
 from ...warehouse.models import Stock, Warehouse
 from ..channel.types import Channel
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
@@ -101,6 +102,7 @@ class WarehouseFilter(django_filters.FilterSet):
 
 class WarehouseFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = WarehouseFilter
 
 
@@ -114,4 +116,5 @@ class StockFilter(django_filters.FilterSet):
 
 class StockFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = StockFilter

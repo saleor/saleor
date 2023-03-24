@@ -37,6 +37,7 @@ from ...product.search import search_products
 from ...warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.descriptions import ADDED_IN_38
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.filters import (
     EnumFilter,
     GlobalIDMultipleChoiceFilter,
@@ -46,6 +47,7 @@ from ..core.filters import (
     filter_slug_list,
 )
 from ..core.types import (
+    BaseInputObjectType,
     ChannelFilterInputObjectType,
     DateTimeRangeInput,
     FilterInputObjectType,
@@ -654,9 +656,12 @@ def filter_updated_at_range(qs, _, value):
     return filter_range_field(qs, "updated_at", value)
 
 
-class ProductStockFilterInput(graphene.InputObjectType):
+class ProductStockFilterInput(BaseInputObjectType):
     warehouse_ids = NonNullList(graphene.ID, required=False)
     quantity = graphene.Field(IntRangeInput, required=False)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductFilter(MetadataFilterBase):
@@ -888,24 +893,29 @@ class ProductTypeFilter(MetadataFilterBase):
 
 class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductFilter
 
 
 class ProductVariantFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductVariantFilter
 
 
 class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionFilter
 
 
 class CategoryFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CategoryFilter
 
 
 class ProductTypeFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductTypeFilter

@@ -20,6 +20,7 @@ from ..types import TaxCountryConfiguration
 TaxCountryConfigurationUpdateErrorCode = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationUpdateErrorCode
 )
+TaxCountryConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationUpdateError(Error):

@@ -1,10 +1,12 @@
-import graphene
+from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
+from ..core.types import BaseEnum, SortInputObjectType
 
-from ..core.types import SortInputObjectType
 
-
-class EventDeliverySortField(graphene.Enum):
+class EventDeliverySortField(BaseEnum):
     CREATED_AT = ["created_at"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
 
     @property
     def description(self):
@@ -16,12 +18,16 @@ class EventDeliverySortField(graphene.Enum):
 
 class EventDeliverySortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
         sort_enum = EventDeliverySortField
         type_name = "deliveries"
 
 
-class EventDeliveryAttemptSortField(graphene.Enum):
+class EventDeliveryAttemptSortField(BaseEnum):
     CREATED_AT = ["created_at"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
 
     @property
     def description(self):
@@ -33,5 +39,6 @@ class EventDeliveryAttemptSortField(graphene.Enum):
 
 class EventDeliveryAttemptSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
         sort_enum = EventDeliveryAttemptSortField
         type_name = "attempts"

@@ -30,11 +30,13 @@ from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConne
 
 class VoucherFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = VoucherFilter
 
 
 class SaleFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = SaleFilter
 
 

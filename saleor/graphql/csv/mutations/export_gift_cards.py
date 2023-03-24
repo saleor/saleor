@@ -7,14 +7,15 @@ from ....permission.enums import GiftcardPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
-from ...core.types import ExportError, NonNullList
+from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
+from ...core.types import BaseInputObjectType, ExportError, NonNullList
 from ...giftcard.filters import GiftCardFilterInput
 from ...giftcard.types import GiftCard
 from ..enums import ExportScope, FileTypeEnum
 from .base_export import BaseExportMutation
 
 
-class ExportGiftCardsInput(graphene.InputObjectType):
+class ExportGiftCardsInput(BaseInputObjectType):
     scope = ExportScope(
         description="Determine which gift cards should be exported.", required=True
     )
@@ -28,6 +29,9 @@ class ExportGiftCardsInput(graphene.InputObjectType):
     )
     file_type = FileTypeEnum(description="Type of exported file.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
+
 
 class ExportGiftCards(BaseExportMutation):
     class Arguments:
@@ -37,6 +41,7 @@ class ExportGiftCards(BaseExportMutation):
 
     class Meta:
         description = "Export gift cards to csv file." + ADDED_IN_31 + PREVIEW_FEATURE
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = ExportError
 

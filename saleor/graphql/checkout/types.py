@@ -33,10 +33,11 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
-from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
+from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
@@ -73,15 +74,16 @@ from .dataloaders import (
 from .utils import prevent_sync_event_circular_query
 
 
-class GatewayConfigLine(graphene.ObjectType):
+class GatewayConfigLine(BaseObjectType):
     field = graphene.String(required=True, description="Gateway config key.")
     value = graphene.String(description="Gateway config value for key.")
 
     class Meta:
         description = "Payment gateway client configuration key and value pair."
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class PaymentGateway(graphene.ObjectType):
+class PaymentGateway(BaseObjectType):
     name = graphene.String(required=True, description="Payment gateway name.")
     id = graphene.ID(required=True, description="Payment gateway ID.")
     config = NonNullList(
@@ -100,6 +102,7 @@ class PaymentGateway(graphene.ObjectType):
             "Available payment gateway backend with configuration "
             "necessary to setup client."
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class CheckoutLine(ModelObjectType[models.CheckoutLine]):

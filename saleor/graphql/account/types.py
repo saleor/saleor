@@ -32,6 +32,7 @@ from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseInputObjectType,
     BaseObjectType,
     CountryDisplay,
     Image,
@@ -54,7 +55,7 @@ from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
-class AddressInput(graphene.InputObjectType):
+class AddressInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     company_name = graphene.String(description="Company or organization.")
@@ -96,7 +97,6 @@ class Address(ModelObjectType[models.Address]):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Address
         metadata_since = ADDED_IN_310
-        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_country(root: models.Address, _info: ResolveInfo):

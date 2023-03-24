@@ -3,6 +3,7 @@ from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, S
 
 from ...payment.models import Payment
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.types import SortInputObjectType
 
 
@@ -15,6 +16,9 @@ class OrderSortField(graphene.Enum):
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
     PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
     @property
     def description(self):
@@ -50,5 +54,6 @@ class OrderSortField(graphene.Enum):
 
 class OrderSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         sort_enum = OrderSortField
         type_name = "orders"

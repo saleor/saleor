@@ -46,7 +46,7 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_PAYMENTS
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation
 from ..core.scalars import UUID, PositiveDecimal
@@ -141,7 +141,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Create a new payment for given checkout."
-        doc_category = DOC_CATEGORY_PAYMENTS
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
