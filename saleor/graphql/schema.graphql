@@ -22430,6 +22430,9 @@ input OrderBulkCreateOrderLineInput {
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
 
+  """The ID of warehouse, from which order line should be fulfilled."""
+  warehouse: ID!
+
   """Tax rate of the order line."""
   taxRate: PositiveDecimal
 

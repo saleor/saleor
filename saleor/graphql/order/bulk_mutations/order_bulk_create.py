@@ -72,10 +72,16 @@ class OrderBulkFulfillment:
 
 
 @dataclass
+class OrderBulkOrderLine:
+    line: OrderLine
+    warehouse: Warehouse
+
+
+@dataclass
 class OrderWithErrors:
     order: Optional[Order]
     order_errors: List[OrderBulkError]
-    lines: List[OrderLine]
+    lines: List[OrderBulkOrderLine]
     lines_errors: List[OrderBulkError]
     notes: List[OrderEvent]
     notes_errors: List[OrderBulkError]
@@ -95,9 +101,9 @@ class OrderWithErrors:
         self.fulfillments_errors = []
 
     def order_lines_duplicates(self) -> bool:
-        return len(set(line.variant.id for line in self.lines if line.variant)) != len(
-            self.lines
-        )
+        return len(
+            set(line.line.variant.id for line in self.lines if line.line.variant)
+        ) != len(self.lines)
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -107,7 +113,7 @@ class OrderWithErrors:
     def set_quantity_fulfilled(self):
         map = self.orderline_quantityfulfilled_map
         for order_line in self.lines:
-            order_line.quantity_fulfilled = map.get(order_line.id, 0)
+            order_line.line.quantity_fulfilled = map.get(order_line.line.id, 0)
 
     def set_fulfillment_order(self):
         order = 1
@@ -125,6 +131,10 @@ class OrderWithErrors:
         )
 
     @property
+    def all_order_lines(self) -> List[OrderLine]:
+        return [line.line for line in self.lines]
+
+    @property
     def all_fulfillment_lines(self) -> List[FulfillmentLine]:
         return [
             line.line for fulfillment in self.fulfillments for line in fulfillment.lines
@@ -132,7 +142,9 @@ class OrderWithErrors:
 
     @property
     def variant_orderline_map(self) -> Dict[int, OrderLine]:
-        return {line.variant.id: line for line in self.lines if line.variant}
+        return {
+            line.line.variant.id: line.line for line in self.lines if line.line.variant
+        }
 
     @property
     def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
@@ -144,7 +156,9 @@ class OrderWithErrors:
 
     @property
     def unique_variant_ids(self) -> List[int]:
-        return list(set([line.variant.id for line in self.lines if line.variant]))
+        return list(
+            set([line.line.variant.id for line in self.lines if line.line.variant])
+        )
 
     @property
     def unique_warehouse_ids(self) -> List[UUID]:
@@ -297,6 +311,10 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         TaxedMoneyInput,
         required=True,
         description="Price of the order line excluding applied discount.",
+    )
+    warehouse = graphene.ID(
+        required=True,
+        description="The ID of warehouse, from which order line should be fulfilled.",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
@@ -841,7 +859,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage,
         order_input: Dict[str, Any],
         errors: List[OrderBulkError],
-    ) -> Optional[OrderLine]:
+    ) -> Optional[OrderBulkOrderLine]:
         variant = cls.get_instance_with_errors(
             input=order_line_input,
             errors=errors,
@@ -853,8 +871,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             },
             object_storage=object_storage,
         )
-
         if not variant:
+            return None
+
+        warehouse = cls.get_instance_with_errors(
+            input=order_line_input,
+            errors=errors,
+            model=Warehouse,
+            key_map={"warehouse": "id"},
+            object_storage=object_storage,
+        )
+        if not warehouse:
             return None
 
         line_tax_class = cls.get_instance_with_errors(
@@ -906,7 +933,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order_line.tax_class_private_metadata.update(
                     {data["key"]: data["value"]}
                 )
-        return order_line
+        return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
 
     @classmethod
     def create_single_fulfillment(
@@ -1036,7 +1063,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
             delivery_method,
-            order.lines,
+            order.all_order_lines,
             instances.channel,
             delivery_input,
             object_storage,
@@ -1210,7 +1237,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         Order.objects.bulk_create([order.order for order in orders if order.order])
 
-        order_lines = [line for order in orders for line in order.lines if order.order]
+        order_lines: List[OrderLine] = sum(
+            [order.all_order_lines for order in orders if order.order], []
+        )
         OrderLine.objects.bulk_create(order_lines)
 
         notes = [note for order in orders for note in order.notes if order.order]

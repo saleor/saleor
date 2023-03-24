@@ -242,6 +242,7 @@ def order_bulk_input(
             "gross": 120,
             "net": 100,
         },
+        "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
