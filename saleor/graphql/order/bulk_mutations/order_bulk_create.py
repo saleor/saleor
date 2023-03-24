@@ -407,7 +407,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             required=False,
             description=(
                 f"Determine how stock should be updated, while processing fulfillment. "
-                f"DEFAULT: {StockUpdatePolicy.NO_UPDATE}"
+                f"DEFAULT: {StockUpdatePolicy.UPDATE}"
             ),
         )
 
@@ -885,7 +885,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             is_gift_card=order_line_input["is_gift_card"],
             currency=order_input["currency"],
             quantity=line_amounts.quantity,
-            # quantity_fulfilled=line_amounts.quantity_fulfilled,
             unit_price_net_amount=line_amounts.unit_net,
             unit_price_gross_amount=line_amounts.unit_gross,
             total_price_net_amount=line_amounts.total_net,
@@ -1168,14 +1167,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             )
                         )
                         fulfillment.is_enough_stocks = False
-                        if stock_update_policy == StockUpdatePolicy.FORCE_UPDATE:
+                        if stock_update_policy == StockUpdatePolicy.FORCE:
                             stock.quantity -= quantity_fulfilled
                     else:
                         stock.quantity -= quantity_fulfilled
 
                 if (
                     not fulfillment.is_enough_stocks
-                    and stock_update_policy == StockUpdatePolicy.FAIL
+                    and stock_update_policy == StockUpdatePolicy.UPDATE
                 ):
                     order.fulfillments.remove(fulfillment)
 
@@ -1255,13 +1254,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             orders.append(cls.create_single_order(order_input, object_storage))
 
         error_policy = data.get("error_policy", ErrorPolicy.REJECT_EVERYTHING)
-        stock_update_policy = data.get(
-            "stock_update_policy", StockUpdatePolicy.NO_UPDATE
-        )
+        stock_update_policy = data.get("stock_update_policy", StockUpdatePolicy.SKIP)
         stocks: List[Stock] = []
 
         cls.handle_error_policy(orders, error_policy)
-        if stock_update_policy != StockUpdatePolicy.NO_UPDATE:
+        if stock_update_policy != StockUpdatePolicy.SKIP:
             stocks = cls.handle_stocks(orders, stock_update_policy)
         cls.save_data(orders, stocks)
 

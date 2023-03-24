@@ -836,7 +836,7 @@ def test_order_bulk_create_stock_update(
     )
     variables = {
         "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.FAIL.name,
+        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
     }
 
     # when
