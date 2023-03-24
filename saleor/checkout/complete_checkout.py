@@ -1214,7 +1214,6 @@ def _create_order_from_checkout(
 def create_order_from_checkout(
     checkout_info: CheckoutInfo,
     checkout_lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
@@ -1241,7 +1240,6 @@ def create_order_from_checkout(
     :raises: InsufficientStock, GiftCardNotApplicable
     """
 
-    # TODO Owczar: Drop discounts
     if checkout_info.voucher:
         with transaction.atomic():
             _increase_voucher_usage(checkout_info=checkout_info)
@@ -1356,7 +1354,6 @@ def complete_checkout_with_transaction(
     return create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=discounts,
         manager=manager,
         user=user,
         app=app,

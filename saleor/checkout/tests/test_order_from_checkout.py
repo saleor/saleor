@@ -39,7 +39,6 @@ def test_create_order_insufficient_stock(
         create_order_from_checkout(
             checkout_info=checkout_info,
             checkout_lines=checkout_lines,
-            discounts=[],
             manager=manager,
             user=None,
             app=app,
@@ -85,7 +84,6 @@ def test_create_order_with_gift_card(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -134,7 +132,6 @@ def test_create_order_with_gift_card_partial_use(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -197,7 +194,6 @@ def test_create_order_with_many_gift_cards(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -272,7 +268,6 @@ def test_create_order_gift_card_bought(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -349,7 +344,6 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -406,7 +400,6 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -435,7 +428,6 @@ def test_note_in_created_order(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -481,7 +473,6 @@ def test_create_order_use_translations(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -517,7 +508,6 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -556,7 +546,6 @@ def test_create_order_from_checkout_updates_total_charged_amount(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -587,7 +576,6 @@ def test_create_order_from_checkout_update_display_gross_prices(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=checkout_lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -628,7 +616,6 @@ def test_create_order_from_checkout_store_shipping_prices(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
@@ -676,7 +663,6 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     order = create_order_from_checkout(
         checkout_info=checkout_info,
         checkout_lines=lines,
-        discounts=[],
         manager=manager,
         user=None,
         app=app,
