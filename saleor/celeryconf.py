@@ -29,12 +29,6 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.autodiscover_tasks(
     packages=[
-        "saleor.payment.migrations.tasks",
-    ],
-    related_name="saleor3_12",
-)
-app.autodiscover_tasks(
-    packages=[
         "saleor.order.migrations.tasks",
     ],
     related_name="saleor3_13",
