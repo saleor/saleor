@@ -721,11 +721,9 @@ def _get_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: List[DiscountInfo],
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
-    # TODO Owczar: Drop discounts
     tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     try:
@@ -831,9 +829,7 @@ def complete_checkout_pre_payment_part(
         raise exc
 
     try:
-        order_data = _get_order_data(
-            manager, checkout_info, lines, discounts, site_settings
-        )
+        order_data = _get_order_data(manager, checkout_info, lines, site_settings)
     except ValidationError as exc:
         gateway.payment_refund_or_void(payment, manager, channel_slug=channel_slug)
         raise exc
