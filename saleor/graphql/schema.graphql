@@ -24484,7 +24484,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressCreated implements Event {
+type AddressCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24508,7 +24508,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressUpdated implements Event {
+type AddressUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24532,7 +24532,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressDeleted implements Event {
+type AddressDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24556,7 +24556,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppInstalled implements Event {
+type AppInstalled implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24580,7 +24580,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppUpdated implements Event {
+type AppUpdated implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24604,7 +24604,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppDeleted implements Event {
+type AppDeleted implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24628,7 +24628,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppStatusChanged implements Event {
+type AppStatusChanged implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24652,7 +24652,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeCreated implements Event {
+type AttributeCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24676,7 +24676,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeUpdated implements Event {
+type AttributeUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24700,7 +24700,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeDeleted implements Event {
+type AttributeDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24724,7 +24724,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueCreated implements Event {
+type AttributeValueCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24748,7 +24748,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueUpdated implements Event {
+type AttributeValueUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24772,7 +24772,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueDeleted implements Event {
+type AttributeValueDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24796,7 +24796,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryCreated implements Event {
+type CategoryCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24820,7 +24820,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryUpdated implements Event {
+type CategoryUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24844,7 +24844,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryDeleted implements Event {
+type CategoryDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24868,7 +24868,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelCreated implements Event {
+type ChannelCreated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24892,7 +24892,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelUpdated implements Event {
+type ChannelUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24916,7 +24916,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelDeleted implements Event {
+type ChannelDeleted implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24940,7 +24940,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelStatusChanged implements Event {
+type ChannelStatusChanged implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24964,7 +24964,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardCreated implements Event {
+type GiftCardCreated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -24988,7 +24988,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardUpdated implements Event {
+type GiftCardUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25012,7 +25012,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardDeleted implements Event {
+type GiftCardDeleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25036,7 +25036,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardStatusChanged implements Event {
+type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25060,7 +25060,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardMetadataUpdated implements Event {
+type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25246,7 +25246,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCreated implements Event {
+type OrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25270,7 +25270,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderUpdated implements Event {
+type OrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25294,7 +25294,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderConfirmed implements Event {
+type OrderConfirmed implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25318,7 +25318,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFullyPaid implements Event {
+type OrderFullyPaid implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25342,7 +25342,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFulfilled implements Event {
+type OrderFulfilled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25366,7 +25366,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCancelled implements Event {
+type OrderCancelled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25390,7 +25390,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderMetadataUpdated implements Event {
+type OrderMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25414,7 +25414,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderCreated implements Event {
+type DraftOrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25438,7 +25438,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderUpdated implements Event {
+type DraftOrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25462,7 +25462,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderDeleted implements Event {
+type DraftOrderDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25486,7 +25486,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductCreated implements Event {
+type ProductCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25516,7 +25516,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductUpdated implements Event {
+type ProductUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25546,7 +25546,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductDeleted implements Event {
+type ProductDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25576,7 +25576,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductMetadataUpdated implements Event {
+type ProductMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25604,7 +25604,7 @@ Event sent when new product media is created.
 
 Added in Saleor 3.12.
 """
-type ProductMediaCreated implements Event {
+type ProductMediaCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25626,7 +25626,7 @@ Event sent when product media is updated.
 
 Added in Saleor 3.12.
 """
-type ProductMediaUpdated implements Event {
+type ProductMediaUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25648,7 +25648,7 @@ Event sent when product media is deleted.
 
 Added in Saleor 3.12.
 """
-type ProductMediaDeleted implements Event {
+type ProductMediaDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25672,7 +25672,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantCreated implements Event {
+type ProductVariantCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25699,7 +25699,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantUpdated implements Event {
+type ProductVariantUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25726,7 +25726,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantOutOfStock implements Event {
+type ProductVariantOutOfStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25756,7 +25756,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantBackInStock implements Event {
+type ProductVariantBackInStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25816,7 +25816,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantDeleted implements Event {
+type ProductVariantDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25843,7 +25843,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantMetadataUpdated implements Event {
+type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25870,7 +25870,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleCreated implements Event {
+type SaleCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25897,7 +25897,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleUpdated implements Event {
+type SaleUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25924,7 +25924,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleDeleted implements Event {
+type SaleDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25951,7 +25951,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleToggle implements Event {
+type SaleToggle implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26077,7 +26077,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentCreated implements Event {
+type FulfillmentCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26104,7 +26104,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentCanceled implements Event {
+type FulfillmentCanceled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26131,7 +26131,7 @@ Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentApproved implements Event {
+type FulfillmentApproved implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26158,7 +26158,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentMetadataUpdated implements Event {
+type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26185,7 +26185,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerCreated implements Event {
+type CustomerCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26209,7 +26209,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerUpdated implements Event {
+type CustomerUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26233,7 +26233,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerMetadataUpdated implements Event {
+type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26257,7 +26257,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionCreated implements Event {
+type CollectionCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26284,7 +26284,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionUpdated implements Event {
+type CollectionUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26311,7 +26311,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionDeleted implements Event {
+type CollectionDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26338,7 +26338,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionMetadataUpdated implements Event {
+type CollectionMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26365,7 +26365,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutCreated implements Event {
+type CheckoutCreated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26389,7 +26389,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutUpdated implements Event {
+type CheckoutUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26413,7 +26413,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutMetadataUpdated implements Event {
+type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26437,7 +26437,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageCreated implements Event {
+type PageCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26461,7 +26461,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageUpdated implements Event {
+type PageUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26485,7 +26485,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageDeleted implements Event {
+type PageDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26509,7 +26509,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeCreated implements Event {
+type PageTypeCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26533,7 +26533,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeUpdated implements Event {
+type PageTypeUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26557,7 +26557,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeDeleted implements Event {
+type PageTypeDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26581,7 +26581,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupCreated implements Event {
+type PermissionGroupCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26605,7 +26605,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupUpdated implements Event {
+type PermissionGroupUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26629,7 +26629,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupDeleted implements Event {
+type PermissionGroupDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26752,7 +26752,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneCreated implements Event {
+type ShippingZoneCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26779,7 +26779,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneUpdated implements Event {
+type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26806,7 +26806,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneDeleted implements Event {
+type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26833,7 +26833,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneMetadataUpdated implements Event {
+type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26860,7 +26860,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffCreated implements Event {
+type StaffCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26884,7 +26884,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffUpdated implements Event {
+type StaffUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26908,7 +26908,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffDeleted implements Event {
+type StaffDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26979,7 +26979,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionItemMetadataUpdated implements Event {
+type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27057,7 +27057,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherCreated implements Event {
+type VoucherCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27084,7 +27084,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherUpdated implements Event {
+type VoucherUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27111,7 +27111,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherDeleted implements Event {
+type VoucherDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27138,7 +27138,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherMetadataUpdated implements Event {
+type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27165,7 +27165,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseCreated implements Event {
+type WarehouseCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27189,7 +27189,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseUpdated implements Event {
+type WarehouseUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27213,7 +27213,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseDeleted implements Event {
+type WarehouseDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27237,7 +27237,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseMetadataUpdated implements Event {
+type WarehouseMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
