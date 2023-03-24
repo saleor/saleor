@@ -167,18 +167,11 @@ class TransactionAction:
     ]
 
 
-class TransactionStatus:
-    PENDING = "pending"
-    SUCCESS = "success"
-    FAILURE = "failure"
-
-    CHOICES = [(PENDING, "Pending"), (SUCCESS, "Success"), (FAILURE, "Failure")]
-
-
 class TransactionEventType:
     """Represents possible event types.
 
     Added in Saleor 3.12.
+
     The following types are possible:
     AUTHORIZATION_SUCCESS - represents success authorization.
     AUTHORIZATION_FAILURE - represents failure authorization.
@@ -232,4 +225,24 @@ class TransactionEventType:
         (CANCEL_FAILURE, "Represents failure cancel"),
         (CANCEL_REQUEST, "Represents cancel request"),
         (INFO, "Represents an info event"),
+    ]
+
+
+class TransactionEventStatus:
+    """Represents a status of payment transaction.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess action.
+    FAILURE - Represents a failure action.
+    PENDING - Represents a pending action.
+    """
+
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILURE = "failure"
+
+    CHOICES = [
+        (PENDING, "Pending"),
+        (SUCCESS, "Success"),
+        (FAILURE, "Failure"),
     ]

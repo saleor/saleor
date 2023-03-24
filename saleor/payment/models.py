@@ -21,9 +21,9 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventStatus,
     TransactionEventType,
     TransactionKind,
-    TransactionStatus,
 )
 
 
@@ -156,8 +156,8 @@ class TransactionEvent(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         max_length=128,
-        choices=TransactionStatus.CHOICES,
-        default=TransactionStatus.SUCCESS,
+        choices=TransactionEventStatus.CHOICES,
+        default=TransactionEventStatus.SUCCESS,
         blank=True,
         null=True,
     )
@@ -414,7 +414,9 @@ class Transaction(models.Model):
     action_required_data = JSONField(
         blank=True, default=dict, encoder=DjangoJSONEncoder
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

@@ -328,7 +328,7 @@ def async_subscription_webhooks_with_root_objects(
     voucher,
     warehouse,
     translated_attribute,
-    transaction_item,
+    transaction_item_created_by_app,
     product_media_image,
 ):
     events = WebhookEventAsyncType
@@ -547,7 +547,7 @@ def async_subscription_webhooks_with_root_objects(
         events.STAFF_DELETED: [subscription_staff_deleted_webhook, staff_user],
         events.TRANSACTION_ITEM_METADATA_UPDATED: [
             subscription_transaction_item_metadata_updated_webhook,
-            transaction_item,
+            transaction_item_created_by_app,
         ],
         events.TRANSLATION_CREATED: [
             subscription_translation_created_webhook,

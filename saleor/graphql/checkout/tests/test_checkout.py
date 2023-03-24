@@ -2123,8 +2123,8 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
     # given
     checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -2145,8 +2145,8 @@ def test_checkout_transactions_with_manage_checkouts(
     # given
     transaction = checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -2174,8 +2174,8 @@ def test_checkout_transactions_with_handle_payments(
     # given
     transaction = checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],

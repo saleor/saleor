@@ -17,6 +17,12 @@ class Channel(models.Model):
         choices=AllocationStrategy.CHOICES,
         default=AllocationStrategy.PRIORITIZE_SORTING_ORDER,
     )
+    order_mark_as_paid_strategy = models.CharField(
+        max_length=255,
+        choices=MarkAsPaidStrategy.CHOICES,
+        default=MarkAsPaidStrategy.PAYMENT_FLOW,
+    )
+
     automatically_confirm_all_new_orders = models.BooleanField(default=True, null=True)
     automatically_fulfill_non_shippable_gift_card = models.BooleanField(
         default=True,

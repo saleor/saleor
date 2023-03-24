@@ -4,17 +4,24 @@ from unittest.mock import patch
 import pytest
 from prices import Money, TaxedMoney
 
+from ...channel import MarkAsPaidStrategy
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
 from ...order.fetch import OrderLineInfo, fetch_order_info
-from ...payment import ChargeStatus, PaymentError, TransactionKind
+from ...payment import ChargeStatus, PaymentError, TransactionEventType, TransactionKind
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import DigitalContent
 from ...product.tests.utils import create_image
 from ...tests.utils import flush_post_commit_hooks
 from ...warehouse.models import Allocation, Stock
-from .. import FulfillmentStatus, OrderEvents, OrderStatus
+from .. import (
+    FulfillmentStatus,
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderEvents,
+    OrderStatus,
+)
 from ..actions import (
     automatically_fulfill_digital_lines,
     cancel_fulfillment,
@@ -22,7 +29,8 @@ from ..actions import (
     clean_mark_order_as_paid,
     fulfill_order_lines,
     handle_fully_paid_order,
-    mark_order_as_paid,
+    mark_order_as_paid_with_payment,
+    mark_order_as_paid_with_transaction,
     order_refunded,
 )
 from ..models import Fulfillment, OrderLine
@@ -269,9 +277,9 @@ def test_handle_fully_paid_order_gift_cards_not_created(
     send_notification_mock.assert_not_called
 
 
-def test_mark_as_paid(admin_user, draft_order):
+def test_mark_as_paid_with_payment(admin_user, draft_order):
     manager = get_plugins_manager()
-    mark_order_as_paid(draft_order, admin_user, None, manager)
+    mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
     payment = draft_order.payments.last()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == draft_order.total.gross.amount
@@ -281,10 +289,10 @@ def test_mark_as_paid(admin_user, draft_order):
     assert transactions[0].kind == TransactionKind.EXTERNAL
 
 
-def test_mark_as_paid_with_external_reference(admin_user, draft_order):
+def test_mark_as_paid_with_external_reference_with_payment(admin_user, draft_order):
     external_reference = "transaction_id"
     manager = get_plugins_manager()
-    mark_order_as_paid(
+    mark_order_as_paid_with_payment(
         draft_order, admin_user, None, manager, external_reference=external_reference
     )
     payment = draft_order.payments.last()
@@ -304,13 +312,59 @@ def test_mark_as_paid_no_billing_address(admin_user, draft_order):
 
     manager = get_plugins_manager()
     with pytest.raises(Exception):
-        mark_order_as_paid(draft_order, admin_user, None, manager)
+        mark_order_as_paid_with_payment(draft_order, admin_user, None, manager)
 
 
 def test_clean_mark_order_as_paid(payment_txn_preauth):
     order = payment_txn_preauth.order
     with pytest.raises(PaymentError):
         clean_mark_order_as_paid(order)
+
+
+def test_mark_as_paid_with_transaction(admin_user, draft_order):
+    # given
+    manager = get_plugins_manager()
+    channel = draft_order.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    # when
+    mark_order_as_paid_with_transaction(draft_order, admin_user, None, manager)
+
+    # then
+    draft_order.refresh_from_db()
+    assert not draft_order.payments.exists()
+    transaction = draft_order.payment_transactions.get()
+
+    assert transaction.charged_value == draft_order.total.gross.amount
+    assert draft_order.authorize_status == OrderAuthorizeStatus.FULL
+    assert draft_order.charge_status == OrderChargeStatus.FULL
+    assert draft_order.total_charged.amount == transaction.charged_value
+
+    transaction_event = transaction.events.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).get()
+    assert transaction_event.amount_value == draft_order.total.gross.amount
+    assert transaction_event.type == TransactionEventType.CHARGE_SUCCESS
+
+
+def test_mark_as_paid_with_external_reference_with_transaction(admin_user, draft_order):
+    # given
+    external_reference = "transaction_id"
+    manager = get_plugins_manager()
+    channel = draft_order.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    # when
+    mark_order_as_paid_with_transaction(
+        draft_order, admin_user, None, manager, external_reference=external_reference
+    )
+
+    # then
+    assert not draft_order.payments.exists()
+    transaction = draft_order.payment_transactions.get()
+    assert transaction.psp_reference == external_reference
 
 
 def test_cancel_fulfillment(fulfilled_order, warehouse):

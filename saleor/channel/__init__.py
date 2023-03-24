@@ -21,8 +21,10 @@ class MarkAsPaidStrategy:
 
     TRANSACTION_FLOW - new orders marked as paid will receive a
     `TransactionItem` object, that will cover the `order.total`.
+
     PAYMENT_FLOW - new orders marked as paid will receive a
     `Payment` object, that will cover the `order.total`.
+
     """
 
     TRANSACTION_FLOW = "transaction_flow"

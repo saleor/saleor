@@ -438,3 +438,38 @@ fragment PaymentDetails on Payment {
   gateway
 }
 """
+
+
+TRANSACTION_ITEM_DETAILS = """
+fragment TransactionFragment on TransactionItem {
+  id
+  createdAt
+  actions
+  authorizedAmount {
+    currency
+    amount
+  }
+  refundedAmount {
+    currency
+    amount
+  }
+  voidedAmount {
+    currency
+    amount
+  }
+  chargedAmount {
+    currency
+    amount
+  }
+  events {
+    id
+  }
+  status
+  type
+  pspReference
+  reference
+  order {
+    id
+  }
+}
+"""

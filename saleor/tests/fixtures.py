@@ -87,6 +87,8 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment, TransactionItem
+from ..payment.transaction_item_calculations import recalculate_transaction_amounts
+from ..payment.utils import create_manual_adjustment_events
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
@@ -5507,15 +5509,73 @@ def payment_dummy_credit_card(db, order_with_lines):
 
 
 @pytest.fixture
-def transaction_item(order):
-    return TransactionItem.objects.create(
-        status="Captured",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["refund"],
-        currency="USD",
+def transaction_item_generator():
+    def create_transaction(
+        order_id=None,
+        checkout_id=None,
+        app=None,
+        user=None,
+        psp_reference="PSP ref1",
+        name="Credit card",
+        message="Transasction details",
+        available_actions=None,
+        authorized_value=Decimal(0),
+        charged_value=Decimal(0),
+        refunded_value=Decimal(0),
+        canceled_value=Decimal(0),
+    ):
+        if available_actions is None:
+            available_actions = []
+        transaction = TransactionItem.objects.create(
+            name=name,
+            message=message,
+            psp_reference=psp_reference,
+            available_actions=available_actions,
+            currency="USD",
+            order_id=order_id,
+            checkout_id=checkout_id,
+            app_identifier=app.identifier if app else None,
+            app=app,
+            user=user,
+        )
+        create_manual_adjustment_events(
+            transaction=transaction,
+            money_data={
+                "authorized_value": authorized_value,
+                "charged_value": charged_value,
+                "refunded_value": refunded_value,
+                "canceled_value": canceled_value,
+            },
+            user=user,
+            app=app,
+        )
+        recalculate_transaction_amounts(transaction)
+        return transaction
+
+    return create_transaction
+
+
+@pytest.fixture
+def transaction_item_created_by_app(order, app, transaction_item_generator):
+    charged_amount = Decimal("10.0")
+    return transaction_item_generator(
         order_id=order.pk,
-        charged_value=Decimal("10"),
+        checkout_id=None,
+        app=app,
+        user=None,
+        charged_value=charged_amount,
+    )
+
+
+@pytest.fixture
+def transaction_item_created_by_user(order, staff_user, transaction_item_generator):
+    charged_amount = Decimal("10.0")
+    return transaction_item_generator(
+        order_id=order.pk,
+        checkout_id=None,
+        user=staff_user,
+        app=None,
+        charged_value=charged_amount,
     )
 
 
