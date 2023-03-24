@@ -671,7 +671,7 @@ def test_order_bulk_create_error_order_future_date(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order input contains future date."
-    assert error["field"] == "createdAt"
+    assert error["field"] == "created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
@@ -707,7 +707,7 @@ def test_order_bulk_create_error_invalid_redirect_url(
         error["message"] == "Invalid redirect url: Invalid URL. "
         "Please check if URL is in RFC 1808 format.."
     )
-    assert error["field"] == "redirectUrl"
+    assert error["field"] == "redirect_url"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
@@ -741,12 +741,12 @@ def test_order_bulk_create_error_invalid_address(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error_1 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error_1["message"] == "Invalid billing address."
-    assert error_1["field"] == "billingAddress"
+    assert error_1["field"] == "billing_address"
     assert error_1["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     error_2 = content["data"]["orderBulkCreate"]["results"][0]["errors"][1]
     assert error_2["message"] == "Invalid shipping address."
-    assert error_2["field"] == "shippingAddress"
+    assert error_2["field"] == "shipping_address"
     assert error_2["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
@@ -816,7 +816,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Can't provide both warehouse and shipping method IDs."
-    assert error["field"] == "deliveryMethod"
+    assert error["field"] == "delivery_method"
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
@@ -891,7 +891,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "No delivery method provided."
-    assert error["field"] == "deliveryMethod"
+    assert error["field"] == "delivery_method"
     assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
@@ -1174,7 +1174,7 @@ def test_order_bulk_create_error_invalid_quantity(
             100,
             "Invalid quantity; must be integer greater then 0.",
             OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
-            "quantityFulfilled",
+            "quantity_fulfilled",
         ),
         (
             5,
@@ -1183,7 +1183,7 @@ def test_order_bulk_create_error_invalid_quantity(
             100,
             "Quantity fulfilled can't be greater then quantity.",
             OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
-            "quantityFulfilled",
+            "quantity_fulfilled",
         ),
         (
             5,
@@ -1192,7 +1192,7 @@ def test_order_bulk_create_error_invalid_quantity(
             100,
             "Net price can't be greater then gross price.",
             OrderBulkCreateErrorCode.PRICE_ERROR.name,
-            "totalPrice",
+            "total_price",
         ),
         (
             5,
@@ -1201,7 +1201,7 @@ def test_order_bulk_create_error_invalid_quantity(
             300,
             "Net price can't be greater then gross price.",
             OrderBulkCreateErrorCode.PRICE_ERROR.name,
-            "undiscountedTotalPrice",
+            "undiscounted_total_price",
         ),
     ],
 )
