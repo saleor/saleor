@@ -297,11 +297,6 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
     )
-    # TODO fulfillments
-    # TODO invoices = [OrderBulkCreateInvoiceInput!]
-    # TODO transactions: [TransactionCreateInput!]!
-    # TODO discounts (? need to be added/calculated if any ?)
-    # TODO handle order number
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
@@ -360,7 +355,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Order input contains future date.",
-                    field="createdAt",
+                    field="created_at",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
@@ -372,7 +367,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors.append(
                     OrderBulkError(
                         message=f"Invalid redirect url: {err.message}.",
-                        field="redirectUrl",
+                        field="redirect_url",
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
@@ -458,7 +453,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Invalid billing address.",
-                    field="billingAddress",
+                    field="billing_address",
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
@@ -471,7 +466,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 errors.append(
                     OrderBulkError(
                         message="Invalid shipping address.",
-                        field="shippingAddress",
+                        field="shipping_address",
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
@@ -567,7 +562,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Can't provide both warehouse and shipping method IDs.",
-                    field="deliveryMethod",
+                    field="delivery_method",
                     code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
                 )
             )
@@ -606,7 +601,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="No delivery method provided.",
-                    field="deliveryMethod",
+                    field="delivery_method",
                     code=OrderBulkCreateErrorCode.REQUIRED,
                 )
             )
@@ -721,7 +716,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Invalid quantity; must be integer greater then 0.",
-                    field="quantityFulfilled",
+                    field="quantity_fulfilled",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -730,7 +725,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Quantity fulfilled can't be greater then quantity.",
-                    field="quantityFulfilled",
+                    field="quantity_fulfilled",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -739,7 +734,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    field="totalPrice",
+                    field="total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -748,7 +743,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    field="undiscountedTotalPrice",
+                    field="undiscounted_total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -910,7 +905,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
             return order
-        # TODO check if multiple order lines contains the same variant (fulfillments)
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
@@ -929,7 +923,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 ):
                     order.notes.append(note)
 
-        # order.number = order_input.get("number")
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -982,11 +975,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     {data["key"]: data["value"]}
                 )
 
-        # TODO charged
-        # TODO authourized
-        # TODO voucher
-        # TODO gift cards
-
         order.order = order_instance
         return order
 
@@ -1033,9 +1021,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
-        # TODO post save actions
-        # TODO add webhook ORDER_BULK_CREATED
-
         orders_input = data["orders"]
         if len(orders_input) > MAX_ORDERS:
             error = OrderBulkError(
