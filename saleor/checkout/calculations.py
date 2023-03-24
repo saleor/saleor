@@ -166,7 +166,6 @@ def checkout_line_total(
 
     It takes in account all plugins.
     """
-    currency = checkout_info.checkout.currency
     address = checkout_info.shipping_address or checkout_info.billing_address
     _, lines = fetch_checkout_prices_if_expired(
         checkout_info,
@@ -176,7 +175,7 @@ def checkout_line_total(
         discounts=discounts,
     )
     checkout_line = _find_checkout_line_info(lines, checkout_line_info).line
-    return quantize_price(checkout_line.total_price, currency)
+    return checkout_line.total_price
 
 
 def checkout_line_unit_price(
