@@ -190,10 +190,11 @@ class CheckoutLinesAdd(BaseMutation):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+        # TODO Owczar: Consider drop discounts
         variants = cls._get_variants_from_lines_input(lines)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, [], discounts, manager, shipping_channel_listings
+            checkout, [], manager, shipping_channel_listings
         )
 
         existing_lines_info, _ = fetch_checkout_lines(

@@ -79,8 +79,9 @@ class TaxExemptionManage(BaseMutation):
     def _invalidate_checkout_prices(cls, info: ResolveInfo, checkout):
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+        # TODO Owczar: Drop discounts
 
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, [], manager)
         lines_info, _ = fetch_checkout_lines(checkout)
         invalidate_checkout_prices(
             checkout_info,

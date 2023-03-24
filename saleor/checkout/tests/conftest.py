@@ -14,7 +14,7 @@ def priced_checkout_factory():
     def factory(checkout):
         manager = get_plugins_manager()
         lines, _ = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         tax = Decimal("1.23")
 

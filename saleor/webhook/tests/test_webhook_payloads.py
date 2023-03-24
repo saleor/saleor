@@ -21,7 +21,6 @@ from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...discount import DiscountType, DiscountValueType
-from ...discount.utils import fetch_active_discounts
 from ...graphql.utils import get_user_or_app_from_context
 from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
@@ -1664,8 +1663,7 @@ def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
     )[0]
@@ -1762,8 +1760,7 @@ def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
     # when
     lines, _ = fetch_checkout_lines(checkout_with_prices)
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, manager)
     payload = json.loads(
         generate_checkout_payload_for_tax_calculation(checkout_info, lines)
     )[0]
@@ -1846,7 +1843,7 @@ def test_generate_checkout_payload_for_tax_calculation_digital_checkout(
     )
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     payload = json.loads(

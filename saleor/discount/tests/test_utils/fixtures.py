@@ -30,7 +30,7 @@ def checkout_lines_info(checkout_with_items, categories, published_collections):
 def checkout_info(checkout_lines_info):
     manager = get_plugins_manager()
     checkout = checkout_lines_info[0].line.checkout
-    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, [], manager)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines_info, manager)
     return checkout_info
 
 

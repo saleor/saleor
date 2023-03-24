@@ -135,7 +135,7 @@ def test_serialize_checkout_lines_for_tax_calculation(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     tax_configuration = checkout_info.tax_configuration
     tax_configuration.charge_taxes = charge_taxes
@@ -185,7 +185,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_sale(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )

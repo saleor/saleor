@@ -60,12 +60,13 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout_id=None,
         id=None,
         promo_code,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+        # TODO Owczar: Consider drop discounts
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
         if unavailable_variant_pks:
@@ -85,7 +86,7 @@ class CheckoutAddPromoCode(BaseMutation):
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, lines, discounts, manager, shipping_channel_listings
+            checkout, lines, manager, shipping_channel_listings
         )
 
         add_promo_code_to_checkout(

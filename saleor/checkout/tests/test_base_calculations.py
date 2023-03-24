@@ -69,7 +69,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale(
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -120,7 +120,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_custom_price(
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -395,7 +395,7 @@ def test_calculate_base_line_unit_price_with_variant_on_sale_and_voucher(
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -476,7 +476,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -672,7 +672,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher(
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -738,7 +738,7 @@ def test_calculate_base_line_total_price_with_variant_on_sale_and_voucher_applie
     manager = get_plugins_manager()
     checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_single_item, checkout_lines_info, [], manager
+        checkout_with_single_item, checkout_lines_info, manager
     )
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines_info, [discount_info]
@@ -804,7 +804,7 @@ def test_base_checkout_total(checkout_with_item, shipping_method, voucher_percen
     checkout_with_item.save()
 
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     # when
     total = base_checkout_total(checkout_info, checkout_lines)
@@ -847,7 +847,7 @@ def test_base_checkout_total_high_discount_on_entire_order_apply_once_per_order(
     ).price
 
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     # when
     total = base_checkout_total(checkout_info, checkout_lines)
@@ -872,7 +872,7 @@ def test_base_checkout_total_high_discount_on_shipping(
     checkout_with_item.save()
 
     checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     # when
     total = base_checkout_total(checkout_info, checkout_lines)

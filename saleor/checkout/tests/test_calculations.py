@@ -89,7 +89,7 @@ def fetch_kwargs(checkout_with_items, plugins_manager):
     lines, _ = fetch_checkout_lines(checkout_with_items)
     return {
         "checkout_info": fetch_checkout_info(
-            checkout_with_items, lines, [], plugins_manager
+            checkout_with_items, lines, plugins_manager
         ),
         "manager": plugins_manager,
         "lines": lines,
@@ -295,7 +295,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     )
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     add_promo_code_to_checkout(
         manager,
@@ -306,7 +306,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
     )
 
     checkout.refresh_from_db()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     _get_checkout_base_prices(checkout, checkout_info, lines)
@@ -393,11 +393,10 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
 
     currency = checkout.currency
 
-    discounts = []
     lines_info, _ = fetch_checkout_lines(checkout)
 
     fetch_kwargs = {
-        "checkout_info": fetch_checkout_info(checkout, lines_info, discounts, manager),
+        "checkout_info": fetch_checkout_info(checkout, lines_info, manager),
         "manager": manager,
         "lines": lines_info,
         "address": checkout.shipping_address or checkout.billing_address,
@@ -452,9 +451,8 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
 
     currency = checkout.currency
 
-    discounts = []
     lines_info, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines_info, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines_info, manager)
     fetch_kwargs = {
         "checkout_info": checkout_info,
         "manager": manager,

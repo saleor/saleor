@@ -61,7 +61,7 @@ def test_calculate_checkout_total(
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -110,7 +110,7 @@ def test_calculate_checkout_total_with_sale(
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
@@ -149,7 +149,7 @@ def test_calculate_checkout_total_no_tax_rates(
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -182,7 +182,7 @@ def test_calculate_checkout_total_default_tax_rate_for_country(
 
     lines, _ = fetch_checkout_lines(checkout)
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -231,7 +231,7 @@ def test_calculate_checkout_total_with_shipping_voucher(
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     update_checkout_prices_with_flat_rates(
@@ -281,7 +281,7 @@ def test_calculate_checkout_total_with_shipping_voucher_and_sale(
     product.tax_class.country_rates.update_or_create(country=address.country, rate=23)
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
@@ -330,7 +330,7 @@ def test_calculate_checkout_subtotal(
     checkout.save()
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
 
@@ -379,7 +379,7 @@ def test_calculate_checkout_subtotal_with_sale(
     checkout.save()
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
     create_or_update_discount_objects_from_sale_for_checkout(
@@ -423,7 +423,7 @@ def test_calculate_checkout_line_total(checkout_with_item, shipping_zone, addres
     product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     line_price = calculate_checkout_line_total(
@@ -468,7 +468,7 @@ def test_calculate_checkout_line_total_voucher_on_entire_order(
     total_price = channel_listing.price * line.quantity
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
@@ -508,7 +508,7 @@ def test_calculate_checkout_line_unit_price(checkout_with_item, shipping_zone, a
     product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
@@ -557,7 +557,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_one_line(
     total_price = channel_listing.price * line.quantity
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
@@ -590,7 +590,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines(
     prices_entered_with_tax = True
     _enable_flat_rates(checkout, prices_entered_with_tax)
 
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     variant_1 = product_list[0].variants.last()
     variant_2 = product_list[1].variants.last()
     qty_1 = 2
@@ -623,7 +623,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines(
     )
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
@@ -661,7 +661,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines_last_lin
 
     currency = checkout.currency
 
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     variant_1 = product_list[0].variants.last()
     variant_2 = product_list[1].variants.last()
     qty_1 = 2
@@ -699,7 +699,7 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines_last_lin
     )
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[-1]
 
     # when
@@ -757,7 +757,7 @@ def test_calculate_checkout_line_unit_price_with_shipping_voucher(
     unit_gross = channel_listing.price
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
@@ -797,7 +797,7 @@ def test_calculate_checkout_shipping(
     )
     checkout.save()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     shipping_price = calculate_checkout_shipping(
@@ -829,7 +829,7 @@ def test_calculate_checkout_shipping_no_shipping_price(
     checkout.save(update_fields=["shipping_address", "collection_point"])
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     shipping_price = calculate_checkout_shipping(
@@ -868,7 +868,7 @@ def test_calculate_checkout_shipping_voucher_on_shipping(
     checkout.discount_amount = discount_amount
     checkout.save()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     channel = checkout.channel
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
     price = shipping_channel_listings.price
@@ -915,7 +915,7 @@ def test_calculate_checkout_shipping_free_shipping_voucher(
     checkout.discount_amount = price.amount
     checkout.save()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     shipping_price = calculate_checkout_shipping(
@@ -954,7 +954,7 @@ def test_calculate_checkout_shipping_free_entire_order_voucher(
     checkout.discount_amount = discount_amount
     checkout.save()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [discount_info], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     shipping_price = calculate_checkout_shipping(

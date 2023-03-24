@@ -91,7 +91,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             )
             lines, _ = fetch_checkout_lines(checkout)
             discounts = load_discounts(info.context)
-            checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+            # TODO Owczar: Consider drop discount
+            checkout_info = fetch_checkout_info(checkout, lines, manager)
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,

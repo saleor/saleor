@@ -252,7 +252,8 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                 }
             )
         discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        # TODO Owczar: Consider drop discounts
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_checkout_addresses(checkout_info, lines)
 

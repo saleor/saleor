@@ -152,9 +152,10 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
+        # TODO Owczar: Drop discouints
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, lines, discounts, manager, shipping_channel_listings
+            checkout, lines, manager, shipping_channel_listings
         )
 
         country = shipping_address_instance.country.code

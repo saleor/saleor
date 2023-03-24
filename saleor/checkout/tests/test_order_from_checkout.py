@@ -23,7 +23,7 @@ def test_create_order_insufficient_stock(
 ):
     variant = product_without_shipping.variants.get()
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
 
     add_variant_to_checkout(checkout_info, variant, 10, check_quantity=False)
     checkout.user = customer_user
@@ -33,7 +33,7 @@ def test_create_order_insufficient_stock(
     checkout.save()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
     lines, _ = fetch_checkout_lines(checkout)
     with pytest.raises(InsufficientStock):
         create_order_from_checkout(
@@ -62,7 +62,7 @@ def test_create_order_with_gift_card(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -113,7 +113,7 @@ def test_create_order_with_gift_card_partial_use(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
@@ -127,7 +127,7 @@ def test_create_order_with_gift_card_partial_use(
     checkout.save()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
@@ -171,7 +171,7 @@ def test_create_order_with_many_gift_cards(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     price_without_gift_card = calculations.checkout_total(
         manager=manager,
@@ -189,7 +189,7 @@ def test_create_order_with_many_gift_cards(
     checkout.save()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
@@ -242,7 +242,7 @@ def test_create_order_gift_card_bought(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -311,7 +311,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
     app,
 ):
     checkout_user = None if is_anonymous_user else customer_user
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     shippable_variant = shippable_gift_card_product.variants.get()
     add_variant_to_checkout(checkout_info, shippable_variant, 2)
 
@@ -325,7 +325,7 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -381,7 +381,7 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     subtotal = calculations.checkout_subtotal(
         manager=manager,
@@ -423,7 +423,7 @@ def test_note_in_created_order(
     manager = get_plugins_manager()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
@@ -455,7 +455,7 @@ def test_create_order_use_translations(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     variant = lines[0].variant
     product = lines[0].product
 
@@ -502,7 +502,7 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
     manager = get_plugins_manager()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     # when
     order = create_order_from_checkout(
@@ -540,7 +540,7 @@ def test_create_order_from_checkout_updates_total_charged_amount(
     manager = get_plugins_manager()
 
     checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
 
     # when
     order = create_order_from_checkout(
@@ -569,7 +569,7 @@ def test_create_order_from_checkout_update_display_gross_prices(
     tax_configuration.country_exceptions.all().delete()
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     checkout_lines, _ = fetch_checkout_lines(checkout)
 
     # when
@@ -610,7 +610,7 @@ def test_create_order_from_checkout_store_shipping_prices(
     )
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     order = create_order_from_checkout(
@@ -657,7 +657,7 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     )
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     order = create_order_from_checkout(

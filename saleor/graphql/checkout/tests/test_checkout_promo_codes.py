@@ -1,6 +1,5 @@
 from ....checkout import calculations
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....discount import DiscountInfo
 from ....plugins.manager import get_plugins_manager
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -47,21 +46,10 @@ def test_checkout_totals_use_discounts(
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    sale_channel_listing = sale.channel_listings.get(channel=channel_USD)
-    discounts = [
-        DiscountInfo(
-            sale=sale,
-            channel_listings={channel_USD.slug: sale_channel_listing},
-            product_ids={product.id},
-            category_ids=set(),
-            collection_ids=set(),
-            variants_ids=set(),
-        )
-    ]
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     taxed_total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
@@ -72,7 +60,7 @@ def test_checkout_totals_use_discounts(
     assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
     line_total = calculations.checkout_line_total(
         manager=manager,

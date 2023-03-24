@@ -330,8 +330,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_token(
             manager, gateway, input, channel_slug=checkout_info.channel.slug
@@ -1539,7 +1538,7 @@ class TransactionEventReport(ModelMutation):
         time=None,
         external_url=None,
         message=None,
-        available_actions=None
+        available_actions=None,
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
@@ -1731,9 +1730,7 @@ class TransactionSessionBase(BaseMutation):
             if source_object:
                 lines, _ = fetch_checkout_lines(source_object)
                 discounts = discounts or []
-                checkout_info = fetch_checkout_info(
-                    source_object, lines, discounts, manager
-                )
+                checkout_info = fetch_checkout_info(source_object, lines, manager)
                 checkout_info, _ = fetch_checkout_data(
                     checkout_info, manager, lines, discounts=discounts
                 )

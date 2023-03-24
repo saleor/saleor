@@ -52,7 +52,7 @@ def test_checkout_lines_add_invalidate_prices(
     assert not response["data"]["checkoutLinesAdd"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=True
     )
@@ -99,7 +99,7 @@ def test_checkout_lines_update_invalidate_prices(
     assert not response["data"]["checkoutLinesUpdate"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=True
     )
@@ -142,7 +142,7 @@ def test_checkout_lines_delete_invalidate_prices(
     assert not response["data"]["checkoutLinesDelete"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=True
     )
@@ -185,7 +185,7 @@ def test_checkout_line_delete_invalidate_prices(
     assert not response["data"]["checkoutLineDelete"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=True
     )
@@ -230,7 +230,7 @@ def test_checkout_shipping_address_update_invalidate_prices(
     assert not response["data"]["checkoutShippingAddressUpdate"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], save=False
     )
@@ -274,7 +274,7 @@ def test_checkout_billing_address_update_invalidate_prices(
     assert not response["data"]["checkoutBillingAddressUpdate"]["errors"]
     checkout_with_items.refresh_from_db()
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     mocked_function.assert_called_once_with(
         checkout_info, lines, mock.ANY, [], recalculate_discount=False, save=False
     )
@@ -373,7 +373,7 @@ def test_invalidate_checkout_prices_with_save(checkout, plugins_manager):
     checkout.price_expiration = timezone.now() + timedelta(minutes=5)
     checkout.save(update_fields=["price_expiration"])
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
     # when
     updated_fields = invalidate_checkout_prices(
@@ -394,7 +394,7 @@ def test_invalidate_checkout_prices_without_save(checkout, plugins_manager):
     )
     checkout.save(update_fields=["price_expiration"])
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
 
     # when
     updated_fields = invalidate_checkout_prices(

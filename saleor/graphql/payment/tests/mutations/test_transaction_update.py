@@ -2549,7 +2549,7 @@ def test_transaction_update_for_checkout_fully_paid(
 
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(
         checkout_info, plugins_manager, lines, discounts=[]
     )

@@ -50,7 +50,7 @@ class CheckoutLineDelete(BaseMutation):
         checkout_id=None,
         id=None,
         line_id,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
@@ -64,7 +64,8 @@ class CheckoutLineDelete(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
         lines, _ = fetch_checkout_lines(checkout)
         discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        # TODO Owczar: Consider drop discounts
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         update_checkout_shipping_method_if_invalid(checkout_info, lines)
         invalidate_checkout_prices(checkout_info, lines, manager, discounts, save=True)
         cls.call_event(manager.checkout_updated, checkout)

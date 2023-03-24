@@ -87,7 +87,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         checkout_id=None,
         id=None,
         shipping_method_id,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
@@ -108,8 +108,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         if not is_shipping_required(lines):
             raise ValidationError(
                 {

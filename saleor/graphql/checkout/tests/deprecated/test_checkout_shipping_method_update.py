@@ -61,7 +61,7 @@ def test_checkout_shipping_method_update_by_id(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
             old_shipping_method, old_shipping_method.channel_listings.first()
@@ -109,7 +109,7 @@ def test_checkout_shipping_method_update_by_token(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.delivery_method_info = get_delivery_method_info(
         convert_to_shipping_method_data(
             old_shipping_method, old_shipping_method.channel_listings.first()

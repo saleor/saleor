@@ -198,7 +198,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         lines,
         *,
         shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse]
+        collection_point: Optional[Warehouse],
     ) -> None:
         delivery_method = shipping_method
         error_msg = "This shipping method is not applicable."
@@ -230,7 +230,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         *,
         shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse]
+        collection_point: Optional[Warehouse],
     ) -> None:
         checkout = checkout_info.checkout
         if external_shipping_method:
@@ -315,8 +315,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
         type_name = cls._resolve_delivery_method_type(delivery_method_id)
 
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         if type_name == "Warehouse":
             return cls.perform_on_collection_point(
                 info, delivery_method_id, checkout_info, lines, checkout, manager

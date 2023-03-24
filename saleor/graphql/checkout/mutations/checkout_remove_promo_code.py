@@ -84,7 +84,8 @@ class CheckoutRemovePromoCode(BaseMutation):
 
         manager = get_plugin_manager_promise(info.context).get()
         discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        # TODO Drop discounts
+        checkout_info = fetch_checkout_info(checkout, [], manager)
 
         removed = False
         if promo_code:

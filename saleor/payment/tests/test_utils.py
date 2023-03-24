@@ -131,9 +131,9 @@ def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_
 
     # then
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
+    discounts = []
     expected_payment_lines = get_expected_checkout_payment_lines(
         manager, checkout_info, lines, address, discounts
     )
@@ -156,9 +156,9 @@ def test_create_payment_lines_information_checkout_with_voucher(
 
     # then
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
+    discounts = []
     expected_payment_lines_data = get_expected_checkout_payment_lines(
         manager, checkout_info, lines, address, discounts
     )

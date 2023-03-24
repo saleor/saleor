@@ -251,10 +251,8 @@ def _create_line_for_order(
         checkout_line_info=checkout_line_info,
     )
 
-    sale_id = None
-    for discount in checkout_line_info.discounts:
-        if discount.type == DiscountType.SALE and discount.sale:
-            sale_id = discount.sale.id
+    discount = checkout_line_info.get_sale_discount()
+    sale_id = discount.sale.id if discount and discount.sale else None
 
     voucher_code = None
     if checkout_line_info.voucher:

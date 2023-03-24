@@ -261,7 +261,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
     lines, _ = fetch_checkout_lines(checkout)
     discounts = fetch_active_discounts()
     # TODO Owczar: Consider drop discounts
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     currency = payment_information.currency
     country_code = checkout.get_country()
 
@@ -335,9 +335,8 @@ def request_data_for_gateway_config(
 ) -> Dict[str, Any]:
     manager = get_plugins_manager()
     address = checkout.billing_address or checkout.shipping_address
-    discounts = fetch_active_discounts()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     total = checkout_total(
         manager=manager,
         checkout_info=checkout_info,

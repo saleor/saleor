@@ -14,7 +14,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     # given
     checkout = checkout_with_items
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(
         checkout_info, plugins_manager, lines, discounts=[]
     )
@@ -42,7 +42,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     # given
     checkout = checkout_with_items
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
     checkout_info, _ = fetch_checkout_data(
         checkout_info, plugins_manager, lines, discounts=[]
     )
