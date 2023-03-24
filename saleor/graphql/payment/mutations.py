@@ -29,6 +29,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
+from ...order.models import Order
 from ...order.search import update_order_search_vector
 from ...order.utils import updates_amounts_for_order
 from ...payment import (
@@ -112,7 +113,6 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 if TYPE_CHECKING:
     from ...account.models import User
     from ...discount import DiscountInfo
-    from ...order.models import Order
     from ...plugins.manager import PluginsManager
 
 
@@ -1061,6 +1061,33 @@ class TransactionCreate(BaseMutation):
         return TransactionCreate(transaction=new_transaction)
 
 
+def get_transaction_item(id: str) -> payment_models.TransactionItem:
+    """Get transaction based on global ID.
+
+    The transactions created before 3.13 were using the `id` field as a graphql ID.
+    From 3.13, the `token` is used as a graphql ID. All transactionItems created
+    before 3.13 will use an `int` id as an identification.
+    """
+    _, db_id = from_global_id_or_error(
+        global_id=id, only_type=TransactionItem, raise_error=True
+    )
+    if db_id.isdigit():
+        query_params = {"id": db_id, "use_old_id": True}
+    else:
+        query_params = {"token": db_id}
+    instance = payment_models.TransactionItem.objects.filter(**query_params).first()
+    if not instance:
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    f"Couldn't resolve to a node: {id}",
+                    code=TransactionUpdateErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
+    return instance
+
+
 class TransactionUpdate(TransactionCreate):
     transaction = graphene.Field(TransactionItem)
 
@@ -1215,7 +1242,7 @@ class TransactionUpdate(TransactionCreate):
     ):
         app = get_app_promise(info.context).get()
         user = info.context.user
-        instance = cls.get_node_or_error(info, id, only_type=TransactionItem)
+        instance = get_transaction_item(id)
 
         cls.check_can_update(
             transaction=instance,
@@ -1347,12 +1374,13 @@ class TransactionRequestAction(BaseMutation):
         id = data["id"]
         action_type = data["action_type"]
         action_value = data.get("amount")
-        transaction = cls.get_node_or_error(info, id, only_type=TransactionItem)
-        channel_slug = (
-            transaction.order.channel.slug
-            if transaction.order_id
-            else transaction.checkout.channel.slug
-        )
+        transaction = get_transaction_item(id)
+        if transaction.order_id:
+            order = cast(Order, transaction.order)
+            channel_slug = order.channel.slug
+        else:
+            checkout = cast(Checkout, transaction.checkout)
+            channel_slug = checkout.channel.slug
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {
@@ -1459,8 +1487,7 @@ class TransactionEventReport(ModelMutation):
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
-        transaction = cls.get_node_or_error(info, id, only_type="TransactionItem")
-        transaction = cast(payment_models.TransactionItem, transaction)
+        transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
             transaction=transaction, user=user, app=app
@@ -2023,9 +2050,7 @@ class TransactionProcess(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, *, id, data=None):
         transaction_item = cls.get_node_or_error(
-            info,
-            id,
-            only_type="TransactionItem",
+            info, id, only_type="TransactionItem", field="token"
         )
         transaction_item = cast(payment_models.TransactionItem, transaction_item)
         events = transaction_item.events.all()

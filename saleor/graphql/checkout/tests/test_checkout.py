@@ -2165,7 +2165,7 @@ def test_checkout_transactions_with_manage_checkouts(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
     )
 
 
@@ -2194,7 +2194,7 @@ def test_checkout_transactions_with_handle_payments(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
     )
 
 

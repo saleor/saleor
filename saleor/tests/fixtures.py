@@ -5514,6 +5514,20 @@ def payment_dummy_credit_card(db, order_with_lines):
 
 
 @pytest.fixture
+def transaction_item(order):
+    return TransactionItem.objects.create(
+        token=uuid.uuid4(),
+        status="Captured",
+        type="Credit card",
+        reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order.pk,
+        charged_value=Decimal("10"),
+    )
+
+
+@pytest.fixture
 def transaction_item_generator():
     def create_transaction(
         order_id=None,
@@ -5528,6 +5542,7 @@ def transaction_item_generator():
         charged_value=Decimal(0),
         refunded_value=Decimal(0),
         canceled_value=Decimal(0),
+        use_old_id=False,
     ):
         if available_actions is None:
             available_actions = []
@@ -5543,6 +5558,7 @@ def transaction_item_generator():
             app_identifier=app.identifier if app else None,
             app=app,
             user=user,
+            use_old_id=use_old_id,
         )
         create_manual_adjustment_events(
             transaction=transaction,

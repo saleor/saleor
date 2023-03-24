@@ -18,4 +18,12 @@ class Migration(migrations.Migration):
                 max_length=255,
             ),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE channel_channel
+            ALTER COLUMN default_transaction_flow_strategy
+            SET DEFAULT 'charge';
+            """,
+            migrations.RunSQL.noop,
+        ),
     ]

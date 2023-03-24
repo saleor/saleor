@@ -63,6 +63,7 @@ if TYPE_CHECKING:
     # pylint: disable=unused-import
     from ..product.models import ProductVariant
 
+from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
     from ..discount.models import Sale
@@ -73,7 +74,6 @@ if TYPE_CHECKING:
         TransactionActionData,
         TransactionProcessActionData,
     )
-    from ..payment.models import Payment, TransactionItem
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
 
@@ -155,11 +155,10 @@ def generate_metadata_updated_payload(
 ):
     serializer = PayloadSerializer()
 
-    if isinstance(instance, Checkout):
+    if isinstance(instance, Checkout) or isinstance(instance, TransactionItem):
         pk_field_name = "token"
     else:
         pk_field_name = "id"
-
     return serializer.serialize(
         [instance],
         fields=[],
@@ -1525,7 +1524,9 @@ def generate_transaction_session_payload(
         "amount": transaction_process_action.amount,
         "currency": transaction_process_action.currency,
         "action_type": transaction_process_action.action_type.upper(),
-        "transaction_id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction_id": graphene.Node.to_global_id(
+            "TransactionItem", transaction.token
+        ),
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
 
