@@ -8,7 +8,7 @@ from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
-from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
@@ -71,7 +71,7 @@ class VoucherInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherCreate(ModelMutation):

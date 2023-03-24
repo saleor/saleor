@@ -13,7 +13,7 @@ from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core import ResolveInfo
-from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_price_precision
@@ -31,7 +31,7 @@ class SaleChannelListingAddInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleChannelListingInput(BaseInputObjectType):
@@ -47,7 +47,7 @@ class SaleChannelListingInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleChannelListingUpdate(BaseChannelListingMutation):
@@ -62,7 +62,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage sale's availability in channels."
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

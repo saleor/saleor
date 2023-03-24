@@ -6475,7 +6475,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
 }
 
 """Represents product varaint channel listing."""
-type ProductVariantChannelListing implements Node {
+type ProductVariantChannelListing implements Node @doc(category: "Products") {
   id: ID!
   channel: Channel!
   price: Money
@@ -6894,7 +6894,7 @@ type TaxedMoneyRange {
 }
 
 """Represents product channel listing."""
-type ProductChannelListing implements Node {
+type ProductChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -14576,7 +14576,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleAddCatalogues @doc(category: "Products")
+  ): SaleAddCatalogues @doc(category: "Discounts")
 
   """
   Removes products, categories, collections from a sale. 
@@ -14589,7 +14589,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleRemoveCatalogues @doc(category: "Products")
+  ): SaleRemoveCatalogues @doc(category: "Discounts")
 
   """
   Creates/updates translations for a sale. 
@@ -14616,7 +14616,7 @@ type Mutation {
 
     """Fields required to update sale channel listings."""
     input: SaleChannelListingInput!
-  ): SaleChannelListingUpdate @doc(category: "Products")
+  ): SaleChannelListingUpdate @doc(category: "Discounts")
 
   """
   Creates a new voucher. 
@@ -14672,7 +14672,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherAddCatalogues @doc(category: "Products")
+  ): VoucherAddCatalogues @doc(category: "Discounts")
 
   """
   Removes products, categories, collections from a voucher. 
@@ -14685,7 +14685,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherRemoveCatalogues @doc(category: "Products")
+  ): VoucherRemoveCatalogues @doc(category: "Discounts")
 
   """
   Creates/updates translations for a voucher. 
@@ -14712,7 +14712,7 @@ type Mutation {
 
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
-  ): VoucherChannelListingUpdate @doc(category: "Products")
+  ): VoucherChannelListingUpdate @doc(category: "Discounts")
 
   """
   Export products to csv file. 
@@ -21795,7 +21795,7 @@ enum DiscountErrorCode @doc(category: "Discounts") {
   DUPLICATED_INPUT_ITEM
 }
 
-input SaleInput @doc(category: "Products") {
+input SaleInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
@@ -21861,14 +21861,14 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleAddCatalogues @doc(category: "Products") {
+type SaleAddCatalogues @doc(category: "Discounts") {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input CatalogueInput @doc(category: "Products") {
+input CatalogueInput @doc(category: "Discounts") {
   """Products related to the discount."""
   products: [ID!]
 
@@ -21891,7 +21891,7 @@ Removes products, categories, collections from a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleRemoveCatalogues @doc(category: "Products") {
+type SaleRemoveCatalogues @doc(category: "Discounts") {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -21914,14 +21914,14 @@ Manage sale's availability in channels.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleChannelListingUpdate @doc(category: "Products") {
+type SaleChannelListingUpdate @doc(category: "Discounts") {
   """An updated sale instance."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input SaleChannelListingInput @doc(category: "Products") {
+input SaleChannelListingInput @doc(category: "Discounts") {
   """List of channels to which the sale should be assigned."""
   addChannels: [SaleChannelListingAddInput!]
 
@@ -21929,7 +21929,7 @@ input SaleChannelListingInput @doc(category: "Products") {
   removeChannels: [ID!]
 }
 
-input SaleChannelListingAddInput @doc(category: "Products") {
+input SaleChannelListingAddInput @doc(category: "Discounts") {
   """ID of a channel."""
   channelId: ID!
 
@@ -21948,7 +21948,7 @@ type VoucherCreate @doc(category: "Discounts") {
   voucher: Voucher
 }
 
-input VoucherInput @doc(category: "Products") {
+input VoucherInput @doc(category: "Discounts") {
   """Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."""
   type: VoucherTypeEnum
 
@@ -22041,7 +22041,7 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherAddCatalogues @doc(category: "Products") {
+type VoucherAddCatalogues @doc(category: "Discounts") {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22053,7 +22053,7 @@ Removes products, categories, collections from a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherRemoveCatalogues @doc(category: "Products") {
+type VoucherRemoveCatalogues @doc(category: "Discounts") {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22076,14 +22076,14 @@ Manage voucher's availability in channels.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherChannelListingUpdate @doc(category: "Products") {
+type VoucherChannelListingUpdate @doc(category: "Discounts") {
   """An updated voucher instance."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input VoucherChannelListingInput @doc(category: "Products") {
+input VoucherChannelListingInput @doc(category: "Discounts") {
   """List of channels to which the voucher should be assigned."""
   addChannels: [VoucherChannelListingAddInput!]
 
@@ -22091,7 +22091,7 @@ input VoucherChannelListingInput @doc(category: "Products") {
   removeChannels: [ID!]
 }
 
-input VoucherChannelListingAddInput @doc(category: "Products") {
+input VoucherChannelListingAddInput @doc(category: "Discounts") {
   """ID of a channel."""
   channelId: ID!
 

@@ -11,7 +11,7 @@ from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core import ResolveInfo
-from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_price_precision
@@ -27,7 +27,7 @@ class VoucherChannelListingAddInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherChannelListingInput(BaseInputObjectType):
@@ -43,7 +43,7 @@ class VoucherChannelListingInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherChannelListingUpdate(BaseChannelListingMutation):
@@ -58,7 +58,7 @@ class VoucherChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage voucher's availability in channels."
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
