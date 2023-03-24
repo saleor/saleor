@@ -21,7 +21,6 @@ from ..discount.dataloaders import (
     CheckoutLineDiscountsByCheckoutLineIdLoader,
     VoucherByCodeLoader,
     VoucherInfoByVoucherCodeLoader,
-    load_discounts,
 )
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.dataloaders import (
@@ -344,7 +343,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             all_shipping_methods=[],
                             voucher=voucher,
                         )
-                        discounts = load_discounts(self.context)
                         shipping_method_listings = [
                             listing
                             for channel_listings in listings_for_channels
@@ -357,7 +355,6 @@ class CheckoutInfoByCheckoutTokenLoader(DataLoader[str, CheckoutInfo]):
                             collection_point,
                             shipping_address,
                             checkout_lines,
-                            discounts,
                             manager,
                             shipping_method_listings,
                         )

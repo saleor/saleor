@@ -108,7 +108,6 @@ class CheckoutLinesAdd(BaseMutation):
         checkout_info,
         lines,
         manager,
-        discounts,
         replace,
     ):
         channel_slug = checkout_info.channel.slug
@@ -165,7 +164,6 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
-            discounts,
             manager,
             shipping_channel_listings,
         )
@@ -210,7 +208,6 @@ class CheckoutLinesAdd(BaseMutation):
             checkout_info,
             existing_lines_info,
             manager,
-            discounts,
             replace,
         )
         update_checkout_shipping_method_if_invalid(checkout_info, lines)

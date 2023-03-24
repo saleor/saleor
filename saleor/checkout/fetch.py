@@ -452,7 +452,6 @@ def fetch_checkout_info(
             checkout.collection_point,
             shipping_address,
             lines,
-            [],
             manager,
             shipping_channel_listings,
         )
@@ -523,6 +522,7 @@ def update_checkout_info_shipping_address(
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
+    # TODO Owczar: Drop discounts
     checkout_info.shipping_address = address
 
     update_delivery_method_lists_for_checkout_info(
@@ -531,7 +531,6 @@ def update_checkout_info_shipping_address(
         checkout_info.checkout.collection_point,
         address,
         lines,
-        discounts,
         manager,
         shipping_channel_listings,
     )
@@ -619,7 +618,6 @@ def update_delivery_method_lists_for_checkout_info(
     collection_point: Optional["Warehouse"],
     shipping_address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable[ShippingMethodChannelListing],
 ):

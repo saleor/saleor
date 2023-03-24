@@ -103,7 +103,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
-            discounts,
             manager,
             shipping_channel_listings,
         )

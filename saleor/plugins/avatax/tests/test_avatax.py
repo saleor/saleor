@@ -2066,7 +2066,6 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
         checkout_info.checkout.collection_point,
         ship_to_pl_address,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
