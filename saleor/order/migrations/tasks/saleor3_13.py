@@ -7,7 +7,7 @@ from django.db.models import QuerySet
 BATCH_SIZE = 1000
 
 
-def update_type_to_transaction_cancel_requested(qs: QuerySet):
+def update_type_to_transaction_cancel_requested(qs: QuerySet[OrderEvent]):
     qs.update(type="transaction_cancel_requested")
 
 
@@ -22,7 +22,7 @@ def order_events_rename_transaction_void_events_task():
         order_events_rename_transaction_void_events_task.delay()
 
 
-def update_type_to_transaction_charge_requested(qs: QuerySet):
+def update_type_to_transaction_charge_requested(qs: QuerySet[OrderEvent]):
     qs.update(type="transaction_charge_requested")
 
 
