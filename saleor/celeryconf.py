@@ -27,5 +27,11 @@ app = Celery("saleor")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
+app.autodiscover_tasks(
+    packages=[
+        "saleor.order.migrations.tasks",
+    ],
+    related_name="saleor3_9",
+)
 app.autodiscover_tasks(lambda: discover_plugins_modules(settings.PLUGINS))
 app.autodiscover_tasks(related_name="search_tasks")

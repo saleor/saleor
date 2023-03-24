@@ -10,7 +10,7 @@ from ....celeryconf import app
 
 task_logger = get_task_logger(__name__)
 
-BATCH_SIZE = 1000
+BATCH_SIZE = 500
 
 
 def add_taxes_to_price(price, tax_rate, prices_entered_with_tax):
