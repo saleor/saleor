@@ -392,14 +392,12 @@ def _prepare_order_data(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable["DiscountInfo"],
     prices_entered_with_tax: bool,
 ) -> dict:
     """Run checks and return all the data from a given checkout to create an order.
 
     :raises NotApplicable InsufficientStock:
     """
-    # TODO Owczar: check discounts param
     checkout = checkout_info.checkout
     order_data = {}
     address = (
@@ -474,7 +472,7 @@ def _prepare_order_data(
     ).gross
 
     try:
-        manager.preprocess_order_creation(checkout_info, discounts, lines)
+        manager.preprocess_order_creation(checkout_info, [], lines)
     except TaxError:
         release_voucher_usage(order_data.get("voucher"), order_data.get("user_email"))
         raise
@@ -727,6 +725,7 @@ def _get_order_data(
     site_settings: "SiteSettings",
 ) -> dict:
     """Prepare data that will be converted to order and its lines."""
+    # TODO Owczar: Drop discounts
     tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
     try:
@@ -734,7 +733,6 @@ def _get_order_data(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            discounts=discounts,
             prices_entered_with_tax=prices_entered_with_tax,
         )
     except InsufficientStock as e:
