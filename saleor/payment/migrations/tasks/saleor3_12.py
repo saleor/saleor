@@ -160,7 +160,7 @@ def create_event_for_canceled_task():
         create_event_for_canceled_task.delay()
 
 
-def transaction_item_migrate_type_to_name(qs: QuerySet):
+def transaction_item_migrate_type_to_name(qs: QuerySet[TransactionItem]):
     qs.update(name=F("type"))
 
 
@@ -177,7 +177,7 @@ def transaction_item_migrate_type_to_name_task():
         transaction_item_migrate_type_to_name_task.delay()
 
 
-def transaction_item_migrate_reference_to_psp_reference(qs: QuerySet):
+def transaction_item_migrate_reference_to_psp_reference(qs: QuerySet[TransactionItem]):
     qs.update(psp_reference=F("reference"))
 
 
@@ -192,7 +192,7 @@ def transaction_item_migrate_reference_to_psp_reference_task():
         transaction_item_migrate_reference_to_psp_reference_task.delay()
 
 
-def transaction_item_migrate_voided_to_canceled(qs: QuerySet):
+def transaction_item_migrate_voided_to_canceled(qs: QuerySet[TransactionItem]):
     qs.update(canceled_value=F("voided_value"))
 
 
@@ -209,7 +209,7 @@ def transaction_item_migrate_voided_to_canceled_task():
         transaction_item_migrate_voided_to_canceled_task.delay()
 
 
-def transaction_event_migrate_name_to_message(qs: QuerySet):
+def transaction_event_migrate_name_to_message(qs: QuerySet[TransactionEvent]):
     qs.update(message=F("name"))
 
 
@@ -227,7 +227,9 @@ def transaction_event_migrate_name_to_message_task():
         transaction_event_migrate_name_to_message_task.delay()
 
 
-def transaction_event_migrate_reference_to_psp_reference(qs: QuerySet):
+def transaction_event_migrate_reference_to_psp_reference(
+    qs: QuerySet[TransactionEvent],
+):
     qs.update(psp_reference=F("reference"))
 
 
@@ -244,7 +246,7 @@ def transaction_event_migrate_reference_to_psp_reference_task():
         transaction_event_migrate_reference_to_psp_reference_task.delay()
 
 
-def set_default_currency_for_transaction_event(qs: QuerySet):
+def set_default_currency_for_transaction_event(qs: QuerySet[TransactionEvent]):
     qs.update(currency=F("transaction_currency"))
 
 
