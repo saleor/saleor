@@ -941,12 +941,10 @@ def _increase_voucher_usage(checkout_info: "CheckoutInfo"):
 def _create_order_lines_from_checkout_lines(
     checkout_info: CheckoutInfo,
     lines: List[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     order_pk: Union[str, UUID],
     prices_entered_with_tax: bool,
 ) -> List[OrderLineInfo]:
-    # TODO Owczar: Drop discounts
     order_lines_info = _create_lines_for_order(
         manager,
         checkout_info,
@@ -1148,7 +1146,6 @@ def _create_order_from_checkout(
     order_lines_info = _create_order_lines_from_checkout_lines(
         checkout_info=checkout_info,
         lines=checkout_lines_info,
-        discounts=discounts,
         manager=manager,
         order_pk=order.pk,
         prices_entered_with_tax=prices_entered_with_tax,
