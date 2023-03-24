@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
 from semantic_version import NpmSpec, Version
+from semantic_version.base import Range
 
 from .. import __version__
 from ..graphql.core.utils import str_to_enum
@@ -25,6 +26,14 @@ from .validators import AppURLValidator
 logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
+
+
+class RequiredSaleorVersionSpec(NpmSpec):
+    class Parser(NpmSpec.Parser):
+        @classmethod
+        def range(cls, operator, target):
+            # change prerelease policy from `same-patch` to `natural`
+            return Range(operator, target, prerelease_policy=Range.PRERELEASE_NATURAL)
 
 
 def _clean_app_url(url):
@@ -319,7 +328,7 @@ def clean_required_saleor_version(
     if not required_version:
         return None
     try:
-        spec = NpmSpec(required_version)
+        spec = RequiredSaleorVersionSpec(required_version)
     except Exception:
         msg = "Incorrect value for required Saleor version."
         raise ValidationError(msg, code=AppErrorCode.INVALID.value)
