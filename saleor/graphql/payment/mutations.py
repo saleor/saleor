@@ -726,12 +726,9 @@ class TransactionCreate(BaseMutation):
         """Zero-downtime compatibility with 3.13 version."""
 
         money_data = {}
-        if amount_authorized := cleaned_data.get("amount_authorized", None):
-            money_data["authorized_value"] = amount_authorized["amount"]
-        if amount_charged := cleaned_data.get("amount_charged", None):
-            money_data["charged_value"] = amount_charged["amount"]
-        if amount_refunded := cleaned_data.get("amount_refunded", None):
-            money_data["refunded_value"] = amount_refunded["amount"]
+        for field in ["authorized", "charged", "refunded"]:
+            if amount := cleaned_data.get(f"amount_{field}", None):
+                money_data[f"{field}_value"] = amount["amount"]
 
         if amount_canceled := cleaned_data.get("amount_canceled", None):
             money_data["canceled_value"] = amount_canceled["amount"]
