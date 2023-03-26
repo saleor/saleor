@@ -255,6 +255,7 @@ def trigger_all_webhooks_sync(
     subscribable_object=None,
     requestor=None,
     allow_replica=True,
+    decoder_kwargs={},
 ) -> Optional[R]:
     """Send all synchronous webhook request for given event type.
 
@@ -293,7 +294,9 @@ def trigger_all_webhooks_sync(
                 webhook=webhook,
             )
 
-        response_data = send_webhook_request_sync(webhook.app.name, delivery)
+        response_data = send_webhook_request_sync(
+            webhook.app.name, delivery, decoder_kwargs=decoder_kwargs
+        )
         if parsed_response := parse_response(response_data):
             return parsed_response
     return None
@@ -568,7 +571,7 @@ def send_webhook_request_async(self, event_delivery_id):
 
 
 def send_webhook_request_sync(
-    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT
+    app_name, delivery, timeout=settings.WEBHOOK_SYNC_TIMEOUT, decoder_kwargs={}
 ) -> Optional[Dict[Any, Any]]:
     event_payload = delivery.payload
     data = event_payload.payload
@@ -604,7 +607,7 @@ def send_webhook_request_sync(
                 timeout=timeout,
                 custom_headers=webhook.custom_headers,
             )
-            response_data = json.loads(response.content)
+            response_data = json.loads(response.content, **decoder_kwargs)
 
     except JSONDecodeError as e:
         logger.info(

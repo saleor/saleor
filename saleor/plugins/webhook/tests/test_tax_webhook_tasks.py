@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -46,9 +47,12 @@ def test_trigger_tax_webhook_sync(
     mock_request.return_value = tax_data_response
     event_type = WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES
     data = '{"key": "value"}'
+    decoder_kwargs = {"parse_float": Decimal}
 
     # when
-    tax_data = trigger_all_webhooks_sync(event_type, lambda: data, parse_tax_data)
+    tax_data = trigger_all_webhooks_sync(
+        event_type, lambda: data, parse_tax_data, decoder_kwargs=decoder_kwargs
+    )
 
     # then
     payload = EventPayload.objects.get()
@@ -58,7 +62,9 @@ def test_trigger_tax_webhook_sync(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == tax_checkout_webhook
-    mock_request.assert_called_once_with(tax_checkout_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(
+        tax_checkout_webhook.app.name, delivery, decoder_kwargs=decoder_kwargs
+    )
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -86,7 +92,9 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_first(
     assert delivery.event_type == event_type
     assert delivery.payload == payload
     assert delivery.webhook == successful_webhook
-    mock_request.assert_called_once_with(successful_webhook.app.name, delivery)
+    mock_request.assert_called_once_with(
+        successful_webhook.app.name, delivery, decoder_kwargs={}
+    )
     assert tax_data == parse_tax_data(tax_data_response)
 
 
@@ -117,6 +125,7 @@ def test_trigger_tax_webhook_sync_multiple_webhooks_last(
         assert delivery.payload == payload
         assert delivery.webhook == webhook
         assert call[0] == (webhook.app.name, delivery)
+        assert call.kwargs == dict(decoder_kwargs={})
 
     assert mock_request.call_count == 3
     assert tax_data == parse_tax_data(tax_data_response)

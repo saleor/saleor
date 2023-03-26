@@ -1,6 +1,7 @@
 import datetime
 import json
 from collections import namedtuple
+from decimal import Decimal
 from unittest import mock
 
 import pytest
@@ -152,6 +153,28 @@ def test_send_webhook_request_sync_successful_attempt(
     assert attempt.response_status_code == expected_data["status_code"]
     assert response_data == json.loads(expected_data["content"])
     mock_observability.assert_called_once_with(attempt)
+
+
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_send_webhook_request_sync_decode_kwargs(mock_post, app, event_delivery):
+    # given
+    returned_json = '{"total_net_amount": 12.34, "lines": [{"unit_net_amount": 5.43}]}'
+    mock_post().ok = True
+    mock_post().text = returned_json
+    mock_post().headers = {"header_key": "header_val"}
+    mock_post().status_code = 200
+    mock_post().elapsed = datetime.timedelta(seconds=2)
+
+    # when
+    response_data = send_webhook_request_sync(
+        app.name, event_delivery, decoder_kwargs={"parse_float": Decimal}
+    )
+
+    # then
+    assert response_data == {
+        "total_net_amount": Decimal("12.34"),
+        "lines": [{"unit_net_amount": Decimal("5.43")}],
+    }
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 
 from ...webhook.event_types import WebhookEventSyncType
@@ -10,10 +12,10 @@ def tax_line_data_response():
     return {
         "id": "1234",
         "currency": "PLN",
-        "unit_net_amount": 12.34,
-        "unit_gross_amount": 12.34,
-        "total_gross_amount": 12.34,
-        "total_net_amount": 12.34,
+        "unit_net_amount": Decimal("12.34"),
+        "unit_gross_amount": Decimal("12.34"),
+        "total_gross_amount": Decimal("12.34"),
+        "total_net_amount": Decimal("12.34"),
         "tax_rate": 23,
     }
 
@@ -22,12 +24,12 @@ def tax_line_data_response():
 def tax_data_response(tax_line_data_response):
     return {
         "currency": "PLN",
-        "total_net_amount": 12.34,
-        "total_gross_amount": 12.34,
-        "subtotal_net_amount": 12.34,
-        "subtotal_gross_amount": 12.34,
-        "shipping_price_gross_amount": 12.34,
-        "shipping_price_net_amount": 12.34,
+        "total_net_amount": Decimal("12.34"),
+        "total_gross_amount": Decimal("12.34"),
+        "subtotal_net_amount": Decimal("12.34"),
+        "subtotal_gross_amount": Decimal("12.34"),
+        "shipping_price_gross_amount": Decimal("12.34"),
+        "shipping_price_net_amount": Decimal("12.34"),
         "shipping_tax_rate": 23,
         "lines": [tax_line_data_response] * 5,
     }
