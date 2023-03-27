@@ -48,6 +48,13 @@ services:
       # shared volume between worker and api for media
       - saleor-media:/app/media
 
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025" # SMTP Server
+      - "8025" # Mailhog UI
+    restart: unless-stopped
+
 volumes:
   saleor-db:
     driver: local
