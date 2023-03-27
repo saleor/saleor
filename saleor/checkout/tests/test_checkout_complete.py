@@ -1205,7 +1205,6 @@ def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
         lines=lines,
         payment_data={},
         store_source=False,
-        discounts=None,
         user=customer_user,
         app=app,
     )
@@ -1851,7 +1850,6 @@ def test_checkout_complete_pick_transaction_flow(
         lines=lines,
         payment_data={},
         store_source=False,
-        discounts=None,
         user=customer_user,
         app=None,
     )
@@ -1861,7 +1859,7 @@ def test_checkout_complete_pick_transaction_flow(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        discounts=None,
+        discounts=[],
         user=customer_user,
         app=None,
         tracking_code=None,
@@ -1904,7 +1902,6 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
         lines=lines,
         payment_data={},
         store_source=False,
-        discounts=None,
         user=customer_user,
         app=None,
     )
@@ -1914,7 +1911,7 @@ def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        discounts=None,
+        discounts=[],
         user=customer_user,
         app=None,
         tracking_code=None,
@@ -1955,7 +1952,6 @@ def test_checkout_complete_pick_payment_flow(
         lines=lines,
         payment_data={},
         store_source=False,
-        discounts=None,
         user=customer_user,
         app=None,
     )
