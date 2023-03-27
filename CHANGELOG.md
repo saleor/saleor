@@ -97,6 +97,15 @@ All notable, unreleased changes to this project will be documented in this file.
         - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.14 (Preview feature).
         - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
         - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
+- Support for payment apps - #12179 by @korycins
+  - Add new mutations:
+    - `paymentGatewayInitialize` - Initialize the payment gateway to process a payment.
+    - `transactionInitialize` - Initiate payment processing.
+    - `transactionProcess` - Process the initialized payment.
+  - Add new synchronous webhooks:
+    - `PAYMENT_GATEWAY_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment gateway.
+    - `TRANSACTION_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment processing.
+    - `TRANSACTION_PROCESS_SESSION` - Triggered when a customer requests the processing of the initialized payment.
 
 ### Breaking changes
 - **Feature preview breaking change**:
