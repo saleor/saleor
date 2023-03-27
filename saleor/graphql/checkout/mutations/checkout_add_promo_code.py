@@ -14,7 +14,6 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
@@ -65,8 +64,6 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
-        # TODO Owczar: Consider drop discounts
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
         if unavailable_variant_pks:
@@ -94,7 +91,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             promo_code,
-            discounts,
         )
 
         update_delivery_method_lists_for_checkout_info(

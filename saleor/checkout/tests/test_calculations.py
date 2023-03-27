@@ -302,7 +302,6 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
         checkout_info,
         lines,
         voucher_percentage.code,
-        [],
     )
 
     checkout.refresh_from_db()

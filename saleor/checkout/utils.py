@@ -15,7 +15,7 @@ from ..core.utils.promo_code import (
     promo_code_is_gift_card,
     promo_code_is_voucher,
 )
-from ..discount import DiscountInfo, VoucherType
+from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
 from ..discount.utils import (
@@ -643,7 +643,6 @@ def add_promo_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     promo_code: str,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add gift card or voucher data to checkout.
 
@@ -655,7 +654,6 @@ def add_promo_code_to_checkout(
             checkout_info,
             lines,
             promo_code,
-            discounts,
         )
     elif promo_code_is_gift_card(promo_code):
         user_email = cast(str, checkout_info.get_customer_email())
@@ -674,7 +672,6 @@ def add_voucher_code_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher_code: str,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add voucher data to checkout by code.
 
