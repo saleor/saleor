@@ -573,7 +573,6 @@ def check_voucher_for_checkout(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
 ):
     checkout = checkout_info.checkout
     address = checkout_info.shipping_address or checkout_info.billing_address
@@ -610,7 +609,6 @@ def recalculate_checkout_discount(
             manager,
             checkout_info,
             lines,
-            discounts,
         )
         if discount:
             subtotal = base_calculations.base_checkout_subtotal(
