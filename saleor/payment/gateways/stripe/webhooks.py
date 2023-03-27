@@ -13,7 +13,6 @@ from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
-from ....discount.utils import fetch_active_discounts
 from ....order.actions import order_charged, order_refunded, order_voided
 from ....order.fetch import fetch_order_info
 from ....order.models import Order
@@ -177,8 +176,6 @@ def _finalize_checkout(
     checkout.refresh_from_db()
 
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
-    # TODO Owczar: Drop discounts
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     if unavailable_variant_pks:
         raise ValidationError("Some of the checkout lines variants are unavailable.")
@@ -205,7 +202,7 @@ def _finalize_checkout(
             lines=lines,
             payment_data={},
             store_source=False,
-            discounts=discounts,
+            discounts=[],
             user=checkout.user or None,
             app=None,
         )

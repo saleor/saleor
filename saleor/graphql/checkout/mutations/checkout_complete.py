@@ -30,7 +30,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -251,8 +250,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        # TODO Owczar: Consider drop discounts
         checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_checkout_addresses(checkout_info, lines)
@@ -273,7 +270,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             lines=lines,
             payment_data=payment_data or {},
             store_source=store_source,
-            discounts=discounts,
+            discounts=[],
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,

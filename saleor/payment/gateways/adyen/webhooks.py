@@ -32,7 +32,6 @@ from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
-from ....discount.utils import fetch_active_discounts
 from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
@@ -182,8 +181,6 @@ def create_payment_notification_for_order(
 
 def create_order(payment, checkout, manager):
     try:
-        discounts = fetch_active_discounts()
-        # TODO Owczar: drop discounts
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             payment_refund_or_void(payment, manager, checkout.channel.slug)
@@ -209,8 +206,8 @@ def create_order(payment, checkout, manager):
             checkout_info=checkout_info,
             lines=lines,
             payment_data={},
+            discounts=[],
             store_source=False,
-            discounts=discounts,
             user=checkout.user or None,
             app=None,
         )
