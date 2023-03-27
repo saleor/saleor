@@ -2,16 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.tracing import traced_atomic_transaction
-from ....order import events
+from ....order import OrderEvents, events, models
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_314,
-    DEPRECATED_IN_3X_MUTATION,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, OrderError
@@ -21,7 +17,7 @@ from ..types import Order, OrderEvent
 from .utils import get_webhook_handler_by_order_status
 
 
-class OrderNoteAddInput(BaseInputObjectType):
+class OrderNoteUpdateInput(BaseInputObjectType):
     message = graphene.String(
         description="Note message.", name="message", required=True
     )
@@ -30,22 +26,22 @@ class OrderNoteAddInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class OrderNoteAdd(BaseMutation):
-    order = graphene.Field(Order, description="Order with the note added.")
-    event = graphene.Field(OrderEvent, description="Order note created.")
+class OrderNoteUpdate(BaseMutation):
+    order = graphene.Field(Order, description="Order with the note updated.")
+    event = graphene.Field(OrderEvent, description="Order note updated.")
 
     class Arguments:
         id = graphene.ID(
             required=True,
-            description="ID of the order to add a note for.",
-            name="order",
+            description="ID of the note.",
+            name="note",
         )
-        input = OrderNoteAddInput(
+        input = OrderNoteUpdateInput(
             required=True, description="Fields required to create a note for the order."
         )
 
     class Meta:
-        description = "Adds note to the order." + ADDED_IN_314 + PREVIEW_FEATURE
+        description = "Updates note of an order." + ADDED_IN_314 + PREVIEW_FEATURE
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
@@ -69,27 +65,24 @@ class OrderNoteAdd(BaseMutation):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
-        order = cls.get_node_or_error(info, id, only_type=Order)
-        cls.check_channel_permissions(info, [order.channel_id])
+        qs = models.OrderEvent.objects.filter(
+            type__in=[OrderEvents.NOTE_ADDED, OrderEvents.NOTE_UPDATED]
+        )
+        order_event_to_update = cls.get_node_or_error(
+            info, id, only_type=OrderEvent, qs=qs
+        )
+        order = order_event_to_update.order
         cleaned_input = cls.clean_input(info, order, input)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         with traced_atomic_transaction():
-            event = events.order_note_added_event(
+            event = events.order_note_updated_event(
                 order=order,
                 user=info.context.user,
                 app=app,
                 message=cleaned_input["message"],
+                related_event=order_event_to_update,
             )
             func = get_webhook_handler_by_order_status(order.status, manager)
             cls.call_event(func, order)
-        return OrderNoteAdd(order=order, event=event)
-
-
-class OrderAddNote(OrderNoteAdd):
-    class Meta:
-        description = "Adds note to the order." + DEPRECATED_IN_3X_MUTATION
-        doc_category = DOC_CATEGORY_ORDERS
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
-        error_type_field = "order_errors"
+        return OrderNoteUpdate(order=order, event=event)

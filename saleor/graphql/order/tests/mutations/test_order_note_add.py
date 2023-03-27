@@ -44,13 +44,18 @@ def test_order_note_add_as_staff_user(
 ):
     """We are testing that adding a note to an order as a staff user is doing the
     expected behaviors."""
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     assert not order.events.all()
     order_id = graphene.Node.to_global_id("Order", order.id)
     message = "nuclear note"
     variables = {"id": order_id, "message": message}
+
+    # when
     response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderNoteAdd"]
 
@@ -68,7 +73,7 @@ def test_order_note_add_as_staff_user(
     assert event.user == staff_user
     assert event.parameters == {"message": message}
 
-    # Ensure not customer events were created as it was a staff action
+    # Ensure no customer events were created as it was a staff action
     assert not CustomerEvent.objects.exists()
 
 
@@ -87,10 +92,15 @@ def test_order_note_add_fail_on_empty_message(
     order_with_lines,
     message,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     variables = {"id": order_id, "message": message}
+
+    # when
     response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderNoteAdd"]
     assert data["errors"][0]["field"] == "message"
@@ -150,3 +160,15 @@ def test_order_add_note_by_app(
     assert data["event"]["app"]["name"] == app_api_client.app.name
     assert data["event"]["message"] == message
     order_updated_webhook_mock.assert_called_once_with(order)
+
+
+def test_order_note_add_fail_on_missing_permission(staff_api_client, order):
+    # given
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "message": "a note"}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)

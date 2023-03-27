@@ -11076,6 +11076,13 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The order which is related to this order."""
   relatedOrder: Order
 
+  """
+  The order event which is related to this event.
+  
+  Added in Saleor 3.14.
+  """
+  related: OrderEvent
+
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
 
@@ -11145,6 +11152,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
+  NOTE_UPDATED
   OTHER
 }
 
@@ -14653,7 +14661,9 @@ type Mutation {
   ): DraftOrderUpdate @doc(category: "Orders")
 
   """
-  Adds note to the order. 
+  Adds note to the order.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14911,7 +14921,11 @@ type Mutation {
   ): OrderLineDiscountRemove @doc(category: "Orders")
 
   """
-  Adds note to the order. 
+  Adds note to the order.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14922,6 +14936,23 @@ type Mutation {
     """Fields required to create a note for the order."""
     input: OrderNoteAddInput!
   ): OrderNoteAdd @doc(category: "Orders")
+
+  """
+  Updates note of an order.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteUpdate(
+    """ID of the note."""
+    note: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteUpdateInput!
+  ): OrderNoteUpdate @doc(category: "Orders")
 
   """
   Mark order as manually paid. 
@@ -21821,7 +21852,9 @@ input DraftOrderInput @doc(category: "Orders") {
 }
 
 """
-Adds note to the order. 
+Adds note to the order.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -22321,7 +22354,11 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
 }
 
 """
-Adds note to the order. 
+Adds note to the order.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -22332,6 +22369,29 @@ type OrderNoteAdd @doc(category: "Orders") {
   """Order note created."""
   event: OrderEvent
   errors: [OrderError!]!
+}
+
+"""
+Updates note of an order.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteUpdate @doc(category: "Orders") {
+  """Order with the note updated."""
+  order: Order
+
+  """Order note updated."""
+  event: OrderEvent
+  errors: [OrderError!]!
+}
+
+input OrderNoteUpdateInput @doc(category: "Orders") {
+  """Note message."""
+  message: String!
 }
 
 """
