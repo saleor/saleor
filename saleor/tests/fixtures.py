@@ -667,7 +667,7 @@ def checkout_with_voucher_free_shipping(
     checkout_info = fetch_checkout_info(
         checkout_with_items_and_shipping, lines, manager
     )
-    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping, [])
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping)
     return checkout_with_items_and_shipping
 
 

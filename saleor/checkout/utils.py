@@ -692,7 +692,6 @@ def add_voucher_code_to_checkout(
             checkout_info,
             lines,
             voucher,
-            discounts,
         )
     except NotApplicable:
         raise ValidationError(
@@ -710,7 +709,6 @@ def add_voucher_to_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher: Voucher,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Add voucher data to checkout.
 

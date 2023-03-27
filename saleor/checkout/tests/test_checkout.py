@@ -1529,7 +1529,6 @@ def test_add_voucher_to_checkout_fail(
             checkout_info,
             lines,
             voucher_with_high_min_spent_amount,
-            False,
         )
 
     assert checkout_with_item.voucher_code is None
