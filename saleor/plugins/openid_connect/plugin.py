@@ -34,6 +34,7 @@ from .utils import (
     get_parsed_id_token,
     get_saleor_permission_names,
     get_saleor_permissions_qs_from_scope,
+    get_staff_user_domains,
     get_user_from_oauth_access_token,
     get_user_from_token,
     is_owner_of_token_valid,
@@ -146,7 +147,7 @@ class OpenIDConnectPlugin(BasePlugin):
             "type": ConfigurationTypeField.STRING,
             "help_text": (
                 "Provide the domains of the user emails, separated by commas, "
-                "that should be treated as staff users."
+                "that should be treated as staff users (e.g. example.com)."
             ),
             "label": "Staff user domains",
         },
@@ -281,9 +282,13 @@ class OpenIDConnectPlugin(BasePlugin):
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )
+        staff_user_domains = get_staff_user_domains(self.config)
 
         user = get_or_create_user_from_payload(
-            parsed_id_token, self.config.authorization_url
+            parsed_id_token,
+            self.config.authorization_url,
+            staff_user_domains,
+            self.config.default_group_name,
         )
 
         user_permissions = []
@@ -458,6 +463,8 @@ class OpenIDConnectPlugin(BasePlugin):
             user = get_user_from_access_payload(payload, request)
             return user
 
+        staff_user_domains = get_staff_user_domains(self.config)
+
         if self.use_oauth_access_token:
             user = get_user_from_oauth_access_token(
                 token,
@@ -465,5 +472,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 self.config.user_info_url,
                 self.config.use_scope_permissions,
                 self.config.audience,
+                staff_user_domains,
+                self.config.default_group_name,
             )
         return user or previous_value

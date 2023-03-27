@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import requests
 from authlib.jose import JWTClaims, jwt
@@ -15,7 +15,7 @@ from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from jwt import PyJWTError
 
-from ...account.models import User
+from ...account.models import Group, User
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
@@ -36,6 +36,9 @@ from ..models import PluginConfiguration
 from . import PLUGIN_ID
 from .const import SALEOR_STAFF_PERMISSION
 from .exceptions import AuthenticationError
+
+if TYPE_CHECKING:
+    from .dataclasses import OpenIDConnectConfig
 
 JWKS_KEY = "oauth_jwks"
 JWKS_CACHE_TIME = 60 * 60  # 1 hour
@@ -155,6 +158,8 @@ def get_user_from_oauth_access_token_in_jwt_format(
     access_token: str,
     use_scope_permissions: bool,
     audience: str,
+    staff_user_domains: List[str],
+    staff_default_group_name: str,
 ):
     try:
         token_payload.validate()
@@ -179,7 +184,11 @@ def get_user_from_oauth_access_token_in_jwt_format(
 
     try:
         user = get_or_create_user_from_payload(
-            user_info, user_info_url, last_login=token_payload.get("iat")
+            user_info,
+            user_info_url,
+            staff_user_domains,
+            staff_default_group_name,
+            last_login=token_payload.get("iat"),
         )
     except AuthenticationError as e:
         logger.info("Unable to create a user object", extra={"error": e})
@@ -225,6 +234,8 @@ def get_user_from_oauth_access_token(
     user_info_url: str,
     use_scope_permissions: bool,
     audience: str,
+    staff_user_domains: List[str],
+    staff_default_group_name: str,
 ):
     # we try to decode token to define if the structure is a jwt format.
     access_token_jwt_payload = decode_access_token(access_token, jwks_url)
@@ -235,6 +246,8 @@ def get_user_from_oauth_access_token(
             access_token=access_token,
             use_scope_permissions=use_scope_permissions,
             audience=audience,
+            staff_user_domains=staff_user_domains,
+            staff_default_group_name=staff_default_group_name,
         )
 
     user_info = get_user_info_from_cache_or_fetch(
@@ -245,7 +258,12 @@ def get_user_from_oauth_access_token(
             "Failed to fetch OIDC user info", extra={"user_info_url": user_info_url}
         )
         return None
-    user = get_or_create_user_from_payload(user_info, oauth_url=user_info_url)
+    user = get_or_create_user_from_payload(
+        user_info,
+        oauth_url=user_info_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=staff_default_group_name,
+    )
     if not use_scope_permissions:
         user.is_staff = False
     return user
@@ -314,7 +332,11 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 
 
 def get_or_create_user_from_payload(
-    payload: dict, oauth_url: str, last_login: Optional[int] = None
+    payload: dict,
+    oauth_url: str,
+    staff_user_domains: List[str],
+    default_group_name: str,
+    last_login: Optional[int] = None,
 ) -> User:
     oidc_metadata_key = f"oidc-{oauth_url}"
     user_email = payload.get("email")
@@ -326,6 +348,8 @@ def get_or_create_user_from_payload(
     if not sub:
         get_kwargs = {"email": user_email}
         logger.warning("Missing sub section in OIDC payload")
+
+    email_domain = _get_domain_from_email(user_email)
 
     defaults_create = {
         "is_active": True,
@@ -352,19 +376,34 @@ def get_or_create_user_from_payload(
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
+    is_staff = email_domain in staff_user_domains
     _update_user_details(
         user=user,
         oidc_key=oidc_metadata_key,
         user_email=user_email,
         sub=sub,  # type: ignore
+        is_staff=is_staff,
         last_login=last_login,
     )
+    if is_staff and default_group_name:
+        _assign_staff_user_to_default_group(user, default_group_name)
 
     return user
 
 
+def _get_domain_from_email(email: str):
+    """Return domain from the email."""
+    _user, delim, domain = email.rpartition("@")
+    return domain if delim else None
+
+
 def _update_user_details(
-    user: User, oidc_key: str, user_email: str, sub: str, last_login: Optional[int]
+    user: User,
+    oidc_key: str,
+    user_email: str,
+    sub: str,
+    is_staff: bool,
+    last_login: Optional[int],
 ):
     user_sub = user.get_value_from_private_metadata(oidc_key)
     fields_to_save = []
@@ -387,8 +426,34 @@ def _update_user_details(
             user.last_login = login_time
             fields_to_save.append("last_login")
 
+    if user.is_staff != is_staff:
+        user.is_staff = is_staff
+        fields_to_save.append("is_staff")
+
     if fields_to_save:
         user.save(update_fields=fields_to_save)
+
+
+def _assign_staff_user_to_default_group(user: User, default_group_name: str):
+    """Assign staff user to the default permission group.
+
+    If the group doesn't exist, the new group without any assigned permissions or
+    channels.
+    """
+    group, _ = Group.objects.get_or_create(
+        name=default_group_name, defaults={"restricted_access_to_channels": True}
+    )
+    group.user_set.add(user)
+
+
+def get_staff_user_domains(
+    config: "OpenIDConnectConfig",
+):
+    """Return staff user domains for given gateway configuration."""
+    staff_domains = config.staff_user_domains
+    return (
+        [domain.strip() for domain in staff_domains.split(",")] if staff_domains else []
+    )
 
 
 def get_user_from_token(claims: CodeIDToken) -> User:

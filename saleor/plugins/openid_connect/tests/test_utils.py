@@ -14,7 +14,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from requests import Response
 
-from ....account.models import User
+from ....account.models import Group, User
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
@@ -69,14 +69,14 @@ def test_fetch_jwks(mocked_cache_set):
 def test_get_or_create_user_from_token_missing_email(id_payload):
     del id_payload["email"]
     with pytest.raises(AuthenticationError):
-        get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
+        get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth", [], "")
 
 
 def test_get_or_create_user_from_token_user_not_active(id_payload, admin_user):
     admin_user.is_active = False
     admin_user.save()
     with pytest.raises(AuthenticationError):
-        get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
+        get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth", [], "")
 
 
 def test_get_user_from_token_missing_email(id_payload):
@@ -121,7 +121,9 @@ def test_create_tokens_from_oauth_payload(monkeypatch, id_token, id_payload):
         "token_type": "Bearer",
         "expires_at": 1600851112,
     }
-    user = get_or_create_user_from_payload(id_payload, "https://saleor.io/oauth")
+    user = get_or_create_user_from_payload(
+        id_payload, "https://saleor.io/oauth", [], ""
+    )
     permissions = get_saleor_permissions_qs_from_scope(auth_payload.get("scope"))
     perms = get_saleor_permission_names(permissions)
     tokens = create_tokens_from_oauth_payload(
@@ -215,12 +217,16 @@ def test_get_user_info_raises_http_error(monkeypatch):
 def test_get_or_create_user_from_payload_retrieve_user_by_sub(customer_user):
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    staff_user_domains = []
+    default_group_name = ""
     customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
     customer_user.save()
 
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
     assert user_from_payload.id == customer_user.id
@@ -230,12 +236,16 @@ def test_get_or_create_user_from_payload_retrieve_user_by_sub(customer_user):
 def test_get_or_create_user_from_payload_updates_sub(customer_user):
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    staff_user_domains = []
+    default_group_name = ""
     customer_user.private_metadata = {f"oidc-{oauth_url}": "old-sub"}
     customer_user.save()
 
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
     assert user_from_payload.id == customer_user.id
@@ -243,36 +253,136 @@ def test_get_or_create_user_from_payload_updates_sub(customer_user):
 
 
 def test_get_or_create_user_from_payload_assigns_sub(customer_user):
+    # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    staff_user_domains = []
+    default_group_name = ""
 
+    # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
+    # then
     assert user_from_payload.id == customer_user.id
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    assert customer_user.is_staff is False
+
+
+def test_get_or_create_staff_user_from_payload_no_default_channel_group(customer_user):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    staff_user_domains = [customer_user.email.split("@")[1]]
+    default_group_name = ""
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
+    )
+
+    # then
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    customer_user.refresh_from_db()
+    assert customer_user.is_staff is True
+    assert customer_user.groups.count() == 0
+
+
+def test_get_or_create_staff_user_from_payload_with_existing_default_channel_group(
+    customer_user, permission_group_no_perms_all_channels
+):
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    staff_user_domains = [customer_user.email.split("@")[1]]
+    default_group_name = permission_group_no_perms_all_channels.name
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
+    )
+
+    # then
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    customer_user.refresh_from_db()
+    assert customer_user.is_staff is True
+    assert customer_user.groups.count() == 1
+    assert (
+        customer_user.groups.first().name == permission_group_no_perms_all_channels.name
+    )
+
+
+def test_get_or_create_staff_user_from_payload_with_new_default_channel_group(
+    customer_user,
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    staff_user_domains = [customer_user.email.split("@")[1]]
+    default_group_name = "test group"
+    assert Group.objects.count() == 0
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_user.email},
+        oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
+    )
+
+    # then
+    assert user_from_payload.id == customer_user.id
+    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
+    customer_user.refresh_from_db()
+    assert customer_user.is_staff is True
+    assert customer_user.groups.count() == 1
+    assert customer_user.groups.first().name == default_group_name
+    group = Group.objects.get()
+    assert group.name == default_group_name
+    assert group.restricted_access_to_channels is True
+    assert group.channels.count() == 0
+    assert group.permissions.count() == 0
 
 
 def test_get_or_create_user_from_payload_creates_user_with_sub():
+    # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     customer_email = "email.customer@example.com"
+    staff_user_domains = []
+    default_group_name = ""
 
+    # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": customer_email},
         oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
+    # then
     assert user_from_payload.email == customer_email
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
     assert not user_from_payload.has_usable_password()
 
 
 def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user):
+    # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    staff_user_domains = []
+    default_group_name = ""
 
     customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
     customer_user.save()
@@ -280,29 +390,40 @@ def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user
     admin_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
     admin_user.save()
 
+    # when
     with warnings.catch_warnings(record=True):
         user_from_payload = get_or_create_user_from_payload(
             payload={"sub": sub_id, "email": customer_user.email},
             oauth_url=oauth_url,
+            staff_user_domains=staff_user_domains,
+            default_group_name=default_group_name,
         )
 
+    # then
     assert user_from_payload.email == customer_user.email
     assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
 
 
 def test_get_or_create_user_from_payload_different_email(customer_user):
+    # given
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
     new_customer_email = "new.customer@example.com"
+    staff_user_domains = []
+    default_group_name = ""
 
     customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
     customer_user.save()
 
+    # when
     user_from_payload = get_or_create_user_from_payload(
         payload={"sub": sub_id, "email": new_customer_email},
         oauth_url=oauth_url,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
+    # then
     customer_user.refresh_from_db()
     assert user_from_payload.id == customer_user.id
     assert customer_user.email == new_customer_email
@@ -316,6 +437,8 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
 
     oauth_url = "https://saleor.io/oauth"
     sub_id = "oauth|1234"
+    staff_user_domains = []
+    default_group_name = ""
 
     customer_user.last_login = make_aware(
         datetime.fromtimestamp(current_ts - 10), timezone=pytz.timezone("UTC")
@@ -326,6 +449,8 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
         payload={"sub": sub_id, "email": customer_user.email},
         oauth_url=oauth_url,
         last_login=current_ts,
+        staff_user_domains=staff_user_domains,
+        default_group_name=default_group_name,
     )
 
     customer_user.refresh_from_db()
@@ -356,5 +481,7 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
         access_token="fake-token",
         use_scope_permissions=False,
         audience="",
+        staff_user_domains=[],
+        staff_default_group_name="",
     )
     assert user.email == "test@example.org"
