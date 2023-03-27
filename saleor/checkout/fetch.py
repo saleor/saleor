@@ -17,7 +17,7 @@ from uuid import UUID
 from prices import Money
 
 from ..core.utils.lazyobjects import lazy_no_retry
-from ..discount import DiscountInfo, DiscountType, VoucherType
+from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -518,11 +518,9 @@ def update_checkout_info_shipping_address(
     checkout_info: CheckoutInfo,
     address: Optional["Address"],
     lines: Iterable[CheckoutLineInfo],
-    discounts: Iterable["DiscountInfo"],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
-    # TODO Owczar: Drop discounts
     checkout_info.shipping_address = address
 
     update_delivery_method_lists_for_checkout_info(

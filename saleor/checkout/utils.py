@@ -357,6 +357,7 @@ def change_shipping_address_in_checkout(
     This function does not save anything to database and
     instead returns updated fields.
     """
+    # TODO: Owczar drop discounts
     checkout = checkout_info.checkout
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.SHIPPING
@@ -367,7 +368,7 @@ def change_shipping_address_in_checkout(
             checkout.shipping_address.delete()
         checkout.shipping_address = address
         update_checkout_info_shipping_address(
-            checkout_info, address, lines, discounts, manager, shipping_channel_listings
+            checkout_info, address, lines, manager, shipping_channel_listings
         )
         updated_fields = ["shipping_address", "last_change"]
     return updated_fields
