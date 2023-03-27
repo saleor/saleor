@@ -5,9 +5,16 @@
   "workspaceFolder": "/app",
   "forwardPorts": [
     8000,
+    "dashboard:9000",
     "mailhog:8025"
   ],
   "portsAttributes": {
+    "8000": {
+        "label": "Saleor Core"
+    },
+    "dashboard:9000": {
+        "label": "Saleor Dashboard"
+    },
     "mailhog:8025": {
       "label": "Mailhog UI"
     }
