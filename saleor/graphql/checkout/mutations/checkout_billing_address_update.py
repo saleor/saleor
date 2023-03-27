@@ -13,7 +13,6 @@ from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPU
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .checkout_create import CheckoutAddressValidationRules
@@ -90,14 +89,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
                 checkout, billing_address
             )
             lines, _ = fetch_checkout_lines(checkout)
-            discounts = load_discounts(info.context)
-            # TODO Owczar: Consider drop discount
             checkout_info = fetch_checkout_info(checkout, lines, manager)
             invalidate_prices_updated_fields = invalidate_checkout_prices(
                 checkout_info,
                 lines,
                 manager,
-                discounts,
                 recalculate_discount=False,
                 save=False,
             )

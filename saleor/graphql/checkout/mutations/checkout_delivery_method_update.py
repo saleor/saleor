@@ -232,6 +232,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
         collection_point: Optional[Warehouse],
     ) -> None:
+        # TODO Owczar: Drop discounts
         checkout = checkout_info.checkout
         if external_shipping_method:
             set_external_shipping_id(
@@ -242,7 +243,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout_info, lines, manager, discounts or [], save=False
+            checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=[

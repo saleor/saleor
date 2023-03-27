@@ -112,7 +112,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             manager,
-            discounts,
             recalculate_discount=False,
             save=True,
         )
