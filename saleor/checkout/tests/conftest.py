@@ -37,7 +37,7 @@ def priced_checkout_factory():
         )
 
         checkout.shipping_price = manager.calculate_checkout_shipping(
-            checkout_info, lines, None, []
+            checkout_info, lines, None
         )
         checkout.subtotal = manager.calculate_checkout_subtotal(
             checkout_info, lines, None

@@ -1874,9 +1874,7 @@ def test_calculate_checkout_shipping(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    shipping_price = manager.calculate_checkout_shipping(
-        checkout_info, lines, address, [discount_info]
-    )
+    shipping_price = manager.calculate_checkout_shipping(checkout_info, lines, address)
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
@@ -5516,7 +5514,6 @@ def test_calculate_checkout_shipping_validates_checkout(
         checkout_info,
         lines,
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then

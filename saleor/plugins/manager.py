@@ -288,7 +288,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
         default_value = TaxedMoney(price, price)
@@ -299,7 +298,6 @@ class PluginsManager(PaymentInterface):
                 checkout_info,
                 lines,
                 address,
-                discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,

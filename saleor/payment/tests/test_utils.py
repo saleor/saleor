@@ -82,6 +82,7 @@ def test_create_payment_lines_information_order_with_voucher(payment_dummy):
 def get_expected_checkout_payment_lines(
     manager, checkout_info, lines, address, discounts
 ):
+    # TODO Owczar: Drop discounts
     expected_payment_lines = []
 
     for line_info in lines:
@@ -110,7 +111,6 @@ def get_expected_checkout_payment_lines(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     ).gross.amount
 
     return PaymentLinesData(

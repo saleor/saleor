@@ -275,7 +275,6 @@ class BasePlugin:
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             Union["Address", None],
-            List["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,

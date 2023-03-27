@@ -115,7 +115,6 @@ def create_checkout_payment_lines_information(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=[],
     ).gross.amount
 
     voucher_amount = -checkout.discount_amount
