@@ -620,14 +620,14 @@ def test_get_discount_for_checkout_specific_products_voucher(
     lines, _ = fetch_checkout_lines(priced_checkout_with_items)
     checkout_info = fetch_checkout_info(priced_checkout_with_items, lines, manager)
     subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     ).gross
 
     # then
     for line in lines:
         line.voucher = None
     subtotal_without_voucher = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     currency = checkout_info.checkout.currency
@@ -675,7 +675,7 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     subtotal = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     ).gross
 
     # then
@@ -684,7 +684,7 @@ def test_get_discount_for_checkout_specific_products_voucher_apply_only_once(
     for line in lines:
         line.voucher = None
     subtotal_without_voucher = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     assert subtotal == subtotal_without_voucher.gross - Money(

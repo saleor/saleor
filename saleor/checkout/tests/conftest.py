@@ -40,7 +40,7 @@ def priced_checkout_factory():
             checkout_info, lines, None, []
         )
         checkout.subtotal = manager.calculate_checkout_subtotal(
-            checkout_info, lines, None, []
+            checkout_info, lines, None
         )
         checkout.total = manager.calculate_checkout_total(checkout_info, lines, None)
 

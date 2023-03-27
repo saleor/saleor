@@ -189,7 +189,7 @@ def test_manager_calculates_checkout_subtotal(
         checkout_info, lines, [discount_info]
     )
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_info, lines, None, [discount_info]
+        checkout_info, lines, None
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 

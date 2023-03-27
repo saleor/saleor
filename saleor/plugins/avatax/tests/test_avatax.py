@@ -1925,7 +1925,7 @@ def test_calculate_checkout_subtotal(
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1979,9 +1979,7 @@ def test_calculate_checkout_subtotal_with_sale(
         checkout_info, lines, [discount_info]
     )
 
-    total = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address, [discount_info]
-    )
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -2036,7 +2034,7 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
         checkout.channel.shipping_method_listings.all(),
     )
 
-    total = manager.calculate_checkout_subtotal(checkout_info, lines, address, [])
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
     total = quantize_price(total, total.currency)
     expected_total = variant.channel_listings.first().price_amount * quantity
     assert total == TaxedMoney(
@@ -2089,14 +2087,11 @@ def test_calculate_checkout_subtotal_voucher_on_entire_order(
     checkout_with_item.discount_amount = net.amount
     checkout_with_item.save()
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     # when
-    total = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address, discounts
-    )
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
 
     # then
     total = quantize_price(total, total.currency)
@@ -2150,14 +2145,11 @@ def test_calculate_checkout_subtotal_voucher_on_shipping(
     checkout_with_item.discount_amount = shipping_channel_listings.price.amount
     checkout_with_item.save()
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     # when
-    total = manager.calculate_checkout_subtotal(
-        checkout_info, lines, address, discounts
-    )
+    total = manager.calculate_checkout_subtotal(checkout_info, lines, address)
 
     # then
     total = quantize_price(total, total.currency)

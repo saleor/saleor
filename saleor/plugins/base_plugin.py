@@ -295,6 +295,20 @@ class BasePlugin:
         TaxedMoney,
     ]
 
+    # Calculate the subtotal for checkout.
+    #
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a checkout subtotal. Return TaxedMoney.
+    calculate_checkout_subtotal: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            Union["Address", None],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
     # Calculate order line total.
     #
     # Overwrite this method if you need to apply specific logic for the calculation

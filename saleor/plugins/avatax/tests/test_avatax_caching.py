@@ -134,7 +134,7 @@ def test_calculate_checkout_subtotal_use_cache(
 
     # then
     result = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     # when
@@ -172,10 +172,10 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
 
     # then
     result = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     # Second Avatax call to make sure that we use cached response
 

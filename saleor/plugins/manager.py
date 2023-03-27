@@ -266,7 +266,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
