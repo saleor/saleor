@@ -347,7 +347,6 @@ def change_shipping_address_in_checkout(
     checkout_info: "CheckoutInfo",
     address: "Address",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
     manager: "PluginsManager",
     shipping_channel_listings: Iterable["ShippingMethodChannelListing"],
 ):
@@ -357,7 +356,6 @@ def change_shipping_address_in_checkout(
     This function does not save anything to database and
     instead returns updated fields.
     """
-    # TODO: Owczar drop discounts
     checkout = checkout_info.checkout
     changed, remove = _check_new_checkout_address(
         checkout, address, AddressType.SHIPPING

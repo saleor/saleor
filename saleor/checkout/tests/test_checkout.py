@@ -1337,7 +1337,6 @@ def test_change_address_in_checkout(checkout, address):
         checkout_info,
         address,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
@@ -1362,7 +1361,6 @@ def test_change_address_in_checkout_to_none(checkout, address):
         checkout_info,
         None,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
@@ -1389,7 +1387,6 @@ def test_change_address_in_checkout_to_same(checkout, address):
         checkout_info,
         address,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
@@ -1416,7 +1413,6 @@ def test_change_address_in_checkout_to_other(checkout, address):
         checkout_info,
         other_address,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
@@ -1447,7 +1443,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
         checkout_info,
         other_address,
         lines,
-        [],
         manager,
         checkout.channel.shipping_method_listings.all(),
     )
