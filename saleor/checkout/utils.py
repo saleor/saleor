@@ -64,7 +64,7 @@ def invalidate_checkout_prices(
     checkout = checkout_info.checkout
 
     if recalculate_discount:
-        recalculate_checkout_discount(manager, checkout_info, lines, discounts or [])
+        recalculate_checkout_discount(manager, checkout_info, lines)
 
     checkout.price_expiration = timezone.now()
     updated_fields = ["price_expiration", "last_change"]
@@ -595,7 +595,6 @@ def recalculate_checkout_discount(
     manager: PluginsManager,
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable[DiscountInfo],
 ):
     """Recalculate `checkout.discount` based on the voucher.
 
