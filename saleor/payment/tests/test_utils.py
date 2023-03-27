@@ -1,10 +1,14 @@
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
+
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...plugins.manager import get_plugins_manager
+from .. import TransactionEventType
 from ..interface import PaymentLineData, PaymentLinesData
 from ..utils import (
+    create_manual_adjustment_events,
     create_payment_lines_information,
     get_channel_slug_from_payment,
     try_void_or_refund_inactive_payment,
@@ -215,3 +219,62 @@ def test_try_void_or_refund_inactive_payment_transaction_success(
     )
     assert get_channel_slug_from_payment_mock.called
     assert refund_or_void_mock.called
+
+
+@pytest.mark.parametrize(
+    "db_field_name, value, event_type",
+    [
+        ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
+        ("charged_value", Decimal("13"), TransactionEventType.CHARGE_SUCCESS),
+        ("canceled_value", Decimal("14"), TransactionEventType.CANCEL_SUCCESS),
+        ("refunded_value", Decimal("15"), TransactionEventType.REFUND_SUCCESS),
+    ],
+)
+def test_create_manual_adjustment_events_create_calculation_events(
+    db_field_name, value, event_type, transaction_item_generator, app
+):
+    # given
+    transaction = transaction_item_generator(app=app)
+    money_data = {db_field_name: value}
+
+    # when
+    create_manual_adjustment_events(
+        transaction=transaction, money_data=money_data, app=app, user=None
+    )
+
+    # then
+    event = transaction.events.filter(type=event_type).get()
+    assert event.amount_value == value
+    assert event.include_in_calculations is True
+
+
+@pytest.mark.parametrize(
+    "db_field_name, value, event_type",
+    [
+        ("authorized_value", Decimal("12"), TransactionEventType.AUTHORIZATION_SUCCESS),
+        ("charged_value", Decimal("13"), TransactionEventType.CHARGE_SUCCESS),
+        ("canceled_value", Decimal("14"), TransactionEventType.CANCEL_SUCCESS),
+        ("refunded_value", Decimal("15"), TransactionEventType.REFUND_SUCCESS),
+    ],
+)
+def test_create_manual_adjustment_events_create_transaction_calculation_events(
+    db_field_name, value, event_type, transaction_item, app
+):
+    # given
+    transaction = transaction_item
+    money_data = {db_field_name: value}
+
+    # when
+    setattr(transaction, db_field_name, value)
+    create_manual_adjustment_events(
+        transaction=transaction,
+        money_data=money_data,
+        app=app,
+        user=None,
+        created_transaction=True,
+    )
+
+    # then
+    event = transaction.events.filter(type=event_type).get()
+    assert event.amount_value == value
+    assert event.include_in_calculations is True

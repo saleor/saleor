@@ -87,6 +87,7 @@ from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
 from ..payment.models import Payment, TransactionItem
+from ..payment.utils import create_manual_adjustment_events
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
@@ -5515,6 +5516,52 @@ def transaction_item(order):
         order_id=order.pk,
         charged_value=Decimal("10"),
     )
+
+
+@pytest.fixture
+def transaction_item_generator():
+    def create_transaction(
+        order_id=None,
+        checkout_id=None,
+        app=None,
+        user=None,
+        psp_reference="PSP ref1",
+        name="Credit card",
+        message="Transasction details",
+        available_actions=None,
+        authorized_value=Decimal(0),
+        charged_value=Decimal(0),
+        refunded_value=Decimal(0),
+        canceled_value=Decimal(0),
+    ):
+        if available_actions is None:
+            available_actions = []
+        transaction = TransactionItem.objects.create(
+            name=name,
+            message=message,
+            psp_reference=psp_reference,
+            available_actions=available_actions,
+            currency="USD",
+            order_id=order_id,
+            checkout_id=checkout_id,
+            app_identifier=app.identifier if app else None,
+            app=app,
+            user=user,
+        )
+        create_manual_adjustment_events(
+            transaction=transaction,
+            money_data={
+                "authorized_value": authorized_value,
+                "charged_value": charged_value,
+                "refunded_value": refunded_value,
+                "canceled_value": canceled_value,
+            },
+            user=user,
+            app=app,
+        )
+        return transaction
+
+    return create_transaction
 
 
 @pytest.fixture

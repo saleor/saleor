@@ -2,10 +2,11 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django.utils import timezone
 
 from .....order import OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionStatus
+from .....payment import TransactionEventType, TransactionStatus
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionItem
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -722,3 +723,126 @@ def test_creates_transaction_event_for_order(
     assert event.name == event_name
     assert event.status == event_status
     assert event.reference == event_reference
+
+
+@pytest.mark.parametrize(
+    "amount_field_name, amount_value, db_field, event_type",
+    [
+        (
+            "amountCharged",
+            Decimal("13"),
+            "charged_value",
+            TransactionEventType.CHARGE_SUCCESS,
+        ),
+        (
+            "amountVoided",
+            Decimal("14"),
+            "voided_value",
+            TransactionEventType.CANCEL_SUCCESS,
+        ),
+        (
+            "amountRefunded",
+            Decimal("15"),
+            "refunded_value",
+            TransactionEventType.REFUND_SUCCESS,
+        ),
+    ],
+)
+def test_updates_transaction_manual_adjustment_event(
+    amount_field_name,
+    amount_value,
+    db_field,
+    event_type,
+    transaction,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = order_with_lines.payment_transactions.first()
+    transaction.events.create(
+        type=event_type,
+        amount_value=Decimal("10"),
+        currency=transaction.currency,
+        transaction_id=transaction.pk,
+        include_in_calculations=True,
+        app_identifier=None,
+        app=None,
+        user=None,
+        created_at=timezone.now(),
+        message="Manual adjustment of the transaction.",
+    )
+    setattr(transaction, db_field, Decimal("10"))
+    transaction.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            amount_field_name: {
+                "amount": amount_value,
+                "currency": transaction.currency,
+            }
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+
+    assert transaction.events.count() == 2
+    event = transaction.events.last()
+    assert event.include_in_calculations
+    assert event.amount_value == amount_value - Decimal(10)
+
+
+def test_updates_transaction_manual_adjustment_event_authorize(
+    transaction,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+):
+    # given
+    transaction = order_with_lines.payment_transactions.first()
+    transaction.events.create(
+        type=TransactionEventType.AUTHORIZATION_SUCCESS,
+        amount_value=Decimal("10"),
+        currency=transaction.currency,
+        transaction_id=transaction.pk,
+        include_in_calculations=True,
+        app_identifier=None,
+        app=None,
+        user=None,
+        created_at=timezone.now(),
+        message="Manual adjustment of the transaction.",
+    )
+    transaction.authorized_value = Decimal("10")
+    transaction.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": Decimal("20"),
+                "currency": transaction.currency,
+            }
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+
+    assert transaction.events.count() == 2
+    event = transaction.events.filter(
+        type=TransactionEventType.AUTHORIZATION_ADJUSTMENT
+    ).get()
+    assert event.include_in_calculations
+    assert event.amount_value == Decimal(20)

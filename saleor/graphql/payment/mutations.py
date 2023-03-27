@@ -32,7 +32,11 @@ from ...payment.gateway import (
     request_refund_action,
     request_void_action,
 )
-from ...payment.utils import create_payment, is_currency_supported
+from ...payment.utils import (
+    create_manual_adjustment_events,
+    create_payment,
+    is_currency_supported,
+)
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
@@ -718,6 +722,21 @@ class TransactionCreate(BaseMutation):
             )
 
     @classmethod
+    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+        """Zero-downtime compatibility with 3.13 version."""
+
+        money_data = {}
+        for field in ["authorized", "charged", "refunded"]:
+            if amount := cleaned_data.get(f"amount_{field}", None):
+                money_data[f"{field}_value"] = amount["amount"]
+
+        if amount_canceled := cleaned_data.get("amount_canceled", None):
+            money_data["canceled_value"] = amount_canceled["amount"]
+        elif amount_voided := cleaned_data.get("amount_voided", None):
+            money_data["canceled_value"] = amount_voided["amount"]
+        return money_data
+
+    @classmethod
     def cleanup_money_data(cls, cleaned_data: dict):
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
             cleaned_data["authorized_value"] = amount_authorized["amount"]
@@ -821,6 +840,7 @@ class TransactionCreate(BaseMutation):
             reference=transaction_event_input.get("reference", ""),
             name=transaction_event_input.get("name", ""),
             transaction=transaction,
+            currency=transaction.currency,
         )
 
     @classmethod
@@ -867,7 +887,23 @@ class TransactionCreate(BaseMutation):
                     status=transaction_event["status"],
                     name=transaction_event.get("name", ""),
                 )
+        # zero-downtime compatibility with 3.13 version
+        money_data = cls.get_money_data_from_input(transaction_data)
+
         new_transaction = cls.create_transaction(transaction_data)
+
+        # zero-downtime compatibility with 3.13 version
+        if money_data:
+            user = info.context.user
+            app = get_app_promise(info.context).get()
+            create_manual_adjustment_events(
+                transaction=new_transaction,
+                money_data=money_data,
+                user=user,
+                app=app,
+                created_transaction=True,
+            )
+
         if order_id := transaction_data.get("order_id"):
             cls.add_amounts_to_order(order_id, transaction_data)
 
@@ -965,6 +1001,16 @@ class TransactionUpdate(TransactionCreate):
         instance = cls.get_node_or_error(info, id, only_type=TransactionItem)
         if transaction:
             cls.validate_transaction_input(instance, transaction)
+
+            # zero-downtime compatibility with 3.13 version
+            money_data = cls.get_money_data_from_input(transaction)
+            if money_data:
+                user = info.context.user
+                app = get_app_promise(info.context).get()
+                create_manual_adjustment_events(
+                    transaction=instance, money_data=money_data, user=user, app=app
+                )
+
             cls.cleanup_money_data(transaction)
             cls.cleanup_metadata_data(transaction)
             if instance.order_id:

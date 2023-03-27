@@ -169,3 +169,63 @@ class TransactionStatus:
     FAILURE = "failure"
 
     CHOICES = [(PENDING, "Pending"), (SUCCESS, "Success"), (FAILURE, "Failure")]
+
+
+class TransactionEventType:
+    """Represents possible event types.
+
+    Added in Saleor 3.12.
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
+    """
+
+    AUTHORIZATION_SUCCESS = "authorization_success"
+    AUTHORIZATION_FAILURE = "authorization_failure"
+    AUTHORIZATION_ADJUSTMENT = "authorization_adjustment"
+    AUTHORIZATION_REQUEST = "authorization_request"
+    CHARGE_SUCCESS = "charge_success"
+    CHARGE_FAILURE = "charge_failure"
+    CHARGE_BACK = "charge_back"
+    CHARGE_REQUEST = "charge_request"
+    REFUND_SUCCESS = "refund_success"
+    REFUND_FAILURE = "refund_failure"
+    REFUND_REVERSE = "refund_reverse"
+    REFUND_REQUEST = "refund_request"
+    CANCEL_SUCCESS = "cancel_success"
+    CANCEL_FAILURE = "cancel_failure"
+    CANCEL_REQUEST = "cancel_request"
+    INFO = "info"
+
+    CHOICES = [
+        (AUTHORIZATION_SUCCESS, "Represents success authorization"),
+        (AUTHORIZATION_FAILURE, "Represents failure authorization"),
+        (AUTHORIZATION_ADJUSTMENT, "Represents authorization adjustment"),
+        (AUTHORIZATION_REQUEST, "Represents authorization request"),
+        (CHARGE_SUCCESS, "Represents success charge"),
+        (CHARGE_FAILURE, "Represents failure charge"),
+        (CHARGE_BACK, "Represents chargeback."),
+        (CHARGE_REQUEST, "Represents charge request"),
+        (REFUND_SUCCESS, "Represents success refund"),
+        (REFUND_FAILURE, "Represents failure refund"),
+        (REFUND_REVERSE, "Represents reverse refund"),
+        (REFUND_REQUEST, "Represents refund request"),
+        (CANCEL_SUCCESS, "Represents success cancel"),
+        (CANCEL_FAILURE, "Represents failure cancel"),
+        (CANCEL_REQUEST, "Represents cancel request"),
+        (INFO, "Represents an info event"),
+    ]
