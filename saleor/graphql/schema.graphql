@@ -2800,7 +2800,7 @@ All available ways of opening an app extension.
     POPUP - app's extension will be mounted as a popup window
     APP_PAGE - redirect to app's page
 """
-enum AppExtensionTargetEnum {
+enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
 }
@@ -11309,7 +11309,7 @@ input OrderSortingInput @doc(category: "Orders") {
   field: OrderSortField!
 }
 
-enum OrderSortField {
+enum OrderSortField @doc(category: "Orders") {
   """Sort orders by number."""
   NUMBER
 

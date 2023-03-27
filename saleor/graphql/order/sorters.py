@@ -1,13 +1,12 @@
-import graphene
 from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
 from ...payment.models import Payment
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import DOC_CATEGORY_ORDERS
-from ..core.types import SortInputObjectType
+from ..core.types import BaseEnum, SortInputObjectType
 
 
-class OrderSortField(graphene.Enum):
+class OrderSortField(BaseEnum):
     NUMBER = ["number"]
     RANK = ["search_rank", "id"]
     CREATION_DATE = ["created_at", "status", "pk"]

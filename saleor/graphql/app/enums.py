@@ -31,4 +31,4 @@ AppExtensionMountEnum.doc_category = DOC_CATEGORY_APPS
 AppExtensionTargetEnum = to_enum(
     AppExtensionTarget, description=AppExtensionTarget.__doc__
 )
-AppExtensionMountEnum.doc_category = DOC_CATEGORY_APPS
+AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS
