@@ -29,6 +29,7 @@ def transaction_events_generator() -> (
                 type=event_type,
                 amount_value=amount,
                 include_in_calculations=True,
+                currency=transaction.currency,
             )
             for reference, event_type, amount in zip(psp_references, types, amounts)
         )

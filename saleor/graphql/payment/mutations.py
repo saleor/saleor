@@ -956,6 +956,7 @@ class TransactionCreate(BaseMutation):
             app_identifier=app_identifier,
             app=app,
             type=TransactionEventType.INFO,
+            currency=transaction.currency,
         )
 
     @classmethod
