@@ -56,6 +56,8 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "user_info_url", "value": None},
         {"name": "audience", "value": None},
         {"name": "use_oauth_scope_permissions", "value": False},
+        {"name": "staff_user_domains", "value": None},
+        {"name": "default_group_name_for_new_staff_users", "value": None},
     ]
     PLUGIN_NAME = "OpenID Connect"
     CONFIGURATION_PER_CHANNEL = False
@@ -140,6 +142,24 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "Use OAuth scope permissions",
         },
+        "staff_user_domains": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "Provide the domains of the user emails, separated by commas, "
+                "that should be treated as staff users."
+            ),
+            "label": "Staff user domains",
+        },
+        "default_group_name_for_new_staff_users": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "Provide the name of the default permission group to which the new "
+                "staff user should be assigned to. When the provided group doesn't "
+                "exist, the new group without any permissions and any channels "
+                "will be created."
+            ),
+            "label": "Default permission group name for new staff users",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -157,6 +177,8 @@ class OpenIDConnectPlugin(BasePlugin):
             audience=configuration["audience"],
             use_scope_permissions=configuration["use_oauth_scope_permissions"],
             user_info_url=configuration["user_info_url"],
+            staff_user_domains=configuration["staff_user_domains"],
+            default_group_name=configuration["default_group_name_for_new_staff_users"],
         )
 
         # Determine, if we have defined all fields required to use OAuth access token
