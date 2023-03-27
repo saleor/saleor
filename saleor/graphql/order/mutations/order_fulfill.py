@@ -268,6 +268,7 @@ class OrderFulfill(BaseMutation):
             raise ValidationError(
                 "Order does not exist.", code=OrderErrorCode.NOT_FOUND.value
             )
+        cls.check_channel_permissions(info, [instance.channel_id])
         site = get_site_promise(info.context).get()
         cleaned_input = cls.clean_input(info, instance, input, site=site)
 

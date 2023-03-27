@@ -12,7 +12,7 @@ from .....order.models import Fulfillment, FulfillmentLine
 from .....product.models import ProductVariant
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_QUERY = """
     mutation fulfillOrder(
@@ -39,12 +39,13 @@ def test_order_fulfill_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhooks,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
 
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     _, order_line2 = order.lines.all()
     order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
@@ -61,9 +62,7 @@ def test_order_fulfill_with_out_of_stock_webhook(
             ],
         },
     }
-    staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    staff_api_client.post_graphql(query, variables)
 
     stock = order_line2.variant.stocks.filter(warehouse=warehouse).first()
     product_variant_out_of_stock_webhooks.assert_called_once_with(stock)
@@ -77,10 +76,11 @@ def test_order_fulfill(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
@@ -106,9 +106,7 @@ def test_order_fulfill(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -133,6 +131,51 @@ def test_order_fulfill(
     )
 
 
+def test_order_fulfill_no_channel_access(
+    staff_api_client,
+    order_with_lines,
+    permission_group_all_perms_channel_USD_only,
+    warehouse,
+    site_settings,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    query = ORDER_FULFILL_QUERY
+
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    order_line, order_line2 = order.lines.all()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "notifyCustomer": True,
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 3, "warehouse": warehouse_id}],
+                },
+                {
+                    "orderLineId": order_line2_id,
+                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                },
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
 @pytest.mark.parametrize("fulfillment_auto_approve", [True, False])
 @patch("saleor.graphql.order.mutations.order_fulfill.create_fulfillments")
 def test_order_fulfill_with_tracking_number(
@@ -141,10 +184,11 @@ def test_order_fulfill_with_tracking_number(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
@@ -171,9 +215,7 @@ def test_order_fulfill_with_tracking_number(
             "trackingNumber": "test_tracking_number",
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -202,11 +244,12 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -241,9 +284,7 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -260,11 +301,12 @@ def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -293,9 +335,7 @@ def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -317,8 +357,9 @@ def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_stocks(
-    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+    staff_api_client, staff_user, permission_group_manage_orders, order_fulfill_data
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_fulfill_data.order
 
     Stock.objects.filter(warehouse=order_fulfill_data.warehouse).delete()
@@ -326,7 +367,6 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     response = staff_api_client.post_graphql(
         ORDER_FULFILL_QUERY,
         order_fulfill_data.variables,
-        permissions=[permission_manage_orders],
     )
     get_graphql_content(response)
     order.refresh_from_db()
@@ -341,8 +381,9 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_stocks(
-    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+    staff_api_client, staff_user, permission_group_manage_orders, order_fulfill_data
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_fulfill_data.order
     order_fulfill_data.variables["input"]["allowStockToBeExceeded"] = False
 
@@ -351,7 +392,6 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_sto
     response = staff_api_client.post_graphql(
         ORDER_FULFILL_QUERY,
         order_fulfill_data.variables,
-        permissions=[permission_manage_orders],
     )
     get_graphql_content(response)
     order.refresh_from_db()
@@ -367,8 +407,9 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_sto
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_variant(
-    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+    staff_api_client, staff_user, permission_group_manage_orders, order_fulfill_data
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_fulfill_data.order
 
     order.lines.first().variant.delete()
@@ -376,7 +417,6 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     response = staff_api_client.post_graphql(
         ORDER_FULFILL_QUERY,
         order_fulfill_data.variables,
-        permissions=[permission_manage_orders],
     )
     get_graphql_content(response)
     order.refresh_from_db()
@@ -391,8 +431,9 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
 
 
 def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_variant(
-    staff_api_client, staff_user, permission_manage_orders, order_fulfill_data
+    staff_api_client, staff_user, permission_group_manage_orders, order_fulfill_data
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_fulfill_data.order
     order_fulfill_data.variables["input"]["allowStockToBeExceeded"] = False
 
@@ -401,7 +442,6 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_var
     response = staff_api_client.post_graphql(
         ORDER_FULFILL_QUERY,
         order_fulfill_data.variables,
-        permissions=[permission_manage_orders],
     )
     get_graphql_content(response)
     order.refresh_from_db()
@@ -422,11 +462,12 @@ def test_order_fulfill_above_available_quantity(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -457,9 +498,7 @@ def test_order_fulfill_above_available_quantity(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     error = data["errors"][0]
@@ -502,7 +541,7 @@ def test_order_fulfill_as_app(
         },
     }
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        query, variables, permissions=(permission_manage_orders,)
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
@@ -534,12 +573,13 @@ def test_order_fulfill_many_warehouses(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouses,
     site_settings,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     warehouse1, warehouse2 = warehouses
     order_line1, order_line2 = order.lines.all()
@@ -568,9 +608,7 @@ def test_order_fulfill_many_warehouses(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -605,11 +643,12 @@ def test_order_fulfill_with_gift_cards(
     order,
     gift_card_non_shippable_order_line,
     gift_card_shippable_order_line,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_line, order_line2 = (
         gift_card_non_shippable_order_line,
         gift_card_shippable_order_line,
@@ -633,9 +672,7 @@ def test_order_fulfill_with_gift_cards(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     flush_post_commit_hooks()
     data = content["data"]["orderFulfill"]
@@ -690,11 +727,12 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
     order,
     gift_card_non_shippable_order_line,
     gift_card_shippable_order_line,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])
@@ -724,9 +762,7 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -765,7 +801,7 @@ def test_order_fulfill_with_gift_cards_by_app(
         },
     }
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        query, variables, permissions=(permission_manage_orders,)
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
@@ -826,7 +862,7 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
         },
     }
     response = app_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        query, variables, permissions=(permission_manage_orders,)
     )
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
@@ -842,12 +878,13 @@ def test_order_fulfill_without_notification(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -864,9 +901,7 @@ def test_order_fulfill_without_notification(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -894,13 +929,14 @@ def test_order_fulfill_lines_with_empty_quantity(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     warehouse_no_shipping_zone,
     site_settings,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -932,9 +968,7 @@ def test_order_fulfill_lines_with_empty_quantity(
         },
     }
     variables["input"]["lines"][0]["stocks"][0]["quantity"] = 0
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -964,10 +998,11 @@ def test_order_fulfill_without_sku(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     ProductVariant.objects.update(sku=None)
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
@@ -995,9 +1030,7 @@ def test_order_fulfill_without_sku(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -1028,10 +1061,11 @@ def test_order_fulfill_zero_quantity(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1047,9 +1081,7 @@ def test_order_fulfill_zero_quantity(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1065,11 +1097,12 @@ def test_order_fulfill_zero_quantity(
 def test_order_fulfill_channel_without_shipping_zones(
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     order.channel.shipping_zones.clear()
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     query = ORDER_FULFILL_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
@@ -1087,9 +1120,7 @@ def test_order_fulfill_channel_without_shipping_zones(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert len(data["errors"]) == 1
@@ -1104,10 +1135,11 @@ def test_order_fulfill_fulfilled_order(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1123,9 +1155,7 @@ def test_order_fulfill_fulfilled_order(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1143,10 +1173,11 @@ def test_order_fulfill_unpaid_order_and_disallow_unpaid(
     mock_create_fulfillments,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_allow_unpaid = False
     site_settings.save(update_fields=["fulfillment_allow_unpaid"])
     query = ORDER_FULFILL_QUERY
@@ -1165,9 +1196,7 @@ def test_order_fulfill_unpaid_order_and_disallow_unpaid(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1185,11 +1214,12 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
     mock_create_fulfillments,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse_no_shipping_zone,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1219,9 +1249,7 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
         ]
     )
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1239,11 +1267,12 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
     mock_create_fulfillments,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1262,9 +1291,7 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1283,11 +1310,12 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     mock_create_fulfillments,
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1307,9 +1335,7 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1327,10 +1353,11 @@ def test_order_fulfill_preorder(
     staff_api_client,
     staff_user,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
 ):
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
     variant = order_line.variant
@@ -1350,9 +1377,7 @@ def test_order_fulfill_preorder(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["errors"]
@@ -1367,12 +1392,13 @@ def test_order_fulfill_preorder(
 def test_order_fulfill_preorder_waiting_fulfillment(
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     warehouse,
     site_settings,
 ):
     """If fulfillment_auto_approve is set to False,
     it's possible to fulfill lines to WAITING_FOR_APPROVAL status."""
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     query = ORDER_FULFILL_QUERY
@@ -1395,9 +1421,7 @@ def test_order_fulfill_preorder_waiting_fulfillment(
             ]
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert not data["errors"]
@@ -1414,10 +1438,11 @@ def test_create_digital_fulfillment(
     staff_api_client,
     order_with_lines,
     warehouse,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line.variant = digital_content.product_variant
@@ -1450,9 +1475,7 @@ def test_create_digital_fulfillment(
             ],
         },
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     get_graphql_content(response)
 
     assert mock_email_fulfillment.call_count == 1

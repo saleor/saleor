@@ -54,6 +54,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     ):
         order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_line, input)
         reason = input.get("reason")
         value_type = input.get("value_type")

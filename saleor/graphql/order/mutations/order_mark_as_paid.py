@@ -111,6 +111,7 @@ class OrderMarkAsPaid(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id, transaction_reference=None
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         manager = get_plugin_manager_promise(info.context).get()
         order, _ = fetch_order_prices_if_expired(order, manager)
         cls.clean_billing_address(order)

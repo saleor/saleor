@@ -71,6 +71,7 @@ class InvoiceRequest(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, number=None, order_id
     ):
         order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_order(order)
         manager = get_plugin_manager_promise(info.context).get()
         if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
@@ -193,6 +194,7 @@ class InvoiceCreate(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, input, order_id
     ):
         order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_order(info, order)
         cleaned_input = cls.clean_input(info, order, input)
 
@@ -241,6 +243,7 @@ class InvoiceRequestDelete(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, id
     ):
         invoice = cls.get_node_or_error(info, id, only_type=Invoice)
+        cls.check_channel_permissions(info, [invoice.order.channel_id])
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
@@ -267,6 +270,7 @@ class InvoiceDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         invoice = cls.get_instance(info, **data)
+        cls.check_channel_permissions(info, [invoice.order.channel_id])
         response = super().perform_mutation(_root, info, **data)
         app = get_app_promise(info.context).get()
         events.invoice_deleted_event(
@@ -339,6 +343,7 @@ class InvoiceUpdate(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
         instance = cls.get_instance(info, id=id)
+        cls.check_channel_permissions(info, [instance.order.channel_id])
         cleaned_input = cls.clean_input(info, instance, input)
         metadata_list = cleaned_input.pop("metadata", None)
         private_metadata_list = cleaned_input.pop("private_metadata", None)
@@ -415,6 +420,7 @@ class InvoiceSendNotification(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         instance = cls.get_instance(info, id=id)
+        cls.check_channel_permissions(info, [instance.order.channel_id])
         cls.clean_instance(info, instance)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()

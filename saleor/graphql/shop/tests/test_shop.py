@@ -1342,10 +1342,10 @@ ORDER_SETTINGS_UPDATE_MUTATION = """
 
 
 def test_order_settings_update_by_staff(
-    staff_api_client, permission_manage_orders, channel_USD, channel_PLN
+    staff_api_client, permission_group_manage_orders, channel_USD, channel_PLN
 ):
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(
@@ -1371,11 +1371,32 @@ def test_order_settings_update_by_staff(
     assert channel_USD.automatically_fulfill_non_shippable_gift_card is False
 
 
-def test_order_settings_update_by_staff_nothing_changed(
-    staff_api_client, permission_manage_orders, channel_USD, channel_PLN
+def test_order_settings_update_by_staff_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_USD,
+    channel_PLN,
 ):
     # given
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    channel_USD.is_active = False
+    channel_USD.save(update_fields=["is_active"])
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_SETTINGS_UPDATE_MUTATION,
+        {"confirmOrders": False, "fulfillGiftCards": False},
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_order_settings_update_by_staff_nothing_changed(
+    staff_api_client, permission_group_manage_orders, channel_USD, channel_PLN
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     QUERY = """
         mutation {
             orderSettingsUpdate(

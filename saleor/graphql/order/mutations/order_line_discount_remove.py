@@ -42,6 +42,7 @@ class OrderLineDiscountRemove(OrderDiscountCommon):
     ):
         order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order)
         with traced_atomic_transaction():
             remove_discount_from_order_line(order_line, order)

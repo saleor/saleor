@@ -42,7 +42,7 @@ def test_order_granted_refunds_query_by_user(
     staff_user,
     app,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     permission_manage_shipping,
     fulfilled_order,
     shipping_zone,
@@ -66,7 +66,7 @@ def test_order_granted_refunds_query_by_user(
         amount_value=Decimal("12.5"), currency="USD", reason="Test reason", app=app
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.user.user_permissions.add(permission_manage_shipping)
 
     # when
@@ -205,7 +205,7 @@ def test_order_total_granted_refund_query_by_staff_user(
     staff_user,
     app,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     shipping_zone,
 ):
@@ -226,7 +226,7 @@ def test_order_total_granted_refund_query_by_staff_user(
         app=app,
     )
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDERS_QUERY)

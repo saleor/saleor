@@ -65,6 +65,7 @@ class OrderConfirm(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         order = cls.get_instance(info, **data)
+        cls.check_channel_permissions(info, [order.channel_id])
         order.status = OrderStatus.UNFULFILLED
         update_order_display_gross_prices(order)
         order.save(update_fields=["status", "updated_at", "display_gross_prices"])

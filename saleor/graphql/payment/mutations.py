@@ -428,11 +428,9 @@ class PaymentCapture(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.capture(
@@ -466,11 +464,9 @@ class PaymentRefund(PaymentCapture):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         payment_transaction = None
         try:
@@ -520,11 +516,9 @@ class PaymentVoid(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.void(payment, manager, channel_slug=channel_slug)
@@ -1438,10 +1432,12 @@ class TransactionRequestAction(BaseMutation):
         transaction = get_transaction_item(id)
         if transaction.order_id:
             order = cast(Order, transaction.order)
-            channel_slug = order.channel.slug
+            channel = order.channel
         else:
             checkout = cast(Checkout, transaction.checkout)
-            channel_slug = checkout.channel.slug
+            channel = checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {

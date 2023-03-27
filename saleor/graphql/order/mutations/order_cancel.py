@@ -49,6 +49,7 @@ class OrderCancel(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         order = clean_order_cancel(order)
         user = info.context.user
         app = get_app_promise(info.context).get()

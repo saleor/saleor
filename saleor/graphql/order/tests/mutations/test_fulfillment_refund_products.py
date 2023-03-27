@@ -14,7 +14,8 @@ from .....payment import ChargeStatus, PaymentError
 from .....payment.interface import RefundData
 from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
-from ....tests.utils import get_graphql_content
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_FULFILL_REFUND_MUTATION = """
 mutation OrderFulfillmentRefundProducts(
@@ -47,13 +48,92 @@ mutation OrderFulfillmentRefundProducts(
 """
 
 
+def test_fulfillment_refund_products_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    channel_PLN,
+    payment_dummy,
+):
+    # given
+    order_with_lines.channel = channel_PLN
+    order_with_lines.save(update_fields=["channel"])
+
+    payment_dummy.total = order_with_lines.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    order_with_lines.payments.add(payment_dummy)
+
+    order_id = to_global_id_or_none(order_with_lines)
+    amount_to_refund = Decimal("11.00")
+    variables = {
+        "order": order_id,
+        "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
+    }
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_refund_products_with_transaction_action_request_by_app(
+    mocked_refund,
+    app_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    # given
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+
+    order_id = to_global_id_or_none(fulfilled_order)
+    amount_to_refund = Decimal("11.00")
+    variables = {
+        "order": order_id,
+        "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_FULFILL_REFUND_MUTATION,
+        variables,
+        permissions=(permission_manage_orders,),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentRefundProducts"]
+    errors = data["errors"]
+    assert not errors
+
+    mocked_refund.assert_called_with(
+        payment_dummy,
+        ANY,
+        amount=quantize_price(amount_to_refund, fulfilled_order.currency),
+        channel_slug=fulfilled_order.channel.slug,
+        refund_data=RefundData(
+            refund_shipping_costs=True,
+            refund_amount_is_automatically_calculated=False,
+        ),
+    )
+
+
 @patch("saleor.order.actions.gateway.refund")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_back_in_stock")
 def test_fulfillment_refund_products_with_back_in_stock_webhook(
     back_in_stock_webhook_trigger,
     mock_refunded,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -70,7 +150,7 @@ def test_fulfillment_refund_products_with_back_in_stock_webhook(
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 1}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -83,7 +163,7 @@ def test_fulfillment_refund_products_with_back_in_stock_webhook(
 
 def test_fulfillment_refund_gift_card_products(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -107,7 +187,7 @@ def test_fulfillment_refund_gift_card_products(
     }
 
     # when
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # then
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
@@ -122,11 +202,11 @@ def test_fulfillment_refund_gift_card_products(
 
 
 def test_fulfillment_refund_products_order_without_payment(
-    staff_api_client, permission_manage_orders, fulfilled_order
+    staff_api_client, permission_group_manage_orders, fulfilled_order
 ):
     order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
     variables = {"order": order_id, "input": {"amountToRefund": "11.00"}}
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -142,7 +222,7 @@ def test_fulfillment_refund_products_order_without_payment(
 def test_fulfillment_refund_products_amount_and_shipping_costs(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -156,7 +236,7 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
         "order": order_id,
         "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
 
     mocked_refund.assert_called_with(
@@ -173,7 +253,7 @@ def test_fulfillment_refund_products_amount_and_shipping_costs(
 
 def test_fulfillment_refund_products_amount_costs_for_order_with_gift_card_lines(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -193,7 +273,7 @@ def test_fulfillment_refund_products_amount_costs_for_order_with_gift_card_lines
         "order": order_id,
         "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
@@ -211,7 +291,7 @@ def test_fulfillment_refund_products_amount_costs_for_order_with_gift_card_lines
 def test_fulfillment_refund_products_refund_raising_payment_error(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -228,7 +308,7 @@ def test_fulfillment_refund_products_refund_raising_payment_error(
         "order": order_id,
         "input": {"amountToRefund": amount_to_refund, "includeShippingCosts": True},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
@@ -245,7 +325,7 @@ def test_fulfillment_refund_products_refund_raising_payment_error(
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -261,7 +341,7 @@ def test_fulfillment_refund_products_order_lines(
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 2}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -290,7 +370,7 @@ def test_fulfillment_refund_products_order_lines(
 
 
 def test_fulfillment_refund_products_order_lines_quantity_bigger_than_total(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_dummy
+    staff_api_client, permission_group_manage_orders, order_with_lines, payment_dummy
 ):
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -304,7 +384,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_total(
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 200}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -318,7 +398,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_total(
 
 
 def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfilled(
-    staff_api_client, permission_manage_orders, order_with_lines, payment_dummy
+    staff_api_client, permission_group_manage_orders, order_with_lines, payment_dummy
 ):
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -335,7 +415,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfille
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 1}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -352,7 +432,7 @@ def test_fulfillment_refund_products_order_lines_quantity_bigger_than_unfulfille
 def test_fulfillment_refund_products_fulfillment_lines(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -377,7 +457,7 @@ def test_fulfillment_refund_products_fulfillment_lines(
             ]
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -409,7 +489,7 @@ def test_fulfillment_refund_products_fulfillment_lines(
 def test_fulfillment_refund_products_waiting_fulfillment_lines(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -439,7 +519,7 @@ def test_fulfillment_refund_products_waiting_fulfillment_lines(
             ]
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -469,7 +549,7 @@ def test_fulfillment_refund_products_waiting_fulfillment_lines(
 
 def test_fulfillment_refund_products_gift_card_fulfillment_line(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -496,7 +576,7 @@ def test_fulfillment_refund_products_gift_card_fulfillment_line(
             ]
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -510,7 +590,7 @@ def test_fulfillment_refund_products_gift_card_fulfillment_line(
 
 
 def test_fulfillment_refund_products_fulfillment_lines_quantity_bigger_than_total(
-    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+    staff_api_client, permission_group_manage_orders, fulfilled_order, payment_dummy
 ):
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -530,7 +610,7 @@ def test_fulfillment_refund_products_fulfillment_lines_quantity_bigger_than_tota
             ]
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -544,7 +624,7 @@ def test_fulfillment_refund_products_fulfillment_lines_quantity_bigger_than_tota
 
 
 def test_fulfillment_refund_products_amount_bigger_than_captured_amount(
-    staff_api_client, permission_manage_orders, fulfilled_order, payment_dummy
+    staff_api_client, permission_group_manage_orders, fulfilled_order, payment_dummy
 ):
     payment_dummy.total = fulfilled_order.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
@@ -565,7 +645,7 @@ def test_fulfillment_refund_products_amount_bigger_than_captured_amount(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -582,7 +662,7 @@ def test_fulfillment_refund_products_amount_bigger_than_captured_amount(
 def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -608,7 +688,7 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -640,7 +720,7 @@ def test_fulfillment_refund_products_fulfillment_lines_include_shipping_costs(
 def test_fulfillment_refund_products_order_lines_include_shipping_costs(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -659,7 +739,7 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
             "orderLines": [{"orderLineId": line_id, "quantity": 2}],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -692,7 +772,7 @@ def test_fulfillment_refund_products_order_lines_include_shipping_costs(
 def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -719,7 +799,7 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -752,7 +832,7 @@ def test_fulfillment_refund_products_fulfillment_lines_custom_amount(
 def test_fulfillment_refund_products_order_lines_custom_amount(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
 ):
@@ -772,7 +852,7 @@ def test_fulfillment_refund_products_order_lines_custom_amount(
             "orderLines": [{"orderLineId": line_id, "quantity": 2}],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentRefundProducts"]
@@ -806,7 +886,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
     variant,
     channel_USD,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -859,7 +939,7 @@ def test_fulfillment_refund_products_fulfillment_lines_and_order_lines(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)
 
@@ -913,7 +993,7 @@ def test_fulfillment_refund_products_calls_order_refunded(
     variant,
     channel_USD,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     payment_dummy,
 ):
@@ -965,7 +1045,7 @@ def test_fulfillment_refund_products_calls_order_refunded(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     staff_api_client.post_graphql(ORDER_FULFILL_REFUND_MUTATION, variables)

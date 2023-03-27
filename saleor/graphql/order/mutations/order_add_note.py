@@ -66,6 +66,7 @@ class OrderAddNote(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         cleaned_input = cls.clean_input(info, order, input)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()

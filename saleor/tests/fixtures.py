@@ -1349,6 +1349,7 @@ def shipping_method_excluded_by_postal_code(shipping_method):
 
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
+    shipping_zone.channels.add(channel_PLN)
     method = ShippingMethod.objects.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
@@ -5061,6 +5062,7 @@ def permission_group_manage_staff(permission_manage_staff, staff_users):
     return group
 
 
+@pytest.fixture
 def permission_group_all_perms_all_channels(
     permission_manage_users, staff_users, channel_USD, channel_PLN
 ):
@@ -5112,6 +5114,7 @@ def permission_group_all_perms_without_any_channel(
     )
     permissions = get_permissions()
     group.permissions.add(*permissions)
+    return group
 
 
 @pytest.fixture

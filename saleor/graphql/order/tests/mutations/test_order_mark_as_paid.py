@@ -7,7 +7,7 @@ from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....payment import TransactionEventType
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_MARK_ORDER_AS_PAID = """
     mutation markPaid($id: ID!, $transaction: String) {
@@ -33,15 +33,14 @@ MUTATION_MARK_ORDER_AS_PAID = """
 
 
 def test_paid_order_mark_as_paid_with_payment(
-    staff_api_client, permission_manage_orders, payment_txn_preauth
+    staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = payment_txn_preauth.order
     query = MUTATION_MARK_ORDER_AS_PAID
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content["data"]["orderMarkAsPaid"]["errors"]
     msg = "Orders with payments can not be manually marked as paid."
@@ -53,17 +52,16 @@ def test_paid_order_mark_as_paid_with_payment(
 
 
 def test_order_mark_as_paid_with_external_reference_with_payment(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     transaction_reference = "searchable-id"
     order = order_with_lines
     query = MUTATION_MARK_ORDER_AS_PAID
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "transaction": transaction_reference}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     data = content["data"]["orderMarkAsPaid"]["order"]
@@ -88,12 +86,13 @@ def test_order_mark_as_paid_with_external_reference_with_payment(
 def test_order_mark_as_paid_with_payment(
     order_mark_as_paid_strategy,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     staff_user,
 ):
     # given
     order = order_with_lines
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     channel = order.channel
     channel.order_mark_as_paid_strategy = order_mark_as_paid_strategy
@@ -105,9 +104,7 @@ def test_order_mark_as_paid_with_payment(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -120,6 +117,63 @@ def test_order_mark_as_paid_with_payment(
     assert event_order_paid.user == staff_user
 
 
+def test_paid_order_mark_as_paid_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    query = MUTATION_MARK_ORDER_AS_PAID
+
+    assert not order.is_fully_paid()
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    query = MUTATION_MARK_ORDER_AS_PAID
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_order_mark_as_paid_by_app(
+    app_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    query = MUTATION_MARK_ORDER_AS_PAID
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    assert data["isPaid"] is True is order.is_fully_paid()
+
+    event_order_paid = order.events.first()
+    assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
+    assert event_order_paid.user is None
+    assert event_order_paid.app == app_api_client.app
+
+
 @pytest.mark.parametrize(
     "order_mark_as_paid_strategy",
     [MarkAsPaidStrategy.TRANSACTION_FLOW, MarkAsPaidStrategy.PAYMENT_FLOW],
@@ -127,11 +181,12 @@ def test_order_mark_as_paid_with_payment(
 def test_order_mark_as_paid_no_billing_address_with_payment(
     order_mark_as_paid_strategy,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     staff_user,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order_with_lines.billing_address = None
     order_with_lines.save()
@@ -145,9 +200,7 @@ def test_order_mark_as_paid_no_billing_address_with_payment(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -156,9 +209,10 @@ def test_order_mark_as_paid_no_billing_address_with_payment(
 
 
 def test_draft_order_mark_as_paid_check_price_recalculation_with_payment(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     # we need to change order total and set it as invalidated prices.
     # we couldn't use `order.total.gross` because this test don't use any tax app
@@ -174,9 +228,7 @@ def test_draft_order_mark_as_paid_check_price_recalculation_with_payment(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -192,9 +244,10 @@ def test_draft_order_mark_as_paid_check_price_recalculation_with_payment(
 
 
 def test_paid_order_mark_as_paid_with_transaction(
-    staff_api_client, permission_manage_orders, order_with_lines
+    staff_api_client, permission_group_manage_orders, order_with_lines
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     channel = order.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
@@ -207,9 +260,7 @@ def test_paid_order_mark_as_paid_with_transaction(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -223,9 +274,10 @@ def test_paid_order_mark_as_paid_with_transaction(
 
 
 def test_order_mark_as_paid_with_external_reference_with_transaction(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     channel = order.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
@@ -238,9 +290,7 @@ def test_order_mark_as_paid_with_external_reference_with_transaction(
     variables = {"id": order_id, "transaction": transaction_reference}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -263,9 +313,10 @@ def test_order_mark_as_paid_with_external_reference_with_transaction(
 
 
 def test_order_mark_as_paid_with_transaction_creates_transaction_event(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     channel = order.channel
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
@@ -276,9 +327,7 @@ def test_order_mark_as_paid_with_transaction_creates_transaction_event(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     get_graphql_content(response)
@@ -293,9 +342,10 @@ def test_order_mark_as_paid_with_transaction_creates_transaction_event(
 
 
 def test_draft_order_mark_as_paid_check_price_recalculation_transaction(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     # we need to change order total and set it as invalidated prices.
     # we couldn't use `order.total.gross` because this test don't use any tax app
@@ -316,9 +366,7 @@ def test_draft_order_mark_as_paid_check_price_recalculation_transaction(
     variables = {"id": order_id}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then

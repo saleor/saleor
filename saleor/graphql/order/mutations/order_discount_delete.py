@@ -49,6 +49,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
                     )
                 }
             )
+        cls.check_channel_permissions(info, [order.channel_id])
         app = get_app_promise(info.context).get()
 
         order = cls.validate_order(info, order)
