@@ -1,5 +1,5 @@
 from django.db import migrations
-from django.db.models import F, OuterRef, Subquery, QuerySet
+from django.db.models import F, OuterRef, QuerySet, Subquery
 
 
 def set_default_currency_for_transaction_event(qs: QuerySet):

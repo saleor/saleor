@@ -1,16 +1,7 @@
 from decimal import Decimal
 
 from django.db import migrations
-from django.db.models import (
-    Case,
-    Exists,
-    F,
-    Func,
-    OuterRef,
-    Subquery,
-    Q,
-    When,
-)
+from django.db.models import Case, Exists, F, Func, OuterRef, Q, Subquery, When
 
 
 def create_transaction_events(transaction_event, transactions_qs, type):
