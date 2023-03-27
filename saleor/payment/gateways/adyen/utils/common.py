@@ -18,8 +18,10 @@ from .....checkout.calculations import (
 )
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import get_checkout_metadata, is_shipping_required
-from .....discount.utils import fetch_active_discounts
+from .....checkout.utils import (
+    get_checkout_metadata,
+    is_shipping_required,
+)
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
@@ -217,7 +219,7 @@ def request_data_for_payment(
     return request_data
 
 
-def get_shipping_data(manager, checkout_info, lines, discounts):
+def get_shipping_data(manager, checkout_info, lines):
     address = checkout_info.shipping_address or checkout_info.billing_address
     currency = checkout_info.checkout.currency
     shipping_total = checkout_shipping_price(
@@ -259,8 +261,6 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    discounts = fetch_active_discounts()
-    # TODO Owczar: Consider drop discounts
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     currency = payment_information.currency
     country_code = checkout.get_country()
@@ -299,7 +299,7 @@ def append_checkout_details(payment_information: "PaymentData", payment_data: di
     if checkout_info.delivery_method_info.delivery_method and is_shipping_required(
         lines
     ):
-        line_items.append(get_shipping_data(manager, checkout_info, lines, discounts))
+        line_items.append(get_shipping_data(manager, checkout_info, lines))
 
     payment_data["lineItems"] = line_items
     return payment_data
