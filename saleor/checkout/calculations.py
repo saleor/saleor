@@ -443,7 +443,7 @@ def _apply_tax_data_from_plugins(
     checkout.subtotal = manager.calculate_checkout_subtotal(
         checkout_info, lines, address, []
     )
-    checkout.total = manager.calculate_checkout_total(checkout_info, lines, address, [])
+    checkout.total = manager.calculate_checkout_total(checkout_info, lines, address)
 
 
 def _get_checkout_base_prices(

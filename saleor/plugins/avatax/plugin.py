@@ -194,12 +194,9 @@ class AvataxPlugin(BasePlugin):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        response = self._get_checkout_tax_data(
-            checkout_info, lines, discounts, previous_value
-        )
+        response = self._get_checkout_tax_data(checkout_info, lines, [], previous_value)
         if response is None:
             return previous_value
 

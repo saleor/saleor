@@ -1154,7 +1154,7 @@ def test_calculate_checkout_total_uses_default_calculation(
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
-    total = manager.calculate_checkout_total(checkout_info, lines, address, [])
+    total = manager.calculate_checkout_total(checkout_info, lines, address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1224,9 +1224,7 @@ def test_calculate_checkout_total_uses_default_calculation_with_sale(
         checkout_info, lines, [discount_info]
     )
 
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, address, [discount_info]
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1300,9 +1298,7 @@ def test_calculate_checkout_total(
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     add_variant_to_checkout(checkout_info, product_with_single_variant.variants.get())
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, []
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1380,9 +1376,7 @@ def test_calculate_checkout_total_with_sale(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, [discount_info]
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -1453,9 +1447,7 @@ def test_calculate_checkout_total_for_JPY(
     lines, _ = fetch_checkout_lines(checkout)
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, []
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     total = quantize_price(total, total.currency)
@@ -1532,9 +1524,7 @@ def test_calculate_checkout_total_for_JPY_with_sale(
     )
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, [discount_info_JPY]
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     total = quantize_price(total, total.currency)
@@ -1596,14 +1586,11 @@ def test_calculate_checkout_total_voucher_on_entire_order(
     checkout_with_item.discount_amount = net.amount
     checkout_with_item.save()
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     total = quantize_price(total, total.currency)
@@ -1665,14 +1652,11 @@ def test_calculate_checkout_total_voucher_on_entire_order_applied_once_per_order
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
     shipping_price = shipping_channel_listings.price
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     line = checkout_with_item.lines.first()
@@ -1738,16 +1722,13 @@ def test_calculate_checkout_total_voucher_on_entire_order_product_without_taxes(
     shipping_channel_listings = shipping_method.channel_listings.get(channel=channel)
     shipping_price = shipping_channel_listings.price
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     currency = checkout_with_item.currency
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     total = quantize_price(total, currency)
@@ -1804,14 +1785,11 @@ def test_calculate_checkout_total_voucher_on_shipping(
     checkout_with_item.discount_amount = shipping_channel_listings.price.amount
     checkout_with_item.save()
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
 
     # when
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
 
     # then
     total = quantize_price(total, total.currency)
@@ -1864,12 +1842,9 @@ def test_calculate_checkout_total_not_charged_product_and_shipping_with_0_price(
     product.save()
     product.product_type.save()
 
-    discounts = None
     checkout_info = fetch_checkout_info(checkout_with_item, [], manager)
     lines, _ = fetch_checkout_lines(checkout_with_item)
-    total = manager.calculate_checkout_total(
-        checkout_info, lines, ship_to_pl_address, discounts
-    )
+    total = manager.calculate_checkout_total(checkout_info, lines, ship_to_pl_address)
     total = quantize_price(total, total.currency)
 
     channel_listing = variant.channel_listings.get(channel=channel)

@@ -105,9 +105,7 @@ class PluginSample(BasePlugin):
             return JsonResponse(data={"received": True, "paid": False})
         return HttpResponseNotFound()
 
-    def calculate_checkout_total(
-        self, checkout_info, lines, address, discounts, previous_value
-    ):
+    def calculate_checkout_total(self, checkout_info, lines, address, previous_value):
         total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 

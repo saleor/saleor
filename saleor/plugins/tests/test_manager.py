@@ -169,9 +169,7 @@ def test_manager_calculates_checkout_total(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    taxed_total = manager.calculate_checkout_total(
-        checkout_info, lines, None, [discount_info]
-    )
+    taxed_total = manager.calculate_checkout_total(checkout_info, lines, None)
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
@@ -1140,9 +1138,7 @@ def test_calculate_checkout_total_zero_default_value(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     # when
-    taxed_total = manager.calculate_checkout_total(
-        checkout_info, lines, None, [discount_info]
-    )
+    taxed_total = manager.calculate_checkout_total(checkout_info, lines, None)
 
     # then
     assert "calculate_checkout_total" not in mocked_run_method.call_args_list

@@ -655,7 +655,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         discounts: Optional[Iterable[DiscountInfo]] = None,
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
-        # TODO Owczar: Consider drop discounts
         price = self.get_base_price(channel_listing, price_override)
         return calculate_discounted_price(
             product=product,
