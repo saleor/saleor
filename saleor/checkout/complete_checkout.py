@@ -620,11 +620,10 @@ def _prepare_checkout(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts,
     tracking_code,
     redirect_url,
 ):
-    # TODO Owczar: Consider drop discounts
+    """Prepare checkout object to complete the checkout process."""
     checkout = checkout_info.checkout
     clean_checkout_shipping(checkout_info, lines, CheckoutErrorCode)
     if not checkout_info.channel.is_active:
@@ -682,7 +681,6 @@ def _prepare_checkout_with_transactions(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        discounts=discounts,
         tracking_code=tracking_code,
         redirect_url=redirect_url,
     )
@@ -709,7 +707,6 @@ def _prepare_checkout_with_payment(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        discounts=discounts,
         tracking_code=tracking_code,
         redirect_url=redirect_url,
     )
