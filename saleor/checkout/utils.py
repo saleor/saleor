@@ -482,7 +482,6 @@ def get_voucher_discount_for_checkout(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> Money:
     """Calculate discount value depending on voucher and discount types.
 
@@ -507,9 +506,7 @@ def get_voucher_discount_for_checkout(
             address,
         )
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
-        return _get_products_voucher_discount(
-            manager, checkout_info, lines, voucher, discounts
-        )
+        return _get_products_voucher_discount(manager, checkout_info, lines, voucher)
     raise NotImplementedError("Unknown discount type")
 
 
@@ -518,7 +515,6 @@ def _get_products_voucher_discount(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
     voucher,
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
@@ -588,7 +584,6 @@ def check_voucher_for_checkout(
             checkout_info,
             lines,
             address,
-            discounts,
         )
         return discount
     except NotApplicable:
@@ -733,7 +728,6 @@ def add_voucher_to_checkout(
         checkout_info,
         lines,
         address,
-        discounts,
     )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
