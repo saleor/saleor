@@ -1349,6 +1349,7 @@ def shipping_method_excluded_by_postal_code(shipping_method):
 
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
+    shipping_zone.channels.add(channel_PLN)
     method = ShippingMethod.objects.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,

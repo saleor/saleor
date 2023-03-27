@@ -150,6 +150,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str, input
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(order)
         existing_lines_info = fetch_order_lines(order)
 

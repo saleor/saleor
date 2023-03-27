@@ -64,6 +64,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                     )
                 }
             )
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_discount, input)
 
         reason = input.get("reason", order_discount.reason)

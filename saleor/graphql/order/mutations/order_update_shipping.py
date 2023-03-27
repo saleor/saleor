@@ -66,6 +66,7 @@ class OrderUpdateShipping(EditableOrderValidationMixin, BaseMutation):
                 "lines", "channel__shipping_method_listings"
             ),
         )
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(order)
 
         if "shipping_method" not in input:
