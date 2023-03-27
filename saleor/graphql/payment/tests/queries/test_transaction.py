@@ -69,7 +69,9 @@ def test_transaction_query_by_app(
     app_api_client, transaction_item, permission_manage_payments
 ):
     # given
-    event = TransactionEvent.objects.create(transaction=transaction_item)
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item, currency=transaction_item.currency
+    )
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id)
@@ -92,7 +94,9 @@ def test_transaction_query_no_order(
     transaction_item.order = None
     transaction_item.save(update_fields=["order"])
 
-    event = TransactionEvent.objects.create(transaction=transaction_item)
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item, currency=transaction_item.currency
+    )
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id)
@@ -112,7 +116,9 @@ def test_transaction_query_by_staff(
     staff_api_client, transaction_item, permission_manage_payments
 ):
     # given
-    event = TransactionEvent.objects.create(transaction=transaction_item)
+    event = TransactionEvent.objects.create(
+        transaction=transaction_item, currency=transaction_item.currency
+    )
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id)

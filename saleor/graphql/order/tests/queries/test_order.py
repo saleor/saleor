@@ -701,6 +701,7 @@ def test_order_query_with_transactions_details(
                 status=event_status,
                 reference=event_reference,
                 transaction=transaction,
+                currency=transaction.currency,
             )
             for transaction in transactions
         ]
