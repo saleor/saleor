@@ -114,7 +114,6 @@ def test_calculate_checkout_line_total(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -173,7 +172,6 @@ def test_calculate_checkout_line_total_with_sale(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [discount_info],
     )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
@@ -226,7 +224,6 @@ def test_calculate_checkout_line_total_with_variant_on_sale(
         lines,
         checkout_line,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -290,7 +287,6 @@ def test_calculate_checkout_line_total_with_voucher(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then
@@ -351,7 +347,6 @@ def test_calculate_checkout_line_total_with_voucher_once_per_order(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then
@@ -415,7 +410,6 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -480,7 +474,6 @@ def test_calculate_checkout_line_total_with_variant_on_sale_and_voucher_only_onc
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -542,7 +535,6 @@ def test_calculate_checkout_line_without_sku_total(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
     )
     total = quantize_price(total_price, total_price.currency)
     assert total == TaxedMoney(
@@ -607,7 +599,6 @@ def test_calculate_checkout_line_without_sku_total_with_sale(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [discount_info],
     )
     total = quantize_price(total_price, total_price.currency)
     assert total == TaxedMoney(
@@ -5566,7 +5557,6 @@ def test_calculate_checkout_line_total_validates_checkout(
         lines,
         lines[0],
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then

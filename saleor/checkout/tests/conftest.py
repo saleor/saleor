@@ -24,7 +24,7 @@ def priced_checkout_factory():
             lines_to_update.append(line)
 
             line.total_price = manager.calculate_checkout_line_total(
-                checkout_info, lines, line_info, None, []
+                checkout_info, lines, line_info, None
             )
             line.total_price_gross_amount *= tax
 

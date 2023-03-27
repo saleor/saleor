@@ -253,7 +253,6 @@ def test_manager_calculates_checkout_line_total(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [discount_info],
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 

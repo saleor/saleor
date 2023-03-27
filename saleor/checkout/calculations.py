@@ -413,7 +413,6 @@ def _apply_tax_data_from_plugins(
             lines,
             line_info,
             address,
-            [],
         )
         line.total_price = total_price
 

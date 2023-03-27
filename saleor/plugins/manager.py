@@ -274,7 +274,6 @@ class PluginsManager(PaymentInterface):
                 lines,
                 line_info,
                 address,
-                discounts,
             )
             for line_info in lines
         ]
@@ -382,7 +381,6 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
         default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
@@ -404,7 +402,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
 

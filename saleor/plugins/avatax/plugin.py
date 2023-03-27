@@ -370,7 +370,6 @@ class AvataxPlugin(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
@@ -382,7 +381,7 @@ class AvataxPlugin(BasePlugin):
         )
 
         taxes_data = self._get_checkout_tax_data(
-            checkout_info, lines, discounts, previous_value
+            checkout_info, lines, [], previous_value
         )
         variant = checkout_line_info.variant
 
@@ -720,6 +719,7 @@ class AvataxPlugin(BasePlugin):
         discounts: Iterable[DiscountInfo],
         base_value: Union[TaxedMoney, Decimal],
     ):
+        # TODO Owczar: Drop discounts
         if self._skip_plugin(base_value):
             return None
 
