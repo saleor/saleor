@@ -780,7 +780,8 @@ def parse_transaction_event_data(
         logger.warning(missing_msg, "result")
         error_field_msg.append(missing_msg % "result")
 
-    if amount_data := event_data.get("amount"):
+    amount_data = event_data.get("amount")
+    if amount_data is not None:
         try:
             parsed_event_data["amount"] = decimal.Decimal(amount_data)
         except decimal.DecimalException:
