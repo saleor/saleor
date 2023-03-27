@@ -14662,8 +14662,8 @@ type Mutation {
     order: ID!
 
     """Fields required to create a note for the order."""
-    input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders")
+    input: OrderNoteAddInput!
+  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `orderNoteAdd` instead.")
 
   """
   Cancel an order. 
@@ -14909,6 +14909,19 @@ type Mutation {
     """ID of a order line to remove its discount"""
     orderLineId: ID!
   ): OrderLineDiscountRemove @doc(category: "Orders")
+
+  """
+  Adds note to the order. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteAdd(
+    """ID of the order to add a note for."""
+    order: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteAddInput!
+  ): OrderNoteAdd @doc(category: "Orders")
 
   """
   Mark order as manually paid. 
@@ -21822,7 +21835,7 @@ type OrderAddNote @doc(category: "Orders") {
   errors: [OrderError!]!
 }
 
-input OrderAddNoteInput @doc(category: "Orders") {
+input OrderNoteAddInput @doc(category: "Orders") {
   """Note message."""
   message: String!
 }
@@ -22304,6 +22317,20 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
   """Order which is related to line which has removed discount."""
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [OrderError!]!
+}
+
+"""
+Adds note to the order. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteAdd @doc(category: "Orders") {
+  """Order with the note added."""
+  order: Order
+
+  """Order note created."""
+  event: OrderEvent
   errors: [OrderError!]!
 }
 

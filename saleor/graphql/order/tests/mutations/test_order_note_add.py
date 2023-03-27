@@ -9,9 +9,9 @@ from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 
-ORDER_ADD_NOTE_MUTATION = """
+ORDER_NOTE_ADD_MUTATION = """
     mutation addNote($id: ID!, $message: String!) {
-        orderAddNote(order: $id, input: {message: $message}) {
+        orderNoteAdd(order: $id, input: {message: $message}) {
             errors {
                 field
                 message
@@ -35,7 +35,7 @@ ORDER_ADD_NOTE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_add_note_as_staff_user(
+def test_order_note_add_as_staff_user(
     order_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
@@ -50,9 +50,9 @@ def test_order_add_note_as_staff_user(
     order_id = graphene.Node.to_global_id("Order", order.id)
     message = "nuclear note"
     variables = {"id": order_id, "message": message}
-    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["orderAddNote"]
+    data = content["data"]["orderNoteAdd"]
 
     assert data["order"]["id"] == order_id
     assert data["event"]["user"]["email"] == staff_user.email
@@ -80,7 +80,7 @@ def test_order_add_note_as_staff_user(
     ),
 )
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
-def test_order_add_note_fail_on_empty_message(
+def test_order_note_add_fail_on_empty_message(
     order_updated_webhook_mock,
     staff_api_client,
     permission_group_manage_orders,
@@ -90,9 +90,9 @@ def test_order_add_note_fail_on_empty_message(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     variables = {"id": order_id, "message": message}
-    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
     content = get_graphql_content(response)
-    data = content["data"]["orderAddNote"]
+    data = content["data"]["orderNoteAdd"]
     assert data["errors"][0]["field"] == "message"
     assert data["errors"][0]["code"] == OrderErrorCode.REQUIRED.name
     order_updated_webhook_mock.assert_not_called()
@@ -116,7 +116,7 @@ def test_order_add_note_as_user_no_channel_access(
     variables = {"id": order_id, "message": message}
 
     # when
-    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
+    response = staff_api_client.post_graphql(ORDER_NOTE_ADD_MUTATION, variables)
 
     # then
     assert_no_permission(response)
@@ -138,12 +138,12 @@ def test_order_add_note_by_app(
 
     # when
     response = app_api_client.post_graphql(
-        ORDER_ADD_NOTE_MUTATION, variables, permissions=(permission_manage_orders,)
+        ORDER_NOTE_ADD_MUTATION, variables, permissions=(permission_manage_orders,)
     )
 
     # then
     content = get_graphql_content(response)
-    data = content["data"]["orderAddNote"]
+    data = content["data"]["orderNoteAdd"]
 
     assert data["order"]["id"] == order_id
     assert data["event"]["user"] is None
