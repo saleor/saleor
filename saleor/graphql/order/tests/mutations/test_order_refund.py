@@ -11,7 +11,7 @@ from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
 from ....payment.types import PaymentChargeStatusEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_REFUND_MUTATION = """
     mutation refundOrder($id: ID!, $amount: PositiveDecimal!) {
@@ -31,15 +31,78 @@ ORDER_REFUND_MUTATION = """
 """
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+def test_order_refund(
+    staff_api_client, permission_group_manage_orders, payment_txn_captured
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = payment_txn_captured.order
     query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_captured.total)
     variables = {"id": order_id, "amount": amount}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == PaymentChargeStatusEnum.FULLY_REFUNDED.name
+    payment_status_display = dict(ChargeStatus.CHOICES).get(ChargeStatus.FULLY_REFUNDED)
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
+    assert refunded_fulfillment.shipping_refund_amount is None
+
+
+def test_order_refund_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    payment_txn_captured,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = payment_txn_captured.order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total)
+    variables = {"id": order_id, "amount": amount}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_order_refund_by_app(
+    app_api_client, permission_manage_orders, payment_txn_captured
+):
+    # given
+    order = payment_txn_captured.order
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = float(payment_txn_captured.total)
+    variables = {"id": order_id, "amount": amount}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]["order"]
     order.refresh_from_db()
@@ -63,16 +126,15 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
 
 
 def test_order_refund_with_gift_card_lines(
-    staff_api_client, permission_manage_orders, gift_card_shippable_order_line
+    staff_api_client, permission_group_manage_orders, gift_card_shippable_order_line
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = gift_card_shippable_order_line.order
     query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
 
     variables = {"id": order_id, "amount": 10.0}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]
     assert not data["order"]
@@ -87,10 +149,11 @@ def test_order_refund_with_transaction_action_request(
     mocked_transaction_action_request,
     mocked_is_active,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     transaction = TransactionItem.objects.create(
         status="Captured",
         type="Credit card",
@@ -107,9 +170,7 @@ def test_order_refund_with_transaction_action_request(
     variables = {"id": order_id, "amount": refund_value}
 
     # when
-    response = staff_api_client.post_graphql(
-        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_REFUND_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)
@@ -134,9 +195,10 @@ def test_order_refund_with_transaction_action_request(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 def test_order_refund_with_transaction_action_request_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_orders, order
+    mocked_is_active, staff_api_client, permission_group_manage_orders, order
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     authorized_value = Decimal("10")
     TransactionItem.objects.create(
         status="Authorized",
@@ -153,9 +215,7 @@ def test_order_refund_with_transaction_action_request_missing_event(
     variables = {"id": order_id, "amount": authorized_value}
 
     # when
-    response = staff_api_client.post_graphql(
-        ORDER_REFUND_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_REFUND_MUTATION, variables)
 
     # then
     content = get_graphql_content(response)

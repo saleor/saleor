@@ -48,6 +48,7 @@ class OrderLineDelete(EditableOrderValidationMixin, BaseMutation):
             only_type=OrderLine,
         )
         order = line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate_order(line.order)
 
         db_id = line.id

@@ -380,11 +380,9 @@ class PaymentCapture(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.capture(
@@ -414,11 +412,9 @@ class PaymentRefund(PaymentCapture):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.refund(
@@ -453,11 +449,9 @@ class PaymentVoid(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.void(payment, manager, channel_slug=channel_slug)
@@ -1077,11 +1071,13 @@ class TransactionRequestAction(BaseMutation):
         action_type = data["action_type"]
         action_value = data.get("amount")
         transaction = cls.get_node_or_error(info, id, only_type=TransactionItem)
-        channel_slug = (
-            transaction.order.channel.slug
+        channel = (
+            transaction.order.channel
             if transaction.order_id
-            else transaction.checkout.channel.slug
+            else transaction.checkout.channel
         )
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {

@@ -14,7 +14,7 @@ from ....order.utils import (
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.mutations import ModelMutation
+from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderLine
@@ -22,7 +22,9 @@ from .draft_order_create import OrderLineInput
 from .utils import EditableOrderValidationMixin, get_webhook_handler_by_order_status
 
 
-class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
+class OrderLineUpdate(
+    EditableOrderValidationMixin, ModelWithRestrictedChannelAccessMutation
+):
     order = graphene.Field(Order, description="Related order.")
 
     class Arguments:
@@ -100,3 +102,8 @@ class OrderLineUpdate(EditableOrderValidationMixin, ModelMutation):
         response = super().success_response(instance)
         response.order = instance.order
         return response
+
+    @classmethod
+    def get_instance_channel_id(cls, instance, **data):
+        """Retrieve the instance channel id for channel permission accessible check."""
+        return instance.order.channel_id
