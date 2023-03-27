@@ -200,6 +200,61 @@ def test_product_bulk_create_send_product_created_webhook(
     assert created_webhook_mock.call_count == 2
 
 
+def test_product_bulk_create_with_same_name_and_no_slug(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    # given
+    description_json_string = json.dumps(description_json)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    product_name = "test name"
+    product_charge_taxes = True
+    product_tax_rate = "STANDARD"
+
+    products = [
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "weight": 2,
+        },
+        {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "description": description_json_string,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+        },
+    ]
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_BULK_CREATE_MUTATION,
+        {"products": products},
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert data["results"][0]["product"]["name"] == product_name
+    assert data["results"][0]["product"]["slug"] == "test-name"
+    assert data["results"][1]["product"]["name"] == product_name
+    assert data["results"][1]["product"]["slug"] == "test-name-2"
+
+
 def test_product_bulk_create_with_invalid_attributes(
     staff_api_client,
     product_type,

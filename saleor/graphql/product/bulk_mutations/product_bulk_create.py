@@ -23,11 +23,19 @@ from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
 from ...channel import ChannelContext
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE, RICH_CONTENT
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import MediaInput, NonNullList, ProductBulkCreateError, SeoInput
+from ...core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    MediaInput,
+    NonNullList,
+    ProductBulkCreateError,
+    SeoInput,
+)
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
 from ...core.validators.file import (
@@ -63,7 +71,7 @@ def get_results(instances_data_with_errors_list, reject_everything=False):
     ]
 
 
-class ProductChannelListingCreateInput(graphene.InputObjectType):
+class ProductChannelListingCreateInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     is_published = graphene.Boolean(
         description="Determines if object is visible to customers."
@@ -88,14 +96,20 @@ class ProductChannelListingCreateInput(graphene.InputObjectType):
         )
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductBulkResult(graphene.ObjectType):
+
+class ProductBulkResult(BaseObjectType):
     product = graphene.Field(Product, description="Product data.")
     errors = NonNullList(
         ProductBulkCreateError,
         required=False,
         description="List of errors occurred on create attempt.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductBulkCreateInput(ProductCreateInput):
@@ -137,8 +151,16 @@ class ProductBulkCreateInput(ProductCreateInput):
         name="productType",
         required=True,
     )
-    media = NonNullList(MediaInput, required=False)
-    channel_listings = NonNullList(ProductChannelListingCreateInput, required=False)
+    media = NonNullList(
+        MediaInput,
+        description="List of media inputs associated with the product.",
+        required=False,
+    )
+    channel_listings = NonNullList(
+        ProductChannelListingCreateInput,
+        description="List of channels in which the product is available.",
+        required=False,
+    )
     variants = NonNullList(
         ProductVariantBulkCreateInput,
         required=False,
@@ -172,13 +194,14 @@ class ProductBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates products." + ADDED_IN_313 + PREVIEW_FEATURE
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductBulkCreateError
         support_meta_field = True
         support_private_meta_field = True
 
     @classmethod
-    def generate_unique_slug(cls, slugable_value):
+    def generate_unique_slug(cls, slugable_value, new_slugs):
         slug = slugify(unidecode(slugable_value))
 
         search_field = "slug__iregex"
@@ -188,13 +211,16 @@ class ProductBulkCreate(BaseMutation):
         slug_values = models.Product.objects.filter(**lookup).values_list(
             "slug", flat=True
         )
-
+        slug_values = list(slug_values) + new_slugs
         unique_slug = prepare_unique_slug(slug, slug_values)
+        new_slugs.append(unique_slug)
 
         return unique_slug
 
     @classmethod
-    def clean_base_fields(cls, cleaned_input, product_index, index_error_map):
+    def clean_base_fields(
+        cls, cleaned_input, new_slugs, product_index, index_error_map
+    ):
         base_fields_errors_count = 0
 
         weight = cleaned_input.get("weight")
@@ -215,7 +241,7 @@ class ProductBulkCreate(BaseMutation):
 
         slug = cleaned_input.get("slug")
         if not slug and "name" in cleaned_input:
-            slug = cls.generate_unique_slug(cleaned_input["name"])
+            slug = cls.generate_unique_slug(cleaned_input["name"], new_slugs)
             cleaned_input["slug"] = slug
 
         clean_seo_fields(cleaned_input)
@@ -480,6 +506,7 @@ class ProductBulkCreate(BaseMutation):
         channel_global_id_to_instance_map: dict,
         warehouse_global_id_to_instance_map: dict,
         duplicated_sku: set,
+        new_slugs: list,
         product_index: int,
         index_error_map: dict,
     ):
@@ -496,6 +523,7 @@ class ProductBulkCreate(BaseMutation):
 
         base_fields_errors_count += cls.clean_base_fields(
             cleaned_input,
+            new_slugs,
             product_index,
             index_error_map,
         )
@@ -538,6 +566,7 @@ class ProductBulkCreate(BaseMutation):
     @classmethod
     def clean_products(cls, info, products_data, index_error_map):
         cleaned_inputs_map: dict = {}
+        new_slugs: list = []
 
         warehouse_global_id_to_instance_map = {
             graphene.Node.to_global_id("Warehouse", warehouse.id): warehouse
@@ -565,6 +594,7 @@ class ProductBulkCreate(BaseMutation):
                 channel_global_id_to_instance_map,
                 warehouse_global_id_to_instance_map,
                 duplicated_sku,
+                new_slugs,
                 product_index,
                 index_error_map,
             )
