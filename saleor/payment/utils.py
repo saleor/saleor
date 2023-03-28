@@ -95,7 +95,6 @@ def create_checkout_payment_lines_information(
             lines,
             line_info,
             address,
-            [],
         )
         unit_gross = unit_price.gross.amount
 

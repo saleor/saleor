@@ -411,7 +411,6 @@ def test_calculate_checkout_line_unit_price_use_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
 
     # when
@@ -454,14 +453,12 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
     manager.calculate_checkout_line_unit_price(
         checkout_info,
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
     # Second Avatax call to make sure that we use cached response
 

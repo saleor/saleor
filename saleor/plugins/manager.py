@@ -436,7 +436,6 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
@@ -459,7 +458,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
         return quantize_price(unit_price, checkout_info.checkout.currency)

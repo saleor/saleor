@@ -2633,7 +2633,6 @@ def test_calculate_checkout_line_unit_price(
         lines,
         checkout_line,
         checkout.shipping_address,
-        [],
     )
 
     if charge_taxes:
@@ -2681,7 +2680,6 @@ def test_calculate_checkout_line_unit_price_in_JPY(
         lines,
         checkout_line,
         checkout.shipping_address,
-        [],
     )
     assert line_price == TaxedMoney(net=Money("976", "JPY"), gross=Money("1200", "JPY"))
 
@@ -2727,7 +2725,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale(
         lines,
         checkout_line,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -2787,7 +2784,6 @@ def test_calculate_checkout_line_unit_price_with_voucher(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then
@@ -2848,7 +2844,6 @@ def test_calculate_checkout_line_unit_price_with_voucher_once_per_order(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then
@@ -2913,7 +2908,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher(
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -2978,7 +2972,6 @@ def test_calculate_checkout_line_unit_price_with_variant_on_sale_and_voucher_onl
         lines,
         checkout_line_info,
         checkout.shipping_address,
-        discounts=[discount_info],
     )
 
     # then
@@ -5574,7 +5567,6 @@ def test_calculate_checkout_line_unit_price_validates_checkout(
         lines,
         lines[0],
         checkout.shipping_address,
-        discounts=[],
     )
 
     # then

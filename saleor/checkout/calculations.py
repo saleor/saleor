@@ -421,7 +421,6 @@ def _apply_tax_data_from_plugins(
             lines,
             line_info,
             address,
-            [],
         )
 
         line.tax_rate = manager.get_checkout_line_tax_rate(

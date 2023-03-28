@@ -508,7 +508,6 @@ class AvataxPlugin(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
         base_total = previous_value
@@ -524,7 +523,7 @@ class AvataxPlugin(BasePlugin):
 
         quantity = checkout_line_info.line.quantity
         taxes_data = self._get_checkout_tax_data(
-            checkout_info, lines, discounts, previous_value
+            checkout_info, lines, [], previous_value
         )
         if not taxes_data or "error" in taxes_data:
             return previous_value

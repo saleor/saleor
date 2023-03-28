@@ -471,7 +471,6 @@ def test_manager_calculates_checkout_line_unit_price(
         lines,
         checkout_line_info,
         address,
-        [],
     )
     currency = total_line_price.net.currency
     expected_net = Money(
