@@ -178,7 +178,7 @@ def validate_checkout(
     # call plugin's hooks to validate if we are able to create an order
     # can raise TaxError
     try:
-        manager.preprocess_order_creation(checkout_info, [], lines)
+        manager.preprocess_order_creation(checkout_info, lines)
     except TaxError as tax_error:
         raise ValidationError(
             f"Unable to calculate taxes - {str(tax_error)}",

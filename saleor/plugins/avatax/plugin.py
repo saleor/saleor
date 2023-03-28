@@ -293,7 +293,6 @@ class AvataxPlugin(BasePlugin):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        discounts: Iterable[DiscountInfo],
         lines: Optional[Iterable["CheckoutLineInfo"]],
         previous_value: Any,
     ):
@@ -318,7 +317,7 @@ class AvataxPlugin(BasePlugin):
             self.config,
             transaction_token=str(checkout_info.checkout.token),
             transaction_type=TransactionType.ORDER,
-            discounts=discounts,
+            discounts=[],
         )
         if not data.get("createTransactionModel", {}).get("lines"):
             return previous_value

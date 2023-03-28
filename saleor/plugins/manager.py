@@ -29,7 +29,6 @@ from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
-from ..discount import DiscountInfo
 from ..graphql.core import ResolveInfo, SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
@@ -559,7 +558,6 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        discounts: Iterable[DiscountInfo],
         lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     ):
         default_value = None
@@ -567,7 +565,6 @@ class PluginsManager(PaymentInterface):
             "preprocess_order_creation",
             default_value,
             checkout_info,
-            discounts,
             lines,
             channel_slug=checkout_info.channel.slug,
         )

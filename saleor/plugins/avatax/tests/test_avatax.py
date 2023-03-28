@@ -3009,7 +3009,7 @@ def test_preprocess_order_creation(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    manager.preprocess_order_creation(checkout_info, [discount_info], lines)
+    manager.preprocess_order_creation(checkout_info, lines)
 
 
 @pytest.mark.vcr
@@ -3041,7 +3041,7 @@ def test_preprocess_order_creation_no_lines_data(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    manager.preprocess_order_creation(checkout_info, [discount_info])
+    manager.preprocess_order_creation(checkout_info)
 
 
 @pytest.mark.vcr
@@ -3071,7 +3071,7 @@ def test_preprocess_order_creation_wrong_data(
         checkout_info, lines, [discount_info]
     )
     with pytest.raises(TaxError):
-        manager.preprocess_order_creation(checkout_info, [discount_info], lines)
+        manager.preprocess_order_creation(checkout_info, lines)
 
 
 @pytest.mark.vcr
@@ -3113,7 +3113,7 @@ def test_preprocess_order_creation_shipping_voucher_no_tax_class_on_delivery_met
         checkout_info, lines, [discount_info]
     )
 
-    manager.preprocess_order_creation(checkout_info, [discount_info])
+    manager.preprocess_order_creation(checkout_info)
 
 
 @pytest.mark.vcr
@@ -4186,7 +4186,7 @@ def test_plugin_uses_configuration_from_db(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines, [discount_info]
     )
-    manager.preprocess_order_creation(checkout_info, [discount_info], lines)
+    manager.preprocess_order_creation(checkout_info, lines)
 
     field_to_update = [
         {"name": "Username or account", "value": "New value"},
@@ -4197,7 +4197,7 @@ def test_plugin_uses_configuration_from_db(
 
     manager = get_plugins_manager()
     with pytest.raises(TaxError):
-        manager.preprocess_order_creation(checkout_info, [discount_info], lines)
+        manager.preprocess_order_creation(checkout_info, lines)
 
 
 def test_skip_disabled_plugin(settings, plugin_configuration):

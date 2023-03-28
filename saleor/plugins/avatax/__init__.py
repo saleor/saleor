@@ -500,6 +500,7 @@ def generate_request_data_from_checkout(
     transaction_type=TransactionType.ORDER,
     discounts=None,
 ):
+    # TODO Owczar: Drop discounts
     shipping_address = checkout_info.delivery_method_info.shipping_address
     address = shipping_address or checkout_info.billing_address
     lines = generate_request_data_from_checkout_lines(
