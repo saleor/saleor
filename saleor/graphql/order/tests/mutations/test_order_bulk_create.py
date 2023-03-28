@@ -850,6 +850,122 @@ def test_order_bulk_create_stock_update(
     assert stock_variant_2_warehouse_2.quantity == 83
 
 
+def test_order_bulk_create_stock_update_insufficient_stock(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    product_variant_list,
+    warehouses,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+
+    variant_1 = product_variant_list[0]
+    variant_2 = product_variant_list[1]
+    warehouse_1 = warehouses[0]
+    warehouse_2 = warehouses[1]
+
+    stock_variant_1_warehouse_1 = Stock.objects.create(
+        product_variant=variant_1, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_2_warehouse_1 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_2_warehouse_2 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_2, quantity=1
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == (
+        f"Insufficient stock for product variant: {variant_2.id} and warehouse: "
+        f"{warehouse_2.id}."
+    )
+    assert error["field"] == "order_line"
+    assert error["code"] == OrderBulkCreateErrorCode.INSUFFICIENT_STOCK.name
+
+    stock_variant_1_warehouse_1.refresh_from_db()
+    stock_variant_2_warehouse_1.refresh_from_db()
+    stock_variant_2_warehouse_2.refresh_from_db()
+
+    assert stock_variant_1_warehouse_1.quantity == 100
+    assert stock_variant_2_warehouse_1.quantity == 100
+    assert stock_variant_2_warehouse_2.quantity == 1
+
+
+def test_order_bulk_create_stock_update_insufficient_stock_with_force_update_policy(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    product_variant_list,
+    warehouses,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+
+    variant_1 = product_variant_list[0]
+    variant_2 = product_variant_list[1]
+    warehouse_1 = warehouses[0]
+    warehouse_2 = warehouses[1]
+
+    stock_variant_1_warehouse_1 = Stock.objects.create(
+        product_variant=variant_1, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_2_warehouse_1 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_1, quantity=100
+    )
+    stock_variant_2_warehouse_2 = Stock.objects.create(
+        product_variant=variant_2, warehouse=warehouse_2, quantity=1
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.FORCE.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    stock_variant_1_warehouse_1.refresh_from_db()
+    stock_variant_2_warehouse_1.refresh_from_db()
+    stock_variant_2_warehouse_2.refresh_from_db()
+
+    assert stock_variant_1_warehouse_1.quantity == 90
+    assert stock_variant_2_warehouse_1.quantity == 67
+    assert stock_variant_2_warehouse_2.quantity == -16
+
+
 @pytest.mark.parametrize(
     "error_policy,expected_order_count",
     [

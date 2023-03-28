@@ -1309,6 +1309,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for order in orders:
             order.set_quantity_fulfilled()
             order.set_fulfillment_order()
+            if order.is_critical_error:
+                order.order = None
 
         addresses = []
         for order in orders:
