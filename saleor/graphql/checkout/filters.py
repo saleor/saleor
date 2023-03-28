@@ -7,6 +7,7 @@ from ...account.models import User
 from ...checkout.models import Checkout
 from ...payment.models import Payment
 from ..channel.types import Channel
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -119,4 +120,5 @@ class CheckoutFilter(MetadataFilterBase):
 
 class CheckoutFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
         filterset_class = CheckoutFilter

@@ -7,6 +7,7 @@ from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelMutation
 from ...core.scalars import Decimal
+from ...core.types import BaseInputObjectType
 from ...core.types.common import Error
 from ..enums import OrderGrantRefundUpdateErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -15,10 +16,16 @@ from ..types import Order, OrderGrantedRefund
 class OrderGrantRefundUpdateError(Error):
     code = OrderGrantRefundUpdateErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderGrantRefundUpdateInput(graphene.InputObjectType):
+
+class OrderGrantRefundUpdateInput(BaseInputObjectType):
     amount = Decimal(description="Amount of the granted refund.")
     reason = graphene.String(description="Reason of the granted refund.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderGrantRefundUpdate(ModelMutation):

@@ -1,4 +1,5 @@
 from ...app.types import AppExtensionMount, AppExtensionTarget, AppType
+from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.enums import to_enum
 
 
@@ -20,9 +21,14 @@ def description(enum):
 
 
 AppTypeEnum = to_enum(AppType, description=description)
+AppTypeEnum.doc_category = DOC_CATEGORY_APPS
+
 AppExtensionMountEnum = to_enum(
     AppExtensionMount, description=AppExtensionMount.__doc__
 )
+AppExtensionMountEnum.doc_category = DOC_CATEGORY_APPS
+
 AppExtensionTargetEnum = to_enum(
     AppExtensionTarget, description=AppExtensionTarget.__doc__
 )
+AppExtensionTargetEnum.doc_category = DOC_CATEGORY_APPS

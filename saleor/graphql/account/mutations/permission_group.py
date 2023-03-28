@@ -23,13 +23,13 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types import NonNullList, PermissionGroupError
+from ...core.types import BaseInputObjectType, NonNullList, PermissionGroupError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Group
 
 
-class PermissionGroupInput(graphene.InputObjectType):
+class PermissionGroupInput(BaseInputObjectType):
     add_permissions = NonNullList(
         PermissionEnum,
         description="List of permission code names to assign to this group.",
@@ -41,9 +41,15 @@ class PermissionGroupInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class PermissionGroupCreate(ModelMutation):
@@ -197,6 +203,9 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
         description="List of users to unassign from this group.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class PermissionGroupUpdate(PermissionGroupCreate):

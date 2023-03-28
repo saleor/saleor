@@ -17,8 +17,14 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import ConnectionField, PermissionsField
-from ..core.types import ModelObjectType, NonNullList
+from ..core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    ModelObjectType,
+    NonNullList,
+)
 from ..meta.types import ObjectWithMetadata
 from ..product.dataloaders import ProductVariantByIdLoader
 from ..site.dataloaders import load_site_callback
@@ -26,12 +32,15 @@ from .dataloaders import WarehouseByIdLoader
 from .enums import WarehouseClickAndCollectOptionEnum
 
 
-class WarehouseInput(graphene.InputObjectType):
+class WarehouseInput(BaseInputObjectType):
     slug = graphene.String(description="Warehouse slug.")
     email = graphene.String(description="The email address of the warehouse.")
     external_reference = graphene.String(
         description="External ID of the warehouse." + ADDED_IN_310, required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class WarehouseCreateInput(WarehouseInput):
@@ -47,6 +56,9 @@ class WarehouseCreateInput(WarehouseInput):
         + DEPRECATED_IN_3X_INPUT
         + " Providing the zone ids will raise a ValidationError.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class WarehouseUpdateInput(WarehouseInput):
@@ -68,6 +80,9 @@ class WarehouseUpdateInput(WarehouseInput):
         description="Visibility of warehouse stocks." + ADDED_IN_31 + PREVIEW_FEATURE,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class Warehouse(ModelObjectType[models.Warehouse]):
@@ -144,6 +159,7 @@ class Warehouse(ModelObjectType[models.Warehouse]):
 
 class WarehouseCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Warehouse
 
 
@@ -232,10 +248,11 @@ class Stock(ModelObjectType[models.Stock]):
 
 class StockCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Stock
 
 
-class Allocation(graphene.ObjectType):
+class Allocation(BaseObjectType):
     id = graphene.GlobalID(required=True)
     quantity = PermissionsField(
         graphene.Int,
@@ -258,6 +275,7 @@ class Allocation(graphene.ObjectType):
 
     class Meta:
         description = "Represents allocation."
+        doc_category = DOC_CATEGORY_PRODUCTS
         model = models.Allocation
         interfaces = [graphene.relay.Node]
 

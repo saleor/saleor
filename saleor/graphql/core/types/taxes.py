@@ -21,6 +21,8 @@ from ...checkout.dataloaders import (
     CheckoutLinesByCheckoutTokenLoader,
     CheckoutLinesInfoByCheckoutTokenLoader,
 )
+from ...core.doc_category import DOC_CATEGORY_TAXES
+from ...core.types import BaseObjectType
 from ...discount.dataloaders import (
     DiscountsByDateTimeLoader,
     OrderDiscountsByOrderIDLoader,
@@ -66,7 +68,7 @@ class TaxSourceLine(graphene.Union):
         return super(TaxSourceLine, cls).resolve_type(instance, info)
 
 
-class TaxableObjectLine(graphene.ObjectType):
+class TaxableObjectLine(BaseObjectType):
     source_line = graphene.Field(
         TaxSourceLine,
         required=True,
@@ -87,6 +89,9 @@ class TaxableObjectLine(graphene.ObjectType):
     total_price = graphene.Field(
         Money, description="Price of the order line.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_variant_name(root: Union[CheckoutLine, OrderLine], info: ResolveInfo):
@@ -289,17 +294,18 @@ class TaxableObjectLine(graphene.ObjectType):
         return root.base_unit_price * root.quantity
 
 
-class TaxableObjectDiscount(graphene.ObjectType):
+class TaxableObjectDiscount(BaseObjectType):
     name = graphene.String(description="The name of the discount.")
     amount = graphene.Field(
         Money, description="The amount of the discount.", required=True
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_TAXES
         description = "Taxable object discount."
 
 
-class TaxableObject(graphene.ObjectType):
+class TaxableObject(BaseObjectType):
     source_object = graphene.Field(
         TaxSourceObject,
         required=True,
@@ -328,6 +334,7 @@ class TaxableObject(graphene.ObjectType):
 
     class Meta:
         description = "Taxable object."
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_channel(root: Union[Checkout, Order], info: ResolveInfo):

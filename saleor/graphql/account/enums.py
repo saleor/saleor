@@ -9,7 +9,9 @@ from ..core.types import BaseEnum
 from ..core.utils import str_to_enum
 
 AddressTypeEnum = to_enum(AddressType, type_name="AddressTypeEnum")
+
 CustomerEventsEnum = to_enum(CustomerEvents)
+CustomerEventsEnum.doc_category = DOC_CATEGORY_USERS
 
 
 CountryCodeEnum = graphene.Enum(

@@ -1517,7 +1517,7 @@ type WebhookEvent @doc(category: "Webhooks") {
 }
 
 """Enum determining type of webhook."""
-enum WebhookEventTypeEnum {
+enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
@@ -2038,7 +2038,7 @@ type WebhookEventSync @doc(category: "Webhooks") {
 }
 
 """Enum determining type of webhook."""
-enum WebhookEventTypeSyncEnum {
+enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   """Authorize payment."""
   PAYMENT_AUTHORIZE
 
@@ -2125,7 +2125,7 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 }
 
 """Enum determining type of webhook."""
-enum WebhookEventTypeAsyncEnum {
+enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
@@ -2756,7 +2756,7 @@ type Permission {
 }
 
 """An enumeration."""
-enum PermissionEnum {
+enum PermissionEnum @doc(category: "Users") {
   MANAGE_USERS
   MANAGE_STAFF
   IMPERSONATE_USER
@@ -2790,7 +2790,7 @@ value as specified by
 scalar DateTime
 
 """Enum determining type of your App."""
-enum AppTypeEnum {
+enum AppTypeEnum @doc(category: "Apps") {
   """
   Local Saleor App. The app is fully manageable from dashboard. You can change assigned permissions, add webhooks, or authentication token
   """
@@ -2838,7 +2838,7 @@ type AppExtension implements Node @doc(category: "Apps") {
 }
 
 """All places where app extension can be mounted."""
-enum AppExtensionMountEnum {
+enum AppExtensionMountEnum @doc(category: "Apps") {
   CUSTOMER_OVERVIEW_CREATE
   CUSTOMER_OVERVIEW_MORE_ACTIONS
   CUSTOMER_DETAILS_MORE_ACTIONS
@@ -2862,7 +2862,7 @@ All available ways of opening an app extension.
     POPUP - app's extension will be mounted as a popup window
     APP_PAGE - redirect to app's page
 """
-enum AppExtensionTargetEnum {
+enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
 }
@@ -2934,7 +2934,7 @@ type EventDelivery implements Node {
   payload: String
 }
 
-enum EventDeliveryStatusEnum {
+enum EventDeliveryStatusEnum @doc(category: "Webhooks") {
   PENDING
   SUCCESS
   FAILED
@@ -2986,7 +2986,7 @@ type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
   status: EventDeliveryStatusEnum!
 }
 
-input EventDeliveryAttemptSortingInput {
+input EventDeliveryAttemptSortingInput @doc(category: "Webhooks") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -3002,12 +3002,12 @@ enum OrderDirection {
   DESC
 }
 
-enum EventDeliveryAttemptSortField {
+enum EventDeliveryAttemptSortField @doc(category: "Webhooks") {
   """Sort event delivery attempts by created at."""
   CREATED_AT
 }
 
-input EventDeliverySortingInput {
+input EventDeliverySortingInput @doc(category: "Webhooks") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -3015,7 +3015,7 @@ input EventDeliverySortingInput {
   field: EventDeliverySortField!
 }
 
-enum EventDeliverySortField {
+enum EventDeliverySortField @doc(category: "Webhooks") {
   """Sort event deliveries by created at."""
   CREATED_AT
 }
@@ -3028,7 +3028,7 @@ input EventDeliveryFilterInput {
 scalar JSONString
 
 """An enumeration."""
-enum WebhookSampleEventTypeEnum {
+enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -3345,7 +3345,7 @@ type ReducedRate {
 }
 
 """An enumeration."""
-enum WarehouseClickAndCollectOptionEnum {
+enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
   DISABLED
   LOCAL
   ALL
@@ -3591,7 +3591,7 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
 }
 
 """An enumeration."""
-enum ShippingMethodTypeEnum {
+enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   PRICE
   WEIGHT
 }
@@ -4512,7 +4512,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingMethodsPerCountry {
+type ShippingMethodsPerCountry @doc(category: "Shipping") {
   """The country code."""
   countryCode: CountryCode!
 
@@ -4777,7 +4777,7 @@ enum CountryCode {
 """
 Shipping methods that can be used as means of shipping for orders and checkouts.
 """
-type ShippingMethod implements Node & ObjectWithMetadata {
+type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shipping") {
   """Unique ID of ShippingMethod available for Order."""
   id: ID!
 
@@ -4898,7 +4898,7 @@ Determine the allocation strategy for the channel.
 
     PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
 """
-enum AllocationStrategyEnum {
+enum AllocationStrategyEnum @doc(category: "Products") {
   PRIORITIZE_SORTING_ORDER
   PRIORITIZE_HIGH_STOCK
 }
@@ -4936,7 +4936,7 @@ Determine the mark as paid strategy for the channel.
     PAYMENT_FLOW - new orders marked as paid will receive a
     `Payment` object, that will cover the `order.total`.
 """
-enum MarkAsPaidStrategyEnum {
+enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
   TRANSACTION_FLOW
   PAYMENT_FLOW
 }
@@ -4957,7 +4957,7 @@ type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
 }
 
 """An enumeration."""
-enum PostalCodeRuleInclusionTypeEnum {
+enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
   INCLUDE
   EXCLUDE
 }
@@ -5326,13 +5326,13 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
 }
 
 """An enumeration."""
-enum ProductTypeKindEnum {
+enum ProductTypeKindEnum @doc(category: "Products") {
   NORMAL
   GIFT_CARD
 }
 
 """Representation of tax types fetched from tax gateway."""
-type TaxType {
+type TaxType @doc(category: "Taxes") {
   """Description of the tax type."""
   description: String
 
@@ -5587,7 +5587,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
 }
 
 """An enumeration."""
-enum AttributeInputTypeEnum {
+enum AttributeInputTypeEnum @doc(category: "Attributes") {
   DROPDOWN
   MULTISELECT
   FILE
@@ -5602,14 +5602,14 @@ enum AttributeInputTypeEnum {
 }
 
 """An enumeration."""
-enum AttributeEntityTypeEnum {
+enum AttributeEntityTypeEnum @doc(category: "Attributes") {
   PAGE
   PRODUCT
   PRODUCT_VARIANT
 }
 
 """An enumeration."""
-enum AttributeTypeEnum {
+enum AttributeTypeEnum @doc(category: "Attributes") {
   PRODUCT_TYPE
   PAGE_TYPE
 }
@@ -6124,7 +6124,7 @@ type CategoryCountableEdge {
   cursor: String!
 }
 
-input ProductFilterInput {
+input ProductFilterInput @doc(category: "Products") {
   isPublished: Boolean
   collections: [ID!]
   categories: [ID!]
@@ -6238,7 +6238,7 @@ enum StockAvailability @doc(category: "Products") {
   OUT_OF_STOCK
 }
 
-input ProductStockFilterInput {
+input ProductStockFilterInput @doc(category: "Products") {
   warehouseIds: [ID!]
   quantity: IntRangeInput
 }
@@ -6562,7 +6562,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
 }
 
 """Represents product varaint channel listing."""
-type ProductVariantChannelListing implements Node {
+type ProductVariantChannelListing implements Node @doc(category: "Products") {
   id: ID!
   channel: Channel!
   price: Money
@@ -6588,7 +6588,7 @@ type ProductVariantChannelListing implements Node {
 }
 
 """Represents preorder variant data for channel."""
-type PreorderThreshold {
+type PreorderThreshold @doc(category: "Products") {
   """Preorder threshold for product variant in this channel."""
   quantity: Int
 
@@ -6597,7 +6597,7 @@ type PreorderThreshold {
 }
 
 """Represents availability of a variant in the storefront."""
-type VariantPricingInfo {
+type VariantPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
   onSale: Boolean
 
@@ -6684,7 +6684,7 @@ enum ReportingPeriod {
 }
 
 """Represents a product image."""
-type ProductImage {
+type ProductImage @doc(category: "Products") {
   """The ID of the image."""
   id: ID!
 
@@ -6802,7 +6802,7 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
 }
 
 """An enumeration."""
-enum ProductMediaType {
+enum ProductMediaType @doc(category: "Products") {
   IMAGE
   VIDEO
 }
@@ -6920,7 +6920,7 @@ type Stock implements Node @doc(category: "Products") {
 }
 
 """Represents preorder settings for product variant."""
-type PreorderData {
+type PreorderData @doc(category: "Products") {
   """
   The global preorder threshold for product variant.
   
@@ -6940,7 +6940,7 @@ type PreorderData {
 }
 
 """Represents availability of a product in the storefront."""
-type ProductPricingInfo {
+type ProductPricingInfo @doc(category: "Products") {
   """Whether it is in sale or not."""
   onSale: Boolean
 
@@ -6981,7 +6981,7 @@ type TaxedMoneyRange {
 }
 
 """Represents product channel listing."""
-type ProductChannelListing implements Node {
+type ProductChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7034,7 +7034,7 @@ type ProductChannelListing implements Node {
   ): ProductPricingInfo
 }
 
-type Margin {
+type Margin @doc(category: "Products") {
   start: Int
   stop: Int
 }
@@ -7238,7 +7238,7 @@ type ProductTranslation implements Node {
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
-type WarehouseCountableConnection {
+type WarehouseCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [WarehouseCountableEdge!]!
@@ -7255,7 +7255,7 @@ type WarehouseCountableEdge {
   cursor: String!
 }
 
-input WarehouseFilterInput {
+input WarehouseFilterInput @doc(category: "Products") {
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
   search: String
   ids: [ID!]
@@ -7264,7 +7264,7 @@ input WarehouseFilterInput {
   slugs: [String!]
 }
 
-input WarehouseSortingInput {
+input WarehouseSortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -7272,7 +7272,7 @@ input WarehouseSortingInput {
   field: WarehouseSortField!
 }
 
-enum WarehouseSortField {
+enum WarehouseSortField @doc(category: "Products") {
   """Sort warehouses by name."""
   NAME
 }
@@ -7891,7 +7891,7 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   currency: String
 }
 
-enum SaleType {
+enum SaleType @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
 }
@@ -8132,12 +8132,12 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   channelListings: [VoucherChannelListing!]
 }
 
-enum DiscountValueTypeEnum {
+enum DiscountValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
 }
 
-enum VoucherTypeEnum {
+enum VoucherTypeEnum @doc(category: "Discounts") {
   SHIPPING
   ENTIRE_ORDER
   SPECIFIC_PRODUCT
@@ -8404,7 +8404,7 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   countries: [TaxConfigurationPerCountry!]!
 }
 
-enum TaxCalculationStrategy {
+enum TaxCalculationStrategy @doc(category: "Taxes") {
   FLAT_RATES
   TAX_APP
 }
@@ -8507,7 +8507,7 @@ type TaxCountryConfiguration @doc(category: "Taxes") {
   taxClassCountryRates: [TaxClassCountryRate!]!
 }
 
-type StockCountableConnection {
+type StockCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [StockCountableEdge!]!
@@ -8524,7 +8524,7 @@ type StockCountableEdge {
   cursor: String!
 }
 
-input StockFilterInput {
+input StockFilterInput @doc(category: "Products") {
   quantity: Float
   search: String
 }
@@ -8741,7 +8741,7 @@ type Shop {
 """
 Available payment gateway backend with configuration necessary to setup client.
 """
-type PaymentGateway {
+type PaymentGateway @doc(category: "Payments") {
   """Payment gateway name."""
   name: String!
 
@@ -8756,7 +8756,7 @@ type PaymentGateway {
 }
 
 """Payment gateway client configuration key and value pair."""
-type GatewayConfigLine {
+type GatewayConfigLine @doc(category: "Payments") {
   """Gateway config key."""
   field: String!
 
@@ -9389,7 +9389,7 @@ type GiftCardEvent implements Node {
 }
 
 """An enumeration."""
-enum GiftCardEventsEnum {
+enum GiftCardEventsEnum @doc(category: "Gift cards") {
   ISSUED
   BOUGHT
   UPDATED
@@ -9404,7 +9404,7 @@ enum GiftCardEventsEnum {
   USED_IN_ORDER
 }
 
-type GiftCardEventBalance {
+type GiftCardEventBalance @doc(category: "Gift cards") {
   """Initial balance of the gift card."""
   initialBalance: Money
 
@@ -9418,7 +9418,7 @@ type GiftCardEventBalance {
   oldCurrentBalance: Money
 }
 
-input GiftCardEventFilterInput {
+input GiftCardEventFilterInput @doc(category: "Gift cards") {
   type: GiftCardEventsEnum
   orders: [ID!]
 }
@@ -9700,7 +9700,7 @@ Represents possible actions on payment transaction.
     in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
     CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
-enum TransactionActionEnum {
+enum TransactionActionEnum @doc(category: "Payments") {
   CHARGE
   REFUND
   VOID
@@ -10116,7 +10116,7 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
 }
 
 """An enumeration."""
-enum OrderStatus {
+enum OrderStatus @doc(category: "Orders") {
   DRAFT
   UNCONFIRMED
   UNFULFILLED
@@ -10192,7 +10192,7 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
 }
 
 """An enumeration."""
-enum FulfillmentStatus {
+enum FulfillmentStatus @doc(category: "Orders") {
   FULFILLED
   REFUNDED
   RETURNED
@@ -10388,7 +10388,7 @@ Should be used in places where value must be nonnegative (0 or greater).
 scalar PositiveDecimal
 
 """Represents allocation."""
-type Allocation implements Node {
+type Allocation implements Node @doc(category: "Products") {
   id: ID!
 
   """
@@ -10406,7 +10406,7 @@ type Allocation implements Node {
   warehouse: Warehouse!
 }
 
-enum OrderAction {
+enum OrderAction @doc(category: "Payments") {
   """Represents the capture action."""
   CAPTURE
 
@@ -10513,14 +10513,14 @@ enum JobStatusEnum {
 }
 
 """An enumeration."""
-enum OrderOriginEnum {
+enum OrderOriginEnum @doc(category: "Orders") {
   CHECKOUT
   DRAFT
   REISSUE
 }
 
 """An enumeration."""
-enum PaymentChargeStatusEnum {
+enum PaymentChargeStatusEnum @doc(category: "Payments") {
   NOT_CHARGED
   PENDING
   PARTIALLY_CHARGED
@@ -10547,7 +10547,7 @@ Determine a current authorize status for order.
     FULL - the funds that are authorized and charged fully cover the
     `order.total`-`order.totalGrantedRefund`
 """
-enum OrderAuthorizeStatusEnum {
+enum OrderAuthorizeStatusEnum @doc(category: "Orders") {
   NONE
   PARTIAL
   FULL
@@ -10573,7 +10573,7 @@ Determine the current charge status for the order.
     OVERCHARGED - the charged funds are bigger than the
     `order.total`-`order.totalGrantedRefund`
 """
-enum OrderChargeStatusEnum {
+enum OrderChargeStatusEnum @doc(category: "Orders") {
   NONE
   PARTIAL
   FULL
@@ -10702,7 +10702,7 @@ type Transaction implements Node @doc(category: "Payments") {
 }
 
 """An enumeration."""
-enum TransactionKind {
+enum TransactionKind @doc(category: "Payments") {
   EXTERNAL
   AUTH
   PENDING
@@ -10715,7 +10715,7 @@ enum TransactionKind {
   CANCEL
 }
 
-type CreditCard {
+type CreditCard @doc(category: "Payments") {
   """Card brand."""
   brand: String!
 
@@ -10812,7 +10812,7 @@ type OrderEvent implements Node @doc(category: "Orders") {
 }
 
 """The different order event types."""
-enum OrderEventsEnum {
+enum OrderEventsEnum @doc(category: "Orders") {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
   ADDED_PRODUCTS
@@ -10873,7 +10873,7 @@ enum OrderEventsEnum {
 }
 
 """An enumeration."""
-enum OrderEventsEmailsEnum {
+enum OrderEventsEmailsEnum @doc(category: "Orders") {
   PAYMENT_CONFIRMATION
   CONFIRMED
   SHIPPING_CONFIRMATION
@@ -10885,7 +10885,7 @@ enum OrderEventsEmailsEnum {
   DIGITAL_LINKS
 }
 
-type OrderEventOrderLineObject {
+type OrderEventOrderLineObject @doc(category: "Orders") {
   """The variant quantity."""
   quantity: Int
 
@@ -10930,7 +10930,7 @@ Represents a status of payment transaction.
     FAILURE - Represents a failure action.
     PENDING - Represents a pending action.
 """
-enum TransactionStatus {
+enum TransactionStatus @doc(category: "Payments") {
   PENDING
   SUCCESS
   FAILURE
@@ -10961,12 +10961,12 @@ type OrderDiscount implements Node @doc(category: "Discounts") {
 }
 
 """An enumeration."""
-enum OrderDiscountType {
+enum OrderDiscountType @doc(category: "Discounts") {
   VOUCHER
   MANUAL
 }
 
-type OrderError {
+type OrderError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -10992,7 +10992,7 @@ type OrderError {
 }
 
 """An enumeration."""
-enum OrderErrorCode {
+enum OrderErrorCode @doc(category: "Orders") {
   BILLING_ADDRESS_NOT_SET
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
@@ -11040,7 +11040,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderGrantedRefund {
+type OrderGrantedRefund @doc(category: "Orders") {
   id: ID!
 
   """Time of creation."""
@@ -11145,7 +11145,7 @@ Represents possible event types.
     CANCEL_REQUEST - represents cancel request.
     INFO - represents info event.
 """
-enum TransactionEventTypeEnum {
+enum TransactionEventTypeEnum @doc(category: "Payments") {
   AUTHORIZATION_SUCCESS
   AUTHORIZATION_FAILURE
   AUTHORIZATION_ADJUSTMENT
@@ -11283,7 +11283,7 @@ type CustomerEvent implements Node @doc(category: "Users") {
 }
 
 """An enumeration."""
-enum CustomerEventsEnum {
+enum CustomerEventsEnum @doc(category: "Users") {
   ACCOUNT_CREATED
   ACCOUNT_ACTIVATED
   ACCOUNT_DEACTIVATED
@@ -11304,7 +11304,7 @@ enum CustomerEventsEnum {
 """
 Represents a payment source stored for user in payment gateway, such as credit card.
 """
-type PaymentSource {
+type PaymentSource @doc(category: "Payments") {
   """Payment gateway name."""
   gateway: String!
 
@@ -11350,7 +11350,7 @@ type GiftCardSettings {
 }
 
 """An enumeration."""
-enum GiftCardSettingsExpiryTypeEnum {
+enum GiftCardSettingsExpiryTypeEnum @doc(category: "Gift cards") {
   NEVER_EXPIRE
   EXPIRY_PERIOD
 }
@@ -11371,7 +11371,7 @@ enum TimePeriodTypeEnum {
   YEAR
 }
 
-input ShippingZoneFilterInput {
+input ShippingZoneFilterInput @doc(category: "Shipping") {
   search: String
   channels: [ID!]
 }
@@ -11393,7 +11393,7 @@ type DigitalContentCountableEdge {
   cursor: String!
 }
 
-input CategoryFilterInput {
+input CategoryFilterInput @doc(category: "Products") {
   search: String
   metadata: [MetadataFilter!]
   ids: [ID!]
@@ -11426,7 +11426,7 @@ enum CategorySortField @doc(category: "Products") {
   SUBCATEGORY_COUNT
 }
 
-input CollectionFilterInput {
+input CollectionFilterInput @doc(category: "Products") {
   published: CollectionPublished
   search: String
   metadata: [MetadataFilter!]
@@ -11490,7 +11490,7 @@ enum CollectionSortField @doc(category: "Products") {
   PUBLISHED_AT
 }
 
-input ProductTypeFilterInput {
+input ProductTypeFilterInput @doc(category: "Products") {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
@@ -11529,7 +11529,7 @@ enum ProductTypeSortField @doc(category: "Products") {
   SHIPPING_REQUIRED
 }
 
-input ProductVariantFilterInput {
+input ProductVariantFilterInput @doc(category: "Products") {
   search: String
   sku: [String!]
   metadata: [MetadataFilter!]
@@ -11567,7 +11567,7 @@ type PaymentCountableEdge {
   cursor: String!
 }
 
-input PaymentFilterInput {
+input PaymentFilterInput @doc(category: "Payments") {
   """
   Filter by ids. 
   
@@ -11594,7 +11594,7 @@ type PageCountableEdge {
   cursor: String!
 }
 
-input PageSortingInput {
+input PageSortingInput @doc(category: "Pages") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -11602,7 +11602,7 @@ input PageSortingInput {
   field: PageSortField!
 }
 
-enum PageSortField {
+enum PageSortField @doc(category: "Pages") {
   """Sort pages by title."""
   TITLE
 
@@ -11641,7 +11641,7 @@ enum PageSortField {
   CREATED_AT
 }
 
-input PageFilterInput {
+input PageFilterInput @doc(category: "Pages") {
   search: String
   metadata: [MetadataFilter!]
   pageTypes: [ID!]
@@ -11666,7 +11666,7 @@ type PageTypeCountableEdge {
   cursor: String!
 }
 
-input PageTypeSortingInput {
+input PageTypeSortingInput @doc(category: "Pages") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -11674,7 +11674,7 @@ input PageTypeSortingInput {
   field: PageTypeSortField!
 }
 
-enum PageTypeSortField {
+enum PageTypeSortField @doc(category: "Pages") {
   """Sort page types by name."""
   NAME
 
@@ -11682,7 +11682,7 @@ enum PageTypeSortField {
   SLUG
 }
 
-input PageTypeFilterInput {
+input PageTypeFilterInput @doc(category: "Pages") {
   search: String
   slugs: [String!]
 }
@@ -11704,7 +11704,7 @@ type OrderEventCountableEdge {
   cursor: String!
 }
 
-input OrderSortingInput {
+input OrderSortingInput @doc(category: "Orders") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -11712,7 +11712,7 @@ input OrderSortingInput {
   field: OrderSortField!
 }
 
-enum OrderSortField {
+enum OrderSortField @doc(category: "Orders") {
   """Sort orders by number."""
   NUMBER
 
@@ -11768,7 +11768,7 @@ input OrderFilterInput @doc(category: "Orders") {
   checkoutIds: [ID!]
 }
 
-enum OrderStatusFilter {
+enum OrderStatusFilter @doc(category: "Orders") {
   READY_TO_FULFILL
   READY_TO_CAPTURE
   UNFULFILLED
@@ -11861,7 +11861,7 @@ input MenuItemFilterInput {
   metadata: [MetadataFilter!]
 }
 
-input GiftCardSortingInput {
+input GiftCardSortingInput @doc(category: "Gift cards") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -11869,7 +11869,7 @@ input GiftCardSortingInput {
   field: GiftCardSortField!
 }
 
-enum GiftCardSortField {
+enum GiftCardSortField @doc(category: "Gift cards") {
   """Sort gift cards by product."""
   PRODUCT
 
@@ -11887,7 +11887,7 @@ enum GiftCardSortField {
   CREATED_AT
 }
 
-input GiftCardFilterInput {
+input GiftCardFilterInput @doc(category: "Gift cards") {
   isActive: Boolean
   metadata: [MetadataFilter!]
   tags: [String!]
@@ -11917,7 +11917,7 @@ type GiftCardTagCountableEdge {
   cursor: String!
 }
 
-input GiftCardTagFilterInput {
+input GiftCardTagFilterInput @doc(category: "Gift cards") {
   search: String
 }
 
@@ -12043,7 +12043,7 @@ type SaleCountableEdge {
   cursor: String!
 }
 
-input SaleFilterInput {
+input SaleFilterInput @doc(category: "Discounts") {
   status: [DiscountStatusEnum!]
   saleType: DiscountValueTypeEnum
   started: DateTimeRangeInput
@@ -12052,13 +12052,13 @@ input SaleFilterInput {
   updatedAt: DateTimeRangeInput
 }
 
-enum DiscountStatusEnum {
+enum DiscountStatusEnum @doc(category: "Discounts") {
   ACTIVE
   EXPIRED
   SCHEDULED
 }
 
-input SaleSortingInput {
+input SaleSortingInput @doc(category: "Discounts") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12073,7 +12073,7 @@ input SaleSortingInput {
   field: SaleSortField!
 }
 
-enum SaleSortField {
+enum SaleSortField @doc(category: "Discounts") {
   """Sort sales by name."""
   NAME
 
@@ -12117,7 +12117,7 @@ type VoucherCountableEdge {
   cursor: String!
 }
 
-input VoucherFilterInput {
+input VoucherFilterInput @doc(category: "Discounts") {
   status: [DiscountStatusEnum!]
   timesUsed: IntRangeInput
   discountType: [VoucherDiscountType!]
@@ -12127,13 +12127,13 @@ input VoucherFilterInput {
   ids: [ID!]
 }
 
-enum VoucherDiscountType {
+enum VoucherDiscountType @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
   SHIPPING
 }
 
-input VoucherSortingInput {
+input VoucherSortingInput @doc(category: "Discounts") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12279,7 +12279,7 @@ enum ExportFileSortField {
   LAST_MODIFIED_AT
 }
 
-input CheckoutSortingInput {
+input CheckoutSortingInput @doc(category: "Checkout") {
   """Specifies the direction in which to sort products."""
   direction: OrderDirection!
 
@@ -12287,7 +12287,7 @@ input CheckoutSortingInput {
   field: CheckoutSortField!
 }
 
-enum CheckoutSortField {
+enum CheckoutSortField @doc(category: "Checkout") {
   """Sort checkouts by creation date."""
   CREATION_DATE
 
@@ -12298,7 +12298,7 @@ enum CheckoutSortField {
   PAYMENT
 }
 
-input CheckoutFilterInput {
+input CheckoutFilterInput @doc(category: "Checkout") {
   customer: String
   created: DateRangeInput
   search: String
@@ -12960,7 +12960,7 @@ type Mutation {
 
     """Fields required to update shipping method channel listings."""
     input: ShippingMethodChannelListingInput!
-  ): ShippingMethodChannelListingUpdate
+  ): ShippingMethodChannelListingUpdate @doc(category: "Shipping")
 
   """
   Creates a new shipping price. 
@@ -15073,7 +15073,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleAddCatalogues @doc(category: "Products")
+  ): SaleAddCatalogues @doc(category: "Discounts")
 
   """
   Removes products, categories, collections from a sale. 
@@ -15086,7 +15086,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleRemoveCatalogues @doc(category: "Products")
+  ): SaleRemoveCatalogues @doc(category: "Discounts")
 
   """
   Creates/updates translations for a sale. 
@@ -15113,7 +15113,7 @@ type Mutation {
 
     """Fields required to update sale channel listings."""
     input: SaleChannelListingInput!
-  ): SaleChannelListingUpdate @doc(category: "Products")
+  ): SaleChannelListingUpdate @doc(category: "Discounts")
 
   """
   Creates a new voucher. 
@@ -15169,7 +15169,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherAddCatalogues @doc(category: "Products")
+  ): VoucherAddCatalogues @doc(category: "Discounts")
 
   """
   Removes products, categories, collections from a voucher. 
@@ -15182,7 +15182,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherRemoveCatalogues @doc(category: "Products")
+  ): VoucherRemoveCatalogues @doc(category: "Discounts")
 
   """
   Creates/updates translations for a voucher. 
@@ -15209,7 +15209,7 @@ type Mutation {
 
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
-  ): VoucherChannelListingUpdate @doc(category: "Products")
+  ): VoucherChannelListingUpdate @doc(category: "Discounts")
 
   """
   Export products to csv file. 
@@ -15219,7 +15219,7 @@ type Mutation {
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts
+  ): ExportProducts @doc(category: "Products")
 
   """
   Export gift cards to csv file.
@@ -15233,7 +15233,7 @@ type Mutation {
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards
+  ): ExportGiftCards @doc(category: "Gift cards")
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -15612,7 +15612,7 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutPaymentCreate @doc(category: "Payments")
+  ): CheckoutPaymentCreate @doc(category: "Checkout")
 
   """Update shipping address in the existing checkout."""
   checkoutShippingAddressUpdate(
@@ -16619,7 +16619,7 @@ type WebhookCreate @doc(category: "Webhooks") {
   webhook: Webhook
 }
 
-type WebhookError {
+type WebhookError @doc(category: "Webhooks") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -16633,7 +16633,7 @@ type WebhookError {
 }
 
 """An enumeration."""
-enum WebhookErrorCode {
+enum WebhookErrorCode @doc(category: "Webhooks") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -16647,7 +16647,7 @@ enum WebhookErrorCode {
   INVALID_CUSTOM_HEADERS
 }
 
-input WebhookCreateInput {
+input WebhookCreateInput @doc(category: "Webhooks") {
   """The name of the webhook."""
   name: String
 
@@ -16721,7 +16721,7 @@ type WebhookUpdate @doc(category: "Webhooks") {
   webhook: Webhook
 }
 
-input WebhookUpdateInput {
+input WebhookUpdateInput @doc(category: "Webhooks") {
   """The new name of the webhook."""
   name: String
 
@@ -16799,7 +16799,7 @@ type WebhookDryRun @doc(category: "Webhooks") {
   errors: [WebhookDryRunError!]!
 }
 
-type WebhookDryRunError {
+type WebhookDryRunError @doc(category: "Webhooks") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -16813,7 +16813,7 @@ type WebhookDryRunError {
 }
 
 """An enumeration."""
-enum WebhookDryRunErrorCode {
+enum WebhookDryRunErrorCode @doc(category: "Webhooks") {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID_ID
@@ -16839,7 +16839,7 @@ type WebhookTrigger @doc(category: "Webhooks") {
   errors: [WebhookTriggerError!]!
 }
 
-type WebhookTriggerError {
+type WebhookTriggerError @doc(category: "Webhooks") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -16853,7 +16853,7 @@ type WebhookTriggerError {
 }
 
 """An enumeration."""
-enum WebhookTriggerErrorCode {
+enum WebhookTriggerErrorCode @doc(category: "Webhooks") {
   GRAPHQL_ERROR
   NOT_FOUND
   INVALID_ID
@@ -16877,7 +16877,7 @@ type WarehouseCreate @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-type WarehouseError {
+type WarehouseError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -16894,7 +16894,7 @@ type WarehouseError {
 }
 
 """An enumeration."""
-enum WarehouseErrorCode {
+enum WarehouseErrorCode @doc(category: "Products") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -16903,7 +16903,7 @@ enum WarehouseErrorCode {
   UNIQUE
 }
 
-input WarehouseCreateInput {
+input WarehouseCreateInput @doc(category: "Products") {
   """Warehouse slug."""
   slug: String
 
@@ -16942,7 +16942,7 @@ type WarehouseUpdate @doc(category: "Products") {
   warehouse: Warehouse
 }
 
-input WarehouseUpdateInput {
+input WarehouseUpdateInput @doc(category: "Products") {
   """Warehouse slug."""
   slug: String
 
@@ -17045,7 +17045,7 @@ type TaxClassCreateError @doc(category: "Taxes") {
 }
 
 """An enumeration."""
-enum TaxClassCreateErrorCode {
+enum TaxClassCreateErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17083,7 +17083,7 @@ type TaxClassDelete @doc(category: "Taxes") {
   taxClass: TaxClass
 }
 
-type TaxClassDeleteError {
+type TaxClassDeleteError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17097,7 +17097,7 @@ type TaxClassDeleteError {
 }
 
 """An enumeration."""
-enum TaxClassDeleteErrorCode {
+enum TaxClassDeleteErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17117,7 +17117,7 @@ type TaxClassUpdate @doc(category: "Taxes") {
   taxClass: TaxClass
 }
 
-type TaxClassUpdateError {
+type TaxClassUpdateError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17134,14 +17134,14 @@ type TaxClassUpdateError {
 }
 
 """An enumeration."""
-enum TaxClassUpdateErrorCode {
+enum TaxClassUpdateErrorCode @doc(category: "Taxes") {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
 }
 
-input TaxClassUpdateInput {
+input TaxClassUpdateInput @doc(category: "Taxes") {
   """Name of the tax class."""
   name: String
 
@@ -17156,7 +17156,7 @@ input TaxClassUpdateInput {
   removeCountryRates: [CountryCode!]
 }
 
-input CountryRateUpdateInput {
+input CountryRateUpdateInput @doc(category: "Taxes") {
   """Country in which this rate applies."""
   countryCode: CountryCode!
 
@@ -17180,7 +17180,7 @@ type TaxConfigurationUpdate @doc(category: "Taxes") {
   taxConfiguration: TaxConfiguration
 }
 
-type TaxConfigurationUpdateError {
+type TaxConfigurationUpdateError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17197,14 +17197,14 @@ type TaxConfigurationUpdateError {
 }
 
 """An enumeration."""
-enum TaxConfigurationUpdateErrorCode {
+enum TaxConfigurationUpdateErrorCode @doc(category: "Taxes") {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
 }
 
-input TaxConfigurationUpdateInput {
+input TaxConfigurationUpdateInput @doc(category: "Taxes") {
   """Determines whether taxes are charged in the given channel."""
   chargeTaxes: Boolean
 
@@ -17230,7 +17230,7 @@ input TaxConfigurationUpdateInput {
   removeCountriesConfiguration: [CountryCode!]
 }
 
-input TaxConfigurationPerCountryInput {
+input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
   """Country in which this configuration applies."""
   countryCode: CountryCode!
 
@@ -17280,7 +17280,7 @@ type TaxCountryConfigurationUpdateError @doc(category: "Taxes") {
 }
 
 """An enumeration."""
-enum TaxCountryConfigurationUpdateErrorCode {
+enum TaxCountryConfigurationUpdateErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17311,7 +17311,7 @@ type TaxCountryConfigurationDelete @doc(category: "Taxes") {
   errors: [TaxCountryConfigurationDeleteError!]!
 }
 
-type TaxCountryConfigurationDeleteError {
+type TaxCountryConfigurationDeleteError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17325,7 +17325,7 @@ type TaxCountryConfigurationDeleteError {
 }
 
 """An enumeration."""
-enum TaxCountryConfigurationDeleteErrorCode {
+enum TaxCountryConfigurationDeleteErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17347,7 +17347,7 @@ type TaxExemptionManage @doc(category: "Taxes") {
 
 union TaxSourceObject = Checkout | Order
 
-type TaxExemptionManageError {
+type TaxExemptionManageError @doc(category: "Taxes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17361,7 +17361,7 @@ type TaxExemptionManageError {
 }
 
 """An enumeration."""
-enum TaxExemptionManageErrorCode {
+enum TaxExemptionManageErrorCode @doc(category: "Taxes") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17394,7 +17394,7 @@ type StockBulkResult @doc(category: "Products") {
   errors: [StockBulkUpdateError!]
 }
 
-type StockBulkUpdateError {
+type StockBulkUpdateError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17408,7 +17408,7 @@ type StockBulkUpdateError {
 }
 
 """An enumeration."""
-enum StockBulkUpdateErrorCode {
+enum StockBulkUpdateErrorCode @doc(category: "Products") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -17709,7 +17709,7 @@ type OrderSettingsUpdate @doc(category: "Orders") {
   errors: [OrderSettingsError!]!
 }
 
-type OrderSettingsError {
+type OrderSettingsError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17723,7 +17723,7 @@ type OrderSettingsError {
 }
 
 """An enumeration."""
-enum OrderSettingsErrorCode {
+enum OrderSettingsErrorCode @doc(category: "Orders") {
   INVALID
 }
 
@@ -17750,7 +17750,7 @@ type GiftCardSettingsUpdate @doc(category: "Gift cards") {
   errors: [GiftCardSettingsError!]!
 }
 
-type GiftCardSettingsError {
+type GiftCardSettingsError @doc(category: "Gift cards") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17764,7 +17764,7 @@ type GiftCardSettingsError {
 }
 
 """An enumeration."""
-enum GiftCardSettingsErrorCode {
+enum GiftCardSettingsErrorCode @doc(category: "Gift cards") {
   INVALID
   REQUIRED
   GRAPHQL_ERROR
@@ -17791,14 +17791,14 @@ Manage shipping method's availability in channels.
 
 Requires one of the following permissions: MANAGE_SHIPPING.
 """
-type ShippingMethodChannelListingUpdate {
+type ShippingMethodChannelListingUpdate @doc(category: "Shipping") {
   """An updated shipping method instance."""
   shippingMethod: ShippingMethodType
   shippingErrors: [ShippingError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ShippingError!]!
 }
 
-type ShippingError {
+type ShippingError @doc(category: "Shipping") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17818,7 +17818,7 @@ type ShippingError {
 }
 
 """An enumeration."""
-enum ShippingErrorCode {
+enum ShippingErrorCode @doc(category: "Shipping") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -17829,7 +17829,7 @@ enum ShippingErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-input ShippingMethodChannelListingInput {
+input ShippingMethodChannelListingInput @doc(category: "Shipping") {
   """List of channels to which the shipping method should be assigned."""
   addChannels: [ShippingMethodChannelListingAddInput!]
 
@@ -17837,7 +17837,7 @@ input ShippingMethodChannelListingInput {
   removeChannels: [ID!]
 }
 
-input ShippingMethodChannelListingAddInput {
+input ShippingMethodChannelListingAddInput @doc(category: "Shipping") {
   """ID of a channel."""
   channelId: ID!
 
@@ -17864,7 +17864,7 @@ type ShippingPriceCreate @doc(category: "Shipping") {
   errors: [ShippingError!]!
 }
 
-input ShippingPriceInput {
+input ShippingPriceInput @doc(category: "Shipping") {
   """Name of the shipping method."""
   name: String
 
@@ -17906,7 +17906,7 @@ input ShippingPriceInput {
 
 scalar WeightScalar
 
-input ShippingPostalCodeRulesCreateInputRange {
+input ShippingPostalCodeRulesCreateInputRange @doc(category: "Shipping") {
   """Start range of the postal code."""
   start: String!
 
@@ -18016,7 +18016,7 @@ type ShippingZoneCreate @doc(category: "Shipping") {
   shippingZone: ShippingZone
 }
 
-input ShippingZoneCreateInput {
+input ShippingZoneCreateInput @doc(category: "Shipping") {
   """Shipping zone's name. Visible only to the staff."""
   name: String
 
@@ -18072,7 +18072,7 @@ type ShippingZoneUpdate @doc(category: "Shipping") {
   shippingZone: ShippingZone
 }
 
-input ShippingZoneUpdateInput {
+input ShippingZoneUpdateInput @doc(category: "Shipping") {
   """Shipping zone's name. Visible only to the staff."""
   name: String
 
@@ -18112,7 +18112,7 @@ type ProductAttributeAssign @doc(category: "Products") {
   errors: [ProductError!]!
 }
 
-type ProductError {
+type ProductError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -18132,7 +18132,7 @@ type ProductError {
 }
 
 """An enumeration."""
-enum ProductErrorCode {
+enum ProductErrorCode @doc(category: "Products") {
   ALREADY_EXISTS
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
@@ -18224,7 +18224,7 @@ type CategoryCreate @doc(category: "Products") {
   category: Category
 }
 
-input CategoryInput {
+input CategoryInput @doc(category: "Products") {
   """
   Category description.
   
@@ -18353,7 +18353,7 @@ type CollectionAddProducts @doc(category: "Products") {
   errors: [CollectionError!]!
 }
 
-type CollectionError {
+type CollectionError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -18370,7 +18370,7 @@ type CollectionError {
 }
 
 """An enumeration."""
-enum CollectionErrorCode {
+enum CollectionErrorCode @doc(category: "Products") {
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
@@ -18581,7 +18581,7 @@ type CollectionChannelListingUpdate @doc(category: "Products") {
   errors: [CollectionChannelListingError!]!
 }
 
-type CollectionChannelListingError {
+type CollectionChannelListingError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -18860,7 +18860,7 @@ type ProductBulkCreateError {
 }
 
 """An enumeration."""
-enum ProductBulkCreateErrorCode {
+enum ProductBulkCreateErrorCode @doc(category: "Products") {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
@@ -19297,7 +19297,7 @@ type ProductChannelListingUpdate @doc(category: "Products") {
   errors: [ProductChannelListingError!]!
 }
 
-type ProductChannelListingError {
+type ProductChannelListingError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -19828,7 +19828,7 @@ type ProductVariantBulkResult @doc(category: "Products") {
   errors: [ProductVariantBulkError!]
 }
 
-type ProductVariantBulkError {
+type ProductVariantBulkError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -19868,7 +19868,7 @@ type ProductVariantBulkError {
 }
 
 """An enumeration."""
-enum ProductVariantBulkErrorCode {
+enum ProductVariantBulkErrorCode @doc(category: "Products") {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
@@ -19883,7 +19883,7 @@ enum ProductVariantBulkErrorCode {
   PRODUCT_NOT_ASSIGNED_TO_CHANNEL
 }
 
-type BulkProductError {
+type BulkProductError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20081,7 +20081,7 @@ type ProductVariantStocksCreate @doc(category: "Products") {
   errors: [BulkStockError!]!
 }
 
-type BulkStockError {
+type BulkStockError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20115,7 +20115,7 @@ type ProductVariantStocksDelete @doc(category: "Products") {
   errors: [StockError!]!
 }
 
-type StockError {
+type StockError @doc(category: "Products") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20129,7 +20129,7 @@ type StockError {
 }
 
 """An enumeration."""
-enum StockErrorCode {
+enum StockErrorCode @doc(category: "Products") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -20320,7 +20320,7 @@ type PaymentCapture @doc(category: "Payments") {
   errors: [PaymentError!]!
 }
 
-type PaymentError {
+type PaymentError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20337,7 +20337,7 @@ type PaymentError {
 }
 
 """An enumeration."""
-enum PaymentErrorCode {
+enum PaymentErrorCode @doc(category: "Payments") {
   BILLING_ADDRESS_NOT_SET
   GRAPHQL_ERROR
   INVALID
@@ -20391,7 +20391,7 @@ type PaymentInitialize @doc(category: "Payments") {
 """
 Server-side data generated by a payment gateway. Optional step when the payment provider requires an additional action to initialize payment session.
 """
-type PaymentInitialized {
+type PaymentInitialized @doc(category: "Payments") {
   """ID of a payment gateway."""
   gateway: String!
 
@@ -20459,7 +20459,7 @@ type TransactionCreate @doc(category: "Payments") {
   errors: [TransactionCreateError!]!
 }
 
-type TransactionCreateError {
+type TransactionCreateError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20473,7 +20473,7 @@ type TransactionCreateError {
 }
 
 """An enumeration."""
-enum TransactionCreateErrorCode {
+enum TransactionCreateErrorCode @doc(category: "Payments") {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -20616,7 +20616,7 @@ type TransactionUpdate @doc(category: "Payments") {
   errors: [TransactionUpdateError!]!
 }
 
-type TransactionUpdateError {
+type TransactionUpdateError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20630,7 +20630,7 @@ type TransactionUpdateError {
 }
 
 """An enumeration."""
-enum TransactionUpdateErrorCode {
+enum TransactionUpdateErrorCode @doc(category: "Payments") {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -20736,7 +20736,7 @@ type TransactionRequestAction @doc(category: "Payments") {
   errors: [TransactionRequestActionError!]!
 }
 
-type TransactionRequestActionError {
+type TransactionRequestActionError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20750,7 +20750,7 @@ type TransactionRequestActionError {
 }
 
 """An enumeration."""
-enum TransactionRequestActionErrorCode {
+enum TransactionRequestActionErrorCode @doc(category: "Payments") {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -20794,7 +20794,7 @@ type TransactionEventReportError {
 }
 
 """An enumeration."""
-enum TransactionEventReportErrorCode {
+enum TransactionEventReportErrorCode @doc(category: "Payments") {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
@@ -20813,7 +20813,7 @@ type PageCreate @doc(category: "Pages") {
   page: Page
 }
 
-type PageError {
+type PageError @doc(category: "Pages") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20833,7 +20833,7 @@ type PageError {
 }
 
 """An enumeration."""
-enum PageErrorCode {
+enum PageErrorCode @doc(category: "Pages") {
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
@@ -21574,7 +21574,7 @@ type OrderGrantRefundCreate @doc(category: "Orders") {
   errors: [OrderGrantRefundCreateError!]!
 }
 
-type OrderGrantRefundCreateError {
+type OrderGrantRefundCreateError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21588,12 +21588,12 @@ type OrderGrantRefundCreateError {
 }
 
 """An enumeration."""
-enum OrderGrantRefundCreateErrorCode {
+enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
 }
 
-input OrderGrantRefundCreateInput {
+input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """Amount of the granted refund."""
   amount: Decimal!
 
@@ -21628,7 +21628,7 @@ type OrderGrantRefundUpdate @doc(category: "Orders") {
   orderGrantedRefund: OrderGrantedRefund
 }
 
-type OrderGrantRefundUpdateError {
+type OrderGrantRefundUpdateError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21642,13 +21642,13 @@ type OrderGrantRefundUpdateError {
 }
 
 """An enumeration."""
-enum OrderGrantRefundUpdateErrorCode {
+enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
 }
 
-input OrderGrantRefundUpdateInput {
+input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   """Amount of the granted refund."""
   amount: Decimal
 
@@ -21816,7 +21816,7 @@ type OrderUpdate @doc(category: "Orders") {
   order: Order
 }
 
-input OrderUpdateInput {
+input OrderUpdateInput @doc(category: "Orders") {
   """Billing address of the customer."""
   billingAddress: AddressInput
 
@@ -22287,7 +22287,7 @@ type GiftCardActivate @doc(category: "Gift cards") {
   errors: [GiftCardError!]!
 }
 
-type GiftCardError {
+type GiftCardError @doc(category: "Gift cards") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22304,7 +22304,7 @@ type GiftCardError {
 }
 
 """An enumeration."""
-enum GiftCardErrorCode {
+enum GiftCardErrorCode @doc(category: "Gift cards") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -22735,7 +22735,7 @@ type SaleCreate @doc(category: "Discounts") {
   sale: Sale
 }
 
-type DiscountError {
+type DiscountError @doc(category: "Discounts") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22755,7 +22755,7 @@ type DiscountError {
 }
 
 """An enumeration."""
-enum DiscountErrorCode {
+enum DiscountErrorCode @doc(category: "Discounts") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -22766,7 +22766,7 @@ enum DiscountErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-input SaleInput @doc(category: "Products") {
+input SaleInput @doc(category: "Discounts") {
   """Voucher name."""
   name: String
 
@@ -22832,14 +22832,14 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleAddCatalogues @doc(category: "Products") {
+type SaleAddCatalogues @doc(category: "Discounts") {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input CatalogueInput @doc(category: "Products") {
+input CatalogueInput @doc(category: "Discounts") {
   """Products related to the discount."""
   products: [ID!]
 
@@ -22862,7 +22862,7 @@ Removes products, categories, collections from a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleRemoveCatalogues @doc(category: "Products") {
+type SaleRemoveCatalogues @doc(category: "Discounts") {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22885,14 +22885,14 @@ Manage sale's availability in channels.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type SaleChannelListingUpdate @doc(category: "Products") {
+type SaleChannelListingUpdate @doc(category: "Discounts") {
   """An updated sale instance."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input SaleChannelListingInput @doc(category: "Products") {
+input SaleChannelListingInput @doc(category: "Discounts") {
   """List of channels to which the sale should be assigned."""
   addChannels: [SaleChannelListingAddInput!]
 
@@ -22900,7 +22900,7 @@ input SaleChannelListingInput @doc(category: "Products") {
   removeChannels: [ID!]
 }
 
-input SaleChannelListingAddInput @doc(category: "Products") {
+input SaleChannelListingAddInput @doc(category: "Discounts") {
   """ID of a channel."""
   channelId: ID!
 
@@ -22919,7 +22919,7 @@ type VoucherCreate @doc(category: "Discounts") {
   voucher: Voucher
 }
 
-input VoucherInput {
+input VoucherInput @doc(category: "Discounts") {
   """Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."""
   type: VoucherTypeEnum
 
@@ -23012,7 +23012,7 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherAddCatalogues @doc(category: "Products") {
+type VoucherAddCatalogues @doc(category: "Discounts") {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23024,7 +23024,7 @@ Removes products, categories, collections from a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherRemoveCatalogues @doc(category: "Products") {
+type VoucherRemoveCatalogues @doc(category: "Discounts") {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23047,14 +23047,14 @@ Manage voucher's availability in channels.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type VoucherChannelListingUpdate @doc(category: "Products") {
+type VoucherChannelListingUpdate @doc(category: "Discounts") {
   """An updated voucher instance."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
 }
 
-input VoucherChannelListingInput @doc(category: "Products") {
+input VoucherChannelListingInput @doc(category: "Discounts") {
   """List of channels to which the voucher should be assigned."""
   addChannels: [VoucherChannelListingAddInput!]
 
@@ -23062,7 +23062,7 @@ input VoucherChannelListingInput @doc(category: "Products") {
   removeChannels: [ID!]
 }
 
-input VoucherChannelListingAddInput @doc(category: "Products") {
+input VoucherChannelListingAddInput @doc(category: "Discounts") {
   """ID of a channel."""
   channelId: ID!
 
@@ -23078,7 +23078,7 @@ Export products to csv file.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type ExportProducts {
+type ExportProducts @doc(category: "Products") {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -23108,7 +23108,7 @@ enum ExportErrorCode {
   REQUIRED
 }
 
-input ExportProductsInput {
+input ExportProductsInput @doc(category: "Products") {
   """Determine which products should be exported."""
   scope: ExportScope!
 
@@ -23125,7 +23125,7 @@ input ExportProductsInput {
   fileType: FileTypesEnum!
 }
 
-enum ExportScope {
+enum ExportScope @doc(category: "Products") {
   """Export all products."""
   ALL
 
@@ -23136,7 +23136,7 @@ enum ExportScope {
   FILTER
 }
 
-input ExportInfoInput {
+input ExportInfoInput @doc(category: "Products") {
   """List of attribute ids witch should be exported."""
   attributes: [ID!]
 
@@ -23150,7 +23150,7 @@ input ExportInfoInput {
   fields: [ProductFieldEnum!]
 }
 
-enum ProductFieldEnum {
+enum ProductFieldEnum @doc(category: "Products") {
   NAME
   DESCRIPTION
   PRODUCT_TYPE
@@ -23180,7 +23180,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
-type ExportGiftCards {
+type ExportGiftCards @doc(category: "Gift cards") {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -23188,7 +23188,7 @@ type ExportGiftCards {
   errors: [ExportError!]!
 }
 
-input ExportGiftCardsInput {
+input ExportGiftCardsInput @doc(category: "Gift cards") {
   """Determine which gift cards should be exported."""
   scope: ExportScope!
 
@@ -23239,7 +23239,7 @@ type CheckoutAddPromoCode @doc(category: "Checkout") {
   errors: [CheckoutError!]!
 }
 
-type CheckoutError {
+type CheckoutError @doc(category: "Checkout") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -23262,7 +23262,7 @@ type CheckoutError {
 }
 
 """An enumeration."""
-enum CheckoutErrorCode {
+enum CheckoutErrorCode @doc(category: "Checkout") {
   BILLING_ADDRESS_NOT_SET
   CHECKOUT_NOT_FULLY_PAID
   GRAPHQL_ERROR
@@ -23529,7 +23529,7 @@ type CheckoutRemovePromoCode @doc(category: "Checkout") {
 }
 
 """Create a new payment for given checkout."""
-type CheckoutPaymentCreate @doc(category: "Payments") {
+type CheckoutPaymentCreate @doc(category: "Checkout") {
   """Related checkout object."""
   checkout: Checkout
 
@@ -23574,7 +23574,7 @@ input PaymentInput @doc(category: "Payments") {
 }
 
 """Enum representing the type of a payment storage in a gateway."""
-enum StorePaymentMethodEnum {
+enum StorePaymentMethodEnum @doc(category: "Payments") {
   """
   On session storage type. The payment is stored only to be reused when the customer is present in the checkout flow.
   """
@@ -23659,7 +23659,7 @@ type OrderCreateFromCheckoutError @doc(category: "Checkout") {
 }
 
 """An enumeration."""
-enum OrderCreateFromCheckoutErrorCode {
+enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   CHECKOUT_NOT_FOUND
   CHANNEL_INACTIVE
@@ -23687,7 +23687,7 @@ type ChannelCreate @doc(category: "Channels") {
   channel: Channel
 }
 
-type ChannelError {
+type ChannelError @doc(category: "Channels") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -23707,7 +23707,7 @@ type ChannelError {
 }
 
 """An enumeration."""
-enum ChannelErrorCode {
+enum ChannelErrorCode @doc(category: "Channels") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -23719,7 +23719,7 @@ enum ChannelErrorCode {
   DUPLICATED_INPUT_ITEM
 }
 
-input ChannelCreateInput {
+input ChannelCreateInput @doc(category: "Channels") {
   """isActive flag."""
   isActive: Boolean
 
@@ -23770,14 +23770,14 @@ input ChannelCreateInput {
   defaultCountry: CountryCode!
 }
 
-input StockSettingsInput {
+input StockSettingsInput @doc(category: "Products") {
   """
   Allocation strategy options. Strategy defines the preference of warehouses for allocations and reservations.
   """
   allocationStrategy: AllocationStrategyEnum!
 }
 
-input OrderSettingsInput {
+input OrderSettingsInput @doc(category: "Orders") {
   """
   When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately. By default set to True
   """
@@ -23812,7 +23812,7 @@ type ChannelUpdate @doc(category: "Channels") {
   channel: Channel
 }
 
-input ChannelUpdateInput {
+input ChannelUpdateInput @doc(category: "Channels") {
   """isActive flag."""
   isActive: Boolean
 
@@ -23881,7 +23881,7 @@ type ChannelDelete @doc(category: "Channels") {
   channel: Channel
 }
 
-input ChannelDeleteInput {
+input ChannelDeleteInput @doc(category: "Channels") {
   """ID of channel to migrate orders from origin channel."""
   channelId: ID!
 }
@@ -23932,7 +23932,7 @@ type AttributeCreate @doc(category: "Attributes") {
   errors: [AttributeError!]!
 }
 
-type AttributeError {
+type AttributeError @doc(category: "Attributes") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -23946,7 +23946,7 @@ type AttributeError {
 }
 
 """An enumeration."""
-enum AttributeErrorCode {
+enum AttributeErrorCode @doc(category: "Attributes") {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
@@ -24297,7 +24297,7 @@ type AppCreate @doc(category: "Apps") {
   app: App
 }
 
-type AppError {
+type AppError @doc(category: "Apps") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -24314,7 +24314,7 @@ type AppError {
 }
 
 """An enumeration."""
-enum AppErrorCode {
+enum AppErrorCode @doc(category: "Apps") {
   FORBIDDEN
   GRAPHQL_ERROR
   INVALID
@@ -24626,7 +24626,7 @@ type AccountError @doc(category: "Users") {
 }
 
 """An enumeration."""
-enum AccountErrorCode {
+enum AccountErrorCode @doc(category: "Users") {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
   DUPLICATED_INPUT_ITEM
@@ -25037,7 +25037,7 @@ type CustomerCreate @doc(category: "Users") {
   user: User
 }
 
-input UserCreateInput {
+input UserCreateInput @doc(category: "Users") {
   """Billing address of the customer."""
   defaultBillingAddress: AddressInput
 
@@ -25091,7 +25091,7 @@ type CustomerUpdate @doc(category: "Users") {
   user: User
 }
 
-input CustomerInput {
+input CustomerInput @doc(category: "Users") {
   """Billing address of the customer."""
   defaultBillingAddress: AddressInput
 
@@ -25187,7 +25187,7 @@ type CustomerBulkUpdateError {
 }
 
 """An enumeration."""
-enum CustomerBulkUpdateErrorCode {
+enum CustomerBulkUpdateErrorCode @doc(category: "Users") {
   BLANK
   DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
@@ -25220,7 +25220,7 @@ type StaffCreate @doc(category: "Users") {
   user: User
 }
 
-type StaffError {
+type StaffError @doc(category: "Users") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -25376,7 +25376,7 @@ type PermissionGroupCreate @doc(category: "Users") {
   group: Group
 }
 
-type PermissionGroupError {
+type PermissionGroupError @doc(category: "Users") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -25396,7 +25396,7 @@ type PermissionGroupError {
 }
 
 """An enumeration."""
-enum PermissionGroupErrorCode {
+enum PermissionGroupErrorCode @doc(category: "Users") {
   ASSIGN_NON_STAFF_MEMBER
   DUPLICATED_INPUT_ITEM
   CANNOT_REMOVE_FROM_LAST_GROUP
@@ -25407,7 +25407,7 @@ enum PermissionGroupErrorCode {
   UNIQUE
 }
 
-input PermissionGroupCreateInput {
+input PermissionGroupCreateInput @doc(category: "Users") {
   """List of permission code names to assign to this group."""
   addPermissions: [PermissionEnum!]
 
@@ -25429,7 +25429,7 @@ type PermissionGroupUpdate @doc(category: "Users") {
   group: Group
 }
 
-input PermissionGroupUpdateInput {
+input PermissionGroupUpdateInput @doc(category: "Users") {
   """List of permission code names to assign to this group."""
   addPermissions: [PermissionEnum!]
 
@@ -25528,7 +25528,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressCreated implements Event {
+type AddressCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25552,7 +25552,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressUpdated implements Event {
+type AddressUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25576,7 +25576,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AddressDeleted implements Event {
+type AddressDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25600,7 +25600,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppInstalled implements Event {
+type AppInstalled implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25624,7 +25624,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppUpdated implements Event {
+type AppUpdated implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25648,7 +25648,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppDeleted implements Event {
+type AppDeleted implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25672,7 +25672,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AppStatusChanged implements Event {
+type AppStatusChanged implements Event @doc(category: "Apps") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25696,7 +25696,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeCreated implements Event {
+type AttributeCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25720,7 +25720,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeUpdated implements Event {
+type AttributeUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25744,7 +25744,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeDeleted implements Event {
+type AttributeDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25768,7 +25768,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueCreated implements Event {
+type AttributeValueCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25792,7 +25792,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueUpdated implements Event {
+type AttributeValueUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25816,7 +25816,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type AttributeValueDeleted implements Event {
+type AttributeValueDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25840,7 +25840,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryCreated implements Event {
+type CategoryCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25864,7 +25864,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryUpdated implements Event {
+type CategoryUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25888,7 +25888,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CategoryDeleted implements Event {
+type CategoryDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25912,7 +25912,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelCreated implements Event {
+type ChannelCreated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25936,7 +25936,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelUpdated implements Event {
+type ChannelUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25960,7 +25960,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelDeleted implements Event {
+type ChannelDeleted implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -25984,7 +25984,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ChannelStatusChanged implements Event {
+type ChannelStatusChanged implements Event @doc(category: "Channels") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26008,7 +26008,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardCreated implements Event {
+type GiftCardCreated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26032,7 +26032,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardUpdated implements Event {
+type GiftCardUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26056,7 +26056,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardDeleted implements Event {
+type GiftCardDeleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26080,7 +26080,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardStatusChanged implements Event {
+type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26104,7 +26104,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardMetadataUpdated implements Event {
+type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26290,7 +26290,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCreated implements Event {
+type OrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26314,7 +26314,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderUpdated implements Event {
+type OrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26338,7 +26338,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderConfirmed implements Event {
+type OrderConfirmed implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26362,7 +26362,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFullyPaid implements Event {
+type OrderFullyPaid implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26386,7 +26386,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFulfilled implements Event {
+type OrderFulfilled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26410,7 +26410,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderCancelled implements Event {
+type OrderCancelled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26434,7 +26434,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderMetadataUpdated implements Event {
+type OrderMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26458,7 +26458,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderCreated implements Event {
+type DraftOrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26482,7 +26482,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderUpdated implements Event {
+type DraftOrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26506,7 +26506,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type DraftOrderDeleted implements Event {
+type DraftOrderDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26530,7 +26530,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductCreated implements Event {
+type ProductCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26560,7 +26560,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductUpdated implements Event {
+type ProductUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26590,7 +26590,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductDeleted implements Event {
+type ProductDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26620,7 +26620,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductMetadataUpdated implements Event {
+type ProductMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26648,7 +26648,7 @@ Event sent when new product media is created.
 
 Added in Saleor 3.12.
 """
-type ProductMediaCreated implements Event {
+type ProductMediaCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26670,7 +26670,7 @@ Event sent when product media is updated.
 
 Added in Saleor 3.12.
 """
-type ProductMediaUpdated implements Event {
+type ProductMediaUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26692,7 +26692,7 @@ Event sent when product media is deleted.
 
 Added in Saleor 3.12.
 """
-type ProductMediaDeleted implements Event {
+type ProductMediaDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26716,7 +26716,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantCreated implements Event {
+type ProductVariantCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26743,7 +26743,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantUpdated implements Event {
+type ProductVariantUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26770,7 +26770,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantOutOfStock implements Event {
+type ProductVariantOutOfStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26800,7 +26800,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantBackInStock implements Event {
+type ProductVariantBackInStock implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26860,7 +26860,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantDeleted implements Event {
+type ProductVariantDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26887,7 +26887,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantMetadataUpdated implements Event {
+type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26914,7 +26914,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleCreated implements Event {
+type SaleCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26941,7 +26941,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleUpdated implements Event {
+type SaleUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26968,7 +26968,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleDeleted implements Event {
+type SaleDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26995,7 +26995,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type SaleToggle implements Event {
+type SaleToggle implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27121,7 +27121,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentCreated implements Event {
+type FulfillmentCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27148,7 +27148,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentCanceled implements Event {
+type FulfillmentCanceled implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27175,7 +27175,7 @@ Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentApproved implements Event {
+type FulfillmentApproved implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27202,7 +27202,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type FulfillmentMetadataUpdated implements Event {
+type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27229,7 +27229,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerCreated implements Event {
+type CustomerCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27253,7 +27253,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerUpdated implements Event {
+type CustomerUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27277,7 +27277,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CustomerMetadataUpdated implements Event {
+type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27301,7 +27301,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionCreated implements Event {
+type CollectionCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27328,7 +27328,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionUpdated implements Event {
+type CollectionUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27355,7 +27355,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionDeleted implements Event {
+type CollectionDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27382,7 +27382,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CollectionMetadataUpdated implements Event {
+type CollectionMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27409,7 +27409,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutCreated implements Event {
+type CheckoutCreated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27433,7 +27433,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutUpdated implements Event {
+type CheckoutUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27457,7 +27457,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutMetadataUpdated implements Event {
+type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27481,7 +27481,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageCreated implements Event {
+type PageCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27505,7 +27505,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageUpdated implements Event {
+type PageUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27529,7 +27529,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageDeleted implements Event {
+type PageDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27553,7 +27553,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeCreated implements Event {
+type PageTypeCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27577,7 +27577,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeUpdated implements Event {
+type PageTypeUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27601,7 +27601,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PageTypeDeleted implements Event {
+type PageTypeDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27625,7 +27625,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupCreated implements Event {
+type PermissionGroupCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27649,7 +27649,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupUpdated implements Event {
+type PermissionGroupUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27673,7 +27673,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PermissionGroupDeleted implements Event {
+type PermissionGroupDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27796,7 +27796,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneCreated implements Event {
+type ShippingZoneCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27823,7 +27823,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneUpdated implements Event {
+type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27850,7 +27850,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneDeleted implements Event {
+type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27877,7 +27877,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingZoneMetadataUpdated implements Event {
+type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27904,7 +27904,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffCreated implements Event {
+type StaffCreated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27928,7 +27928,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffUpdated implements Event {
+type StaffUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27952,7 +27952,7 @@ Added in Saleor 3.5.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StaffDeleted implements Event {
+type StaffDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28011,7 +28011,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionItemMetadataUpdated implements Event {
+type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28089,7 +28089,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherCreated implements Event {
+type VoucherCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28116,7 +28116,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherUpdated implements Event {
+type VoucherUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28143,7 +28143,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherDeleted implements Event {
+type VoucherDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28170,7 +28170,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type VoucherMetadataUpdated implements Event {
+type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28197,7 +28197,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseCreated implements Event {
+type WarehouseCreated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28221,7 +28221,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseUpdated implements Event {
+type WarehouseUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28245,7 +28245,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseDeleted implements Event {
+type WarehouseDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28269,7 +28269,7 @@ Added in Saleor 3.8.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type WarehouseMetadataUpdated implements Event {
+type WarehouseMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28704,7 +28704,7 @@ type CalculateTaxes implements Event {
 }
 
 """Taxable object."""
-type TaxableObject {
+type TaxableObject @doc(category: "Taxes") {
   """The source object related to this tax object."""
   sourceObject: TaxSourceObject!
 
@@ -28729,7 +28729,7 @@ type TaxableObject {
 }
 
 """Taxable object discount."""
-type TaxableObjectDiscount {
+type TaxableObjectDiscount @doc(category: "Taxes") {
   """The name of the discount."""
   name: String
 
@@ -28737,7 +28737,7 @@ type TaxableObjectDiscount {
   amount: Money!
 }
 
-type TaxableObjectLine {
+type TaxableObjectLine @doc(category: "Taxes") {
   """The source line related to this tax line."""
   sourceLine: TaxSourceLine!
 

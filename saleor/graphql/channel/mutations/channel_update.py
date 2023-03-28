@@ -12,6 +12,7 @@ from ....shipping.tasks import (
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -43,6 +44,9 @@ class ChannelUpdateInput(ChannelInput):
         + PREVIEW_FEATURE,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelUpdate(ModelMutation):
