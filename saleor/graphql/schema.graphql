@@ -21574,7 +21574,7 @@ type OrderGrantRefundCreate @doc(category: "Orders") {
   errors: [OrderGrantRefundCreateError!]!
 }
 
-type OrderGrantRefundCreateError {
+type OrderGrantRefundCreateError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21593,7 +21593,7 @@ enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   NOT_FOUND
 }
 
-input OrderGrantRefundCreateInput {
+input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """Amount of the granted refund."""
   amount: Decimal!
 
@@ -21628,7 +21628,7 @@ type OrderGrantRefundUpdate @doc(category: "Orders") {
   orderGrantedRefund: OrderGrantedRefund
 }
 
-type OrderGrantRefundUpdateError {
+type OrderGrantRefundUpdateError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21648,7 +21648,7 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   REQUIRED
 }
 
-input OrderGrantRefundUpdateInput {
+input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   """Amount of the granted refund."""
   amount: Decimal
 
