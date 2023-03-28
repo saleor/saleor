@@ -956,6 +956,48 @@ def test_create_transaction_event_for_transaction_session_success_response(
 
 
 @pytest.mark.parametrize(
+    "response_result, transaction_amount_field_name",
+    [
+        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
+        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
+        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
+        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+    ],
+)
+def test_create_transaction_event_for_transaction_session_success_response_with_0(
+    response_result,
+    transaction_amount_field_name,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+):
+    # given
+    expected_amount = Decimal("0")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    transaction = transaction_item_generator()
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+    # when
+    response_event = create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
+    )
+
+    # then
+    assert response_event.include_in_calculations
+    assert response_event.amount_value == expected_amount
+    transaction.refresh_from_db()
+    assert getattr(transaction, transaction_amount_field_name) == expected_amount
+
+
+@pytest.mark.parametrize(
     "response_result",
     [
         TransactionEventType.AUTHORIZATION_ACTION_REQUIRED,
