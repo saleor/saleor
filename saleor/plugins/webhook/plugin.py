@@ -1,5 +1,6 @@
 import json
 import logging
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
 
 import graphene
@@ -1432,7 +1433,7 @@ class WebhookPlugin(BasePlugin):
         currency: Optional[str],
         checkout: Optional["Checkout"],
         previous_value,
-        **kwargs
+        **kwargs,
     ) -> List["PaymentGateway"]:
         gateways = []
         event_type = WebhookEventSyncType.PAYMENT_LIST_GATEWAYS
@@ -1543,6 +1544,7 @@ class WebhookPlugin(BasePlugin):
             checkout_info.checkout,
             self.requestor,
             self.allow_replica,
+            decoder_kwargs={"parse_float": Decimal},
         )
 
     def get_taxes_for_order(
@@ -1555,6 +1557,7 @@ class WebhookPlugin(BasePlugin):
             order,
             self.requestor,
             self.allow_replica,
+            decoder_kwargs={"parse_float": Decimal},
         )
 
     def get_shipping_methods_for_checkout(
