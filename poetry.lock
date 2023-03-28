@@ -3815,14 +3815,14 @@ requests = "*"
 
 [[package]]
 name = "redis"
-version = "4.4.1"
+version = "4.4.3"
 description = "Python client for Redis database and key-value store"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "redis-4.4.1-py3-none-any.whl", hash = "sha256:a721fd4d715fcd947848ed8fa02c2efd8224279979e0b721d9fdac6c4db35e93"},
-    {file = "redis-4.4.1.tar.gz", hash = "sha256:f7a870c44868ab87bbecd6211c6d7c8720b1e9a796b743fbc4725d7ec75651c3"},
+    {file = "redis-4.4.3-py3-none-any.whl", hash = "sha256:ff1345ad81bfafc41374b7089b5a6d37d862a4ce101c139e5675f31cf46b5539"},
+    {file = "redis-4.4.3.tar.gz", hash = "sha256:9ba159120f909198e8a53053b0fb2e1593decfe1404d17589c7039e186489d48"},
 ]
 
 [package.dependencies]
