@@ -175,6 +175,9 @@ PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+ProductBulkCreateErrorCode = graphene.Enum.from_enum(
+    product_error_codes.ProductBulkCreateErrorCode
+)
 ProductVariantBulkErrorCode = graphene.Enum.from_enum(
     product_error_codes.ProductVariantBulkErrorCode
 )

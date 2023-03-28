@@ -286,7 +286,10 @@ class ProductVariantBulkCreate(BaseMutation):
                 code = ProductVariantBulkErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value
                 index_error_map[variant_index].append(
                     ProductVariantBulkError(
-                        field="attributes", message=message, code=code
+                        field="attributes",
+                        message=message,
+                        code=code,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
@@ -335,6 +338,7 @@ class ProductVariantBulkCreate(BaseMutation):
                         field="attributes",
                         message=message,
                         code=ProductVariantBulkErrorCode.INVALID.value,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
@@ -834,7 +838,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     variant, listings_input, listings_to_create
                 )
 
-            if attributes := variant_data["cleaned_input"].get("attributes"):
+            if attributes := cleaned_input.get("attributes"):
                 attributes_to_save.append((variant, attributes))
 
             if not variant.name:
@@ -848,9 +852,11 @@ class ProductVariantBulkCreate(BaseMutation):
         warehouse_models.Stock.objects.bulk_create(stocks_to_create)
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
 
-        if not product.default_variant and variants_to_create:
+        if product and not product.default_variant and variants_to_create:
             product.default_variant = variants_to_create[0]
             product.save(update_fields=["default_variant", "updated_at"])
+
+        return variants_to_create
 
     @classmethod
     def prepare_stocks(cls, variant, stocks_input, stocks_to_create):

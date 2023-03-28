@@ -114,6 +114,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add new field `author` to `Manifest` and `App` object types - #12166 by @przlada
 - Add backwards compatibility for `taxCode` field - #12325 by @maarcingebala
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
+- [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
 
 ### Other changes
