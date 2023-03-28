@@ -5514,20 +5514,6 @@ def payment_dummy_credit_card(db, order_with_lines):
 
 
 @pytest.fixture
-def transaction_item(order):
-    return TransactionItem.objects.create(
-        token=uuid.uuid4(),
-        status="Captured",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["refund"],
-        currency="USD",
-        order_id=order.pk,
-        charged_value=Decimal("10"),
-    )
-
-
-@pytest.fixture
 def transaction_item_generator():
     def create_transaction(
         order_id=None,
