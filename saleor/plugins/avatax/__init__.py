@@ -591,13 +591,9 @@ def get_cached_response_or_fetch(
 def get_checkout_tax_data(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
-    discounts,
     config: AvataxConfiguration,
 ) -> Dict[str, Any]:
-    # TODO Owczar: Drop discounts
-    data = generate_request_data_from_checkout(
-        checkout_info, lines_info, config, discounts=discounts
-    )
+    data = generate_request_data_from_checkout(checkout_info, lines_info, config)
     return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
 
 

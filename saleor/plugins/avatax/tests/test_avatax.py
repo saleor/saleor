@@ -3278,9 +3278,7 @@ def test_get_checkout_tax_data_with_single_point(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     # when
-    response = get_checkout_tax_data(
-        checkout_info, lines, discounts=[], config=avatax_config
-    )
+    response = get_checkout_tax_data(checkout_info, lines, config=avatax_config)
 
     # then
     assert len(response.get("addresses", [])) == 1

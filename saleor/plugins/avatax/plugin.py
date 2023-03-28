@@ -702,7 +702,6 @@ class AvataxPlugin(BasePlugin):
         lines_info: Iterable["CheckoutLineInfo"],
         base_value: Union[TaxedMoney, Decimal],
     ):
-        # TODO Owczar: Drop discounts
         if self._skip_plugin(base_value):
             return None
 
@@ -710,7 +709,7 @@ class AvataxPlugin(BasePlugin):
         if not valid:
             return None
 
-        response = get_checkout_tax_data(checkout_info, lines_info, [], self.config)
+        response = get_checkout_tax_data(checkout_info, lines_info, self.config)
 
         if not response or "error" in response:
             return None
