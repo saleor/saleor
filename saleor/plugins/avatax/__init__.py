@@ -274,9 +274,7 @@ def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
-    discounts=None,
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
-    # TODO Owczar: drop discounts
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
 
@@ -502,9 +500,7 @@ def generate_request_data_from_checkout(
 ):
     shipping_address = checkout_info.delivery_method_info.shipping_address
     address = shipping_address or checkout_info.billing_address
-    lines = generate_request_data_from_checkout_lines(
-        checkout_info, lines_info, config, []
-    )
+    lines = generate_request_data_from_checkout_lines(checkout_info, lines_info, config)
     if not lines:
         return {}
 
