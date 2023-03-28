@@ -3356,7 +3356,6 @@ def test_get_checkout_line_tax_rate(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
         unit_price,
     )
 
@@ -3425,7 +3424,6 @@ def test_get_checkout_line_tax_rate_for_product_with_charge_taxes_set_to_false(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
         unit_price,
     )
 
@@ -3503,7 +3501,6 @@ def test_get_checkout_line_tax_rate_for_product_type_with_non_taxable_product(
             lines,
             checkout_line_info,
             checkout_with_item.shipping_address,
-            [],
             unit_price,
         )
         for checkout_line_info in lines
@@ -3538,7 +3535,6 @@ def test_get_checkout_line_tax_rate_checkout_no_shipping_method_default_value_re
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
         unit_price,
     )
 
@@ -3574,7 +3570,6 @@ def test_get_checkout_line_tax_rate_error_in_response(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [],
         unit_price,
     )
 

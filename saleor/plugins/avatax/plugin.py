@@ -655,16 +655,13 @@ class AvataxPlugin(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         previous_value: Decimal,
     ) -> Decimal:
         charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
         if not charge_taxes:
             return previous_value
 
-        response = self._get_checkout_tax_data(
-            checkout_info, lines, discounts, previous_value
-        )
+        response = self._get_checkout_tax_data(checkout_info, lines, [], previous_value)
         variant = checkout_line_info.variant
         return self._get_unit_tax_rate(
             response,

@@ -282,9 +282,7 @@ def test_manager_calculates_order_line_total(order_line, plugins):
     assert expected_total == taxed_total
 
 
-def test_manager_get_checkout_line_tax_rate_sample_plugin(
-    checkout_with_item, discount_info
-):
+def test_manager_get_checkout_line_tax_rate_sample_plugin(checkout_with_item):
     plugins = ["saleor.plugins.tests.sample_plugins.PluginSample"]
     unit_price = TaxedMoney(Money(12, "USD"), Money(15, "USD"))
 
@@ -298,7 +296,6 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [discount_info],
         unit_price,
     )
     assert tax_rate == Decimal("0.08")
@@ -312,7 +309,7 @@ def test_manager_get_checkout_line_tax_rate_sample_plugin(
     ],
 )
 def test_manager_get_checkout_line_tax_rate_no_plugins(
-    checkout_with_item, discount_info, unit_price, expected_tax_rate
+    checkout_with_item, unit_price, expected_tax_rate
 ):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
@@ -323,7 +320,6 @@ def test_manager_get_checkout_line_tax_rate_no_plugins(
         lines,
         checkout_line_info,
         checkout_with_item.shipping_address,
-        [discount_info],
         unit_price,
     )
     assert tax_rate == expected_tax_rate

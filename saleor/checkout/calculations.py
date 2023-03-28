@@ -428,7 +428,6 @@ def _apply_tax_data_from_plugins(
             lines,
             line_info,
             address,
-            [],
             unit_price,
         )
 

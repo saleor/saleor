@@ -512,7 +512,6 @@ def test_get_checkout_line_tax_rate_use_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
 
@@ -557,7 +556,6 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
     manager.get_checkout_line_tax_rate(
@@ -565,7 +563,6 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
     # Second Avatax call to make sure that we use cached response

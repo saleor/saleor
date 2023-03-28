@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
@@ -252,7 +251,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
