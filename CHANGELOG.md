@@ -3,8 +3,107 @@
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
 # 3.13.0 [Unreleased]
+### Highlights
+- Improve support for handling transactions - #10350 by @korycins
+  - API changes:
+    - Add new mutations:
+      - `transactionEventReport` - Report the event for the transaction.
+      - `orderGrantRefundCreate` - Add granted refund to the order.
+      - `orderGrantRefundUpdate` - Update granted refund.
+    - Add new types:
+      - `OrderGrantedRefund` - The details of granted refund.
+    - Add new webhooks:
+      - `TRANSACTION_CHARGE_REQUESTED` - triggered when a staff user request charge for the transaction.
+      - `TRANSACTION_REFUND_REQUESTED` - triggered when a staff user request refund for the transaction.
+      - `TRANSACTION_CANCELATION_REQUESTED` - triggered when a staff user request cancelation for the transaction.
+    - Add new webhook subscriptions:
+      - `TransactionChargeRequested` - Event sent when transaction charge is requested.
+      - `TransactionRefundRequested` - Event sent when transaction refund is requested.
+      - `TransactionCancelationRequested` - Event sent when transaction cancelation is requested.
+    - Add new fields:
+      - `OrderSettings.markAsPaidStrategy` - Determine what strategy will be used to mark the order as paid.
+      - `TransactionItem`:
+        - `authorizePendingAmount` - Total amount of ongoing authorization requests for the transaction.
+        - `refundPendingAmount` - Total amount of ongoing refund requests for the transaction.
+        - `cancelPendingAmount` - Total amount of ongoing cancel requests for the transaction.
+        - `chargePendingAmount` - Total amount of ongoing charge requests for the transaction.
+        - `canceledAmount` - Total amount canceled for this transaction.
+        - `name` - Name of the transaction.
+        - `message` - Message related to the transaction.
+        - `pspReference` -  PSP reference of transaction.
+        - `createdBy` - User or App that created the transaction.
+        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction details.
+      - `TransactionEvent`:
+        - `pspReference` -  PSP reference related to the event.
+        - `message` - Message related to the transaction's event.
+        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction event details.
+        - `amount` - The amount related to this event.
+        - `type` - The type of action related to this event.
+        - `createdBy` - User or App that created the event.
+      - `Order`:
+        - `totalCharged` - Amount charged for the order.
+        - `totalCanceled` - Amount canceled for the order.
+        - `grantedRefunds` - List of granted refunds.
+        - `totalGrantedRefund` - Total amount of granted refund.
+        - `totalRefunded` - Total refund amount for the order.
+        - `totalRefundPending` - Total amount of ongoing refund requests for the order's transactions.
+        - `totalAuthorizePending` - Total amount of ongoing authorize requests for the order's transactions.
+        - `totalChargePending` - Total amount of ongoing charge requests for the order's transactions.
+        - `totalCancelPending` - Total amount of ongoing cancel requests for the order's transactions.
+        - `totalRemainingGrant` - The difference amount between granted refund and the amounts that are pending and refunded.
+      - `OrderEventsEnum`:
+        - `TRANSACTION_CHARGE_REQUESTED`
+        - `TRANSACTION_CANCEL_REQUESTED`
+        - `TRANSACTION_MARK_AS_PAID_FAILED`
+    - Add new input fields:
+      - `TransactionCreateInput` & `TransactionUpdateInput`:
+        - `name` - The name of the transaction.
+        - `message` -  The message of the transaction.
+        - `pspReference` - The PSP Reference of the transaction.
+        - `amountCanceled` - Amount canceled by this transaction.
+        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction.
+      - `TransactionEventInput`:
+        - `pspReference` - The PSP Reference of the transaction.
+        - `message` - Message related to the transaction's event.
+
+    - Deprecate webhooks:
+      - `TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+    - Deprecate object fields:
+      - `TransactionItem`:
+        - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.14 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionEvent`:
+        - `status` - Use `type` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionActionEnum`
+        - `VOID` - Use `CANCEL` instead. This field will be removed in Saleor 3.14 (Preview feature).
+      - `Order`:
+        - `totalCaptured` - Use `totalCharged` instead. Will be removed in Saleor 4.0
+      - `OrderEvent`:
+        - `status` - Use `TransactionEvent` to track the status of `TransactionItem`. This field will be removed in Saleor 3.14 (Preview feature).
+      - `OrderEventsEnum`:
+        - `TRANSACTION_CAPTURE_REQUESTED` - Use `TRANSACTION_CHARGE_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
+        - `TRANSACTION_VOID_REQUESTED` - Use `TRANSACTION_CANCEL_REQUESTED` instead. This field will be removed in Saleor 3.14 (Preview feature).
+
+    - Deprecate input fields:
+      - `TransactionCreateInput` & `TransactionUpdateInput`:
+        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+      - `TransactionEventInput`:
+        - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
 
 ### Breaking changes
+- **Feature preview breaking change**:
+  - Improve support for handling transactions - #10350 by @korycins
+    - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
+    - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
+    - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
 
 ### GraphQL API
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ

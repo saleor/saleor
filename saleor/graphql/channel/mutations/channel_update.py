@@ -106,6 +106,8 @@ class ChannelUpdate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
+            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
         return cleaned_input
 
     @classmethod

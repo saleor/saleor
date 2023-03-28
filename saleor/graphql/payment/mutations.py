@@ -1,11 +1,12 @@
-import uuid
 from decimal import Decimal
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import transaction
-from django.db.models import F, Model
+from django.db.models import Model
+from django.utils import timezone
 
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
@@ -14,12 +15,21 @@ from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_s
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
 from ...core.error_codes import MetadataErrorCode
+from ...core.exceptions import PermissionDenied
+from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
-from ...order.models import Order
-from ...payment import PaymentError, StorePaymentMethod, TransactionAction, gateway
+from ...order.search import update_order_search_vector
+from ...order.utils import updates_amounts_for_order
+from ...payment import (
+    PaymentError,
+    StorePaymentMethod,
+    TransactionAction,
+    TransactionEventType,
+    gateway,
+)
 from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
@@ -28,11 +38,23 @@ from ...payment.error_codes import (
     TransactionUpdateErrorCode,
 )
 from ...payment.gateway import (
+    request_cancelation_action,
     request_charge_action,
     request_refund_action,
-    request_void_action,
 )
-from ...payment.utils import create_payment, is_currency_supported
+from ...payment.transaction_item_calculations import (
+    calculate_transaction_amount_based_on_events,
+    recalculate_transaction_amounts,
+)
+from ...payment.utils import (
+    authorization_success_already_exists,
+    create_failed_transaction_event,
+    create_manual_adjustment_events,
+    create_payment,
+    get_already_existing_event,
+    is_currency_supported,
+)
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
@@ -43,12 +65,15 @@ from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
+    PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
+from ..core.enums import TransactionEventReportErrorCode
 from ..core.fields import JSONString
-from ..core.mutations import BaseMutation
+from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import UUID, PositiveDecimal
 from ..core.types import BaseInputObjectType
 from ..core.types import common as common_types
@@ -56,20 +81,19 @@ from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_user_or_app_from_context
-from .enums import StorePaymentMethodEnum, TransactionActionEnum, TransactionStatusEnum
-from .types import Payment, PaymentInitialized, TransactionItem
-from .utils import metadata_contains_empty_key
+from .enums import (
+    StorePaymentMethodEnum,
+    TransactionActionEnum,
+    TransactionEventStatusEnum,
+    TransactionEventTypeEnum,
+)
+from .types import Payment, PaymentInitialized, TransactionEvent, TransactionItem
+from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 
-
-def add_to_order_total_authorized_and_total_charged(
-    order_id: uuid.UUID,
-    authorized_amount_to_add: Decimal,
-    charged_amount_to_add: Decimal,
-):
-    Order.objects.filter(id=order_id).update(
-        total_authorized_amount=F("total_authorized_amount") + authorized_amount_to_add,
-        total_charged_amount=F("total_charged_amount") + charged_amount_to_add,
-    )
+if TYPE_CHECKING:
+    from ...account.models import User
+    from ...app.models import App
+    from ...order.models import Order
 
 
 class PaymentInput(BaseInputObjectType):
@@ -634,12 +658,35 @@ class PaymentCheckBalance(BaseMutation):
 
 class TransactionUpdateInput(BaseInputObjectType):
     status = graphene.String(
-        description="Status of the transaction.",
+        description=(
+            "Status of the transaction."
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+            + " The `status` is not needed. The amounts can be used to define "
+            "the current status of transactions."
+        ),
     )
     type = graphene.String(
-        description="Payment type used for this transaction.",
+        description="Payment type used for this transaction."
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+        + " Use `name` and `message` instead.",
     )
-    reference = graphene.String(description="Reference of the transaction.")
+    name = graphene.String(
+        description="Payment name of the transaction." + ADDED_IN_313
+    )
+    message = graphene.String(
+        description="The message of the transaction." + ADDED_IN_313
+    )
+
+    reference = graphene.String(
+        description=(
+            "Reference of the transaction. "
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+            + " Use `pspReference` instead."
+        )
+    )
+    psp_reference = graphene.String(
+        description=("PSP Reference of the transaction. " + ADDED_IN_313)
+    )
     available_actions = graphene.List(
         graphene.NonNull(TransactionActionEnum),
         description="List of all possible actions for the transaction",
@@ -647,7 +694,14 @@ class TransactionUpdateInput(BaseInputObjectType):
     amount_authorized = MoneyInput(description="Amount authorized by this transaction.")
     amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
-    amount_voided = MoneyInput(description="Amount voided by this transaction.")
+    amount_voided = MoneyInput(
+        description="Amount voided by this transaction."
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+        + " Use `amountCanceled` instead."
+    )
+    amount_canceled = MoneyInput(
+        description="Amount canceled by this transaction." + ADDED_IN_313
+    )
 
     metadata = graphene.List(
         graphene.NonNull(MetadataInput),
@@ -659,16 +713,19 @@ class TransactionUpdateInput(BaseInputObjectType):
         description="Payment private metadata.",
         required=False,
     )
+    external_url = graphene.String(
+        description=(
+            "The url that will allow to redirect user to "
+            "payment provider page with transaction event details." + ADDED_IN_313
+        )
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionCreateInput(TransactionUpdateInput):
-    status = graphene.String(description="Status of the transaction.", required=True)
-    type = graphene.String(
-        description="Payment type used for this transaction.", required=True
-    )
+    ...
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -676,12 +733,31 @@ class TransactionCreateInput(TransactionUpdateInput):
 
 class TransactionEventInput(BaseInputObjectType):
     status = graphene.Field(
-        TransactionStatusEnum,
-        required=True,
-        description="Current status of the payment transaction.",
+        TransactionEventStatusEnum,
+        required=False,
+        description="Current status of the payment transaction."
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+        + " Status will be calculated by Saleor.",
     )
-    reference = graphene.String(description="Reference of the transaction.")
-    name = graphene.String(description="Name of the transaction.")
+    reference = graphene.String(
+        description=(
+            "Reference of the transaction. "
+            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+            + " Use `pspReference` instead."
+        )
+    )
+
+    psp_reference = graphene.String(
+        description=("PSP Reference related to this action." + ADDED_IN_313)
+    )
+    name = graphene.String(
+        description="Name of the transaction."
+        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
+        + " Use `message` instead. `name` field will be added to `message`."
+    )
+    message = graphene.String(
+        description="The message related to the event." + ADDED_IN_313
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
@@ -704,24 +780,28 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        auto_permission_message = False
         description = (
-            "Create transaction for checkout or order. Requires the "
-            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
+            "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
-    def check_permissions(cls, context, permissions=None, **data):
-        """Determine whether app has rights to perform this mutation."""
-        permissions = permissions or cls._meta.permissions
-        if app := getattr(context, "app", None):
-            return app.has_perms(permissions)
-        return False
+    def validate_external_url(cls, external_url: Optional[str], error_code: str):
+        if external_url is None:
+            return
+        validator = URLValidator()
+        try:
+            validator(external_url)
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "transaction": ValidationError(
+                        "Invalid format of `externalUrl`.", code=error_code
+                    )
+                }
+            )
 
     @classmethod
     def validate_metadata_keys(  # type: ignore[override]
@@ -731,26 +811,27 @@ class TransactionCreate(BaseMutation):
             raise ValidationError(
                 {
                     "transaction": ValidationError(
-                        {
-                            field_name: ValidationError(
-                                "Metadata key cannot be empty.",
-                                code=error_code,
-                            )
-                        }
+                        f"{field_name} key cannot be empty.",
+                        code=error_code,
                     )
                 }
             )
 
     @classmethod
-    def cleanup_money_data(cls, cleaned_data: dict):
+    def get_money_data_from_input(cls, cleaned_data: dict) -> Dict[str, Decimal]:
+        money_data = {}
         if amount_authorized := cleaned_data.pop("amount_authorized", None):
-            cleaned_data["authorized_value"] = amount_authorized["amount"]
+            money_data["authorized_value"] = amount_authorized["amount"]
         if amount_charged := cleaned_data.pop("amount_charged", None):
-            cleaned_data["charged_value"] = amount_charged["amount"]
+            money_data["charged_value"] = amount_charged["amount"]
         if amount_refunded := cleaned_data.pop("amount_refunded", None):
-            cleaned_data["refunded_value"] = amount_refunded["amount"]
-        if amount_voided := cleaned_data.pop("amount_voided", None):
-            cleaned_data["voided_value"] = amount_voided["amount"]
+            money_data["refunded_value"] = amount_refunded["amount"]
+
+        if amount_canceled := cleaned_data.pop("amount_canceled", None):
+            money_data["canceled_value"] = amount_canceled["amount"]
+        elif amount_voided := cleaned_data.pop("amount_voided", None):
+            money_data["canceled_value"] = amount_voided["amount"]
+        return money_data
 
     @classmethod
     def cleanup_metadata_data(cls, cleaned_data: dict):
@@ -787,6 +868,7 @@ class TransactionCreate(BaseMutation):
             "amount_authorized",
             "amount_charged",
             "amount_refunded",
+            "amount_canceled",
             "amount_voided",
         ]
         errors = {}
@@ -824,41 +906,70 @@ class TransactionCreate(BaseMutation):
             field_name="privateMetadata",
             error_code=TransactionCreateErrorCode.METADATA_KEY_REQUIRED.value,
         )
+        cls.validate_external_url(
+            transaction.get("external_url"),
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
         return instance
 
     @classmethod
     def create_transaction(
-        cls, transaction_input: dict
+        cls, transaction_input: dict, user, app
     ) -> payment_models.TransactionItem:
-        cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
+
+        transaction_type = transaction_input.pop("type", None)
+        transaction_input["name"] = transaction_input.get("name", transaction_type)
+        reference = transaction_input.pop("reference", None)
+        transaction_input["psp_reference"] = transaction_input.get(
+            "psp_reference", reference
+        )
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
         return payment_models.TransactionItem.objects.create(
             **transaction_input,
+            user=user if user and user.is_authenticated else None,
+            app_identifier=app_identifier,
+            app=app,
         )
 
     @classmethod
     def create_transaction_event(
-        cls, transaction_event_input: dict, transaction: payment_models.TransactionItem
+        cls,
+        transaction_event_input: dict,
+        transaction: payment_models.TransactionItem,
+        user,
+        app,
     ) -> payment_models.TransactionEvent:
+        reference = transaction_event_input.pop("reference", None)
+        psp_reference = transaction_event_input.get("psp_reference", reference)
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
         return transaction.events.create(
-            status=transaction_event_input["status"],
-            reference=transaction_event_input.get("reference", ""),
-            name=transaction_event_input.get("name", ""),
+            status=transaction_event_input.get("status"),
+            psp_reference=psp_reference,
+            message=cls.create_event_message(transaction_event_input),
             transaction=transaction,
+            user=user if user and user.is_authenticated else None,
+            app_identifier=app_identifier,
+            app=app,
+            type=TransactionEventType.INFO,
             currency=transaction.currency,
         )
 
     @classmethod
-    def add_amounts_to_order(cls, order_id: uuid.UUID, transaction_data: dict):
-        authorized_amount = transaction_data.get("authorized_value", 0)
-        charged_amount = transaction_data.get("charged_value", 0)
-        if not authorized_amount and not charged_amount:
-            return
-        add_to_order_total_authorized_and_total_charged(
-            order_id=order_id,
-            authorized_amount_to_add=authorized_amount,
-            charged_amount_to_add=charged_amount,
-        )
+    def create_event_message(cls, transaction_event: dict) -> str:
+        message = transaction_event.get("message")
+        name = transaction_event.get("name")
+        if message and name:
+            return message + " " + name
+        elif message:
+            return message
+        elif name:
+            return name
+        return ""
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -878,26 +989,48 @@ class TransactionCreate(BaseMutation):
         )
         transaction_data = {**transaction}
         transaction_data["currency"] = order_or_checkout_instance.currency
+        app = get_app_promise(info.context).get()
+        user = info.context.user
+
         if isinstance(order_or_checkout_instance, checkout_models.Checkout):
             transaction_data["checkout_id"] = order_or_checkout_instance.pk
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event:
-                app = get_app_promise(info.context).get()
+                reference = transaction_event.get("reference", None)
+                psp_reference = transaction_event.get("psp_reference", reference)
                 order_transaction_event(
                     order=order_or_checkout_instance,
-                    user=info.context.user,
+                    user=user,
                     app=app,
-                    reference=transaction_event.get("reference", ""),
-                    status=transaction_event["status"],
-                    name=transaction_event.get("name", ""),
+                    reference=psp_reference,
+                    status=transaction_event.get("status"),
+                    message=cls.create_event_message(transaction_event),
                 )
-        new_transaction = cls.create_transaction(transaction_data)
-        if order_id := transaction_data.get("order_id"):
-            cls.add_amounts_to_order(order_id, transaction_data)
+        money_data = cls.get_money_data_from_input(transaction_data)
+        new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
+        if money_data:
+            create_manual_adjustment_events(
+                transaction=new_transaction, money_data=money_data, user=user, app=app
+            )
+            recalculate_transaction_amounts(new_transaction)
+        if transaction_data.get("order_id") and money_data:
+            order = cast(order_models.Order, new_transaction.order)
+            update_order_search_vector(order, save=False)
+            updates_amounts_for_order(order, save=False)
+            order.save(
+                update_fields=[
+                    "total_charged_amount",
+                    "charge_status",
+                    "updated_at",
+                    "total_authorized_amount",
+                    "authorize_status",
+                    "search_vector",
+                ]
+            )
 
         if transaction_event:
-            cls.create_transaction_event(transaction_event, new_transaction)
+            cls.create_transaction_event(transaction_event, new_transaction, user, app)
         return TransactionCreate(transaction=new_transaction)
 
 
@@ -919,15 +1052,34 @@ class TransactionUpdate(TransactionCreate):
     class Meta:
         auto_permission_message = False
         description = (
-            "Create transaction for checkout or order. Requires the "
-            "following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS."
+            "Create transaction for checkout or order."
             + ADDED_IN_34
             + PREVIEW_FEATURE
+            + "\n\nRequires the following permissions: "
+            + f"{AuthorizationFilters.OWNER.name} "
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
         )
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionUpdateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
         object_type = TransactionItem
+
+    @classmethod
+    def check_can_update(
+        cls,
+        transaction: payment_models.TransactionItem,
+        user: Optional["User"],
+        app: Optional["App"],
+    ):
+        if not check_if_requestor_has_access(
+            transaction=transaction, user=user, app=app
+        ):
+            raise PermissionDenied(
+                permissions=[
+                    AuthorizationFilters.OWNER,
+                    PaymentPermissions.HANDLE_PAYMENTS,
+                ]
+            )
 
     @classmethod
     def validate_transaction_input(
@@ -949,33 +1101,74 @@ class TransactionUpdate(TransactionCreate):
             field_name="privateMetadata",
             error_code=TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.value,
         )
+        cls.validate_external_url(
+            transaction_data.get("external_url"),
+            error_code=TransactionCreateErrorCode.INVALID.value,
+        )
 
     @classmethod
-    def update_amounts_for_order(
+    def update_transaction(
         cls,
-        transaction: payment_models.TransactionItem,
-        order_id: uuid.UUID,
+        instance: payment_models.TransactionItem,
         transaction_data: dict,
+        user: Optional["User"],
+        app: Optional["App"],
     ):
-        current_authorized_amount = transaction.authorized_value
-        updated_authorized_amount = transaction_data.get(
-            "authorized_value", current_authorized_amount
+        money_data = cls.get_money_data_from_input(transaction_data)
+        psp_reference = transaction_data.get(
+            "psp_reference", transaction_data.pop("reference", None)
         )
-        authorized_amount_to_add = updated_authorized_amount - current_authorized_amount
+        if psp_reference and instance.psp_reference != psp_reference:
+            if payment_models.TransactionItem.objects.filter(
+                psp_reference=psp_reference
+            ).exists():
+                raise ValidationError(
+                    {
+                        "transaction": ValidationError(
+                            "Transaction with provided `pspReference` already exists.",
+                            code=TransactionUpdateErrorCode.UNIQUE.value,
+                        )
+                    }
+                )
+        transaction_data["name"] = transaction_data.get(
+            "name", transaction_data.pop("type", None)
+        )
+        transaction_data["psp_reference"] = psp_reference
+        instance = cls.construct_instance(instance, transaction_data)
+        instance.save()
+        if money_data:
+            calculate_transaction_amount_based_on_events(transaction=instance)
+            create_manual_adjustment_events(
+                transaction=instance, money_data=money_data, user=user, app=app
+            )
+            recalculate_transaction_amounts(instance)
+        if instance.order_id:
+            order = cast(order_models.Order, instance.order)
+            cls.update_order(order, money_data, psp_reference)
 
-        current_charged_amount = transaction.charged_value
-        updated_charged_amount = transaction_data.get(
-            "charged_value", current_charged_amount
-        )
-        charged_amount_to_add = updated_charged_amount - current_charged_amount
-
-        if not authorized_amount_to_add and not charged_amount_to_add:
-            return
-        add_to_order_total_authorized_and_total_charged(
-            order_id=order_id,
-            authorized_amount_to_add=authorized_amount_to_add,
-            charged_amount_to_add=charged_amount_to_add,
-        )
+    @classmethod
+    def update_order(
+        cls, order: "Order", money_data: dict, psp_reference: Optional[str]
+    ) -> None:
+        update_fields = []
+        if money_data:
+            updates_amounts_for_order(order)
+            update_fields.extend(
+                [
+                    "total_charged_amount",
+                    "charge_status",
+                    "total_authorized_amount",
+                    "authorize_status",
+                ]
+            )
+        if psp_reference:
+            update_order_search_vector(order, save=False)
+            update_fields.append(
+                "search_vector",
+            )
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -988,27 +1181,33 @@ class TransactionUpdate(TransactionCreate):
         transaction=None,
         transaction_event=None
     ):
+        app = get_app_promise(info.context).get()
+        user = info.context.user
         instance = cls.get_node_or_error(info, id, only_type=TransactionItem)
+
+        cls.check_can_update(
+            transaction=instance,
+            user=user if user and user.is_authenticated else None,
+            app=app,
+        )
+
         if transaction:
             cls.validate_transaction_input(instance, transaction)
-            cls.cleanup_money_data(transaction)
             cls.cleanup_metadata_data(transaction)
-            if instance.order_id:
-                cls.update_amounts_for_order(instance, instance.order_id, transaction)
-            instance = cls.construct_instance(instance, transaction)
-            instance.save()
+            cls.update_transaction(instance, transaction, user, app)
 
         if transaction_event:
-            cls.create_transaction_event(transaction_event, instance)
+            cls.create_transaction_event(transaction_event, instance, user, app)
             if instance.order:
-                app = get_app_promise(info.context).get()
+                reference = transaction_event.pop("reference", None)
+                psp_reference = transaction_event.get("psp_reference", reference)
                 order_transaction_event(
                     order=instance.order,
-                    user=info.context.user,
+                    user=user,
                     app=app,
-                    reference=transaction_event.get("reference", ""),
+                    reference=psp_reference or "",
                     status=transaction_event["status"],
-                    name=transaction_event.get("name", ""),
+                    message=cls.create_event_message(transaction_event),
                 )
         return TransactionUpdate(transaction=instance)
 
@@ -1039,10 +1238,7 @@ class TransactionRequestAction(BaseMutation):
         )
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionRequestActionError
-        permissions = (
-            PaymentPermissions.HANDLE_PAYMENTS,
-            OrderPermissions.MANAGE_ORDERS,
-        )
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -1059,18 +1255,60 @@ class TransactionRequestAction(BaseMutation):
     def handle_transaction_action(
         cls, action, action_kwargs, action_value: Optional[Decimal]
     ):
-        if action == TransactionAction.VOID:
-            request_void_action(**action_kwargs)
+        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
+            transaction = action_kwargs["transaction"]
+            request_event = cls.create_transaction_event_requested(
+                transaction, 0, action
+            )
+            request_cancelation_action(
+                **action_kwargs,
+                cancel_value=action_value,
+                request_event=request_event,
+                action=action,
+            )
         elif action == TransactionAction.CHARGE:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
-            request_charge_action(**action_kwargs, charge_value=action_value)
+            request_event = cls.create_transaction_event_requested(
+                transaction, action_value, TransactionAction.CHARGE
+            )
+            request_charge_action(
+                **action_kwargs, charge_value=action_value, request_event=request_event
+            )
         elif action == TransactionAction.REFUND:
             transaction = action_kwargs["transaction"]
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
-            request_refund_action(**action_kwargs, refund_value=action_value)
+            request_event = cls.create_transaction_event_requested(
+                transaction, action_value, TransactionAction.REFUND
+            )
+            request_refund_action(
+                **action_kwargs, refund_value=action_value, request_event=request_event
+            )
+
+    @classmethod
+    def create_transaction_event_requested(cls, transaction, action_value, action):
+        if action in (TransactionAction.CANCEL, TransactionAction.VOID):
+            type = TransactionEventType.CANCEL_REQUEST
+        elif action == TransactionAction.CHARGE:
+            type = TransactionEventType.CHARGE_REQUEST
+        elif action == TransactionAction.REFUND:
+            type = TransactionEventType.REFUND_REQUEST
+        else:
+            raise ValidationError(
+                {
+                    "actionType": ValidationError(
+                        "Incorrect action.",
+                        code=TransactionRequestActionErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return transaction.events.create(
+            amount_value=action_value,
+            currency=transaction.currency,
+            type=type,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -1100,3 +1338,193 @@ class TransactionRequestAction(BaseMutation):
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value
             raise ValidationError(str(e), code=code)
         return TransactionRequestAction(transaction=transaction)
+
+
+class TransactionEventReport(ModelMutation):
+    already_processed = graphene.Boolean(
+        description="Defines if the reported event hasn't been processed earlier."
+    )
+    transaction = graphene.Field(
+        TransactionItem, description="The transaction related to the reported event."
+    )
+    transaction_event = graphene.Field(
+        TransactionEvent,
+        description=(
+            "The event assigned to this report. if `alreadyProcessed` is set to `true`,"
+            " the previously processed event will be returned."
+        ),
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the transaction.",
+            required=True,
+        )
+        psp_reference = graphene.String(
+            description="PSP Reference of the event to report.", required=True
+        )
+        type = graphene.Argument(
+            TransactionEventTypeEnum,
+            required=True,
+            description="Current status of the event to report.",
+        )
+        amount = PositiveDecimal(
+            description="The amount of the event to report.", required=True
+        )
+        time = graphene.DateTime(
+            description=(
+                "The time of the event to report. If not provide, "
+                "the current time will be used."
+            )
+        )
+        external_url = graphene.String(
+            description=(
+                "The url that will allow to redirect user to "
+                "payment provider page with event details."
+            )
+        )
+        message = graphene.String(description="The message related to the event.")
+        available_actions = graphene.List(
+            graphene.NonNull(TransactionActionEnum),
+            description="List of all possible actions for the transaction",
+        )
+
+    class Meta:
+        description = (
+            "Report the event for the transaction."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+            + "\n\nRequires the following permissions: "
+            + f"{AuthorizationFilters.OWNER.name} "
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
+        )
+        error_type_class = common_types.TransactionEventReportError
+        permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
+        doc_category = DOC_CATEGORY_PAYMENTS
+        model = payment_models.TransactionEvent
+        object_type = TransactionEvent
+        auto_permission_message = False
+
+    @classmethod
+    def _update_mutation_arguments_and_fields(cls, arguments, fields):
+        cls._meta.arguments.update(arguments)
+
+    @classmethod
+    def perform_mutation(  # type: ignore[override]
+        cls,
+        root,
+        info: ResolveInfo,
+        /,
+        *,
+        id,
+        psp_reference,
+        type,
+        amount,
+        time=None,
+        external_url=None,
+        message=None,
+        available_actions=None
+    ):
+        user = info.context.user
+        app = get_app_promise(info.context).get()
+        transaction = cls.get_node_or_error(info, id, only_type="TransactionItem")
+        transaction = cast(payment_models.TransactionItem, transaction)
+
+        if not check_if_requestor_has_access(
+            transaction=transaction, user=user, app=app
+        ):
+            raise PermissionDenied(
+                permissions=[
+                    AuthorizationFilters.OWNER,
+                    PaymentPermissions.HANDLE_PAYMENTS,
+                ]
+            )
+
+        app_identifier = None
+        if app and app.identifier:
+            app_identifier = app.identifier
+
+        transaction_event_data = {
+            "psp_reference": psp_reference,
+            "type": type,
+            "amount_value": amount,
+            "currency": transaction.currency,
+            "created_at": time or timezone.now(),
+            "external_url": external_url or "",
+            "message": message or "",
+            "transaction": transaction,
+            "app_identifier": app_identifier,
+            "app": app,
+            "user": user,
+            "include_in_calculations": True,
+        }
+        transaction_event = cls.get_instance(info, **transaction_event_data)
+        transaction_event = cast(payment_models.TransactionEvent, transaction_event)
+        transaction_event = cls.construct_instance(
+            transaction_event, transaction_event_data
+        )
+
+        cls.clean_instance(info, transaction_event)
+        already_processed = False
+        error_code = None
+        error_msg = None
+        error_field = None
+        with traced_atomic_transaction():
+            # The mutation can be called multiple times by the app. That can cause a
+            # thread race. We need to be sure, that we will always create a single event
+            # on our side for specific action.
+            existing_event = get_already_existing_event(transaction_event)
+            if existing_event and existing_event.amount != transaction_event.amount:
+                error_code = TransactionEventReportErrorCode.INCORRECT_DETAILS.value
+                error_msg = (
+                    "The transaction with provided `pspReference` and "
+                    "`type` already exists with different amount."
+                )
+                error_field = "pspReference"
+            elif existing_event:
+                already_processed = True
+                transaction_event = existing_event
+            elif (
+                transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
+                and authorization_success_already_exists(transaction.pk)
+            ):
+                error_code = TransactionEventReportErrorCode.ALREADY_EXISTS.value
+                error_msg = (
+                    "Event with `AUTHORIZATION_SUCCESS` already "
+                    "reported for the transaction. Use "
+                    "`AUTHORIZATION_ADJUSTMENT` to change the "
+                    "authorization amount."
+                )
+                error_field = "type"
+            else:
+                transaction_event.save()
+
+        if error_msg and error_code and error_field:
+            create_failed_transaction_event(transaction_event, cause=error_msg)
+            raise ValidationError({error_field: ValidationError(error_msg, error_code)})
+        if not already_processed:
+            if available_actions is not None:
+                transaction.available_actions = available_actions
+                transaction.save(update_fields=["available_actions"])
+            recalculate_transaction_amounts(transaction)
+            if transaction.order_id:
+                order = cast(order_models.Order, transaction.order)
+                update_order_search_vector(order, save=False)
+                updates_amounts_for_order(order, save=False)
+                order.save(
+                    update_fields=[
+                        "total_charged_amount",
+                        "charge_status",
+                        "updated_at",
+                        "total_authorized_amount",
+                        "authorize_status",
+                        "search_vector",
+                    ]
+                )
+
+        return cls(
+            already_processed=already_processed,
+            transaction=transaction,
+            transaction_event=transaction_event,
+            errors=[],
+        )

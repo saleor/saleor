@@ -1884,7 +1884,11 @@ enum WebhookEventTypeEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """
@@ -1970,6 +1974,33 @@ enum WebhookEventTypeEnum {
   PAYMENT_VOID
 
   """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_CANCELATION_REQUESTED
+
+  """
   Event called for checkout tax calculation.
   
   Added in Saleor 3.6.
@@ -2028,6 +2059,33 @@ enum WebhookEventTypeSyncEnum {
 
   """Void payment."""
   PAYMENT_VOID
+
+  """
+  Event called when charge has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_CHARGE_REQUESTED
+
+  """
+  Event called when refund has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_REFUND_REQUESTED
+
+  """
+  Event called when cancel has been requested for transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  TRANSACTION_CANCELATION_REQUESTED
 
   """
   Event called for checkout tax calculation.
@@ -2434,7 +2492,11 @@ enum WebhookEventTypeAsyncEnum {
   """A staff user is deleted."""
   STAFF_DELETED
 
-  """An action requested for transaction."""
+  """
+  An action requested for transaction.
+  
+  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
+  """
   TRANSACTION_ACTION_REQUEST
 
   """
@@ -4852,6 +4914,31 @@ type OrderSettings {
   When enabled, all non-shippable gift card orders will be fulfilled automatically.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean!
+
+  """
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  markAsPaidStrategy: MarkAsPaidStrategyEnum!
+}
+
+"""
+Determine the mark as paid strategy for the channel.
+
+    TRANSACTION_FLOW - new orders marked as paid will receive a
+    `TransactionItem` object, that will cover the `order.total`.
+
+    PAYMENT_FLOW - new orders marked as paid will receive a
+    `Payment` object, that will cover the `order.total`.
+"""
+enum MarkAsPaidStrategyEnum {
+  TRANSACTION_FLOW
+  PAYMENT_FLOW
 }
 
 """Represents shipping method postal code rule."""
@@ -9504,23 +9591,79 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """Total amount authorized for this payment."""
   authorizedAmount: Money!
 
+  """
+  Total amount of ongoing authorization requests for the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  authorizePendingAmount: Money!
+
   """Total amount refunded for this payment."""
   refundedAmount: Money!
 
+  """
+  Total amount of ongoing refund requests for the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  refundPendingAmount: Money!
+
   """Total amount voided for this payment."""
-  voidedAmount: Money!
+  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `canceledAmount` instead.")
+
+  """
+  Total amount canceled for this payment.
+  
+  Added in Saleor 3.13.
+  """
+  canceledAmount: Money!
+
+  """
+  Total amount of ongoing cancel requests for the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  cancelPendingAmount: Money!
 
   """Total amount charged for this payment."""
   chargedAmount: Money!
 
+  """
+  Total amount of ongoing charge requests for the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  chargePendingAmount: Money!
+
   """Status of transaction."""
-  status: String!
+  status: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String!
+  type: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `name` or `message` instead.")
+
+  """
+  Name of the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  name: String!
+
+  """
+  Message related to the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  message: String!
 
   """Reference of transaction."""
-  reference: String!
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+
+  """
+  PSP reference of transaction.
+  
+  Added in Saleor 3.13.
+  """
+  pspReference: String!
 
   """
   The related order.
@@ -9531,6 +9674,20 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
 
   """List of all transaction's events."""
   events: [TransactionEvent!]!
+
+  """
+  User or App that created the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  createdBy: UserOrApp
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.13.
+  """
+  externalUrl: String!
 }
 
 """
@@ -9539,12 +9696,15 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action.
+    VOID - Represents a void action. This field will be removed
+    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
+    CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
 enum TransactionActionEnum {
   CHARGE
   REFUND
   VOID
+  CANCEL
 }
 
 """Represents an order in the shop."""
@@ -9782,8 +9942,22 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   """Amount authorized for the order."""
   totalAuthorized: Money!
 
-  """Amount captured by payment."""
-  totalCaptured: Money!
+  """Amount captured for the order."""
+  totalCaptured: Money! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `totalCharged` instead.")
+
+  """
+  Amount charged for the order.
+  
+  Added in Saleor 3.13.
+  """
+  totalCharged: Money!
+
+  """
+  Amount canceled for the order.
+  
+  Added in Saleor 3.13.
+  """
+  totalCanceled: Money!
 
   """
   List of events associated with the order.
@@ -9853,6 +10027,92 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.11.
   """
   checkoutId: ID
+
+  """
+  List of granted refunds.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  grantedRefunds: [OrderGrantedRefund!]!
+
+  """
+  Total amount of granted refund.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalGrantedRefund: Money!
+
+  """
+  Total refund amount for the order.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  totalRefunded: Money!
+
+  """
+  Total amount of ongoing refund requests for the order's transactions.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalRefundPending: Money!
+
+  """
+  Total amount of ongoing authorize requests for the order's transactions.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalAuthorizePending: Money!
+
+  """
+  Total amount of ongoing charge requests for the order's transactions.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalChargePending: Money!
+
+  """
+  Total amount of ongoing cancel requests for the order's transactions.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalCancelPending: Money!
+
+  """
+  The difference amount between granted refund and the amounts that are pending and refunded.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  totalRemainingGrant: Money!
 }
 
 """An enumeration."""
@@ -10275,16 +10535,17 @@ enum PaymentChargeStatusEnum {
 Determine a current authorize status for order.
 
     We treat the order as fully authorized when the sum of authorized and charged funds
-    cover the order.total.
+    cover the `order.total`-`order.totalGrantedRefund`.
     We treat the order as partially authorized when the sum of authorized and charged
-    funds covers only part of the order.total
+    funds covers only part of the `order.total`-`order.totalGrantedRefund`.
     We treat the order as not authorized when the sum of authorized and charged funds is
     0.
 
     NONE - the funds are not authorized
-    PARTIAL - the funds that are authorized or charged don't cover fully the order's
-    total
-    FULL - the funds that are authorized or charged fully cover the order's total
+    PARTIAL - the funds that are authorized and charged don't cover fully the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are authorized and charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
 """
 enum OrderAuthorizeStatusEnum {
   NONE
@@ -10295,15 +10556,22 @@ enum OrderAuthorizeStatusEnum {
 """
 Determine the current charge status for the order.
 
-    We treat the order as overcharged when the charged amount is bigger that order.total
-    We treat the order as fully charged when the charged amount is equal to order.total.
-    We treat the order as partially charged when the charged amount covers only part of
-    the order.total
+    An order is considered overcharged when the sum of the
+    transactionItem's charge amounts exceeds the value of
+    `order.total` - `order.totalGrantedRefund`.
+    If the sum of the transactionItem's charge amounts equals
+    `order.total` - `order.totalGrantedRefund`, we consider the order to be fully
+    charged.
+    If the sum of the transactionItem's charge amounts covers a part of the
+    `order.total` - `order.totalGrantedRefund`, we treat the order as partially charged.
 
     NONE - the funds are not charged.
-    PARTIAL - the funds that are charged don't cover the order's total
-    FULL - the funds that are charged fully cover the order's total
-    OVERCHARGED - the charged funds are bigger than order's total
+    PARTIAL - the funds that are charged don't cover the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
+    OVERCHARGED - the charged funds are bigger than the
+    `order.total`-`order.totalGrantedRefund`
 """
 enum OrderChargeStatusEnum {
   NONE
@@ -10537,13 +10805,13 @@ type OrderEvent implements Node @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionStatus
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
 
   """The reference of payment's transaction."""
   reference: String
 }
 
-"""An enumeration."""
+"""The different order event types."""
 enum OrderEventsEnum {
   DRAFT_CREATED
   DRAFT_CREATED_FROM_REPLACE
@@ -10574,9 +10842,20 @@ enum OrderEventsEnum {
   PAYMENT_VOIDED
   PAYMENT_FAILED
   TRANSACTION_EVENT
+  TRANSACTION_CHARGE_REQUESTED
+
+  """
+  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
+
+  """
+  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  """
   TRANSACTION_VOID_REQUESTED
+  TRANSACTION_CANCEL_REQUESTED
+  TRANSACTION_MARK_AS_PAID_FAILED
   INVOICE_REQUESTED
   INVOICE_GENERATED
   INVOICE_UPDATED
@@ -10643,7 +10922,14 @@ type OrderEventDiscountObject {
   oldAmount: Money
 }
 
-"""An enumeration."""
+"""
+Represents a status of payment transaction.
+
+    The following statuses are possible:
+    SUCCESS - Represents a sucess action.
+    FAILURE - Represents a failure action.
+    PENDING - Represents a pending action.
+"""
 enum TransactionStatus {
   PENDING
   SUCCESS
@@ -10726,6 +11012,7 @@ enum OrderErrorCode {
   ORDER_NO_SHIPPING_ADDRESS
   PAYMENT_ERROR
   PAYMENT_MISSING
+  TRANSACTION_ERROR
   REQUIRED
   SHIPPING_METHOD_NOT_APPLICABLE
   SHIPPING_METHOD_REQUIRED
@@ -10738,13 +11025,43 @@ enum OrderErrorCode {
   DUPLICATED_INPUT_ITEM
   NOT_AVAILABLE_IN_CHANNEL
   CHANNEL_INACTIVE
-  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
 }
 
 """An enumeration."""
 enum AddressTypeEnum {
   BILLING
   SHIPPING
+}
+
+"""
+The details of granted refund.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderGrantedRefund {
+  id: ID!
+
+  """Time of creation."""
+  createdAt: DateTime!
+
+  """Time of last update."""
+  updatedAt: DateTime!
+
+  """Refund amount."""
+  amount: Money!
+
+  """Reason of the refund."""
+  reason: String
+
+  """
+  User who performed the action. Requires of of the following permissions: MANAGE_USERS, MANAGE_STAFF, OWNER.
+  """
+  user: User
+
+  """App that performed the action."""
+  app: App
 }
 
 """Represents transaction's event."""
@@ -10754,14 +11071,100 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionStatus!
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
-  reference: String!
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+
+  """
+  PSP reference of transaction.
+  
+  Added in Saleor 3.13.
+  """
+  pspReference: String!
 
   """Name of the transaction's event."""
-  name: String
+  name: String @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead.")
+
+  """
+  Message related to the transaction's event.
+  
+  Added in Saleor 3.13.
+  """
+  message: String!
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction details.
+  
+  Added in Saleor 3.13.
+  """
+  externalUrl: String!
+
+  """
+  The amount related to this event.
+  
+  Added in Saleor 3.13.
+  """
+  amount: Money!
+
+  """
+  The type of action related to this event.
+  
+  Added in Saleor 3.13.
+  """
+  type: TransactionEventTypeEnum
+
+  """
+  User or App that created the transaction event.
+  
+  Added in Saleor 3.13.
+  """
+  createdBy: UserOrApp
 }
+
+"""
+Represents possible event types.
+
+    Added in Saleor 3.12.
+
+    The following types are possible:
+    AUTHORIZATION_SUCCESS - represents success authorization.
+    AUTHORIZATION_FAILURE - represents failure authorization.
+    AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
+    AUTHORIZATION_REQUEST - represents authorization request.
+    CHARGE_SUCCESS - represents success charge.
+    CHARGE_FAILURE - represents failure charge.
+    CHARGE_BACK - represents chargeback.
+    CHARGE_REQUEST - represents charge request.
+    REFUND_SUCCESS - represents success refund.
+    REFUND_FAILURE - represents failure refund.
+    REFUND_REVERSE - represents reverse refund.
+    REFUND_REQUEST - represents refund request.
+    CANCEL_SUCCESS - represents success cancel.
+    CANCEL_FAILURE - represents failure cancel.
+    CANCEL_REQUEST - represents cancel request.
+    INFO - represents info event.
+"""
+enum TransactionEventTypeEnum {
+  AUTHORIZATION_SUCCESS
+  AUTHORIZATION_FAILURE
+  AUTHORIZATION_ADJUSTMENT
+  AUTHORIZATION_REQUEST
+  CHARGE_SUCCESS
+  CHARGE_FAILURE
+  CHARGE_BACK
+  CHARGE_REQUEST
+  REFUND_SUCCESS
+  REFUND_FAILURE
+  REFUND_REVERSE
+  REFUND_REQUEST
+  CANCEL_SUCCESS
+  CANCEL_FAILURE
+  CANCEL_REQUEST
+  INFO
+}
+
+union UserOrApp = User | App
 
 type CheckoutCountableConnection {
   """Pagination data for this connection."""
@@ -13496,11 +13899,13 @@ type Mutation {
   ): PaymentCheckBalance @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  Create transaction for checkout or order.
   
   Added in Saleor 3.4.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionCreate(
     """The ID of the checkout or order."""
@@ -13514,11 +13919,13 @@ type Mutation {
   ): TransactionCreate @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+  Create transaction for checkout or order.
   
   Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -13538,7 +13945,7 @@ type Mutation {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
-  Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+  Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transactionRequestAction(
     """Determines the action type."""
@@ -13552,6 +13959,45 @@ type Mutation {
     """The ID of the transaction."""
     id: ID!
   ): TransactionRequestAction @doc(category: "Payments")
+
+  """
+  Report the event for the transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  """
+  transactionEventReport(
+    """The amount of the event to report."""
+    amount: PositiveDecimal!
+
+    """List of all possible actions for the transaction"""
+    availableActions: [TransactionActionEnum!]
+
+    """
+    The url that will allow to redirect user to payment provider page with event details.
+    """
+    externalUrl: String
+
+    """The ID of the transaction."""
+    id: ID!
+
+    """The message related to the event."""
+    message: String
+
+    """PSP Reference of the event to report."""
+    pspReference: String!
+
+    """
+    The time of the event to report. If not provide, the current time will be used.
+    """
+    time: DateTime
+
+    """Current status of the event to report."""
+    type: TransactionEventTypeEnum!
+  ): TransactionEventReport @doc(category: "Payments")
 
   """
   Creates a new page. 
@@ -13926,6 +14372,40 @@ type Mutation {
     """ID of the order to be returned."""
     order: ID!
   ): FulfillmentReturnProducts @doc(category: "Orders")
+
+  """
+  Adds granted refund to the order.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderGrantRefundCreate(
+    """ID of the order."""
+    id: ID!
+
+    """Fields required to create a granted refund for the order."""
+    input: OrderGrantRefundCreateInput!
+  ): OrderGrantRefundCreate @doc(category: "Orders")
+
+  """
+  Updates granted refund.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderGrantRefundUpdate(
+    """ID of the granted refund."""
+    id: ID!
+
+    """Fields required to update a granted refund."""
+    input: OrderGrantRefundUpdateInput!
+  ): OrderGrantRefundUpdate @doc(category: "Orders")
 
   """
   Create order lines for an order. 
@@ -19754,11 +20234,13 @@ input MoneyInput {
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+Create transaction for checkout or order.
 
 Added in Saleor 3.4.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionCreate @doc(category: "Payments") {
   transaction: TransactionItem
@@ -19785,17 +20267,51 @@ enum TransactionCreateErrorCode {
   NOT_FOUND
   INCORRECT_CURRENCY
   METADATA_KEY_REQUIRED
+  UNIQUE
 }
 
 input TransactionCreateInput @doc(category: "Payments") {
-  """Status of the transaction."""
-  status: String!
+  """
+  Status of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  """
+  status: String
 
-  """Payment type used for this transaction."""
-  type: String!
+  """
+  Payment type used for this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  """
+  type: String
 
-  """Reference of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  name: String
+
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  message: String
+
+  """
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  """
   reference: String
+
+  """
+  PSP Reference of the transaction. 
+  
+  Added in Saleor 3.13.
+  """
+  pspReference: String
 
   """List of all possible actions for the transaction"""
   availableActions: [TransactionActionEnum!]
@@ -19809,33 +20325,79 @@ input TransactionCreateInput @doc(category: "Payments") {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this transaction."""
+  """
+  Amount voided by this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  """
   amountVoided: MoneyInput
+
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.13.
+  """
+  amountCanceled: MoneyInput
 
   """Payment public metadata."""
   metadata: [MetadataInput!]
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction event details.
+  
+  Added in Saleor 3.13.
+  """
+  externalUrl: String
 }
 
 input TransactionEventInput @doc(category: "Payments") {
-  """Current status of the payment transaction."""
-  status: TransactionStatus!
+  """
+  Current status of the payment transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Status will be calculated by Saleor.
+  """
+  status: TransactionStatus
 
-  """Reference of the transaction."""
+  """
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  """
   reference: String
 
-  """Name of the transaction."""
+  """
+  PSP Reference related to this action.
+  
+  Added in Saleor 3.13.
+  """
+  pspReference: String
+
+  """
+  Name of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
+  """
   name: String
+
+  """
+  The message related to the event.
+  
+  Added in Saleor 3.13.
+  """
+  message: String
 }
 
 """
-Create transaction for checkout or order. Requires the following permissions: AUTHENTICATED_APP and HANDLE_PAYMENTS.
+Create transaction for checkout or order.
 
 Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Requires the following permissions: OWNER and HANDLE_PAYMENTS.
 """
 type TransactionUpdate @doc(category: "Payments") {
   transaction: TransactionItem
@@ -19862,17 +20424,51 @@ enum TransactionUpdateErrorCode {
   NOT_FOUND
   INCORRECT_CURRENCY
   METADATA_KEY_REQUIRED
+  UNIQUE
 }
 
 input TransactionUpdateInput @doc(category: "Payments") {
-  """Status of the transaction."""
+  """
+  Status of the transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  """
   status: String
 
-  """Payment type used for this transaction."""
+  """
+  Payment type used for this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  """
   type: String
 
-  """Reference of the transaction."""
+  """
+  Payment name of the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  name: String
+
+  """
+  The message of the transaction.
+  
+  Added in Saleor 3.13.
+  """
+  message: String
+
+  """
+  Reference of the transaction. 
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  """
   reference: String
+
+  """
+  PSP Reference of the transaction. 
+  
+  Added in Saleor 3.13.
+  """
+  pspReference: String
 
   """List of all possible actions for the transaction"""
   availableActions: [TransactionActionEnum!]
@@ -19886,14 +20482,32 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
 
-  """Amount voided by this transaction."""
+  """
+  Amount voided by this transaction.
+  
+  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  """
   amountVoided: MoneyInput
+
+  """
+  Amount canceled by this transaction.
+  
+  Added in Saleor 3.13.
+  """
+  amountCanceled: MoneyInput
 
   """Payment public metadata."""
   metadata: [MetadataInput!]
 
   """Payment private metadata."""
   privateMetadata: [MetadataInput!]
+
+  """
+  The url that will allow to redirect user to payment provider page with transaction event details.
+  
+  Added in Saleor 3.13.
+  """
+  externalUrl: String
 }
 
 """
@@ -19903,7 +20517,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
-Requires one of the following permissions: HANDLE_PAYMENTS, MANAGE_ORDERS.
+Requires one of the following permissions: HANDLE_PAYMENTS.
 """
 type TransactionRequestAction @doc(category: "Payments") {
   transaction: TransactionItem
@@ -19929,6 +20543,51 @@ enum TransactionRequestActionErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
   MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
+Report the event for the transaction.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
+Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+"""
+type TransactionEventReport @doc(category: "Payments") {
+  """Defines if the reported event hasn't been processed earlier."""
+  alreadyProcessed: Boolean
+
+  """The transaction related to the reported event."""
+  transaction: TransactionItem
+
+  """
+  The event assigned to this report. if `alreadyProcessed` is set to `true`, the previously processed event will be returned.
+  """
+  transactionEvent: TransactionEvent
+  errors: [TransactionEventReportError!]!
+}
+
+type TransactionEventReportError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionEventReportErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionEventReportErrorCode {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  INCORRECT_DETAILS
+  ALREADY_EXISTS
 }
 
 """
@@ -20683,6 +21342,106 @@ input OrderReturnFulfillmentLineInput @doc(category: "Orders") {
 
   """Determines, if the line should be added to replace order."""
   replace: Boolean = false
+}
+
+"""
+Adds granted refund to the order.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderGrantRefundCreate @doc(category: "Orders") {
+  """Order which has assigned new grant refund."""
+  order: Order
+
+  """Created granted refund."""
+  grantedRefund: OrderGrantedRefund
+  errors: [OrderGrantRefundCreateError!]!
+}
+
+type OrderGrantRefundCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateErrorCode!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+input OrderGrantRefundCreateInput {
+  """Amount of the granted refund."""
+  amount: Decimal!
+
+  """Reason of the granted refund."""
+  reason: String
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+"""
+Updates granted refund.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderGrantRefundUpdate @doc(category: "Orders") {
+  """Order which has assigned updated grant refund."""
+  order: Order
+
+  """Created granted refund."""
+  grantedRefund: OrderGrantedRefund
+  errors: [OrderGrantRefundUpdateError!]!
+  orderGrantedRefund: OrderGrantedRefund
+}
+
+type OrderGrantRefundUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+}
+
+input OrderGrantRefundUpdateInput {
+  """Amount of the granted refund."""
+  amount: Decimal
+
+  """Reason of the granted refund."""
+  reason: String
 }
 
 """
@@ -22816,6 +23575,17 @@ input OrderSettingsInput {
   When enabled, all non-shippable gift card orders will be fulfilled automatically. By defualt set to True.
   """
   automaticallyFulfillNonShippableGiftCard: Boolean
+
+  """
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  markAsPaidStrategy: MarkAsPaidStrategyEnum
 }
 
 """
@@ -26930,7 +27700,7 @@ Event sent when transaction action is requested.
 
 Added in Saleor 3.4.
 
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
+DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 """
 type TransactionActionRequest implements Event {
   """Time of the event."""
@@ -26945,22 +27715,10 @@ type TransactionActionRequest implements Event {
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a transaction.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a transaction."""
   transaction: TransactionItem
 
-  """
-  Requested action data.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Requested action data."""
   action: TransactionAction!
 }
 
@@ -27467,6 +28225,87 @@ type PaymentListGateways implements Event {
 
   """The checkout the event relates to."""
   checkout: Checkout
+}
+
+"""
+Event sent when transaction cancelation is requested.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionCancelationRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
+}
+
+"""
+Event sent when transaction charge is requested.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionChargeRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
+}
+
+"""
+Event sent when transaction refund is requested.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionRefundRequested implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem
+
+  """Requested action data."""
+  action: TransactionAction!
 }
 
 """

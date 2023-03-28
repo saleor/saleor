@@ -46,6 +46,7 @@ from ..enums import (
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
+    TransactionEventReportErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -418,6 +419,10 @@ class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
         description="The error code.", required=True
     )
+
+
+class TransactionEventReportError(Error):
+    code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
 
 class GiftCardError(Error):

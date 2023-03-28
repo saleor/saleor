@@ -164,6 +164,9 @@ TransactionUpdateErrorCode = graphene.Enum.from_enum(
 TransactionRequestActionErrorCode = graphene.Enum.from_enum(
     payment_error_codes.TransactionRequestActionErrorCode
 )
+TransactionEventReportErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionEventReportErrorCode
+)
 
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode

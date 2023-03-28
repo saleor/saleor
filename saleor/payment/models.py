@@ -21,9 +21,9 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventStatus,
     TransactionEventType,
     TransactionKind,
-    TransactionStatus,
 )
 
 
@@ -31,8 +31,6 @@ class TransactionItem(ModelWithMetadata):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, null=True, default="")
-    type = models.CharField(max_length=512, blank=True, default="")
-    reference = models.CharField(max_length=512, blank=True, default="")
     name = models.CharField(max_length=512, blank=True, null=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
@@ -61,12 +59,6 @@ class TransactionItem(ModelWithMetadata):
         amount_field="refunded_value", currency_field="currency"
     )
     refunded_value = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=Decimal("0"),
-    )
-    amount_voided = MoneyField(amount_field="voided_value", currency_field="currency")
-    voided_value = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0"),
@@ -164,26 +156,18 @@ class TransactionEvent(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(
         max_length=128,
-        choices=TransactionStatus.CHOICES,
-        default=TransactionStatus.SUCCESS,
+        choices=TransactionEventStatus.CHOICES,
+        default=TransactionEventStatus.SUCCESS,
         blank=True,
         null=True,
     )
-    reference = models.CharField(max_length=512, blank=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
-
-    name = models.CharField(max_length=512, blank=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")
-
     transaction = models.ForeignKey(
         TransactionItem, related_name="events", on_delete=models.CASCADE
     )
     external_url = models.URLField(blank=True, null=True)
-    currency = models.CharField(
-        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
-        null=True,
-        blank=True,
-    )
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     type = models.CharField(
         max_length=128,
         choices=TransactionEventType.CHOICES,
@@ -430,7 +414,9 @@ class Transaction(models.Model):
     action_required_data = JSONField(
         blank=True, default=dict, encoder=DjangoJSONEncoder
     )
-    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

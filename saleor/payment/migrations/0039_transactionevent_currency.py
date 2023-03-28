@@ -1,18 +1,25 @@
 from django.db import migrations
-from django.apps import apps as registry
-from django.db.models.signals import post_migrate
+from django.db.models import F, OuterRef, QuerySet, Subquery
 
-from .tasks.saleor3_12 import (
-    set_default_currency_for_transaction_event_task,
-)
+
+def set_default_currency_for_transaction_event(qs: QuerySet):
+    qs.update(currency=F("transaction_currency"))
 
 
 def set_default_currency_for_transaction_event_migration(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        set_default_currency_for_transaction_event_task.delay()
+    TransactionItem = apps.get_model("payment", "TransactionItem")
+    TransactionEvent = apps.get_model("payment", "TransactionEvent")
 
-    sender = registry.get_app_config("payment")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    transaction_item = TransactionItem.objects.filter(
+        pk=OuterRef("transaction")
+    ).values("currency")
+    qs = (
+        TransactionEvent.objects.filter(currency__isnull=True)
+        .order_by("-pk")
+        .annotate(transaction_currency=Subquery(transaction_item))
+    )
+
+    set_default_currency_for_transaction_event(qs)
 
 
 class Migration(migrations.Migration):
