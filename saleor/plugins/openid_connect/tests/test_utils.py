@@ -26,6 +26,7 @@ from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
+    _get_domain_from_email,
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
@@ -485,3 +486,20 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
         staff_default_group_name="",
     )
     assert user.email == "test@example.org"
+
+
+@pytest.mark.parametrize(
+    "email, expected_domain",
+    [
+        ("test@example.com", "example.com"),
+        ("ABCd", None),
+        ("", None),
+        ("test.test", None),
+    ],
+)
+def test_get_domain_from_email(email, expected_domain):
+    # when
+    domain = _get_domain_from_email(email)
+
+    # then
+    assert domain == expected_domain

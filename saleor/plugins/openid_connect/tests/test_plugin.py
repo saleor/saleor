@@ -842,6 +842,7 @@ def test_authenticate_user_with_access_token(
         json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
         user_info_url="https://saleor.io/userinfo",
         use_oauth_scope_permissions=True,
+        staff_user_domains="",
     )
     decoded_access_token["scope"] = ""
 
