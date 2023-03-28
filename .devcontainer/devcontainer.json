@@ -3,7 +3,15 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "saleor",
   "workspaceFolder": "/app",
-  "forwardPorts": [8000],
+  "forwardPorts": [
+    8000,
+    "mailhog:8025"
+  ],
+  "portsAttributes": {
+    "mailhog:8025": {
+      "label": "Mailhog UI"
+    }
+  },
   "postCreateCommand": "python manage.py migrate",
   "customizations": {
     "vscode": {

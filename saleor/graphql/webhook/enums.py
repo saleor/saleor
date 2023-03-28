@@ -1,7 +1,13 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..core.descriptions import ADDED_IN_36, ADDED_IN_38, ADDED_IN_312, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_38,
+    ADDED_IN_312,
+    ADDED_IN_313,
+    PREVIEW_FEATURE,
+)
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -152,6 +158,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
         "An action requested for transaction."
+        + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
+        + "(Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, "
+        + "`TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead."
     ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         "Transaction item metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
@@ -194,6 +203,21 @@ WEBHOOK_EVENT_DESCRIPTION = {
     ),
     WebhookEventSyncType.ORDER_CALCULATE_TAXES: (
         "Event called for order tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: (
+        "Event called when charge has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: (
+        "Event called when refund has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        "Event called when cancel has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
     ),
 }
 

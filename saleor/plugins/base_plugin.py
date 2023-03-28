@@ -373,7 +373,7 @@ class BasePlugin:
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address"], "Address"
+        ["Address", Union[str, None], Union["User", None], "Address", bool], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
@@ -769,6 +769,12 @@ class BasePlugin:
     process_payment: Callable[["PaymentData", Any], Any]
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
+
+    transaction_charge_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_refund_requested: Callable[["TransactionActionData", None], None]
 
     # Trigger when transaction item metadata is updated.
     #

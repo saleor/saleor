@@ -64,6 +64,7 @@ Learn more about [architecture](https://docs.saleor.io/docs/3.x/overview/archite
 
 - **Headless / API first**: Build mobile apps, custom storefronts, POS, automation, etc
 - **Extensible**: Build anything with webhooks, apps, metadata, and attributes
+- [**App Store**](https://github.com/saleor/apps): Leverage a collection of built-in integrations
 - **GraphQL API**: Get many resources in a single request and [more](https://graphql.org/)
 - **Multichannel**: Per channel control of pricing, currencies, stock, product, and more
 - **Enterprise ready**: Secure, scalable, and stable. Battle-tested by big brands

@@ -38,6 +38,17 @@ class AccountErrorCode(Enum):
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
 
 
+class CustomerBulkUpdateErrorCode(Enum):
+    BLANK = "blank"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    NOT_FOUND = "not_found"
+    MAX_LENGTH = "max_length"
+
+
 class PermissionGroupErrorCode(Enum):
     ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"

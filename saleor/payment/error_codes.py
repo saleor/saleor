@@ -27,6 +27,7 @@ class TransactionCreateErrorCode(Enum):
     NOT_FOUND = "not_found"
     INCORRECT_CURRENCY = "incorrect_currency"
     METADATA_KEY_REQUIRED = "metadata_key_required"
+    UNIQUE = "unique"
 
 
 class TransactionUpdateErrorCode(Enum):
@@ -35,6 +36,7 @@ class TransactionUpdateErrorCode(Enum):
     NOT_FOUND = "not_found"
     INCORRECT_CURRENCY = "incorrect_currency"
     METADATA_KEY_REQUIRED = "metadata_key_required"
+    UNIQUE = "unique"
 
 
 class TransactionRequestActionErrorCode(Enum):
@@ -44,3 +46,11 @@ class TransactionRequestActionErrorCode(Enum):
     MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
         "missing_transaction_action_request_webhook"
     )
+
+
+class TransactionEventReportErrorCode(Enum):
+    INVALID = "invalid"
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    INCORRECT_DETAILS = "incorrect_details"
+    ALREADY_EXISTS = "already_exists"

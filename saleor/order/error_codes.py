@@ -21,6 +21,7 @@ class OrderErrorCode(Enum):
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"
     PAYMENT_MISSING = "payment_missing"
+    TRANSACTION_ERROR = "transaction_error"
     REQUIRED = "required"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"
@@ -33,6 +34,14 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
-    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
-        "missing_transaction_action_request_webhook"
-    )
+
+
+class OrderGrantRefundCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+
+
+class OrderGrantRefundUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"

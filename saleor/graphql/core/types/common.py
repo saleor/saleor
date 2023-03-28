@@ -20,6 +20,7 @@ from ..enums import (
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
+    CustomerBulkUpdateErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
@@ -47,6 +48,7 @@ from ..enums import (
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
+    TransactionEventReportErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -208,6 +210,10 @@ class CheckoutError(Error):
     address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
+
+
+class CustomerBulkUpdateError(BulkError):
+    code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
 
 class ProductWithoutVariantError(Error):
@@ -457,6 +463,10 @@ class TransactionRequestActionError(Error):
     code = TransactionRequestActionErrorCode(
         description="The error code.", required=True
     )
+
+
+class TransactionEventReportError(Error):
+    code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
 
 class GiftCardError(Error):

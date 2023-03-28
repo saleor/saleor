@@ -15,6 +15,7 @@ from .mutations import (
     PaymentRefund,
     PaymentVoid,
     TransactionCreate,
+    TransactionEventReport,
     TransactionRequestAction,
     TransactionUpdate,
 )
@@ -82,3 +83,4 @@ class PaymentMutations(graphene.ObjectType):
     transaction_create = TransactionCreate.Field()
     transaction_update = TransactionUpdate.Field()
     transaction_request_action = TransactionRequestAction.Field()
+    transaction_event_report = TransactionEventReport.Field()
