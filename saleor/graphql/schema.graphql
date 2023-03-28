@@ -14672,7 +14672,7 @@ type Mutation {
     order: ID!
 
     """Fields required to create a note for the order."""
-    input: OrderNoteAddInput!
+    input: OrderAddNoteInput!
   ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `orderNoteAdd` instead.")
 
   """
@@ -14934,7 +14934,7 @@ type Mutation {
     order: ID!
 
     """Fields required to create a note for the order."""
-    input: OrderNoteAddInput!
+    input: OrderNoteInput!
   ): OrderNoteAdd @doc(category: "Orders")
 
   """
@@ -14951,7 +14951,7 @@ type Mutation {
     note: ID!
 
     """Fields required to create a note for the order."""
-    input: OrderNoteUpdateInput!
+    input: OrderNoteInput!
   ): OrderNoteUpdate @doc(category: "Orders")
 
   """
@@ -21868,8 +21868,12 @@ type OrderAddNote @doc(category: "Orders") {
   errors: [OrderError!]!
 }
 
-input OrderNoteAddInput @doc(category: "Orders") {
-  """Note message."""
+input OrderAddNoteInput @doc(category: "Orders") {
+  """
+  Note message.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   message: String!
 }
 
@@ -22371,6 +22375,11 @@ type OrderNoteAdd @doc(category: "Orders") {
   errors: [OrderError!]!
 }
 
+input OrderNoteInput @doc(category: "Orders") {
+  """Note message."""
+  message: String!
+}
+
 """
 Updates note of an order.
 
@@ -22387,11 +22396,6 @@ type OrderNoteUpdate @doc(category: "Orders") {
   """Order note updated."""
   event: OrderEvent
   errors: [OrderError!]!
-}
-
-input OrderNoteUpdateInput @doc(category: "Orders") {
-  """Note message."""
-  message: String!
 }
 
 """
