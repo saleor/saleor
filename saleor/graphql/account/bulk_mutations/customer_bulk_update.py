@@ -294,7 +294,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
             lookup |= single_customer_lookup
 
-        customers = models.User.objects.filter(lookup, is_staff=False)
+        customers = models.User.objects.customers().filter(lookup)
         return list(customers)
 
     @classmethod
