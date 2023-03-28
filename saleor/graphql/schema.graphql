@@ -22274,7 +22274,6 @@ enum OrderBulkCreateErrorCode {
   INVALID
   NOT_FOUND
   BULK_LIMIT
-  DUPLICATE_ITEM
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
   ORDER_LINE_ERROR
@@ -22282,6 +22281,8 @@ enum OrderBulkCreateErrorCode {
   PRICE_ERROR
   NOTE_LENGTH
   INSUFFICIENT_STOCK
+  NON_EXISTING_STOCK
+  DUPLICATED_INPUT_ITEM
 }
 
 input OrderBulkCreateInput {
@@ -22430,7 +22431,7 @@ input OrderBulkCreateOrderLineInput {
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
 
-  """The ID of warehouse, from which order line should be fulfilled."""
+  """The ID of the warehouse, where line will be allocated."""
   warehouse: ID!
 
   """Tax rate of the order line."""
@@ -22515,13 +22516,13 @@ input OrderBulkCreateFulfillmentLineInput {
 Determine how stocks should be updated, while processing fulfillment.
 
     SKIP - Stocks are not checked and not updated.
-    FORCE - Force update, if there is not enough stocks.
     UPDATE - Only do update, if there is enough stocks.
+    FORCE - Force update, if there is not enough stocks.
 """
 enum StockUpdatePolicyEnum {
   SKIP
-  FORCE
   UPDATE
+  FORCE
 }
 
 """

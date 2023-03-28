@@ -305,16 +305,16 @@ class StockUpdatePolicy:
     """Determine how stocks should be updated, while processing fulfillment.
 
     SKIP - Stocks are not checked and not updated.
-    FORCE - Force update, if there is not enough stocks.
     UPDATE - Only do update, if there is enough stocks.
+    FORCE - Force update, if there is not enough stocks.
     """
 
     SKIP = "skip"
-    FORCE = "force"
     UPDATE = "update"
+    FORCE = "force"
 
     CHOICES = [
         (SKIP, "Stocks are not checked and not updated."),
-        (FORCE, "Force update, if there is not enough stocks."),
         (UPDATE, "Only do update, if there is enough stocks."),
+        (FORCE, "Force update, if there is not enough stocks."),
     ]

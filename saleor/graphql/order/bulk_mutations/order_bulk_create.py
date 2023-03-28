@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -68,7 +69,6 @@ class OrderBulkFulfillmentLine:
 class OrderBulkFulfillment:
     fulfillment: Fulfillment
     lines: List[OrderBulkFulfillmentLine]
-    is_enough_stocks: bool = True
 
 
 @dataclass
@@ -87,7 +87,8 @@ class OrderWithErrors:
     notes_errors: List[OrderBulkError]
     fulfillments: List[OrderBulkFulfillment]
     fulfillments_errors: List[OrderBulkError]
-    is_each_line_created: bool = True
+    # error which ignores error policy and disqualify order
+    is_critical_error: bool = False
 
     def __init__(self):
         super().__init__()
@@ -99,11 +100,6 @@ class OrderWithErrors:
         self.notes_errors = []
         self.fulfillments = []
         self.fulfillments_errors = []
-
-    def order_lines_duplicates(self) -> bool:
-        return len(
-            set(line.line.variant.id for line in self.lines if line.line.variant)
-        ) != len(self.lines)
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -120,6 +116,15 @@ class OrderWithErrors:
         for fulfillment in self.fulfillments:
             fulfillment.fulfillment.fulfillment_order = order
             order += 1
+
+    @property
+    def order_lines_duplicates(self) -> bool:
+        keys = [
+            f"{line.line.variant.id}_{line.warehouse.id}"
+            for line in self.lines
+            if line.line.variant
+        ]
+        return len(keys) != len(list(set(keys)))
 
     @property
     def all_errors(self) -> List[OrderBulkError]:
@@ -141,17 +146,33 @@ class OrderWithErrors:
         ]
 
     @property
-    def variant_orderline_map(self) -> Dict[int, OrderLine]:
+    def variantwarehouse_orderline_map(self) -> Dict[str, OrderLine]:
         return {
-            line.line.variant.id: line.line for line in self.lines if line.line.variant
+            f"{line.line.variant.id}_{line.warehouse.id}": line.line
+            for line in self.lines
+            if line.line.variant
         }
+
+    @property
+    def orderline_fulfillmentline_map(
+        self,
+    ) -> Dict[UUID, List[OrderBulkFulfillmentLine]]:
+        map: Dict[UUID, list] = defaultdict(list)
+        for fulfillment in self.fulfillments:
+            for line in fulfillment.lines:
+                map[line.line.order_line.id].append(line)
+        return map
 
     @property
     def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
         map: Dict[UUID, int] = defaultdict(int)
-        for fulfillment in self.fulfillments:
-            for line in fulfillment.lines:
-                map[line.line.order_line.id] += line.line.quantity
+        orderline_fulfillmentline_map = self.orderline_fulfillmentline_map
+        for order_line in self.lines:
+            for fulfillment_line in orderline_fulfillmentline_map.get(
+                order_line.line.id, []
+            ):
+                if order_line.warehouse.id == fulfillment_line.stock.warehouse.id:
+                    map[order_line.line.id] += fulfillment_line.stock.quantity
         return map
 
     @property
@@ -162,15 +183,7 @@ class OrderWithErrors:
 
     @property
     def unique_warehouse_ids(self) -> List[UUID]:
-        return list(
-            set(
-                [
-                    line.stock.warehouse.id
-                    for fulfillment in self.fulfillments
-                    for line in fulfillment.lines
-                ]
-            )
-        )
+        return list(set([line.warehouse.id for line in self.lines]))
 
 
 @dataclass
@@ -314,7 +327,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     )
     warehouse = graphene.ID(
         required=True,
-        description="The ID of warehouse, from which order line should be fulfilled.",
+        description="The ID of the warehouse, where line will be allocated.",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
@@ -939,12 +952,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def create_single_fulfillment(
         cls,
         fulfillment_input: Dict[str, Any],
-        order_lines_with_keys: Dict[int, OrderLine],
+        order_lines_with_keys: Dict[str, OrderLine],
         order: Order,
         object_storage: Dict[str, Any],
         errors: List[OrderBulkError],
     ) -> OrderBulkFulfillment:
-        # TODO checks for availability, update stocks
         # TODO check if multiple fulfillment lines contains the same variant
         fulfillment = Fulfillment(
             order=order,
@@ -970,16 +982,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             if not variant:
                 continue
 
-            order_line = order_lines_with_keys.get(variant.id)
-            if not order_line:
-                errors.append(
-                    OrderBulkError(
-                        message=f"There is no related order line for given "
-                        f"variant: {variant.id} in fulfillment line."
-                    )
-                )
-                continue
-
             for stock_input in line_input["stocks"]:
                 warehouse = cls.get_instance_with_errors(
                     input=stock_input,
@@ -989,6 +991,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     object_storage=object_storage,
                 )
                 if not warehouse:
+                    continue
+
+                key = f"{variant.id}_{warehouse.id}"
+                order_line = order_lines_with_keys.get(key)
+                if not order_line:
+                    errors.append(
+                        OrderBulkError(
+                            message=f"There is no related order line for given "
+                            f"variant: {variant.id} and warehouse: "
+                            f"{warehouse.id} in fulfillment line.",
+                            field="fulfillment_line",
+                        )
+                    )
                     continue
 
                 stock = OrderBulkStock(
@@ -1038,9 +1053,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             ):
                 order.lines.append(order_line)
             else:
-                order.is_each_line_created = False
+                order.is_critical_error = True
 
-        if not order.is_each_line_created:
+        if order.is_critical_error:
             order.order_errors.append(
                 OrderBulkError(
                     message="At least one order line can't be created.",
@@ -1050,12 +1065,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
             return order
 
-        if order.order_lines_duplicates():
+        if order.order_lines_duplicates:
             order.order_errors.append(
                 OrderBulkError(
-                    message="Multiple order lines contain the same product variant.",
+                    message="Multiple order lines contain the same product variant "
+                    "and warehouse.",
                     field="lines",
-                    code=OrderBulkCreateErrorCode.DUPLICATE_ITEM,
+                    code=OrderBulkCreateErrorCode.DUPLICATED_INPUT_ITEM,
                 )
             )
             return order
@@ -1082,7 +1098,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             for fulfillment_input in fulfillments_input:
                 if fulfillment := cls.create_single_fulfillment(
                     fulfillment_input,
-                    order.variant_orderline_map,
+                    order.variantwarehouse_orderline_map,
                     order_instance,
                     object_storage,
                     order.fulfillments_errors,
@@ -1157,55 +1173,123 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         stocks = Stock.objects.filter(
             warehouse__id__in=warehouse_ids, product_variant__id__in=variant_ids
         ).all()
-
         stocks_map: Dict[str, Stock] = {
             f"{stock.product_variant_id}_{stock.warehouse_id}": stock
             for stock in stocks
         }
 
         for order in orders:
-            for fulfillment in order.fulfillments:
-                for line in fulfillment.lines:
-                    variant_id = line.line.order_line.variant_id
-                    warehouse_id = line.stock.warehouse.id
-                    stock = stocks_map.get(f"{variant_id}_{warehouse_id}")
+            # Create a copy of stocks. If full iteration over order lines
+            # and fulfillments will not produce error, which disqualify whole order,
+            # than replace the copy with original stocks.
+            stocks_map_copy = copy.deepcopy(stocks_map)
+            for line in order.lines:
+                order_line = line.line
+                variant_id = order_line.variant_id
+                warehouse_id_for_allocation = line.warehouse.id
+                quantity_to_fulfill = order_line.quantity
+                quantity_fulfilled = order.orderline_quantityfulfilled_map.get(
+                    order_line.id, 0
+                )
+                quantity_to_allocate = quantity_to_fulfill - quantity_fulfilled
+
+                # increase allocations
+                if quantity_to_allocate < 0:
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"There is more fulfillments, than ordered quantity"
+                            f" for order line with variant: {variant_id}.",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                        )
+                    )
+                    order.is_critical_error = True
+                    break
+
+                stock = stocks_map_copy.get(
+                    f"{variant_id}_{warehouse_id_for_allocation}"
+                )
+                if not stock:
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"There is no stock for given product variant:"
+                            f" {variant_id} and warehouse: "
+                            f"{warehouse_id_for_allocation}.",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
+                        )
+                    )
+                    order.is_critical_error = True
+                    break
+
+                available_quantity = stock.quantity - stock.quantity_allocated
+                if (
+                    quantity_to_allocate > available_quantity
+                    and stock_update_policy != StockUpdatePolicy.FORCE
+                ):
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"Insufficient stock for product variant: "
+                            f"{variant_id} and warehouse: "
+                            f"{warehouse_id_for_allocation}.",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
+                        )
+                    )
+                    order.is_critical_error = True
+
+                stock.quantity_allocated += quantity_to_allocate
+
+                # decrease fulfillments
+                fulfillment_lines: List[
+                    OrderBulkFulfillmentLine
+                ] = order.orderline_fulfillmentline_map.get(order_line.id, [])
+                for fulfillment_line in fulfillment_lines:
+                    warehouse_id_for_fulfillment = fulfillment_line.stock.warehouse.id
+                    stock = stocks_map_copy.get(
+                        f"{variant_id}_{warehouse_id_for_fulfillment}"
+                    )
                     if not stock:
                         order.fulfillments_errors.append(
                             OrderBulkError(
                                 message=f"There is no stock for given product variant:"
-                                f" {variant_id} and warehouse: {warehouse_id}.",
+                                f" {variant_id} and warehouse: "
+                                f"{warehouse_id_for_fulfillment}.",
                                 field="fulfillment_line",
-                                code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
+                                code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
                             )
                         )
-                        fulfillment.is_enough_stocks = False
-                        continue
+                        order.is_critical_error = True
+                        break
 
-                    quantity_fulfilled = line.stock.quantity
-                    available_quantity = stock.quantity + stock.quantity_allocated
-                    if quantity_fulfilled > available_quantity:
-                        order.fulfillments_errors.append(
-                            OrderBulkError(
-                                message=f"Fulfillment exceeds available stock for "
-                                f"product variant: {variant_id} and warehouse:"
-                                f" {warehouse_id}.",
-                                field="fulfillment_line",
-                                code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
+                    fulfillment_line_quantity = fulfillment_line.line.quantity
+                    # Fulfillments can derive from multiple warehouses, other then
+                    # warehouse for allocation, therefore new available_quantity must
+                    # be calculated and checked
+                    if warehouse_id_for_fulfillment != warehouse_id_for_allocation:
+                        available_quantity = stock.quantity - stock.quantity_allocated
+                        if (
+                            fulfillment_line_quantity > available_quantity
+                            and stock_update_policy != StockUpdatePolicy.FORCE
+                        ):
+                            order.lines_errors.append(
+                                OrderBulkError(
+                                    message=f"Insufficient stock for product variant: "
+                                    f"{variant_id} and warehouse: "
+                                    f"{warehouse_id_for_fulfillment}.",
+                                    field="fulfillment_line",
+                                    code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
+                                )
                             )
-                        )
-                        fulfillment.is_enough_stocks = False
-                        if stock_update_policy == StockUpdatePolicy.FORCE:
-                            stock.quantity -= quantity_fulfilled
-                    else:
-                        stock.quantity -= quantity_fulfilled
+                            order.is_critical_error = True
+                            break
 
-                if (
-                    not fulfillment.is_enough_stocks
-                    and stock_update_policy == StockUpdatePolicy.UPDATE
-                ):
-                    order.fulfillments.remove(fulfillment)
+                    stock.quantity -= fulfillment_line_quantity
 
-        return list(stocks)
+            if not order.is_critical_error:
+                stocks_map = stocks_map_copy
+
+        return [stock for stock in stocks_map.values()]
 
     @classmethod
     def handle_error_policy(cls, orders: List[OrderWithErrors], error_policy: str):

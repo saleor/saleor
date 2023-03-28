@@ -295,7 +295,7 @@ def order_bulk_input(
 
 
 @pytest.fixture()
-def order_bulk_input_with_multiple_order_lines_and_fulfillments(
+def order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks(
     order_bulk_input,
     product_variant_list,
     warehouses,
@@ -303,37 +303,39 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     order = order_bulk_input
     order_line_1 = order["lines"][0]
     order_line_2 = copy.deepcopy(order["lines"][0])
+    order_line_3 = copy.deepcopy(order["lines"][0])
 
-    order_line_1["variantId"] = graphene.Node.to_global_id(
+    warehouse_1_id = graphene.Node.to_global_id("Warehouse", warehouses[0].id)
+    warehouse_2_id = graphene.Node.to_global_id("Warehouse", warehouses[1].id)
+    variant_1_id = graphene.Node.to_global_id(
         "ProductVariant", product_variant_list[0].id
     )
-    order_line_2["variantId"] = graphene.Node.to_global_id(
+    variant_2_id = graphene.Node.to_global_id(
         "ProductVariant", product_variant_list[1].id
     )
 
+    order_line_1["variantId"] = variant_1_id
+    order_line_1["warehouse"] = warehouse_1_id
     order_line_1["quantity"] = 10
+
+    order_line_2["variantId"] = variant_2_id
+    order_line_2["warehouse"] = warehouse_1_id
     order_line_2["quantity"] = 50
 
-    warehouse_1_id = (graphene.Node.to_global_id("Warehouse", warehouses[0].id),)
-    warehouse_2_id = (graphene.Node.to_global_id("Warehouse", warehouses[1].id),)
+    order_line_3["variantId"] = variant_2_id
+    order_line_3["warehouse"] = warehouse_2_id
+    order_line_3["quantity"] = 20
 
-    fulfillment_1_line_1 = {}
-    fulfillment_1_line_1["variantId"] = order_line_1["variantId"]
-    fulfillment_1_line_1_stock_1 = {"quantity": 3, "warehouse": warehouse_1_id}
-    fulfillment_1_line_1_stock_2 = {"quantity": 2, "warehouse": warehouse_2_id}
-    fulfillment_1_line_1["stocks"] = [
-        fulfillment_1_line_1_stock_1,
-        fulfillment_1_line_1_stock_2,
-    ]
+    fulfillment_1_line_1 = {"variantId": variant_1_id}
+    fulfillment_1_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
+    fulfillment_1_line_1["stocks"] = [fulfillment_1_line_1_stock_1]
     fulfillment_1 = {"trackingCode": "abc-1", "lines": [fulfillment_1_line_1]}
 
-    fulfillment_2_line_1 = {}
-    fulfillment_2_line_1["variantId"] = order_line_1["variantId"]
+    fulfillment_2_line_1 = {"variantId": variant_1_id}
     fulfillment_2_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
     fulfillment_2_line_1["stocks"] = [fulfillment_2_line_1_stock_1]
 
-    fulfillment_2_line_2 = {}
-    fulfillment_2_line_2["variantId"] = order_line_2["variantId"]
+    fulfillment_2_line_2 = {"variantId": variant_2_id}
     fulfillment_2_line_2_stock_1 = {"quantity": 33, "warehouse": warehouse_1_id}
     fulfillment_2_line_2_stock_2 = {"quantity": 17, "warehouse": warehouse_2_id}
     fulfillment_2_line_2["stocks"] = [
@@ -345,7 +347,7 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments(
         "lines": [fulfillment_2_line_1, fulfillment_2_line_2],
     }
 
-    order["lines"] = [order_line_1, order_line_2]
+    order["lines"] = [order_line_1, order_line_2, order_line_3]
     order["fulfillments"] = [fulfillment_1, fulfillment_2]
 
     return order
@@ -702,13 +704,13 @@ def test_order_bulk_create_multiple_fulfillments(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
 ):
     # given
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
 
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -727,9 +729,9 @@ def test_order_bulk_create_multiple_fulfillments(
     assert not data[0]["errors"]
 
     order = data[0]["order"]
-    order_line_1, order_line_2 = order["lines"]
+    order_line_1, order_line_2, order_line_3 = order["lines"]
     db_order = Order.objects.get()
-    db_order_line_1, db_order_line_2 = OrderLine.objects.all()
+    db_order_line_1, db_order_line_2, db_order_line_3 = OrderLine.objects.all()
 
     fulfillment_1, fulfillment_2 = order["fulfillments"]
     assert fulfillment_1["trackingNumber"] == "abc-1"
@@ -741,27 +743,20 @@ def test_order_bulk_create_multiple_fulfillments(
     assert db_fulfillment_1.fulfillment_order == 1
     assert db_fulfillment_1.status == FulfillmentStatus.FULFILLED
 
-    fulfillment_1_line_1, fulfillment_1_line_2 = fulfillment_1["lines"]
-    assert fulfillment_1_line_1["quantity"] == 3
+    fulfillment_1_line_1 = fulfillment_1["lines"][0]
+    assert fulfillment_1_line_1["quantity"] == 5
     assert fulfillment_1_line_1["orderLine"]["id"] == order_line_1["id"]
-    assert fulfillment_1_line_2["quantity"] == 2
-    assert fulfillment_1_line_2["orderLine"]["id"] == order_line_1["id"]
 
     (
         db_fulfillment_1_line_1,
-        db_fulfillment_1_line_2,
         db_fulfillment_2_line_1,
         db_fulfillment_2_line_2,
         db_fulfillment_2_line_3,
     ) = FulfillmentLine.objects.all()
-    assert db_fulfillment_1_line_1.quantity == 3
+    assert db_fulfillment_1_line_1.quantity == 5
     assert db_fulfillment_1_line_1.order_line_id == db_order_line_1.id
     assert db_fulfillment_1_line_1.fulfillment_id == db_fulfillment_1.id
     assert db_fulfillment_1.lines.all()[0].id == db_fulfillment_1_line_1.id
-    assert db_fulfillment_1_line_2.quantity == 2
-    assert db_fulfillment_1_line_2.order_line_id == db_order_line_1.id
-    assert db_fulfillment_1_line_2.fulfillment_id == db_fulfillment_1.id
-    assert db_fulfillment_1.lines.all()[1].id == db_fulfillment_1_line_2.id
 
     assert fulfillment_2["trackingNumber"] == "abc-2"
     assert fulfillment_2["fulfillmentOrder"] == 2
@@ -781,7 +776,7 @@ def test_order_bulk_create_multiple_fulfillments(
     assert fulfillment_2_line_2["quantity"] == 33
     assert fulfillment_2_line_2["orderLine"]["id"] == order_line_2["id"]
     assert fulfillment_2_line_3["quantity"] == 17
-    assert fulfillment_2_line_3["orderLine"]["id"] == order_line_2["id"]
+    assert fulfillment_2_line_3["orderLine"]["id"] == order_line_3["id"]
 
     assert db_fulfillment_2_line_1.quantity == 5
     assert db_fulfillment_2_line_1.order_line_id == db_order_line_1.id
@@ -792,12 +787,12 @@ def test_order_bulk_create_multiple_fulfillments(
     assert db_fulfillment_2_line_2.fulfillment_id == db_fulfillment_2.id
     assert db_fulfillment_2.lines.all()[1].id == db_fulfillment_2_line_2.id
     assert db_fulfillment_2_line_3.quantity == 17
-    assert db_fulfillment_2_line_3.order_line_id == db_order_line_2.id
+    assert db_fulfillment_2_line_3.order_line_id == db_order_line_3.id
     assert db_fulfillment_2_line_3.fulfillment_id == db_fulfillment_2.id
     assert db_fulfillment_2.lines.all()[2].id == db_fulfillment_2_line_3.id
 
     assert Fulfillment.objects.count() == fulfillments_count + 2
-    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 5
+    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 4
 
 
 def test_order_bulk_create_stock_update(
@@ -805,12 +800,12 @@ def test_order_bulk_create_stock_update(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
@@ -819,9 +814,6 @@ def test_order_bulk_create_stock_update(
 
     stock_variant_1_warehouse_1 = Stock.objects.create(
         product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_1_warehouse_2 = Stock.objects.create(
-        product_variant=variant_1, warehouse=warehouse_2, quantity=100
     )
     stock_variant_2_warehouse_1 = Stock.objects.create(
         product_variant=variant_2, warehouse=warehouse_1, quantity=100
@@ -850,12 +842,10 @@ def test_order_bulk_create_stock_update(
     assert not data[0]["errors"]
 
     stock_variant_1_warehouse_1.refresh_from_db()
-    stock_variant_1_warehouse_2.refresh_from_db()
     stock_variant_2_warehouse_1.refresh_from_db()
     stock_variant_2_warehouse_2.refresh_from_db()
 
-    assert stock_variant_1_warehouse_1.quantity == 92
-    assert stock_variant_1_warehouse_2.quantity == 98
+    assert stock_variant_1_warehouse_1.quantity == 90
     assert stock_variant_2_warehouse_1.quantity == 67
     assert stock_variant_2_warehouse_2.quantity == 83
 
