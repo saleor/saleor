@@ -21,6 +21,7 @@ if TYPE_CHECKING:
 def serialize_checkout_lines(
     checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
 ) -> List[dict]:
+    # TODO Owczar drop discounts
     data = []
     channel = checkout.channel
     currency = channel.currency_code

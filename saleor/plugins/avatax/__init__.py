@@ -594,6 +594,7 @@ def get_checkout_tax_data(
     discounts,
     config: AvataxConfiguration,
 ) -> Dict[str, Any]:
+    # TODO Owczar: Drop discounts
     data = generate_request_data_from_checkout(
         checkout_info, lines_info, config, discounts=discounts
     )
