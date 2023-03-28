@@ -1462,8 +1462,11 @@ def generate_transaction_action_request_payload(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
-            "reference": transaction.reference,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": transaction.currency,
             "charged_value": quantize_price(
@@ -1476,7 +1479,10 @@ def generate_transaction_action_request_payload(
                 transaction.refunded_value, transaction.currency
             ),
             "voided_value": quantize_price(
-                transaction.voided_value, transaction.currency
+                transaction.canceled_value, transaction.currency
+            ),
+            "canceled_value": quantize_price(
+                transaction.canceled_value, transaction.currency
             ),
             "order_id": graphql_order_id,
             "checkout_id": graphql_checkout_id,

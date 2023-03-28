@@ -12,6 +12,7 @@ from ...core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -22,7 +23,7 @@ from ...core.doc_category import (
 from ...core.mutations import ModelMutation
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AllocationStrategyEnum
+from ..enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
 from ..types import Channel
 
 
@@ -50,6 +51,18 @@ class OrderSettingsInput(BaseInputObjectType):
         required=False,
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
+    )
+    mark_as_paid_strategy = MarkAsPaidStrategyEnum(
+        required=False,
+        description=(
+            "Determine what strategy will be used to mark the order as paid. "
+            "Based on the chosen option, the proper object will be created "
+            "and attached to the order when it's manually marked as paid."
+            "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
+            "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
     )
 
     class Meta:
@@ -147,6 +160,8 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
+            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
 
         return cleaned_input
 

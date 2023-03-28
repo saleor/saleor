@@ -38,6 +38,7 @@ DOC_CATEGORY_MAP = {
     "giftcard.GiftCard": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftCardTag": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftEvent": DOC_CATEGORY_GIFT_CARDS,
+    "order.OrderGrantedRefund": DOC_CATEGORY_ORDERS,
     "order.Order": DOC_CATEGORY_ORDERS,
     "order.OrderLine": DOC_CATEGORY_ORDERS,
     "order.OrderEvent": DOC_CATEGORY_ORDERS,

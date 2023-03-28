@@ -1332,6 +1332,7 @@ ORDER_SETTINGS_UPDATE_MUTATION = """
             orderSettings {
                 automaticallyConfirmAllNewOrders
                 automaticallyFulfillNonShippableGiftCard
+                markAsPaidStrategy
             }
         }
     }

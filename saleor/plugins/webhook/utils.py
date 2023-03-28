@@ -16,15 +16,13 @@ from ...core.models import (
 from ...core.taxes import TaxData, TaxLineData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...webhook.event_types import WebhookEventSyncType
+from ..const import APP_ID_PREFIX
 
 if TYPE_CHECKING:
     from ...payment.interface import PaymentData
     from ...webhook.models import Webhook
     from .tasks import WebhookResponse
 
-APP_GATEWAY_ID_PREFIX = "app"
-
-APP_ID_PREFIX = "app"
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +175,22 @@ def parse_tax_data(
         return _unsafe_parse_tax_data(response_data)
     except (TypeError, KeyError, decimal.DecimalException):
         return None
+
+
+def get_delivery_for_webhook(event_delivery_id) -> Optional["EventDelivery"]:
+    try:
+        delivery = EventDelivery.objects.select_related("payload", "webhook__app").get(
+            id=event_delivery_id
+        )
+    except EventDelivery.DoesNotExist:
+        logger.error("Event delivery id: %r not found", event_delivery_id)
+        return None
+
+    if not delivery.webhook.is_active:
+        delivery_update(delivery=delivery, status=EventDeliveryStatus.FAILED)
+        logger.info("Event delivery id: %r webhook is disabled.", event_delivery_id)
+        return None
+    return delivery
 
 
 @contextmanager

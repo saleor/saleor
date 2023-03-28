@@ -162,6 +162,11 @@ ChannelErrorCode.doc_category = DOC_CATEGORY_CHANNELS
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 CheckoutErrorCode.doc_category = DOC_CATEGORY_CHECKOUT
 
+CustomerBulkUpdateErrorCode = graphene.Enum.from_enum(
+    account_error_codes.CustomerBulkUpdateErrorCode
+)
+CustomerBulkUpdateErrorCode.doc_category = DOC_CATEGORY_USERS
+
 ExternalNotificationTriggerErrorCode = graphene.Enum.from_enum(
     external_notifications_error_codes.ExternalNotificationErrorCodes
 )
@@ -215,6 +220,11 @@ TransactionRequestActionErrorCode = graphene.Enum.from_enum(
 )
 TransactionRequestActionErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+TransactionEventReportErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionEventReportErrorCode
+)
+TransactionEventReportErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )
@@ -222,6 +232,11 @@ PermissionGroupErrorCode.doc_category = DOC_CATEGORY_USERS
 
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
 ProductErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
+
+ProductBulkCreateErrorCode = graphene.Enum.from_enum(
+    product_error_codes.ProductBulkCreateErrorCode
+)
+ProductBulkCreateErrorCode.doc_category = DOC_CATEGORY_PRODUCTS
 
 ProductVariantBulkErrorCode = graphene.Enum.from_enum(
     product_error_codes.ProductVariantBulkErrorCode

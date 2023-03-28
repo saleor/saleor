@@ -1,3 +1,5 @@
+import graphene
+
 from ...order import (
     FulfillmentStatus,
     OrderAuthorizeStatus,
@@ -6,15 +8,34 @@ from ...order import (
     OrderEventsEmails,
     OrderOrigin,
     OrderStatus,
+    error_codes,
 )
+from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
+
+def order_event_enum_description(enum):
+    if enum is None:
+        return "The different order event types. "
+    if enum == OrderEventsEnum.TRANSACTION_VOID_REQUESTED:
+        return (
+            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
+            "Use `TRANSACTION_CANCEL_REQUESTED` instead."
+        )
+    if enum == OrderEventsEnum.TRANSACTION_CAPTURE_REQUESTED:
+        return (
+            f"{PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD} "
+            "Use `TRANSACTION_CHARGE_REQUESTED` instead."
+        )
+    return None
+
+
 FulfillmentStatusEnum = to_enum(FulfillmentStatus, type_name="FulfillmentStatus")
 FulfillmentStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 
-OrderEventsEnum = to_enum(OrderEvents)
+OrderEventsEnum = to_enum(OrderEvents, description=order_event_enum_description)
 OrderEventsEnum.doc_category = DOC_CATEGORY_ORDERS
 
 OrderEventsEmailsEnum = to_enum(OrderEventsEmails)
@@ -35,6 +56,16 @@ OrderChargeStatusEnum = to_enum(
     OrderChargeStatus, description=OrderChargeStatus.__doc__
 )
 OrderChargeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
+
+OrderGrantRefundCreateErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundCreateErrorCode
+)
+OrderGrantRefundCreateErrorCode.doc_category = DOC_CATEGORY_ORDERS
+
+OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundUpdateErrorCode
+)
+OrderGrantRefundUpdateErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderStatusFilter(BaseEnum):

@@ -35,6 +35,7 @@ from ..enums import (
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
+    CustomerBulkUpdateErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
@@ -52,6 +53,7 @@ from ..enums import (
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
+    ProductBulkCreateErrorCode,
     ProductErrorCode,
     ProductVariantBulkErrorCode,
     ShippingErrorCode,
@@ -61,6 +63,7 @@ from ..enums import (
     ThumbnailFormatEnum,
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
+    TransactionEventReportErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -137,9 +140,23 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
+class BulkError(graphene.ObjectType):
+    path = graphene.String(
+        description=(
+            "Path to field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field."
+        ),
+        required=False,
+    )
+    message = graphene.String(description="The error message.")
+
+    class Meta:
+        description = "Represents an error in the input of a mutation."
+
+
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
@@ -217,12 +234,16 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CustomerBulkUpdateError(BulkError):
+    code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
 
 class ProductWithoutVariantError(Error):
@@ -295,7 +316,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
@@ -392,6 +413,30 @@ class BulkProductError(ProductError):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+
+
+class ProductBulkCreateError(BulkError):
+    code = ProductBulkCreateErrorCode(description="The error code.", required=True)
+    attributes = NonNullList(
+        graphene.ID,
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
+    values = NonNullList(
+        graphene.ID,
+        description="List of attribute values IDs which causes the error.",
+        required=False,
+    )
+    warehouses = NonNullList(
+        graphene.ID,
+        description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of channel IDs which causes the error.",
+        required=False,
+    )
 
 
 class ProductVariantBulkError(Error):
@@ -502,6 +547,10 @@ class TransactionRequestActionError(Error):
 
     class Meta:
         doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionEventReportError(Error):
+    code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
 
 class GiftCardError(Error):

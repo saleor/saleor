@@ -442,6 +442,7 @@ class OrderSettingsUpdate(BaseMutation):
             automatically_fulfill_non_shippable_gift_card=(
                 channel.automatically_fulfill_non_shippable_gift_card
             ),
+            mark_as_paid_strategy=channel.order_mark_as_paid_strategy,
         )
         return OrderSettingsUpdate(order_settings=order_settings)
 
