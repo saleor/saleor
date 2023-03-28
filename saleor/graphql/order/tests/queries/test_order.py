@@ -728,6 +728,7 @@ def test_order_query_with_transactions_details(
                 status=event_status,
                 psp_reference=f"{event_reference}{transaction.token}",
                 transaction=transaction,
+                currency=transaction.currency,
             )
             for transaction in transactions
         ]

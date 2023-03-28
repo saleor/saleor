@@ -5596,6 +5596,7 @@ def transaction_events_generator() -> (
                 type=event_type,
                 amount_value=amount,
                 include_in_calculations=True,
+                currency=transaction.currency,
             )
             for reference, event_type, amount in zip(psp_references, types, amounts)
         )
@@ -6870,7 +6871,7 @@ def transaction_session_response():
         "data": {"some-json": "data"},
         "result": "CHARGE_SUCCESS",
         "amount": "10.00",
-        "time": "2023-02-21T13:25:09.973465",
+        "time": "2022-11-18T13:25:58.169685+00:00",
         "externalUrl": "http://127.0.0.1:9090/external-reference",
         "message": "Message related to the payment",
     }
