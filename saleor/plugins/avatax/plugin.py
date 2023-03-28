@@ -316,7 +316,6 @@ class AvataxPlugin(BasePlugin):
             self.config,
             transaction_token=str(checkout_info.checkout.token),
             transaction_type=TransactionType.ORDER,
-            discounts=[],
         )
         if not data.get("createTransactionModel", {}).get("lines"):
             return previous_value
