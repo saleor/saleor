@@ -663,7 +663,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
         # check error policy
-        if any([True if error else False for error in index_error_map.values()]):
+        if any([bool(error) for error in index_error_map.values()]):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = get_results(instances_data_with_errors_list, True)
                 return ProductVariantBulkUpdate(count=0, results=results)

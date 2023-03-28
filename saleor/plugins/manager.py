@@ -216,11 +216,15 @@ class PluginsManager(PaymentInterface):
         )
 
     def change_user_address(
-        self, address: "Address", address_type: Optional[str], user: Optional["User"]
+        self,
+        address: "Address",
+        address_type: Optional[str],
+        user: Optional["User"],
+        save: bool = True,
     ) -> "Address":
         default_value = address
         return self.__run_method_on_plugins(
-            "change_user_address", default_value, address, address_type, user
+            "change_user_address", default_value, address, address_type, user, save
         )
 
     def calculate_checkout_total(

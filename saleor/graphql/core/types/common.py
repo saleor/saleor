@@ -20,6 +20,7 @@ from ..enums import (
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
+    CustomerBulkUpdateErrorCode,
     DiscountErrorCode,
     ExportErrorCode,
     ExternalNotificationTriggerErrorCode,
@@ -123,6 +124,20 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
+class BulkError(graphene.ObjectType):
+    path = graphene.String(
+        description=(
+            "Path to field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field."
+        ),
+        required=False,
+    )
+    message = graphene.String(description="The error message.")
+
+    class Meta:
+        description = "Represents an error in the input of a mutation."
+
+
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
     address_type = AddressTypeEnum(  # type: ignore[has-type]
@@ -194,6 +209,10 @@ class CheckoutError(Error):
     address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
+
+
+class CustomerBulkUpdateError(BulkError):
+    code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
 
 class ProductWithoutVariantError(Error):

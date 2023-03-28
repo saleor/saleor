@@ -16468,6 +16468,23 @@ type Mutation {
   ): CustomerBulkDelete @doc(category: "Users")
 
   """
+  Updates customers.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_USERS.
+  """
+  customerBulkUpdate(
+    """Input list of customers to update."""
+    customers: [CustomerBulkUpdateInput!]!
+
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+  ): CustomerBulkUpdate @doc(category: "Users")
+
+  """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
@@ -16533,7 +16550,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   """
   userBulkSetActive(
-    """List of user IDs to (de)activate)."""
+    """List of user IDs to activate/deactivate."""
     ids: [ID!]!
 
     """Determine if users will be set active or not."""
@@ -24933,6 +24950,68 @@ type CustomerBulkDelete @doc(category: "Users") {
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
+}
+
+"""
+Updates customers.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_USERS.
+"""
+type CustomerBulkUpdate @doc(category: "Users") {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the updated customers."""
+  results: [CustomerBulkResult!]!
+  errors: [CustomerBulkUpdateError!]!
+}
+
+type CustomerBulkResult @doc(category: "Users") {
+  """Customer data."""
+  customer: User
+
+  """List of errors that occurred during the update attempt."""
+  errors: [CustomerBulkUpdateError!]
+}
+
+type CustomerBulkUpdateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: CustomerBulkUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum CustomerBulkUpdateErrorCode {
+  BLANK
+  DUPLICATED_INPUT_ITEM
+  GRAPHQL_ERROR
+  INVALID
+  REQUIRED
+  UNIQUE
+  NOT_FOUND
+  MAX_LENGTH
+}
+
+input CustomerBulkUpdateInput @doc(category: "Users") {
+  """ID of a customer to update."""
+  id: ID
+
+  """External ID of a customer to update."""
+  externalReference: String
+
+  """Fields required to update a customer."""
+  input: CustomerInput!
 }
 
 """

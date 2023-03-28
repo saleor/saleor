@@ -823,6 +823,7 @@ def customer_user(address):  # pylint: disable=W0613
         default_shipping_address=default_address,
         first_name="Leslie",
         last_name="Wade",
+        external_reference="LeslieWade",
         metadata={"key": "value"},
         private_metadata={"secret_key": "secret_value"},
     )
@@ -841,6 +842,7 @@ def customer_user2(address):
         default_shipping_address=default_address,
         first_name="Jane",
         last_name="Doe",
+        external_reference="JaneDoe",
     )
     user.addresses.add(default_address)
     user._password = "password"
