@@ -18381,7 +18381,7 @@ enum ProductBulkCreateErrorCode {
   UNSUPPORTED_MEDIA_PROVIDER
 }
 
-input ProductBulkCreateInput {
+input ProductBulkCreateInput @doc(category: "Products") {
   """List of attributes."""
   attributes: [AttributeValueInput!]
 

@@ -167,6 +167,9 @@ class ProductBulkCreateInput(ProductCreateInput):
         description="Input list of product variants to create.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductBulkCreate(BaseMutation):
     count = graphene.Int(
