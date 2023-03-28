@@ -1703,7 +1703,7 @@ def test_create_order_store_shipping_prices(
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+        checkout_info, lines, checkout.shipping_address, expected_shipping_price
     )
 
 
@@ -1753,7 +1753,7 @@ def test_create_order_store_shipping_prices_with_free_shipping_voucher(
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
+        checkout_info, lines, checkout.shipping_address, expected_shipping_price
     )
 
 

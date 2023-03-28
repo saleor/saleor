@@ -273,7 +273,6 @@ class PluginSample(BasePlugin):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ):
         return Decimal("0.080").quantize(Decimal(".01"))

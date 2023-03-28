@@ -618,7 +618,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
 
     # then
     result = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
 
     # when
@@ -657,10 +657,10 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
 
     # then
     result = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
     manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
     # Second Avatax call to make sure that we use cached response
 

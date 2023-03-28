@@ -3714,7 +3714,6 @@ def test_get_checkout_shipping_tax_rate(
         checkout_info,
         lines,
         checkout_with_item.shipping_address,
-        [],
         shipping_price,
     )
 
@@ -3769,7 +3768,6 @@ def test_get_checkout_shipping_tax_rate_checkout_not_valid_default_value_returne
         checkout_info,
         lines,
         checkout_with_item.shipping_address,
-        [],
         shipping_price,
     )
 
@@ -3803,7 +3801,6 @@ def test_get_checkout_shipping_tax_rate_error_in_response(
         checkout_info,
         lines,
         checkout_with_item.shipping_address,
-        [],
         shipping_price,
     )
 
@@ -3837,7 +3834,6 @@ def test_get_checkout_shipping_tax_rate_skip_plugin(
         checkout_info,
         lines,
         checkout_with_item.shipping_address,
-        [],
         shipping_price,
     )
 

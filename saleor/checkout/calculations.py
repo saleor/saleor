@@ -437,7 +437,7 @@ def _apply_tax_data_from_plugins(
         checkout_info, lines, address
     )
     checkout.shipping_tax_rate = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, address, [], checkout.shipping_price
+        checkout_info, lines, address, checkout.shipping_price
     )
     checkout.subtotal = manager.calculate_checkout_subtotal(
         checkout_info, lines, address

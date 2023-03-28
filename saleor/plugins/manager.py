@@ -349,7 +349,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         shipping_price: TaxedMoney,
     ):
         default_value = calculate_tax_rate(shipping_price)
@@ -359,7 +358,6 @@ class PluginsManager(PaymentInterface):
             checkout_info,
             lines,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
