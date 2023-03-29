@@ -303,6 +303,7 @@ def test_add_hash_to_file_name(image, media_root):
     assert image._name.startswith(file_name)
     assert image._name.endswith(format)
 
+
 def test_short_file_name_is_not_trimmed(image, media_root):
     image._name = "image"
     previous_file_name = image._name
@@ -314,6 +315,7 @@ def test_short_file_name_is_not_trimmed(image, media_root):
     assert image._name.startswith(file_name)
     assert image._name.endswith(format)
     assert len(image._name.split("_")[0]) < FILE_NAME_MAX_LENGTH
+
 
 def test_long_file_name_is_trimmed(image, media_root):
     image._name = "2Fvar2Ffolders2Fbj2F61gtb14j7rz474yd15tnkzjh0000gn2FT2Fa"
