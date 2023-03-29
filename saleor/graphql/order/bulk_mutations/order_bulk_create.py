@@ -154,7 +154,7 @@ class OrderWithErrors:
         }
 
     @property
-    def orderline_fulfillmentline_map(
+    def orderline_fulfillmentlines_map(
         self,
     ) -> Dict[UUID, List[OrderBulkFulfillmentLine]]:
         map: Dict[UUID, list] = defaultdict(list)
@@ -166,13 +166,11 @@ class OrderWithErrors:
     @property
     def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
         map: Dict[UUID, int] = defaultdict(int)
-        orderline_fulfillmentline_map = self.orderline_fulfillmentline_map
-        for order_line in self.lines:
-            for fulfillment_line in orderline_fulfillmentline_map.get(
-                order_line.line.id, []
-            ):
-                if order_line.warehouse.id == fulfillment_line.stock.warehouse.id:
-                    map[order_line.line.id] += fulfillment_line.stock.quantity
+        for (
+            order_line,
+            fulfillment_lines,
+        ) in self.orderline_fulfillmentlines_map.items():
+            map[order_line] = sum([line.stock.quantity for line in fulfillment_lines])
         return map
 
     @property
@@ -327,7 +325,7 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     )
     warehouse = graphene.ID(
         required=True,
-        description="The ID of the warehouse, where line will be allocated.",
+        description="The ID of the warehouse, where the line will be allocated.",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
@@ -437,7 +435,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         stock_update_policy = StockUpdatePolicyEnum(
             required=False,
             description=(
-                f"Determine how stock should be updated, while processing fulfillment. "
+                f"Determine how stock should be updated, while processing the order. "
                 f"DEFAULT: {StockUpdatePolicy.UPDATE}"
             ),
         )
@@ -956,8 +954,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order: Order,
         object_storage: Dict[str, Any],
         errors: List[OrderBulkError],
-    ) -> OrderBulkFulfillment:
-        # TODO check if multiple fulfillment lines contains the same variant
+    ) -> Optional[OrderBulkFulfillment]:
         fulfillment = Fulfillment(
             order=order,
             status=FulfillmentStatus.FULFILLED,
@@ -980,7 +977,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 object_storage=object_storage,
             )
             if not variant:
-                continue
+                return None
 
             for stock_input in line_input["stocks"]:
                 warehouse = cls.get_instance_with_errors(
@@ -991,7 +988,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     object_storage=object_storage,
                 )
                 if not warehouse:
-                    continue
+                    return None
 
                 key = f"{variant.id}_{warehouse.id}"
                 order_line = order_lines_with_keys.get(key)
@@ -1002,9 +999,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             f"variant: {variant.id} and warehouse: "
                             f"{warehouse.id} in fulfillment line.",
                             field="fulfillment_line",
+                            code=OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE,
                         )
                     )
-                    continue
+                    return None
 
                 stock = OrderBulkStock(
                     quantity=stock_input["quantity"], warehouse=warehouse
@@ -1056,13 +1054,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order.is_critical_error = True
 
         if order.is_critical_error:
-            order.order_errors.append(
-                OrderBulkError(
-                    message="At least one order line can't be created.",
-                    field="lines",
-                    code=OrderBulkCreateErrorCode.ORDER_LINE_ERROR,
-                )
-            )
             return order
 
         if order.order_lines_duplicates:
@@ -1104,6 +1095,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order.fulfillments_errors,
                 ):
                     order.fulfillments.append(fulfillment)
+                else:
+                    order.is_critical_error = True
+            if order.is_critical_error:
+                return order
 
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
@@ -1198,7 +1193,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order.lines_errors.append(
                         OrderBulkError(
                             message=f"There is more fulfillments, than ordered quantity"
-                            f" for order line with variant: {variant_id}.",
+                            f" for order line with variant: {variant_id} and warehouse:"
+                            f" {warehouse_id_for_allocation}",
                             field="order_line",
                             code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                         )
@@ -1240,10 +1236,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
                 stock.quantity_allocated += quantity_to_allocate
 
-                # decrease fulfillments
+                # decrease quantity
                 fulfillment_lines: List[
                     OrderBulkFulfillmentLine
-                ] = order.orderline_fulfillmentline_map.get(order_line.id, [])
+                ] = order.orderline_fulfillmentlines_map.get(order_line.id, [])
                 for fulfillment_line in fulfillment_lines:
                     warehouse_id_for_fulfillment = fulfillment_line.stock.warehouse.id
                     stock = stocks_map_copy.get(
@@ -1263,27 +1259,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         break
 
                     fulfillment_line_quantity = fulfillment_line.line.quantity
-                    # Fulfillments can derive from multiple warehouses, other then
-                    # warehouse for allocation, therefore new available_quantity must
-                    # be calculated and checked
-                    if warehouse_id_for_fulfillment != warehouse_id_for_allocation:
-                        available_quantity = stock.quantity - stock.quantity_allocated
-                        if (
-                            fulfillment_line_quantity > available_quantity
-                            and stock_update_policy != StockUpdatePolicy.FORCE
-                        ):
-                            order.lines_errors.append(
-                                OrderBulkError(
-                                    message=f"Insufficient stock for product variant: "
-                                    f"{variant_id} and warehouse: "
-                                    f"{warehouse_id_for_fulfillment}.",
-                                    field="fulfillment_line",
-                                    code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
-                                )
-                            )
-                            order.is_critical_error = True
-                            break
-
                     stock.quantity -= fulfillment_line_quantity
 
             if not order.is_critical_error:
@@ -1369,7 +1344,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             orders.append(cls.create_single_order(order_input, object_storage))
 
         error_policy = data.get("error_policy", ErrorPolicy.REJECT_EVERYTHING)
-        stock_update_policy = data.get("stock_update_policy", StockUpdatePolicy.SKIP)
+        stock_update_policy = data.get("stock_update_policy", StockUpdatePolicy.UPDATE)
         stocks: List[Stock] = []
 
         cls.handle_error_policy(orders, error_policy)

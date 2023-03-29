@@ -14792,7 +14792,7 @@ type Mutation {
     orders: [OrderBulkCreateInput!]!
 
     """
-    Determine how stock should be updated, while processing fulfillment. DEFAULT: update
+    Determine how stock should be updated, while processing the order. DEFAULT: update
     """
     stockUpdatePolicy: StockUpdatePolicyEnum
   ): OrderBulkCreate
@@ -22276,13 +22276,13 @@ enum OrderBulkCreateErrorCode {
   BULK_LIMIT
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
-  ORDER_LINE_ERROR
   INVALID_QUANTITY
   PRICE_ERROR
   NOTE_LENGTH
   INSUFFICIENT_STOCK
   NON_EXISTING_STOCK
   DUPLICATED_INPUT_ITEM
+  NO_RELATED_ORDER_LINE
 }
 
 input OrderBulkCreateInput {
@@ -22431,7 +22431,7 @@ input OrderBulkCreateOrderLineInput {
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
 
-  """The ID of the warehouse, where line will be allocated."""
+  """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
 
   """Tax rate of the order line."""
