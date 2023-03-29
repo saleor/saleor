@@ -104,7 +104,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Users created by the OIDC plugin now have unusable password set instead of empty string - #12103 by @rafalp
 - Fix thumbnail generation long image names - #12435 by @KirillPlaksin
 
-
 # 3.11.0
 
 ### Highlights
