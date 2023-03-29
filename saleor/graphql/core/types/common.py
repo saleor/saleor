@@ -50,6 +50,8 @@ from ..enums import (
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
+    PaymentGatewayConfigErrorCode,
+    PaymentGatewayInitializeErrorCode,
     PermissionEnum,
     PermissionGroupErrorCode,
     PluginErrorCode,
@@ -64,6 +66,8 @@ from ..enums import (
     TimePeriodTypeEnum,
     TransactionCreateErrorCode,
     TransactionEventReportErrorCode,
+    TransactionInitializeErrorCode,
+    TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
     TranslationErrorCode,
@@ -551,6 +555,24 @@ class TransactionRequestActionError(Error):
 
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
+
+
+class TransactionInitializeError(Error):
+    code = TransactionInitializeErrorCode(description="The error code.", required=True)
+
+
+class TransactionProcessError(Error):
+    code = TransactionProcessErrorCode(description="The error code.", required=True)
+
+
+class PaymentGatewayConfigError(Error):
+    code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
+
+
+class PaymentGatewayInitializeError(Error):
+    code = PaymentGatewayInitializeErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class GiftCardError(Error):

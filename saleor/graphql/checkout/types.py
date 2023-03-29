@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING, Optional
+
 import graphene
 from promise import Promise
 
@@ -6,8 +8,9 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
 )
+from ...checkout.calculations import fetch_checkout_data
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.taxes import zero_taxed_money
+from ...core.taxes import zero_money, zero_taxed_money
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -30,6 +33,7 @@ from ..core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_38,
     ADDED_IN_39,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -71,7 +75,32 @@ from .dataloaders import (
     CheckoutMetadataByCheckoutIdLoader,
     TransactionItemsByCheckoutIDLoader,
 )
+from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from .utils import prevent_sync_event_circular_query
+
+if TYPE_CHECKING:
+    from ...account.models import Address
+    from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ...discount import DiscountInfo
+    from ...plugins.manager import PluginsManager
+
+
+def get_dataloaders_for_fetching_checkout_data(
+    root: models.Checkout, info: ResolveInfo
+) -> tuple[
+    Optional[Promise["Address"]],
+    Promise[list["CheckoutLineInfo"]],
+    Promise["CheckoutInfo"],
+    Promise[list["DiscountInfo"]],
+    Promise["PluginsManager"],
+]:
+    address_id = root.shipping_address_id or root.billing_address_id
+    address = AddressByIdLoader(info.context).load(address_id) if address_id else None
+    lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
+    checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
+    discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
+    manager = get_plugin_manager_promise(info.context)
+    return address, lines, checkout_info, discounts, manager
 
 
 class GatewayConfigLine(BaseObjectType):
@@ -348,7 +377,14 @@ class DeliveryMethod(graphene.Union):
 class Checkout(ModelObjectType[models.Checkout]):
     id = graphene.ID(required=True)
     created = graphene.DateTime(required=True)
-    last_change = graphene.DateTime(required=True)
+    updated_at = graphene.DateTime(
+        required=True,
+        description=("Time of last modification of the given checkout." + ADDED_IN_313),
+    )
+    last_change = graphene.DateTime(
+        required=True,
+        deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `updatedAt` instead."),
+    )
     user = graphene.Field("saleor.graphql.account.types.User")
     channel = graphene.Field(Channel, required=True)
     billing_address = graphene.Field("saleor.graphql.account.types.Address")
@@ -447,6 +483,17 @@ class Checkout(ModelObjectType[models.Checkout]):
         ),
         required=True,
     )
+
+    total_balance = graphene.Field(
+        Money,
+        description=(
+            "The difference between the paid and the checkout total amount."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
+
     language_code = graphene.Field(
         LanguageCodeEnum, description="Checkout language code.", required=True
     )
@@ -463,6 +510,18 @@ class Checkout(ModelObjectType[models.Checkout]):
         description=(
             "Determines whether checkout prices should include taxes when displayed "
             "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
+    authorize_status = CheckoutAuthorizeStatusEnum(
+        description=(
+            "The authorize status of the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+        required=True,
+    )
+    charge_status = CheckoutChargeStatusEnum(
+        description=(
+            "The charge status of the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
         required=True,
     )
@@ -568,19 +627,8 @@ class Checkout(ModelObjectType[models.Checkout]):
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
-        address_id = root.shipping_address_id or root.billing_address_id
-        address = (
-            AddressByIdLoader(info.context).load(address_id) if address_id else None
-        )
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-        manager = get_plugin_manager_promise(info.context)
-        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
-            calculate_total_price
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        return Promise.all(dataloaders).then(calculate_total_price)
 
     @staticmethod
     @traced_resolver
@@ -596,20 +644,8 @@ class Checkout(ModelObjectType[models.Checkout]):
                 discounts=discounts,
             )
 
-        address_id = root.shipping_address_id or root.billing_address_id
-        address = (
-            AddressByIdLoader(info.context).load(address_id) if address_id else None
-        )
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-        manager = get_plugin_manager_promise(info.context)
-
-        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
-            calculate_subtotal_price
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        return Promise.all(dataloaders).then(calculate_subtotal_price)
 
     @staticmethod
     @traced_resolver
@@ -625,21 +661,8 @@ class Checkout(ModelObjectType[models.Checkout]):
                 discounts=discounts,
             )
 
-        address = (
-            AddressByIdLoader(info.context).load(root.shipping_address_id)
-            if root.shipping_address_id
-            else None
-        )
-        lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
-        checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-        discounts = DiscountsByDateTimeLoader(info.context).load(
-            info.context.request_time
-        )
-        manager = get_plugin_manager_promise(info.context)
-
-        return Promise.all([address, lines, checkout_info, discounts, manager]).then(
-            calculate_shipping_price
-        )
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        return Promise.all(dataloaders).then(calculate_shipping_price)
 
     @staticmethod
     def resolve_lines(root: models.Checkout, info: ResolveInfo):
@@ -856,6 +879,74 @@ class Checkout(ModelObjectType[models.Checkout]):
             root.metadata_storage
         )
         return item_type
+
+    @classmethod
+    def resolve_updated_at(cls, root: models.Checkout, _info):
+        return root.last_change
+
+    @classmethod
+    def resolve_authorize_status(cls, root: models.Checkout, info):
+        def _resolve_authorize_status(data):
+            address, lines, checkout_info, discounts, manager, transactions = data
+            fetch_checkout_data(
+                checkout_info=checkout_info,
+                manager=manager,
+                lines=lines,
+                address=address,
+                discounts=discounts,
+                checkout_transactions=transactions,
+            )
+            return checkout_info.checkout.authorize_status
+
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders.append(
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+        )
+        return Promise.all(dataloaders).then(_resolve_authorize_status)
+
+    @classmethod
+    def resolve_charge_status(cls, root: models.Checkout, info):
+        def _resolve_charge_status(data):
+            address, lines, checkout_info, discounts, manager, transactions = data
+            fetch_checkout_data(
+                checkout_info=checkout_info,
+                manager=manager,
+                lines=lines,
+                address=address,
+                discounts=discounts,
+                checkout_transactions=transactions,
+            )
+            return checkout_info.checkout.charge_status
+
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders.append(
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+        )
+        return Promise.all(dataloaders).then(_resolve_charge_status)
+
+    @classmethod
+    def resolve_total_balance(cls, root: models.Checkout, info):
+        def _calculate_total_balance_for_transactions(data):
+            address, lines, checkout_info, discounts, manager, transactions = data
+            taxed_total = calculations.calculate_checkout_total_with_gift_cards(
+                manager=manager,
+                checkout_info=checkout_info,
+                lines=lines,
+                address=address,
+                discounts=discounts,
+            )
+            checkout_total = max(taxed_total, zero_taxed_money(root.currency))
+            total_charged = zero_money(root.currency)
+            for transaction in transactions:
+                total_charged += transaction.amount_charged
+                total_charged += transaction.amount_charge_pending
+            return total_charged - checkout_total.gross
+
+        dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
+        dataloaders.append(
+            TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
+        )
+        return Promise.all(dataloaders).then(_calculate_total_balance_for_transactions)
 
 
 class CheckoutCountableConnection(CountableConnection):

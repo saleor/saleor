@@ -1,9 +1,6 @@
-from typing import cast
-
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....account.models import User
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -112,7 +109,6 @@ class OrderCreateFromCheckout(BaseMutation):
         remove_checkout
     ):
         user = info.context.user
-        user = cast(User, user)
         checkout = cls.get_node_or_error(
             info,
             id,
@@ -153,7 +149,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 manager=manager,
                 user=user,
                 app=app,
-                tracking_code=str(tracking_code),
+                tracking_code=tracking_code,
                 delete_checkout=remove_checkout,
                 metadata_list=metadata,
                 private_metadata_list=private_metadata,

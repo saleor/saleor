@@ -1,4 +1,8 @@
+from typing import Any, Optional
+from uuid import UUID
+
 import graphene
+from django.db.models import Q
 from graphene import relay
 
 from ...core.exceptions import PermissionDenied
@@ -7,6 +11,7 @@ from ...permission.enums import OrderPermissions
 from ..account.dataloaders import UserByUserIdLoader
 from ..app.dataloaders import AppByIdLoader, AppsByAppIdentifierLoader
 from ..checkout.dataloaders import CheckoutByTokenLoader
+from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
     ADDED_IN_31,
@@ -494,6 +499,10 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
         model = models.TransactionItem
 
     @staticmethod
+    def resolve_id(root: models.TransactionItem, _info: ResolveInfo):
+        return root.token
+
+    @staticmethod
     def resolve_actions(root: models.TransactionItem, _info):
         return root.available_actions
 
@@ -595,3 +604,17 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     @staticmethod
     def resolve_message(root: models.TransactionItem, info) -> str:
         return root.message or ""
+
+    @classmethod
+    def get_node(cls, _: Any, id: str) -> Optional[models.TransactionItem]:
+        model = cls._meta.model
+        lookup = Q(token=id)
+        try:
+            UUID(str(id))
+        except ValueError:
+            lookup = Q(pk=id) & Q(use_old_id=True)
+
+        try:
+            return model.objects.get(lookup)
+        except model.DoesNotExist:
+            return None

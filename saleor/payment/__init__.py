@@ -177,6 +177,10 @@ class TransactionEventType:
     AUTHORIZATION_FAILURE - represents failure authorization.
     AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
     AUTHORIZATION_REQUEST - represents authorization request.
+    AUTHORIZATION_ACTION_REQUIRED - represents authorization that needs
+    additional actions from the customer.
+    CHARGE_ACTION_REQUIRED - represents charge that needs
+    additional actions from the customer.
     CHARGE_SUCCESS - represents success charge.
     CHARGE_FAILURE - represents failure charge.
     CHARGE_BACK - represents chargeback.
@@ -195,9 +199,11 @@ class TransactionEventType:
     AUTHORIZATION_FAILURE = "authorization_failure"
     AUTHORIZATION_ADJUSTMENT = "authorization_adjustment"
     AUTHORIZATION_REQUEST = "authorization_request"
+    AUTHORIZATION_ACTION_REQUIRED = "authorization_action_required"
     CHARGE_SUCCESS = "charge_success"
     CHARGE_FAILURE = "charge_failure"
     CHARGE_BACK = "charge_back"
+    CHARGE_ACTION_REQUIRED = "charge_action_required"
     CHARGE_REQUEST = "charge_request"
     REFUND_SUCCESS = "refund_success"
     REFUND_FAILURE = "refund_failure"
@@ -213,6 +219,11 @@ class TransactionEventType:
         (AUTHORIZATION_FAILURE, "Represents failure authorization"),
         (AUTHORIZATION_ADJUSTMENT, "Represents authorization adjustment"),
         (AUTHORIZATION_REQUEST, "Represents authorization request"),
+        (
+            AUTHORIZATION_ACTION_REQUIRED,
+            "Represents additional actions required for authorization.",
+        ),
+        (CHARGE_ACTION_REQUIRED, "Represents additional actions required for charge."),
         (CHARGE_SUCCESS, "Represents success charge"),
         (CHARGE_FAILURE, "Represents failure charge"),
         (CHARGE_BACK, "Represents chargeback."),

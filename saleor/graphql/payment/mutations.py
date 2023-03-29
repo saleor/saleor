@@ -1,16 +1,24 @@
+import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.db import transaction
-from django.db.models import Model
+from django.db.models import Model, QuerySet
 from django.utils import timezone
+from graphql import GraphQLError
 
+from ...app.models import App
+from ...channel import TransactionFlowStrategy
 from ...channel.models import Channel
 from ...checkout import models as checkout_models
-from ...checkout.calculations import calculate_checkout_total_with_gift_cards
+from ...checkout.actions import transaction_amounts_for_checkout_updated
+from ...checkout.calculations import (
+    calculate_checkout_total_with_gift_cards,
+    fetch_checkout_data,
+)
 from ...checkout.checkout_cleaner import clean_billing_address, clean_checkout_shipping
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...checkout.utils import cancel_active_payments
@@ -21,6 +29,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
+from ...order.models import Order
 from ...order.search import update_order_search_vector
 from ...order.utils import updates_amounts_for_order
 from ...payment import (
@@ -34,7 +43,7 @@ from ...payment import models as payment_models
 from ...payment.error_codes import (
     PaymentErrorCode,
     TransactionCreateErrorCode,
-    TransactionEventReportErrorCode,
+    TransactionProcessErrorCode,
     TransactionRequestActionErrorCode,
     TransactionUpdateErrorCode,
 )
@@ -43,6 +52,7 @@ from ...payment.gateway import (
     request_charge_action,
     request_refund_action,
 )
+from ...payment.interface import PaymentGatewayData
 from ...payment.transaction_item_calculations import (
     calculate_transaction_amount_based_on_events,
     recalculate_transaction_amounts,
@@ -53,12 +63,16 @@ from ...payment.utils import (
     create_manual_adjustment_events,
     create_payment,
     get_already_existing_event,
+    get_final_session_statuses,
+    handle_transaction_initialize_session,
+    handle_transaction_process_session,
     is_currency_supported,
 )
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..account.i18n import I18nMixin
 from ..app.dataloaders import get_app_promise
+from ..channel.enums import TransactionFlowStrategyEnum
 from ..channel.utils import validate_channel
 from ..checkout.mutations.utils import get_checkout
 from ..checkout.types import Checkout
@@ -72,11 +86,17 @@ from ..core.descriptions import (
     PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
+from ..core.enums import (
+    PaymentGatewayInitializeErrorCode,
+    TransactionEventReportErrorCode,
+    TransactionInitializeErrorCode,
+)
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
-from ..core.scalars import UUID, PositiveDecimal
+from ..core.scalars import JSON, UUID, PositiveDecimal
 from ..core.types import BaseInputObjectType
 from ..core.types import common as common_types
+from ..core.utils import from_global_id_or_error
 from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..plugins.dataloaders import get_plugin_manager_promise
@@ -92,8 +112,8 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 
 if TYPE_CHECKING:
     from ...account.models import User
-    from ...app.models import App
-    from ...order.models import Order
+    from ...discount import DiscountInfo
+    from ...plugins.manager import PluginsManager
 
 
 class PaymentInput(BaseInputObjectType):
@@ -928,6 +948,8 @@ class TransactionCreate(BaseMutation):
         if app and app.identifier:
             app_identifier = app.identifier
         return payment_models.TransactionItem.objects.create(
+            token=uuid.uuid4(),
+            use_old_id=True,
             **transaction_input,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
@@ -1028,10 +1050,43 @@ class TransactionCreate(BaseMutation):
                     "search_vector",
                 ]
             )
+        if transaction_data.get("checkout_id") and money_data:
+            discounts = load_discounts(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
+            transaction_amounts_for_checkout_updated(
+                new_transaction, discounts, manager
+            )
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
         return TransactionCreate(transaction=new_transaction)
+
+
+def get_transaction_item(id: str) -> payment_models.TransactionItem:
+    """Get transaction based on global ID.
+
+    The transactions created before 3.13 were using the `id` field as a graphql ID.
+    From 3.13, the `token` is used as a graphql ID. All transactionItems created
+    before 3.13 will use an `int` id as an identification.
+    """
+    _, db_id = from_global_id_or_error(
+        global_id=id, only_type=TransactionItem, raise_error=True
+    )
+    if db_id.isdigit():
+        query_params = {"id": db_id, "use_old_id": True}
+    else:
+        query_params = {"token": db_id}
+    instance = payment_models.TransactionItem.objects.filter(**query_params).first()
+    if not instance:
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    f"Couldn't resolve to a node: {id}",
+                    code=TransactionUpdateErrorCode.NOT_FOUND.value,
+                )
+            }
+        )
+    return instance
 
 
 class TransactionUpdate(TransactionCreate):
@@ -1113,6 +1168,7 @@ class TransactionUpdate(TransactionCreate):
         transaction_data: dict,
         user: Optional["User"],
         app: Optional["App"],
+        info: ResolveInfo,
     ):
         money_data = cls.get_money_data_from_input(transaction_data)
         psp_reference = transaction_data.get(
@@ -1145,6 +1201,10 @@ class TransactionUpdate(TransactionCreate):
         if instance.order_id:
             order = cast(order_models.Order, instance.order)
             cls.update_order(order, money_data, psp_reference)
+        if instance.checkout_id and money_data:
+            discounts = load_discounts(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
+            transaction_amounts_for_checkout_updated(instance, discounts, manager)
 
     @classmethod
     def update_order(
@@ -1183,7 +1243,7 @@ class TransactionUpdate(TransactionCreate):
     ):
         app = get_app_promise(info.context).get()
         user = info.context.user
-        instance = cls.get_node_or_error(info, id, only_type=TransactionItem)
+        instance = get_transaction_item(id)
 
         cls.check_can_update(
             transaction=instance,
@@ -1194,7 +1254,7 @@ class TransactionUpdate(TransactionCreate):
         if transaction:
             cls.validate_transaction_input(instance, transaction)
             cls.cleanup_metadata_data(transaction)
-            cls.update_transaction(instance, transaction, user, app)
+            cls.update_transaction(instance, transaction, user, app, info)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, instance, user, app)
@@ -1315,12 +1375,13 @@ class TransactionRequestAction(BaseMutation):
         id = data["id"]
         action_type = data["action_type"]
         action_value = data.get("amount")
-        transaction = cls.get_node_or_error(info, id, only_type=TransactionItem)
-        channel_slug = (
-            transaction.order.channel.slug
-            if transaction.order_id
-            else transaction.checkout.channel.slug
-        )
+        transaction = get_transaction_item(id)
+        if transaction.order_id:
+            order = cast(Order, transaction.order)
+            channel_slug = order.channel.slug
+        else:
+            checkout = cast(Checkout, transaction.checkout)
+            channel_slug = checkout.channel.slug
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {
@@ -1427,8 +1488,7 @@ class TransactionEventReport(ModelMutation):
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
-        transaction = cls.get_node_or_error(info, id, only_type="TransactionItem")
-        transaction = cast(payment_models.TransactionItem, transaction)
+        transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
             transaction=transaction, user=user, app=app
@@ -1521,6 +1581,12 @@ class TransactionEventReport(ModelMutation):
                         "search_vector",
                     ]
                 )
+            if transaction.checkout_id:
+                discounts = load_discounts(info.context)
+                manager = get_plugin_manager_promise(info.context).get()
+                transaction_amounts_for_checkout_updated(
+                    transaction, discounts, manager
+                )
 
         return cls(
             already_processed=already_processed,
@@ -1528,3 +1594,493 @@ class TransactionEventReport(ModelMutation):
             transaction_event=transaction_event,
             errors=[],
         )
+
+
+class PaymentGatewayConfig(graphene.ObjectType):
+    id = graphene.String(required=True, description="The app identifier.")
+    data = graphene.Field(
+        JSON, description="The JSON data required to initialize the payment gateway."
+    )
+    errors = common_types.NonNullList(common_types.PaymentGatewayConfigError)
+
+
+class PaymentGatewayToInitialize(BaseInputObjectType):
+    id = graphene.String(
+        required=True,
+        description="The identifier of the payment gateway app to initialize.",
+    )
+    data = graphene.Field(
+        JSON, description="The data that will be passed to the payment gateway."
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
+
+class TransactionSessionBase(BaseMutation):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def clean_source_object(
+        cls,
+        info,
+        id,
+        incorrect_type_error_code: str,
+        not_found_error: str,
+        manager: "PluginsManager",
+        discounts: Optional[Iterable["DiscountInfo"]],
+    ) -> Union[checkout_models.Checkout, order_models.Order]:
+        source_object_type, source_object_id = from_global_id_or_error(
+            id, raise_error=False
+        )
+        if not source_object_type or not source_object_id:
+            raise GraphQLError(f"Couldn't resolve id: {id}.")
+
+        if source_object_type not in ["Checkout", "Order"]:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Must receive a `Checkout` or `Order` id.",
+                        code=incorrect_type_error_code,
+                    )
+                }
+            )
+        source_object: Optional[Union[checkout_models.Checkout, order_models.Order]]
+        if source_object_type == "Checkout":
+            source_object = (
+                checkout_models.Checkout.objects.select_related("channel")
+                .prefetch_related("payment_transactions")
+                .filter(pk=source_object_id)
+                .first()
+            )
+            if source_object:
+                lines, _ = fetch_checkout_lines(source_object)
+                discounts = discounts or []
+                checkout_info = fetch_checkout_info(
+                    source_object, lines, discounts, manager
+                )
+                checkout_info, _ = fetch_checkout_data(
+                    checkout_info, manager, lines, discounts=discounts
+                )
+                source_object = checkout_info.checkout
+        else:
+            source_object = (
+                order_models.Order.objects.select_related("channel")
+                .prefetch_related("payment_transactions")
+                .filter(pk=source_object_id)
+                .first()
+            )
+
+        if not source_object:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "`Order` or `Checkout` not found.",
+                        code=not_found_error,
+                    )
+                }
+            )
+        return source_object
+
+    @classmethod
+    def get_amount(
+        cls,
+        source_object: Union[checkout_models.Checkout, order_models.Order],
+        input_amount: Optional[Decimal],
+    ) -> Decimal:
+        if input_amount is not None:
+            return input_amount
+        amount: Decimal = source_object.total_gross_amount
+        transactions = source_object.payment_transactions.all()
+        for transaction_item in transactions:
+            amount_to_reduce = transaction_item.authorized_value
+            if amount_to_reduce < transaction_item.charged_value:
+                amount_to_reduce = transaction_item.charged_value
+            amount -= amount_to_reduce
+            amount -= transaction_item.authorize_pending_value
+            amount -= transaction_item.charge_pending_value
+
+        return amount if amount >= Decimal(0) else Decimal(0)
+
+
+class PaymentGatewayInitialize(TransactionSessionBase):
+    gateway_configs = common_types.NonNullList(PaymentGatewayConfig)
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the checkout or order.",
+            required=True,
+        )
+        amount = graphene.Argument(
+            PositiveDecimal,
+            description=(
+                "The amount requested for initializing the payment gateway. "
+                "If not provided, the difference between checkout.total - "
+                "transactions that are already processed will be send."
+            ),
+        )
+        payment_gateways = graphene.List(
+            graphene.NonNull(PaymentGatewayToInitialize),
+            description="List of payment gateways to initialize.",
+            required=False,
+        )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Initializes a payment gateway session. It triggers the webhook "
+            "`PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
+            "If `paymentGateways` is not provided, the webhook will be send to all "
+            "subscribed payment gateways." + ADDED_IN_313 + PREVIEW_FEATURE
+        )
+        error_type_class = common_types.PaymentGatewayInitializeError
+
+    @classmethod
+    def prepare_response(
+        cls,
+        payment_gateways_input: list[PaymentGatewayData],
+        payment_gateways_response: list[PaymentGatewayData],
+    ) -> list[PaymentGatewayConfig]:
+        response = []
+        payment_gateways_response_dict = {
+            gateway.app_identifier: gateway for gateway in payment_gateways_response
+        }
+
+        payment_gateways_input_dict = (
+            {gateway.app_identifier: gateway for gateway in payment_gateways_input}
+            if payment_gateways_input
+            else payment_gateways_response_dict
+        )
+        for identifier in payment_gateways_input_dict:
+            app_identifier = identifier
+            payment_gateway_response = payment_gateways_response_dict.get(identifier)
+            if payment_gateway_response:
+                response_data = payment_gateway_response.data
+                errors = []
+                if payment_gateway_response.error:
+                    code = common_types.PaymentGatewayConfigErrorCode.INVALID.value
+                    errors = [
+                        {
+                            "field": "id",
+                            "message": payment_gateway_response.error,
+                            "code": code,
+                        }
+                    ]
+
+            else:
+                response_data = None
+                code = common_types.PaymentGatewayConfigErrorCode.NOT_FOUND.value
+                msg = (
+                    "Active app with `HANDLE_PAYMENT` permissions or "
+                    "app webhook not found."
+                )
+                errors = [
+                    {
+                        "field": "id",
+                        "message": msg,
+                        "code": code,
+                    }
+                ]
+            data_to_return = response_data.get("data") if response_data else None
+            response.append(
+                PaymentGatewayConfig(
+                    id=app_identifier, data=data_to_return, errors=errors
+                )
+            )
+        return response
+
+    @classmethod
+    def perform_mutation(cls, root, info, *, id, amount=None, payment_gateways=None):
+        discounts = load_discounts(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
+        source_object = cls.clean_source_object(
+            info,
+            id,
+            PaymentGatewayInitializeErrorCode.INVALID.value,
+            PaymentGatewayInitializeErrorCode.NOT_FOUND.value,
+            discounts=discounts,
+            manager=manager,
+        )
+        payment_gateways_data = []
+        if payment_gateways:
+            payment_gateways_data = [
+                PaymentGatewayData(
+                    app_identifier=gateway["id"], data=gateway.get("data")
+                )
+                for gateway in payment_gateways
+            ]
+        amount = cls.get_amount(source_object, amount)
+        response_data = manager.payment_gateway_initialize_session(
+            amount, payment_gateways_data, source_object
+        )
+        return cls(
+            gateway_configs=cls.prepare_response(payment_gateways_data, response_data),
+            errors=[],
+        )
+
+
+class TransactionInitialize(TransactionSessionBase):
+    transaction = graphene.Field(
+        TransactionItem, description="The initialized transaction."
+    )
+    transaction_event = graphene.Field(
+        TransactionEvent,
+        description="The event created for the initialized transaction.",
+    )
+    data = graphene.Field(
+        JSON, description="The JSON data required to finalize the payment."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the checkout or order.",
+            required=True,
+        )
+        amount = graphene.Argument(
+            PositiveDecimal,
+            description=(
+                "The amount requested for initializing the payment gateway. "
+                "If not provided, the difference between checkout.total - "
+                "transactions that are already processed will be send."
+            ),
+        )
+        action = graphene.Argument(
+            TransactionFlowStrategyEnum,
+            description=(
+                "The expected action called for the transaction. By default, the "
+                "`channel.defaultTransactionFlowStrategy` will be used. The field "
+                "can be used only by app that has `HANDLE_PAYMENTS` permission."
+            ),
+        )
+        payment_gateway = graphene.Argument(
+            PaymentGatewayToInitialize,
+            description="Payment gateway used to initialize the transaction.",
+            required=True,
+        )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Initializes a transaction session. It triggers the webhook "
+            "`TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. "
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        error_type_class = common_types.TransactionInitializeError
+
+    @classmethod
+    def clean_action(cls, info, action: Optional[str], channel: "Channel"):
+        if not action:
+            return channel.default_transaction_flow_strategy
+        app = get_app_promise(info.context).get()
+        if not app or not app.has_perm(PaymentPermissions.HANDLE_PAYMENTS):
+            raise PermissionDenied(permissions=[PaymentPermissions.HANDLE_PAYMENTS])
+        return action
+
+    @classmethod
+    def clean_app_from_payment_gateway(cls, payment_gateway: PaymentGatewayData) -> App:
+        app = App.objects.filter(identifier=payment_gateway.app_identifier).first()
+        if not app:
+            raise ValidationError(
+                {
+                    "payment_gateway": ValidationError(
+                        message="App with provided identifier not found.",
+                        code=TransactionInitializeErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+        return app
+
+    @classmethod
+    def perform_mutation(
+        cls, root, info, *, id, payment_gateway, amount=None, action=None
+    ):
+        discounts = load_discounts(info.context)
+        manager = get_plugin_manager_promise(info.context).get()
+        payment_gateway_data = PaymentGatewayData(
+            app_identifier=payment_gateway["id"], data=payment_gateway.get("data")
+        )
+        source_object = cls.clean_source_object(
+            info,
+            id,
+            TransactionInitializeErrorCode.INVALID.value,
+            TransactionInitializeErrorCode.NOT_FOUND.value,
+            discounts=discounts,
+            manager=manager,
+        )
+        action = cls.clean_action(info, action, source_object.channel)
+
+        amount = cls.get_amount(
+            source_object,
+            amount,
+        )
+        app = cls.clean_app_from_payment_gateway(payment_gateway_data)
+        transaction, event, data = handle_transaction_initialize_session(
+            source_object=source_object,
+            payment_gateway=payment_gateway_data,
+            amount=amount,
+            action=action,
+            app=app,
+            manager=manager,
+            discounts=discounts,
+        )
+        return cls(transaction=transaction, transaction_event=event, data=data)
+
+
+class TransactionProcess(BaseMutation):
+    transaction = graphene.Field(
+        TransactionItem, description="The processed transaction."
+    )
+    transaction_event = graphene.Field(
+        TransactionEvent,
+        description="The event created for the processed transaction.",
+    )
+    data = graphene.Field(
+        JSON, description="The json data required to finalize the payment."
+    )
+
+    class Arguments:
+        id = graphene.ID(
+            description="The ID of the transaction to process.",
+            required=True,
+        )
+        data = graphene.Argument(
+            JSON, description="The data that will be passed to the payment gateway."
+        )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+        description = (
+            "Processes a transaction session. It triggers the webhook "
+            "`TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. "
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+        error_type_class = common_types.TransactionProcessError
+
+    @classmethod
+    def get_action(cls, event: payment_models.TransactionEvent, channel: "Channel"):
+        if event.type == TransactionEventType.AUTHORIZATION_REQUEST:
+            return TransactionFlowStrategy.AUTHORIZATION
+        elif event.type == TransactionEventType.CHARGE_REQUEST:
+            return TransactionFlowStrategy.CHARGE
+
+        return channel.default_transaction_flow_strategy
+
+    @classmethod
+    def get_source_object(
+        cls, transaction_item: payment_models.TransactionItem
+    ) -> Union[checkout_models.Checkout, order_models.Order]:
+        if transaction_item.checkout_id:
+            checkout = cast(checkout_models.Checkout, transaction_item.checkout)
+            return checkout
+        if transaction_item.order_id:
+            order = cast(order_models.Order, transaction_item.order)
+            return order
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Transaction doesn't have attached order or checkout.",
+                    code=TransactionProcessErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    @classmethod
+    def get_request_event(cls, events: QuerySet) -> payment_models.TransactionEvent:
+        """Get event with details of requested action.
+
+        This searches for a request event with the appropriate type and
+        include_in_calculations set to false. Request events created from
+        transactionInitialize have their include_in_calculation set to false by default.
+        """
+        for event in events:
+            if (
+                event.type
+                in [
+                    TransactionEventType.AUTHORIZATION_REQUEST,
+                    TransactionEventType.CHARGE_REQUEST,
+                ]
+                and not event.include_in_calculations
+            ):
+                return event
+        raise ValidationError(
+            {
+                "id": ValidationError(
+                    "Missing call of `transactionInitialize` mutation.",
+                    code=TransactionProcessErrorCode.INVALID.value,
+                )
+            }
+        )
+
+    @classmethod
+    def get_already_processed_event(cls, events) -> Optional[TransactionEvent]:
+        for event in events:
+            if (
+                event.type in get_final_session_statuses()
+                and event.include_in_calculations
+            ):
+                return event
+        return None
+
+    @classmethod
+    def clean_payment_app(cls, transaction_item: payment_models.TransactionItem) -> App:
+        if not transaction_item.app_identifier:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Transaction doesn't have attached app that could process the "
+                        "request.",
+                        code=TransactionProcessErrorCode.MISSING_PAYMENT_APP_RELATION.value,
+                    )
+                }
+            )
+        app = App.objects.filter(identifier=transaction_item.app_identifier).first()
+        if not app:
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Payment app attached to the transaction, doesn't exist.",
+                        code=TransactionProcessErrorCode.MISSING_PAYMENT_APP.value,
+                    )
+                }
+            )
+        return app
+
+    @classmethod
+    def perform_mutation(cls, root, info, *, id, data=None):
+        transaction_item = cls.get_node_or_error(
+            info, id, only_type="TransactionItem", field="token"
+        )
+        transaction_item = cast(payment_models.TransactionItem, transaction_item)
+        events = transaction_item.events.all()
+        if processed_event := cls.get_already_processed_event(events):
+            return cls(
+                transaction=transaction_item,
+                transaction_event=processed_event,
+                data=None,
+            )
+        request_event = cls.get_request_event(events)
+        source_object = cls.get_source_object(transaction_item)
+        app = cls.clean_payment_app(transaction_item)
+        app_identifier = app.identifier
+        app_identifier = cast(str, app_identifier)
+        action = cls.get_action(request_event, source_object.channel)
+        manager = get_plugin_manager_promise(info.context).get()
+        discounts = load_discounts(info.context)
+        event, data = handle_transaction_process_session(
+            transaction_item=transaction_item,
+            source_object=source_object,
+            payment_gateway=PaymentGatewayData(
+                app_identifier=app_identifier, data=data
+            ),
+            app=app,
+            action=action,
+            manager=manager,
+            request_event=request_event,
+            discounts=discounts,
+        )
+
+        transaction_item.refresh_from_db()
+        return cls(transaction=transaction_item, transaction_event=event, data=data)

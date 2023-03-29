@@ -1592,6 +1592,23 @@ def test_checkout_update(checkout, subscription_checkout_updated_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_checkout_fully_paid(checkout, subscription_checkout_fully_paid_webhook):
+    # given
+    webhooks = [subscription_checkout_fully_paid_webhook]
+    event_type = WebhookEventAsyncType.CHECKOUT_FULLY_PAID
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, checkout, webhooks)
+
+    # then
+    expected_payload = json.dumps({"checkout": {"id": checkout_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_checkout_metadata_updated(
     checkout, subscription_checkout_metadata_updated_webhook
 ):
@@ -1925,7 +1942,7 @@ def test_transaction_item_metadata_updated(
     webhooks = [subscription_transaction_item_metadata_updated_webhook]
     event_type = WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED
     transaction_item_id = graphene.Node.to_global_id(
-        "TransactionItem", transaction_item_created_by_app.id
+        "TransactionItem", transaction_item_created_by_app.token
     )
 
     # when

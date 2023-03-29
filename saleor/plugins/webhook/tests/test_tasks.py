@@ -143,7 +143,9 @@ def test_trigger_transaction_request_with_webhook_subscription(
     assert generated_delivery
     assert json.loads(generated_payload.payload) == {
         "transaction": {
-            "id": Node.to_global_id("TransactionItem", transaction_data.transaction.id),
+            "id": Node.to_global_id(
+                "TransactionItem", transaction_data.transaction.token
+            ),
         },
         "action": {"amount": 10.0, "actionType": "REFUND"},
     }

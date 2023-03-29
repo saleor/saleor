@@ -1790,6 +1790,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
 
   """
   A checkout metadata is updated.
@@ -2026,6 +2027,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+  PAYMENT_GATEWAY_INITIALIZE_SESSION
+  TRANSACTION_INITIALIZE_SESSION
+  TRANSACTION_PROCESS_SESSION
 }
 
 """Synchronous webhook event."""
@@ -2113,6 +2117,9 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
 
   """Filter shipping methods for checkout."""
   CHECKOUT_FILTER_SHIPPING_METHODS
+  PAYMENT_GATEWAY_INITIALIZE_SESSION
+  TRANSACTION_INITIALIZE_SESSION
+  TRANSACTION_PROCESS_SESSION
 }
 
 """Asynchronous webhook event."""
@@ -2398,6 +2405,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A checkout is updated. It also triggers all updates related to the checkout.
   """
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
 
   """
   A checkout metadata is updated.
@@ -3101,6 +3109,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PRODUCT_VARIANT_METADATA_UPDATED
   CHECKOUT_CREATED
   CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
   CHECKOUT_METADATA_UPDATED
   FULFILLMENT_CREATED
   FULFILLMENT_CANCELED
@@ -4925,6 +4934,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum!
+
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
 
 """
@@ -4939,6 +4957,17 @@ Determine the mark as paid strategy for the channel.
 enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
   TRANSACTION_FLOW
   PAYMENT_FLOW
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
 }
 
 """Represents shipping method postal code rule."""
@@ -9053,7 +9082,14 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   metafields(keys: [String!]): Metadata
   created: DateTime!
-  lastChange: DateTime!
+
+  """
+  Time of last modification of the given checkout.
+  
+  Added in Saleor 3.13.
+  """
+  updatedAt: DateTime!
+  lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
   user: User
   channel: Channel!
   billingAddress: Address
@@ -9141,6 +9177,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   totalPrice: TaxedMoney!
 
+  """
+  The difference between the paid and the checkout total amount.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  totalBalance: Money!
+
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
 
@@ -9161,6 +9206,24 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
+
+  """
+  The authorize status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  authorizeStatus: CheckoutAuthorizeStatusEnum!
+
+  """
+  The charge status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  chargeStatus: CheckoutChargeStatusEnum!
 }
 
 """
@@ -11132,6 +11195,10 @@ Represents possible event types.
     AUTHORIZATION_FAILURE - represents failure authorization.
     AUTHORIZATION_ADJUSTMENT - represents authorization adjustment.
     AUTHORIZATION_REQUEST - represents authorization request.
+    AUTHORIZATION_ACTION_REQUIRED - represents authorization that needs
+    additional actions from the customer.
+    CHARGE_ACTION_REQUIRED - represents charge that needs
+    additional actions from the customer.
     CHARGE_SUCCESS - represents success charge.
     CHARGE_FAILURE - represents failure charge.
     CHARGE_BACK - represents chargeback.
@@ -11150,6 +11217,8 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
   AUTHORIZATION_FAILURE
   AUTHORIZATION_ADJUSTMENT
   AUTHORIZATION_REQUEST
+  AUTHORIZATION_ACTION_REQUIRED
+  CHARGE_ACTION_REQUIRED
   CHARGE_SUCCESS
   CHARGE_FAILURE
   CHARGE_BACK
@@ -11165,6 +11234,49 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
 }
 
 union UserOrApp = User | App
+
+"""
+Determine a current authorize status for checkout.
+
+    We treat the checkout as fully authorized when the sum of authorized and charged
+    funds cover the checkout.total.
+    We treat the checkout as partially authorized when the sum of authorized and charged
+    funds covers only part of the checkout.total
+    We treat the checkout as not authorized when the sum of authorized and charged funds
+    is 0.
+
+    NONE - the funds are not authorized
+    PARTIAL - the cover funds don't cover fully the checkout's total
+    FULL - the cover funds covers the checkout's total
+"""
+enum CheckoutAuthorizeStatusEnum @doc(category: "Checkout") {
+  NONE
+  PARTIAL
+  FULL
+}
+
+"""
+Determine the current charge status for the checkout.
+
+    The checkout is considered overcharged when the sum of the transactionItem's charge
+    amounts exceeds the value of `checkout.total`.
+    If the sum of the transactionItem's charge amounts equals
+    `checkout.total`, we consider the checkout to be fully charged.
+    If the sum of the transactionItem's charge amounts covers a part of the
+    `checkout.total`, we treat the checkout as partially charged.
+
+
+    NONE - the funds are not charged.
+    PARTIAL - the funds that are charged don't cover the checkout's total
+    FULL - the funds that are charged fully cover the checkout's total
+    OVERCHARGED - the charged funds are bigger than checkout's total
+"""
+enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
+  NONE
+  PARTIAL
+  FULL
+  OVERCHARGED
+}
 
 type CheckoutCountableConnection {
   """Pagination data for this connection."""
@@ -12304,6 +12416,9 @@ input CheckoutFilterInput @doc(category: "Checkout") {
   search: String
   metadata: [MetadataFilter!]
   channels: [ID!]
+  updatedAt: DateRangeInput
+  authorizeStatus: [CheckoutAuthorizeStatusEnum!]
+  chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
 type CheckoutLineCountableConnection {
@@ -14015,6 +14130,66 @@ type Mutation {
     """Current status of the event to report."""
     type: TransactionEventTypeEnum!
   ): TransactionEventReport @doc(category: "Payments")
+
+  """
+  Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  paymentGatewayInitialize(
+    """
+    The amount requested for initializing the payment gateway. If not provided, the difference between checkout.total - transactions that are already processed will be send.
+    """
+    amount: PositiveDecimal
+
+    """The ID of the checkout or order."""
+    id: ID!
+
+    """List of payment gateways to initialize."""
+    paymentGateways: [PaymentGatewayToInitialize!]
+  ): PaymentGatewayInitialize @doc(category: "Payments")
+
+  """
+  Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionInitialize(
+    """
+    The expected action called for the transaction. By default, the `channel.defaultTransactionFlowStrategy` will be used. The field can be used only by app that has `HANDLE_PAYMENTS` permission.
+    """
+    action: TransactionFlowStrategyEnum
+
+    """
+    The amount requested for initializing the payment gateway. If not provided, the difference between checkout.total - transactions that are already processed will be send.
+    """
+    amount: PositiveDecimal
+
+    """The ID of the checkout or order."""
+    id: ID!
+
+    """Payment gateway used to initialize the transaction."""
+    paymentGateway: PaymentGatewayToInitialize!
+  ): TransactionInitialize @doc(category: "Payments")
+
+  """
+  Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactionProcess(
+    """The data that will be passed to the payment gateway."""
+    data: JSON
+
+    """The ID of the transaction to process."""
+    id: ID!
+  ): TransactionProcess @doc(category: "Payments")
 
   """
   Creates a new page. 
@@ -20803,6 +20978,158 @@ enum TransactionEventReportErrorCode @doc(category: "Payments") {
 }
 
 """
+Initializes a payment gateway session. It triggers the webhook `PAYMENT_GATEWAY_INITIALIZE_SESSION`, to the requested `paymentGateways`. If `paymentGateways` is not provided, the webhook will be send to all subscribed payment gateways.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentGatewayInitialize @doc(category: "Payments") {
+  gatewayConfigs: [PaymentGatewayConfig!]
+  errors: [PaymentGatewayInitializeError!]!
+}
+
+type PaymentGatewayConfig {
+  """The app identifier."""
+  id: String!
+
+  """The JSON data required to initialize the payment gateway."""
+  data: JSON
+  errors: [PaymentGatewayConfigError!]
+}
+
+scalar JSON
+
+type PaymentGatewayConfigError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentGatewayConfigErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentGatewayConfigErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+type PaymentGatewayInitializeError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PaymentGatewayInitializeErrorCode!
+}
+
+"""An enumeration."""
+enum PaymentGatewayInitializeErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input PaymentGatewayToInitialize @doc(category: "Payments") {
+  """The identifier of the payment gateway app to initialize."""
+  id: String!
+
+  """The data that will be passed to the payment gateway."""
+  data: JSON
+}
+
+"""
+Initializes a transaction session. It triggers the webhook `TRANSACTION_INITIALIZE_SESSION`, to the requested `paymentGateways`. 
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionInitialize @doc(category: "Payments") {
+  """The initialized transaction."""
+  transaction: TransactionItem
+
+  """The event created for the initialized transaction."""
+  transactionEvent: TransactionEvent
+
+  """The JSON data required to finalize the payment."""
+  data: JSON
+  errors: [TransactionInitializeError!]!
+}
+
+type TransactionInitializeError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionInitializeErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionInitializeErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+"""
+Processes a transaction session. It triggers the webhook `TRANSACTION_PROCESS_SESSION`, to the assigned `paymentGateways`. 
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionProcess @doc(category: "Payments") {
+  """The processed transaction."""
+  transaction: TransactionItem
+
+  """The event created for the processed transaction."""
+  transactionEvent: TransactionEvent
+
+  """The json data required to finalize the payment."""
+  data: JSON
+  errors: [TransactionProcessError!]!
+}
+
+type TransactionProcessError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionProcessErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionProcessErrorCode @doc(category: "Payments") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  TRANSACTION_ALREADY_PROCESSED
+  MISSING_PAYMENT_APP_RELATION
+  MISSING_PAYMENT_APP
+}
+
+"""
 Creates a new page. 
 
 Requires one of the following permissions: MANAGE_PAGES.
@@ -23798,6 +24125,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   markAsPaidStrategy: MarkAsPaidStrategyEnum
+
+  """
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }
 
 """
@@ -27451,6 +27787,30 @@ type CheckoutUpdated implements Event @doc(category: "Checkout") {
 }
 
 """
+Event sent when checkout is fully paid with transactions.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The checkout the event relates to."""
+  checkout: Checkout
+}
+
+"""
 Event sent when checkout metadata is updated.
 
 Added in Saleor 3.8.
@@ -28765,11 +29125,124 @@ type TaxableObjectLine @doc(category: "Taxes") {
 
 union TaxSourceLine = CheckoutLine | OrderLine
 
+"""
+Event sent when user wants to initialize the payment gateway.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PaymentGatewayInitializeSession implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Checkout or order"""
+  sourceObject: OrderOrCheckout!
+
+  """Payment gateway data in JSON format, recieved from storefront."""
+  data: JSON
+
+  """Amount requested for initializing the payment gateway."""
+  amount: PositiveDecimal
+}
+
+union OrderOrCheckout = Checkout | Order
+
+"""
+Event sent when user starts processing the payment.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionInitializeSession implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem!
+
+  """Checkout or order"""
+  sourceObject: OrderOrCheckout!
+
+  """Payment gateway data in JSON format, recieved from storefront."""
+  data: JSON
+
+  """Merchant reference assigned to this payment."""
+  merchantReference: String!
+
+  """Action to proceed for the transaction"""
+  action: TransactionProcessAction!
+}
+
+type TransactionProcessAction {
+  """Transaction amount to process."""
+  amount: PositiveDecimal!
+
+  """Currency of the amount."""
+  currency: String!
+  actionType: TransactionFlowStrategyEnum!
+}
+
+"""
+Event sent when user has additional payment action to process.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type TransactionProcessSession implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """Look up a transaction."""
+  transaction: TransactionItem!
+
+  """Checkout or order"""
+  sourceObject: OrderOrCheckout!
+
+  """Payment gateway data in JSON format, recieved from storefront."""
+  data: JSON
+
+  """Merchant reference assigned to this payment."""
+  merchantReference: String!
+
+  """Action to proceed for the transaction"""
+  action: TransactionProcessAction!
+}
+
 """_Any value scalar as defined by Federation spec."""
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType | Order
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {

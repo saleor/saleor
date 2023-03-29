@@ -56,8 +56,10 @@ if TYPE_CHECKING:
         InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
+        PaymentGatewayData,
         TokenConfig,
         TransactionActionData,
+        TransactionSessionData,
     )
     from ..payment.models import TransactionItem
     from ..product.models import (
@@ -896,6 +898,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout.channel.slug,
         )
 
+    def checkout_fully_paid(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_fully_paid",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
+
     def checkout_metadata_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -992,6 +1003,46 @@ class PluginsManager(PaymentInterface):
             default_value,
             payment_data,
             channel_slug=channel_slug,
+        )
+
+    def payment_gateway_initialize_session(
+        self,
+        amount: Decimal,
+        payment_gateways: Optional[list["PaymentGatewayData"]],
+        source_object: Union["Order", "Checkout"],
+    ) -> list["PaymentGatewayData"]:
+        default_value = None
+        return self.__run_method_on_plugins(
+            "payment_gateway_initialize_session",
+            default_value,
+            amount,
+            payment_gateways,
+            source_object,
+            channel_slug=source_object.channel.slug,
+        )
+
+    def transaction_initialize_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_initialize_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
+        )
+
+    def transaction_process_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_process_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
         )
 
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):

@@ -627,6 +627,11 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
     voucher_percentage.save(update_fields=["usage_limit", "apply_once_per_order"])
 
     checkout = checkout_with_voucher_percentage
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
@@ -634,6 +639,13 @@ def test_order_from_checkout_with_voucher_apply_once_per_order(
     checkout.metadata_storage.store_value_in_private_metadata(
         items={"accepted": "false"}
     )
+    discount_amount = checkout_line_variant.channel_listings.get(
+        channel=checkout.channel
+    ).price * (
+        voucher_percentage.channel_listings.get(channel=checkout.channel).discount_value
+        / 100
+    )
+    checkout.discount = discount_amount
     checkout.save()
     checkout.metadata_storage.save()
 

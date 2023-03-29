@@ -4797,7 +4797,9 @@ def test_add_public_metadata_for_transaction_item(
 ):
     # given
     transaction_item = TransactionItem.objects.create()
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -4817,7 +4819,9 @@ def test_delete_public_metadata_for_transaction_item(
     transaction_item = TransactionItem.objects.create(
         metadata={PUBLIC_KEY: PUBLIC_VALUE}
     )
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
 
     # when
     response = execute_clear_public_metadata_for_item(
@@ -4837,7 +4841,9 @@ def test_add_private_metadata_for_transaction_item(
     transaction_item = TransactionItem.objects.create(
         private_metadata={PRIVATE_KEY: PRIVATE_VALUE}
     )
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
 
     # when
     response = execute_update_private_metadata_for_item(
@@ -4859,7 +4865,9 @@ def test_delete_private_metadata_for_transaction_item(
     transaction_item = TransactionItem.objects.create(
         private_metadata={PRIVATE_KEY: PRIVATE_VALUE}
     )
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction_item.pk)
+    transaction_id = graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
 
     # when
     response = execute_clear_private_metadata_for_item(

@@ -15,6 +15,7 @@ def get_webhooks_for_event(
     event_type: str,
     webhooks: Optional["QuerySet[Webhook]"] = None,
     apps_ids: Optional["list[int]"] = None,
+    apps_identifier: Optional[list[str]] = None,
 ) -> "QuerySet[Webhook]":
     """Get active webhooks from the database for an event."""
     permissions = {}
@@ -31,6 +32,9 @@ def get_webhooks_for_event(
     app_kwargs: dict = {"is_active": True, **permissions}
     if apps_ids:
         app_kwargs["id__in"] = apps_ids
+    if apps_identifier:
+        app_kwargs["identifier__in"] = apps_identifier
+
     apps = App.objects.filter(**app_kwargs)
     event_types = [event_type]
     if event_type in WebhookEventAsyncType.ALL:

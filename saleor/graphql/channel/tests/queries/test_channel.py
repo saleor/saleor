@@ -288,6 +288,8 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
             orderSettings {
                 automaticallyConfirmAllNewOrders
                 automaticallyFulfillNonShippableGiftCard
+                markAsPaidStrategy
+                defaultTransactionFlowStrategy
             }
         }
     }
@@ -328,6 +330,10 @@ def test_query_channel_order_settings_as_staff_user(
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         == channel_USD.automatically_fulfill_non_shippable_gift_card
     )
+    assert (
+        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
 
 
 def test_query_channel_order_settings_as_app(
@@ -365,6 +371,10 @@ def test_query_channel_order_settings_as_app(
     assert (
         channel_data["orderSettings"]["automaticallyFulfillNonShippableGiftCard"]
         == channel_USD.automatically_fulfill_non_shippable_gift_card
+    )
+    assert (
+        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
     )
 
 

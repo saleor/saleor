@@ -225,6 +225,27 @@ TransactionEventReportErrorCode = graphene.Enum.from_enum(
 )
 TransactionEventReportErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
 
+TransactionInitializeErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionInitializeErrorCode
+)
+TransactionInitializeErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+TransactionProcessErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.TransactionProcessErrorCode
+)
+TransactionProcessErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentGatewayConfigErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayConfigErrorCode
+)
+PaymentGatewayConfigErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+PaymentGatewayInitializeErrorCode = graphene.Enum.from_enum(
+    payment_error_codes.PaymentGatewayInitializeErrorCode
+)
+PaymentGatewayInitializeErrorCode.doc_category = DOC_CATEGORY_PAYMENTS
+
+
 PermissionGroupErrorCode = graphene.Enum.from_enum(
     account_error_codes.PermissionGroupErrorCode
 )

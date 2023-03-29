@@ -3,7 +3,17 @@ import uuid
 from collections import defaultdict
 from dataclasses import asdict
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, DefaultDict, Dict, Iterable, List, Optional, Set
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    DefaultDict,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Union,
+)
 
 import graphene
 from django.db.models import F, QuerySet, Sum
@@ -53,12 +63,17 @@ if TYPE_CHECKING:
     # pylint: disable=unused-import
     from ..product.models import ProductVariant
 
+from ..payment.models import Payment, TransactionItem
 
 if TYPE_CHECKING:
     from ..discount.models import Sale
     from ..invoice.models import Invoice
-    from ..payment.interface import PaymentData, TransactionActionData
-    from ..payment.models import Payment
+    from ..payment.interface import (
+        PaymentData,
+        PaymentGatewayData,
+        TransactionActionData,
+        TransactionProcessActionData,
+    )
     from ..plugins.base_plugin import RequestorOrLazyObject
     from ..translation.models import Translation
 
@@ -140,11 +155,10 @@ def generate_metadata_updated_payload(
 ):
     serializer = PayloadSerializer()
 
-    if isinstance(instance, Checkout):
+    if isinstance(instance, Checkout) or isinstance(instance, TransactionItem):
         pk_field_name = "token"
     else:
         pk_field_name = "id"
-
     return serializer.serialize(
         [instance],
         fields=[],
@@ -1490,6 +1504,29 @@ def generate_transaction_action_request_payload(
             "modified_at": transaction.modified_at,
         },
         "meta": generate_meta(requestor_data=generate_requestor(requestor)),
+    }
+    return json.dumps(payload, cls=CustomJsonEncoder)
+
+
+def generate_transaction_session_payload(
+    transaction_process_action: "TransactionProcessActionData",
+    transaction: "TransactionItem",
+    transaction_object: Union["Order", "Checkout"],
+    payment_gateway: "PaymentGatewayData",
+):
+    transaction_object_id = graphene.Node.to_global_id(
+        transaction_object.__class__.__name__, transaction_object.pk
+    )
+
+    payload = {
+        "id": transaction_object_id,
+        "data": payment_gateway.data,
+        "amount": transaction_process_action.amount,
+        "currency": transaction_process_action.currency,
+        "action_type": transaction_process_action.action_type.upper(),
+        "transaction_id": graphene.Node.to_global_id(
+            "TransactionItem", transaction.token
+        ),
     }
     return json.dumps(payload, cls=CustomJsonEncoder)
 

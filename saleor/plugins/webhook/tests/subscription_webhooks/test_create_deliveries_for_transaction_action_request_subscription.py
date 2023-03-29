@@ -88,7 +88,7 @@ def test_transaction_refund_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     transaction_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.REFUND,
@@ -160,7 +160,7 @@ def test_transaction_charge_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     action_value = Decimal("5.00")
     transaction_data = TransactionActionData(
         transaction=transaction,
@@ -233,7 +233,7 @@ def test_transaction_void_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
 
     transaction_data = TransactionActionData(
         transaction=transaction,

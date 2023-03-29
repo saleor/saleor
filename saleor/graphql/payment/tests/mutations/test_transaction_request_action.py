@@ -94,7 +94,7 @@ def test_transaction_request_charge_action_for_order(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "amount": charge_amount,
     }
@@ -171,7 +171,7 @@ def test_transaction_request_refund_action_for_order(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -237,7 +237,7 @@ def test_transaction_request_void_action_for_order(
         authorized_value=Decimal("10"),
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -300,7 +300,7 @@ def test_transaction_request_void_action_for_checkout(
         authorized_value=Decimal("10"),
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -371,7 +371,7 @@ def test_transaction_request_charge_action_for_checkout(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "amount": charge_amount,
     }
@@ -443,7 +443,7 @@ def test_transaction_request_refund_action_for_checkout(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -505,7 +505,7 @@ def test_transaction_action_request_uses_handle_payment_permission(
     )
     refund_amount = Decimal("1")
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -553,7 +553,7 @@ def test_transaction_request_action_missing_permission(
         authorized_value=Decimal("10"),
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -584,7 +584,7 @@ def test_transaction_request_action_missing_event(
     mocked_is_active.side_effect = [False, False]
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -667,7 +667,7 @@ def test_transaction_request_charge_for_order(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "amount": charge_amount,
     }
@@ -751,7 +751,7 @@ def test_transaction_request_refund_for_order(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -822,7 +822,7 @@ def test_transaction_request_cancelation_for_order(
         app=transaction_request_webhook.app,
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -893,7 +893,7 @@ def test_transaction_request_cancelation_for_checkout(
         app=transaction_request_webhook.app,
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -971,7 +971,7 @@ def test_transaction_request_charge_for_checkout(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.CHARGE.name,
         "amount": charge_amount,
     }
@@ -1049,7 +1049,7 @@ def test_transaction_request_refund_for_checkout(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -1119,7 +1119,7 @@ def test_transaction_request_refund_when_app_reinstalled(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -1187,7 +1187,7 @@ def test_transaction_request_uses_handle_payment_permission(
     )
     refund_amount = Decimal("1")
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.REFUND.name,
         "amount": refund_amount,
     }
@@ -1241,7 +1241,7 @@ def test_transaction_request_missing_permission(
         app=transaction_request_webhook.app,
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 
@@ -1282,7 +1282,7 @@ def test_transaction_request_missing_event(
     mocked_is_active.return_value = False
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
 

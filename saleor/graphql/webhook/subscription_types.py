@@ -11,7 +11,7 @@ from ...discount.models import SaleTranslation, VoucherTranslation
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
-from ...payment.interface import TransactionActionData
+from ...payment.interface import TransactionActionData, TransactionSessionData
 from ...product.models import (
     CategoryTranslation,
     CollectionTranslation,
@@ -25,6 +25,7 @@ from ..account.types import User as UserType
 from ..app.types import App as AppType
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
+from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_32,
@@ -39,8 +40,9 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
-from ..core.scalars import PositiveDecimal
+from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
+from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
@@ -1225,6 +1227,18 @@ class CheckoutUpdated(SubscriptionObjectType, CheckoutBase):
         )
 
 
+class CheckoutFullyPaid(SubscriptionObjectType, CheckoutBase):
+    class Meta:
+        root_type = "Checkout"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when checkout is fully paid with transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
 class CheckoutMetadataUpdated(SubscriptionObjectType, CheckoutBase):
     class Meta:
         root_type = "Checkout"
@@ -1598,6 +1612,137 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
         enable_dry_run = False
         description = (
             "Event sent when transaction cancelation is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
+class PaymentGatewayInitializeSession(SubscriptionObjectType):
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    amount = graphene.Field(
+        PositiveDecimal,
+        description="Amount requested for initializing the payment gateway.",
+    )
+
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when user wants to initialize the payment gateway."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_source_object(root, _info: ResolveInfo):
+        _, objects = root
+        source_object, _, _ = objects
+        return source_object
+
+    @staticmethod
+    def resolve_data(root, _info: ResolveInfo):
+        _, objects = root
+        _, data, _ = objects
+        return data
+
+    @staticmethod
+    def resolve_amount(root, _info: ResolveInfo):
+        _, objects = root
+        _, _, amount = objects
+        return amount
+
+
+class TransactionProcessAction(SubscriptionObjectType, AbstractType):
+    amount = PositiveDecimal(
+        description="Transaction amount to process.", required=True
+    )
+    currency = graphene.String(description="Currency of the amount.", required=True)
+    action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
+
+
+class TransactionSessionBase(SubscriptionObjectType, AbstractType):
+    transaction = graphene.Field(
+        TransactionItem, description="Look up a transaction.", required=True
+    )
+    source_object = graphene.Field(
+        OrderOrCheckout, description="Checkout or order", required=True
+    )
+    data = graphene.Field(
+        JSON,
+        description="Payment gateway data in JSON format, recieved from storefront.",
+    )
+    merchant_reference = graphene.String(
+        description="Merchant reference assigned to this payment.", required=True
+    )
+    action = graphene.Field(
+        TransactionProcessAction,
+        description="Action to proceed for the transaction",
+        required=True,
+    )
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def resolve_transaction(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.transaction
+
+    @classmethod
+    def resolve_source_object(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.source_object
+
+    @classmethod
+    def resolve_data(cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo):
+        _, transaction_session_data = root
+        return transaction_session_data.payment_gateway.data
+
+    @classmethod
+    def resolve_merchant_reference(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        transaction = cls.resolve_transaction(root, _info)
+        return graphene.Node.to_global_id("TransactionItem", transaction.token)
+
+    @classmethod
+    def resolve_action(
+        cls, root: tuple[str, TransactionSessionData], _info: ResolveInfo
+    ):
+        _, transaction_session_data = root
+        return transaction_session_data.action
+
+
+class TransactionInitializeSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user starts processing the payment."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionProcessSession(TransactionSessionBase):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when user has additional payment action to process."
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
@@ -2078,6 +2223,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.COLLECTION_METADATA_UPDATED: CollectionMetadataUpdated,
     WebhookEventAsyncType.CHECKOUT_CREATED: CheckoutCreated,
     WebhookEventAsyncType.CHECKOUT_UPDATED: CheckoutUpdated,
+    WebhookEventAsyncType.CHECKOUT_FULLY_PAID: CheckoutFullyPaid,
     WebhookEventAsyncType.CHECKOUT_METADATA_UPDATED: CheckoutMetadataUpdated,
     WebhookEventAsyncType.PAGE_CREATED: PageCreated,
     WebhookEventAsyncType.PAGE_UPDATED: PageUpdated,
@@ -2134,4 +2280,9 @@ WEBHOOK_TYPES_MAP = {
     ),
     WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES: CalculateTaxes,
     WebhookEventSyncType.ORDER_CALCULATE_TAXES: CalculateTaxes,
+    WebhookEventSyncType.PAYMENT_GATEWAY_INITIALIZE_SESSION: (
+        PaymentGatewayInitializeSession
+    ),
+    WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION: TransactionInitializeSession,
+    WebhookEventSyncType.TRANSACTION_PROCESS_SESSION: TransactionProcessSession,
 }

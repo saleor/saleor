@@ -32,11 +32,14 @@ from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
-from .enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
+from .enums import (
+    AllocationStrategyEnum,
+    MarkAsPaidStrategyEnum,
+    TransactionFlowStrategyEnum,
+)
 
 if TYPE_CHECKING:
     from ...shipping.models import ShippingZone
-
 
 T = TypeVar("T", bound=Model)
 
@@ -190,6 +193,14 @@ class OrderSettings(ObjectType):
             "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
             + ADDED_IN_313
             + PREVIEW_FEATURE
+        ),
+    )
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=True,
+        description=(
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
     )
 
@@ -441,4 +452,5 @@ class Channel(ModelObjectType):
                 root.automatically_fulfill_non_shippable_gift_card
             ),
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
+            default_transaction_flow_strategy=root.default_transaction_flow_strategy,
         )

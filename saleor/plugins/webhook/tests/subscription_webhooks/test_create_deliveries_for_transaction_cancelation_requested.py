@@ -62,7 +62,7 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
     event_type = WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
 
     transaction_data = TransactionActionData(
         transaction=transaction,

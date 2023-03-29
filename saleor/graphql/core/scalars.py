@@ -1,6 +1,7 @@
 import decimal
 
 import graphene
+from graphene.types.generic import GenericScalar
 from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
@@ -51,6 +52,14 @@ class PositiveDecimal(Decimal):
                 f"Value cannot be lower than 0. Unsupported value: {value}"
             )
         return value
+
+
+class JSON(GenericScalar):
+    @staticmethod
+    def parse_literal(node):
+        if not isinstance(node, ast.ObjectValue):
+            raise GraphQLError("JSON scalar needs to recieve a correct JSON structure.")
+        return node
 
 
 class WeightScalar(graphene.Scalar):

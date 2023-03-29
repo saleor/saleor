@@ -2,7 +2,11 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from mock import patch
 
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from .....checkout.calculations import fetch_checkout_data
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderAuthorizeStatus, OrderEvents
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionEventStatus, TransactionEventType
@@ -339,6 +343,10 @@ def test_transaction_create_for_checkout_by_app(
     )
 
     # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -1021,6 +1029,9 @@ def test_transaction_create_for_checkout_by_staff(
     )
 
     # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.NONE
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
     transaction = checkout_with_items.payment_transactions.first()
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
@@ -1041,6 +1052,61 @@ def test_transaction_create_for_checkout_by_staff(
     assert transaction.app_identifier is None
     assert transaction.app is None
     assert transaction.user == staff_api_client.user
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_create_for_checkout_fully_paid(
+    mocked_checkout_fully_paid,
+    checkout_with_prices,
+    permission_manage_payments,
+    staff_api_client,
+    plugins_manager,
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_called_once_with(checkout)
 
 
 @pytest.mark.parametrize(
