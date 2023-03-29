@@ -3741,14 +3741,14 @@ vcrpy = ">=2.0.1"
 
 [[package]]
 name = "pytest-socket"
-version = "0.5.1"
+version = "0.6.0"
 description = "Pytest Plugin to disable socket calls during tests"
 category = "dev"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "pytest-socket-0.5.1.tar.gz", hash = "sha256:7c4b81dc6a51cbc0093f11791de00ff4a15ac698f5da96879a80f5d9ad4179b6"},
-    {file = "pytest_socket-0.5.1-py3-none-any.whl", hash = "sha256:8726fd47b83b127451532b6d570c5b6c4cd204fca363936509b1f53195de6f4f"},
+    {file = "pytest_socket-0.6.0-py3-none-any.whl", hash = "sha256:cca72f134ff01e0023c402e78d31b32e68da3efdf3493bf7788f8eba86a6824c"},
+    {file = "pytest_socket-0.6.0.tar.gz", hash = "sha256:363c1d67228315d4fc7912f1aabfd570de29d0e3db6217d61db5728adacd7138"},
 ]
 
 [package.dependencies]
@@ -5140,5 +5140,5 @@ test = ["pytest"]
 
 [metadata]
 lock-version = "2.0"
-  python-versions = "~3.9"
-content-hash = "09f417fc869046dc213a90538de3afcc0e342fc044231461db2182225f65bee6"
+python-versions = "~3.9"
+content-hash = "c8566c9d4ed8d2e97f474b70dbecfaecfef3ed1384343c348653198a513a9636"
