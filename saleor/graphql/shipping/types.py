@@ -27,9 +27,11 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
     RICH_CONTENT,
 )
+from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     ModelObjectType,
     Money,
@@ -338,7 +340,7 @@ class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
         return ChannelsByShippingZoneIdLoader(info.context).load(root.node.id)
 
 
-class ShippingMethod(graphene.ObjectType):
+class ShippingMethod(BaseObjectType):
     id = graphene.ID(
         required=True, description="Unique ID of ShippingMethod available for Order."
     )
@@ -386,6 +388,7 @@ class ShippingMethod(graphene.ObjectType):
 
     class Meta:
         interfaces = [relay.Node, ObjectWithMetadata]
+        doc_category = DOC_CATEGORY_SHIPPING
         description = (
             "Shipping methods that can be used as means of shipping "
             "for orders and checkouts."
@@ -409,7 +412,7 @@ class ShippingZoneCountableConnection(CountableConnection):
         node = ShippingZone
 
 
-class ShippingMethodsPerCountry(graphene.ObjectType):
+class ShippingMethodsPerCountry(BaseObjectType):
     country_code = graphene.Field(
         CountryCodeEnum, required=True, description="The country code."
     )
@@ -418,6 +421,7 @@ class ShippingMethodsPerCountry(graphene.ObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
         description = (
             "List of shipping methods available for the country."
             + ADDED_IN_36

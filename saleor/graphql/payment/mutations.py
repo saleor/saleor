@@ -85,7 +85,7 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
-from ..core.doc_category import DOC_CATEGORY_PAYMENTS
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ..core.enums import (
     PaymentGatewayInitializeErrorCode,
     TransactionEventReportErrorCode,
@@ -185,7 +185,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
     class Meta:
         description = "Create a new payment for given checkout."
-        doc_category = DOC_CATEGORY_PAYMENTS
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

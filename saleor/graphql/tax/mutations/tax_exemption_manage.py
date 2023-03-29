@@ -20,10 +20,14 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
 )
+TaxExemptionManageErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManageError(Error):
     code = TaxExemptionManageErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManage(BaseMutation):

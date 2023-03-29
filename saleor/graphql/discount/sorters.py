@@ -2,10 +2,11 @@ import graphene
 from django.db.models import Min, Q, QuerySet
 
 from ..core.descriptions import CHANNEL_REQUIRED
-from ..core.types import ChannelSortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ..core.types import BaseEnum, ChannelSortInputObjectType
 
 
-class SaleSortField(graphene.Enum):
+class SaleSortField(BaseEnum):
     NAME = ["name", "pk"]
     START_DATE = ["start_date", "name", "pk"]
     END_DATE = ["end_date", "name", "pk"]
@@ -13,6 +14,9 @@ class SaleSortField(graphene.Enum):
     TYPE = ["type", "name", "pk"]
     CREATED_AT = ["created_at", "name", "pk"]
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @property
     def description(self):
@@ -39,6 +43,7 @@ class SaleSortField(graphene.Enum):
 
 class SaleSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = SaleSortField
         type_name = "sales"
 
@@ -51,6 +56,9 @@ class VoucherSortField(graphene.Enum):
     TYPE = ["type", "name", "code"]
     USAGE_LIMIT = ["usage_limit", "name", "code"]
     MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "code"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @property
     def description(self):
@@ -87,5 +95,6 @@ class VoucherSortField(graphene.Enum):
 
 class VoucherSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = VoucherSortField
         type_name = "vouchers"

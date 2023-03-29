@@ -1,8 +1,16 @@
-from graphene import ObjectType
 from graphene.types.objecttype import ObjectTypeOptions
 
+from ..doc_category import DOC_CATEGORY_MAP
+from ..types import BaseObjectType
 
-class SubscriptionObjectType(ObjectType):
+# Rewrite original map to use model to category mapping, with the app name skipped,
+# so that it can be used with root_type from SubscriptionObjectType.
+DOC_CATEGORY_MODEL_MAP = {
+    key.split(".")[1]: value for key, value in DOC_CATEGORY_MAP.items()
+}
+
+
+class SubscriptionObjectType(BaseObjectType):
     class Meta:
         abstract = True
 
@@ -19,5 +27,12 @@ class SubscriptionObjectType(ObjectType):
 
         _meta.root_type = root_type
         _meta.enable_dry_run = enable_dry_run
+
+        if (
+            "doc_category" not in options
+            and root_type
+            and root_type in DOC_CATEGORY_MODEL_MAP
+        ):
+            options["doc_category"] = DOC_CATEGORY_MODEL_MAP[root_type]
 
         super().__init_subclass_with_meta__(_meta=_meta, **options)

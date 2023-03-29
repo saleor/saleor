@@ -3,6 +3,7 @@ import graphene
 from django.db.models import Q
 
 from ...page import models
+from ..core.doc_category import DOC_CATEGORY_PAGES
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -51,6 +52,7 @@ class PageFilter(MetadataFilterBase):
 
 class PageFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         filterset_class = PageFilter
 
 
@@ -61,4 +63,5 @@ class PageTypeFilter(django_filters.FilterSet):
 
 class PageTypeFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         filterset_class = PageTypeFilter

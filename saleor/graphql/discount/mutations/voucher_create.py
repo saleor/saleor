@@ -8,15 +8,16 @@ from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.mutations import ModelMutation
-from ...core.types import DiscountError, NonNullList
+from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 from ..types import Voucher
 
 
-class VoucherInput(graphene.InputObjectType):
+class VoucherInput(BaseInputObjectType):
     type = VoucherTypeEnum(
         description="Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER."
     )
@@ -68,6 +69,9 @@ class VoucherInput(graphene.InputObjectType):
     usage_limit = graphene.Int(
         description="Limit number of times this voucher can be used in total."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherCreate(ModelMutation):

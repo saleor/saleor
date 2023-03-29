@@ -459,6 +459,9 @@ class UserInput(BaseInputObjectType):
     is_active = graphene.Boolean(required=False, description="User account is active.")
     note = graphene.String(description="A note about the user.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class UserAddressInput(BaseInputObjectType):
     default_billing_address = AddressInput(
@@ -468,6 +471,9 @@ class UserAddressInput(BaseInputObjectType):
         description="Shipping address of the customer."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class CustomerInput(UserInput, UserAddressInput):
     language_code = graphene.Field(
@@ -476,6 +482,9 @@ class CustomerInput(UserInput, UserAddressInput):
     external_reference = graphene.String(
         description="External ID of the customer." + ADDED_IN_310, required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class UserCreateInput(CustomerInput):
@@ -491,6 +500,9 @@ class UserCreateInput(CustomerInput):
             "only one channel exists."
         )
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class BaseCustomerCreate(ModelMutation, I18nMixin):

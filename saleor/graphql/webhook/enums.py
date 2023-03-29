@@ -8,6 +8,8 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
+from ..core.types import BaseEnum
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -236,6 +238,7 @@ WebhookEventTypeEnum = graphene.Enum(
     ],
     description=description,
 )
+WebhookEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 WebhookEventTypeAsyncEnum = graphene.Enum(
@@ -243,12 +246,14 @@ WebhookEventTypeAsyncEnum = graphene.Enum(
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventAsyncType.CHOICES],
     description=description,
 )
+WebhookEventTypeAsyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 WebhookEventTypeSyncEnum = graphene.Enum(
     "WebhookEventTypeSyncEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventSyncType.CHOICES],
     description=description,
 )
+WebhookEventTypeSyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 WebhookSampleEventTypeEnum = graphene.Enum(
     "WebhookSampleEventTypeEnum",
@@ -258,9 +263,13 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         if e_type[0] != WebhookEventAsyncType.ANY
     ],
 )
+WebhookSampleEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class EventDeliveryStatusEnum(graphene.Enum):
+class EventDeliveryStatusEnum(BaseEnum):
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS

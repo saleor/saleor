@@ -10,6 +10,7 @@ from ...core.types import BaseInputObjectType, Error, NonNullList
 from ..types import TaxClass
 
 TaxClassCreateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassCreateErrorCode)
+TaxClassCreateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxClassCreateError(Error):

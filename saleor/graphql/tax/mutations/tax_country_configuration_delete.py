@@ -14,12 +14,16 @@ from ..types import TaxCountryConfiguration
 TaxCountryConfigurationDeleteErrorCode = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationDeleteErrorCode
 )
+TaxCountryConfigurationDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationDeleteError(Error):
     code = TaxCountryConfigurationDeleteErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationDelete(BaseMutation):

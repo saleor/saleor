@@ -6,6 +6,7 @@ from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
+from ...core.types import BaseInputObjectType
 from ...core.types.common import Error
 from ..enums import OrderGrantRefundCreateErrorCode
 from ..types import Order, OrderGrantedRefund
@@ -14,10 +15,16 @@ from ..types import Order, OrderGrantedRefund
 class OrderGrantRefundCreateError(Error):
     code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderGrantRefundCreateInput(graphene.InputObjectType):
+
+class OrderGrantRefundCreateInput(BaseInputObjectType):
     amount = Decimal(required=True, description="Amount of the granted refund.")
     reason = graphene.String(description="Reason of the granted refund.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderGrantRefundCreate(BaseMutation):

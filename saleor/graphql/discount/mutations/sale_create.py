@@ -13,7 +13,7 @@ from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
-from ...core.doc_category import DOC_CATEGORY_PRODUCTS
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, DiscountError, NonNullList
@@ -65,7 +65,7 @@ class SaleInput(BaseInputObjectType):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_PRODUCTS
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):

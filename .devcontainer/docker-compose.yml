@@ -5,17 +5,22 @@ services:
     image: saleor
     build:
       context: ..
-      dockerfile: ./Dockerfile
-    command: ["python", "-m", "saleor"]
+      dockerfile: .devcontainer/Dockerfile
+    command: uvicorn --reload saleor.asgi:application --host 0.0.0.0 --port 8000
     env_file:
       - common.env
       - backend.env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ..:/app
 
   dashboard:
     image: ghcr.io/saleor/saleor-dashboard:3.12.3
+    restart: unless-stopped
     ports:
       - 9000:80
-    restart: unless-stopped
 
   db:
     image: library/postgres:13-alpine
@@ -34,19 +39,16 @@ services:
 
   worker:
     image: saleor
-    build:
-      context: ..
-      dockerfile: ./Dockerfile
     command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
     restart: unless-stopped
     env_file:
       - common.env
       - backend.env
     depends_on:
+      - db
       - redis
     volumes:
-      # shared volume between worker and api for media
-      - saleor-media:/app/media
+      - ..:/app
 
   mailhog:
     image: mailhog/mailhog
@@ -60,4 +62,3 @@ volumes:
     driver: local
   saleor-redis:
     driver: local
-  saleor-media:
