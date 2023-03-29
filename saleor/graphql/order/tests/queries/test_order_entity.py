@@ -20,6 +20,7 @@ ORDER_FEDERATION_QUERY = """
 def test_staff_query_order_by_id_for_federation(
     staff_api_client, fulfilled_order, permission_group_manage_orders
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", fulfilled_order.id)
     variables = {
@@ -31,11 +32,14 @@ def test_staff_query_order_by_id_for_federation(
         ],
     }
 
+    # when
     response = staff_api_client.post_graphql(
         ORDER_FEDERATION_QUERY,
         variables,
         check_no_permissions=False,
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["_entities"] == [
         {
