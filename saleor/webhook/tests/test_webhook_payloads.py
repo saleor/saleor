@@ -27,7 +27,7 @@ from ...order import FulfillmentLineData, OrderOrigin
 from ...order.actions import fulfill_order_lines
 from ...order.fetch import OrderLineInfo
 from ...order.models import Order
-from ...payment import TransactionAction
+from ...payment import TransactionAction, TransactionEventType
 from ...payment.interface import RefundData, TransactionActionData, TransactionData
 from ...payment.models import TransactionItem
 from ...plugins.manager import get_plugins_manager
@@ -1223,16 +1223,20 @@ def test_generate_payment_with_transactions_payload(dummy_webhook_app_payment_da
 
 @freeze_time()
 def test_generate_transaction_item_metadata_updated_payload(
-    transaction_item, customer_user
+    transaction_item_created_by_user, customer_user
 ):
     # when
     payload = json.loads(
-        generate_metadata_updated_payload(transaction_item, customer_user)
+        generate_metadata_updated_payload(
+            transaction_item_created_by_user, customer_user
+        )
     )[0]
 
     # then
     assert payload == {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction_item.id),
+        "id": graphene.Node.to_global_id(
+            "TransactionItem", transaction_item_created_by_user.token
+        ),
         "meta": generate_meta(requestor_data=generate_requestor(customer_user)),
     }
 
@@ -1628,14 +1632,24 @@ def test_generate_sale_toggle_payload(sale):
 
 @patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-def test_generate_checkout_payload_for_tax_calculation(
+def test_generate_checkout_payload_for_tax_calculation_entire_order_voucher(
     mocked_serialize_checkout_lines_for_tax_calculation,
     mocked_fetch_checkout,
     checkout_with_prices,
     prices_entered_with_tax,
+    voucher,
 ):
     checkout = checkout_with_prices
     currency = checkout.currency
+
+    voucher.name = "Voucher 5 USD"
+    voucher.save(update_fields=["name"])
+
+    discount_amount = Decimal("5.00")
+    checkout.voucher_code = voucher.code
+    checkout.discount_amount = discount_amount
+    checkout.discount_name = voucher.name
+    checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
 
     discounts_info = fetch_active_discounts()
 
@@ -1693,7 +1707,110 @@ def test_generate_checkout_payload_for_tax_calculation(
             "slug": checkout.channel.slug,
         },
         "currency": currency,
-        "discounts": [{"amount": "5.00", "name": "Voucher 5 USD"}],
+        "discounts": [{"amount": str(discount_amount), "name": voucher.name}],
+        "included_taxes_in_prices": prices_entered_with_tax,
+        "lines": mocked_serialized_checkout_lines,
+        "metadata": {"meta_key": "meta_value"},
+        "shipping_name": checkout.shipping_method.name,
+        "user_id": graphene.Node.to_global_id("User", checkout.user.pk),
+        "user_public_metadata": {"user_public_meta_key": "user_public_meta_value"},
+        "total_amount": str(
+            quantize_price(
+                base_calculations.base_checkout_total(
+                    checkout_info, discounts_info, lines
+                ).amount,
+                currency,
+            )
+        ),
+        "shipping_amount": shipping_price,
+    }
+    mocked_fetch_checkout.assert_not_called()
+    mocked_serialize_checkout_lines_for_tax_calculation.assert_called_once_with(
+        checkout_info,
+        lines,
+        discounts_info,
+    )
+
+
+@patch("saleor.webhook.payloads.serialize_checkout_lines_for_tax_calculation")
+@pytest.mark.parametrize("prices_entered_with_tax", [True, False])
+def test_generate_checkout_payload_for_tax_calculation_specific_product_voucher(
+    mocked_serialize_checkout_lines_for_tax_calculation,
+    mocked_fetch_checkout,
+    checkout_with_prices,
+    prices_entered_with_tax,
+    voucher_specific_product_type,
+):
+    checkout = checkout_with_prices
+    currency = checkout.currency
+
+    voucher = voucher_specific_product_type
+    voucher.name = "Voucher 5 USD"
+    voucher.save(update_fields=["name"])
+
+    discount_amount = Decimal("5.00")
+    checkout.voucher_code = voucher.code
+    checkout.discount_amount = discount_amount
+    checkout.discount_name = voucher.name
+    checkout.save(update_fields=["voucher_code", "discount_amount", "discount_name"])
+
+    discounts_info = fetch_active_discounts()
+
+    tax_configuration = checkout.channel.tax_configuration
+    tax_configuration.prices_entered_with_tax = prices_entered_with_tax
+    tax_configuration.save(update_fields=["prices_entered_with_tax"])
+    tax_configuration.country_exceptions.all().delete()
+
+    mocked_serialized_checkout_lines = {"data": "checkout_lines_data"}
+    mocked_serialize_checkout_lines_for_tax_calculation.return_value = (
+        mocked_serialized_checkout_lines
+    )
+
+    # when
+    lines, _ = fetch_checkout_lines(checkout_with_prices)
+    manager = get_plugins_manager()
+    discounts = fetch_active_discounts()
+    checkout_info = fetch_checkout_info(checkout_with_prices, lines, discounts, manager)
+    payload = json.loads(
+        generate_checkout_payload_for_tax_calculation(checkout_info, lines)
+    )[0]
+    address = checkout.shipping_address
+
+    # then
+    shipping_price = str(
+        quantize_price(
+            checkout.shipping_method.channel_listings.get(
+                channel_id=checkout.channel_id
+            ).price.amount,
+            currency,
+        )
+    )
+    assert payload == {
+        "type": "Checkout",
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+        "address": {
+            "type": "Address",
+            "id": graphene.Node.to_global_id("Address", address.pk),
+            "first_name": address.first_name,
+            "last_name": address.last_name,
+            "company_name": address.company_name,
+            "street_address_1": address.street_address_1,
+            "street_address_2": address.street_address_2,
+            "city": address.city,
+            "city_area": address.city_area,
+            "postal_code": address.postal_code,
+            "country": address.country.code,
+            "country_area": address.country_area,
+            "phone": str(address.phone),
+        },
+        "channel": {
+            "type": "Channel",
+            "id": graphene.Node.to_global_id("Channel", checkout.channel_id),
+            "currency_code": checkout.channel.currency_code,
+            "slug": checkout.channel.slug,
+        },
+        "currency": currency,
+        "discounts": [],
         "included_taxes_in_prices": prices_entered_with_tax,
         "lines": mocked_serialized_checkout_lines,
         "metadata": {"meta_key": "meta_value"},
@@ -2028,12 +2145,16 @@ def test_generate_transaction_action_request_payload_for_order(
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
+        name="Credit card",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         order_id=order.pk,
         authorized_value=Decimal("10"),
+    )
+    requested_event = transaction.events.create(
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
 
     # when
@@ -2043,6 +2164,8 @@ def test_generate_transaction_action_request_payload_for_order(
                 transaction=transaction,
                 action_type=action_type,
                 action_value=action_value,
+                event=requested_event,
+                transaction_app_owner=None,
             ),
             requestor=requestor,
         )
@@ -2059,8 +2182,11 @@ def test_generate_transaction_action_request_payload_for_order(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
-            "reference": transaction.reference,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
             "charged_value": str(quantize_price(transaction.charged_value, currency)),
@@ -2068,7 +2194,8 @@ def test_generate_transaction_action_request_payload_for_order(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.voided_value, currency)),
+            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
+            "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": graphene.Node.to_global_id("Order", order.pk),
             "checkout_id": None,
             "created_at": parse_django_datetime(transaction.created_at),
@@ -2085,16 +2212,24 @@ def test_generate_transaction_action_request_payload_for_order(
 
 
 @pytest.mark.parametrize(
-    "action_type, action_value",
+    "action_type, request_type, action_value",
     [
-        (TransactionAction.CHARGE, Decimal("5.000")),
-        (TransactionAction.REFUND, Decimal("9.000")),
-        (TransactionAction.VOID, None),
+        (
+            TransactionAction.CHARGE,
+            TransactionEventType.CHARGE_REQUEST,
+            Decimal("5.000"),
+        ),
+        (
+            TransactionAction.REFUND,
+            TransactionEventType.REFUND_REQUEST,
+            Decimal("9.000"),
+        ),
+        (TransactionAction.VOID, TransactionEventType.CANCEL_REQUEST, None),
     ],
 )
 @freeze_time("1914-06-28 10:50")
 def test_generate_transaction_action_request_payload_for_checkout(
-    action_type, action_value, checkout, app, rf
+    action_type, request_type, action_value, checkout, app, rf
 ):
     # given
     request = rf.request()
@@ -2104,12 +2239,16 @@ def test_generate_transaction_action_request_payload_for_checkout(
 
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
+        name="Credit card",
+        psp_reference="PSP ref",
         available_actions=["capture", "void"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
+    )
+    requested_event = transaction.events.create(
+        currency=transaction.currency,
+        type=request_type,
     )
 
     # when
@@ -2119,6 +2258,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 transaction=transaction,
                 action_type=action_type,
                 action_value=action_value,
+                event=requested_event,
+                transaction_app_owner=None,
             ),
             requestor=requestor,
         )
@@ -2135,8 +2276,11 @@ def test_generate_transaction_action_request_payload_for_checkout(
         },
         "transaction": {
             "status": transaction.status,
-            "type": transaction.type,
-            "reference": transaction.reference,
+            "type": transaction.name,
+            "name": transaction.name,
+            "message": transaction.message,
+            "reference": transaction.psp_reference,
+            "psp_reference": transaction.psp_reference,
             "available_actions": transaction.available_actions,
             "currency": currency,
             "charged_value": str(quantize_price(transaction.charged_value, currency)),
@@ -2144,7 +2288,8 @@ def test_generate_transaction_action_request_payload_for_checkout(
                 quantize_price(transaction.authorized_value, currency)
             ),
             "refunded_value": str(quantize_price(transaction.refunded_value, currency)),
-            "voided_value": str(quantize_price(transaction.voided_value, currency)),
+            "voided_value": str(quantize_price(transaction.canceled_value, currency)),
+            "canceled_value": str(quantize_price(transaction.canceled_value, currency)),
             "order_id": None,
             "checkout_id": graphene.Node.to_global_id("Checkout", checkout.pk),
             "created_at": parse_django_datetime(transaction.created_at),

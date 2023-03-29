@@ -11,8 +11,7 @@ from ....order.actions import order_captured, order_confirmed
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
 from ....order.utils import update_order_display_gross_prices
-from ....payment import PaymentError, gateway
-from ....payment.gateway import request_charge_action
+from ....payment import gateway
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -74,25 +73,7 @@ class OrderConfirm(ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
         app = get_app_promise(info.context).get()
         with traced_atomic_transaction():
-            if payment_transactions := list(order.payment_transactions.all()):
-                try:
-                    # We use the last transaction as we don't have a possibility to
-                    # provide way of handling multiple transaction here
-                    payment_transaction = payment_transactions[-1]
-                    request_charge_action(
-                        transaction=payment_transaction,
-                        manager=manager,
-                        charge_value=payment_transaction.authorized_value,
-                        channel_slug=order.channel.slug,
-                        user=info.context.user,
-                        app=app,
-                    )
-                except PaymentError as e:
-                    raise ValidationError(
-                        str(e),
-                        code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
-                    )
-            elif payment and payment.is_authorized and payment.can_capture():
+            if payment and payment.is_authorized and payment.can_capture():
                 authorized_payment = payment
                 gateway.capture(payment, manager, channel_slug=order.channel.slug)
                 site = get_site_promise(info.context).get()

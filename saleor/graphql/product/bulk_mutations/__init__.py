@@ -1,5 +1,6 @@
 from .category_bulk_delete import CategoryBulkDelete
 from .collection_bulk_delete import CollectionBulkDelete
+from .product_bulk_create import ProductBulkCreate
 from .product_bulk_delete import ProductBulkDelete
 from .product_media_bulk_delete import ProductMediaBulkDelete
 from .product_type_bulk_delete import ProductTypeBulkDelete
@@ -16,6 +17,7 @@ __all__ = [
     "ProductBulkDelete",
     "ProductMediaBulkDelete",
     "ProductTypeBulkDelete",
+    "ProductBulkCreate",
     "ProductVariantBulkCreate",
     "ProductVariantBulkDelete",
     "ProductVariantBulkUpdate",

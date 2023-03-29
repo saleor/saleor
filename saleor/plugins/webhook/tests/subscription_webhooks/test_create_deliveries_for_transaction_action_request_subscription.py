@@ -5,7 +5,7 @@ import graphene
 from freezegun import freeze_time
 
 from .....core.prices import quantize_price
-from .....payment import TransactionAction
+from .....payment import TransactionAction, TransactionEventType
 from .....payment.interface import TransactionActionData
 from .....payment.models import TransactionItem
 from .....webhook.event_types import WebhookEventAsyncType
@@ -41,6 +41,7 @@ subscription{
         }
         status
         type
+        pspReference
         reference
         order {
           id
@@ -65,12 +66,18 @@ def test_transaction_refund_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
-        reference="PSP ref",
+        name="Credit card",
+        psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order.pk,
         charged_value=charged_value,
+    )
+    action_value = Decimal("5.00")
+    request_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.REFUND_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -81,12 +88,13 @@ def test_transaction_refund_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
-    action_value = Decimal("5.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     transaction_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.REFUND,
         action_value=action_value,
+        event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -104,17 +112,20 @@ def test_transaction_refund_action_request(
             "voidedAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {
                 "currency": "USD",
-                "amount": quantize_price(charged_value, "USD"),
+                "amount": float(quantize_price(charged_value, "USD")),
             },
-            "events": [],
+            "events": [
+                {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
+            ],
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
             "actionType": "REFUND",
-            "amount": quantize_price(action_value, "USD"),
+            "amount": float(quantize_price(action_value, "USD")),
         },
     }
 
@@ -128,12 +139,17 @@ def test_transaction_charge_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Authorized",
-        type="Credit card",
-        reference="PSP ref",
+        name="Credit card",
+        psp_reference="PSP ref",
         available_actions=["charge"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorized_value,
+    )
+    request_event = transaction.events.create(
+        amount_value=authorized_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CHARGE_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -144,12 +160,14 @@ def test_transaction_charge_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
     action_value = Decimal("5.00")
     transaction_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.CHARGE,
         action_value=action_value,
+        event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -169,10 +187,13 @@ def test_transaction_charge_action_request(
             "refundedAmount": {"currency": "USD", "amount": 0.0},
             "voidedAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {"currency": "USD", "amount": 0.0},
-            "events": [],
+            "events": [
+                {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
+            ],
             "status": "Authorized",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {
@@ -191,12 +212,17 @@ def test_transaction_void_action_request(
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
         status="Captured",
-        type="Credit card",
-        reference="PSP ref",
+        name="Credit card",
+        psp_reference="PSP ref",
         available_actions=["void"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorized_value,
+    )
+    request_event = transaction.events.create(
+        amount_value=authorized_value,
+        currency=transaction.currency,
+        type=TransactionEventType.CANCEL_REQUEST,
     )
     webhook = Webhook.objects.create(
         name="Webhook",
@@ -207,11 +233,13 @@ def test_transaction_void_action_request(
     event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
     webhook.events.create(event_type=event_type)
 
-    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.id)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
 
     transaction_data = TransactionActionData(
         transaction=transaction,
         action_type=TransactionAction.VOID,
+        event=request_event,
+        transaction_app_owner=None,
     )
     # when
     deliveries = create_deliveries_for_subscriptions(
@@ -231,10 +259,13 @@ def test_transaction_void_action_request(
             "refundedAmount": {"currency": "USD", "amount": 0.0},
             "voidedAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {"currency": "USD", "amount": 0.0},
-            "events": [],
+            "events": [
+                {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
+            ],
             "status": "Captured",
             "type": "Credit card",
             "reference": "PSP ref",
+            "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
         "action": {"actionType": "VOID", "amount": None},

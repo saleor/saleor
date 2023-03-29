@@ -25,12 +25,15 @@ from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
     CountryDisplay,
     Image,
     ModelObjectType,
@@ -52,7 +55,7 @@ from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
-class AddressInput(graphene.InputObjectType):
+class AddressInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     company_name = graphene.String(description="Company or organization.")
@@ -177,6 +180,7 @@ class CustomerEvent(ModelObjectType[models.CustomerEvent]):
         description = "History log of the customer."
         interfaces = [relay.Node]
         model = models.CustomerEvent
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info: ResolveInfo):
@@ -232,6 +236,10 @@ class UserPermission(Permission):
         ),
         required=False,
     )
+
+    class Meta:
+        description = "Represents user's permissions."
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     @traced_resolver
@@ -343,6 +351,7 @@ class User(ModelObjectType[models.User]):
         description = "Represents user data."
         interfaces = [relay.Node, ObjectWithMetadata]
         model = get_user_model()
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_addresses(root: models.User, _info: ResolveInfo):
@@ -551,6 +560,7 @@ class User(ModelObjectType[models.User]):
 
 class UserCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         node = User
 
 
@@ -559,7 +569,7 @@ class ChoiceValue(graphene.ObjectType):
     verbose = graphene.String()
 
 
-class AddressValidationData(graphene.ObjectType):
+class AddressValidationData(BaseObjectType):
     country_code = graphene.String(required=True)
     country_name = graphene.String(required=True)
     address_format = graphene.String(required=True)
@@ -577,6 +587,10 @@ class AddressValidationData(graphene.ObjectType):
     postal_code_matchers = NonNullList(graphene.String, required=True)
     postal_code_examples = NonNullList(graphene.String, required=True)
     postal_code_prefix = graphene.String(required=True)
+
+    class Meta:
+        description = "Represents address validation rules for a country."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class StaffNotificationRecipient(graphene.ObjectType):
@@ -648,6 +662,7 @@ class Group(ModelObjectType[models.Group]):
         description = "Represents permission group data."
         interfaces = [relay.Node]
         model = models.Group
+        doc_category = DOC_CATEGORY_USERS
 
     @staticmethod
     def resolve_users(root: models.Group, _info: ResolveInfo):
@@ -682,4 +697,5 @@ class Group(ModelObjectType[models.Group]):
 
 class GroupCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_USERS
         node = Group

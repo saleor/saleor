@@ -20,7 +20,7 @@ from ..base_calculations import (
 from ..calculations import (
     _apply_tax_data,
     _get_checkout_base_prices,
-    fetch_checkout_prices_if_expired,
+    fetch_checkout_data,
 )
 from ..fetch import CheckoutLineInfo, fetch_checkout_info, fetch_checkout_lines
 
@@ -129,7 +129,7 @@ def get_taxed_money(
 
 @freeze_time("2020-12-12 12:00:00")
 @patch("saleor.checkout.calculations._apply_tax_data")
-def test_fetch_checkout_prices_if_expired_plugins(
+def test_fetch_checkout_data_plugins(
     _mocked_from_app,
     plugins_manager,
     fetch_kwargs,
@@ -166,12 +166,14 @@ def test_fetch_checkout_prices_if_expired_plugins(
     for tax_line in tax_data.lines:
         total_price = get_taxed_money(tax_line, "total", currency)
         subtotal = subtotal + total_price
+
+    plugins_manager.calculate_checkout_subtotal = Mock(return_value=subtotal)
     plugins_manager.calculate_checkout_total = Mock(
         return_value=shipping_price + subtotal
     )
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
 
     # then
     checkout_with_items.refresh_from_db()
@@ -191,7 +193,7 @@ def test_fetch_checkout_prices_if_expired_plugins(
     wraps=update_checkout_prices_with_flat_rates,
 )
 @pytest.mark.parametrize("prices_entered_with_tax", [True, False])
-def test_fetch_checkout_prices_if_expired_flat_rates(
+def test_fetch_checkout_data_flat_rates(
     mocked_update_checkout_prices_with_flat_rates,
     checkout_with_items_and_shipping,
     fetch_kwargs,
@@ -216,7 +218,7 @@ def test_fetch_checkout_prices_if_expired_flat_rates(
     )
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
     checkout.refresh_from_db()
     line = checkout.lines.first()
 
@@ -230,7 +232,7 @@ def test_fetch_checkout_prices_if_expired_flat_rates(
     "saleor.checkout.calculations.update_checkout_prices_with_flat_rates",
     wraps=update_checkout_prices_with_flat_rates,
 )
-def test_fetch_checkout_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
+def test_fetch_checkout_data_flat_rates_and_no_tax_calc_strategy(
     mocked_update_checkout_prices_with_flat_rates,
     checkout_with_items_and_shipping,
     fetch_kwargs,
@@ -254,7 +256,7 @@ def test_fetch_checkout_prices_if_expired_flat_rates_and_no_tax_calc_strategy(
     )
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
     checkout.refresh_from_db()
     line = checkout.lines.first()
 
@@ -337,7 +339,7 @@ def test_get_checkout_base_prices_no_charge_taxes_with_voucher(
 
 
 @freeze_time("2020-12-12 12:00:00")
-def test_fetch_checkout_prices_if_expired_webhooks_success(
+def test_fetch_checkout_data_webhooks_success(
     plugins_manager,
     fetch_kwargs,
     checkout_with_items,
@@ -350,7 +352,7 @@ def test_fetch_checkout_prices_if_expired_webhooks_success(
     plugins_manager.get_taxes_for_checkout = Mock(return_value=tax_data)
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
 
     # then
     checkout_with_items.refresh_from_db()
@@ -405,7 +407,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_include_taxes_in_prices(
     }
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
     checkout.refresh_from_db()
 
     # then
@@ -465,7 +467,7 @@ def test_fetch_checkout_prices_when_tax_exemption_and_not_include_taxes_in_price
     }
 
     # when
-    fetch_checkout_prices_if_expired(**fetch_kwargs)
+    fetch_checkout_data(**fetch_kwargs)
     checkout.refresh_from_db()
 
     # then

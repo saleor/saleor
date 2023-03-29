@@ -6,6 +6,7 @@ from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
@@ -40,6 +41,7 @@ class GiftCardQueries(graphene.ObjectType):
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
@@ -55,6 +57,7 @@ class GiftCardQueries(graphene.ObjectType):
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_card_currencies = PermissionsField(
         NonNullList(graphene.String),
@@ -63,6 +66,7 @@ class GiftCardQueries(graphene.ObjectType):
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_card_tags = FilterConnectionField(
         GiftCardTagCountableConnection,
@@ -73,6 +77,7 @@ class GiftCardQueries(graphene.ObjectType):
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
 
     @staticmethod

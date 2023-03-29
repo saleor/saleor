@@ -25,6 +25,7 @@ class AccountErrorCode(Enum):
     PASSWORD_TOO_COMMON = "password_too_common"
     PASSWORD_TOO_SHORT = "password_too_short"
     PASSWORD_TOO_SIMILAR = "password_too_similar"
+    PASSWORD_RESET_ALREADY_REQUESTED = "password_reset_already_requested"
     REQUIRED = "required"
     UNIQUE = "unique"
     JWT_SIGNATURE_EXPIRED = "signature_has_expired"
@@ -35,6 +36,17 @@ class AccountErrorCode(Enum):
     CHANNEL_INACTIVE = "channel_inactive"
     MISSING_CHANNEL_SLUG = "missing_channel_slug"
     ACCOUNT_NOT_CONFIRMED = "account_not_confirmed"
+
+
+class CustomerBulkUpdateErrorCode(Enum):
+    BLANK = "blank"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    NOT_FOUND = "not_found"
+    MAX_LENGTH = "max_length"
 
 
 class PermissionGroupErrorCode(Enum):

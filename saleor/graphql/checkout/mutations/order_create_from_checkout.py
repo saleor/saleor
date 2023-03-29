@@ -1,9 +1,6 @@
-from typing import cast
-
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....account.models import User
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
@@ -14,6 +11,7 @@ from ....permission.enums import CheckoutPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...discount.dataloaders import load_discounts
@@ -39,6 +37,9 @@ class OrderCreateFromCheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderCreateFromCheckout(BaseMutation):
@@ -79,6 +80,7 @@ class OrderCreateFromCheckout(BaseMutation):
             + ADDED_IN_32
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError
@@ -107,7 +109,6 @@ class OrderCreateFromCheckout(BaseMutation):
         remove_checkout
     ):
         user = info.context.user
-        user = cast(User, user)
         checkout = cls.get_node_or_error(
             info,
             id,
@@ -148,7 +149,7 @@ class OrderCreateFromCheckout(BaseMutation):
                 manager=manager,
                 user=user,
                 app=app,
-                tracking_code=str(tracking_code),
+                tracking_code=tracking_code,
                 delete_checkout=remove_checkout,
                 metadata_list=metadata,
                 private_metadata_list=private_metadata,

@@ -17,9 +17,9 @@ from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
+from ..const import APP_ID_PREFIX
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
 from .tasks import trigger_webhook_sync
-from .utils import APP_ID_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +110,8 @@ def get_excluded_shipping_methods_or_fetch(
     excluded_methods = []
     # Gather responses from webhooks
     for webhook in webhooks:
+        if not webhook:
+            continue
         response_data = trigger_webhook_sync(
             event_type,
             payload,

@@ -796,6 +796,7 @@ CHECKOUT_PRICES_TTL = timedelta(
 INDEX_MAXIMUM_EXPR_COUNT = 4000
 
 # Maximum related objects that can be indexed in an order
+SEARCH_ORDERS_MAX_INDEXED_TRANSACTIONS = 20
 SEARCH_ORDERS_MAX_INDEXED_PAYMENTS = 20
 SEARCH_ORDERS_MAX_INDEXED_DISCOUNTS = 20
 SEARCH_ORDERS_MAX_INDEXED_LINES = 100
@@ -820,3 +821,8 @@ UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME = os.environ.get(
 )
 # Queue name for "async webhook" events
 WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
+
+# Lock time for request password reset mutation per user (seconds)
+RESET_PASSWORD_LOCK_TIME = parse(
+    os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
+)

@@ -6,6 +6,7 @@ from ....attribute.error_codes import AttributeErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import AttributeError, NonNullList
@@ -21,6 +22,7 @@ class AttributeReorderValues(BaseMutation):
 
     class Meta:
         description = "Reorder the values of an attribute."
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         permissions = (ProductTypePermissions.MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES,)
         error_type_class = AttributeError
         error_type_field = "attribute_errors"

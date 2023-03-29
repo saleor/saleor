@@ -6,8 +6,9 @@ from django.db.models.signals import post_migrate
 
 from saleor.order.tasks import send_order_updated
 
-# 5000 results in 246701 bytes (base64(json(list of ids))) which is the limit for SQS
-SEND_ORDER_UPDATED_BATCH_SIZE = 5000
+# 3500 results in 187344 bytes (base64(json(list of ids)))
+# leave safe margin for rest of the payload
+SEND_ORDER_UPDATED_BATCH_SIZE = 3500
 
 
 RAW_SQL = """

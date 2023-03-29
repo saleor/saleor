@@ -279,6 +279,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_collection_metadata_updated_webhook,
     subscription_checkout_created_webhook,
     subscription_checkout_updated_webhook,
+    subscription_checkout_fully_paid_webhook,
     subscription_checkout_metadata_updated_webhook,
     subscription_page_created_webhook,
     subscription_page_updated_webhook,
@@ -328,7 +329,7 @@ def async_subscription_webhooks_with_root_objects(
     voucher,
     warehouse,
     translated_attribute,
-    transaction_item,
+    transaction_item_created_by_app,
     product_media_image,
 ):
     events = WebhookEventAsyncType
@@ -338,6 +339,8 @@ def async_subscription_webhooks_with_root_objects(
     order = fulfilled_order
     invoice = order.invoices.first()
     page_type = page.page_type
+    transaction_item_created_by_app.use_old_id = True
+    transaction_item_created_by_app.save()
 
     return {
         events.ADDRESS_UPDATED: [subscription_address_updated_webhook, address],
@@ -492,6 +495,10 @@ def async_subscription_webhooks_with_root_objects(
         ],
         events.CHECKOUT_CREATED: [subscription_checkout_created_webhook, checkout],
         events.CHECKOUT_UPDATED: [subscription_checkout_updated_webhook, checkout],
+        events.CHECKOUT_FULLY_PAID: [
+            subscription_checkout_fully_paid_webhook,
+            checkout,
+        ],
         events.CHECKOUT_METADATA_UPDATED: [
             subscription_checkout_metadata_updated_webhook,
             checkout,
@@ -547,7 +554,7 @@ def async_subscription_webhooks_with_root_objects(
         events.STAFF_DELETED: [subscription_staff_deleted_webhook, staff_user],
         events.TRANSACTION_ITEM_METADATA_UPDATED: [
             subscription_transaction_item_metadata_updated_webhook,
-            transaction_item,
+            transaction_item_created_by_app,
         ],
         events.TRANSLATION_CREATED: [
             subscription_translation_created_webhook,
@@ -584,7 +591,6 @@ def test_webhook_dry_run_root_type(
     for event_name, event_type in WEBHOOK_TYPES_MAP.items():
         if not event_type._meta.enable_dry_run:
             continue
-
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
         object = async_subscription_webhooks_with_root_objects[event_name][1]
         object_id = graphene.Node.to_global_id(object.__class__.__name__, object.pk)
@@ -598,3 +604,27 @@ def test_webhook_dry_run_root_type(
         # then
         assert not content["data"]["webhookDryRun"]["errors"]
         assert content["data"]["webhookDryRun"]["payload"]
+
+
+def test_webhook_dry_run_root_type_for_transaction_item_metadata_updated(
+    superuser_api_client,
+    transaction_item_generator,
+    subscription_transaction_item_metadata_updated_webhook,
+):
+    # given
+    query = WEBHOOK_DRY_RUN_MUTATION
+    transaction = transaction_item_generator(use_old_id=False)
+    webhook = subscription_transaction_item_metadata_updated_webhook
+
+    object_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+
+    variables = {"objectId": object_id, "query": webhook.subscription_query}
+
+    # when
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["webhookDryRun"]["errors"]
+    payload = content["data"]["webhookDryRun"]["payload"]
+    assert json.loads(payload)["transaction"]["id"] == object_id

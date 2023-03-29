@@ -1,7 +1,15 @@
 import graphene
 
 from ...webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from ..core.descriptions import ADDED_IN_36, ADDED_IN_38, ADDED_IN_312, PREVIEW_FEATURE
+from ..core.descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_38,
+    ADDED_IN_312,
+    ADDED_IN_313,
+    PREVIEW_FEATURE,
+)
+from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
+from ..core.types import BaseEnum
 from ..core.utils import str_to_enum
 
 checkout_updated_event_enum_description = (
@@ -152,6 +160,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.STAFF_DELETED: "A staff user is deleted.",
     WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: (
         "An action requested for transaction."
+        + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
+        + "(Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, "
+        + "`TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead."
     ),
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         "Transaction item metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE
@@ -195,6 +206,21 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventSyncType.ORDER_CALCULATE_TAXES: (
         "Event called for order tax calculation." + ADDED_IN_36 + PREVIEW_FEATURE
     ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: (
+        "Event called when charge has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: (
+        "Event called when refund has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        "Event called when cancel has been requested for transaction."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
 }
 
 
@@ -212,6 +238,7 @@ WebhookEventTypeEnum = graphene.Enum(
     ],
     description=description,
 )
+WebhookEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 WebhookEventTypeAsyncEnum = graphene.Enum(
@@ -219,12 +246,14 @@ WebhookEventTypeAsyncEnum = graphene.Enum(
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventAsyncType.CHOICES],
     description=description,
 )
+WebhookEventTypeAsyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 WebhookEventTypeSyncEnum = graphene.Enum(
     "WebhookEventTypeSyncEnum",
     [(str_to_enum(e_type[0]), e_type[0]) for e_type in WebhookEventSyncType.CHOICES],
     description=description,
 )
+WebhookEventTypeSyncEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 WebhookSampleEventTypeEnum = graphene.Enum(
     "WebhookSampleEventTypeEnum",
@@ -234,9 +263,13 @@ WebhookSampleEventTypeEnum = graphene.Enum(
         if e_type[0] != WebhookEventAsyncType.ANY
     ],
 )
+WebhookSampleEventTypeEnum.doc_category = DOC_CATEGORY_WEBHOOKS
 
 
-class EventDeliveryStatusEnum(graphene.Enum):
+class EventDeliveryStatusEnum(BaseEnum):
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS

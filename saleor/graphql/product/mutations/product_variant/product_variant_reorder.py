@@ -7,6 +7,7 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.inputs import ReorderInput
 from ....core.mutations import BaseMutation
 from ....core.types import NonNullList, ProductError
@@ -35,6 +36,7 @@ class ProductVariantReorder(BaseMutation):
             "Mutation updates updated_at on product and "
             "triggers PRODUCT_UPDATED webhook."
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"

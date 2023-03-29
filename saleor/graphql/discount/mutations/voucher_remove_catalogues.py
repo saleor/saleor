@@ -1,5 +1,6 @@
 from ....permission.enums import DiscountPermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Voucher
@@ -9,6 +10,7 @@ from .voucher_add_catalogues import VoucherBaseCatalogueMutation
 class VoucherRemoveCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = "Removes products, categories, collections from a voucher."
+        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

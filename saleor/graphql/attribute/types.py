@@ -22,10 +22,13 @@ from ..core.descriptions import (
     ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
 )
+from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.fields import ConnectionField, FilterConnectionField, JSONString
 from ..core.scalars import Date
 from ..core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
     DateRangeInput,
     DateTimeRangeInput,
     File,
@@ -146,6 +149,7 @@ class AttributeValue(ModelObjectType[models.AttributeValue]):
 
 class AttributeValueCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         node = AttributeValue
 
 
@@ -324,10 +328,11 @@ class Attribute(ModelObjectType[models.Attribute]):
 
 class AttributeCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         node = Attribute
 
 
-class AssignedVariantAttribute(graphene.ObjectType):
+class AssignedVariantAttribute(BaseObjectType):
     attribute = graphene.Field(
         Attribute, description="Attribute assigned to variant.", required=True
     )
@@ -346,9 +351,10 @@ class AssignedVariantAttribute(graphene.ObjectType):
             "Represents assigned attribute to variant with variant selection attached."
             + ADDED_IN_31
         )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class SelectedAttribute(graphene.ObjectType):
+class SelectedAttribute(BaseObjectType):
     attribute = graphene.Field(
         Attribute,
         default_value=None,
@@ -360,10 +366,11 @@ class SelectedAttribute(graphene.ObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         description = "Represents a custom attribute."
 
 
-class AttributeInput(graphene.InputObjectType):
+class AttributeInput(BaseInputObjectType):
     slug = graphene.String(required=True, description=AttributeDescriptions.SLUG)
     values = NonNullList(
         graphene.String, required=False, description=AttributeValueDescriptions.SLUG
@@ -387,8 +394,11 @@ class AttributeInput(graphene.InputObjectType):
         required=False, description=AttributeDescriptions.BOOLEAN
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeValueSelectableTypeInput(graphene.InputObjectType):
+
+class AttributeValueSelectableTypeInput(BaseInputObjectType):
     id = graphene.ID(required=False, description="ID of an attribute value.")
     value = graphene.String(
         required=False,
@@ -403,9 +413,10 @@ class AttributeValueSelectableTypeInput(graphene.InputObjectType):
             "Represents attribute value. If no ID provided, value will be resolved. "
             + ADDED_IN_39
         )
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
-class AttributeValueInput(graphene.InputObjectType):
+class AttributeValueInput(BaseInputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = NonNullList(
         graphene.String,
@@ -452,3 +463,6 @@ class AttributeValueInput(graphene.InputObjectType):
     date_time = graphene.DateTime(
         required=False, description=AttributeValueDescriptions.DATE_TIME
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES

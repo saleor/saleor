@@ -6,17 +6,25 @@ from uuid import UUID
 
 import graphene
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphql import GraphQLDocument
 from graphql.error import GraphQLError
 from graphql.error import format_error as format_graphql_error
+from jwt import InvalidTokenError
 
 from ...account.models import User
 from ...app.models import App
+from ...core.exceptions import (
+    CircularSubscriptionSyncEvent,
+    PermissionDenied,
+    ReadOnlyException,
+)
 from ..core.enums import PermissionEnum
 from ..core.types import TYPES_WITH_DOUBLE_ID_AVAILABLE, Permission
 from ..core.utils import from_global_id_or_error
+from ..core.validators.query_cost import QueryCostError
 
 if TYPE_CHECKING:
     from ..core import SaleorContext
@@ -32,6 +40,19 @@ REVERSED_DIRECTION = {
     "-": "",
     "": "-",
 }
+
+# List of error types of which messages can be returned in the GraphQL API.
+ALLOWED_ERRORS = [
+    CircularSubscriptionSyncEvent,
+    GraphQLError,
+    InvalidTokenError,
+    PermissionDenied,
+    ReadOnlyException,
+    ValidationError,
+    QueryCostError,
+]
+
+INTERNAL_ERROR_MESSAGE = "Internal Server Error"
 
 
 def resolve_global_ids_to_primary_keys(
@@ -267,6 +288,15 @@ def format_error(error, handled_exceptions):
         handled_errors_logger.info("A query had an error", exc_info=exc)
     else:
         unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
+
+    # If DEBUG mode is disabled we allow only certain error messages to be returned in
+    # the API. This prevents from leaking internals that might be included in Python
+    # exceptions' error messages.
+    is_allowed_err = type(exc) in ALLOWED_ERRORS or any(
+        [isinstance(exc, allowed_err) for allowed_err in ALLOWED_ERRORS]
+    )
+    if not is_allowed_err and not settings.DEBUG:
+        result["message"] = INTERNAL_ERROR_MESSAGE
 
     result["extensions"]["exception"] = {"code": type(exc).__name__}
     if settings.DEBUG:

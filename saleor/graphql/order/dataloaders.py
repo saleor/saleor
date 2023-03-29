@@ -3,7 +3,14 @@ from typing import DefaultDict, Iterable, List, Tuple, cast
 
 from django.db.models import F
 
-from ...order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
+from ...order.models import (
+    Fulfillment,
+    FulfillmentLine,
+    Order,
+    OrderEvent,
+    OrderGrantedRefund,
+    OrderLine,
+)
 from ...payment.models import TransactionItem
 from ...warehouse.models import Allocation
 from ..core.dataloaders import DataLoader
@@ -41,6 +48,18 @@ class OrderByIdLoader(DataLoader):
     def batch_load(self, keys):
         orders = Order.objects.using(self.database_connection_name).in_bulk(keys)
         return [orders.get(order_id) for order_id in keys]
+
+
+class OrderByNumberLoader(DataLoader):
+    context_key = "order_by_number"
+
+    def batch_load(self, keys):
+        orders = (
+            Order.objects.using(self.database_connection_name)
+            .filter(number__in=keys)
+            .in_bulk(field_name="number")
+        )
+        return [orders.get(number) for number in keys]
 
 
 class OrdersByUserLoader(DataLoader):
@@ -94,6 +113,20 @@ class OrderEventsByOrderIdLoader(DataLoader):
         for event in events.iterator():
             events_map[event.order_id].append(event)
         return [events_map.get(order_id, []) for order_id in keys]
+
+
+class OrderGrantedRefundsByOrderIdLoader(DataLoader):
+    context_key = "order_granted_refunds_by_order_id"
+
+    def batch_load(self, keys):
+        refunds = OrderGrantedRefund.objects.using(
+            self.database_connection_name
+        ).filter(order_id__in=keys)
+        refunds_map = defaultdict(list)
+
+        for refund in refunds.iterator():
+            refunds_map[refund.order_id].append(refund)
+        return [refunds_map.get(order_id, []) for order_id in keys]
 
 
 class AllocationsByOrderLineIdLoader(DataLoader):

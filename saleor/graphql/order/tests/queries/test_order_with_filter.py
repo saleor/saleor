@@ -378,6 +378,30 @@ def test_order_query_with_filter_payment_status(
     assert len(orders) == count
 
 
+def test_order_query_with_filter_payment_fully_refunded_not_active(
+    orders_query_with_filter,
+    staff_api_client,
+    payment_dummy,
+    permission_manage_orders,
+    channel_PLN,
+):
+    # given
+    payment_dummy.charge_status = ChargeStatus.FULLY_REFUNDED
+    payment_dummy.is_active = False
+    payment_dummy.order = Order.objects.create(channel=channel_PLN)
+    payment_dummy.save()
+    variables = {"filter": {"paymentStatus": "FULLY_REFUNDED"}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    # then
+    assert len(orders) == 1
+
+
 @pytest.mark.parametrize(
     "orders_filter, count, status",
     [
@@ -1043,9 +1067,9 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
             1,
         ),
         (
-            {"authorized_value": Decimal("00")},
-            [OrderAuthorizeStatusEnum.PARTIAL.name],
-            0,
+            {"authorized_value": Decimal("0")},
+            [OrderAuthorizeStatusEnum.NONE.name],
+            1,
         ),
         (
             {"authorized_value": Decimal("100")},
@@ -1063,9 +1087,9 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
             2,
         ),
         (
-            {"authorized_value": Decimal("10"), "charged_value": Decimal("90")},
-            [OrderAuthorizeStatusEnum.FULL.name],
-            2,
+            {"authorized_value": Decimal("10"), "charged_value": Decimal("80")},
+            [OrderAuthorizeStatusEnum.PARTIAL.name],
+            1,
         ),
     ],
 )

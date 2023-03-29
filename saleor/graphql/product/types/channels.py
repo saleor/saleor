@@ -28,10 +28,11 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date
 from ...core.tracing import traced_resolver
-from ...core.types import ModelObjectType
+from ...core.types import BaseObjectType, ModelObjectType
 from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...tax.dataloaders import (
     TaxClassByProductIdLoader,
@@ -49,9 +50,12 @@ from ..dataloaders import (
 )
 
 
-class Margin(graphene.ObjectType):
+class Margin(BaseObjectType):
     start = graphene.Int()
     stop = graphene.Int()
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
@@ -323,7 +327,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         )
 
 
-class PreorderThreshold(graphene.ObjectType):
+class PreorderThreshold(BaseObjectType):
     quantity = graphene.Int(
         required=False,
         description="Preorder threshold for product variant in this channel.",
@@ -334,6 +338,7 @@ class PreorderThreshold(graphene.ObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder variant data for channel."
 
 

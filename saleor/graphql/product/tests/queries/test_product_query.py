@@ -2480,3 +2480,49 @@ def test_product_query_by_external_reference(
     assert product_data is not None
     assert product_data["name"] == product.name
     assert product_data["externalReference"] == product.external_reference
+
+
+PRODUCT_TAX_CLASS_QUERY = """
+    query getProduct($id: ID!) {
+        product(id: $id) {
+            id
+            taxClass {
+                id
+            }
+        }
+    }
+"""
+
+
+def test_product_tax_class_query_by_app(app_api_client, product):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+    }
+
+    # when
+    response = app_api_client.post_graphql(PRODUCT_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["product"]
+    assert data["product"]["id"]
+    assert data["product"]["taxClass"]["id"]
+
+
+def test_product_tax_class_query_by_staff(staff_api_client, product):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["product"]
+    assert data["product"]["id"]
+    assert data["product"]["taxClass"]["id"]

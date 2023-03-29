@@ -4,11 +4,13 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ..types import TaxClass
 
 TaxClassCreateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassCreateErrorCode)
+TaxClassCreateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxClassCreateError(Error):
@@ -19,8 +21,11 @@ class TaxClassCreateError(Error):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class CountryRateInput(graphene.InputObjectType):
+
+class CountryRateInput(BaseInputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
@@ -32,13 +37,19 @@ class CountryRateInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class TaxClassCreateInput(graphene.InputObjectType):
+
+class TaxClassCreateInput(BaseInputObjectType):
     name = graphene.String(description="Name of the tax class.", required=True)
     create_country_rates = NonNullList(
         CountryRateInput,
         description="List of country-specific tax rates to create for this tax class.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxClassCreate(ModelMutation):

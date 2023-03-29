@@ -4,13 +4,14 @@ from ....permission.enums import DiscountPermissions
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
-from ...core.types import DiscountError, NonNullList
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Voucher
 from .sale_base_discount_catalogue import BaseDiscountCatalogueMutation
 
 
-class CatalogueInput(graphene.InputObjectType):
+class CatalogueInput(BaseInputObjectType):
     products = NonNullList(
         graphene.ID, description="Products related to the discount.", name="products"
     )
@@ -29,6 +30,9 @@ class CatalogueInput(graphene.InputObjectType):
         description="Product variant related to the discount." + ADDED_IN_31,
         name="variants",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
@@ -57,6 +61,7 @@ class VoucherBaseCatalogueMutation(BaseDiscountCatalogueMutation):
 class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
     class Meta:
         description = "Adds products, categories, collections to a voucher."
+        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

@@ -6,6 +6,7 @@ from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
 from ...core.types import Error
 from ..types import TaxCountryConfiguration
@@ -13,12 +14,16 @@ from ..types import TaxCountryConfiguration
 TaxCountryConfigurationDeleteErrorCode = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationDeleteErrorCode
 )
+TaxCountryConfigurationDeleteErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationDeleteError(Error):
     code = TaxCountryConfigurationDeleteErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationDelete(BaseMutation):
@@ -38,6 +43,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
             + ADDED_IN_39
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationDeleteError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

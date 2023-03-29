@@ -6,7 +6,7 @@ from datetime import timedelta
 from decimal import Decimal
 from functools import partial
 from io import BytesIO
-from typing import List, Optional
+from typing import Callable, List, Optional
 from unittest.mock import MagicMock, Mock
 
 import graphene
@@ -37,7 +37,12 @@ from ..attribute.models import (
     AttributeValueTranslation,
 )
 from ..attribute.utils import associate_attribute_values_to_instance
-from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ..checkout import base_calculations
+from ..checkout.fetch import (
+    fetch_active_discounts,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from ..checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ..checkout.utils import add_variant_to_checkout, add_voucher_to_checkout
 from ..core import EventDeliveryStatus, JobStatus
@@ -86,7 +91,9 @@ from ..order.utils import (
 from ..page.models import Page, PageTranslation, PageType
 from ..payment import ChargeStatus, TransactionKind
 from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, PaymentData
-from ..payment.models import Payment, TransactionItem
+from ..payment.models import Payment, TransactionEvent, TransactionItem
+from ..payment.transaction_item_calculations import recalculate_transaction_amounts
+from ..payment.utils import create_manual_adjustment_events
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
@@ -344,6 +351,16 @@ def checkout_with_item_and_voucher_specific_products(
 def checkout_with_item_and_voucher_once_per_order(checkout_with_item, voucher):
     voucher.apply_once_per_order = True
     voucher.save()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+    checkout_with_item.refresh_from_db()
+    return checkout_with_item
+
+
+@pytest.fixture
+def checkout_with_item_and_voucher(checkout_with_item, voucher):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
@@ -811,6 +828,7 @@ def customer_user(address):  # pylint: disable=W0613
         default_shipping_address=default_address,
         first_name="Leslie",
         last_name="Wade",
+        external_reference="LeslieWade",
         metadata={"key": "value"},
         private_metadata={"secret_key": "secret_value"},
     )
@@ -829,6 +847,7 @@ def customer_user2(address):
         default_shipping_address=default_address,
         first_name="Jane",
         last_name="Doe",
+        external_reference="JaneDoe",
     )
     user.addresses.add(default_address)
     user._password = "password"
@@ -2723,7 +2742,9 @@ def variant_without_inventory_tracking(
 
 @pytest.fixture
 def variant(product, channel_USD) -> ProductVariant:
-    product_variant = ProductVariant.objects.create(product=product, sku="SKU_A")
+    product_variant = ProductVariant.objects.create(
+        product=product, sku="SKU_A", external_reference="SKU_A"
+    )
     ProductVariantChannelListing.objects.create(
         variant=product_variant,
         channel=channel_USD,
@@ -3516,6 +3537,7 @@ def order_line(order, variant):
         base_unit_price=unit_price.gross,
         undiscounted_base_unit_price=unit_price.gross,
         tax_rate=Decimal("0.23"),
+        tax_class=variant.product.tax_class,
     )
 
 
@@ -4101,6 +4123,8 @@ def order_with_lines(
     order.shipping_price = TaxedMoney(net=net, gross=gross)
     order.base_shipping_price = net
     order.shipping_tax_rate = calculate_tax_rate(order.shipping_price)
+    order.total += order.shipping_price
+    order.undiscounted_total += order.shipping_price
     order.save()
 
     recalculate_order(order)
@@ -4613,11 +4637,10 @@ def fulfillment_awaiting_approval(fulfilled_order):
 
 
 @pytest.fixture
-def draft_order(order_with_lines, shipping_method):
+def draft_order(order_with_lines):
     Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.origin = OrderOrigin.DRAFT
-    order_with_lines.shipping_method = shipping_method
     order_with_lines.save(update_fields=["status", "origin"])
     return order_with_lines
 
@@ -4871,6 +4894,24 @@ def discount_info(category, collection, sale, channel_USD):
         product_ids=set(),
         category_ids={category.id},  # assumes this category does not have children
         collection_ids={collection.id},
+        variants_ids=set(),
+    )
+
+
+@pytest.fixture
+def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
+    sale_channel_listing = sale.channel_listings.create(
+        channel=channel_JPY,
+        discount_value=5,
+        currency=channel_JPY.currency_code,
+    )
+
+    return DiscountInfo(
+        sale=sale,
+        channel_listings={channel_JPY.slug: sale_channel_listing},
+        product_ids={product_in_channel_JPY.id},
+        category_ids=set(),
+        collection_ids=set(),
         variants_ids=set(),
     )
 
@@ -5475,15 +5516,103 @@ def payment_dummy_credit_card(db, order_with_lines):
 
 
 @pytest.fixture
-def transaction_item(order):
-    return TransactionItem.objects.create(
-        status="Captured",
-        type="Credit card",
-        reference="PSP ref",
-        available_actions=["refund"],
-        currency="USD",
+def transaction_item_generator():
+    def create_transaction(
+        order_id=None,
+        checkout_id=None,
+        app=None,
+        user=None,
+        psp_reference="PSP ref1",
+        name="Credit card",
+        message="Transasction details",
+        available_actions=None,
+        authorized_value=Decimal(0),
+        charged_value=Decimal(0),
+        refunded_value=Decimal(0),
+        canceled_value=Decimal(0),
+        use_old_id=False,
+    ):
+        if available_actions is None:
+            available_actions = []
+        transaction = TransactionItem.objects.create(
+            token=uuid.uuid4(),
+            name=name,
+            message=message,
+            psp_reference=psp_reference,
+            available_actions=available_actions,
+            currency="USD",
+            order_id=order_id,
+            checkout_id=checkout_id,
+            app_identifier=app.identifier if app else None,
+            app=app,
+            user=user,
+            use_old_id=use_old_id,
+        )
+        create_manual_adjustment_events(
+            transaction=transaction,
+            money_data={
+                "authorized_value": authorized_value,
+                "charged_value": charged_value,
+                "refunded_value": refunded_value,
+                "canceled_value": canceled_value,
+            },
+            user=user,
+            app=app,
+        )
+        recalculate_transaction_amounts(transaction)
+        return transaction
+
+    return create_transaction
+
+
+@pytest.fixture
+def transaction_events_generator() -> (
+    Callable[
+        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
+    ]
+):
+    def factory(
+        psp_references: List[str],
+        types: List[str],
+        amounts: List[Decimal],
+        transaction: TransactionItem,
+    ):
+        return TransactionEvent.objects.bulk_create(
+            TransactionEvent(
+                transaction=transaction,
+                psp_reference=reference,
+                type=event_type,
+                amount_value=amount,
+                include_in_calculations=True,
+                currency=transaction.currency,
+            )
+            for reference, event_type, amount in zip(psp_references, types, amounts)
+        )
+
+    return factory
+
+
+@pytest.fixture
+def transaction_item_created_by_app(order, app, transaction_item_generator):
+    charged_amount = Decimal("10.0")
+    return transaction_item_generator(
         order_id=order.pk,
-        charged_value=Decimal("10"),
+        checkout_id=None,
+        app=app,
+        user=None,
+        charged_value=charged_amount,
+    )
+
+
+@pytest.fixture
+def transaction_item_created_by_user(order, staff_user, transaction_item_generator):
+    charged_amount = Decimal("10.0")
+    return transaction_item_generator(
+        order_id=order.pk,
+        checkout_id=None,
+        user=staff_user,
+        app=None,
+        charged_value=charged_amount,
     )
 
 
@@ -5903,6 +6032,21 @@ def warehouse(address, shipping_zone, channel_USD):
 
 
 @pytest.fixture
+def warehouse_with_external_ref(address, shipping_zone, channel_USD):
+    warehouse = Warehouse.objects.create(
+        address=address,
+        name="Example Warehouse With Ref",
+        slug="example-warehouse-with-ref",
+        email="test@example.com",
+        external_reference="example-warehouse-with-ref",
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
+    warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
 def warehouse_JPY(address, shipping_zone_JPY, channel_JPY):
     warehouse = Warehouse.objects.create(
         address=address,
@@ -5925,12 +6069,14 @@ def warehouses(address, address_usa, channel_USD):
                 name="Warehouse PL",
                 slug="warehouse1",
                 email="warehouse1@example.com",
+                external_reference="warehouse1",
             ),
             Warehouse(
                 address=address_usa.get_copy(),
                 name="Warehouse USA",
                 slug="warehouse2",
                 email="warehouse2@example.com",
+                external_reference="warehouse2",
             ),
         ]
     )
@@ -6121,6 +6267,90 @@ def checkout_with_item_for_cc(checkout_for_cc, product_variant_list):
         currency=checkout_for_cc.currency,
     )
     return checkout_for_cc
+
+
+@pytest.fixture
+def checkout_with_prices(
+    checkout_with_items,
+    address,
+    address_other_country,
+    warehouse,
+    customer_user,
+    shipping_method,
+    voucher,
+):
+    # Need to save shipping_method before fetching checkout info.
+    checkout_with_items.shipping_method = shipping_method
+    checkout_with_items.save(update_fields=["shipping_method"])
+
+    manager = get_plugins_manager()
+    channel = checkout_with_items.channel
+    discounts_info = fetch_active_discounts()
+    lines = checkout_with_items.lines.all()
+    lines_info, _ = fetch_checkout_lines(checkout_with_items)
+    checkout_info = fetch_checkout_info(
+        checkout_with_items, lines, discounts_info, manager
+    )
+
+    for line, line_info in zip(lines, lines_info):
+        line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
+            line_info, channel, discounts_info
+        ).amount
+        line.total_price_gross_amount = line.total_price_net_amount * Decimal("1.230")
+
+    checkout_with_items.discount_amount = Decimal("5.000")
+    checkout_with_items.discount_name = "Voucher 5 USD"
+    checkout_with_items.user = customer_user
+    checkout_with_items.billing_address = address
+    checkout_with_items.shipping_address = address_other_country
+    checkout_with_items.collection_point = warehouse
+    checkout_with_items.subtotal_net_amount = Decimal("100.000")
+    checkout_with_items.subtotal_gross_amount = Decimal("123.000")
+    checkout_with_items.total_net_amount = Decimal("150.000")
+    checkout_with_items.total_gross_amount = Decimal("178.000")
+    shipping_amount = base_calculations.base_checkout_delivery_price(
+        checkout_info, lines_info
+    ).amount
+    checkout_with_items.shipping_price_net_amount = shipping_amount
+    checkout_with_items.shipping_price_gross_amount = shipping_amount * Decimal("1.08")
+    checkout_with_items.metadata_storage.metadata = {"meta_key": "meta_value"}
+    checkout_with_items.metadata_storage.private_metadata = {
+        "priv_meta_key": "priv_meta_value"
+    }
+
+    checkout_with_items.lines.bulk_update(
+        lines,
+        [
+            "total_price_net_amount",
+            "total_price_gross_amount",
+        ],
+    )
+
+    checkout_with_items.save(
+        update_fields=[
+            "discount_amount",
+            "discount_name",
+            "user",
+            "billing_address",
+            "shipping_address",
+            "collection_point",
+            "subtotal_net_amount",
+            "subtotal_gross_amount",
+            "total_net_amount",
+            "total_gross_amount",
+            "shipping_price_net_amount",
+            "shipping_price_gross_amount",
+        ]
+    )
+    checkout_with_items.metadata_storage.save(
+        update_fields=["metadata", "private_metadata"]
+    )
+
+    user = checkout_with_items.user
+    user.metadata = {"user_public_meta_key": "user_public_meta_value"}
+    user.save(update_fields=["metadata"])
+
+    return checkout_with_items
 
 
 @pytest.fixture
@@ -6620,3 +6850,16 @@ def thumbnail_user(customer_user, image_list, media_root):
         size=128,
         image=image_list[1],
     )
+
+
+@pytest.fixture
+def transaction_session_response():
+    return {
+        "pspReference": "psp-123",
+        "data": {"some-json": "data"},
+        "result": "CHARGE_SUCCESS",
+        "amount": "10.00",
+        "time": "2022-11-18T13:25:58.169685+00:00",
+        "externalUrl": "http://127.0.0.1:9090/external-reference",
+        "message": "Message related to the payment",
+    }

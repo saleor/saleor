@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....channel.error_codes import ChannelErrorCode
 from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -18,6 +19,7 @@ class ChannelActivate(BaseMutation):
 
     class Meta:
         description = "Activate a channel."
+        doc_category = DOC_CATEGORY_CHANNELS
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
         error_type_field = "channel_errors"

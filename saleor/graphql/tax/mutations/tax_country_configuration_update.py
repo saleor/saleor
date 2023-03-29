@@ -11,14 +11,16 @@ from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import from_global_id_or_error
 from ..types import TaxCountryConfiguration
 
 TaxCountryConfigurationUpdateErrorCode = graphene.Enum.from_enum(
     error_codes.TaxCountryConfigurationUpdateErrorCode
 )
+TaxCountryConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationUpdateError(Error):
@@ -31,12 +33,18 @@ class TaxCountryConfigurationUpdateError(Error):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class TaxClassRateInput(graphene.InputObjectType):
+
+class TaxClassRateInput(BaseInputObjectType):
     tax_class_id = graphene.ID(
         description="ID of a tax class for which to update the tax rate", required=False
     )
     rate = graphene.Float(description="Tax rate value.", required=False)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxCountryConfigurationUpdate(BaseMutation):
@@ -66,6 +74,7 @@ class TaxCountryConfigurationUpdate(BaseMutation):
             + ADDED_IN_39
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationUpdateError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

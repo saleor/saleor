@@ -47,3 +47,21 @@ class ProductVariantBulkErrorCode(Enum):
     REQUIRED = "required"
     UNIQUE = "unique"
     PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
+
+
+class ProductBulkCreateErrorCode(Enum):
+    ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
+    ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
+    ATTRIBUTE_VARIANTS_DISABLED = "attribute_variants_disabled"
+    BLANK = "blank"
+    MAX_LENGTH = "max_length"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    INVALID_PRICE = "invalid_price"
+    PRODUCT_WITHOUT_CATEGORY = "product_without_category"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    UNIQUE = "unique"
+    PRODUCT_NOT_ASSIGNED_TO_CHANNEL = "product_not_assigned_to_channel"
+    UNSUPPORTED_MEDIA_PROVIDER = "unsupported_media_provider"

@@ -20,16 +20,17 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
-from ...core.types import NonNullList, WebhookError
+from ...core.types import BaseInputObjectType, NonNullList, WebhookError
 from ...core.utils import raise_validation_error
 from .. import enums
 from ..subscription_query import SubscriptionQuery
 from ..types import Webhook
 
 
-class WebhookCreateInput(graphene.InputObjectType):
+class WebhookCreateInput(BaseInputObjectType):
     name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
     events = NonNullList(
@@ -73,6 +74,9 @@ class WebhookCreateInput(graphene.InputObjectType):
         f"{ADDED_IN_312}{PREVIEW_FEATURE}",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_WEBHOOKS
 
 
 class WebhookCreate(ModelMutation):

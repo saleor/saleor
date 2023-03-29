@@ -8,6 +8,7 @@ from prices import TaxedMoney
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
+from ...channel import MarkAsPaidStrategy
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
@@ -15,7 +16,7 @@ from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...order import OrderEvents
+from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
@@ -31,6 +32,7 @@ from ..complete_checkout import (
     complete_checkout,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from ..payment_utils import update_checkout_payment_statuses
 from ..utils import add_variant_to_checkout
 
 
@@ -1189,6 +1191,47 @@ def test_create_order_use_translations(
     assert order_line.translated_variant_name == translated_variant_name
 
 
+def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
+    checkout_with_item_total_0,
+    customer_user,
+    app,
+):
+    # given
+    checkout = checkout_with_item_total_0
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.save()
+
+    update_checkout_payment_statuses(checkout, zero_money(checkout.currency))
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order, _, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=app,
+    )
+
+    # then
+    flush_post_commit_hooks()
+
+    assert order
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.charge_status == OrderChargeStatus.FULL
+
+
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     mock_notify,
@@ -1200,6 +1243,10 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 ):
     checkout = checkout_with_item_total_0
     checkout_user = customer_user
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.PAYMENT_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
 
     # Ensure not events are existing prior
     assert not OrderEvent.objects.exists()
@@ -1619,7 +1666,7 @@ def test_complete_checkout_invalid_shipping_method(
     app,
     payment_txn_to_confirm,
 ):
-    """Ensure that when an error in _prepare_checkout method is raised
+    """Ensure that when an error in _prepare_checkout_with_payment method is raised
     the method for refund or void is called."""
     # given
     checkout = checkout_ready_to_complete
@@ -1671,4 +1718,160 @@ def test_complete_checkout_invalid_shipping_method(
 
     mocked_payment_refund_or_void.called_once_with(
         payment, manager, channel_slug=checkout.channel.slug
+    )
+
+
+@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
+def test_checkout_complete_pick_transaction_flow(
+    mocked_flow,
+    order,
+    checkout_ready_to_complete,
+    customer_user,
+    transaction_item_generator,
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    transaction_item_generator(checkout_id=checkout.pk)
+    mocked_flow.return_value = order, False, {}
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
+
+
+@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_transaction")
+def test_checkout_complete_pick_transaction_flow_when_checkout_total_zero(
+    mocked_flow, order, checkout_with_item_total_0, customer_user, channel_USD
+):
+    # given
+    checkout = checkout_with_item_total_0
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    checkout.total = zero_taxed_money(checkout.currency)
+    update_checkout_payment_statuses(
+        checkout=checkout,
+        checkout_total_gross=checkout.total,
+    )
+
+    mocked_flow.return_value = order, False, {}
+    channel_USD.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel_USD.save()
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
+    )
+
+
+@mock.patch("saleor.checkout.complete_checkout.complete_checkout_with_payment")
+def test_checkout_complete_pick_payment_flow(
+    mocked_flow, order, checkout_ready_to_complete, customer_user
+):
+    # given
+    checkout = checkout_ready_to_complete
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    mocked_flow.return_value = order, False, {}
+
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = True
+    payment.save()
+
+    # when
+    order, action_required, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+    mocked_flow.assert_called_once_with(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+        site_settings=None,
+        tracking_code=None,
+        redirect_url=None,
+        metadata_list=None,
+        private_metadata_list=None,
     )

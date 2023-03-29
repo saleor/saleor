@@ -15,6 +15,7 @@ from ....shipping.models import ShippingMethod
 from ....site import GiftCardSettingsExpiryType
 from ....site.models import Site
 from ...account.enums import CountryCodeEnum
+from ...channel.enums import TransactionFlowStrategyEnum
 from ...core.utils import str_to_enum
 from ...tests.utils import assert_no_permission, get_graphql_content
 
@@ -1332,6 +1333,8 @@ ORDER_SETTINGS_UPDATE_MUTATION = """
             orderSettings {
                 automaticallyConfirmAllNewOrders
                 automaticallyFulfillNonShippableGiftCard
+                markAsPaidStrategy
+                defaultTransactionFlowStrategy
             }
         }
     }
@@ -1355,6 +1358,11 @@ def test_order_settings_update_by_staff(
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
     assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
+    assert (
+        response_settings["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.CHARGE.name
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
     channel_PLN.refresh_from_db()
     channel_USD.refresh_from_db()
     assert channel_PLN.automatically_confirm_all_new_orders is False
@@ -1417,6 +1425,11 @@ def test_order_settings_update_by_app(
     response_settings = content["data"]["orderSettingsUpdate"]["orderSettings"]
     assert response_settings["automaticallyConfirmAllNewOrders"] is False
     assert response_settings["automaticallyFulfillNonShippableGiftCard"] is False
+    assert (
+        response_settings["defaultTransactionFlowStrategy"]
+        == TransactionFlowStrategyEnum.CHARGE.name
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
     channel_PLN.refresh_from_db()
     channel_USD.refresh_from_db()
     assert channel_PLN.automatically_confirm_all_new_orders is False

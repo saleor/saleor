@@ -10,11 +10,16 @@ from graphene import relay
 from promise import Promise
 
 from ...account.models import Address
+from ...account.models import User as UserModel
 from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.prices import quantize_price
+from ...core.taxes import zero_money
 from ...discount import OrderDiscountType
 from ...graphql.checkout.types import DeliveryMethod
+from ...graphql.core.federation.entities import federated_entity
+from ...graphql.core.federation.resolvers import resolve_federation_references
+from ...graphql.order.resolvers import resolve_orders
 from ...graphql.utils import get_user_or_app_from_context
 from ...graphql.warehouse.dataloaders import StockByIdLoader, WarehouseByIdLoader
 from ...order import OrderStatus, calculations, models
@@ -24,7 +29,7 @@ from ...order.utils import (
     get_valid_collection_points_for_order,
     get_valid_shipping_methods_for_order,
 )
-from ...payment import ChargeStatus
+from ...payment import ChargeStatus, TransactionKind
 from ...payment.dataloaders import PaymentsByOrderIdLoader
 from ...payment.model_helpers import get_last_payment, get_total_authorized
 from ...permission.auth_filters import AuthorizationFilters
@@ -68,15 +73,19 @@ from ..core.descriptions import (
     ADDED_IN_39,
     ADDED_IN_310,
     ADDED_IN_311,
+    ADDED_IN_313,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
+    PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
 from ..core.fields import PermissionsField
 from ..core.mutations import validation_error_to_error_type
 from ..core.scalars import PositiveDecimal
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     Image,
     ModelObjectType,
     Money,
@@ -97,7 +106,8 @@ from ..invoice.dataloaders import InvoicesByOrderIdLoader
 from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
-from ..payment.enums import OrderAction, TransactionStatusEnum
+from ..payment.dataloaders import TransactionByPaymentIdLoader
+from ..payment.enums import OrderAction, TransactionEventStatusEnum
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
@@ -131,7 +141,9 @@ from .dataloaders import (
     FulfillmentLinesByIdLoader,
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
+    OrderByNumberLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
     TransactionItemsByOrderIDLoader,
@@ -182,7 +194,54 @@ def get_payment_status_for_order(order):
     return status
 
 
-class OrderDiscount(graphene.ObjectType):
+class OrderGrantedRefund(ModelObjectType):
+    id = graphene.GlobalID(required=True)
+    created_at = graphene.DateTime(required=True, description="Time of creation.")
+    updated_at = graphene.DateTime(required=True, description="Time of last update.")
+    amount = graphene.Field(Money, required=True, description="Refund amount.")
+    reason = graphene.String(description="Reason of the refund.")
+    user = graphene.Field(
+        User,
+        description=(
+            "User who performed the action. Requires of of the following "
+            f"permissions: {AccountPermissions.MANAGE_USERS.name}, "
+            f"{AccountPermissions.MANAGE_STAFF.name}, "
+            f"{AuthorizationFilters.OWNER.name}."
+        ),
+    )
+    app = graphene.Field(App, description=("App that performed the action."))
+
+    class Meta:
+        description = "The details of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
+        model = models.OrderGrantedRefund
+
+    @staticmethod
+    def resolve_user(root: models.OrderGrantedRefund, info):
+        def _resolve_user(event_user: UserModel):
+            requester = get_user_or_app_from_context(info.context)
+            if not requester:
+                return None
+            if (
+                requester == event_user
+                or requester.has_perm(AccountPermissions.MANAGE_USERS)
+                or requester.has_perm(AccountPermissions.MANAGE_STAFF)
+            ):
+                return event_user
+            return None
+
+        if not root.user_id:
+            return None
+
+        return UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+
+    @staticmethod
+    def resolve_app(root: models.OrderGrantedRefund, info):
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id)
+        return None
+
+
+class OrderDiscount(BaseObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -196,6 +255,9 @@ class OrderDiscount(graphene.ObjectType):
         required=False, description="Explanation for the applied discount."
     )
     amount = graphene.Field(Money, description="Returns amount of discount.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEventDiscountObject(OrderDiscount):
@@ -213,13 +275,16 @@ class OrderEventDiscountObject(OrderDiscount):
     )
 
 
-class OrderEventOrderLineObject(graphene.ObjectType):
+class OrderEventOrderLineObject(BaseObjectType):
     quantity = graphene.Int(description="The variant quantity.")
     order_line = graphene.Field(lambda: OrderLine, description="The order line.")
     item_name = graphene.String(description="The variant name.")
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order line."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderEvent(ModelObjectType[models.OrderEvent]):
@@ -276,7 +341,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
         OrderEventDiscountObject, description="The discount applied to the order."
     )
     status = graphene.Field(
-        TransactionStatusEnum, description="The status of payment's transaction."
+        TransactionEventStatusEnum,
+        description="The status of payment's transaction.",
+        deprecation_reason=(
+            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
+            + "Use `TransactionEvent` to track the status of `TransactionItem`."
+        ),
     )
     reference = graphene.String(description="The reference of payment's transaction.")
 
@@ -433,10 +503,19 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
     @staticmethod
     def resolve_related_order(root: models.OrderEvent, info):
-        order_pk = root.parameters.get("related_order_pk")
-        if not order_pk:
+        order_pk_or_number = root.parameters.get("related_order_pk")
+        if not order_pk_or_number:
             return None
-        return OrderByIdLoader(info.context).load(UUID(order_pk))
+
+        try:
+            # Orders that primary_key are not uuid are old int `id's`.
+            # In migration `order_0128`, before migrating old `id's` to uuid,
+            # old `id's` were saved to field `number`.
+            order_pk = UUID(order_pk_or_number)
+        except (AttributeError, ValueError):
+            return OrderByNumberLoader(info.context).load(order_pk_or_number)
+
+        return OrderByIdLoader(info.context).load(order_pk)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -609,7 +688,10 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         + ADDED_IN_39
         + PREVIEW_FEATURE,
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     tax_class_name = graphene.Field(
         graphene.String,
@@ -854,6 +936,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
         return resolve_metadata(root.tax_class_private_metadata)
 
 
+@federated_entity("id")
 class Order(ModelObjectType[models.Order]):
     id = graphene.GlobalID(required=True)
     created = graphene.DateTime(required=True)
@@ -1004,7 +1087,10 @@ class Order(ModelObjectType[models.Order]):
         + ADDED_IN_39
         + PREVIEW_FEATURE,
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     shipping_tax_class_name = graphene.Field(
         graphene.String,
@@ -1063,8 +1149,21 @@ class Order(ModelObjectType[models.Order]):
         Money, description="Amount authorized for the order.", required=True
     )
     total_captured = graphene.Field(
-        Money, description="Amount captured by payment.", required=True
+        Money,
+        description="Amount captured for the order. ",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `totalCharged` instead.",
+        required=True,
     )
+    total_charged = graphene.Field(
+        Money, description="Amount charged for the order." + ADDED_IN_313, required=True
+    )
+
+    total_canceled = graphene.Field(
+        Money,
+        description="Amount canceled for the order." + ADDED_IN_313,
+        required=True,
+    )
+
     events = PermissionsField(
         NonNullList(OrderEvent),
         description="List of events associated with the order.",
@@ -1151,6 +1250,76 @@ class Order(ModelObjectType[models.Order]):
             f"ID of the checkout that the order was created from. {ADDED_IN_311}"
         ),
         required=False,
+    )
+
+    granted_refunds = PermissionsField(
+        NonNullList(OrderGrantedRefund),
+        required=True,
+        description="List of granted refunds." + ADDED_IN_313 + PREVIEW_FEATURE,
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_granted_refund = PermissionsField(
+        Money,
+        required=True,
+        description="Total amount of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE,
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_refunded = graphene.Field(
+        Money,
+        required=True,
+        description="Total refund amount for the order."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE,
+    )
+    total_refund_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing refund requests for the order's transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_authorize_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing authorize requests for the order's transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_charge_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing charge requests for the order's transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+    total_cancel_pending = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "Total amount of ongoing cancel requests for the order's transactions."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
+    )
+
+    total_remaining_grant = PermissionsField(
+        Money,
+        required=True,
+        description=(
+            "The difference amount between granted refund and the "
+            "amounts that are pending and refunded." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+        permissions=[OrderPermissions.MANAGE_ORDERS],
     )
 
     class Meta:
@@ -1379,35 +1548,54 @@ class Order(ModelObjectType[models.Order]):
         )
 
     @staticmethod
-    def resolve_total_captured(root: models.Order, info):
-        def _resolve_total_captured(transactions):
+    def resolve_total_canceled(root: models.Order, info):
+        def _resolve_total_canceled(transactions):
+            canceled_money = prices.Money(Decimal(0), root.currency)
             if transactions:
-                charged_money = prices.Money(Decimal(0), root.currency)
                 for transaction in transactions:
-                    charged_money += transaction.amount_charged
-                return quantize_price(charged_money, root.currency)
-            return root.total_charged
+                    canceled_money += transaction.amount_canceled
+            return quantize_price(canceled_money, root.currency)
 
         return (
             TransactionItemsByOrderIDLoader(info.context)
             .load(root.id)
-            .then(_resolve_total_captured)
+            .then(_resolve_total_canceled)
         )
 
     @staticmethod
-    def resolve_total_balance(root: models.Order, info):
-        def _resolve_total_balance(transactions):
-            if transactions:
-                charged_money = prices.Money(Decimal(0), root.currency)
-                for transaction in transactions:
-                    charged_money += transaction.amount_charged
-                return quantize_price(charged_money - root.total.gross, root.currency)
-            return root.total_balance
+    def resolve_total_captured(root: models.Order, info):
+        return root.total_charged
 
-        return (
-            TransactionItemsByOrderIDLoader(info.context)
-            .load(root.id)
-            .then(_resolve_total_balance)
+    @staticmethod
+    def resolve_total_charged(root: models.Order, info):
+        return root.total_charged
+
+    @staticmethod
+    def resolve_total_balance(root: models.Order, info):
+        def _resolve_total_balance(data):
+            granted_refunds, transactions, payments = data
+            if any([p.is_active for p in payments]):
+                return root.total_balance
+            else:
+                total_granted_refund = sum(
+                    [granted_refund.amount for granted_refund in granted_refunds],
+                    zero_money(root.currency),
+                )
+                total_charged = prices.Money(Decimal(0), root.currency)
+
+                for transaction in transactions:
+                    total_charged += transaction.amount_charged
+                    total_charged += transaction.amount_charge_pending
+                order_granted_refunds_difference = (
+                    root.total.gross - total_granted_refund
+                )
+                return total_charged - order_granted_refunds_difference
+
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([granted_refunds, transactions, payments]).then(
+            _resolve_total_balance
         )
 
     @staticmethod
@@ -1489,30 +1677,6 @@ class Order(ModelObjectType[models.Order]):
         return Promise.all([transactions, payments, fulfillments]).then(
             _resolve_payment_status
         )
-
-    @staticmethod
-    def resolve_authorize_status(root: models.Order, info):
-        total_covered = quantize_price(
-            root.total_authorized_amount + root.total_charged_amount, root.currency
-        )
-        total_gross = quantize_price(root.total_gross_amount, root.currency)
-        if total_covered == 0:
-            return OrderAuthorizeStatusEnum.NONE
-        if total_covered >= total_gross:
-            return OrderAuthorizeStatusEnum.FULL
-        return OrderAuthorizeStatusEnum.PARTIAL
-
-    @staticmethod
-    def resolve_charge_status(root: models.Order, info):
-        total_charged = quantize_price(root.total_charged_amount, root.currency)
-        total_gross = quantize_price(root.total_gross_amount, root.currency)
-        if total_charged <= 0:
-            return OrderChargeStatusEnum.NONE
-        if total_charged < total_gross:
-            return OrderChargeStatusEnum.PARTIAL
-        if total_charged == total_gross:
-            return OrderChargeStatusEnum.FULL
-        return OrderChargeStatusEnum.OVERCHARGED
 
     @staticmethod
     def resolve_payment_status_display(root: models.Order, info):
@@ -1761,6 +1925,160 @@ class Order(ModelObjectType[models.Order]):
         return []
 
     @staticmethod
+    def resolve_granted_refunds(root: models.Order, info):
+        return OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_total_granted_refund(root: models.Order, info):
+        def calculate_total_granted_refund(granted_refunds):
+            return sum(
+                [granted_refund.amount for granted_refund in granted_refunds],
+                zero_money(root.currency),
+            )
+
+        return (
+            OrderGrantedRefundsByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(calculate_total_granted_refund)
+        )
+
+    @staticmethod
+    def resolve_total_refunded(root: models.Order, info):
+        def _resolve_total_refunded_for_transactions(transactions):
+            return sum(
+                [transaction.amount_refunded for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        def _resolve_total_refunded_for_payment(transactions):
+            # Calculate payment total refund requires iterating
+            # over payment's transactions
+            total_refund_amount = Decimal(0)
+            for transaction in transactions:
+                if transaction.kind == TransactionKind.REFUND:
+                    total_refund_amount += transaction.amount
+            return prices.Money(total_refund_amount, root.currency)
+
+        def _resolve_total_refund(data):
+            payments, transactions = data
+            last_payment = get_last_payment(payments)
+            if last_payment and last_payment.is_active:
+                return (
+                    TransactionByPaymentIdLoader(info.context)
+                    .load(last_payment.id)
+                    .then(_resolve_total_refunded_for_payment)
+                )
+            return _resolve_total_refunded_for_transactions(transactions)
+
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        return Promise.all([payments, transactions]).then(_resolve_total_refund)
+
+    @staticmethod
+    def resolve_total_refund_pending(root: models.Order, info):
+        def _resolve_total_refund_pending(transactions):
+            return sum(
+                [transaction.amount_refund_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_refund_pending)
+        )
+
+    @staticmethod
+    def resolve_total_authorize_pending(root: models.Order, info):
+        def _resolve_total_authorize_pending(transactions):
+            return sum(
+                [transaction.amount_authorize_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_authorize_pending)
+        )
+
+    @staticmethod
+    def resolve_total_charge_pending(root: models.Order, info):
+        def _resolve_total_charge_pending(transactions):
+            return sum(
+                [transaction.amount_charge_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_charge_pending)
+        )
+
+    @staticmethod
+    def resolve_total_cancel_pending(root: models.Order, info):
+        def _resolve_total_cancel_pending(transactions):
+            return sum(
+                [transaction.amount_cancel_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+
+        return (
+            TransactionItemsByOrderIDLoader(info.context)
+            .load(root.id)
+            .then(_resolve_total_cancel_pending)
+        )
+
+    @staticmethod
+    def resolve_total_remaining_grant(root: models.Order, info):
+        def _resolve_total_remaining_grant_for_transactions(
+            transactions, total_granted_refund
+        ):
+            total_pending_refund = sum(
+                [transaction.amount_refund_pending for transaction in transactions],
+                zero_money(root.currency),
+            )
+            total_refund = sum(
+                [transaction.amount_refunded for transaction in transactions],
+                zero_money(root.currency),
+            )
+            return total_granted_refund - (total_pending_refund + total_refund)
+
+        def _resolve_total_remaining_grant(data):
+            transactions, payments, granted_refunds = data
+            total_granted_refund = sum(
+                [granted_refund.amount for granted_refund in granted_refunds],
+                zero_money(root.currency),
+            )
+
+            def _resolve_total_remaining_grant_for_payment(payment_transactions):
+                total_refund_amount = Decimal(0)
+                for transaction in payment_transactions:
+                    if transaction.kind == TransactionKind.REFUND:
+                        total_refund_amount += transaction.amount
+                return prices.Money(
+                    total_granted_refund.amount - total_refund_amount, root.currency
+                )
+
+            last_payment = get_last_payment(payments)
+            if last_payment and last_payment.is_active:
+                return (
+                    TransactionByPaymentIdLoader(info.context)
+                    .load(last_payment.id)
+                    .then(_resolve_total_remaining_grant_for_payment)
+                )
+            return _resolve_total_remaining_grant_for_transactions(
+                transactions, total_granted_refund
+            )
+
+        granted_refunds = OrderGrantedRefundsByOrderIdLoader(info.context).load(root.id)
+        transactions = TransactionItemsByOrderIDLoader(info.context).load(root.id)
+        payments = PaymentsByOrderIdLoader(info.context).load(root.id)
+        return Promise.all([transactions, payments, granted_refunds]).then(
+            _resolve_total_remaining_grant
+        )
+
     def resolve_display_gross_prices(root: models.Order, info):
         tax_config = TaxConfigurationByChannelId(info.context).load(root.channel_id)
         country_code = get_order_country(root)
@@ -1811,6 +2129,24 @@ class Order(ModelObjectType[models.Order]):
         if root.checkout_token:
             return graphene.Node.to_global_id("Checkout", root.checkout_token)
         return None
+
+    @staticmethod
+    def __resolve_references(roots: List["Order"], info):
+        requestor = get_user_or_app_from_context(info.context)
+        requestor_has_access_to_all = has_one_of_permissions(
+            requestor, [OrderPermissions.MANAGE_ORDERS]
+        )
+
+        if requestor:
+            qs = resolve_orders(
+                info,
+                requestor_has_access_to_all=requestor_has_access_to_all,
+                requesting_user=info.context.user,
+            )
+        else:
+            qs = models.Order.objects.none()
+
+        return resolve_federation_references(Order, roots, qs)
 
 
 class OrderCountableConnection(CountableConnection):

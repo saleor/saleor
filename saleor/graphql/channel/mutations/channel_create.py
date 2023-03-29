@@ -12,16 +12,26 @@ from ...core.descriptions import (
     ADDED_IN_35,
     ADDED_IN_37,
     ADDED_IN_312,
+    ADDED_IN_313,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import (
+    DOC_CATEGORY_CHANNELS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PRODUCTS,
+)
 from ...core.mutations import ModelMutation
-from ...core.types import ChannelError, NonNullList
+from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ..enums import AllocationStrategyEnum
+from ..enums import (
+    AllocationStrategyEnum,
+    MarkAsPaidStrategyEnum,
+    TransactionFlowStrategyEnum,
+)
 from ..types import Channel
 
 
-class StockSettingsInput(graphene.InputObjectType):
+class StockSettingsInput(BaseInputObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
             "Allocation strategy options. Strategy defines the preference "
@@ -30,8 +40,11 @@ class StockSettingsInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class OrderSettingsInput(graphene.InputObjectType):
+
+class OrderSettingsInput(BaseInputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=False,
         description="When disabled, all new orders from checkout "
@@ -43,9 +56,32 @@ class OrderSettingsInput(graphene.InputObjectType):
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
     )
+    mark_as_paid_strategy = MarkAsPaidStrategyEnum(
+        required=False,
+        description=(
+            "Determine what strategy will be used to mark the order as paid. "
+            "Based on the chosen option, the proper object will be created "
+            "and attached to the order when it's manually marked as paid."
+            "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
+            "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+    default_transaction_flow_strategy = TransactionFlowStrategyEnum(
+        required=False,
+        description=(
+            "Determine the transaction flow strategy to be used. "
+            "Include the selected option in the payload sent to the payment app, as a "
+            "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
-class ChannelInput(graphene.InputObjectType):
+class ChannelInput(BaseInputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
     stock_settings = graphene.Field(
         StockSettingsInput,
@@ -70,6 +106,9 @@ class ChannelInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
+
 
 class ChannelCreateInput(ChannelInput):
     name = graphene.String(description="Name of the channel.", required=True)
@@ -87,6 +126,9 @@ class ChannelCreateInput(ChannelInput):
         ),
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelCreate(ModelMutation):
@@ -130,6 +172,15 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
+            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+
+            if default_transaction_strategy := order_settings.get(
+                "default_transaction_flow_strategy"
+            ):
+                cleaned_input[
+                    "default_transaction_flow_strategy"
+                ] = default_transaction_strategy
 
         return cleaned_input
 

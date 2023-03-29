@@ -7,9 +7,16 @@ from .....product import models
 from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_38, RICH_CONTENT
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.fields import JSONString
 from ....core.mutations import ModelMutation
-from ....core.types import NonNullList, ProductError, SeoInput, Upload
+from ....core.types import (
+    BaseInputObjectType,
+    NonNullList,
+    ProductError,
+    SeoInput,
+    Upload,
+)
 from ....core.validators import clean_seo_fields, validate_slug_and_generate_if_needed
 from ....core.validators.file import clean_image_file
 from ....meta.mutations import MetadataInput
@@ -17,7 +24,7 @@ from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Category
 
 
-class CategoryInput(graphene.InputObjectType):
+class CategoryInput(BaseInputObjectType):
     description = JSONString(description="Category description." + RICH_CONTENT)
     name = graphene.String(description="Category name.")
     slug = graphene.String(description="Category slug.")
@@ -36,6 +43,9 @@ class CategoryInput(graphene.InputObjectType):
         ),
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class CategoryCreate(ModelMutation):

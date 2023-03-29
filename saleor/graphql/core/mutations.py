@@ -42,6 +42,7 @@ from ...permission.utils import (
     one_of_permissions_or_auth_filter_required,
 )
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_MAP
 from ..core.utils import ext_ref_to_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_mutation
 from ..meta.permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
@@ -127,6 +128,7 @@ def attach_error_params(error, params: Optional[dict], error_class_fields: set):
 
 
 class ModelMutationOptions(MutationOptions):
+    doc_category = None
     exclude = None
     model = None
     object_type = None
@@ -157,6 +159,7 @@ class BaseMutation(graphene.Mutation):
         cls,
         auto_permission_message=True,
         description=None,
+        doc_category=None,
         permissions: Optional[Collection[BasePermissionEnum]] = None,
         _meta=None,
         error_type_class=None,
@@ -178,16 +181,18 @@ class BaseMutation(graphene.Mutation):
         cls._validate_permissions(permissions)
 
         _meta.auto_permission_message = auto_permission_message
-        _meta.permissions = permissions
         _meta.error_type_class = error_type_class
         _meta.error_type_field = error_type_field
         _meta.errors_mapping = errors_mapping
+        _meta.permissions = permissions
         _meta.support_meta_field = support_meta_field
         _meta.support_private_meta_field = support_private_meta_field
 
         if permissions and auto_permission_message:
             permissions_msg = message_one_of_permissions_required(permissions)
             description = f"{description} {permissions_msg}"
+
+        cls.doc_category = doc_category
 
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
@@ -633,6 +638,10 @@ class ModelMutation(BaseMutation):
         if not _meta:
             _meta = ModelMutationOptions(cls)
 
+        doc_category_key = f"{model._meta.app_label}.{model.__name__}"
+        if "doc_category" not in options and doc_category_key in DOC_CATEGORY_MAP:
+            options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
+
         if exclude is None:
             exclude = []
 
@@ -853,8 +862,13 @@ class BaseBulkMutation(BaseMutation):
             raise ImproperlyConfigured("model is required for bulk mutation")
         if not _meta:
             _meta = ModelMutationOptions(cls)
+
         _meta.model = model
         _meta.object_type = object_type
+
+        doc_category_key = f"{model._meta.app_label}.{model.__name__}"
+        if "doc_category" not in kwargs and doc_category_key in DOC_CATEGORY_MAP:
+            kwargs["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         super().__init_subclass_with_meta__(_meta=_meta, **kwargs)
 

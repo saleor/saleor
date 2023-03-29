@@ -19,6 +19,7 @@ from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
+from .....discount import OrderDiscountType
 from .....giftcard import GiftCardEvents
 from .....giftcard.models import GiftCard, GiftCardEvent
 from .....order import OrderOrigin, OrderStatus
@@ -845,6 +846,7 @@ def test_checkout_with_voucher_complete(
     address,
     shipping_method,
 ):
+    # given
     voucher_used_count = voucher_percentage.used
     voucher_percentage.usage_limit = voucher_used_count + 1
     voucher_percentage.save(update_fields=["usage_limit"])
@@ -887,8 +889,11 @@ def test_checkout_with_voucher_complete(
         "id": to_global_id_or_none(checkout),
         "redirectUrl": "https://www.example.com",
     }
+
+    # when
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
 
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
@@ -917,6 +922,116 @@ def test_checkout_with_voucher_complete(
 
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == voucher_used_count + 1
+    order_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+    assert order_discount
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
+
+    assert not Checkout.objects.filter(
+        pk=checkout.pk
+    ).exists(), "Checkout should have been deleted"
+
+
+@pytest.mark.integration
+def test_checkout_complete_with_voucher_apply_once_per_order(
+    user_api_client,
+    checkout_with_voucher_percentage,
+    voucher_percentage,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    voucher_used_count = voucher_percentage.used
+    voucher_percentage.usage_limit = voucher_used_count + 1
+    voucher_percentage.apply_once_per_order = True
+    voucher_percentage.save(update_fields=["usage_limit", "apply_once_per_order"])
+
+    checkout = checkout_with_voucher_percentage
+
+    checkout_line = checkout.lines.first()
+    checkout_line_quantity = checkout_line.quantity
+    checkout_line_variant = checkout_line.variant
+
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    discount_amount = checkout_line_variant.channel_listings.get(
+        channel=checkout.channel
+    ).price * (
+        voucher_percentage.channel_listings.get(channel=checkout.channel).discount_value
+        / 100
+    )
+    checkout.discount = discount_amount
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    total = calculations.checkout_total(
+        manager=manager, checkout_info=checkout_info, lines=lines, address=address
+    )
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    variables = {
+        "id": to_global_id_or_none(checkout),
+        "redirectUrl": "https://www.example.com",
+    }
+
+    # when
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    order_token = data["order"]["token"]
+    order_id = data["order"]["id"]
+    assert Order.objects.count() == orders_count + 1
+    order = Order.objects.first()
+    assert str(order.id) == order_token
+    assert order_id == graphene.Node.to_global_id("Order", order.id)
+    assert order.metadata == checkout.metadata_storage.metadata
+    assert order.private_metadata == checkout.metadata_storage.private_metadata
+
+    assert order.total == total
+    assert order.undiscounted_total == total + discount_amount
+
+    order_line = order.lines.first()
+    assert checkout_line_quantity == order_line.quantity
+    assert checkout_line_variant == order_line.variant
+    assert order.shipping_address == address
+    assert order.shipping_method == checkout.shipping_method
+    assert order.payments.exists()
+    order_payment = order.payments.first()
+    assert order_payment == payment
+    assert payment.transactions.count() == 1
+
+    voucher_percentage.refresh_from_db()
+    assert voucher_percentage.used == voucher_used_count + 1
+    order_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+    assert order_discount
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
 
     assert not Checkout.objects.filter(
         pk=checkout.pk
@@ -948,8 +1063,6 @@ def test_checkout_with_voucher_complete_product_on_sale(
     )
     checkout.save()
     checkout.metadata_storage.save()
-
-    discount_amount = checkout.discount
 
     checkout_line = checkout.lines.first()
     checkout_line_quantity = checkout_line.quantity
@@ -1003,7 +1116,7 @@ def test_checkout_with_voucher_complete_product_on_sale(
 
     order_line = order.lines.first()
     assert order.total == total
-    assert order.undiscounted_total == total + discount_amount + (
+    assert order.undiscounted_total == total + (
         order_line.undiscounted_total_price - order_line.total_price
     )
 
@@ -1105,6 +1218,13 @@ def test_checkout_with_voucher_on_specific_product_complete(
     order_payment = order.payments.first()
     assert order_payment == payment
     assert payment.transactions.count() == 1
+
+    order_discount = order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+    assert order_discount
+    assert (
+        order_discount.amount_value
+        == (order.undiscounted_total - order.total).gross.amount
+    )
 
     voucher_specific_product_type.refresh_from_db()
     assert voucher_specific_product_type.used == voucher_used_count + 1

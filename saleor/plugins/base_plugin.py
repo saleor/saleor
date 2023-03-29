@@ -53,6 +53,7 @@ if TYPE_CHECKING:
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.interface import PaymentGatewayData, TransactionSessionData
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -373,7 +374,7 @@ class BasePlugin:
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address"], "Address"
+        ["Address", Union[str, None], Union["User", None], "Address", bool], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
@@ -390,6 +391,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
     checkout_updated: Callable[["Checkout", Any], Any]
+
+    # Trigger when checkout is fully paid with transactions.
+    #
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # updated.
+    checkout_fully_paid: Callable[["Checkout", Any], Any]
 
     # Trigger when checkout metadata is updated.
     #
@@ -769,6 +776,30 @@ class BasePlugin:
     process_payment: Callable[["PaymentData", Any], Any]
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
+
+    transaction_charge_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_refund_requested: Callable[["TransactionActionData", None], None]
+
+    payment_gateway_initialize_session: Callable[
+        [
+            Decimal,
+            Optional[list["PaymentGatewayData"]],
+            Union["Checkout", "Order"],
+            None,
+        ],
+        list["PaymentGatewayData"],
+    ]
+
+    transaction_initialize_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
+    ]
+
+    transaction_process_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
+    ]
 
     # Trigger when transaction item metadata is updated.
     #

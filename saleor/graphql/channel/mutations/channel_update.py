@@ -12,6 +12,7 @@ from ....shipping.tasks import (
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -43,6 +44,9 @@ class ChannelUpdateInput(ChannelInput):
         + PREVIEW_FEATURE,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelUpdate(ModelMutation):
@@ -106,6 +110,15 @@ class ChannelUpdate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
+            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+
+            if default_transaction_strategy := order_settings.get(
+                "default_transaction_flow_strategy"
+            ):
+                cleaned_input[
+                    "default_transaction_flow_strategy"
+                ] = default_transaction_strategy
         return cleaned_input
 
     @classmethod

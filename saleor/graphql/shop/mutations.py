@@ -14,9 +14,11 @@ from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
+    BaseInputObjectType,
     GiftCardSettingsError,
     OrderSettingsError,
     ShopError,
@@ -369,7 +371,7 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
         error_type_field = "shop_errors"
 
 
-class OrderSettingsUpdateInput(graphene.InputObjectType):
+class OrderSettingsUpdateInput(BaseInputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=False,
         description="When disabled, all new orders from checkout "
@@ -381,6 +383,9 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderSettingsUpdate(BaseMutation):
@@ -396,6 +401,7 @@ class OrderSettingsUpdate(BaseMutation):
             "Update shop order settings across all channels. "
             "Returns `orderSettings` for the first `channel` in alphabetical order. "
         )
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
@@ -436,15 +442,22 @@ class OrderSettingsUpdate(BaseMutation):
             automatically_fulfill_non_shippable_gift_card=(
                 channel.automatically_fulfill_non_shippable_gift_card
             ),
+            mark_as_paid_strategy=channel.order_mark_as_paid_strategy,
+            default_transaction_flow_strategy=(
+                channel.default_transaction_flow_strategy
+            ),
         )
         return OrderSettingsUpdate(order_settings=order_settings)
 
 
-class GiftCardSettingsUpdateInput(graphene.InputObjectType):
+class GiftCardSettingsUpdateInput(BaseInputObjectType):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="Defines gift card default expiry settings."
     )
     expiry_period = TimePeriodInputType(description="Defines gift card expiry period.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardSettingsUpdate(BaseMutation):
@@ -459,6 +472,7 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Update gift card settings."
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardSettingsError
 

@@ -31,6 +31,7 @@ from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import assert_no_permission, get_graphql_content
+from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..mutations.utils import (
     clean_delivery_method,
     update_checkout_shipping_method_if_invalid,
@@ -1539,9 +1540,8 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         checkout_line_info=line_info,
         discounts=[discount_info],
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1644,9 +1644,8 @@ def test_checkout_prices_with_specific_voucher(
         lines=lines,
         checkout_line_info=line_info,
     )
-    assert (
-        data["lines"][0]["unitPrice"]["gross"]["amount"]
-        == line_total_price.gross.amount / line_info.line.quantity
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == round(
+        line_total_price.gross.amount / line_info.line.quantity, 2
     )
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
@@ -1675,6 +1674,72 @@ def test_checkout_prices_with_voucher_once_per_order(
 ):
     # given
     checkout = checkout_with_item_and_voucher_once_per_order
+    query = QUERY_CHECKOUT_PRICES
+    variables = {"id": to_global_id_or_none(checkout)}
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    # then
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.checkout_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_info.shipping_address,
+    )
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
+    line_info = lines[0]
+    assert line_info.line.quantity > 0
+    line_total_price = calculations.checkout_line_total(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        checkout_line_info=line_info,
+    )
+    assert data["lines"][0]["unitPrice"]["gross"]["amount"] == float(
+        quantize_price(
+            line_total_price.gross.amount / line_info.line.quantity, checkout.currency
+        )
+    )
+    assert (
+        data["lines"][0]["totalPrice"]["gross"]["amount"]
+        == line_total_price.gross.amount
+    )
+    undiscounted_unit_price = line_info.variant.get_price(
+        line_info.product,
+        line_info.collections,
+        checkout_info.channel,
+        line_info.channel_listing,
+        [],
+        line_info.line.price_override,
+    )
+    assert (
+        data["lines"][0]["undiscountedUnitPrice"]["amount"]
+        == undiscounted_unit_price.amount
+    )
+    assert (
+        data["lines"][0]["undiscountedTotalPrice"]["amount"]
+        == undiscounted_unit_price.amount * line_info.line.quantity
+    )
+
+
+def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_voucher):
+    # given
+    checkout = checkout_with_item_and_voucher
     query = QUERY_CHECKOUT_PRICES
     variables = {"id": to_global_id_or_none(checkout)}
 
@@ -2059,8 +2124,8 @@ def test_checkout_transactions_missing_permission(api_client, checkout):
     # given
     checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -2081,8 +2146,8 @@ def test_checkout_transactions_with_manage_checkouts(
     # given
     transaction = checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -2100,7 +2165,7 @@ def test_checkout_transactions_with_manage_checkouts(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
     )
 
 
@@ -2110,8 +2175,8 @@ def test_checkout_transactions_with_handle_payments(
     # given
     transaction = checkout.payment_transactions.create(
         status="Authorized",
-        type="Credit card",
-        reference="123",
+        name="Credit card",
+        psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
@@ -2129,5 +2194,92 @@ def test_checkout_transactions_with_handle_payments(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
+    )
+
+
+QUERY_CHECKOUT_STATUSES_AND_BALANCE = """
+query getCheckout($id: ID) {
+  checkout(id: $id) {
+    updatedAt
+    chargeStatus
+    authorizeStatus
+    totalBalance {
+      currency
+      amount
+    }
+  }
+}
+"""
+
+
+def test_checkout_payment_statuses(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout_with_prices.payment_transactions.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["chargeStatus"]
+        == CheckoutChargeStatusEnum.PARTIAL.name
+    )
+    assert (
+        content["data"]["checkout"]["authorizeStatus"]
+        == CheckoutAuthorizeStatusEnum.PARTIAL.name
+    )
+
+
+def test_checkout_balance(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    transaction = checkout_with_prices.payment_transactions.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["totalBalance"]["amount"]
+        == transaction.charged_value
+        + transaction.charge_pending_value
+        - checkout_with_prices.total.gross.amount
     )

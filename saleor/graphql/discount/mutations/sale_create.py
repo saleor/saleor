@@ -13,9 +13,10 @@ from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import DiscountError, NonNullList
+from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_end_is_after_start
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import DiscountValueTypeEnum
@@ -34,7 +35,7 @@ class SaleUpdateDiscountedPriceMixin:
         )
 
 
-class SaleInput(graphene.InputObjectType):
+class SaleInput(BaseInputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
     value = PositiveDecimal(description="Value of the voucher.")
@@ -62,6 +63,9 @@ class SaleInput(graphene.InputObjectType):
     end_date = graphene.types.datetime.DateTime(
         description="End date of the voucher in ISO 8601 format."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):

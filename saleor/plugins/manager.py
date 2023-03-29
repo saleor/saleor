@@ -56,8 +56,10 @@ if TYPE_CHECKING:
         InitializedPaymentResponse,
         PaymentData,
         PaymentGateway,
+        PaymentGatewayData,
         TokenConfig,
         TransactionActionData,
+        TransactionSessionData,
     )
     from ..payment.models import TransactionItem
     from ..product.models import (
@@ -216,11 +218,15 @@ class PluginsManager(PaymentInterface):
         )
 
     def change_user_address(
-        self, address: "Address", address_type: Optional[str], user: Optional["User"]
+        self,
+        address: "Address",
+        address_type: Optional[str],
+        user: Optional["User"],
+        save: bool = True,
     ) -> "Address":
         default_value = address
         return self.__run_method_on_plugins(
-            "change_user_address", default_value, address, address_type, user
+            "change_user_address", default_value, address, address_type, user, save
         )
 
     def calculate_checkout_total(
@@ -232,7 +238,7 @@ class PluginsManager(PaymentInterface):
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
 
-        default_value = base_calculations.base_checkout_total(
+        default_value = base_calculations.checkout_total(
             checkout_info,
             discounts,
             lines,
@@ -386,6 +392,15 @@ class PluginsManager(PaymentInterface):
             checkout_info.channel,
             discounts,
         )
+        # apply entire order discount
+        default_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            discounts,
+            default_value,
+        )
+        default_value = quantize_price(default_value, checkout_info.checkout.currency)
         default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
         line_total = self.__run_method_on_plugins(
             "calculate_checkout_line_total",
@@ -436,10 +451,21 @@ class PluginsManager(PaymentInterface):
         address: Optional["Address"],
         discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
+        quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
             checkout_line_info, checkout_info.channel, discounts
         )
-        default_taxed_value = TaxedMoney(net=default_value, gross=default_value)
+        # apply entire order discount
+        total_value = base_calculations.apply_checkout_discount_on_checkout_line(
+            checkout_info,
+            lines,
+            checkout_line_info,
+            discounts,
+            default_value * quantity,
+        )
+        default_taxed_value = TaxedMoney(
+            net=total_value / quantity, gross=default_value
+        )
         unit_price = self.__run_method_on_plugins(
             "calculate_checkout_line_unit_price",
             default_taxed_value,
@@ -872,6 +898,15 @@ class PluginsManager(PaymentInterface):
             channel_slug=checkout.channel.slug,
         )
 
+    def checkout_fully_paid(self, checkout: "Checkout"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "checkout_fully_paid",
+            default_value,
+            checkout,
+            channel_slug=checkout.channel.slug,
+        )
+
     def checkout_metadata_updated(self, checkout: "Checkout"):
         default_value = None
         return self.__run_method_on_plugins(
@@ -935,6 +970,79 @@ class PluginsManager(PaymentInterface):
             default_value,
             payment_data,
             channel_slug=channel_slug,
+        )
+
+    def transaction_charge_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_charge_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def transaction_refund_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_refund_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def transaction_cancelation_requested(
+        self, payment_data: "TransactionActionData", channel_slug: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_cancelation_requested",
+            default_value,
+            payment_data,
+            channel_slug=channel_slug,
+        )
+
+    def payment_gateway_initialize_session(
+        self,
+        amount: Decimal,
+        payment_gateways: Optional[list["PaymentGatewayData"]],
+        source_object: Union["Order", "Checkout"],
+    ) -> list["PaymentGatewayData"]:
+        default_value = None
+        return self.__run_method_on_plugins(
+            "payment_gateway_initialize_session",
+            default_value,
+            amount,
+            payment_gateways,
+            source_object,
+            channel_slug=source_object.channel.slug,
+        )
+
+    def transaction_initialize_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_initialize_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
+        )
+
+    def transaction_process_session(
+        self,
+        transaction_session_data: "TransactionSessionData",
+    ) -> "PaymentGatewayData":
+        default_value = None
+        return self.__run_method_on_plugins(
+            "transaction_process_session",
+            default_value,
+            transaction_session_data,
+            channel_slug=transaction_session_data.source_object.channel.slug,
         )
 
     def transaction_item_metadata_updated(self, transaction_item: "TransactionItem"):

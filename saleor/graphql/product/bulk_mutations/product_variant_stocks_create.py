@@ -10,6 +10,7 @@ from ....permission.enums import ProductPermissions
 from ....warehouse.error_codes import StockErrorCode
 from ...channel import ChannelContext
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
 from ...core.types import BulkStockError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -40,6 +41,7 @@ class ProductVariantStocksCreate(BaseMutation):
 
     class Meta:
         description = "Creates stocks for product variant."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkStockError
         error_type_field = "bulk_stock_errors"
