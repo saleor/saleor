@@ -375,7 +375,8 @@ class Checkout(ModelObjectType[models.Checkout]):
     id = graphene.ID(required=True)
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(
-        required=True, description="Time of last modification of the given checkout."
+        required=True,
+        description=("Time of last modification of the given checkout." + ADDED_IN_313),
     )
     last_change = graphene.DateTime(
         required=True,

@@ -9083,7 +9083,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   metafields(keys: [String!]): Metadata
   created: DateTime!
 
-  """Time of last modification of the given checkout."""
+  """
+  Time of last modification of the given checkout.
+  
+  Added in Saleor 3.13.
+  """
   updatedAt: DateTime!
   lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
   user: User
