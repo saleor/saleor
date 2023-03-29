@@ -21,16 +21,26 @@ def create_full_channel_access_group_for_openid(apps, schema_editor):
     ).first()
     if plugin_conf:
         Group = apps.get_model("account", "Group")
-
-        plugin_conf.configuration["default_group_name_for_new_staff_users"] = group_name
-        plugin_conf.save(update_fields=["configuration"])
-
         Group.objects.get_or_create(
             name=group_name, restricted_access_to_channels=False
         )
+        update_plugin_default_group_name(plugin_conf, group_name)
 
         sender = registry.get_app_config("account")
         post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+
+
+def update_plugin_default_group_name(plugin_conf, group_name):
+    default_group_name_field = "default_group_name_for_new_staff_users"
+    for conf in plugin_conf.configuration:
+        if conf["name"] == default_group_name_field:
+            conf.update([("value", group_name)])
+            plugin_conf.save(update_fields=["configuration"])
+            return
+
+    group_conf = {"name": default_group_name_field, "value": group_name}
+    plugin_conf.configuration.append(group_conf)
+    plugin_conf.save(update_fields=["configuration"])
 
 
 class Migration(migrations.Migration):
