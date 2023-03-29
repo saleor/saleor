@@ -11,7 +11,20 @@ from ..decorators import one_of_permissions_required
 from .connection import FILTERS_NAME, FILTERSET_CLASS, WHERE_FILTERSET_CLASS, WHERE_NAME
 
 
-class PermissionsField(graphene.Field):
+class BaseField(graphene.Field):
+    doc_category: Optional[str]
+
+    def __init__(self, *args, **kwargs):
+        self.doc_category = kwargs.pop("doc_category", None)
+        super(BaseField, self).__init__(*args, **kwargs)
+
+    def get_resolver(self, parent_resolver):
+        resolver = self.resolver or parent_resolver
+        setattr(resolver, "doc_category", self.doc_category)
+        return resolver
+
+
+class PermissionsField(BaseField):
     description: Optional[str]
 
     def __init__(self, *args, **kwargs):
@@ -32,6 +45,7 @@ class PermissionsField(graphene.Field):
         resolver = self.resolver or parent_resolver
         if self.permissions:
             resolver = one_of_permissions_required(self.permissions)(resolver)
+        resolver = super(PermissionsField, self).get_resolver(resolver)
         return resolver
 
 

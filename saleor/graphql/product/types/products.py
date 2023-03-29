@@ -62,6 +62,7 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
     RICH_CONTENT,
 )
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import (
@@ -73,6 +74,7 @@ from ...core.fields import (
 from ...core.scalars import Date
 from ...core.tracing import traced_resolver
 from ...core.types import (
+    BaseObjectType,
     Image,
     ModelObjectType,
     NonNullList,
@@ -157,12 +159,7 @@ destination_address_argument = graphene.Argument(
 )
 
 
-class Margin(graphene.ObjectType):
-    start = graphene.Int()
-    stop = graphene.Int()
-
-
-class BasePricingInfo(graphene.ObjectType):
+class BasePricingInfo(BaseObjectType):
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
@@ -170,6 +167,9 @@ class BasePricingInfo(graphene.ObjectType):
     discount_local_currency = graphene.Field(
         TaxedMoney, description="The discount amount in the local currency."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class VariantPricingInfo(BasePricingInfo):
@@ -187,6 +187,7 @@ class VariantPricingInfo(BasePricingInfo):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a variant in the storefront."
 
 
@@ -215,10 +216,11 @@ class ProductPricingInfo(BasePricingInfo):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a product in the storefront."
 
 
-class PreorderData(graphene.ObjectType):
+class PreorderData(BaseObjectType):
     global_threshold = PermissionsField(
         graphene.Int,
         required=False,
@@ -234,6 +236,7 @@ class PreorderData(graphene.ObjectType):
     end_date = graphene.DateTime(required=False, description="Preorder end date.")
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder settings for product variant."
 
     @staticmethod
@@ -956,7 +959,10 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     external_reference = graphene.String(
         description=f"External ID of this product. {ADDED_IN_310}",
@@ -1592,7 +1598,10 @@ class ProductType(ModelObjectType[models.ProductType]):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     variant_attributes = NonNullList(
         Attribute,
@@ -1820,7 +1829,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         return graphene.Node.to_global_id("Product", root.product_id)
 
 
-class ProductImage(graphene.ObjectType):
+class ProductImage(BaseObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
     alt = graphene.String(description="The alt text of the image.")
     sort_order = graphene.Int(
@@ -1834,6 +1843,7 @@ class ProductImage(graphene.ObjectType):
     url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents a product image."
 
     @staticmethod

@@ -20,10 +20,11 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date
 from ..core.tracing import traced_resolver
-from ..core.types import ModelObjectType, Money, NonNullList
+from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
@@ -40,7 +41,7 @@ from .filters import (
 )
 
 
-class GiftCardEventBalance(graphene.ObjectType):
+class GiftCardEventBalance(BaseObjectType):
     initial_balance = graphene.Field(
         Money,
         description="Initial balance of the gift card.",
@@ -58,6 +59,9 @@ class GiftCardEventBalance(graphene.ObjectType):
         Money,
         description="Previous current balance of the gift card.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):

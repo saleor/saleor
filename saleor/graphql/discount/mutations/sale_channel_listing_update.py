@@ -13,8 +13,9 @@ from ....product.tasks import update_products_discounted_prices_of_discount_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.scalars import PositiveDecimal
-from ...core.types import DiscountError, NonNullList
+from ...core.types import BaseInputObjectType, DiscountError, NonNullList
 from ...core.validators import validate_price_precision
 from ...discount.types import Sale
 from ..dataloaders import SaleChannelListingBySaleIdLoader
@@ -23,14 +24,17 @@ if TYPE_CHECKING:
     from ....discount.models import Sale as SaleModel
 
 
-class SaleChannelListingAddInput(graphene.InputObjectType):
+class SaleChannelListingAddInput(BaseInputObjectType):
     channel_id = graphene.ID(required=True, description="ID of a channel.")
     discount_value = PositiveDecimal(
         required=True, description="The value of the discount."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
-class SaleChannelListingInput(graphene.InputObjectType):
+
+class SaleChannelListingInput(BaseInputObjectType):
     add_channels = NonNullList(
         SaleChannelListingAddInput,
         description="List of channels to which the sale should be assigned.",
@@ -41,6 +45,9 @@ class SaleChannelListingInput(graphene.InputObjectType):
         description="List of channels from which the sale should be unassigned.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleChannelListingUpdate(BaseChannelListingMutation):
@@ -55,6 +62,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
 
     class Meta:
         description = "Manage sale's availability in channels."
+        doc_category = DOC_CATEGORY_DISCOUNTS
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"

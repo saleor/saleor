@@ -6,7 +6,8 @@ from ..channel.types import Channel
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
-from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..core.doc_category import DOC_CATEGORY_TAXES
+from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from .dataloaders import (
     TaxClassByIdLoader,
@@ -72,6 +73,7 @@ class TaxConfiguration(ModelObjectType[models.TaxConfiguration]):
 
 class TaxConfigurationCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_TAXES
         node = TaxConfiguration
 
 
@@ -140,6 +142,7 @@ class TaxClass(ModelObjectType[models.TaxClass]):
 
 class TaxClassCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_TAXES
         node = TaxClass
 
 
@@ -175,7 +178,7 @@ class TaxClassCountryRate(ModelObjectType[models.TaxClassCountryRate]):
         )
 
 
-class TaxCountryConfiguration(graphene.ObjectType):
+class TaxCountryConfiguration(BaseObjectType):
     country = graphene.Field(
         CountryDisplay,
         required=True,
@@ -189,6 +192,7 @@ class TaxCountryConfiguration(graphene.ObjectType):
         description = (
             "Tax class rates grouped by country." + ADDED_IN_39 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_country(root, _info: ResolveInfo, **kwargs):

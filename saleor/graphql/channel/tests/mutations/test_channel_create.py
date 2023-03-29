@@ -14,7 +14,7 @@ from .....tax.models import TaxConfiguration
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import AllocationStrategyEnum
+from ...enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
 
 CHANNEL_CREATE_MUTATION = """
     mutation CreateChannel($input: ChannelCreateInput!){
@@ -38,6 +38,7 @@ CHANNEL_CREATE_MUTATION = """
                     automaticallyConfirmAllNewOrders
                     automaticallyFulfillNonShippableGiftCard
                     expireOrdersAfter
+                    markAsPaidStrategy
                 }
             }
             errors{
@@ -540,3 +541,47 @@ def test_channel_create_creates_tax_configuration(
     # then
     channel = Channel.objects.get(slug=slug)
     assert TaxConfiguration.objects.filter(channel=channel).exists()
+
+
+def test_channel_create_set_order_mark_as_paid(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {
+                "markAsPaidStrategy": MarkAsPaidStrategyEnum.TRANSACTION_FLOW.name
+            },
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["orderSettings"]["markAsPaidStrategy"]
+        == MarkAsPaidStrategyEnum.TRANSACTION_FLOW.name
+    )
+    assert (
+        channel.order_mark_as_paid_strategy
+        == MarkAsPaidStrategyEnum.TRANSACTION_FLOW.value
+    )

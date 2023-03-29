@@ -15,8 +15,9 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
-from ...core.types import CheckoutError, NonNullList
+from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...product.types import ProductVariant
 from ...site.dataloaders import get_site_promise
@@ -29,7 +30,7 @@ from .utils import (
 )
 
 
-class CheckoutLineUpdateInput(graphene.InputObjectType):
+class CheckoutLineUpdateInput(BaseInputObjectType):
     variant_id = graphene.ID(
         required=False,
         description=(
@@ -57,6 +58,9 @@ class CheckoutLineUpdateInput(graphene.InputObjectType):
         description="ID of the line." + ADDED_IN_36,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class CheckoutLinesUpdate(CheckoutLinesAdd):
@@ -88,6 +92,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     class Meta:
         description = "Updates checkout line in the existing checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 

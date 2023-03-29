@@ -5,7 +5,6 @@ import graphene
 from babel.core import get_global
 from django.core.exceptions import ValidationError
 from django.db.models import F
-from graphene.types import InputObjectType
 from graphene.utils.str_converters import to_camel_case
 
 from ....attribute import AttributeType
@@ -28,6 +27,7 @@ from ...core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.fields import JSONString
 from ...core.mutations import (
@@ -36,7 +36,13 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.scalars import Date
-from ...core.types import BulkProductError, NonNullList, ProductVariantBulkError
+from ...core.types import (
+    BaseInputObjectType,
+    BaseObjectType,
+    BulkProductError,
+    NonNullList,
+    ProductVariantBulkError,
+)
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -100,7 +106,7 @@ def get_results(instances_data_with_errors_list, reject_everything=False):
     ]
 
 
-class ProductVariantBulkResult(graphene.ObjectType):
+class ProductVariantBulkResult(BaseObjectType):
     product_variant = graphene.Field(
         ProductVariant, required=False, description="Product variant data."
     )
@@ -110,8 +116,11 @@ class ProductVariantBulkResult(graphene.ObjectType):
         description="List of errors occurred on create attempt.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class BulkAttributeValueInput(InputObjectType):
+
+class BulkAttributeValueInput(BaseInputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
     values = NonNullList(
         graphene.String,
@@ -179,6 +188,9 @@ class BulkAttributeValueInput(InputObjectType):
         required=False, description=AttributeValueDescriptions.DATE_TIME + ADDED_IN_312
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantBulkCreateInput(ProductVariantInput):
     attributes = NonNullList(
@@ -197,6 +209,9 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         required=False,
     )
     sku = graphene.String(description="Stock keeping unit.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantBulkCreate(BaseMutation):
@@ -243,6 +258,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     class Meta:
         description = "Creates product variants for a given product."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = BulkProductError
         error_type_field = "bulk_product_errors"
@@ -270,7 +286,10 @@ class ProductVariantBulkCreate(BaseMutation):
                 code = ProductVariantBulkErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.value
                 index_error_map[variant_index].append(
                     ProductVariantBulkError(
-                        field="attributes", message=message, code=code
+                        field="attributes",
+                        message=message,
+                        code=code,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
@@ -319,6 +338,7 @@ class ProductVariantBulkCreate(BaseMutation):
                         field="attributes",
                         message=message,
                         code=ProductVariantBulkErrorCode.INVALID.value,
+                        attributes=invalid_attributes,
                     )
                 )
                 if errors is not None:
@@ -818,7 +838,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     variant, listings_input, listings_to_create
                 )
 
-            if attributes := variant_data["cleaned_input"].get("attributes"):
+            if attributes := cleaned_input.get("attributes"):
                 attributes_to_save.append((variant, attributes))
 
             if not variant.name:
@@ -832,9 +852,11 @@ class ProductVariantBulkCreate(BaseMutation):
         warehouse_models.Stock.objects.bulk_create(stocks_to_create)
         models.ProductVariantChannelListing.objects.bulk_create(listings_to_create)
 
-        if not product.default_variant and variants_to_create:
+        if product and not product.default_variant and variants_to_create:
             product.default_variant = variants_to_create[0]
             product.save(update_fields=["default_variant", "updated_at"])
+
+        return variants_to_create
 
     @classmethod
     def prepare_stocks(cls, variant, stocks_input, stocks_to_create):

@@ -7,6 +7,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import TaxData, TaxError, TaxLineData, zero_taxed_money
+from ...discount import DiscountValueType
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations.order import update_order_prices_with_flat_rates
 from .. import OrderStatus, calculations
@@ -68,16 +69,6 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=order.currency,
-            ),
-        )
-    )
 
     total_prices = [
         get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
@@ -96,7 +87,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     subtotal = sum(
         (get_taxed_money(line, "total", currency) for line in tax_data.lines),
         zero_taxed_money(order.currency),
-    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), order.currency)
+    )
     total = shipping + subtotal
 
     manager = Mock(
@@ -171,16 +162,6 @@ def test_recalculate_order_prices_tax_error_line_prices(
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=currency,
-            ),
-        )
-    )
     error_line = order_lines[0]
     old_line_unit_price = error_line.unit_price
     old_line_undiscounted_unit_price = error_line.undiscounted_unit_price
@@ -203,13 +184,9 @@ def test_recalculate_order_prices_tax_error_line_prices(
     shipping_tax_rate = tax_data.shipping_tax_rate
     shipping = get_taxed_money(tax_data, "shipping_price", currency)
 
-    subtotal = (
-        error_line.total_price
-        + sum(
-            [get_taxed_money(line, "total", currency) for line in tax_data.lines[1:]],
-            zero_taxed_money(currency),
-        )
-        + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
+    subtotal = error_line.total_price + sum(
+        [get_taxed_money(line, "total", currency) for line in tax_data.lines[1:]],
+        zero_taxed_money(currency),
     )
     total = shipping + subtotal
 
@@ -253,16 +230,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     order = order_with_lines
     currency = order.currency
     lines = list(order_lines)
-    lines.append(
-        Mock(
-            variant=None,
-            total_price=create_taxed_money(
-                net=Decimal("33.33"),
-                gross=Decimal("44.44"),
-                currency=currency,
-            ),
-        )
-    )
+
     old_shipping_price = order.shipping_price
     old_shipping_tax_rate = order.shipping_tax_rate
 
@@ -283,7 +251,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     subtotal = sum(
         [get_taxed_money(line, "total", currency) for line in tax_data.lines],
         zero_taxed_money(currency),
-    ) + create_taxed_money(Decimal("33.33"), Decimal("44.44"), currency)
+    )
 
     manager = Mock(
         calculate_order_line_unit=Mock(side_effect=unit_prices),
@@ -310,6 +278,166 @@ def test_recalculate_order_prices_tax_error_shipping_price(
         assert line.total_price == line_total.price_with_discounts
         assert line.undiscounted_total_price == line_total.undiscounted_price
         assert tax_rate == line.tax_rate
+
+
+def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_changed(
+    draft_order, order_lines, shipping_method_weight_based, tax_data
+):
+    # given
+    order = draft_order
+    currency = order.currency
+    lines = list(order_lines)
+
+    old_shipping_price = order.shipping_price
+
+    old_undiscounted_amount = draft_order.undiscounted_total
+    discount_amount = old_undiscounted_amount.net
+    order_discount = draft_order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=100,
+        reason="Discount reason",
+        amount=discount_amount,
+    )
+
+    new_shipping_price = Money(20, currency)
+    shipping_listing = shipping_method_weight_based.channel_listings.get(
+        channel=order.channel
+    )
+    shipping_listing.price = new_shipping_price
+    shipping_listing.save(update_fields=["price_amount"])
+
+    order.base_shipping_price = new_shipping_price
+    order.shipping_method = shipping_method_weight_based
+    order.shipping_method_name = shipping_method_weight_based.name
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_method",
+            "shipping_method_name",
+        ]
+    )
+
+    total_prices = [
+        get_order_priced_taxes_data(line, "total", currency) for line in tax_data.lines
+    ]
+    unit_prices = []
+    for line, total_price in zip(lines, total_prices):
+        unit_prices.append(
+            OrderTaxedPricesData(
+                undiscounted_price=total_price.undiscounted_price / line.quantity,
+                price_with_discounts=total_price.price_with_discounts / line.quantity,
+            )
+        )
+    tax_rates = [line.tax_rate for line in tax_data.lines]
+    shipping_tax_rate = 0
+
+    manager = Mock(
+        calculate_order_line_unit=Mock(side_effect=unit_prices),
+        calculate_order_line_total=Mock(side_effect=total_prices),
+        get_order_shipping_tax_rate=Mock(return_value=shipping_tax_rate),
+        get_order_line_tax_rate=Mock(side_effect=tax_rates),
+        calculate_order_shipping=Mock(return_value=zero_taxed_money(currency)),
+        calculate_order_total=Mock(return_value=zero_taxed_money(currency)),
+    )
+
+    # when
+    calculations._recalculate_order_prices(manager, order, lines)
+
+    # then
+    order_discount.refresh_from_db()
+    assert order.undiscounted_total.net == old_undiscounted_amount.net + (
+        new_shipping_price - old_shipping_price.net
+    )
+    assert order_discount.amount == order.undiscounted_total.net
+    assert order.total == zero_taxed_money(currency)
+    assert order.shipping_price == zero_taxed_money(currency)
+    assert order.shipping_tax_rate == shipping_tax_rate
+
+
+def test_update_order_discounts_and_base_undiscounted_total_shipping_price_changed(
+    draft_order, order_lines, shipping_method_weight_based
+):
+    """Ensure that the order discounts and order base undiscounted price is properly
+    updated after changing the shipping price.
+    """
+    # given
+    order = draft_order
+    currency = order.currency
+    old_shipping_price = order.shipping_price
+
+    old_undiscounted_amount = draft_order.undiscounted_total
+    discount_amount = old_undiscounted_amount.net
+    # add order manual discount
+    order_discount = draft_order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=100,
+        reason="Discount reason",
+        amount=discount_amount,
+    )
+
+    # change the shipping, increase the shipping price
+    new_shipping_price = Money(20, currency)
+    shipping_listing = shipping_method_weight_based.channel_listings.get(
+        channel=order.channel
+    )
+    shipping_listing.price = new_shipping_price
+    shipping_listing.save(update_fields=["price_amount"])
+
+    order.base_shipping_price = new_shipping_price
+    order.shipping_method = shipping_method_weight_based
+    order.shipping_method_name = shipping_method_weight_based.name
+    order.save(
+        update_fields=[
+            "base_shipping_price_amount",
+            "shipping_method",
+            "shipping_method_name",
+        ]
+    )
+
+    # when
+    calculations._update_order_discounts_and_base_undiscounted_total(order, order_lines)
+
+    # then
+    order_discount.refresh_from_db()
+    assert order.undiscounted_total.net == old_undiscounted_amount.net + (
+        new_shipping_price - old_shipping_price.net
+    )
+    assert order_discount.amount == order.undiscounted_total.net
+
+
+def test_update_order_discounts_and_base_undiscounted_total_line_quantity_changed(
+    draft_order, order_lines, shipping_method_weight_based
+):
+    """Ensure that the order discounts and order base undiscounted price is properly
+    updated after changing the line quantity
+    """
+    # given
+    order = draft_order
+
+    old_undiscounted_amount = draft_order.undiscounted_total
+    discount_amount = old_undiscounted_amount.net
+    # add order manual discount
+    order_discount = draft_order.discounts.create(
+        value_type=DiscountValueType.PERCENTAGE,
+        value=100,
+        reason="Discount reason",
+        amount=discount_amount,
+    )
+
+    line = order_lines.first()
+    line.quantity += 1
+    line.save(update_fields=["quantity"])
+
+    # when
+    calculations._update_order_discounts_and_base_undiscounted_total(order, order_lines)
+
+    # then
+    order_discount.refresh_from_db()
+    assert (
+        order.undiscounted_total.net
+        == old_undiscounted_amount.net + line.unit_price.net
+    )
+    assert order_discount.amount == order.undiscounted_total.net
 
 
 def test_apply_tax_data(order_with_lines, order_lines, tax_data):

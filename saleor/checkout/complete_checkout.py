@@ -23,6 +23,7 @@ from prices import Money, TaxedMoney
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
 from ..account.utils import store_user_address
+from ..channel import MarkAsPaidStrategy
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
@@ -31,7 +32,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType, VoucherType
+from ..discount import DiscountInfo, DiscountValueType, OrderDiscountType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
@@ -43,7 +44,11 @@ from ..graphql.checkout.utils import (
     prepare_insufficient_stock_checkout_validation_error,
 )
 from ..order import OrderOrigin, OrderStatus
-from ..order.actions import mark_order_as_paid, order_created
+from ..order.actions import (
+    mark_order_as_paid_with_payment,
+    mark_order_as_paid_with_transaction,
+    order_created,
+)
 from ..order.fetch import OrderInfo, OrderLineInfo
 from ..order.models import Order, OrderLine
 from ..order.notifications import send_order_confirmation
@@ -84,7 +89,6 @@ from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_inf
 
 if TYPE_CHECKING:
     from ..app.models import App
-    from ..discount.models import Voucher
     from ..plugins.manager import PluginsManager
     from ..site.models import SiteSettings
 
@@ -549,27 +553,8 @@ def _create_order(
         should_refresh_prices=False,
         tax_exemption=checkout_info.checkout.tax_exemption,
     )
-    if checkout.discount:
-        # store voucher as a fixed value as it this the simplest solution for now.
-        # This will be solved when we refactor the voucher logic to use .discounts
-        # relations
-        voucher = order_data.get("voucher")
-        # When we have a voucher for specific products we track it directly in the
-        # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest item.
-        if not voucher or (
-            voucher.type != VoucherType.SPECIFIC_PRODUCT
-            and not voucher.apply_once_per_order
-        ):
-            order.discounts.create(
-                type=OrderDiscountType.VOUCHER,
-                value_type=DiscountValueType.FIXED,
-                value=checkout.discount.amount,
-                name=checkout.discount_name,
-                translated_name=checkout.translated_discount_name,
-                currency=checkout.currency,
-                amount_value=checkout.discount_amount,
-            )
+
+    _handle_checkout_discount(order, checkout)
 
     order_lines = []
     for line_info in order_lines_info:
@@ -896,7 +881,13 @@ def complete_checkout_post_payment_part(
 
         # if the order total value is 0 it is paid from the definition
         if order.total.net.amount == 0:
-            mark_order_as_paid(order, user, app, manager)
+            if (
+                order.channel.order_mark_as_paid_strategy
+                == MarkAsPaidStrategy.PAYMENT_FLOW
+            ):
+                mark_order_as_paid_with_payment(order, user, app, manager)
+            else:
+                mark_order_as_paid_with_transaction(order, user, app, manager)
 
     return order, action_required, action_data
 
@@ -980,30 +971,20 @@ def _handle_allocations_of_order_lines(
     )
 
 
-def _handle_checkout_discount(
-    order: "Order", checkout: "Checkout", voucher: Optional["Voucher"]
-):
+def _handle_checkout_discount(order: "Order", checkout: "Checkout"):
     if checkout.discount:
         # store voucher as a fixed value as it this the simplest solution for now.
         # This will be solved when we refactor the voucher logic to use .discounts
         # relations
-
-        # When we have a voucher for specific products we track it directly in the
-        # Orderline. Voucher with 'apply_once_per_order' is handled in the same way
-        # as we apply it only for single quantity of the cheapest item.
-        if not voucher or (
-            voucher.type != VoucherType.SPECIFIC_PRODUCT
-            and not voucher.apply_once_per_order
-        ):
-            order.discounts.create(
-                type=OrderDiscountType.VOUCHER,
-                value_type=DiscountValueType.FIXED,
-                value=checkout.discount.amount,
-                name=checkout.discount_name,
-                translated_name=checkout.translated_discount_name,
-                currency=checkout.currency,
-                amount_value=checkout.discount_amount,
-            )
+        order.discounts.create(
+            type=OrderDiscountType.VOUCHER,
+            value_type=DiscountValueType.FIXED,
+            value=checkout.discount.amount,
+            name=checkout.discount_name,
+            translated_name=checkout.translated_discount_name,
+            currency=checkout.currency,
+            amount_value=checkout.discount_amount,
+        )
 
 
 def _post_create_order_actions(
@@ -1143,7 +1124,7 @@ def _create_order_from_checkout(
     )
 
     # checkout discount
-    _handle_checkout_discount(order, checkout_info.checkout, voucher)
+    _handle_checkout_discount(order, checkout_info.checkout)
 
     # lines
     order_lines_info = _create_order_lines_from_checkout_lines(

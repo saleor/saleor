@@ -33,7 +33,7 @@ from ..warehouse.dataloaders import WarehousesByChannelIdLoader
 from ..warehouse.types import Warehouse
 from . import ChannelContext
 from .dataloaders import ChannelWithHasOrdersByIdLoader
-from .enums import AllocationStrategyEnum
+from .enums import AllocationStrategyEnum, MarkAsPaidStrategyEnum
 
 if TYPE_CHECKING:
     from ...shipping.models import ShippingZone
@@ -184,6 +184,19 @@ class OrderSettings(ObjectType):
         required=False,
         description=(
             "Expiration time in minutes. Default null - means do not expire any orders."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        ),
+    )
+
+    mark_as_paid_strategy = MarkAsPaidStrategyEnum(
+        required=True,
+        description=(
+            "Determine what strategy will be used to mark the order as paid. "
+            "Based on the chosen option, the proper object will be created "
+            "and attached to the order when it's manually marked as paid."
+            "\n`PAYMENT_FLOW` - [default option] creates the `Payment` object."
+            "\n`TRANSACTION_FLOW` - creates the `TransactionItem` object."
             + ADDED_IN_313
             + PREVIEW_FEATURE
         ),
@@ -437,4 +450,5 @@ class Channel(ModelObjectType):
                 root.automatically_fulfill_non_shippable_gift_card
             ),
             expire_orders_after=root.expire_orders_after,
+            mark_as_paid_strategy=root.order_mark_as_paid_strategy,
         )

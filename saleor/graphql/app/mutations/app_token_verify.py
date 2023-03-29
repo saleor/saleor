@@ -2,6 +2,7 @@ import graphene
 from django.contrib.auth.hashers import check_password
 
 from ....app import models
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 
@@ -18,6 +19,7 @@ class AppTokenVerify(BaseMutation):
 
     class Meta:
         description = "Verify provided app token."
+        doc_category = DOC_CATEGORY_APPS
         error_type_class = AppError
         error_type_field = "app_errors"
 

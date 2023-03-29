@@ -1,10 +1,9 @@
-import graphene
-
 from ..core.descriptions import ADDED_IN_38, DEPRECATED_IN_3X_INPUT
-from ..core.types import SortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_PAGES
+from ..core.types import BaseEnum, SortInputObjectType
 
 
-class PageSortField(graphene.Enum):
+class PageSortField(BaseEnum):
     TITLE = ["title", "slug"]
     SLUG = ["slug"]
     VISIBILITY = ["is_published", "title", "slug"]
@@ -12,6 +11,9 @@ class PageSortField(graphene.Enum):
     PUBLICATION_DATE = ["published_at", "title", "slug"]
     PUBLISHED_AT = ["published_at", "title", "slug"]
     CREATED_AT = ["created_at", "title", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAGES
 
     @property
     def description(self):
@@ -30,13 +32,17 @@ class PageSortField(graphene.Enum):
 
 class PageSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         sort_enum = PageSortField
         type_name = "pages"
 
 
-class PageTypeSortField(graphene.Enum):
+class PageTypeSortField(BaseEnum):
     NAME = ["name", "slug"]
     SLUG = ["slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAGES
 
     @property
     def description(self):
@@ -48,5 +54,6 @@ class PageTypeSortField(graphene.Enum):
 
 class PageTypeSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PAGES
         sort_enum = PageTypeSortField
         type_name = "page types"

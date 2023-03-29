@@ -6,9 +6,10 @@ from ....attribute.error_codes import AttributeErrorCode
 from ....permission.enums import ProductTypePermissions
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ...core.enums import MeasurementUnitsEnum
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import AttributeError, NonNullList
+from ...core.types import AttributeError, BaseInputObjectType, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..types import Attribute
@@ -19,8 +20,11 @@ from .mixins import AttributeMixin
 class AttributeValueUpdateInput(AttributeValueInput):
     name = graphene.String(required=False, description=AttributeValueDescriptions.NAME)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeUpdateInput(graphene.InputObjectType):
+
+class AttributeUpdateInput(BaseInputObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
     unit = MeasurementUnitsEnum(description=AttributeDescriptions.UNIT, required=False)
@@ -60,6 +64,9 @@ class AttributeUpdateInput(graphene.InputObjectType):
     external_reference = graphene.String(
         description="External ID of this product." + ADDED_IN_310, required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class AttributeUpdate(AttributeMixin, ModelWithExtRefMutation):

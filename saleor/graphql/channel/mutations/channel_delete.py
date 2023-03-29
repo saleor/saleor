@@ -10,18 +10,22 @@ from ....core.tracing import traced_atomic_transaction
 from ....order.models import Order
 from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelDeleteMutation
-from ...core.types import ChannelError
+from ...core.types import BaseInputObjectType, ChannelError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 
 
-class ChannelDeleteInput(graphene.InputObjectType):
+class ChannelDeleteInput(BaseInputObjectType):
     channel_id = graphene.ID(
         required=True,
         description="ID of channel to migrate orders from origin channel.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelDelete(ModelDeleteMutation):

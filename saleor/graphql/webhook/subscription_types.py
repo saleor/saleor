@@ -1539,26 +1539,16 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         return None
 
 
-class TransactionActionRequest(SubscriptionObjectType):
+class TransactionActionBase(AbstractType):
     transaction = graphene.Field(
         TransactionItem,
-        description="Look up a transaction." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Look up a transaction.",
     )
     action = graphene.Field(
         TransactionAction,
         required=True,
-        description="Requested action data." + ADDED_IN_34 + PREVIEW_FEATURE,
+        description="Requested action data.",
     )
-
-    class Meta:
-        root_type = None
-        enable_dry_run = False
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
-        )
 
     @staticmethod
     def resolve_transaction(root, _info: ResolveInfo):
@@ -1571,6 +1561,56 @@ class TransactionActionRequest(SubscriptionObjectType):
         _, transaction_action_data = root
         transaction_action_data: TransactionActionData
         return transaction_action_data
+
+
+class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when transaction action is requested."
+            + ADDED_IN_34
+            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
+            + "(Preview Feature). Use `TransactionChargeRequested`, "
+            + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
+        )
+
+
+class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when transaction charge is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when transaction refund is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
+
+
+class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
+    class Meta:
+        interfaces = (Event,)
+        root_type = None
+        enable_dry_run = False
+        description = (
+            "Event sent when transaction cancelation is requested."
+            + ADDED_IN_313
+            + PREVIEW_FEATURE
+        )
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
@@ -1804,6 +1844,7 @@ class CalculateTaxes(SubscriptionObjectType):
             + PREVIEW_FEATURE
         )
 
+    @staticmethod
     def resolve_tax_base(root, _info: ResolveInfo):
         _, tax_base = root
         return tax_base
@@ -2090,6 +2131,11 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventSyncType.PAYMENT_CONFIRM: PaymentConfirmEvent,
     WebhookEventSyncType.PAYMENT_PROCESS: PaymentProcessEvent,
     WebhookEventSyncType.PAYMENT_LIST_GATEWAYS: PaymentListGateways,
+    WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED: (
+        TransactionCancelationRequested
+    ),
+    WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED: TransactionChargeRequested,
+    WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED: TransactionRefundRequested,
     WebhookEventSyncType.ORDER_FILTER_SHIPPING_METHODS: (OrderFilterShippingMethods),
     WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS: (
         CheckoutFilterShippingMethods

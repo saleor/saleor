@@ -7,9 +7,11 @@ import requests
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from ... import __version__
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
+from ..error_codes import AppErrorCode
 from ..installation_utils import (
     AppInstallationError,
     install_app,
@@ -91,6 +93,77 @@ def test_install_app_created_app_with_audience(
 
     # then
     assert app.audience == audience
+
+
+def test_install_app_with_required_saleor_version(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    app_manifest["requiredSaleorVersion"] = f"^{__version__}"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+
+
+def test_install_app_when_saleor_version_unsupported(
+    app_manifest, app_installation, monkeypatch
+):
+    # given
+    app_manifest["requiredSaleorVersion"] = "<3.11"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        install_app(app_installation, activate=True)
+
+    # then
+    errors = validation_error.value.error_dict["requiredSaleorVersion"]
+    assert len(errors) == 1
+    assert errors[0].code == AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
+
+
+def test_install_app_with_author(app_manifest, app_installation, monkeypatch):
+    # given
+    app_manifest["author"] = "Acme Ltd"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert App.objects.get().id == app.id
+    assert app.author == app_manifest["author"]
+
+
+def test_install_app_with_empty_author(app_manifest, app_installation, monkeypatch):
+    # given
+    app_manifest["author"] = " "
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    with pytest.raises(ValidationError) as validation_error:
+        install_app(app_installation, activate=True)
+
+    # then
+    errors = validation_error.value.error_dict["author"]
+    assert len(errors) == 1
+    assert errors[0].code == AppErrorCode.INVALID.value
 
 
 @freeze_time("2022-05-12 12:00:00")

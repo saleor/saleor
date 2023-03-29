@@ -8,8 +8,14 @@ from ...permission.enums import OrderPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import ReportingPeriod
-from ..core.fields import ConnectionField, FilterConnectionField, PermissionsField
+from ..core.fields import (
+    BaseField,
+    ConnectionField,
+    FilterConnectionField,
+    PermissionsField,
+)
 from ..core.scalars import UUID
 from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
@@ -34,6 +40,8 @@ from .mutations.order_discount_add import OrderDiscountAdd
 from .mutations.order_discount_delete import OrderDiscountDelete
 from .mutations.order_discount_update import OrderDiscountUpdate
 from .mutations.order_fulfill import OrderFulfill
+from .mutations.order_grant_refund_create import OrderGrantRefundCreate
+from .mutations.order_grant_refund_update import OrderGrantRefundUpdate
 from .mutations.order_line_delete import OrderLineDelete
 from .mutations.order_line_discount_remove import OrderLineDiscountRemove
 from .mutations.order_line_discount_update import OrderLineDiscountUpdate
@@ -66,11 +74,13 @@ def sort_field_from_kwargs(kwargs: dict) -> Optional[List[str]]:
 
 class OrderFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = OrderFilter
 
 
 class OrderDraftFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         filterset_class = DraftOrderFilter
 
 
@@ -85,13 +95,14 @@ class OrderQueries(graphene.ObjectType):
             OrderPermissions.MANAGE_ORDERS,
         ],
     )
-    order = graphene.Field(
+    order = BaseField(
         Order,
         description="Look up an order by ID or external reference.",
         id=graphene.Argument(graphene.ID, description="ID of an order."),
         external_reference=graphene.Argument(
             graphene.String, description=f"External ID of an order. {ADDED_IN_310}"
         ),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders = FilterConnectionField(
         OrderCountableConnection,
@@ -104,6 +115,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     draft_orders = FilterConnectionField(
         OrderCountableConnection,
@@ -113,6 +125,7 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
     orders_total = PermissionsField(
         TaxedMoney,
@@ -125,28 +138,30 @@ class OrderQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_ORDERS,
     )
-    order_by_token = graphene.Field(
+    order_by_token = BaseField(
         Order,
         description="Look up an order by token.",
         deprecation_reason=DEPRECATED_IN_3X_FIELD,
         token=graphene.Argument(UUID, description="The order's token.", required=True),
+        doc_category=DOC_CATEGORY_ORDERS,
     )
 
     @staticmethod
     def resolve_homepage_events(_root, info: ResolveInfo, **kwargs):
-        qs = resolve_homepage_events()
+        qs = resolve_homepage_events(info)
         return create_connection_slice(qs, info, kwargs, OrderEventCountableConnection)
 
     @staticmethod
-    def resolve_order(_root, _info: ResolveInfo, *, external_reference=None, id=None):
+    def resolve_order(_root, info: ResolveInfo, *, external_reference=None, id=None):
         validate_one_of_args_is_in_query(
             "id", id, "external_reference", external_reference
         )
         if not id:
             id = ext_ref_to_global_id_or_error(models.Order, external_reference)
         _, id = from_global_id_or_error(id, Order)
-        return resolve_order(id)
+        return resolve_order(info, id)
 
     @staticmethod
     def resolve_orders(_root, info: ResolveInfo, *, channel=None, **kwargs):
@@ -191,8 +206,8 @@ class OrderQueries(graphene.ObjectType):
         return resolve_orders_total(info, period, channel)
 
     @staticmethod
-    def resolve_order_by_token(_root, _info: ResolveInfo, *, token):
-        return resolve_order_by_token(token)
+    def resolve_order_by_token(_root, info: ResolveInfo, *, token):
+        return resolve_order_by_token(info, token)
 
 
 class OrderMutations(graphene.ObjectType):
@@ -216,6 +231,9 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_refund_products = FulfillmentRefundProducts.Field()
     order_fulfillment_return_products = FulfillmentReturnProducts.Field()
+
+    order_grant_refund_create = OrderGrantRefundCreate.Field()
+    order_grant_refund_update = OrderGrantRefundUpdate.Field()
 
     order_lines_create = OrderLinesCreate.Field()
     order_line_delete = OrderLineDelete.Field()

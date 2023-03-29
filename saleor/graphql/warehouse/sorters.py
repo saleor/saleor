@@ -1,10 +1,12 @@
-import graphene
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
+from ..core.types import BaseEnum, SortInputObjectType
 
-from ..core.types import SortInputObjectType
 
-
-class WarehouseSortField(graphene.Enum):
+class WarehouseSortField(BaseEnum):
     NAME = ["name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -16,5 +18,6 @@ class WarehouseSortField(graphene.Enum):
 
 class WarehouseSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = WarehouseSortField
         type_name = "warehouses"

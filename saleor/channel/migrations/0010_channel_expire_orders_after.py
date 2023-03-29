@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("channel", "0008_update_null_order_settings"),
+        ("channel", "0009_channel_order_mark_as_paid_strategy"),
     ]
 
     operations = [

@@ -4,16 +4,17 @@ from ....app import models
 from ....app.manifest_validations import clean_manifest_url
 from ....app.tasks import install_app_task
 from ....permission.enums import AppPermission, get_permissions
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
-from ...core.types import AppError, NonNullList
+from ...core.types import AppError, BaseInputObjectType, NonNullList
 from ...decorators import staff_member_required
 from ...utils import get_user_or_app_from_context
 from ..types import AppInstallation
 from ..utils import ensure_can_manage_permissions
 
 
-class AppInstallInput(graphene.InputObjectType):
+class AppInstallInput(BaseInputObjectType):
     app_name = graphene.String(description="Name of the app to install.")
     manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(
@@ -25,6 +26,9 @@ class AppInstallInput(graphene.InputObjectType):
         PermissionEnum,
         description="List of permission code names to assign to this app.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_APPS
 
 
 class AppInstall(ModelMutation):

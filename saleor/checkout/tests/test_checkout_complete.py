@@ -8,6 +8,7 @@ from prices import TaxedMoney
 
 from ...account import CustomerEvents
 from ...account.models import CustomerEvent
+from ...channel import MarkAsPaidStrategy
 from ...core.exceptions import InsufficientStock
 from ...core.notify_events import NotifyEventType
 from ...core.taxes import zero_money, zero_taxed_money
@@ -15,7 +16,7 @@ from ...core.tests.utils import get_site_context_payload
 from ...discount.models import VoucherCustomer
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
-from ...order import OrderEvents
+from ...order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
@@ -1189,9 +1190,56 @@ def test_create_order_use_translations(
     assert order_line.translated_variant_name == translated_variant_name
 
 
+def test_complete_checkout_0_total_with_transaction_for_mark_as_paid(
+    checkout_with_item_total_0,
+    customer_user,
+    app,
+):
+    # given
+    checkout = checkout_with_item_total_0
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order, _, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=app,
+    )
+
+    # then
+    flush_post_commit_hooks()
+
+    assert order
+    assert order.events.get(type=OrderEvents.ORDER_MARKED_AS_PAID)
+    transaction = order.payment_transactions.get()
+    assert transaction.charged_value == order.total.gross.amount
+    assert order.authorize_status == OrderAuthorizeStatus.FULL
+    assert order.charge_status == OrderChargeStatus.FULL
+
+
+@pytest.mark.parametrize(
+    "mark_as_paid_strategy",
+    [MarkAsPaidStrategy.TRANSACTION_FLOW, MarkAsPaidStrategy.PAYMENT_FLOW],
+)
 @mock.patch("saleor.plugins.manager.PluginsManager.notify")
 def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     mock_notify,
+    mark_as_paid_strategy,
     checkout_with_item_total_0,
     customer_user,
     channel_USD,
@@ -1200,6 +1248,10 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 ):
     checkout = checkout_with_item_total_0
     checkout_user = customer_user
+
+    channel = checkout.channel
+    channel.order_mark_as_paid_strategy = mark_as_paid_strategy
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
 
     # Ensure not events are existing prior
     assert not OrderEvent.objects.exists()

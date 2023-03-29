@@ -11,6 +11,7 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
 from ...discount.dataloaders import load_discounts
@@ -19,10 +20,14 @@ from ...plugins.dataloaders import get_plugin_manager_promise
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
 )
+TaxExemptionManageErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManageError(Error):
     code = TaxExemptionManageErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManage(BaseMutation):
@@ -45,6 +50,7 @@ class TaxExemptionManage(BaseMutation):
             + ADDED_IN_38
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxExemptionManageError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 

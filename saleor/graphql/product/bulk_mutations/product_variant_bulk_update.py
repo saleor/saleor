@@ -15,10 +15,11 @@ from ....product.tasks import update_product_discounted_price_task
 from ....warehouse import models as warehouse_models
 from ...attribute.utils import AttributeAssignmentMixin
 from ...core.descriptions import ADDED_IN_311, ADDED_IN_312, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ErrorPolicyEnum
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import NonNullList, ProductVariantBulkError
+from ...core.types import BaseInputObjectType, NonNullList, ProductVariantBulkError
 from ...core.utils import get_duplicated_values
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.channels import ProductVariantChannelListingAddInput
@@ -34,7 +35,7 @@ from .product_variant_bulk_create import (
 )
 
 
-class ProductVariantStocksUpdateInput(graphene.InputObjectType):
+class ProductVariantStocksUpdateInput(BaseInputObjectType):
     create = NonNullList(
         StockInput,
         description="List of warehouses to create stocks.",
@@ -51,8 +52,11 @@ class ProductVariantStocksUpdateInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ChannelListingUpdateInput(graphene.InputObjectType):
+
+class ChannelListingUpdateInput(BaseInputObjectType):
     channel_listing = graphene.ID(required=True, description="ID of a channel listing.")
     price = PositiveDecimal(description="Price of the particular variant in channel.")
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
@@ -60,8 +64,11 @@ class ChannelListingUpdateInput(graphene.InputObjectType):
         description="The threshold for preorder variant in channel."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductVariantChannelListingUpdateInput(graphene.InputObjectType):
+
+class ProductVariantChannelListingUpdateInput(BaseInputObjectType):
     create = NonNullList(
         ProductVariantChannelListingAddInput,
         description="List of channels to create variant channel listings.",
@@ -77,6 +84,9 @@ class ProductVariantChannelListingUpdateInput(graphene.InputObjectType):
         description="List of channel listings to remove.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
@@ -100,6 +110,7 @@ class ProductVariantBulkUpdateInput(ProductVariantBulkCreateInput):
 
     class Meta:
         description = "Input fields to update product variants." + ADDED_IN_311
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantBulkUpdate(BaseMutation):
@@ -139,6 +150,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         description = (
             "Update multiple product variants." + ADDED_IN_311 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductVariantBulkError
         support_meta_field = True
@@ -651,7 +663,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
 
         # check error policy
-        if any([True if error else False for error in index_error_map.values()]):
+        if any([bool(error) for error in index_error_map.values()]):
             if error_policy == ErrorPolicyEnum.REJECT_EVERYTHING.value:
                 results = get_results(instances_data_with_errors_list, True)
                 return ProductVariantBulkUpdate(count=0, results=results)
