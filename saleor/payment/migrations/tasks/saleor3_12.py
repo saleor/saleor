@@ -11,6 +11,8 @@ from django.db.models import (
     QuerySet,
     When,
 )
+from django.contrib.postgres.functions import RandomUUID
+
 
 from ....celeryconf import app
 from ...models import TransactionEvent, TransactionItem
@@ -262,3 +264,28 @@ def set_default_currency_for_transaction_event_task():
     if ids:
         set_default_currency_for_transaction_event(qs)
         set_default_currency_for_transaction_event_task.delay()
+
+
+def update_transaction_token_field(transaction_item_class, batch_size=None):
+    transaction_ids = transaction_item_class.objects.filter(
+        token__isnull=True
+    ).values_list("id", flat=True)
+
+    fully_processed = True
+    if batch_size:
+        transaction_ids = transaction_ids[:BATCH_SIZE]
+    if transaction_ids:
+        transaction_item_class.objects.filter(id__in=transaction_ids).update(
+            token=Case(When(token__isnull=True, then=RandomUUID()), default="token")
+        )
+        fully_processed = False
+    return fully_processed
+
+
+@app.task
+def update_transaction_token_field_task():
+    fully_processed = update_transaction_token_field(
+        transaction_item_class=TransactionItem, batch_size=BATCH_SIZE
+    )
+    if not fully_processed:
+        update_transaction_token_field_task.delay()

@@ -828,6 +828,8 @@ class TransactionCreate(BaseMutation):
         cls.cleanup_money_data(transaction_input)
         cls.cleanup_metadata_data(transaction_input)
         return payment_models.TransactionItem.objects.create(
+            token=uuid.uuid4(),
+            use_old_id=True,
             **transaction_input,
         )
 
