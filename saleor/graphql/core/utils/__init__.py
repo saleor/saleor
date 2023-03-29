@@ -12,6 +12,9 @@ from ....plugins.webhook.utils import APP_ID_PREFIX
 from ..validators import validate_if_int_or_uuid
 
 
+FILE_NAME_MAX_LENGTH = 55
+
+
 def snake_to_camel_case(name):
     """Convert snake_case variable name to camelCase."""
     if isinstance(name, str):
@@ -108,6 +111,7 @@ def to_global_id_or_none(instance):
 def add_hash_to_file_name(file):
     """Add unique text fragment to the file name to prevent file overriding."""
     file_name, format = os.path.splitext(file._name)
+    file_name = cut_file_name_to_max_length(file_name)
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name
@@ -132,3 +136,9 @@ def ext_ref_to_global_id_or_error(model, external_reference):
             message=f"Couldn't resolve to a node: {external_reference}",
             code="not_found",
         )
+
+def cut_file_name_to_max_length(file_name: str) -> str:
+    return (
+        file_name[:FILE_NAME_MAX_LENGTH]
+        if len(file_name) > FILE_NAME_MAX_LENGTH else file_name
+    )
