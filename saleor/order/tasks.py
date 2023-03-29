@@ -15,8 +15,8 @@ from ..discount.models import Voucher, VoucherCustomer
 from ..payment.models import Payment, TransactionItem
 from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import deallocate_stock_for_orders
-from . import OrderStatus
-from .models import Order
+from . import OrderEvents, OrderStatus
+from .models import Order, OrderEvent
 from .utils import invalidate_order_prices
 
 logger = logging.getLogger(__name__)
@@ -86,6 +86,18 @@ def _call_expired_order_events(order_ids, manager):
         call_event(manager.order_updated, order)
 
 
+def _order_expired_events(order_ids):
+    OrderEvent.objects.bulk_create(
+        [
+            OrderEvent(
+                order_id=order_id,
+                type=OrderEvents.EXPIRED,
+            )
+            for order_id in order_ids
+        ]
+    )
+
+
 def _expire_orders(manager, now):
     time_diff_func_in_minutes = (
         Func(Value("day"), now - OuterRef("created_at"), function="DATE_PART") * 24
@@ -110,6 +122,7 @@ def _expire_orders(manager, now):
             Order.objects.filter(id__in=ids_batch).update(status=OrderStatus.EXPIRED)
 
             _bulk_release_voucher_usage(ids_batch)
+            _order_expired_events(ids_batch)
             deallocate_stock_for_orders(ids_batch, manager)
             _call_expired_order_events(ids_batch, manager)
 

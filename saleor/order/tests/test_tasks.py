@@ -6,7 +6,8 @@ from django.utils import timezone
 from ...core.models import CeleryTask
 from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
-from .. import OrderStatus
+from .. import OrderEvents, OrderStatus
+from ..models import OrderEvent
 from ..tasks import expire_orders_task
 
 
@@ -127,6 +128,51 @@ def test_expire_orders_task_check_multiple_vouchers(
     assert voucher.used == 1
     voucher_percentage.refresh_from_db()
     assert voucher_percentage.used == 0
+
+
+def test_expire_orders_task_creates_order_events(order_list, allocations, channel_USD):
+    # given
+    channel_USD.expire_orders_after = 60
+    channel_USD.save()
+
+    now = timezone.now()
+    order_1 = order_list[0]
+    order_1.created_at = now
+    order_1.status = OrderStatus.UNCONFIRMED
+    order_1.save()
+
+    order_2 = order_list[1]
+    order_2.created_at = now - timezone.timedelta(minutes=120)
+    order_2.status = OrderStatus.UNCONFIRMED
+    order_2.save()
+
+    order_3 = order_list[2]
+    order_3.created_at = now - timezone.timedelta(minutes=120)
+    order_3.status = OrderStatus.UNFULFILLED
+    order_3.save()
+
+    # when
+    expire_orders_task()
+
+    # then
+    for order in order_list:
+        order.refresh_from_db()
+    assert order_1.status == OrderStatus.UNCONFIRMED
+    assert order_2.status == OrderStatus.EXPIRED
+    assert order_3.status == OrderStatus.UNFULFILLED
+
+    assert not OrderEvent.objects.filter(
+        order_id=order_1.pk,
+        type=OrderEvents.EXPIRED,
+    ).exists()
+    assert OrderEvent.objects.filter(
+        order_id=order_2.pk,
+        type=OrderEvents.EXPIRED,
+    ).exists()
+    assert not OrderEvent.objects.filter(
+        order_id=order_3.pk,
+        type=OrderEvents.EXPIRED,
+    ).exists()
 
 
 def test_expire_orders_task_with_transaction_item(

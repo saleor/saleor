@@ -90,6 +90,7 @@ class OrderEvents:
 
     OVERSOLD_ITEMS = "oversold_items"
     CANCELED = "canceled"
+    EXPIRED = "expired"
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
@@ -152,6 +153,7 @@ class OrderEvents:
         (PLACED_FROM_DRAFT, "The draft order was placed"),
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
         (CANCELED, "The order was canceled"),
+        (EXPIRED, "The order was automatically expired"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
