@@ -79,10 +79,7 @@ def test_create_payment_lines_information_order_with_voucher(payment_dummy):
     assert payment_lines_data.voucher_amount == -voucher_amount
 
 
-def get_expected_checkout_payment_lines(
-    manager, checkout_info, lines, address, discounts
-):
-    # TODO Owczar: Drop discounts
+def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
     expected_payment_lines = []
 
     for line_info in lines:
@@ -132,9 +129,8 @@ def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
-    discounts = []
     expected_payment_lines = get_expected_checkout_payment_lines(
-        manager, checkout_info, lines, address, discounts
+        manager, checkout_info, lines, address
     )
 
     assert payment_lines == expected_payment_lines
@@ -157,9 +153,8 @@ def test_create_payment_lines_information_checkout_with_voucher(
     lines, _ = fetch_checkout_lines(checkout_with_items)
     checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
-    discounts = []
     expected_payment_lines_data = get_expected_checkout_payment_lines(
-        manager, checkout_info, lines, address, discounts
+        manager, checkout_info, lines, address
     )
 
     expected_payment_lines_data.voucher_amount = -voucher_amount
