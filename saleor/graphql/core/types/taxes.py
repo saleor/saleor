@@ -23,10 +23,7 @@ from ...checkout.dataloaders import (
 )
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import BaseObjectType
-from ...discount.dataloaders import (
-    DiscountsByDateTimeLoader,
-    OrderDiscountsByOrderIDLoader,
-)
+from ...discount.dataloaders import OrderDiscountsByOrderIDLoader
 from ...order import types as order_types
 from ...order.dataloaders import OrderByIdLoader, OrderLinesByOrderIdLoader
 from ...product.dataloaders.products import (
@@ -201,9 +198,6 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                discounts = DiscountsByDateTimeLoader(info.context).load(
-                    info.context.request_time
-                )
                 checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
@@ -211,10 +205,8 @@ class TaxableObjectLine(BaseObjectType):
                     checkout.token
                 )
 
-                # TODO Owczar drop discounts
                 def calculate_line_unit_price(data):
                     (
-                        discounts,
                         checkout_info,
                         lines,
                     ) = data
@@ -228,7 +220,6 @@ class TaxableObjectLine(BaseObjectType):
 
                 return Promise.all(
                     [
-                        discounts,
                         checkout_info,
                         lines,
                     ]
@@ -246,9 +237,6 @@ class TaxableObjectLine(BaseObjectType):
         if isinstance(root, CheckoutLine):
 
             def with_checkout(checkout):
-                discounts = DiscountsByDateTimeLoader(info.context).load(
-                    info.context.request_time
-                )
                 checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                     checkout.token
                 )
@@ -256,10 +244,8 @@ class TaxableObjectLine(BaseObjectType):
                     checkout.token
                 )
 
-                # TODO Owczar: Drop discounts
                 def calculate_line_total_price(data):
                     (
-                        discounts,
                         checkout_info,
                         lines,
                     ) = data
@@ -273,7 +259,6 @@ class TaxableObjectLine(BaseObjectType):
 
                 return Promise.all(
                     [
-                        discounts,
                         checkout_info,
                         lines,
                     ]
