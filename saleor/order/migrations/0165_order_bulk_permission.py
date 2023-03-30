@@ -30,7 +30,7 @@ def assign_permissions(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0162_bulk_order_create_20230315_1312"),
+        ("order", "0164_bulk_order_create_20230315_1312"),
     ]
 
     operations = [
