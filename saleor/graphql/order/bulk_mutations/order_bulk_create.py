@@ -1025,7 +1025,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         message="Fulfillment line's warehouse is different"
                         " then order line's warehouse.",
                         field="warehouse",
-                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH,
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH,
                     )
                 )
                 return None
@@ -1036,7 +1036,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         message="Fulfillment line's product variant is different"
                         " then order line's product variant.",
                         field="variant_id",
-                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH,
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH,
                     )
                 )
                 return None
@@ -1088,17 +1088,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order.is_critical_error = True
 
         if order.is_critical_error:
-            return order
-
-        if order.order_lines_duplicates:
-            order.order_errors.append(
-                OrderBulkError(
-                    message="Multiple order lines contain the same product variant "
-                    "and warehouse.",
-                    field="lines",
-                    code=OrderBulkCreateErrorCode.DUPLICATED_INPUT_ITEM,
-                )
-            )
             return order
 
         # calculate order amounts
@@ -1215,20 +1204,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             for line in order.lines:
                 order_line = line.line
                 variant_id = order_line.variant_id
-                warehouse_id_for_allocation = line.warehouse.id
+                warehouse = line.warehouse.id
                 quantity_to_fulfill = order_line.quantity
                 quantity_fulfilled = order.orderline_quantityfulfilled_map.get(
                     order_line.id, 0
                 )
                 quantity_to_allocate = quantity_to_fulfill - quantity_fulfilled
 
-                # increase allocations
                 if quantity_to_allocate < 0:
                     order.lines_errors.append(
                         OrderBulkError(
                             message=f"There is more fulfillments, than ordered quantity"
                             f" for order line with variant: {variant_id} and warehouse:"
-                            f" {warehouse_id_for_allocation}",
+                            f" {warehouse}",
                             field="order_line",
                             code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                         )
@@ -1236,15 +1224,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order.is_critical_error = True
                     break
 
-                stock = stocks_map_copy.get(
-                    f"{variant_id}_{warehouse_id_for_allocation}"
-                )
+                stock = stocks_map_copy.get(f"{variant_id}_{warehouse}")
                 if not stock:
                     order.lines_errors.append(
                         OrderBulkError(
                             message=f"There is no stock for given product variant:"
                             f" {variant_id} and warehouse: "
-                            f"{warehouse_id_for_allocation}.",
+                            f"{warehouse}.",
                             field="order_line",
                             code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
                         )
@@ -1261,7 +1247,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         OrderBulkError(
                             message=f"Insufficient stock for product variant: "
                             f"{variant_id} and warehouse: "
-                            f"{warehouse_id_for_allocation}.",
+                            f"{warehouse}.",
                             field="order_line",
                             code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
                         )
@@ -1270,30 +1256,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
                 stock.quantity_allocated += quantity_to_allocate
 
-                # decrease quantity
                 fulfillment_lines: List[
                     OrderBulkFulfillmentLine
                 ] = order.orderline_fulfillmentlines_map.get(order_line.id, [])
                 for fulfillment_line in fulfillment_lines:
-                    warehouse_id_for_fulfillment = fulfillment_line.warehouse.id
-                    stock = stocks_map_copy.get(
-                        f"{variant_id}_{warehouse_id_for_fulfillment}"
-                    )
-                    if not stock:
-                        order.fulfillments_errors.append(
-                            OrderBulkError(
-                                message=f"There is no stock for given product variant:"
-                                f" {variant_id} and warehouse: "
-                                f"{warehouse_id_for_fulfillment}.",
-                                field="fulfillment_line",
-                                code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
-                            )
-                        )
-                        order.is_critical_error = True
-                        break
-
-                    fulfillment_line_quantity = fulfillment_line.line.quantity
-                    stock.quantity -= fulfillment_line_quantity
+                    stock.quantity -= fulfillment_line.line.quantity
 
             if not order.is_critical_error:
                 stocks_map = stocks_map_copy

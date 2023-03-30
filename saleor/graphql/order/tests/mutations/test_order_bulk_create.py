@@ -1151,7 +1151,7 @@ def test_order_bulk_create_error_warehouse_mismatch_between_order_and_fulfillmen
     assert error["field"] == "warehouse"
     assert (
         error["code"]
-        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH.name
+        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
     )
 
 
@@ -1197,7 +1197,7 @@ def test_order_bulk_create_error_variant_mismatch_between_order_and_fulfillment_
     assert error["field"] == "variant_id"
     assert (
         error["code"]
-        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH.name
+        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
     )
 
 
@@ -2015,46 +2015,6 @@ def test_order_bulk_create_error_calculate_order_line_tax_rate(
     assert db_line.tax_rate == Decimal("0.2")
 
     assert Order.objects.count() == orders_count + 1
-
-
-def test_order_bulk_create_error_duplicate_order_lines(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    orders_count = Order.objects.count()
-
-    order = order_bulk_input
-    order_line = copy.deepcopy(order["lines"][0])
-    order["lines"].append(order_line)
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert (
-        error["message"]
-        == "Multiple order lines contain the same product variant and warehouse."
-    )
-    assert error["field"] == "lines"
-    assert error["code"] == OrderBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.name
-
-    assert Order.objects.count() == orders_count
 
 
 def test_order_bulk_create_quantize_prices(

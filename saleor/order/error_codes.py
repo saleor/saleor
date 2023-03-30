@@ -60,7 +60,6 @@ class OrderBulkCreateErrorCode(Enum):
     NOTE_LENGTH = "note_length"
     INSUFFICIENT_STOCK = "insufficient_stock"
     NON_EXISTING_STOCK = "non_existing_stock"
-    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NO_RELATED_ORDER_LINE = "no_related_order_line"
     NEGATIVE_INDEX = "negative_index"
-    ORDER_LINE_FULFILLMENT_LINE_MISSMATCH = "order_line_fulfillment_line_mismatch"
+    ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
