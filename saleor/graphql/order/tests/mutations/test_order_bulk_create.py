@@ -17,8 +17,10 @@ from .....order.models import (
     OrderEvent,
     OrderLine,
 )
+from .....payment.models import TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
+from ....payment.enums import TransactionActionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
 from ...enums import StockUpdatePolicyEnum
@@ -171,6 +173,28 @@ ORDER_BULK_CREATE = """
                         fulfillmentOrder
                         status
                     }
+                    transactions {
+                        id
+                        reference
+                        type
+                        status
+                        authorizedAmount {
+                            amount
+                            currency
+                        }
+                        voidedAmount {
+                            currency
+                            amount
+                        }
+                        chargedAmount {
+                            currency
+                            amount
+                        }
+                        refundedAmount {
+                            currency
+                            amount
+                        }
+                    }
                 }
                 errors {
                     field
@@ -272,6 +296,22 @@ def order_bulk_input(
     }
     fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
 
+    transaction = {
+        "status": "Authorized for 10$",
+        "type": "Credit Card",
+        "reference": "PSP reference - 123",
+        "availableActions": [
+            TransactionActionEnum.CHARGE.name,
+            TransactionActionEnum.VOID.name,
+        ],
+        "amountAuthorized": {
+            "amount": Decimal("10"),
+            "currency": "PLN",
+        },
+        "metadata": [{"key": "test-1", "value": "123"}],
+        "privateMetadata": [{"key": "test-2", "value": "321"}],
+    }
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
@@ -288,6 +328,7 @@ def order_bulk_input(
         "weight": "10.15",
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
+        "transactions": [transaction],
     }
 
 
@@ -381,6 +422,7 @@ def test_order_bulk_create(
     address_count = Address.objects.count()
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
+    transactions_count = TransactionItem.objects.count()
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -544,12 +586,28 @@ def test_order_bulk_create(
     assert db_fulfillment_line.fulfillment_id == db_fulfillment.id
     assert db_fulfillment.lines.all()[0].id == db_fulfillment_line.id
 
+    transaction = order["transactions"][0]
+    assert transaction["reference"] == "PSP reference - 123"
+    assert transaction["type"] == "Credit Card"
+    assert transaction["status"] == "Authorized for 10$"
+    assert transaction["authorizedAmount"]["amount"] == Decimal("10")
+    assert transaction["authorizedAmount"]["currency"] == "PLN"
+    db_transaction = TransactionItem.objects.get()
+    assert db_transaction.authorized_value == Decimal("10")
+    assert db_transaction.psp_reference == "PSP reference - 123"
+    assert db_transaction.status == "Authorized for 10$"
+    assert db_transaction.order_id == db_order.id
+    assert db_transaction.name == "Credit Card"
+    assert db_transaction.metadata == {"test-1": "123"}
+    assert db_transaction.private_metadata == {"test-2": "321"}
+
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert Address.objects.count() == address_count + 2
     assert OrderEvent.objects.count() == order_events_count + 1
     assert Fulfillment.objects.count() == fulfillments_count + 1
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
+    assert TransactionItem.objects.count() == transactions_count + 1
 
 
 def test_order_bulk_create_multiple_orders(
