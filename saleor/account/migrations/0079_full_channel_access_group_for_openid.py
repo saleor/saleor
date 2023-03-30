@@ -10,7 +10,7 @@ OPENID_ID = "mirumee.authentication.openidconnect"
 
 
 def create_full_channel_access_group_for_openid(apps, schema_editor):
-    group_name = "Full channel access for openID"
+    group_name = "OpenID default group"
 
     def on_migrations_complete(sender=None, **kwargs):
         create_full_channel_access_group_task.delay(group_name)
