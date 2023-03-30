@@ -22283,6 +22283,8 @@ enum OrderBulkCreateErrorCode {
   NON_EXISTING_STOCK
   DUPLICATED_INPUT_ITEM
   NO_RELATED_ORDER_LINE
+  NEGATIVE_INDEX
+  ORDER_LINE_FULFILLMENT_LINE_MISSMATCH
 }
 
 input OrderBulkCreateInput {
@@ -22508,8 +22510,14 @@ input OrderBulkCreateFulfillmentLineInput {
   """The external ID of the product variant."""
   variantExternalReference: String
 
-  """List of stock items."""
-  stocks: [OrderFulfillStockInput!]
+  """The number of line items to be fulfilled from given warehouse."""
+  quantity: Int!
+
+  """ID of the warehouse from which the item will be fulfilled."""
+  warehouse: ID!
+
+  """0-based index of order line, which the fulfillment line refers to."""
+  orderLineIndex: Int!
 }
 
 """

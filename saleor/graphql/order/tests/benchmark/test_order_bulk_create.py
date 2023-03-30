@@ -248,12 +248,9 @@ def order_bulk_input(
     }
     fulfillment_line = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "stocks": [
-            {
-                "quantity": 5,
-                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
-            },
-        ],
+        "quantity": 5,
+        "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+        "orderLineIndex": 0,
     }
     fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
 

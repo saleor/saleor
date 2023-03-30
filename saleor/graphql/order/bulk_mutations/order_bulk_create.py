@@ -38,7 +38,6 @@ from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
 from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
-from ..mutations.order_fulfill import OrderFulfillStockInput
 from ..types import Order as OrderType
 from .utils import get_instance
 
@@ -55,15 +54,9 @@ class OrderBulkError:
 
 
 @dataclass
-class OrderBulkStock:
-    quantity: int
-    warehouse: Warehouse
-
-
-@dataclass
 class OrderBulkFulfillmentLine:
     line: FulfillmentLine
-    stock: OrderBulkStock
+    warehouse: Warehouse
 
 
 @dataclass
@@ -147,14 +140,6 @@ class OrderWithErrors:
         ]
 
     @property
-    def variantwarehouse_orderline_map(self) -> Dict[str, OrderLine]:
-        return {
-            f"{line.line.variant.id}_{line.warehouse.id}": line.line
-            for line in self.lines
-            if line.line.variant
-        }
-
-    @property
     def orderline_fulfillmentlines_map(
         self,
     ) -> Dict[UUID, List[OrderBulkFulfillmentLine]]:
@@ -171,7 +156,7 @@ class OrderWithErrors:
             order_line,
             fulfillment_lines,
         ) in self.orderline_fulfillmentlines_map.items():
-            map[order_line] = sum([line.stock.quantity for line in fulfillment_lines])
+            map[order_line] = sum([line.line.quantity for line in fulfillment_lines])
         return map
 
     @property
@@ -280,7 +265,20 @@ class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
     variant_external_reference = graphene.String(
         description="The external ID of the product variant."
     )
-    stocks = NonNullList(OrderFulfillStockInput, description="List of stock items.")
+    quantity = graphene.Int(
+        description="The number of line items to be fulfilled from given warehouse.",
+        required=True,
+    )
+    warehouse = graphene.ID(
+        description="ID of the warehouse from which the item will be fulfilled.",
+        required=True,
+    )
+    order_line_index = graphene.Int(
+        required=True,
+        description=(
+            "0-based index of order line, which the fulfillment line refers to."
+        ),
+    )
 
 
 class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
@@ -958,7 +956,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def create_single_fulfillment(
         cls,
         fulfillment_input: Dict[str, Any],
-        order_lines_with_keys: Dict[str, OrderLine],
+        order_lines: List[OrderBulkOrderLine],
         order: Order,
         object_storage: Dict[str, Any],
         errors: List[OrderBulkError],
@@ -987,40 +985,68 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             if not variant:
                 return None
 
-            for stock_input in line_input["stocks"]:
-                warehouse = cls.get_instance_with_errors(
-                    input=stock_input,
-                    errors=errors,
-                    model=Warehouse,
-                    key_map={"warehouse": "id"},
-                    object_storage=object_storage,
-                )
-                if not warehouse:
-                    return None
+            warehouse = cls.get_instance_with_errors(
+                input=line_input,
+                errors=errors,
+                model=Warehouse,
+                key_map={"warehouse": "id"},
+                object_storage=object_storage,
+            )
+            if not warehouse:
+                return None
 
-                key = f"{variant.id}_{warehouse.id}"
-                order_line = order_lines_with_keys.get(key)
-                if not order_line:
-                    errors.append(
-                        OrderBulkError(
-                            message=f"There is no related order line for given "
-                            f"variant: {variant.id} and warehouse: "
-                            f"{warehouse.id} in fulfillment line.",
-                            field="fulfillment_line",
-                            code=OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE,
-                        )
+            order_line_index = line_input["order_line_index"]
+            if order_line_index < 0:
+                errors.append(
+                    OrderBulkError(
+                        message="Order line index can't be negative.",
+                        field="order_line_index",
+                        code=OrderBulkCreateErrorCode.NEGATIVE_INDEX,
                     )
-                    return None
+                )
+                return None
 
-                stock = OrderBulkStock(
-                    quantity=stock_input["quantity"], warehouse=warehouse
+            try:
+                order_line = order_lines[order_line_index]
+            except IndexError:
+                errors.append(
+                    OrderBulkError(
+                        message=f"There is no order line with index:"
+                        f" {order_line_index}.",
+                        field="order_line_index",
+                        code=OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE,
+                    )
                 )
-                fulfillment_line = FulfillmentLine(
-                    fulfillment=fulfillment,
-                    order_line=order_line,
-                    quantity=stock_input["quantity"],
+                return None
+
+            if order_line.warehouse.id != warehouse.id:
+                errors.append(
+                    OrderBulkError(
+                        message="Fulfillment line's warehouse is different"
+                        " then order line's warehouse.",
+                        field="warehouse",
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH,
+                    )
                 )
-                lines.append(OrderBulkFulfillmentLine(fulfillment_line, stock))
+                return None
+
+            if order_line.line.variant.id != variant.id:
+                errors.append(
+                    OrderBulkError(
+                        message="Fulfillment line's product variant is different"
+                        " then order line's product variant.",
+                        field="variant_id",
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH,
+                    )
+                )
+                return None
+
+            fulfillment_line = FulfillmentLine(
+                fulfillment=fulfillment,
+                order_line=order_line.line,
+                quantity=line_input["quantity"],
+            )
+            lines.append(OrderBulkFulfillmentLine(fulfillment_line, warehouse))
 
         return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
 
@@ -1097,7 +1123,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             for fulfillment_input in fulfillments_input:
                 if fulfillment := cls.create_single_fulfillment(
                     fulfillment_input,
-                    order.variantwarehouse_orderline_map,
+                    order.lines,
                     order_instance,
                     object_storage,
                     order.fulfillments_errors,
@@ -1249,7 +1275,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkFulfillmentLine
                 ] = order.orderline_fulfillmentlines_map.get(order_line.id, [])
                 for fulfillment_line in fulfillment_lines:
-                    warehouse_id_for_fulfillment = fulfillment_line.stock.warehouse.id
+                    warehouse_id_for_fulfillment = fulfillment_line.warehouse.id
                     stock = stocks_map_copy.get(
                         f"{variant_id}_{warehouse_id_for_fulfillment}"
                     )

@@ -266,12 +266,9 @@ def order_bulk_input(
     }
     fulfillment_line = {
         "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
-        "stocks": [
-            {
-                "quantity": 5,
-                "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
-            },
-        ],
+        "quantity": 5,
+        "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+        "orderLineIndex": 0,
     }
     fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
 
@@ -326,25 +323,35 @@ def order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks(
     order_line_3["warehouse"] = warehouse_2_id
     order_line_3["quantity"] = 20
 
-    fulfillment_1_line_1 = {"variantId": variant_1_id}
-    fulfillment_1_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
-    fulfillment_1_line_1["stocks"] = [fulfillment_1_line_1_stock_1]
+    fulfillment_1_line_1 = {
+        "variantId": variant_1_id,
+        "orderLineIndex": 0,
+        "quantity": 5,
+        "warehouse": warehouse_1_id,
+    }
     fulfillment_1 = {"trackingCode": "abc-1", "lines": [fulfillment_1_line_1]}
 
-    fulfillment_2_line_1 = {"variantId": variant_1_id}
-    fulfillment_2_line_1_stock_1 = {"quantity": 5, "warehouse": warehouse_1_id}
-    fulfillment_2_line_1["stocks"] = [fulfillment_2_line_1_stock_1]
-
-    fulfillment_2_line_2 = {"variantId": variant_2_id}
-    fulfillment_2_line_2_stock_1 = {"quantity": 33, "warehouse": warehouse_1_id}
-    fulfillment_2_line_2_stock_2 = {"quantity": 17, "warehouse": warehouse_2_id}
-    fulfillment_2_line_2["stocks"] = [
-        fulfillment_2_line_2_stock_1,
-        fulfillment_2_line_2_stock_2,
-    ]
+    fulfillment_2_line_1 = {
+        "variantId": variant_1_id,
+        "orderLineIndex": 0,
+        "quantity": 5,
+        "warehouse": warehouse_1_id,
+    }
+    fulfillment_2_line_2 = {
+        "variantId": variant_2_id,
+        "orderLineIndex": 1,
+        "quantity": 33,
+        "warehouse": warehouse_1_id,
+    }
+    fulfillment_2_line_3 = {
+        "variantId": variant_2_id,
+        "orderLineIndex": 2,
+        "quantity": 17,
+        "warehouse": warehouse_2_id,
+    }
     fulfillment_2 = {
         "trackingCode": "abc-2",
-        "lines": [fulfillment_2_line_1, fulfillment_2_line_2],
+        "lines": [fulfillment_2_line_1, fulfillment_2_line_2, fulfillment_2_line_3],
     }
 
     order["lines"] = [order_line_1, order_line_2, order_line_3]
@@ -1075,17 +1082,7 @@ def test_order_bulk_create_error_no_related_order_line_for_fulfillment(
 ):
     # given
     order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    order["fulfillments"][0]["lines"][0]["variantId"] = variant_id
-    _, warehouse_fulfillment_1 = graphene.Node.from_global_id(
-        order["fulfillments"][0]["lines"][0]["stocks"][0]["warehouse"]
-    )
-
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
-    order["fulfillments"][1]["lines"][0]["stocks"][0]["warehouse"] = warehouse_id
-    _, variant_fulfillment_2 = graphene.Node.from_global_id(
-        order["fulfillments"][1]["lines"][0]["variantId"]
-    )
+    order["fulfillments"][0]["lines"][0]["orderLineIndex"] = 5
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -1107,23 +1104,101 @@ def test_order_bulk_create_error_no_related_order_line_for_fulfillment(
     data = content["data"]["orderBulkCreate"]["results"]
     assert not data[0]["order"]
 
-    error_1 = data[0]["errors"][0]
-    assert (
-        error_1["message"]
-        == f"There is no related order line for given variant: {variant.id} and "
-        f"warehouse: {warehouse_fulfillment_1} in fulfillment line."
-    )
-    assert error_1["field"] == "fulfillment_line"
-    assert error_1["code"] == OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE.name
+    error = data[0]["errors"][0]
+    assert error["message"] == "There is no order line with index: 5."
+    assert error["field"] == "order_line_index"
+    assert error["code"] == OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE.name
 
-    error_2 = data[0]["errors"][1]
-    assert (
-        error_2["message"]
-        == f"There is no related order line for given variant: {variant_fulfillment_2}"
-        f" and warehouse: {warehouse.id} in fulfillment line."
+
+def test_order_bulk_create_error_warehouse_mismatch_between_order_and_fulfillment_lines(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    warehouse,
+    variant,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    order["fulfillments"][0]["lines"][0]["warehouse"] = warehouse_id
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
     )
-    assert error_2["field"] == "fulfillment_line"
-    assert error_2["code"] == OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE.name
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["order"]
+
+    error = data[0]["errors"][0]
+    assert error["message"] == (
+        "Fulfillment line's warehouse is different then order line's warehouse."
+    )
+    assert error["field"] == "warehouse"
+    assert (
+        error["code"]
+        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH.name
+    )
+
+
+def test_order_bulk_create_error_variant_mismatch_between_order_and_fulfillment_lines(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    permission_manage_users,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    warehouse,
+    variant,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    order["fulfillments"][0]["lines"][0]["variantId"] = variant_id
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+        permission_manage_users,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["order"]
+
+    error = data[0]["errors"][0]
+    assert error["message"] == (
+        "Fulfillment line's product variant is different "
+        "then order line's product variant."
+    )
+    assert error["field"] == "variant_id"
+    assert (
+        error["code"]
+        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISSMATCH.name
+    )
 
 
 def test_order_bulk_create_stock_update_error_too_many_fulfillments(
@@ -1137,7 +1212,7 @@ def test_order_bulk_create_stock_update_error_too_many_fulfillments(
 ):
     # given
     order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    order["fulfillments"][0]["lines"][0]["stocks"][0]["quantity"] = 500
+    order["fulfillments"][0]["lines"][0]["quantity"] = 500
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
