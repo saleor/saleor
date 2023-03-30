@@ -1993,7 +1993,7 @@ def test_generate_checkout_payload(
                 )
             ),
         },
-        "lines": serialize_checkout_lines(checkout, []),
+        "lines": serialize_checkout_lines(checkout),
         "collection_point": json.loads(
             _generate_collection_point_payload(checkout.collection_point)
         )[0],

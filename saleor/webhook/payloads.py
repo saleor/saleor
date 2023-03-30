@@ -36,7 +36,6 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount import VoucherType
-from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -551,8 +550,7 @@ def generate_checkout_payload(
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
 
-    discounts = fetch_active_discounts()
-    lines_dict_data = serialize_checkout_lines(checkout, discounts)
+    lines_dict_data = serialize_checkout_lines(checkout)
 
     # todo use the most appropriate warehouse
     warehouse = None

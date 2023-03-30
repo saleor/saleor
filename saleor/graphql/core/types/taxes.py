@@ -211,6 +211,7 @@ class TaxableObjectLine(BaseObjectType):
                     checkout.token
                 )
 
+                # TODO Owczar drop discounts
                 def calculate_line_unit_price(data):
                     (
                         discounts,
@@ -255,6 +256,7 @@ class TaxableObjectLine(BaseObjectType):
                     checkout.token
                 )
 
+                # TODO Owczar: Drop discounts
                 def calculate_line_total_price(data):
                     (
                         discounts,

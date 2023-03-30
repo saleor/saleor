@@ -118,6 +118,51 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
+def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
+    # given
+    checkout = checkout_with_item
+    channel = checkout.channel
+    checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines, [discount_info]
+    )
+
+    # when
+    checkout_lines_data = serialize_checkout_lines(checkout)
+
+    # then
+    checkout.refresh_from_db()
+    assert len(checkout_lines) == 1
+    for data, line_info in zip(checkout_lines_data, checkout_lines):
+        variant = line_info.line.variant
+        product = variant.product
+        collections = line_info.collections
+        variant_channel_listing = line_info.channel_listing
+
+        base_price = variant.get_price(
+            product, collections, channel, variant_channel_listing, [discount_info]
+        )
+        undiscounted_base_price = variant.get_price(
+            product, collections, channel, variant_channel_listing
+        )
+        currency = checkout.currency
+        assert base_price < undiscounted_base_price
+        assert data == {
+            "sku": variant.sku,
+            "quantity": line_info.line.quantity,
+            "base_price": str(quantize_price(base_price.amount, currency)),
+            "currency": channel.currency_code,
+            "full_name": variant.display_product(),
+            "product_name": product.name,
+            "variant_name": variant.name,
+            "attributes": serialize_product_or_variant_attributes(variant),
+            "variant_id": variant.get_global_id(),
+        }
+    assert len(checkout_lines_data) == len(list(checkout_lines))
+
+
 @pytest.mark.parametrize(
     "charge_taxes, prices_entered_with_tax",
     [(False, False), (False, True), (True, False), (True, True)],
