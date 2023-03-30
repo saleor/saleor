@@ -13,7 +13,7 @@ from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import WeightUnitsEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 from ...types import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 PRICE_BASED_SHIPPING_MUTATION = """
@@ -471,12 +471,9 @@ def test_create_shipping_method_with_negative_min_weight(
         WEIGHT_BASED_SHIPPING_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceCreate"]
-    error = data["errors"][0]
-    assert error["field"] == "minimumOrderWeight"
-    assert error["code"] == ShippingErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -20")
 
 
 def test_create_shipping_method_with_negative_max_weight(
@@ -493,9 +490,6 @@ def test_create_shipping_method_with_negative_max_weight(
         WEIGHT_BASED_SHIPPING_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceCreate"]
-    error = data["errors"][0]
-    assert error["field"] == "maximumOrderWeight"
-    assert error["code"] == ShippingErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -15")

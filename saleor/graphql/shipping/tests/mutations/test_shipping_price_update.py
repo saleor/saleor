@@ -12,7 +12,7 @@ from .....tests.utils import dummy_editorjs
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
 from ....core.enums import WeightUnitsEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 from ...types import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 
 UPDATE_SHIPPING_PRICE_MUTATION = """
@@ -372,44 +372,58 @@ def test_update_shipping_method_maximum_delivery_days_lower_than_min_from_instan
     assert errors[0]["field"] == "maximumDeliveryDays"
 
 
-def test_update_shipping_method_multiple_errors(
+def test_update_shipping_method_negative_min_weight(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
     query = UPDATE_SHIPPING_PRICE_MUTATION
     shipping_method = shipping_zone.shipping_methods.first()
-    shipping_method.minimum_delivery_days = 10
-    shipping_method.save(update_fields=["minimum_delivery_days"])
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     shipping_method_id = graphene.Node.to_global_id(
         "ShippingMethodType", shipping_method.pk
     )
-    max_del_days = 5
     variables = {
         "shippingZone": shipping_zone_id,
         "id": shipping_method_id,
         "type": ShippingMethodTypeEnum.PRICE.name,
-        "maximumDeliveryDays": max_del_days,
-        "minimumOrderWeight": {"value": -2, "unit": WeightUnitsEnum.KG.name},
+        "minimumOrderWeight": {"value": -1, "unit": WeightUnitsEnum.KG.name},
+        "addPostalCodeRules": [],
+        "deletePostalCodeRules": [],
+        "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
+    }
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_shipping],
+        check_no_permissions=False,
+    )
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
+
+
+def test_update_shipping_method_negative_max_weight(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    query = UPDATE_SHIPPING_PRICE_MUTATION
+    shipping_method = shipping_zone.shipping_methods.first()
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethodType", shipping_method.pk
+    )
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "id": shipping_method_id,
+        "type": ShippingMethodTypeEnum.PRICE.name,
         "maximumOrderWeight": {"value": -1, "unit": WeightUnitsEnum.KG.name},
         "addPostalCodeRules": [],
         "deletePostalCodeRules": [],
         "inclusionType": PostalCodeRuleInclusionTypeEnum.EXCLUDE.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        query,
+        variables,
+        permissions=[permission_manage_shipping],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingPriceUpdate"]
-    errors = data["errors"]
-    assert not data["shippingMethod"]
-    assert len(errors) == 3
-    expected_errors = [
-        {"code": ShippingErrorCode.INVALID.name, "field": "maximumDeliveryDays"},
-        {"code": ShippingErrorCode.INVALID.name, "field": "minimumOrderWeight"},
-        {"code": ShippingErrorCode.INVALID.name, "field": "maximumOrderWeight"},
-    ]
-    for error in expected_errors:
-        assert error in errors
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 @pytest.mark.parametrize(

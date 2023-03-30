@@ -12,7 +12,7 @@ from freezegun import freeze_time
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import WeightUnitsEnum
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 CREATE_VARIANT_MUTATION = """
       mutation createVariant ($input: ProductVariantCreateInput!) {
@@ -1208,13 +1208,12 @@ def test_create_product_variant_with_negative_weight(
         }
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantCreate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 def test_create_product_variant_required_without_attributes(

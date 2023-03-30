@@ -19,6 +19,7 @@ from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
 from .....tests.utils import dummy_editorjs
+from ....tests.utils import assert_graphql_error_with_message
 
 CREATE_PRODUCT_MUTATION = """
        mutation createProduct(
@@ -883,13 +884,12 @@ def test_create_product_with_negative_weight(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productCreate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 def test_create_product_with_unicode_in_slug_and_name(

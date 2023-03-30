@@ -183,18 +183,6 @@ class ProductVariantCreate(ModelMutation):
         **kwargs,
     ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
-
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product variant can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
         quantity_limit_per_customer = cleaned_input.get("quantity_limit_per_customer")
         if quantity_limit_per_customer is not None and quantity_limit_per_customer < 1:
             raise ValidationError(

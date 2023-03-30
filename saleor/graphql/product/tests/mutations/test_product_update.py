@@ -18,6 +18,7 @@ from .....plugins.manager import PluginsManager
 from .....product.error_codes import ProductErrorCode
 from .....product.models import Product
 from ....attribute.utils import AttributeInputErrors
+from ....tests.utils import assert_graphql_error_with_message
 
 MUTATION_UPDATE_PRODUCT = """
     mutation updateProduct($productId: ID!, $input: ProductInput!) {
@@ -1876,13 +1877,12 @@ def test_update_product_with_negative_weight(
     variables = {"productId": product_id, "weight": -1}
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productUpdate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 UPDATE_PRODUCT = """

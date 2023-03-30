@@ -14,7 +14,7 @@ from .....attribute.models import AttributeValue
 from .....attribute.utils import associate_attribute_values_to_instance
 from .....product.error_codes import ProductErrorCode
 from .....tests.utils import flush_post_commit_hooks
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 
 
 def test_product_variant_update_with_new_attributes(
@@ -462,14 +462,12 @@ def test_update_product_variant_with_negative_weight(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "weight": -1}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        query,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
     )
-    variant.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantUpdate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 @pytest.mark.parametrize("quantity_value", [0, -10])

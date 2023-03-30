@@ -158,17 +158,6 @@ class ProductCreate(ModelMutation):
             clean_editor_js(description, to_string=True) if description else ""
         )
 
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to

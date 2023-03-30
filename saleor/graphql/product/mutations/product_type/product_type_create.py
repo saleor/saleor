@@ -98,17 +98,6 @@ class ProductTypeCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         cleaned_input["kind"] = cls.clean_product_kind(instance, cleaned_input)
 
-        weight = cleaned_input.get("weight")
-        if weight and weight.value < 0:
-            raise ValidationError(
-                {
-                    "weight": ValidationError(
-                        "Product type can't have negative weight.",
-                        code=ProductErrorCode.INVALID.value,
-                    )
-                }
-            )
-
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input

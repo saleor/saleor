@@ -58,20 +58,21 @@ class JSON(GenericScalar):
     @staticmethod
     def parse_literal(node):
         if not isinstance(node, ast.ObjectValue):
-            raise GraphQLError("JSON scalar needs to recieve a correct JSON structure.")
+            raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
         return node
 
 
 class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
-        weight = None
         if isinstance(value, dict):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
         if weight is None:
             raise GraphQLError(f"Unsupported value: {value}")
+        if weight.value < 0:
+            raise GraphQLError(f"Negative weight value: {weight}")
         return weight
 
     @staticmethod
@@ -83,7 +84,6 @@ class WeightScalar(graphene.Scalar):
 
     @staticmethod
     def parse_literal(node):
-        weight = None
         if isinstance(node, ast.ObjectValue):
             weight = WeightScalar.parse_literal_object(node)
         else:

@@ -5,7 +5,7 @@ import pytest
 
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductType
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 from ...enums import ProductTypeKindEnum
 
 PRODUCT_TYPE_UPDATE_MUTATION = """
@@ -327,14 +327,12 @@ def test_update_product_type_with_negative_weight(
     node_id = graphene.Node.to_global_id("ProductType", product_type.id)
     variables = {"id": node_id, "weight": "-1"}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    product_type.refresh_from_db()
-    data = content["data"]["productTypeUpdate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1")
 
 
 def test_update_product_type_kind(

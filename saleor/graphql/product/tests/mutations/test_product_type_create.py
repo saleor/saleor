@@ -6,7 +6,7 @@ import pytest
 from .....attribute import AttributeType
 from .....product.error_codes import ProductErrorCode
 from .....product.models import ProductType
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_graphql_error_with_message, get_graphql_content
 from ...enums import ProductTypeKindEnum
 
 PRODUCT_TYPE_CREATE_MUTATION = """
@@ -474,13 +474,12 @@ def test_create_product_type_create_with_negative_weight(
         "type": ProductTypeKindEnum.NORMAL.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_product_types_and_attributes]
+        query,
+        variables,
+        permissions=[permission_manage_product_types_and_attributes],
+        check_no_permissions=False,
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productTypeCreate"]
-    error = data["errors"][0]
-    assert error["field"] == "weight"
-    assert error["code"] == ProductErrorCode.INVALID.name
+    assert_graphql_error_with_message(response, "Negative weight value: -1.1")
 
 
 def test_product_type_create_mutation_not_valid_attributes(
