@@ -21,7 +21,6 @@ from .....payment import ChargeStatus, TransactionAction
 from .....payment.models import TransactionEvent, TransactionItem
 from .....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from .....warehouse.models import Warehouse
-from ....core.utils import to_global_id_or_none
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
 from ....payment.enums import TransactionEventStatusEnum
 from ....payment.types import PaymentChargeStatusEnum
@@ -727,7 +726,7 @@ def test_order_query_with_transactions_details(
             TransactionEvent(
                 message=event_name,
                 status=event_status,
-                psp_reference=f"{event_reference}{to_global_id_or_none(transaction)}",
+                psp_reference=f"{event_reference}{transaction.token}",
                 transaction=transaction,
                 currency=transaction.currency,
             )
@@ -766,7 +765,8 @@ def test_order_query_with_transactions_details(
         event = transaction["events"][0]
         assert event["name"] == event_name
         assert event["status"] == TransactionEventStatusEnum.FAILURE.name
-        assert event["pspReference"] == f"{event_reference}{transaction.get('id')}"
+        _, expected_uuid = graphene.Node.from_global_id(transaction.get("id"))
+        assert event["pspReference"] == f"{event_reference}{expected_uuid}"
 
 
 def test_order_query_shipping_method_channel_listing_does_not_exist(

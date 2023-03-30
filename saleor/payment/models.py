@@ -1,5 +1,6 @@
 from decimal import Decimal
 from operator import attrgetter
+from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -28,6 +29,8 @@ from . import (
 
 
 class TransactionItem(ModelWithMetadata):
+    token = models.UUIDField(unique=True, default=uuid4)
+    use_old_id = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=512, blank=True, null=True, default="")

@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+import graphene
 import pytest
 
 from .....payment import TransactionEventStatus, TransactionEventType
@@ -96,6 +97,9 @@ TRANSACTION_QUERY = """
 
 def _assert_transaction_fields(content, transaction_item, event):
     data = content["data"]["transaction"]
+    assert data["id"] == graphene.Node.to_global_id(
+        "TransactionItem", transaction_item.token
+    )
     assert data["createdAt"] == transaction_item.created_at.isoformat()
     assert data["actions"] == [
         action.upper() for action in transaction_item.available_actions

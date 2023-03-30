@@ -40,19 +40,12 @@ from ...tax.dataloaders import (
 from .. import ResolveInfo
 from .common import NonNullList
 from .money import Money
+from .order_or_checkout import OrderOrCheckoutBase
 
 
-class TaxSourceObject(graphene.Union):
+class TaxSourceObject(OrderOrCheckoutBase):
     class Meta:
-        types = (checkout_types.Checkout, order_types.Order)
-
-    @classmethod
-    def resolve_type(cls, instance, info: ResolveInfo):
-        if isinstance(instance, Checkout):
-            return checkout_types.Checkout
-        if isinstance(instance, Order):
-            return order_types.Order
-        return super(TaxSourceObject, cls).resolve_type(instance, info)
+        types = OrderOrCheckoutBase.get_types()
 
 
 class TaxSourceLine(graphene.Union):

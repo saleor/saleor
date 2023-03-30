@@ -115,6 +115,7 @@ class WebhookEventAsyncType:
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
+    CHECKOUT_FULLY_PAID = "checkout_fully_paid"
     CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
     NOTIFY_USER = "notify_user"
@@ -239,6 +240,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: "Product variant stock updated",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
+        CHECKOUT_FULLY_PAID: "Checkout fully paid",
         CHECKOUT_METADATA_UPDATED: "Checkout metadata updated",
         FULFILLMENT_CREATED: "Fulfillment created",
         FULFILLMENT_CANCELED: "Fulfillment cancelled",
@@ -358,6 +360,7 @@ class WebhookEventAsyncType:
         ),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
+        (CHECKOUT_FULLY_PAID, DISPLAY_LABELS[CHECKOUT_FULLY_PAID]),
         (CHECKOUT_METADATA_UPDATED, DISPLAY_LABELS[CHECKOUT_METADATA_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
         (FULFILLMENT_CANCELED, DISPLAY_LABELS[FULFILLMENT_CANCELED]),
@@ -481,6 +484,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_FULLY_PAID: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_METADATA_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
         FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
@@ -543,6 +547,10 @@ class WebhookEventSyncType:
     CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
 
+    PAYMENT_GATEWAY_INITIALIZE_SESSION = "payment_gateway_initialize_session"
+    TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
+    TRANSACTION_PROCESS_SESSION = "transaction_process_session"
+
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
         PAYMENT_CAPTURE: "Capture payment",
@@ -559,6 +567,9 @@ class WebhookEventSyncType:
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
+        PAYMENT_GATEWAY_INITIALIZE_SESSION: "Initialize payment gateway session",
+        TRANSACTION_INITIALIZE_SESSION: "Initialize transaction session",
+        TRANSACTION_PROCESS_SESSION: "Process transaction session",
     }
 
     CHOICES = [
@@ -586,6 +597,15 @@ class WebhookEventSyncType:
             CHECKOUT_FILTER_SHIPPING_METHODS,
             DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
         ),
+        (
+            PAYMENT_GATEWAY_INITIALIZE_SESSION,
+            DISPLAY_LABELS[PAYMENT_GATEWAY_INITIALIZE_SESSION],
+        ),
+        (
+            TRANSACTION_INITIALIZE_SESSION,
+            DISPLAY_LABELS[TRANSACTION_INITIALIZE_SESSION],
+        ),
+        (TRANSACTION_PROCESS_SESSION, DISPLAY_LABELS[TRANSACTION_PROCESS_SESSION]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -598,6 +618,12 @@ class WebhookEventSyncType:
         PAYMENT_PROCESS,
         PAYMENT_REFUND,
         PAYMENT_VOID,
+    ]
+
+    ALLOWED_IN_CIRCULAR_QUERY = [
+        PAYMENT_GATEWAY_INITIALIZE_SESSION,
+        TRANSACTION_INITIALIZE_SESSION,
+        TRANSACTION_PROCESS_SESSION,
     ]
 
     PERMISSIONS = {
@@ -616,4 +642,7 @@ class WebhookEventSyncType:
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
+        PAYMENT_GATEWAY_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_PROCESS_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
     }

@@ -89,7 +89,7 @@ def generate_order_transactions_search_vector_value(
     ]:
         transaction_vectors.append(
             NoValidationSearchVector(
-                Value(graphene.Node.to_global_id("TransactionItem", transaction.id)),
+                Value(graphene.Node.to_global_id("TransactionItem", transaction.token)),
                 config="simple",
                 weight="D",
             )

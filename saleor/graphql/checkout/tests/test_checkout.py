@@ -31,6 +31,7 @@ from ....warehouse import WarehouseClickAndCollectOption
 from ....warehouse.models import PreorderReservation, Reservation, Stock, Warehouse
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import assert_no_permission, get_graphql_content
+from ..enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from ..mutations.utils import (
     clean_delivery_method,
     update_checkout_shipping_method_if_invalid,
@@ -2164,7 +2165,7 @@ def test_checkout_transactions_with_manage_checkouts(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
     )
 
 
@@ -2193,5 +2194,92 @@ def test_checkout_transactions_with_handle_payments(
     assert len(content["data"]["checkout"]["transactions"]) == 1
     transaction_id = content["data"]["checkout"]["transactions"][0]["id"]
     assert transaction_id == graphene.Node.to_global_id(
-        "TransactionItem", transaction.id
+        "TransactionItem", transaction.token
+    )
+
+
+QUERY_CHECKOUT_STATUSES_AND_BALANCE = """
+query getCheckout($id: ID) {
+  checkout(id: $id) {
+    updatedAt
+    chargeStatus
+    authorizeStatus
+    totalBalance {
+      currency
+      amount
+    }
+  }
+}
+"""
+
+
+def test_checkout_payment_statuses(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    checkout_with_prices.payment_transactions.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["chargeStatus"]
+        == CheckoutChargeStatusEnum.PARTIAL.name
+    )
+    assert (
+        content["data"]["checkout"]["authorizeStatus"]
+        == CheckoutAuthorizeStatusEnum.PARTIAL.name
+    )
+
+
+def test_checkout_balance(
+    user_api_client,
+    checkout_with_prices,
+):
+    # given
+    transaction = checkout_with_prices.payment_transactions.create(
+        status="Authorized",
+        name="Credit card",
+        psp_reference="123",
+        currency="USD",
+        authorized_value=Decimal("15"),
+        charged_value=Decimal("5"),
+        charge_pending_value=Decimal("6"),
+        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+    )
+    query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
+    variables = {"id": to_global_id_or_none(checkout_with_prices)}
+
+    # when
+    response = user_api_client.post_graphql(
+        query,
+        variables,
+    )
+
+    # then
+    checkout_with_prices.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["checkout"]["totalBalance"]["amount"]
+        == transaction.charged_value
+        + transaction.charge_pending_value
+        - checkout_with_prices.total.gross.amount
     )

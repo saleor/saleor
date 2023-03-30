@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.exceptions import CircularSubscriptionSyncEvent
+from ...webhook.event_types import WebhookEventSyncType
 
 
 def prepare_insufficient_stock_checkout_validation_error(exc):
@@ -30,7 +31,13 @@ def prevent_sync_event_circular_query(func):
 
     def wrapper(*args, **kwargs):
         info = next(arg for arg in args if isinstance(arg, graphene.ResolveInfo))
-        if getattr(info.context, "sync_event", False):
+        sync_event = getattr(info.context, "sync_event", False)
+        event_type = getattr(info.context, "event_type", None)
+        event_allowed = (
+            event_type and event_type in WebhookEventSyncType.ALLOWED_IN_CIRCULAR_QUERY
+        )
+
+        if sync_event and not event_allowed:
             raise CircularSubscriptionSyncEvent(
                 "Resolving this field is not allowed in synchronous events."
             )

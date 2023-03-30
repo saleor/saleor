@@ -2,7 +2,11 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from mock import patch
 
+from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
+from .....checkout.calculations import fetch_checkout_data
+from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderEvents
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
@@ -111,7 +115,7 @@ def test_only_owner_can_update_its_transaction_by_app(
     status = "Captured for 10$"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
         },
@@ -133,7 +137,7 @@ def test_transaction_update_status_by_app(
     status = "Captured for 10$"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
         },
@@ -161,7 +165,7 @@ def test_transaction_update_metadata_by_app(
     meta_key = "key-name"
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "metadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -191,7 +195,7 @@ def test_transaction_update_metadata_incorrect_key_by_app(
     meta_key = ""
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "metadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -220,7 +224,7 @@ def test_transaction_update_private_metadata_by_app(
     meta_key = "key-name"
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "privateMetadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -250,7 +254,7 @@ def test_transaction_update_private_metadata_incorrect_key_by_app(
     meta_key = ""
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "privateMetadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -278,7 +282,7 @@ def test_transaction_update_type_by_app(
     type = "New credit card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "type": type,
         },
@@ -306,7 +310,7 @@ def test_transaction_update_name_by_app(
     name = "New credit card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "name": name,
         },
@@ -334,7 +338,7 @@ def test_transaction_update_message_by_app(
     message = "Message"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "message": message,
         },
@@ -361,7 +365,7 @@ def test_transaction_update_psp_reference_by_app(
     transaction = transaction_item_created_by_app
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "pspReference": psp_peference,
         },
@@ -390,7 +394,7 @@ def test_transaction_update_available_actions_by_app(
     available_actions = [TransactionActionEnum.REFUND.name]
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "availableActions": available_actions,
         },
@@ -446,7 +450,7 @@ def test_transaction_update_amounts_by_app(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
     }
 
@@ -509,7 +513,7 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_app(
     authorized_value = transaction.authorized_value + Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -560,7 +564,7 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_app(
     authorized_value = transaction.authorized_value - Decimal("5")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -611,7 +615,7 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     authorized_value = Decimal("0")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -659,7 +663,7 @@ def test_transaction_update_for_order_increases_order_total_charged_by_app(
     charged_value = transaction.charged_value + Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -709,7 +713,7 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_app(
     charged_value = transaction.charged_value - Decimal("5")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -759,7 +763,7 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_app
     charged_value = Decimal("0")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -802,7 +806,7 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     canceled_value = Decimal("13")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -854,7 +858,7 @@ def test_transaction_update_for_order_missing_permission_by_app(
     type = "Credit Card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
             "type": type,
@@ -890,7 +894,7 @@ def test_transaction_update_incorrect_currency_by_app(
     expected_value = Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             amount_field_name: {
                 "amount": expected_value,
@@ -926,7 +930,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_app(
     transaction_name = "Processing transaction"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
@@ -965,7 +969,7 @@ def test_creates_transaction_event_for_order_by_app(
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
@@ -1015,7 +1019,7 @@ def test_creates_transaction_event_by_reinstalled_app(
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
@@ -1050,7 +1054,7 @@ def test_only_owner_can_update_its_transaction_by_staff(
     status = "Captured for 10$"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
         },
@@ -1072,7 +1076,7 @@ def test_transaction_update_status_by_staff(
     status = "Captured for 10$"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
         },
@@ -1100,7 +1104,7 @@ def test_transaction_update_metadata_by_staff(
     meta_key = "key-name"
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "metadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -1130,7 +1134,7 @@ def test_transaction_update_metadata_incorrect_key_by_staff(
     meta_key = ""
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "metadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -1159,7 +1163,7 @@ def test_transaction_update_private_metadata_by_staff(
     meta_key = "key-name"
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "privateMetadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -1189,7 +1193,7 @@ def test_transaction_update_private_metadata_incorrect_key_by_staff(
     meta_key = ""
     meta_value = "key_value"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "privateMetadata": [{"key": meta_key, "value": meta_value}],
         },
@@ -1217,7 +1221,7 @@ def test_transaction_update_type_by_staff(
     type = "New credit card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "type": type,
         },
@@ -1245,7 +1249,7 @@ def test_transaction_update_name_by_staff(
     name = "New credit card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "name": name,
         },
@@ -1273,7 +1277,7 @@ def test_transaction_update_message_by_staff(
     message = "Message"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "message": message,
         },
@@ -1300,7 +1304,7 @@ def test_transaction_update_psp_reference_by_staff(
     transaction = transaction_item_created_by_user
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "pspReference": reference,
         },
@@ -1327,7 +1331,7 @@ def test_transaction_update_available_actions_by_staff(
     available_actions = [TransactionActionEnum.REFUND.name]
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "availableActions": available_actions,
         },
@@ -1369,7 +1373,7 @@ def test_transaction_update_amounts_by_staff(
     # given
     transaction = transaction_item_generator(user=staff_user)
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
     }
 
@@ -1410,7 +1414,7 @@ def test_transaction_update_for_order_increases_order_total_authorized_by_staff(
     authorized_value = transaction.authorized_value + Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -1461,7 +1465,7 @@ def test_transaction_update_for_order_reduces_order_total_authorized_by_staff(
     authorized_value = transaction.authorized_value - Decimal("5")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -1513,7 +1517,7 @@ def test_transaction_update_for_order_reduces_transaction_authorized_to_zero_by_
     authorized_value = Decimal("0")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -1560,7 +1564,7 @@ def test_transaction_update_for_order_increases_order_total_charged_by_staff(
     charged_value = transaction.charged_value + Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -1610,7 +1614,7 @@ def test_transaction_update_for_order_reduces_order_total_charged_by_staff(
     charged_value = transaction.charged_value - Decimal("5")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -1660,7 +1664,7 @@ def test_transaction_update_for_order_reduces_transaction_charged_to_zero_by_sta
     charged_value = Decimal("0")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountCharged": {
                 "amount": charged_value,
@@ -1695,7 +1699,7 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
     canceled_value = Decimal("13")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -1747,7 +1751,7 @@ def test_transaction_update_for_order_missing_permission_by_staff(
     type = "Credit Card"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "status": status,
             "type": type,
@@ -1783,7 +1787,7 @@ def test_transaction_update_incorrect_currency_by_staff(
     expected_value = Decimal("10")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             amount_field_name: {
                 "amount": expected_value,
@@ -1819,7 +1823,7 @@ def test_transaction_update_adds_transaction_event_to_order_by_staff(
     transaction_name = "Processing transaction"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
             "status": transaction_status,
             "pspReference": transaction_reference,
@@ -1858,7 +1862,7 @@ def test_creates_transaction_event_for_order_by_staff(
     event_reference = "PSP-ref"
     event_name = "Failed authorization"
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
             "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
@@ -1912,7 +1916,7 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_staff(
     )
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.token),
         "transaction": {
             "pspReference": psp_reference,
         },
@@ -1956,7 +1960,7 @@ def test_transaction_raises_error_when_psp_reference_already_exists_by_app(
         app=app,
     )
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", second_transaction.token),
         "transaction": {
             "pspReference": psp_reference,
         },
@@ -1990,7 +1994,7 @@ def test_transaction_update_external_url_by_app(
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "externalUrl": external_url,
         },
@@ -2017,7 +2021,7 @@ def test_transaction_update_external_url_incorrect_url_format_by_app(
     external_url = "incorrect"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "externalUrl": external_url,
         },
@@ -2045,7 +2049,7 @@ def test_transaction_update_external_url_by_staff(
     external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "externalUrl": external_url,
         },
@@ -2072,7 +2076,7 @@ def test_transaction_update_external_url_incorrect_url_format_by_staff(
     external_url = "incorrect"
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "externalUrl": external_url,
         },
@@ -2118,7 +2122,7 @@ def test_transaction_update_creates_calculation_event(
     refunded_value = Decimal("15")
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -2439,7 +2443,7 @@ def test_transaction_update_amounts_are_correct(
     recalculate_transaction_amounts(transaction)
 
     variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {field_name: {"amount": value, "currency": "USD"}},
     }
 
@@ -2477,3 +2481,153 @@ def test_transaction_update_amounts_are_correct(
             transaction.cancel_pending_value,
         ]
     ) == sum(provided_amounts.values())
+
+
+def test_transaction_create_for_checkout_updates_payment_statuses(
+    checkout_with_items,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_items.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+    authorized_value = Decimal("12")
+    charged_value = Decimal("13")
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout_with_items.refresh_from_db()
+    assert checkout_with_items.charge_status == CheckoutChargeStatus.PARTIAL
+    assert checkout_with_items.authorize_status == CheckoutAuthorizeStatus.PARTIAL
+
+
+@patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
+def test_transaction_create_for_checkout_fully_paid(
+    mocked_checkout_fully_paid,
+    checkout_with_prices,
+    permission_manage_payments,
+    app_api_client,
+    transaction_item_generator,
+    app,
+    plugins_manager,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        checkout_id=checkout_with_prices.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    checkout = checkout_with_prices
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
+    checkout_info, _ = fetch_checkout_data(
+        checkout_info, plugins_manager, lines, discounts=[]
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": checkout_info.checkout.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert checkout.charge_status == CheckoutChargeStatus.FULL
+    assert checkout.authorize_status == CheckoutAuthorizeStatus.FULL
+
+    mocked_checkout_fully_paid.assert_called_once_with(checkout)
+
+
+def test_transaction_update_accepts_old_id_for_old_transaction(
+    transaction_item_generator, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_generator(use_old_id=True)
+    status = "Captured for 10$"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "status": status,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["status"] == status
+    assert transaction.status == status
+
+
+def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
+    transaction_item_generator, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_generator(use_old_id=False)
+    status = "Captured for 10$"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
+        "transaction": {
+            "status": status,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["transactionUpdate"]["transaction"]
+    errors = content["data"]["transactionUpdate"]["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == TransactionUpdateErrorCode.NOT_FOUND.name
+    assert error["field"] == "id"

@@ -289,6 +289,8 @@ QUERY_CHANNEL_ORDER_SETTINGS = """
                 automaticallyConfirmAllNewOrders
                 automaticallyFulfillNonShippableGiftCard
                 expireOrdersAfter
+                markAsPaidStrategy
+                defaultTransactionFlowStrategy
             }
         }
     }
@@ -333,6 +335,10 @@ def test_query_channel_order_settings_as_staff_user(
         channel_data["orderSettings"]["expireOrdersAfter"]
         == channel_USD.expire_orders_after
     )
+    assert (
+        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
+    )
 
 
 def test_query_channel_order_settings_as_app(
@@ -374,6 +380,10 @@ def test_query_channel_order_settings_as_app(
     assert (
         channel_data["orderSettings"]["expireOrdersAfter"]
         == channel_USD.expire_orders_after
+    )
+    assert (
+        channel_data["orderSettings"]["defaultTransactionFlowStrategy"]
+        == channel_USD.default_transaction_flow_strategy.upper()
     )
 
 

@@ -1,40 +1,11 @@
 from datetime import timedelta
 from decimal import Decimal
-from typing import Callable, List
 
-import pytest
 from django.utils import timezone
 
 from .. import TransactionEventType
-from ..models import TransactionEvent, TransactionItem
+from ..models import TransactionItem
 from ..transaction_item_calculations import recalculate_transaction_amounts
-
-
-@pytest.fixture
-def transaction_events_generator() -> (
-    Callable[
-        [List[str], List[str], List[Decimal], TransactionItem], List[TransactionEvent]
-    ]
-):
-    def factory(
-        psp_references: List[str],
-        types: List[str],
-        amounts: List[Decimal],
-        transaction: TransactionItem,
-    ):
-        return TransactionEvent.objects.bulk_create(
-            TransactionEvent(
-                transaction=transaction,
-                psp_reference=reference,
-                type=event_type,
-                amount_value=amount,
-                include_in_calculations=True,
-                currency=transaction.currency,
-            )
-            for reference, event_type, amount in zip(psp_references, types, amounts)
-        )
-
-    return factory
 
 
 def _assert_amounts(

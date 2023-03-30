@@ -86,7 +86,7 @@ class OrderFulfillmentLineInfo(TypedDict):
 
 def order_created(
     order_info: "OrderInfo",
-    user: User,
+    user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
@@ -123,7 +123,7 @@ def order_created(
 
 def order_confirmed(
     order: "Order",
-    user: User,
+    user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
     send_confirmation_email: bool = False,
