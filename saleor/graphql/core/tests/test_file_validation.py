@@ -7,6 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from ....product.error_codes import ProductErrorCode
+from ...core.utils import FILE_NAME_MAX_LENGTH
 from ..validators.file import (
     clean_image_file,
     get_filename_from_url,
@@ -14,7 +15,6 @@ from ..validators.file import (
     is_supported_image_mimetype,
     validate_image_url,
 )
-from ...core.utils import FILE_NAME_MAX_LENGTH
 
 
 def test_get_filename_from_url_unique():

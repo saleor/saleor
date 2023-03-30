@@ -11,7 +11,6 @@ from graphql.error import GraphQLError
 from ....plugins.webhook.utils import APP_ID_PREFIX
 from ..validators import validate_if_int_or_uuid
 
-
 FILE_NAME_MAX_LENGTH = 55
 
 
