@@ -7,7 +7,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from .....attribute.error_codes import AttributeErrorCode
-from .....attribute.models import Attribute
+from .....attribute.models import Attribute, AttributeValue
 from .....core.utils.json_serializer import CustomJsonEncoder
 from .....webhook.event_types import WebhookEventAsyncType
 from .....webhook.payloads import generate_meta, generate_requestor
@@ -663,3 +663,35 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors
     assert errors[0]["field"] == "removeValues"
     assert errors[0]["code"] == AttributeErrorCode.INVALID.name
+
+
+def test_update_attribute_name_similar_value(
+    staff_api_client, attribute_without_values, permission_manage_product_types_and_attributes
+):
+    # given
+    query = UPDATE_ATTRIBUTE_MUTATION
+    attribute = attribute_without_values
+    AttributeValue.objects.create(attribute=attribute, name="15", slug="15")
+    name = "1.5"
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {
+        "input": {
+            "addValues": [{"name": name}],
+            "removeValues": []},
+        "id": node_id,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_product_types_and_attributes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    assert len(data["errors"]) == 0
+    values_edges = data["attribute"]["choices"]["edges"]
+    assert len(values_edges) == 2
+    slugs = [node["node"]["slug"] for node in values_edges]
+    assert set(slugs) == {"15", "15-2"}
