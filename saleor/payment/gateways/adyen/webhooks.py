@@ -206,7 +206,6 @@ def create_order(payment, checkout, manager):
             checkout_info=checkout_info,
             lines=lines,
             payment_data={},
-            discounts=[],
             store_source=False,
             user=checkout.user or None,
             app=None,

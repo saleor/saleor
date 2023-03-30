@@ -270,7 +270,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             lines=lines,
             payment_data=payment_data or {},
             store_source=store_source,
-            discounts=[],
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,

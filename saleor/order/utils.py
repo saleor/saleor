@@ -338,7 +338,6 @@ def add_variant_to_order(
     """
     channel = order.channel
 
-    # TODO Owczar: Consider drop discounts
     if line_data.line_id:
         line = order.lines.get(pk=line_data.line_id)
         old_quantity = line.quantity

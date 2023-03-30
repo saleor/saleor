@@ -21,7 +21,6 @@ from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
 from ..discount import DiscountInfo
-from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.fetch import fetch_order_info
 from ..order.models import Order
@@ -1162,9 +1161,7 @@ def create_transaction_event_for_transaction_session(
                 previous_refunded_value=previous_refunded_value,
             )
         elif transaction_item.checkout_id:
-            transaction_amounts_for_checkout_updated(
-                transaction_item, discounts, manager
-            )
+            transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 
@@ -1219,9 +1216,8 @@ def create_transaction_event_from_request_and_webhook_response(
             previous_refunded_value=previous_refunded_value,
         )
     elif transaction_item.checkout_id:
-        discounts = fetch_active_discounts()
         manager = get_plugins_manager()
-        transaction_amounts_for_checkout_updated(transaction_item, discounts, manager)
+        transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 

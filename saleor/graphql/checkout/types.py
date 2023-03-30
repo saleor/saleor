@@ -900,7 +900,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     @classmethod
     def resolve_total_balance(cls, root: models.Checkout, info):
         def _calculate_total_balance_for_transactions(data):
-            address, lines, checkout_info, discounts, manager, transactions = data
+            address, lines, checkout_info, manager, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,

@@ -1103,9 +1103,8 @@ class TransactionCreate(BaseMutation):
                 previous_refunded_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
-            discounts = load_discounts(info.context)
             transaction_amounts_for_checkout_updated(
-                new_transaction, discounts, manager
+                new_transaction, manager
             )
 
         if transaction_event:
@@ -1317,9 +1316,8 @@ class TransactionUpdate(TransactionCreate):
                 previous_refunded_value=previous_refunded_value,
             )
         if instance.checkout_id and money_data:
-            discounts = load_discounts(info.context)
             manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, discounts, manager)
+            transaction_amounts_for_checkout_updated(instance, manager)
 
         return TransactionUpdate(transaction=instance)
 
@@ -1652,11 +1650,8 @@ class TransactionEventReport(ModelMutation):
                     previous_refunded_value=previous_refunded_value,
                 )
             if transaction.checkout_id:
-                discounts = load_discounts(info.context)
                 manager = get_plugin_manager_promise(info.context).get()
-                transaction_amounts_for_checkout_updated(
-                    transaction, discounts, manager
-                )
+                transaction_amounts_for_checkout_updated(transaction, manager)
 
         return cls(
             already_processed=already_processed,

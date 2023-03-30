@@ -21,9 +21,7 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     )
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, discounts=[], manager=plugins_manager
-    )
+    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
 
     # then
     flush_post_commit_hooks()
@@ -53,7 +51,7 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     )
     # when
     transaction_amounts_for_checkout_updated(
-        second_transaction, discounts=[], manager=plugins_manager
+        second_transaction, manager=plugins_manager
     )
 
     # then

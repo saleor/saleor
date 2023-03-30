@@ -202,7 +202,6 @@ def _finalize_checkout(
             lines=lines,
             payment_data={},
             store_source=False,
-            discounts=[],
             user=checkout.user or None,
             app=None,
         )
