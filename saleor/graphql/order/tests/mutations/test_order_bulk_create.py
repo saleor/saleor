@@ -1823,7 +1823,10 @@ def test_order_bulk_create_error_invalid_quantity(
     assert content["data"]["orderBulkCreate"]["count"] == 0
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    assert errors[0]["message"] == "Invalid quantity; must be integer greater then 1."
+    assert (
+        errors[0]["message"] == "Invalid quantity. "
+        "Must be integer greater then or equal to 1."
+    )
     assert errors[0]["field"] == "quantity"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.INVALID_QUANTITY.name
     assert Order.objects.count() == orders_count
@@ -1836,7 +1839,7 @@ def test_order_bulk_create_error_invalid_quantity(
             -5,
             100,
             100,
-            "Invalid quantity; must be integer greater then 1.",
+            "Invalid quantity. Must be integer greater then or equal to 1.",
             OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
             "quantity",
         ),
@@ -1977,3 +1980,46 @@ def test_order_bulk_create_error_duplicate_order_lines(
     assert error["code"] == OrderBulkCreateErrorCode.DUPLICATED_INPUT_ITEM.name
 
     assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_quantize_prices(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["lines"][0]["quantity"] = 3
+    order["lines"][0]["totalPrice"]["net"] = 10
+    order["lines"][0]["undiscountedTotalPrice"]["net"] = 10
+    order["lines"][0]["totalPrice"]["gross"] = 20
+    order["lines"][0]["undiscountedTotalPrice"]["gross"] = 20
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert order["lines"][0]["unitPrice"]["gross"]["amount"] == 6.67
+    assert order["lines"][0]["unitPrice"]["net"]["amount"] == 3.33
+    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == 6.67
+    assert order["lines"][0]["undiscountedUnitPrice"]["net"]["amount"] == 3.33
+
+    db_order_line = OrderLine.objects.get()
+    assert db_order_line.unit_price.gross.amount == Decimal("6.67")
+    assert db_order_line.unit_price.net.amount == Decimal("3.33")
+    assert db_order_line.undiscounted_unit_price.gross.amount == Decimal("6.67")
+    assert db_order_line.undiscounted_unit_price.net.amount == Decimal("3.33")

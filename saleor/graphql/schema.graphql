@@ -14792,7 +14792,7 @@ type Mutation {
     orders: [OrderBulkCreateInput!]!
 
     """
-    Determine how stock should be updated, while processing the order. DEFAULT: update
+    Determine how stock should be updated, while processing the order. DEFAULT: UPDATE - Only do update, if there is enough stocks.
     """
     stockUpdatePolicy: StockUpdatePolicyEnum
   ): OrderBulkCreate

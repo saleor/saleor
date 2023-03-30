@@ -13,6 +13,7 @@ from django.utils import timezone
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
@@ -435,8 +436,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         stock_update_policy = StockUpdatePolicyEnum(
             required=False,
             description=(
-                f"Determine how stock should be updated, while processing the order. "
-                f"DEFAULT: {StockUpdatePolicy.UPDATE}"
+                "Determine how stock should be updated, while processing the order. "
+                "DEFAULT: UPDATE - Only do update, if there is enough stocks."
             ),
         )
 
@@ -590,7 +591,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
     @classmethod
     def make_order_line_calculations(
-        cls, line_input: Dict[str, Any], errors: List[OrderBulkError]
+        cls, line_input: Dict[str, Any], errors: List[OrderBulkError], currency: str
     ) -> Optional[LineAmounts]:
         gross_amount = line_input["total_price"]["gross"]
         net_amount = line_input["total_price"]["net"]
@@ -603,7 +604,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if quantity < 1 or int(quantity) != quantity:
             errors.append(
                 OrderBulkError(
-                    message="Invalid quantity; must be integer greater then 1.",
+                    message="Invalid quantity. "
+                    "Must be integer greater then or equal to 1.",
                     field="quantity",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
@@ -631,11 +633,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if is_exit_error:
             return None
 
-        unit_price_net_amount = Decimal(net_amount / quantity)
-        unit_price_gross_amount = Decimal(gross_amount / quantity)
-        undiscounted_unit_price_net_amount = Decimal(undiscounted_net_amount / quantity)
-        undiscounted_unit_price_gross_amount = Decimal(
-            undiscounted_gross_amount / quantity
+        unit_price_net_amount = quantize_price(Decimal(net_amount / quantity), currency)
+        unit_price_gross_amount = quantize_price(
+            Decimal(gross_amount / quantity), currency
+        )
+        undiscounted_unit_price_net_amount = quantize_price(
+            Decimal(undiscounted_net_amount / quantity), currency
+        )
+        undiscounted_unit_price_gross_amount = quantize_price(
+            Decimal(undiscounted_gross_amount / quantity), currency
         )
 
         if tax_rate is None and net_amount > 0:
@@ -906,7 +912,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             "tax_class_name", line_tax_class.name if line_tax_class else None
         )
 
-        line_amounts = cls.make_order_line_calculations(order_line_input, errors)
+        line_amounts = cls.make_order_line_calculations(
+            order_line_input, errors, order_input["currency"]
+        )
         if not line_amounts:
             return None
 
