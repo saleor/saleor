@@ -5,8 +5,8 @@ from text_unidecode import unidecode
 from ....attribute import ATTRIBUTE_PROPERTIES_CONFIGURATION, AttributeInputType
 from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
-from ....core.utils import prepare_unique_slug
 from ...core.validators import validate_slug_and_generate_if_needed
+from ....core.utils import prepare_unique_slug
 
 
 class AttributeMixin:
@@ -135,7 +135,9 @@ class AttributeMixin:
                     }
                 )
 
-        new_slugs = [value_data["slug"] for value_data in values_input]
+        new_slugs = [
+            value_data["slug"] for value_data in values_input
+        ]
         if len(set(new_slugs)) != len(new_slugs):
             raise ValidationError(
                 {
