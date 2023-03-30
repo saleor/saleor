@@ -666,7 +666,9 @@ def test_update_attribute_and_remove_others_attribute_value(
 
 
 def test_update_attribute_name_similar_value(
-    staff_api_client, attribute_without_values, permission_manage_product_types_and_attributes
+    staff_api_client,
+    attribute_without_values,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     query = UPDATE_ATTRIBUTE_MUTATION
@@ -675,9 +677,7 @@ def test_update_attribute_name_similar_value(
     name = "1.5"
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {
-        "input": {
-            "addValues": [{"name": name}],
-            "removeValues": []},
+        "input": {"addValues": [{"name": name}], "removeValues": []},
         "id": node_id,
     }
 
