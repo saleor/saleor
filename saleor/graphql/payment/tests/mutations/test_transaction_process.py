@@ -856,9 +856,7 @@ def test_checkout_fully_paid(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()

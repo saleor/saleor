@@ -22,9 +22,7 @@ def transaction_amounts_for_checkout_updated(
     discounts = discounts or []
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     previous_charge_status = checkout_info.checkout.charge_status
-    fetch_checkout_data(
-        checkout_info, manager, lines, discounts=discounts, force_status_update=True
-    )
+    fetch_checkout_data(checkout_info, manager, lines, force_status_update=True)
     previous_charge_status_is_fully_paid = previous_charge_status in [
         CheckoutChargeStatus.FULL,
         CheckoutChargeStatus.OVERCHARGED,

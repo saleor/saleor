@@ -1731,9 +1731,7 @@ class TransactionSessionBase(BaseMutation):
                 lines, _ = fetch_checkout_lines(source_object)
                 discounts = discounts or []
                 checkout_info = fetch_checkout_info(source_object, lines, manager)
-                checkout_info, _ = fetch_checkout_data(
-                    checkout_info, manager, lines, discounts=discounts
-                )
+                checkout_info, _ = fetch_checkout_data(checkout_info, manager, lines)
                 source_object = checkout_info.checkout
         else:
             source_object = (

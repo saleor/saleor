@@ -593,9 +593,7 @@ def test_checkout_when_amount_is_not_provided(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()
@@ -765,9 +763,7 @@ def test_checkout_with_transaction_when_amount_is_not_provided(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     checkout = checkout_info.checkout
 
     expected_charged_amount = Decimal("10")
@@ -835,9 +831,7 @@ def test_app_with_action_field_and_handle_payments(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
 
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
@@ -1151,9 +1145,7 @@ def test_checkout_fully_paid(
     checkout = checkout_with_prices
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     expected_app_identifier = "webhook.app.identifier"
     webhook_app.identifier = expected_app_identifier
     webhook_app.save()

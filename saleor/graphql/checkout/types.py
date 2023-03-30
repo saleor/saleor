@@ -873,7 +873,6 @@ class Checkout(ModelObjectType[models.Checkout]):
                 manager=manager,
                 lines=lines,
                 address=address,
-                discounts=discounts,
                 checkout_transactions=transactions,
             )
             return checkout_info.checkout.authorize_status
@@ -893,7 +892,6 @@ class Checkout(ModelObjectType[models.Checkout]):
                 manager=manager,
                 lines=lines,
                 address=address,
-                discounts=discounts,
                 checkout_transactions=transactions,
             )
             return checkout_info.checkout.charge_status

@@ -22,7 +22,6 @@ from .payment_utils import update_checkout_payment_statuses
 
 if TYPE_CHECKING:
     from ..account.models import Address
-    from ..discount import DiscountInfo
     from ..plugins.manager import PluginsManager
     from .fetch import CheckoutInfo, CheckoutLineInfo
 
@@ -491,7 +490,6 @@ def fetch_checkout_data(
     manager: "PluginsManager",
     lines: Iterable["CheckoutLineInfo"],
     address: Optional["Address"] = None,
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
     force_update: bool = False,
     checkout_transactions: Optional[Iterable["TransactionItem"]] = None,
     force_status_update: bool = False,
@@ -501,7 +499,6 @@ def fetch_checkout_data(
     This function refreshes prices if they have expired. If the checkout total has
     changed as a result, it will update the payment statuses accordingly.
     """
-    # TODO Owczar drop discounts
     previous_total_gross = checkout_info.checkout.total.gross
     checkout_info, lines = _fetch_checkout_prices_if_expired(
         checkout_info=checkout_info,
