@@ -43,10 +43,11 @@ class AttributeMixin:
             )
 
         is_swatch_attr = attribute_input_type == AttributeInputType.SWATCH
-        values_list = list(attribute.values.values_list("slug", flat=True))
+
+        slug_list = list(attribute.values.values_list("slug", flat=True))
 
         for value_data in values_input:
-            cls._validate_value(attribute, value_data, is_swatch_attr, values_list)
+            cls._validate_value(attribute, value_data, is_swatch_attr, slug_list)
 
         cls.check_values_are_unique(values_input, attribute)
 
@@ -56,7 +57,7 @@ class AttributeMixin:
         attribute: models.Attribute,
         value_data: dict,
         is_swatch_attr: bool,
-        values_list: list,
+        slug_list: list,
     ):
         """Validate the new attribute value."""
         value = value_data.get("name")
@@ -75,9 +76,9 @@ class AttributeMixin:
         else:
             cls.validate_non_swatch_attr_value(value_data)
 
-        slug_value = prepare_unique_slug(slugify(unidecode(value)), values_list)
+        slug_value = prepare_unique_slug(slugify(unidecode(value)), slug_list)
         value_data["slug"] = slug_value
-        values_list.append(slug_value)
+        slug_list.append(slug_value)
 
         attribute_value = models.AttributeValue(**value_data, attribute=attribute)
         try:
@@ -120,10 +121,10 @@ class AttributeMixin:
     @classmethod
     def check_values_are_unique(cls, values_input: dict, attribute: models.Attribute):
         # Check values uniqueness in case of creating new attribute.
-        existing_values = attribute.values.values_list("slug", flat=True)
+        existing_names = attribute.values.values_list("slug", flat=True)
         for value_data in values_input:
-            slug = slugify(unidecode(value_data["name"]))
-            if slug in existing_values:
+            name = unidecode(value_data["name"]).lower().strip()
+            if name in existing_names:
                 msg = (
                     f'Value {value_data["name"]} already exists within this attribute.'
                 )
