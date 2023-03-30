@@ -562,6 +562,30 @@ class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
         )
 
 
+class GiftCardSent(SubscriptionObjectType, GiftCardBase):
+    sent_to_email = graphene.String(
+        description="E-mail address to which gift card was sent.",
+    )
+
+    class Meta:
+        root_type = "GiftCard"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when gift card is e-mailed." + ADDED_IN_32 + PREVIEW_FEATURE
+        )
+
+    @staticmethod
+    def resolve_gift_card(root, info: ResolveInfo):
+        _, data = root
+        return data["gift_card"]
+
+    @staticmethod
+    def resolve_sent_to_email(root, info: ResolveInfo):
+        _, data = root
+        return data["sent_to_email"]
+
+
 class GiftCardStatusChanged(SubscriptionObjectType, GiftCardBase):
     class Meta:
         root_type = "GiftCard"
@@ -2179,6 +2203,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.GIFT_CARD_CREATED: GiftCardCreated,
     WebhookEventAsyncType.GIFT_CARD_UPDATED: GiftCardUpdated,
     WebhookEventAsyncType.GIFT_CARD_DELETED: GiftCardDeleted,
+    WebhookEventAsyncType.GIFT_CARD_SENT: GiftCardSent,
     WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED: GiftCardStatusChanged,
     WebhookEventAsyncType.GIFT_CARD_METADATA_UPDATED: GiftCardMetadataUpdated,
     WebhookEventAsyncType.MENU_CREATED: MenuCreated,

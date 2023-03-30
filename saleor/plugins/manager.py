@@ -1169,6 +1169,15 @@ class PluginsManager(PaymentInterface):
             "gift_card_deleted", default_value, gift_card
         )
 
+    def gift_card_sent(self, gift_card: "GiftCard", email: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "gift_card_sent",
+            default_value,
+            gift_card,
+            email,
+        )
+
     def gift_card_status_changed(self, gift_card: "GiftCard"):
         default_value = None
         return self.__run_method_on_plugins(

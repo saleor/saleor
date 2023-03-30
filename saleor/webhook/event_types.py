@@ -48,6 +48,7 @@ class WebhookEventAsyncType:
     GIFT_CARD_CREATED = "gift_card_created"
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"
+    GIFT_CARD_SENT = "gift_card_sent"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
     GIFT_CARD_METADATA_UPDATED = "gift_card_metadata_updated"
 
@@ -190,6 +191,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_CREATED: "Gift card created",
         GIFT_CARD_UPDATED: "Gift card updated",
         GIFT_CARD_DELETED: "Gift card deleted",
+        GIFT_CARD_SENT: "Gift card sent",
         GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
         GIFT_CARD_METADATA_UPDATED: "Gift card metadata updated",
         MENU_CREATED: "Menu created",
@@ -307,6 +309,7 @@ class WebhookEventAsyncType:
         (GIFT_CARD_CREATED, DISPLAY_LABELS[GIFT_CARD_CREATED]),
         (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
         (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
+        (GIFT_CARD_SENT, DISPLAY_LABELS[GIFT_CARD_SENT]),
         (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
         (GIFT_CARD_METADATA_UPDATED, DISPLAY_LABELS[GIFT_CARD_METADATA_UPDATED]),
         (MENU_CREATED, DISPLAY_LABELS[MENU_CREATED]),
@@ -434,6 +437,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_CREATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_SENT: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_METADATA_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         MENU_CREATED: MenuPermissions.MANAGE_MENUS,
