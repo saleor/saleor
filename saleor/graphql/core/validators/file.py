@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from PIL import Image, UnidentifiedImageError
 
 from ....thumbnail import MIME_TYPE_TO_PIL_IDENTIFIER
-from ..utils import add_hash_to_file_name, cut_file_name_to_max_length
+from ..utils import FILE_NAME_MAX_LENGTH, add_hash_to_file_name
 
 Image.init()
 
@@ -54,7 +54,7 @@ def get_filename_from_url(url: str) -> str:
     """Prepare unique filename for file from URL to avoid overwritting."""
     file_name = os.path.basename(url)
     name, format = os.path.splitext(file_name)
-    name = cut_file_name_to_max_length(name)
+    name = name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     return f"{name}_{hash}{format}"
 
