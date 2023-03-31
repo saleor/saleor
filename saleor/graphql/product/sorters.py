@@ -271,6 +271,7 @@ class ProductOrder(ChannelSortInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductOrderField
+        type_name = "products"
 
 
 class ProductVariantSortField(BaseEnum):
