@@ -90,6 +90,8 @@ class WeightScalar(graphene.Scalar):
             weight = WeightScalar.parse_decimal(node.value)
         if weight is None:
             raise GraphQLError(f"Unsupported value: {node.value}")
+        if weight.value < 0:
+            raise GraphQLError(f"Negative weight value: {weight}")
         return weight
 
     @staticmethod
