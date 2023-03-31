@@ -33,7 +33,7 @@ from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
 from ..core.utils.url import validate_storefront_url
-from ..discount import DiscountInfo, DiscountType, DiscountValueType
+from ..discount import DiscountType, DiscountValueType
 from ..discount.models import NotApplicable
 from ..discount.utils import (
     add_voucher_usage_by_customer,
@@ -689,7 +689,6 @@ def _prepare_checkout_with_payment(
     manager: "PluginsManager",
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Iterable["DiscountInfo"],
     tracking_code: Optional[str],
     redirect_url: Optional[str],
     payment: Optional[Payment],
@@ -811,7 +810,6 @@ def complete_checkout_pre_payment_part(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
-            discounts=[],
             tracking_code=tracking_code,
             redirect_url=redirect_url,
             payment=payment,
