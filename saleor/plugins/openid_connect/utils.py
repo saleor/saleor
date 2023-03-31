@@ -187,8 +187,6 @@ def get_user_from_oauth_access_token_in_jwt_format(
         user = get_or_create_user_from_payload(
             user_info,
             user_info_url,
-            staff_user_domains,
-            staff_default_group_name,
             last_login=token_payload.get("iat"),
         )
     except AuthenticationError as e:
@@ -275,8 +273,6 @@ def get_user_from_oauth_access_token(
     user = get_or_create_user_from_payload(
         user_info,
         oauth_url=user_info_url,
-        staff_user_domains=staff_user_domains,
-        default_group_name=staff_default_group_name,
     )
 
     email_domain = get_domain_from_email(user.email)
@@ -372,8 +368,6 @@ def get_parsed_id_token(token_data, jwks_url) -> CodeIDToken:
 def get_or_create_user_from_payload(
     payload: dict,
     oauth_url: str,
-    staff_user_domains: List[str],
-    default_group_name: str,
     last_login: Optional[int] = None,
 ) -> User:
     oidc_metadata_key = f"oidc-{oauth_url}"
