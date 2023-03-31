@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Optional, Union, cast, overload
+from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -20,7 +20,6 @@ from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from ..discount import DiscountInfo
 from ..graphql.core.utils import str_to_enum
 from ..order.fetch import fetch_order_info
 from ..order.models import Order
@@ -1379,7 +1378,6 @@ def handle_transaction_initialize_session(
     action: str,
     app: App,
     manager: PluginsManager,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     transaction_item = create_transaction_item(
         source_object=source_object, user=None, app=app, psp_reference=None
@@ -1423,7 +1421,6 @@ def handle_transaction_process_session(
     app: App,
     manager: PluginsManager,
     request_event: TransactionEvent,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     session_data = TransactionSessionData(
         transaction=transaction_item,
