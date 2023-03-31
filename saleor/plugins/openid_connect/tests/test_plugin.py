@@ -391,8 +391,6 @@ def test_external_obtain_access_tokens(
     user = get_or_create_user_from_payload(
         claims,
         oauth_url="https://saleor.io/oauth",
-        staff_user_domains=[],
-        default_group_name="",
     )
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
@@ -451,9 +449,7 @@ def test_external_obtain_access_tokens_with_permissions(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
-        claims, "https://saleor.io/oauth", staff_user_domains=[], default_group_name=""
-    )
+    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
     user.is_staff = True
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload,
@@ -525,8 +521,6 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     user = get_or_create_user_from_payload(
         claims,
         "https://saleor.io/oauth",
-        staff_user_domains=["example.com"],
-        default_group_name="",
     )
     user.refresh_from_db()
 
@@ -595,9 +589,7 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(
-        claims, "https://saleor.io/oauth", staff_user_domains=[], default_group_name=""
-    )
+    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
 
     staff_user.refresh_from_db()
     assert staff_user == user

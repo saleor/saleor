@@ -285,13 +285,10 @@ class OpenIDConnectPlugin(BasePlugin):
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url
         )
-        staff_user_domains = get_staff_user_domains(self.config)
 
         user = get_or_create_user_from_payload(
             parsed_id_token,
             self.config.authorization_url,
-            staff_user_domains,
-            self.config.default_group_name,
         )
 
         user_permissions = []
