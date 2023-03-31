@@ -7,7 +7,6 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("checkout", "0057_remove_metadata_from_checkout_model_state"),
         ("discount", "0043_sale_notification_sent_datetime"),

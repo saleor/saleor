@@ -61,7 +61,6 @@ from ..discount.models import (
     VoucherCustomer,
     VoucherTranslation,
 )
-from ..discount.utils import fetch_active_discounts
 from ..giftcard import GiftCardEvents
 from ..giftcard.models import GiftCard, GiftCardEvent, GiftCardTag
 from ..menu.models import Menu, MenuItem, MenuItemTranslation
@@ -6471,9 +6470,7 @@ def checkout_with_prices(
     channel = checkout_with_items.channel
     lines = checkout_with_items.lines.all()
     lines_info, _ = fetch_checkout_lines(checkout_with_items)
-    checkout_info = fetch_checkout_info(
-        checkout_with_items, lines, manager
-    )
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
 
     for line, line_info in zip(lines, lines_info):
         line.total_price_net_amount = base_calculations.calculate_base_line_total_price(
