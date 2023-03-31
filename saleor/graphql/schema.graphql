@@ -66,10 +66,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): WarehouseCountableConnection @doc(category: "Products")
 
@@ -88,10 +92,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): TranslatableItemConnection
 
@@ -141,10 +149,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): TaxConfigurationCountableConnection @doc(category: "Taxes")
 
@@ -184,10 +196,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): TaxClassCountableConnection @doc(category: "Taxes")
 
@@ -228,10 +244,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): StockCountableConnection @doc(category: "Products")
 
@@ -283,10 +303,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ShippingZoneCountableConnection @doc(category: "Shipping")
 
@@ -312,10 +336,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): DigitalContentCountableConnection @doc(category: "Products")
 
@@ -336,10 +364,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CategoryCountableConnection @doc(category: "Products")
 
@@ -385,10 +417,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CollectionCountableConnection @doc(category: "Products")
 
@@ -432,10 +468,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection @doc(category: "Products")
 
@@ -459,10 +499,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductTypeCountableConnection @doc(category: "Products")
 
@@ -509,10 +553,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductVariantCountableConnection @doc(category: "Products")
 
@@ -534,10 +582,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductVariantCountableConnection @doc(category: "Products")
 
@@ -566,10 +618,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): PaymentCountableConnection @doc(category: "Payments")
 
@@ -610,10 +666,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): PageCountableConnection @doc(category: "Pages")
 
@@ -637,10 +697,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): PageTypeCountableConnection @doc(category: "Pages")
 
@@ -656,10 +720,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): OrderEventCountableConnection
 
@@ -697,10 +765,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): OrderCountableConnection @doc(category: "Orders")
 
@@ -722,10 +794,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): OrderCountableConnection @doc(category: "Orders")
 
@@ -784,10 +860,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): MenuCountableConnection
 
@@ -817,10 +897,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): MenuItemCountableConnection
 
@@ -864,10 +948,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): GiftCardCountableConnection @doc(category: "Gift cards")
 
@@ -901,10 +989,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): GiftCardTagCountableConnection @doc(category: "Gift cards")
 
@@ -936,10 +1028,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): PluginCountableConnection
 
@@ -984,10 +1080,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): SaleCountableConnection @doc(category: "Discounts")
 
@@ -1032,10 +1132,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): VoucherCountableConnection @doc(category: "Discounts")
 
@@ -1067,10 +1171,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ExportFileCountableConnection
 
@@ -1123,10 +1231,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CheckoutCountableConnection @doc(category: "Checkout")
 
@@ -1142,10 +1254,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CheckoutLineCountableConnection @doc(category: "Checkout")
 
@@ -1206,10 +1322,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AttributeCountableConnection @doc(category: "Attributes")
 
@@ -1254,10 +1374,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AppCountableConnection @doc(category: "Apps")
 
@@ -1290,10 +1414,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AppExtensionCountableConnection @doc(category: "Apps")
 
@@ -1350,10 +1478,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): UserCountableConnection @doc(category: "Users")
 
@@ -1375,10 +1507,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): GroupCountableConnection @doc(category: "Users")
 
@@ -1413,10 +1549,14 @@ type Query {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): UserCountableConnection @doc(category: "Users")
 
@@ -1472,10 +1612,14 @@ type Webhook implements Node @doc(category: "Webhooks") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): EventDeliveryCountableConnection
 
@@ -2931,10 +3075,14 @@ type EventDelivery implements Node {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): EventDeliveryAttemptCountableConnection
 
@@ -3224,10 +3372,14 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ShippingZoneCountableConnection!
 
@@ -3572,10 +3724,14 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection
 
@@ -5295,10 +5451,14 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection @deprecated(reason: "This field will be removed in Saleor 4.0. Use the top-level `products` query with the `productTypes` filter.")
 
@@ -5346,10 +5506,14 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AttributeCountableConnection
 }
@@ -5535,10 +5699,14 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AttributeValueCountableConnection
 
@@ -5587,10 +5755,14 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductTypeCountableConnection!
   productVariantTypes(
@@ -5600,10 +5772,14 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductTypeCountableConnection!
 
@@ -6058,10 +6234,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CategoryCountableConnection
 
@@ -6092,10 +6272,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection
 
@@ -6107,10 +6291,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CategoryCountableConnection
   backgroundImage(
@@ -7168,10 +7356,14 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection
   backgroundImage(
@@ -7702,10 +7894,14 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): AttributeCountableConnection
 
@@ -7834,10 +8030,14 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CategoryCountableConnection
 
@@ -7853,10 +8053,14 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CollectionCountableConnection
 
@@ -7872,10 +8076,14 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection
 
@@ -7893,10 +8101,14 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductVariantCountableConnection
 
@@ -8063,10 +8275,14 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CategoryCountableConnection
 
@@ -8082,10 +8298,14 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CollectionCountableConnection
 
@@ -8101,10 +8321,14 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductCountableConnection
 
@@ -8122,10 +8346,14 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): ProductVariantCountableConnection
 
@@ -8933,10 +9161,14 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): CheckoutCountableConnection
 
@@ -8948,10 +9180,14 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): GiftCardCountableConnection
 
@@ -8972,10 +9208,14 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     """Return the elements in the list that come after the specified cursor."""
     after: String
 
-    """Return the first n elements from the list."""
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     first: Int
 
-    """Return the last n elements from the list."""
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
     last: Int
   ): OrderCountableConnection
 
