@@ -109,7 +109,7 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines)
+    calculations._recalculate_order_prices(manager, order, lines, False)
 
     # then
     assert order.total == total
@@ -119,10 +119,18 @@ def test_recalculate_order_prices(order_with_lines, order_lines, tax_data):
     for line_unit, line_total, tax_rate, line in zip(
         unit_prices, total_prices, tax_rates, lines
     ):
+        undiscounted_unit_gross = line_unit.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
+        undiscounted_total_gross = line_total.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
         assert line.unit_price == line_unit.price_with_discounts
-        assert line.undiscounted_unit_price == line_unit.undiscounted_price
+        assert line.undiscounted_unit_price.net == line_unit.undiscounted_price.net
+        assert line.undiscounted_unit_price.gross.amount == undiscounted_unit_gross
         assert line.total_price == line_total.price_with_discounts
-        assert line.undiscounted_total_price == line_total.undiscounted_price
+        assert line.undiscounted_total_price.net == line_total.undiscounted_price.net
+        assert line.undiscounted_total_price.gross.amount == undiscounted_total_gross
         assert tax_rate == line.tax_rate
 
 
@@ -158,7 +166,7 @@ def test_recalculate_order_prices_tax_error(
     manager = Mock(**manager_methods)
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines)
+    calculations._recalculate_order_prices(manager, order, lines, False)
 
     # then
     # no exception is raised
@@ -223,7 +231,7 @@ def test_recalculate_order_prices_tax_error_line_prices(
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines)
+    calculations._recalculate_order_prices(manager, order, lines, False)
 
     # then
     assert order.total == total
@@ -239,10 +247,18 @@ def test_recalculate_order_prices_tax_error_line_prices(
     for line_unit, line_total, tax_rate, line in list(
         zip(unit_prices, total_prices, tax_rates, lines)
     )[1:]:
+        undiscounted_unit_gross = line_unit.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
+        undiscounted_total_gross = line_total.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
         assert line.unit_price == line_unit.price_with_discounts
-        assert line.undiscounted_unit_price == line_unit.undiscounted_price
+        assert line.undiscounted_unit_price.net == line_unit.undiscounted_price.net
+        assert line.undiscounted_unit_price.gross.amount == undiscounted_unit_gross
         assert line.total_price == line_total.price_with_discounts
-        assert line.undiscounted_total_price == line_total.undiscounted_price
+        assert line.undiscounted_total_price.net == line_total.undiscounted_price.net
+        assert line.undiscounted_total_price.gross.amount == undiscounted_total_gross
         assert tax_rate == line.tax_rate
 
 
@@ -295,7 +311,7 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines)
+    calculations._recalculate_order_prices(manager, order, lines, False)
 
     # then
     assert order.total == subtotal + old_shipping_price
@@ -305,10 +321,19 @@ def test_recalculate_order_prices_tax_error_shipping_price(
     for line_unit, line_total, tax_rate, line in zip(
         unit_prices, total_prices, tax_rates, lines
     ):
+        undiscounted_unit_gross = line_unit.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
+        undiscounted_total_gross = line_total.undiscounted_price.net.amount * (
+            tax_rate + 1
+        )
         assert line.unit_price == line_unit.price_with_discounts
-        assert line.undiscounted_unit_price == line_unit.undiscounted_price
+        assert line.undiscounted_unit_price.net == line_unit.undiscounted_price.net
+        assert line.undiscounted_unit_price.gross.amount == undiscounted_unit_gross
         assert line.total_price == line_total.price_with_discounts
-        assert line.undiscounted_total_price == line_total.undiscounted_price
+        assert line.undiscounted_total_price.net == line_total.undiscounted_price.net
+        assert line.undiscounted_total_price.gross.amount == undiscounted_total_gross
+
         assert tax_rate == line.tax_rate
 
 
