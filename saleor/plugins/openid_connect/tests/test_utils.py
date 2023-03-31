@@ -22,15 +22,17 @@ from ....core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
+from ....permission.models import Permission
 from ..exceptions import AuthenticationError
 from ..utils import (
     JWKS_CACHE_TIME,
     JWKS_KEY,
-    _get_domain_from_email,
+    assign_staff_to_default_group_and_update_permissions,
     create_jwt_refresh_token,
     create_jwt_token,
     create_tokens_from_oauth_payload,
     fetch_jwks,
+    get_domain_from_email,
     get_or_create_user_from_payload,
     get_saleor_permission_names,
     get_saleor_permissions_qs_from_scope,
@@ -274,88 +276,6 @@ def test_get_or_create_user_from_payload_assigns_sub(customer_user):
     assert customer_user.is_staff is False
 
 
-def test_get_or_create_staff_user_from_payload_no_default_channel_group(customer_user):
-    # given
-    oauth_url = "https://saleor.io/oauth"
-    sub_id = "oauth|1234"
-    staff_user_domains = [customer_user.email.split("@")[1]]
-    default_group_name = ""
-
-    # when
-    user_from_payload = get_or_create_user_from_payload(
-        payload={"sub": sub_id, "email": customer_user.email},
-        oauth_url=oauth_url,
-        staff_user_domains=staff_user_domains,
-        default_group_name=default_group_name,
-    )
-
-    # then
-    assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
-    customer_user.refresh_from_db()
-    assert customer_user.is_staff is True
-    assert customer_user.groups.count() == 0
-
-
-def test_get_or_create_staff_user_from_payload_with_existing_default_channel_group(
-    customer_user, permission_group_no_perms_all_channels
-):
-    oauth_url = "https://saleor.io/oauth"
-    sub_id = "oauth|1234"
-    staff_user_domains = [customer_user.email.split("@")[1]]
-    default_group_name = permission_group_no_perms_all_channels.name
-
-    # when
-    user_from_payload = get_or_create_user_from_payload(
-        payload={"sub": sub_id, "email": customer_user.email},
-        oauth_url=oauth_url,
-        staff_user_domains=staff_user_domains,
-        default_group_name=default_group_name,
-    )
-
-    # then
-    assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
-    customer_user.refresh_from_db()
-    assert customer_user.is_staff is True
-    assert customer_user.groups.count() == 1
-    assert (
-        customer_user.groups.first().name == permission_group_no_perms_all_channels.name
-    )
-
-
-def test_get_or_create_staff_user_from_payload_with_new_default_channel_group(
-    customer_user,
-):
-    # given
-    oauth_url = "https://saleor.io/oauth"
-    sub_id = "oauth|1234"
-    staff_user_domains = [customer_user.email.split("@")[1]]
-    default_group_name = "test group"
-    assert Group.objects.count() == 0
-
-    # when
-    user_from_payload = get_or_create_user_from_payload(
-        payload={"sub": sub_id, "email": customer_user.email},
-        oauth_url=oauth_url,
-        staff_user_domains=staff_user_domains,
-        default_group_name=default_group_name,
-    )
-
-    # then
-    assert user_from_payload.id == customer_user.id
-    assert user_from_payload.private_metadata[f"oidc-{oauth_url}"] == sub_id
-    customer_user.refresh_from_db()
-    assert customer_user.is_staff is True
-    assert customer_user.groups.count() == 1
-    assert customer_user.groups.first().name == default_group_name
-    group = Group.objects.get()
-    assert group.name == default_group_name
-    assert group.restricted_access_to_channels is True
-    assert group.channels.count() == 0
-    assert group.permissions.count() == 0
-
-
 def test_get_or_create_user_from_payload_creates_user_with_sub():
     # given
     oauth_url = "https://saleor.io/oauth"
@@ -488,6 +408,45 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
     assert user.email == "test@example.org"
 
 
+def test_jwt_token_without_expiration_claim_mixed_permissions_from_group(
+    customer_user, monkeypatch, decoded_access_token, permission_group_manage_shipping
+):
+    # given
+    customer_user.groups.add(permission_group_manage_shipping)
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": customer_user.email,
+            "sub": token_payload["sub"],
+            "scope": token_payload["scope"],
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(
+        decoded_access_token,
+        {},
+    )
+
+    # when
+    user = get_user_from_oauth_access_token_in_jwt_format(
+        token_payload,
+        "https://example.com",
+        access_token="fake-token",
+        use_scope_permissions=True,
+        audience="",
+        staff_user_domains=[customer_user.email.split("@")[1]],
+        staff_default_group_name="",
+    )
+
+    # then
+    manage_shipping = permission_group_manage_shipping.permissions.first()
+    assert user.id == customer_user.id
+    assert manage_shipping in user.effective_permissions
+    assert len(user.effective_permissions) > 1
+    # ensure that manage_orders is not from openID scope permissions
+    assert "saleor:manage_shipping" not in token_payload["scope"]
+
+
 @pytest.mark.parametrize(
     "email, expected_domain",
     [
@@ -499,7 +458,49 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
 )
 def test_get_domain_from_email(email, expected_domain):
     # when
-    domain = _get_domain_from_email(email)
+    domain = get_domain_from_email(email)
 
     # then
     assert domain == expected_domain
+
+
+def test_assign_staff_to_default_group_and_update_permissions_new_group_created(
+    staff_user,
+):
+    # given
+    assert Group.objects.count() == 0
+    default_group_name = "test default group"
+
+    # when
+    assign_staff_to_default_group_and_update_permissions(staff_user, default_group_name)
+
+    # then
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == default_group_name
+    assert group in staff_user.groups.all()
+
+
+def test_assign_staff_to_default_group_and_update_permissions_update_user_permissions(
+    staff_user, permission_manage_orders, permission_manage_users
+):
+    # given
+    default_group_name = "test default group"
+    group = Group.objects.create(name=default_group_name)
+    group.permissions.add(permission_manage_users)
+
+    staff_user.effective_permissions = Permission.objects.filter(
+        id=permission_manage_orders.id
+    )
+
+    # when
+    assign_staff_to_default_group_and_update_permissions(
+        staff_user, "test default group"
+    )
+
+    # then
+    assert group in staff_user.groups.all()
+    assert {perm.name for perm in staff_user.effective_permissions} == {
+        permission_manage_users.name,
+        permission_manage_orders.name,
+    }

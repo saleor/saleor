@@ -59,7 +59,7 @@ def openid_plugin(settings, plugin_configuration):
         use_oauth_scope_permissions=False,
         user_info_url="https://saleor.io/userinfo",
         audience="perms",
-        staff_user_domains="example.com",
+        staff_user_domains="",
         default_group_name_for_new_staff_users="OpenID test group",
     ):
         settings.PLUGINS = ["saleor.plugins.openid_connect.plugin.OpenIDConnectPlugin"]

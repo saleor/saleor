@@ -16,6 +16,7 @@ from django.utils.timezone import make_aware
 from jwt import PyJWTError
 
 from ...account.models import Group, User
+from ...account.utils import get_user_groups_permissions
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
@@ -206,24 +207,37 @@ def get_user_from_oauth_access_token_in_jwt_format(
     else:
         audience_in_token = audience == aud
 
+    is_staff = None
+    email_domain = get_domain_from_email(user.email)
+    is_staff_email = email_domain in staff_user_domains
     is_staff_id = SALEOR_STAFF_PERMISSION
-
-    if use_scope_permissions and audience_in_token:
+    if (use_scope_permissions and audience_in_token) or is_staff_email:
         permissions = get_saleor_permissions_qs_from_scope(scope)
         if not permissions and token_permissions:
             permissions = get_saleor_permissions_from_list(token_permissions)
         user.effective_permissions = permissions
+
         is_staff_in_scope = is_staff_id in scope
         is_staff_in_token_permissions = is_staff_id in token_permissions
-        if is_staff_in_scope or is_staff_in_token_permissions or permissions:
+        if (
+            is_staff_email
+            or is_staff_in_scope
+            or is_staff_in_token_permissions
+            or permissions
+        ):
+            assign_staff_to_default_group_and_update_permissions(
+                user, staff_default_group_name
+            )
             if not user.is_staff:
-                user.is_staff = True
-                user.save(update_fields=["is_staff"])
+                is_staff = True
         elif user.is_staff:
-            user.is_staff = False
-            user.save(update_fields=["is_staff"])
+            is_staff = False
     else:
-        user.is_staff = False
+        is_staff = False
+
+    if is_staff is not None:
+        user.is_staff = is_staff
+        user.save(update_fields=["is_staff"])
 
     return user
 
@@ -264,9 +278,33 @@ def get_user_from_oauth_access_token(
         staff_user_domains=staff_user_domains,
         default_group_name=staff_default_group_name,
     )
-    if not use_scope_permissions:
+
+    email_domain = get_domain_from_email(user.email)
+    is_staff_email = email_domain in staff_user_domains
+    if not use_scope_permissions and not is_staff_email:
         user.is_staff = False
+    elif is_staff_email:
+        assign_staff_to_default_group_and_update_permissions(
+            user, staff_default_group_name
+        )
+
     return user
+
+
+def assign_staff_to_default_group_and_update_permissions(
+    user: "User", default_group_name: str
+):
+    """Assign staff user to the default permission group. and update user permissions.
+
+    If the group doesn't exist, the new group without any assigned permissions or
+    channels.
+    """
+    group, _ = Group.objects.get_or_create(
+        name=default_group_name, defaults={"restricted_access_to_channels": True}
+    )
+    user.groups.add(group)
+    group_permissions = get_user_groups_permissions(user)
+    user.effective_permissions |= group_permissions
 
 
 def create_jwt_token(
@@ -349,8 +387,6 @@ def get_or_create_user_from_payload(
         get_kwargs = {"email": user_email}
         logger.warning("Missing sub section in OIDC payload")
 
-    email_domain = _get_domain_from_email(user_email)
-
     defaults_create = {
         "is_active": True,
         "email": user_email,
@@ -376,22 +412,18 @@ def get_or_create_user_from_payload(
     if not user.is_active:  # it is true only if we fetch disabled user.
         raise AuthenticationError("Unable to log in.")
 
-    is_staff = email_domain in staff_user_domains
     _update_user_details(
         user=user,
         oidc_key=oidc_metadata_key,
         user_email=user_email,
         sub=sub,  # type: ignore
-        is_staff=is_staff,
         last_login=last_login,
     )
-    if is_staff and default_group_name:
-        _assign_staff_user_to_default_group(user, default_group_name)
 
     return user
 
 
-def _get_domain_from_email(email: str):
+def get_domain_from_email(email: str):
     """Return domain from the email."""
     _user, delim, domain = email.rpartition("@")
     return domain if delim else None
@@ -402,7 +434,6 @@ def _update_user_details(
     oidc_key: str,
     user_email: str,
     sub: str,
-    is_staff: bool,
     last_login: Optional[int],
 ):
     user_sub = user.get_value_from_private_metadata(oidc_key)
@@ -426,24 +457,8 @@ def _update_user_details(
             user.last_login = login_time
             fields_to_save.append("last_login")
 
-    if user.is_staff != is_staff:
-        user.is_staff = is_staff
-        fields_to_save.append("is_staff")
-
     if fields_to_save:
         user.save(update_fields=fields_to_save)
-
-
-def _assign_staff_user_to_default_group(user: User, default_group_name: str):
-    """Assign staff user to the default permission group.
-
-    If the group doesn't exist, the new group without any assigned permissions or
-    channels.
-    """
-    group, _ = Group.objects.get_or_create(
-        name=default_group_name, defaults={"restricted_access_to_channels": True}
-    )
-    group.user_set.add(user)
 
 
 def get_staff_user_domains(
