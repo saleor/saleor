@@ -395,7 +395,7 @@ class OpenIDConnectPlugin(BasePlugin):
             )
             user = get_user_from_token(parsed_id_token)
 
-            user_permissions = self._get_and_update_user_permissions(
+            user_permissions = self.get_and_update_user_permissions(
                 user, self.config.use_scope_permissions, token_data.get("scope")
             )
 
@@ -412,7 +412,7 @@ class OpenIDConnectPlugin(BasePlugin):
                 {"refreshToken": ValidationError(str(e), code=error_code)}
             )
 
-    def _get_and_update_user_permissions(
+    def get_and_update_user_permissions(
         self, user: User, use_scope_permissions: bool, scope: str
     ):
         """Update user permissions based on scope and user groups' permissions."""

@@ -194,8 +194,15 @@ def test_external_refresh_from_input(
 
 @freeze_time("2019-03-18 12:00:00")
 def test_external_refresh_with_scope_permissions(
-    openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+    openid_plugin,
+    admin_user,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
+    permission_manage_users,
 ):
+    # given
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
@@ -227,15 +234,21 @@ def test_external_refresh_with_scope_permissions(
     saleor_refresh_token = create_jwt_refresh_token(
         admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
+    group = Group.objects.create(name=plugin.config.default_group_name)
+    group.permissions.add(permission_manage_users)
+    admin_user.groups.add(group)
 
     request = rf.request()
     data = {"refreshToken": saleor_refresh_token}
+
+    # when
     response = plugin.external_refresh(data, request, None)
 
+    # then
     decoded_token = jwt_decode(response.token)
     assert decoded_token["exp"] == id_payload["exp"]
     assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
-    assert decoded_token["permissions"] == ["MANAGE_ORDERS"]
+    assert set(decoded_token["permissions"]) == {"MANAGE_ORDERS", "MANAGE_USERS"}
 
     decoded_refresh_token = jwt_decode(response.refresh_token)
     assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
@@ -244,6 +257,10 @@ def test_external_refresh_with_scope_permissions(
         "https://saleor.io/oauth/token",
         refresh_token=oauth_refresh_token,
     )
+
+    user = response.user
+    assert user.is_staff
+    assert permission_manage_users in user.effective_permissions
 
 
 @freeze_time("2019-03-18 12:00:00")
