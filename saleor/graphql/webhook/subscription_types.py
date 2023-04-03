@@ -563,7 +563,7 @@ class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
 
 
 class GiftCardSent(SubscriptionObjectType, GiftCardBase):
-    channel=graphene.String(
+    channel = graphene.String(
         description="Slug of a channel for which this gift card email was sent."
     )
     sent_to_email = graphene.String(

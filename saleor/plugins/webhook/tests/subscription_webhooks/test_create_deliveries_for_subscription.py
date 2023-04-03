@@ -542,7 +542,7 @@ def test_gift_card_sent(gift_card, channel_USD, subscription_gift_card_sent_webh
             "channel_slug": channel_USD.slug,
             "sent_to_email": "client@example.com",
         },
-        webhooks
+        webhooks,
     )
 
     # then
