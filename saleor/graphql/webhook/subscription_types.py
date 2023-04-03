@@ -563,6 +563,9 @@ class GiftCardDeleted(SubscriptionObjectType, GiftCardBase):
 
 
 class GiftCardSent(SubscriptionObjectType, GiftCardBase):
+    channel=graphene.String(
+        description="Slug of a channel for which this gift card email was sent."
+    )
     sent_to_email = graphene.String(
         description="E-mail address to which gift card was sent.",
     )
@@ -579,6 +582,11 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
     def resolve_gift_card(root, info: ResolveInfo):
         _, data = root
         return data["gift_card"]
+
+    @staticmethod
+    def resolve_channel(root, info: ResolveInfo):
+        _, data = root
+        return data["channel_slug"]
 
     @staticmethod
     def resolve_sent_to_email(root, info: ResolveInfo):

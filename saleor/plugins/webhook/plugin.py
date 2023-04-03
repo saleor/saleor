@@ -381,7 +381,13 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.GIFT_CARD_DELETED, gift_card
         )
 
-    def gift_card_sent(self, gift_card: "GiftCard", email: str, previous_value: None) -> None:
+    def gift_card_sent(
+        self,
+        gift_card: "GiftCard",
+        channel_slug: str,
+        sent_to_email: str,
+        previous_value: None,
+    ) -> None:
         if not self.active:
             return previous_value
 
@@ -391,7 +397,8 @@ class WebhookPlugin(BasePlugin):
                 {
                     "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
                     "is_active": gift_card.is_active,
-                    "sent_to_email": email,
+                    "channel_slug": channel_slug,
+                    "sent_to_email": sent_to_email,
                     "meta": self._generate_meta(),
                 }
             )
@@ -399,7 +406,11 @@ class WebhookPlugin(BasePlugin):
                 payload,
                 event_type,
                 webhooks,
-                {"gift_card": gift_card, "sent_to_email": email},
+                {
+                    "gift_card": gift_card,
+                    "channel_slug": channel_slug,
+                    "sent_to_email": sent_to_email,
+                },
                 self.requestor,
             )
 
