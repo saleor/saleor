@@ -8,4 +8,7 @@ class Command(BaseCommand):
     help = "Writes SDL for GraphQL API schema to stdout"
 
     def handle(self, *args, **options):
-        self.stdout.write(print_schema(schema))
+        # self.stdout.write(print_schema(schema))
+        with open("new-schema.graphql", "w") as fp:
+            s = print_schema(schema)
+            fp.write(s)

@@ -575,7 +575,7 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when gift card is e-mailed." + ADDED_IN_32 + PREVIEW_FEATURE
+            "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
         )
 
     @staticmethod
