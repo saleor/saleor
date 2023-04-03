@@ -544,7 +544,6 @@ def test_gift_card_sent(gift_card, channel_USD, subscription_gift_card_sent_webh
         },
         webhooks
     )
-    print(deliveries)
 
     # then
     expected_payload = json.loads(generate_gift_card_payload(gift_card, gift_card_id))
