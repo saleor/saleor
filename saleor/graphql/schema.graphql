@@ -1737,7 +1737,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   A gift card has been sent.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -2364,7 +2364,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   A gift card has been sent.
   
-  Added in Saleor 3.8.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
