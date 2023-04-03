@@ -698,7 +698,7 @@ def test_create_gift_card_trigger_webhook(
 @freeze_time("2022-05-12 12:00:00")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
-def test_create_gift_card_with_email_trigger_gift_card_sent_webhook(
+def test_create_gift_card_with_email_triggers_gift_card_sent_webhook(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,
     any_webhook,
