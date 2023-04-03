@@ -13,10 +13,12 @@ All notable, unreleased changes to this project will be documented in this file.
     - Add new types:
       - `OrderGrantedRefund` - The details of granted refund.
     - Add new webhooks:
+      - `GIFT_CARD_SENT` - triggered when gift card e-mail is sent to recipient.
       - `TRANSACTION_CHARGE_REQUESTED` - triggered when a staff user request charge for the transaction.
       - `TRANSACTION_REFUND_REQUESTED` - triggered when a staff user request refund for the transaction.
       - `TRANSACTION_CANCELATION_REQUESTED` - triggered when a staff user request cancelation for the transaction.
     - Add new webhook subscriptions:
+      - `GiftCardSent` - Event sent when gift card e-mail is sent to recipient.
       - `TransactionChargeRequested` - Event sent when transaction charge is requested.
       - `TransactionRefundRequested` - Event sent when transaction refund is requested.
       - `TransactionCancelationRequested` - Event sent when transaction cancelation is requested.
@@ -139,6 +141,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
 - Add new field `author` to the App manifest - #12166 by @przlada
+- Add `GIFT_CARD_SENT` asynchronous event to webhooks - #12472 by @rafalp
 
 # 3.12.0
 
