@@ -19,8 +19,8 @@ class ThumbnailFormat:
 
 
 # PIL-supported file formats as found here:
-# https://infohost.nmt.edu/tcc/help/pubs/pil/formats.html
-# {mime type: PIL Identifier}
+# https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html
+# Dict structure: {<mime-type>: <PIL-identifier>}
 MIME_TYPE_TO_PIL_IDENTIFIER = {
     "image/avif": "AVIF",
     "image/bmp": "BMP",
