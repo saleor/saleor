@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('checkout', '0055_add_last_change_idx'),
-        ('checkout', '0057_remove_metadata_from_checkout_model_state'),
+        ("checkout", "0055_add_last_change_idx"),
+        ("checkout", "0057_remove_metadata_from_checkout_model_state"),
     ]
 
-    operations = [
-    ]
+    operations = []
