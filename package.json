@@ -22,5 +22,8 @@
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
     "release": "release-it"
+  },
+  "dependencies": {
+    "ws": "^8.13.0"
   }
 }
