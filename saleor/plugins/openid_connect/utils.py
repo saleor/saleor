@@ -295,10 +295,14 @@ def assign_staff_to_default_group_and_update_permissions(
     If the group doesn't exist, the new group without any assigned permissions or
     channels.
     """
-    group, _ = Group.objects.get_or_create(
-        name=default_group_name, defaults={"restricted_access_to_channels": True}
+    default_group_name = (
+        default_group_name.strip() if default_group_name else default_group_name
     )
-    user.groups.add(group)
+    if default_group_name:
+        group, _ = Group.objects.get_or_create(
+            name=default_group_name, defaults={"restricted_access_to_channels": True}
+        )
+        user.groups.add(group)
     group_permissions = get_user_groups_permissions(user)
     user.effective_permissions |= group_permissions
 
@@ -461,7 +465,9 @@ def get_staff_user_domains(
     """Return staff user domains for given gateway configuration."""
     staff_domains = config.staff_user_domains
     return (
-        [domain.strip() for domain in staff_domains.split(",")] if staff_domains else []
+        [domain.strip().lower() for domain in staff_domains.split(",")]
+        if staff_domains
+        else []
     )
 
 

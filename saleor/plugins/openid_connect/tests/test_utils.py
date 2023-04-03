@@ -543,6 +543,46 @@ def test_jwt_token_without_expiration_claim_with_existing_default_channel_group(
     assert "saleor:manage_users" not in token_payload["scope"]
 
 
+@pytest.mark.parametrize("staff_default_group_name", ["  ", ""])
+def test_jwt_token_without_expiration_claim_empty_default_channel_group(
+    staff_default_group_name, customer_user, monkeypatch, decoded_access_token
+):
+    # given
+    decoded_access_token["scope"] = ""
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": customer_user.email,
+            "sub": token_payload["sub"],
+            "scope": token_payload["scope"],
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(
+        decoded_access_token,
+        {},
+    )
+    assert Group.objects.count() == 0
+
+    # when
+    user = get_user_from_oauth_access_token_in_jwt_format(
+        token_payload,
+        "https://example.com",
+        access_token="fake-token",
+        use_scope_permissions=False,
+        audience="",
+        staff_user_domains=[customer_user.email.split("@")[1]],
+        staff_default_group_name=staff_default_group_name,
+    )
+
+    # then
+    assert user.id == customer_user.id
+    assert user.is_staff is True
+    assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
+
+
 @pytest.mark.parametrize(
     "email, expected_domain",
     [
