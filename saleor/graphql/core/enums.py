@@ -198,6 +198,7 @@ OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
 OrderErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
+InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PageErrorCode.doc_category = DOC_CATEGORY_PAGES

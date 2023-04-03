@@ -12,8 +12,9 @@ from ...order import events as order_events
 from ...permission.enums import OrderPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import InvoiceError
+from ..core.types import BaseInputObjectType, InvoiceError
 from ..order.types import Order
 from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice
@@ -109,9 +110,12 @@ class InvoiceRequest(ModelMutation):
         return InvoiceRequest(invoice=invoice, order=order)
 
 
-class InvoiceCreateInput(graphene.InputObjectType):
+class InvoiceCreateInput(BaseInputObjectType):
     number = graphene.String(required=True, description="Invoice number.")
     url = graphene.String(required=True, description="URL of an invoice to download.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceCreate(ModelMutation):
@@ -247,9 +251,12 @@ class InvoiceDelete(ModelDeleteMutation):
         return response
 
 
-class UpdateInvoiceInput(graphene.InputObjectType):
+class UpdateInvoiceInput(BaseInputObjectType):
     number = graphene.String(description="Invoice number")
     url = graphene.String(description="URL of an invoice to download.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceUpdate(ModelMutation):
