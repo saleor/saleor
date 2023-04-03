@@ -1,51 +1,97 @@
+import logging
+from typing import Tuple
+
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q, QuerySet, Subquery
 from django.utils import timezone
 
 from ..celeryconf import app
-from .models import Checkout
+from .models import Checkout, CheckoutLine
 
-task_logger = get_task_logger(__name__)
-
-# Batch size of 2000 is about ~27MB of memory usage in task.
-CHECKOUT_BATCH_SIZE = 2000
-
-
-def _batch_tokens(iterable, batch_size=1):
-    length = len(iterable)
-    for index in range(0, length, batch_size):
-        yield iterable[index : min(index + batch_size, length)]
-
-
-def queryset_in_batches(queryset):
-    tokens = queryset.values_list("token", flat=True)
-    for tokens_batch in _batch_tokens(tokens, CHECKOUT_BATCH_SIZE):
-        yield tokens_batch
+task_logger: logging.Logger = get_task_logger(__name__)
 
 
 @app.task
-def delete_expired_checkouts():
+def delete_expired_checkouts(
+    batch_size: int = 2000,
+    batch_count: int = 5,
+    invocation_count: int = 1,
+    invocation_limit: int = 500,
+) -> Tuple[int, bool]:
+    """Delete inactive checkouts from the database.
+
+    Inactivity is based on the "Checkout.last_change" datetime column.
+
+    Deletes:
+    - Anonymous checkouts after 30 days of inactivity no matter if it has lines or not,
+      configurable through ``settings.ANONYMOUS_CHECKOUTS_TIMEDELTA``.
+    - Users checkouts after 90 days of inactivity no matter if it has lines or not,
+      configurable via``settings.USER_CHECKOUTS_TIMEDELTA``.
+    - All anonymous and users checkouts after 6h of inactivity
+      if there are no lines associated, refer to ``settings.EMPTY_CHECKOUTS_TIMEDELTA``.
+
+    :param batch_size: The maximum row count that can be deleted per ``DELETE FROM``
+        SQL statement. Around 13.5 KB of memory will be utilized by the Celery
+        worker per row, thus 2000 will be using around 27 MB.
+    :param batch_count: How many batches can be executed in a single task.
+        This limits how long can the task run as there may be lots of checkouts
+        to delete.
+    :param invocation_count: How many times the task re-triggered itself up.
+    :param invocation_limit: The maximum times the task can re-trigger itself up
+        in order to limit how long it may run.
+
+    :return: A tuple containing row count deleted (int)
+             and whether there is more to delete (bool).
+    """
     now = timezone.now()
+
     expired_anonymous_checkouts = (
-        Q(email__isnull=True)
+        Q(last_change__lt=now - settings.ANONYMOUS_CHECKOUTS_TIMEDELTA)
+        & Q(email__isnull=True)
         & Q(user__isnull=True)
-        & Q(last_change__lt=now - settings.ANONYMOUS_CHECKOUTS_TIMEDELTA)
     )
-    expired_user_checkout = (Q(email__isnull=False) | Q(user__isnull=False)) & Q(
+    expired_user_checkout = Q(
         last_change__lt=now - settings.USER_CHECKOUTS_TIMEDELTA
+    ) & (Q(email__isnull=False) | Q(user__isnull=False))
+    empty_checkouts = Q(last_change__lt=now - settings.EMPTY_CHECKOUTS_TIMEDELTA) & ~Q(
+        Exists(
+            # Type ignore reason: Subquery can be used inside Exists()
+            # https://github.com/typeddjango/django-stubs/issues/985
+            Subquery(  # type: ignore[arg-type]
+                CheckoutLine.objects.filter(checkout_id=OuterRef("pk"))
+            )
+        )
     )
-    empty_checkouts = Q(lines__isnull=True) & Q(
-        last_change__lt=now - settings.EMPTY_CHECKOUTS_TIMEDELTA
-    )
-    qs = Checkout.objects.filter(
+
+    qs: QuerySet[Checkout] = Checkout.objects.filter(
         empty_checkouts | expired_anonymous_checkouts | expired_user_checkout
     )
+    qs = qs.only("pk").order_by()[:batch_size]
 
-    deleted_count = 0
-    for tokens_batch in queryset_in_batches(qs):
-        batch_count, _ = Checkout.objects.filter(token__in=tokens_batch).delete()
-        deleted_count += batch_count
+    total_deleted: int = 0
+    has_more: bool = True
+    for batch_number in range(batch_count):
+        deleted_count, _ = Checkout.objects.filter(pk__in=qs.values_list("pk")).delete()
+        total_deleted += deleted_count
 
-    if deleted_count:
-        task_logger.debug("Removed %s checkouts.", deleted_count)
+        # Stop deleting inactive checkouts if there was no match.
+        if deleted_count < batch_size:
+            has_more = False
+            break
+
+    if total_deleted:
+        task_logger.debug("Deleted %d checkouts.", total_deleted)
+
+    if has_more:
+        if invocation_count < invocation_limit:
+            # Continue deleting checkouts as there may be still more to delete.
+            delete_expired_checkouts.delay(
+                batch_size=batch_size,
+                batch_count=batch_count,
+                invocation_count=invocation_count + 1,
+                invocation_limit=invocation_limit,
+            )
+        else:
+            task_logger.warning("Invocation limit reached, aborting task")
+    return total_deleted, has_more
