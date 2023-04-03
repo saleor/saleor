@@ -2198,7 +2198,7 @@ def test_query_product_media_sorting_asc(
     media = content["data"]["product"]["media"]
     _, media1 = graphene.Node.from_global_id(media[0]["id"])
     _, media2 = graphene.Node.from_global_id(media[1]["id"])
-    assert media1 < media2
+    assert int(media1) < int(media2)
 
 
 def test_query_product_media_sorting_desc(
@@ -2223,7 +2223,7 @@ def test_query_product_media_sorting_desc(
     media = content["data"]["product"]["media"]
     _, media1 = graphene.Node.from_global_id(media[0]["id"])
     _, media2 = graphene.Node.from_global_id(media[1]["id"])
-    assert media1 > media2
+    assert int(media1) > int(media2)
 
 
 def test_query_product_media_sorting_default(
