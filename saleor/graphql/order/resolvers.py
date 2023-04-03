@@ -2,18 +2,16 @@ from uuid import UUID
 
 from django.db.models import Q
 
-from ...account.models import User
-from ...app.models import App
 from ...channel.models import Channel
 from ...core.exceptions import PermissionDenied
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.utils import sum_order_totals
 from ..account.utils import get_user_accessible_channels
+from ..app.dataloaders import get_app_promise
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core.context import get_database_connection_name
 from ..core.tracing import traced_resolver
-from ..utils import get_user_or_app_from_context
 from ..utils.filters import filter_by_period
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
@@ -30,11 +28,10 @@ def resolve_orders(
     if requesting_user and not requestor_has_access_to_all:
         return qs.filter(user_id=requesting_user.id)
 
-    requestor = get_user_or_app_from_context(info.context)
-    if isinstance(requestor, App):
+    if get_app_promise(info.context).get():
         return qs
 
-    accessible_channels = get_user_accessible_channels(info, requestor)
+    accessible_channels = get_user_accessible_channels(info, info.context.user)
     if channel_slug and channel_slug not in [
         channel.slug for channel in accessible_channels
     ]:
@@ -48,11 +45,11 @@ def resolve_orders(
 def resolve_draft_orders(info):
     database_connection_name = get_database_connection_name(info.context)
     qs = models.Order.objects.using(database_connection_name).drafts()
-    requestor = get_user_or_app_from_context(info.context)
-    if isinstance(requestor, App):
+
+    if get_app_promise(info.context).get():
         return qs
 
-    accessible_channels = get_user_accessible_channels(info, requestor)
+    accessible_channels = get_user_accessible_channels(info, info.context.user)
     channel_ids = [channel.id for channel in accessible_channels]
     return qs.filter(channel_id__in=channel_ids)
 
@@ -66,9 +63,9 @@ def resolve_orders_total(info, period, channel_slug):
         return None
     database_connection_name = get_database_connection_name(info.context)
 
-    requestor = get_user_or_app_from_context(info.context)
-    if isinstance(requestor, User):
-        accessible_channels = get_user_accessible_channels(info, requestor)
+    app = get_app_promise(info.context).get()
+    if not app:
+        accessible_channels = get_user_accessible_channels(info, info.context.user)
         if channel_slug not in [channel.slug for channel in accessible_channels]:
             raise PermissionDenied(
                 message=f"You do not have access to the {channel_slug} channel."
@@ -105,10 +102,10 @@ def resolve_homepage_events(info):
     ]
     database_connection_name = get_database_connection_name(info.context)
     lookup = Q(type__in=types)
-    requestor = get_user_or_app_from_context(info.context)
-    if isinstance(requestor, User):
+    app = get_app_promise(info.context).get()
+    if not app:
         # get order events from orders that user has access to
-        accessible_channels = get_user_accessible_channels(info, requestor)
+        accessible_channels = get_user_accessible_channels(info, info.context.user)
         channel_ids = [channel.id for channel in accessible_channels]
         accessible_orders = models.Order.objects.filter(channel_id__in=channel_ids)
         lookup &= Q(order_id__in=accessible_orders.values("id"))
