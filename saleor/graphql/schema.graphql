@@ -2995,7 +2995,7 @@ type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
 }
 
 input EventDeliveryAttemptSortingInput @doc(category: "Webhooks") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort attempts."""
   direction: OrderDirection!
 
   """Sort attempts by the selected field."""
@@ -3016,7 +3016,7 @@ enum EventDeliveryAttemptSortField @doc(category: "Webhooks") {
 }
 
 input EventDeliverySortingInput @doc(category: "Webhooks") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort deliveries."""
   direction: OrderDirection!
 
   """Sort deliveries by the selected field."""
@@ -5787,7 +5787,7 @@ value as specified by
 scalar Date
 
 input AttributeChoicesSortingInput @doc(category: "Attributes") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort attribute choices."""
   direction: OrderDirection!
 
   """Sort attribute choices by the selected field."""
@@ -7069,7 +7069,7 @@ type Margin @doc(category: "Products") {
 }
 
 input MediaSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort media."""
   direction: OrderDirection!
 
   """Sort media by the selected field."""
@@ -7294,7 +7294,7 @@ input WarehouseFilterInput @doc(category: "Products") {
 }
 
 input WarehouseSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort warehouses."""
   direction: OrderDirection!
 
   """Sort warehouses by the selected field."""
@@ -8503,7 +8503,7 @@ type TaxClassCountableEdge {
 }
 
 input TaxClassSortingInput @doc(category: "Taxes") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort tax classes."""
   direction: OrderDirection!
 
   """Sort tax classes by the selected field."""
@@ -11513,7 +11513,7 @@ input CategoryFilterInput @doc(category: "Products") {
 }
 
 input CategorySortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort categories."""
   direction: OrderDirection!
 
   """
@@ -11559,7 +11559,7 @@ enum CollectionPublished @doc(category: "Products") {
 }
 
 input CollectionSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort collections."""
   direction: OrderDirection!
 
   """
@@ -11623,7 +11623,7 @@ enum ProductTypeEnum @doc(category: "Products") {
 }
 
 input ProductTypeSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort product types."""
   direction: OrderDirection!
 
   """Sort product types by the selected field."""
@@ -11650,7 +11650,7 @@ input ProductVariantFilterInput @doc(category: "Products") {
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort productVariants."""
   direction: OrderDirection!
 
   """Sort productVariants by the selected field."""
@@ -11707,7 +11707,7 @@ type PageCountableEdge {
 }
 
 input PageSortingInput @doc(category: "Pages") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort pages."""
   direction: OrderDirection!
 
   """Sort pages by the selected field."""
@@ -11779,7 +11779,7 @@ type PageTypeCountableEdge {
 }
 
 input PageTypeSortingInput @doc(category: "Pages") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort page types."""
   direction: OrderDirection!
 
   """Sort page types by the selected field."""
@@ -11817,7 +11817,7 @@ type OrderEventCountableEdge {
 }
 
 input OrderSortingInput @doc(category: "Orders") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort orders."""
   direction: OrderDirection!
 
   """Sort orders by the selected field."""
@@ -11916,7 +11916,7 @@ type MenuCountableEdge {
 }
 
 input MenuSortingInput {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort menus."""
   direction: OrderDirection!
 
   """Sort menus by the selected field."""
@@ -11956,7 +11956,7 @@ type MenuItemCountableEdge {
 }
 
 input MenuItemSortingInput {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort menu items."""
   direction: OrderDirection!
 
   """Sort menu items by the selected field."""
@@ -11974,7 +11974,7 @@ input MenuItemFilterInput {
 }
 
 input GiftCardSortingInput @doc(category: "Gift cards") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort gift cards."""
   direction: OrderDirection!
 
   """Sort gift cards by the selected field."""
@@ -12126,7 +12126,7 @@ enum PluginConfigurationType {
 }
 
 input PluginSortingInput {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort plugins."""
   direction: OrderDirection!
 
   """Sort plugins by the selected field."""
@@ -12171,7 +12171,7 @@ enum DiscountStatusEnum @doc(category: "Discounts") {
 }
 
 input SaleSortingInput @doc(category: "Discounts") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort sales."""
   direction: OrderDirection!
 
   """
@@ -12246,7 +12246,7 @@ enum VoucherDiscountType @doc(category: "Discounts") {
 }
 
 input VoucherSortingInput @doc(category: "Discounts") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort vouchers."""
   direction: OrderDirection!
 
   """
@@ -12377,7 +12377,7 @@ input ExportFileFilterInput {
 }
 
 input ExportFileSortingInput {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort export file."""
   direction: OrderDirection!
 
   """Sort export file by the selected field."""
@@ -12392,7 +12392,7 @@ enum ExportFileSortField {
 }
 
 input CheckoutSortingInput @doc(category: "Checkout") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort checkouts."""
   direction: OrderDirection!
 
   """Sort checkouts by the selected field."""
@@ -12439,7 +12439,7 @@ type CheckoutLineCountableEdge {
 }
 
 input AttributeSortingInput @doc(category: "Attributes") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort attributes."""
   direction: OrderDirection!
 
   """Sort attributes by the selected field."""
@@ -12520,7 +12520,7 @@ input AppFilterInput @doc(category: "Apps") {
 }
 
 input AppSortingInput @doc(category: "Apps") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort apps."""
   direction: OrderDirection!
 
   """Sort apps by the selected field."""
@@ -12617,7 +12617,7 @@ input CustomerFilterInput @doc(category: "Users") {
 }
 
 input UserSortingInput @doc(category: "Users") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort users."""
   direction: OrderDirection!
 
   """Sort users by the selected field."""
@@ -12667,7 +12667,7 @@ input PermissionGroupFilterInput @doc(category: "Users") {
 }
 
 input PermissionGroupSortingInput @doc(category: "Users") {
-  """Specifies the direction in which to sort products."""
+  """Specifies the direction in which to sort permission group."""
   direction: OrderDirection!
 
   """Sort permission group by the selected field."""
