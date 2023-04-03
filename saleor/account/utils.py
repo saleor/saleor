@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING
 
 from django.conf import settings
+from django.db.models import Exists, OuterRef
 
 from ..checkout import AddressType
 from ..permission.models import Permission
@@ -134,9 +135,11 @@ def retrieve_user_by_email(email):
 
 def get_user_groups_permissions(user: User):
     GroupUser = User.groups.through
-    group_users = GroupUser.objects.filter(user_id=user.id)
+    group_users = GroupUser.objects.filter(user_id=user.id).values("group_id")
     GroupPermissions = Group.permissions.through
     group_permissions = GroupPermissions.objects.filter(
-        group_id__in=group_users.values("group_id")
+        Exists(group_users.filter(group_id=OuterRef("group_id")))
+    ).values("permission_id")
+    return Permission.objects.filter(
+        Exists(group_permissions.filter(permission_id=OuterRef("id")))
     )
-    return Permission.objects.filter(id__in=group_permissions.values("permission_id"))
