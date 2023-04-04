@@ -731,7 +731,6 @@ def test_order_query_undiscounted_prices_no_tax(
     line.tax_rate = Decimal(0)
     line.save()
 
-    tax_rate = line.tax_rate
     staff_api_client.user.user_permissions.add(permission_manage_orders)
 
     # when

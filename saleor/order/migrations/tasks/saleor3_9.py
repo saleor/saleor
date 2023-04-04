@@ -39,8 +39,9 @@ def update_fields_for_line(
             line, f"{field_name}_net_amount", quantize_price(line_net, line.currency)
         )
         setattr(
-            line, f"{field_name}_gross_amount",
-            quantize_price(line_gross, line.currency)
+            line,
+            f"{field_name}_gross_amount",
+            quantize_price(line_gross, line.currency),
         )
         lines_to_update.add(line)
 
