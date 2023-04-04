@@ -38,6 +38,7 @@ from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
+from ...payment.utils import metadata_contains_empty_key
 from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
@@ -744,7 +745,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     ) -> Optional[DeliveryMethod]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
         shipping_tax_class_metadata, shipping_tax_class_private_metadata = None, None
-
         is_warehouse_delivery = input.get("warehouse_id")
         is_shipping_delivery = input.get("shipping_method_id")
 
@@ -781,10 +781,29 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 key_map={"shipping_tax_class_id": "id"},
                 object_storage=object_storage,
             )
-            shipping_tax_class_metadata = input.get("shipping_tax_class_metadata")
-            shipping_tax_class_private_metadata = input.get(
+            if shipping_tax_class_metadata := input.get("shipping_tax_class_metadata"):
+                if metadata_contains_empty_key(shipping_tax_class_metadata):
+                    errors.append(
+                        OrderBulkError(
+                            message="Metadata key cannot be empty.",
+                            field="shipping_tax_class_metadata",
+                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                        )
+                    )
+                    shipping_tax_class_metadata = []
+
+            if shipping_tax_class_private_metadata := input.get(
                 "shipping_tax_class_private_metadata"
-            )
+            ):
+                if metadata_contains_empty_key(shipping_tax_class_private_metadata):
+                    errors.append(
+                        OrderBulkError(
+                            message="Private metadata key cannot be empty.",
+                            field="shipping_tax_class_private_metadata",
+                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                        )
+                    )
+                    shipping_tax_class_private_metadata = []
 
         delivery_method = None
         if not warehouse and not shipping_method:
@@ -957,13 +976,33 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         if metadata := order_line_input.get("tax_class_metadata"):
-            for data in metadata:
-                order_line.tax_class_metadata.update({data["key"]: data["value"]})
-        if private_metadata := order_line_input.get("tax_class_private_metadata"):
-            for data in private_metadata:
-                order_line.tax_class_private_metadata.update(
-                    {data["key"]: data["value"]}
+            if metadata_contains_empty_key(metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Metadata key cannot be empty.",
+                        field="tax_class_metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
                 )
+            else:
+                for data in metadata:
+                    order_line.tax_class_metadata.update({data["key"]: data["value"]})
+
+        if private_metadata := order_line_input.get("tax_class_private_metadata"):
+            if metadata_contains_empty_key(private_metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Private metadata key cannot be empty.",
+                        field="tax_class_private_metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
+                )
+            else:
+                for data in private_metadata:
+                    order_line.tax_class_private_metadata.update(
+                        {data["key"]: data["value"]}
+                    )
+
         return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
 
     @classmethod
@@ -1145,14 +1184,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         order_instance, transaction_input
                     )
                     order.transactions.append(transaction)
-                except ValidationError as err:
-                    order.transactions_errors.append(
-                        OrderBulkError(
-                            message=str(err.message),
-                            field="transactions",
-                            code=OrderBulkCreateErrorCode(err.code),
+                except ValidationError as error:
+                    for field, err in error.error_dict.items():
+                        message = str(err[0].message)
+                        field = field
+                        code = err[0].code
+                        order.transactions_errors.append(
+                            OrderBulkError(
+                                message=message,
+                                field=field,
+                                code=OrderBulkCreateErrorCode(code),
+                            )
                         )
-                    )
 
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel

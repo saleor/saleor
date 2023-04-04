@@ -270,18 +270,8 @@ def order_bulk_input(
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
-        "taxClassMetadata": [
-            {
-                "key": "md key",
-                "value": "md value",
-            }
-        ],
-        "taxClassPrivateMetadata": [
-            {
-                "key": "pmd key",
-                "value": "pmd value",
-            }
-        ],
+        "taxClassMetadata": [{"key": "md key", "value": "md value"}],
+        "taxClassPrivateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
     note = {
         "message": "Test message",
@@ -2116,3 +2106,167 @@ def test_order_bulk_create_quantize_prices(
     assert db_order_line.unit_price.net.amount == Decimal("3.33")
     assert db_order_line.undiscounted_unit_price.gross.amount == Decimal("6.67")
     assert db_order_line.undiscounted_unit_price.net.amount == Decimal("3.33")
+
+
+def test_order_bulk_create_error_currency_mismatch_between_transaction_and_order(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["transactions"][0]["amountAuthorized"]["currency"] = "USD"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Currency needs to be the same as for order: PLN"
+    assert error["field"] == "amount_authorized"
+    assert error["code"] == OrderBulkCreateErrorCode.INCORRECT_CURRENCY.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_empty_transaction_metadata_key(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["transactions"][0]["metadata"] = [{"key": "", "value": "123"}]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "metadata key cannot be empty."
+    assert error["field"] == "transaction"
+    assert error["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_empty_order_line_tax_class_metadata_key(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["taxClassMetadata"] = [{"key": "", "value": "123"}]
+    order["lines"][0]["taxClassPrivateMetadata"] = [{"key": "", "value": "321"}]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert errors[0]["message"] == "Metadata key cannot be empty."
+    assert errors[0]["field"] == "tax_class_metadata"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+    assert errors[1]["message"] == "Private metadata key cannot be empty."
+    assert errors[1]["field"] == "tax_class_private_metadata"
+    assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+
+    db_order_line = OrderLine.objects.get()
+    assert not db_order_line.tax_class_metadata
+    assert not db_order_line.tax_class_private_metadata
+
+    assert Order.objects.count() == orders_count + 1
+
+
+def test_order_bulk_create_error_empty_shipping_tax_class_metadata_key(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["deliveryMethod"]["shippingTaxClassMetadata"] = [{"key": "", "value": "123"}]
+    order["deliveryMethod"]["shippingTaxClassPrivateMetadata"] = [
+        {"key": "", "value": "321"}
+    ]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert errors[0]["message"] == "Metadata key cannot be empty."
+    assert errors[0]["field"] == "shipping_tax_class_metadata"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+    assert errors[1]["message"] == "Private metadata key cannot be empty."
+    assert errors[1]["field"] == "shipping_tax_class_private_metadata"
+    assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+
+    db_order = Order.objects.get()
+    assert not db_order.shipping_tax_class_metadata
+    assert not db_order.shipping_tax_class_private_metadata
+
+    assert Order.objects.count() == orders_count + 1
