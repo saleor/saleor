@@ -2,7 +2,7 @@ from decimal import Decimal
 from celery.utils.log import get_task_logger
 from django.db.models import Q, F
 
-
+from ....core.prices import quantize_price
 from ....tax.models import TaxConfiguration
 from ....channel.models import Channel
 from ....order.models import OrderLine, Order
@@ -35,8 +35,13 @@ def update_fields_for_line(
         line_net, line_gross = add_taxes_to_price(
             line_net, tax_rate, prices_entered_with_tax
         )
-        setattr(line, f"{field_name}_net_amount", line_net)
-        setattr(line, f"{field_name}_gross_amount", line_gross)
+        setattr(
+            line, f"{field_name}_net_amount", quantize_price(line_net, line.currency)
+        )
+        setattr(
+            line, f"{field_name}_gross_amount",
+            quantize_price(line_gross, line.currency)
+        )
         lines_to_update.add(line)
 
 
