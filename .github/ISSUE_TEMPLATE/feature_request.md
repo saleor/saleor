@@ -1,3 +1,11 @@
+---
+name: Feature request
+about: Suggest an idea for this project
+title: ''
+labels: Feature request
+assignees: ''
+
+---
 
 ## Problem
 <!-- Describe what you are trying to achive. You can include proposed solution.  -->
