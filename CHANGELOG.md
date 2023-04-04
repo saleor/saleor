@@ -125,6 +125,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
+
 
 ### Other changes
 - Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
@@ -141,6 +144,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
 - Add new field `author` to the App manifest - #12166 by @przlada
 - Add `GIFT_CARD_SENT` asynchronous event to webhooks - #12472 by @rafalp
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Extend the OpenID connect configuration with `Staff user domains` and `Default permission group name for new staff users`.
+  - When the OpenID plugin is active, the default staff permission group is created and all staff users are assigned to it.
+  - To ensure the proper functioning of OAuth permissions, ensure that the
+  `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
 
 # 3.12.0
 
