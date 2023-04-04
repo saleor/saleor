@@ -7,6 +7,7 @@ import pytest
 from django.utils import timezone
 
 from .....account.models import Address
+from .....invoice.models import Invoice
 from .....order import OrderEvents, OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import (
@@ -182,18 +183,10 @@ ORDER_BULK_CREATE = """
                             amount
                             currency
                         }
-                        voidedAmount {
-                            currency
-                            amount
-                        }
-                        chargedAmount {
-                            currency
-                            amount
-                        }
-                        refundedAmount {
-                            currency
-                            amount
-                        }
+                    }
+                    invoices {
+                        number
+                        url
                     }
                 }
                 errors {
@@ -302,6 +295,14 @@ def order_bulk_input(
         "privateMetadata": [{"key": "test-2", "value": "321"}],
     }
 
+    invoice = {
+        "number": "01/12/2020/TEST",
+        "url": "http://www.example.com",
+        "createdAt": timezone.now(),
+        "metadata": [{"key": "md key", "value": "md value"}],
+        "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
+    }
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
@@ -319,6 +320,7 @@ def order_bulk_input(
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
         "transactions": [transaction],
+        "invoices": [invoice],
     }
 
 
@@ -413,6 +415,7 @@ def test_order_bulk_create(
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
     transactions_count = TransactionItem.objects.count()
+    invoice_count = Invoice.objects.count()
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -591,6 +594,16 @@ def test_order_bulk_create(
     assert db_transaction.metadata == {"test-1": "123"}
     assert db_transaction.private_metadata == {"test-2": "321"}
 
+    invoice = order["invoices"][0]
+    assert invoice["number"] == "01/12/2020/TEST"
+    assert invoice["url"] == "http://www.example.com"
+    db_invoice = Invoice.objects.get()
+    assert db_invoice.number == "01/12/2020/TEST"
+    assert db_invoice.external_url == "http://www.example.com"
+    assert db_invoice.private_metadata["pmd key"] == "pmd value"
+    assert db_invoice.metadata["md key"] == "md value"
+    assert db_invoice.order_id == db_order.id
+
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert Address.objects.count() == address_count + 2
@@ -598,6 +611,7 @@ def test_order_bulk_create(
     assert Fulfillment.objects.count() == fulfillments_count + 1
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
     assert TransactionItem.objects.count() == transactions_count + 1
+    assert Invoice.objects.count() == invoice_count + 1
 
 
 def test_order_bulk_create_multiple_orders(

@@ -8,6 +8,7 @@ from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.utils import timezone
 
 from ....account.models import Address, User
@@ -17,6 +18,7 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
+from ....invoice.models import Invoice
 from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePolicy
 from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
@@ -86,6 +88,8 @@ class OrderWithErrors:
     fulfillments_errors: List[OrderBulkError]
     transactions: List[TransactionItem]
     transactions_errors: List[OrderBulkError]
+    invoices: List[Invoice]
+    invoice_errors: List[OrderBulkError]
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -101,6 +105,8 @@ class OrderWithErrors:
         self.fulfillments_errors = []
         self.transactions = []
         self.transactions_errors = []
+        self.invoices = []
+        self.invoice_errors = []
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -135,6 +141,7 @@ class OrderWithErrors:
             + self.notes_errors
             + self.fulfillments_errors
             + self.transactions_errors
+            + self.invoice_errors
         )
 
     @property
@@ -150,6 +157,10 @@ class OrderWithErrors:
     @property
     def all_transactions(self) -> List[TransactionItem]:
         return [transaction for transaction in self.transactions]
+
+    @property
+    def all_invoices(self) -> List[Invoice]:
+        return [invoice for invoice in self.invoices]
 
     @property
     def orderline_fulfillmentlines_map(
@@ -234,6 +245,18 @@ class OrderBulkCreateUserInput(graphene.InputObjectType):
     email = graphene.String(description="Customer email associated with the order.")
     external_reference = graphene.String(
         description="Customer external ID associated with the order."
+    )
+
+
+class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
+    created_at = graphene.DateTime(
+        required=True, description="The date, when the invoice was created."
+    )
+    number = graphene.String(required=True, description="Invoice number.")
+    url = graphene.String(required=True, description="URL of the invoice to download.")
+    metadata = NonNullList(MetadataInput, description="Metadata of the tax class.")
+    private_metadata = NonNullList(
+        MetadataInput, description="Private metadata of the tax class."
     )
 
 
@@ -410,6 +433,9 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     transactions = NonNullList(
         TransactionCreateInput, description="Transactions related to the order."
     )
+    invoices = NonNullList(
+        OrderBulkCreateInvoiceInput, description="Invoices related to the order."
+    )
 
 
 class OrderBulkCreateResult(graphene.ObjectType):
@@ -494,8 +520,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         # TODO validate status (wait for fulfillments)
         # TODO validate number (?)
-        # TODO validate zones for warehouse (?)
-        # TODO validate shipping method if available (?)
         return errors
 
     @classmethod
@@ -900,6 +924,49 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return event
 
     @classmethod
+    def create_single_invoice(
+        cls,
+        invoice_input: Dict[str, Any],
+        order: Order,
+        errors: List[OrderBulkError],
+    ) -> Invoice:
+        if not cls.is_datetime_valid(invoice_input["created_at"]):
+            errors.append(
+                OrderBulkError(
+                    message="Invoice contains future date.",
+                    field="created_at",
+                    code=OrderBulkCreateErrorCode.FUTURE_DATE,
+                )
+            )
+
+        validator = URLValidator()
+        try:
+            validator(invoice_input["url"])
+        except ValidationError:
+            errors.append(
+                OrderBulkError(
+                    message="Invalid URL format.",
+                    field="url",
+                    code=OrderBulkCreateErrorCode.INVALID_URL,
+                )
+            )
+
+        invoice = Invoice(
+            order=order,
+            number=invoice_input["number"],
+            external_url=invoice_input["url"],
+        )
+
+        if metadata := invoice_input["metadata"]:
+            for data in metadata:
+                invoice.metadata.update({data["key"]: data["value"]})
+        if private_metadata := invoice_input["private_metadata"]:
+            for data in private_metadata:
+                invoice.private_metadata.update({data["key"]: data["value"]})
+
+        return invoice
+
+    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -1197,6 +1264,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             )
                         )
 
+        # create invoices
+        if invoices_input := order_input.get("invoices"):
+            for invoice_input in invoices_input:
+                order.invoices.append(
+                    cls.create_single_invoice(
+                        invoice_input,
+                        order_instance,
+                        order.invoice_errors,
+                    )
+                )
+
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -1401,6 +1479,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             [order.all_transactions for order in orders if order.order], []
         )
         TransactionItem.objects.bulk_create(transactions)
+
+        invoices: List[Invoice] = sum(
+            [order.all_invoices for order in orders if order.order], []
+        )
+        Invoice.objects.bulk_create(invoices)
 
         return orders
 
