@@ -4,9 +4,10 @@ from unittest import mock
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
-from prices import TaxedMoney
+from prices import Money, TaxedMoney
 
 from ...core.exceptions import InsufficientStock
+from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCard, GiftCardEvent
@@ -652,21 +653,11 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
 ):
     # given
     checkout = checkout_with_items_and_shipping
-
-    expected_undiscounted_unit_price = TaxedMoney(
-        net=expected_base_shipping_price * Decimal("0.9"),
-        gross=expected_base_shipping_price,
-    )
-    expected_shipping_tax_rate = Decimal("0.1")
-
+    tc = checkout.channel.tax_configuration
+    tc.tax_calculation_strategy = "FLAT_RATES"
+    tc.prices_entered_with_tax = False
+    tc.save(update_fields=["tax_calculation_strategy", "prices_entered_with_tax"])
     manager = get_plugins_manager()
-    manager.get_checkout_shipping_tax_rate = mock.Mock(
-        return_value=expected_shipping_tax_rate
-    )
-    manager.calculate_checkout_shipping = mock.Mock(
-        return_value=expected_shipping_price
-    )
-
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
@@ -682,15 +673,30 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
     )
 
     # then
-    assert order.base_shipping_price == expected_base_shipping_price
-    assert order.shipping_price == expected_shipping_price
-    manager.calculate_checkout_shipping.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, []
-    )
-    assert order.shipping_tax_rate == expected_shipping_tax_rate
-    manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
-    )
+    for line in order.lines.all():
+        expected_gross = Money(
+            quantize_price(
+                (line.base_unit_price.amount * (1 + line.tax_rate)), line.currency
+            ),
+            line.currency,
+        )
+        expected_undiscounted_unit_price = TaxedMoney(
+            net=line.base_unit_price,
+            gross=expected_gross,
+        )
+        assert line.undiscounted_unit_price == expected_undiscounted_unit_price
+        expected_total_gross = Money(
+            quantize_price(
+                ((line.base_unit_price.amount * (1 + line.tax_rate)) * line.quantity),
+                line.currency,
+            ),
+            line.currency,
+        )
+        expected_undiscounted_total_price = TaxedMoney(
+            net=line.base_unit_price + line.quantity,
+            gross=expected_total_gross,
+        )
+        assert line.undiscounted_total_price == expected_undiscounted_total_price
 
 
 def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(

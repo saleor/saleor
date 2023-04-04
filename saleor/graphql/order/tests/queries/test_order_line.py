@@ -578,6 +578,7 @@ def test_order_query_variant_image_size_given_thumbnail_url_returned(
         == f"http://{site_settings.site.domain}/media/thumbnails/{thumbnail_mock.name}"
     )
 
+
 UNDISCOUNTED_PRICE_QUERY = """
         query OrdersQuery {
             orders(first: 1) {
@@ -599,12 +600,13 @@ UNDISCOUNTED_PRICE_QUERY = """
         }
     # """
 
+
 @patch("saleor.plugins.manager.PluginsManager.calculate_order_line_unit")
 def test_order_query_undiscounted_prices_taxed(
     mocked_calculate_order_line_unit,
     staff_api_client,
     permission_manage_orders,
-    fulfilled_order
+    fulfilled_order,
 ):
     # given
     order = fulfilled_order
@@ -621,7 +623,7 @@ def test_order_query_undiscounted_prices_taxed(
 
     line_undiscounted_price = TaxedMoney(
         line.undiscounted_base_unit_price,
-        line.undiscounted_base_unit_price * (1 + tax_rate)
+        line.undiscounted_base_unit_price * (1 + tax_rate),
     )
     mocked_calculate_order_line_unit.return_value = OrderTaxedPricesData(
         undiscounted_price=line_undiscounted_price,
@@ -664,15 +666,18 @@ def test_order_query_undiscounted_prices_no_tax(
     tc.prices_entered_with_tax = False
     tc.tax_calculation_strategy = None
     tc.charge_taxes = False
-    tc.save(update_fields=[
-        "prices_entered_with_tax", "tax_calculation_strategy","charge_taxes"
-    ])
+    tc.save(
+        update_fields=[
+            "prices_entered_with_tax",
+            "tax_calculation_strategy",
+            "charge_taxes",
+        ]
+    )
 
     line = order.lines.first()
     line.undiscounted_unit_price_gross_amount = line.undiscounted_unit_price_net_amount
     line.tax_rate = Decimal(0)
     line.save()
-
 
     tax_rate = line.tax_rate
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -686,4 +691,3 @@ def test_order_query_undiscounted_prices_no_tax(
     first_order_data_line_price = order_data["lines"][0]["undiscountedUnitPrice"]
     assert first_order_data_line_price["net"]["amount"] == line.unit_price.net.amount
     assert first_order_data_line_price["gross"]["amount"] == line.unit_price.net.amount
-
