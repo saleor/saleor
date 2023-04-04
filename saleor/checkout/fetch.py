@@ -238,7 +238,7 @@ def fetch_checkout_lines(
         "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
-        "checkout_line_discounts",
+        "discounts",
     ]
     if prefetch_variant_attributes:
         prefetch_related_fields.extend(
@@ -260,7 +260,7 @@ def fetch_checkout_lines(
         product = variant.product
         product_type = product.product_type
         collections = list(product.collections.all())
-        discounts = list(line.checkout_line_discounts.all())
+        discounts = list(line.discounts.all())
 
         variant_channel_listing = _get_variant_channel_listing(
             variant, checkout.channel_id

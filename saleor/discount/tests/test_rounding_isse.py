@@ -110,7 +110,7 @@ def test_rounding_issue_with_percentage_sale(
     for line_info, expected_discount in zip(lines_info, expected_discounts):
         assert len(line_info.discounts) == 1
         discount_from_info = line_info.discounts[0]
-        discount_from_db = line_info.line.checkout_line_discounts.get()
+        discount_from_db = line_info.line.discounts.get()
         assert (
             discount_from_info.value_type
             == discount_from_db.value_type

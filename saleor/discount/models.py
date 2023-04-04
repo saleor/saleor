@@ -402,7 +402,6 @@ class BaseDiscount(models.Model):
 class OrderDiscount(BaseDiscount):
     order = models.ForeignKey(
         "order.Order",
-        # TODO Owczar: Consider rename to order discounts.
         related_name="discounts",
         blank=True,
         null=True,
@@ -419,7 +418,7 @@ class OrderDiscount(BaseDiscount):
 class CheckoutDiscount(BaseDiscount):
     checkout = models.ForeignKey(
         "checkout.Checkout",
-        related_name="checkout_discounts",
+        related_name="discounts",
         blank=True,
         null=True,
         on_delete=models.CASCADE,
@@ -432,7 +431,7 @@ class CheckoutDiscount(BaseDiscount):
 class CheckoutLineDiscount(BaseDiscount):
     line = models.ForeignKey(
         "checkout.CheckoutLine",
-        related_name="checkout_line_discounts",
+        related_name="discounts",
         blank=True,
         null=True,
         on_delete=models.CASCADE,

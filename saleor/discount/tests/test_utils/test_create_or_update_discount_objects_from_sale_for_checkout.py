@@ -47,7 +47,7 @@ def test_create_fixed_sale(checkout_lines_info, checkout_info, new_sale):
     assert len(line_info1.discounts) == 1
     now = timezone.now()
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
@@ -111,7 +111,7 @@ def test_create_fixed_sale_multiple_quantity_in_lines(
     assert len(line_info1.discounts) == 1
     now = timezone.now()
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
@@ -181,7 +181,7 @@ def test_create_fixed_sale_multiple_quantity_in_lines_more_then_total(
     assert discount_value > base_unit_price.amount
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -230,7 +230,7 @@ def test_create_percentage_sale(
     assert len(line_info1.discounts) == 1
     now = timezone.now()
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
@@ -297,7 +297,7 @@ def test_create_percentage_sale_multiple_quantity_in_lines(
     assert len(line_info1.discounts) == 1
     now = timezone.now()
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert line_info1.line.quantity > 1
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.created_at == discount_from_db.created_at == now
@@ -358,7 +358,7 @@ def test_create_sale_with_translation(
 
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert discount_from_info.name == discount_from_db.name == sale.name
@@ -408,7 +408,7 @@ def test_create_fixed_sale_more_then_total(
     assert discount_value > expected_discount_amount
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -450,7 +450,7 @@ def test_create_sale_by_product(checkout_lines_info, checkout_info, new_sale):
     # then
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -491,7 +491,7 @@ def test_create_sale_by_variant(checkout_lines_info, checkout_info, new_sale):
     # then
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -532,7 +532,7 @@ def test_create_sale_by_collection(checkout_lines_info, checkout_info, new_sale)
     # then
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -574,7 +574,7 @@ def test_create_sale_by_category(checkout_lines_info, checkout_info, new_sale):
     # then
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -635,7 +635,7 @@ def test_create_sale_two_percentage_sales(
 
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
 
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
@@ -697,7 +697,7 @@ def test_create_sale_two_fixed_sales(
 
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -761,7 +761,7 @@ def test_create_sale_fixed_sales_more_then_percentage(
 
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -828,7 +828,7 @@ def test_create_sale_percentage_sales_more_then_fixed(
 
     assert len(line_info1.discounts) == 1
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
 
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
@@ -896,7 +896,7 @@ def test_two_sales_applied_to_two_different_lines(
     # Checkout discount for first line with fixed sale
     assert len(line_info1.discounts) == 1
     discount_from_info1 = line_info1.discounts[0]
-    discount_from_db1 = line_info1.line.checkout_line_discounts.get()
+    discount_from_db1 = line_info1.line.discounts.get()
 
     assert discount_from_info1.line == discount_from_db1.line == line_info1.line
     assert discount_from_info1.type == discount_from_db1.type == DiscountType.SALE
@@ -921,7 +921,7 @@ def test_two_sales_applied_to_two_different_lines(
     # Checkout discount for second line with percentage sale
     assert len(line_info2.discounts) == 1
     discount_from_info2 = line_info2.discounts[0]
-    discount_from_db2 = line_info2.line.checkout_line_discounts.get()
+    discount_from_db2 = line_info2.line.discounts.get()
 
     assert discount_from_info2.line == discount_from_db2.line == line_info2.line
     assert discount_from_info2.type == discount_from_db2.type == DiscountType.SALE
@@ -991,7 +991,7 @@ def test_update_sale_from_fixed_to_percentage(
     assert len(line_info1.discounts) == 1
 
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -1053,7 +1053,7 @@ def test_update_sale_from_percentage_to_fixed(
     assert len(line_info1.discounts) == 1
 
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -1115,7 +1115,7 @@ def test_replace_sale_from_fixed_to_percentage(
     assert len(line_info1.discounts) == 1
 
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (
@@ -1179,7 +1179,7 @@ def test_replace_sale_from_percentage_to_fixed(
     assert len(line_info1.discounts) == 1
 
     discount_from_info = line_info1.discounts[0]
-    discount_from_db = line_info1.line.checkout_line_discounts.get()
+    discount_from_db = line_info1.line.discounts.get()
     assert discount_from_info.line == discount_from_db.line == line_info1.line
     assert discount_from_info.type == discount_from_db.type == DiscountType.SALE
     assert (

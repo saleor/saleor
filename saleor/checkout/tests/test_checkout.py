@@ -321,7 +321,7 @@ def test_get_discount_for_checkout_value_entire_order_voucher(
             collections=[],
             product=line.variant.product,
             variant=line.variant,
-            discounts=list(line.checkout_line_discounts.all()),
+            discounts=list(line.discounts.all()),
             product_type=line.variant.product.product_type,
             channel=channel_USD,
         )
