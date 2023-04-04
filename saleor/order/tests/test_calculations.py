@@ -366,7 +366,7 @@ def test_recalculate_order_prices_order_discounts_and_total_undiscounted_price_c
     )
 
     # when
-    calculations._recalculate_order_prices(manager, order, lines)
+    calculations._recalculate_order_prices(manager, order, lines, False)
 
     # then
     order_discount.refresh_from_db()

@@ -26,16 +26,12 @@ def add_tax_to_undiscounted_price(
     price: "Money", tax_rate: "Decimal", prices_entered_with_tax: bool
 ) -> TaxedMoney:
     currency = price.currency
-    tax_rate = Decimal(1 + tax_rate)
-
-    if prices_entered_with_tax:
-        net_amount = price.amount / tax_rate
-        gross_amount = price.amount
-    else:
-        net_amount = price.amount
-        gross_amount = price.amount * tax_rate
-    net = Money(net_amount, currency)
-    gross = Money(gross_amount, currency)
+    # multiply tax_rate to reuse calculate_flat_rate_tax that is originally using ints
+    # instead of Decimals.
+    taxed_price = calculate_flat_rate_tax(
+        price, (tax_rate*100), prices_entered_with_tax
+    )
     return TaxedMoney(
-        net=quantize_price(net, currency), gross=quantize_price(gross, currency)
+        net=quantize_price(taxed_price.net, currency),
+        gross=quantize_price(taxed_price.gross, currency)
     )

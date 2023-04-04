@@ -693,7 +693,7 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
             line.currency,
         )
         expected_undiscounted_total_price = TaxedMoney(
-            net=line.base_unit_price + line.quantity,
+            net=line.base_unit_price * line.quantity,
             gross=expected_total_gross,
         )
         assert line.undiscounted_total_price == expected_undiscounted_total_price
