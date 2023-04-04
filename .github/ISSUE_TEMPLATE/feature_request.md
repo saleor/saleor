@@ -42,14 +42,11 @@ ___
 ```
 
 ## 5. To Do list
-<!-- Everything from developer perspective
-e.g.: 
-- add models
-- migrations
- -->
-- [ ] 
-- [ ] 
-- [ ] 
+<!-- Everything from developer perspective -->
+```[tasklist]
+### Tasks
+- [ ] Add a draft title or issue reference here
+``` 
 
 ## 6. To Test
 <!-- 
