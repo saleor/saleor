@@ -331,6 +331,9 @@ class OrderError(Error):
 class InvoiceError(Error):
     code = InvoiceErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class PermissionGroupError(Error):
     code = PermissionGroupErrorCode(description="The error code.", required=True)

@@ -10724,7 +10724,7 @@ enum OrderAction @doc(category: "Payments") {
 }
 
 """Represents an Invoice."""
-type Invoice implements ObjectWithMetadata & Job & Node {
+type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders") {
   """List of private metadata items. Requires staff permissions to access."""
   privateMetadata: [MetadataItem!]!
 
@@ -15198,7 +15198,7 @@ type Mutation {
 
     """ID of the order related to invoice."""
     orderId: ID!
-  ): InvoiceRequest
+  ): InvoiceRequest @doc(category: "Orders")
 
   """
   Requests deletion of an invoice. 
@@ -15208,7 +15208,7 @@ type Mutation {
   invoiceRequestDelete(
     """ID of an invoice to request the deletion."""
     id: ID!
-  ): InvoiceRequestDelete
+  ): InvoiceRequestDelete @doc(category: "Orders")
 
   """
   Creates a ready to send invoice. 
@@ -15221,7 +15221,7 @@ type Mutation {
 
     """ID of the order related to invoice."""
     orderId: ID!
-  ): InvoiceCreate
+  ): InvoiceCreate @doc(category: "Orders")
 
   """
   Deletes an invoice. 
@@ -15231,7 +15231,7 @@ type Mutation {
   invoiceDelete(
     """ID of an invoice to delete."""
     id: ID!
-  ): InvoiceDelete
+  ): InvoiceDelete @doc(category: "Orders")
 
   """
   Updates an invoice. 
@@ -15244,7 +15244,7 @@ type Mutation {
 
     """Fields to use when updating an invoice."""
     input: UpdateInvoiceInput!
-  ): InvoiceUpdate
+  ): InvoiceUpdate @doc(category: "Orders")
 
   """
   Send an invoice notification to the customer. 
@@ -15254,7 +15254,7 @@ type Mutation {
   invoiceSendNotification(
     """ID of an invoice to be sent."""
     id: ID!
-  ): InvoiceSendNotification
+  ): InvoiceSendNotification @doc(category: "Orders")
 
   """
   Activate a gift card. 
@@ -22738,7 +22738,7 @@ Request an invoice for the order using plugin.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceRequest {
+type InvoiceRequest @doc(category: "Orders") {
   """Order related to an invoice."""
   order: Order
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22746,7 +22746,7 @@ type InvoiceRequest {
   invoice: Invoice
 }
 
-type InvoiceError {
+type InvoiceError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22760,7 +22760,7 @@ type InvoiceError {
 }
 
 """An enumeration."""
-enum InvoiceErrorCode {
+enum InvoiceErrorCode @doc(category: "Orders") {
   REQUIRED
   NOT_READY
   URL_NOT_SET
@@ -22776,7 +22776,7 @@ Requests deletion of an invoice.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceRequestDelete {
+type InvoiceRequestDelete @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
@@ -22787,13 +22787,13 @@ Creates a ready to send invoice.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceCreate {
+type InvoiceCreate @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
 }
 
-input InvoiceCreateInput {
+input InvoiceCreateInput @doc(category: "Orders") {
   """Invoice number."""
   number: String!
 
@@ -22806,7 +22806,7 @@ Deletes an invoice.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceDelete {
+type InvoiceDelete @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
@@ -22817,13 +22817,13 @@ Updates an invoice.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceUpdate {
+type InvoiceUpdate @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
 }
 
-input UpdateInvoiceInput {
+input UpdateInvoiceInput @doc(category: "Orders") {
   """Invoice number"""
   number: String
 
@@ -22836,7 +22836,7 @@ Send an invoice notification to the customer.
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
-type InvoiceSendNotification {
+type InvoiceSendNotification @doc(category: "Orders") {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
@@ -27604,7 +27604,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type InvoiceRequested implements Event {
+type InvoiceRequested implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27635,7 +27635,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type InvoiceDeleted implements Event {
+type InvoiceDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27666,7 +27666,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type InvoiceSent implements Event {
+type InvoiceSent implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
