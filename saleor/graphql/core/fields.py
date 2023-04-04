@@ -3,6 +3,7 @@ from json import JSONDecodeError
 from typing import Optional
 
 import graphene
+from django.conf import settings
 from graphene.relay import Connection, is_node
 from graphql import GraphQLError
 
@@ -71,11 +72,25 @@ class ConnectionField(PermissionsField):
         )
         kwargs.setdefault(
             "first",
-            graphene.Int(description="Return the first n elements from the list."),
+            graphene.Int(
+                description=(
+                    "Retrieve the first n elements from the list. "
+                    "Note that the system only allows fetching "
+                    f"a maximum of {settings.GRAPHQL_PAGINATION_LIMIT} "
+                    "objects in a single query."
+                ),
+            ),
         )
         kwargs.setdefault(
             "last",
-            graphene.Int(description="Return the last n elements from the list."),
+            graphene.Int(
+                description=(
+                    "Retrieve the last n elements from the list. "
+                    "Note that the system only allows fetching "
+                    f"a maximum of {settings.GRAPHQL_PAGINATION_LIMIT} "
+                    "objects in a single query."
+                )
+            ),
         )
         super().__init__(type_, *args, **kwargs)
 
