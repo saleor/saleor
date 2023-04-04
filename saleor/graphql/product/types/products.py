@@ -948,7 +948,10 @@ class Product(ChannelContextTypeWithMetadata, ModelObjectType):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
 
     class Meta:
@@ -1576,7 +1579,10 @@ class ProductType(ModelObjectType):
             "type use this tax class, unless it's overridden in the `Product` type."
         ),
         required=False,
-        permissions=[AuthorizationFilters.AUTHENTICATED_STAFF_USER],
+        permissions=[
+            AuthorizationFilters.AUTHENTICATED_STAFF_USER,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        ],
     )
     variant_attributes = NonNullList(
         Attribute,

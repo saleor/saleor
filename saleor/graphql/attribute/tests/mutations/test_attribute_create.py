@@ -1255,3 +1255,43 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
     assert errors[0]["code"] == error_code.name
+
+
+def test_create_attribute_similar_names(
+    staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_products,
+    product_type,
+):
+    # given
+    name_1 = "15"
+    name_2 = "1.5"
+
+    query = CREATE_ATTRIBUTE_MUTATION
+    variables = {
+        "input": {
+            "name": "Example name",
+            "type": AttributeTypeEnum.PRODUCT_TYPE.name,
+            "values": [{"name": name_1}, {"name": name_2}],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[
+            permission_manage_product_types_and_attributes,
+            permission_manage_products,
+        ],
+    )
+
+    # then
+    assert slugify(name_1) == slugify(name_2)
+    content = get_graphql_content(response)
+    errors = content["data"]["attributeCreate"]["errors"]
+    assert len(errors) == 0
+    values_edges = content["data"]["attributeCreate"]["attribute"]["choices"]["edges"]
+    assert len(values_edges) == 2
+    slugs = [node["node"]["slug"] for node in values_edges]
+    assert set(slugs) == {"15", "15-2"}

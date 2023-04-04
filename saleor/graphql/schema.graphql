@@ -3323,7 +3323,7 @@ type ShippingMethodType implements Node & ObjectWithMetadata {
   """
   Tax class assigned to this shipping method.
   
-  Requires one of the following permissions: MANAGE_TAXES, MANAGE_SHIPPING.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
 }
@@ -4889,7 +4889,7 @@ type Product implements Node & ObjectWithMetadata {
   """
   Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
 }
@@ -4979,7 +4979,7 @@ type ProductType implements Node & ObjectWithMetadata {
   """
   Tax class assigned to this product type. All products of this product type use this tax class, unless it's overridden in the `Product` type.
   
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
 
@@ -9330,7 +9330,7 @@ type Order implements Node & ObjectWithMetadata {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   shippingTaxClass: TaxClass
 
@@ -9663,7 +9663,7 @@ type OrderLine implements Node & ObjectWithMetadata {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
 
@@ -17367,7 +17367,7 @@ input ProductCreateInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 
@@ -17547,7 +17547,7 @@ input ProductInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product.
+  DEPRECATED: this field will be removed in Saleor 4.0. Use tax classes to control the tax calculation for a product. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 
@@ -17827,7 +17827,7 @@ input ProductTypeInput {
   """
   Tax rate for enabled tax gateway. 
   
-  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type.
+  DEPRECATED: this field will be removed in Saleor 4.0.. Use tax classes to control the tax calculation for a product type. If taxCode is provided, Saleor will try to find a tax class with given code (codes are stored in metadata) and assign it. If no tax class is found, it would be created and assigned.
   """
   taxCode: String
 
@@ -22402,6 +22402,7 @@ enum AccountErrorCode {
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
   PASSWORD_TOO_SIMILAR
+  PASSWORD_RESET_ALREADY_REQUESTED
   REQUIRED
   UNIQUE
   JWT_SIGNATURE_EXPIRED

@@ -2144,7 +2144,7 @@ def test_query_product_media_sorting_asc(
     media = content["data"]["product"]["media"]
     _, media1 = graphene.Node.from_global_id(media[0]["id"])
     _, media2 = graphene.Node.from_global_id(media[1]["id"])
-    assert media1 < media2
+    assert int(media1) < int(media2)
 
 
 def test_query_product_media_sorting_desc(
@@ -2169,7 +2169,7 @@ def test_query_product_media_sorting_desc(
     media = content["data"]["product"]["media"]
     _, media1 = graphene.Node.from_global_id(media[0]["id"])
     _, media2 = graphene.Node.from_global_id(media[1]["id"])
-    assert media1 > media2
+    assert int(media1) > int(media2)
 
 
 def test_query_product_media_sorting_default(
@@ -2383,3 +2383,49 @@ def test_fetch_all_products_with_availability_data(
             }
         }
         assert data in product_data
+
+
+PRODUCT_TAX_CLASS_QUERY = """
+    query getProduct($id: ID!) {
+        product(id: $id) {
+            id
+            taxClass {
+                id
+            }
+        }
+    }
+"""
+
+
+def test_product_tax_class_query_by_app(app_api_client, product):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+    }
+
+    # when
+    response = app_api_client.post_graphql(PRODUCT_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["product"]
+    assert data["product"]["id"]
+    assert data["product"]["taxClass"]["id"]
+
+
+def test_product_tax_class_query_by_staff(staff_api_client, product):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Product", product.id),
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PRODUCT_TAX_CLASS_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert data["product"]
+    assert data["product"]["id"]
+    assert data["product"]["taxClass"]["id"]

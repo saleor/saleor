@@ -580,12 +580,7 @@ class AvataxPlugin(BasePlugin):
             / quantity,
         )
 
-    def _calculate_order_shipping(
-        self, order, taxes_data, previous_value
-    ) -> TaxedMoney:
-        if taxes_data is None:
-            return previous_value
-
+    def _calculate_order_shipping(self, order, taxes_data) -> TaxedMoney:
         prices_entered_with_tax = partial(_get_prices_entered_with_tax_for_order, order)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
@@ -594,7 +589,7 @@ class AvataxPlugin(BasePlugin):
                 discount_amount = Decimal(line.get("discountAmount", 0.0))
                 net = Decimal(line.get("lineAmount", 0.0)) - discount_amount
                 if currency == "JPY" and prices_entered_with_tax():
-                    gross = previous_value.gross
+                    gross = order.base_shipping_price
                     net = Money(amount=gross.amount - tax, currency=currency)
                 else:
                     gross = Money(amount=net + tax, currency=currency)
@@ -611,7 +606,9 @@ class AvataxPlugin(BasePlugin):
         self, order: "Order", previous_value: TaxedMoney
     ) -> TaxedMoney:
         taxes_data = self._get_order_tax_data(order, previous_value)
-        return self._calculate_order_shipping(order, taxes_data, previous_value)
+        if taxes_data is None:
+            return previous_value
+        return self._calculate_order_shipping(order, taxes_data)
 
     def calculate_order_total(
         self,
@@ -641,10 +638,9 @@ class AvataxPlugin(BasePlugin):
             ).price_with_discounts
             taxed_subtotal += taxed_line_total_data
 
-        base_shipping_price = order.base_shipping_price
-        shipping_price = self._calculate_order_shipping(
-            order, taxes_data, base_shipping_price
-        )
+        shipping_price = order.base_shipping_price
+        if taxes_data is not None:
+            shipping_price = self._calculate_order_shipping(order, taxes_data)
 
         taxed_total = taxed_subtotal + shipping_price
 
