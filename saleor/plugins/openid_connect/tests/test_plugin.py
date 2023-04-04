@@ -7,6 +7,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from ....account.models import Group
 from ....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
@@ -532,6 +533,13 @@ def test_external_obtain_access_tokens_with_saleor_staff(
     assert tokens.csrf_token == decoded_refresh_token["csrf_token"]
     assert decoded_refresh_token["oauth_refresh_token"] == "refresh"
 
+    assert user.is_staff is True
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
+
 
 @freeze_time("2019-03-18 12:00:00")
 @pytest.mark.vcr
@@ -587,6 +595,8 @@ def test_external_obtain_access_tokens_user_which_is_no_more_staff(
     staff_user.refresh_from_db()
     assert staff_user == user
     assert user.is_staff is False
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
 
     decoded_access_token = jwt_decode(tokens.token)
     assert decoded_access_token["permissions"] == []
@@ -774,6 +784,9 @@ def test_external_verify(id_payload, customer_user, openid_plugin, rf):
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == []
+    assert user.is_staff is False
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -794,6 +807,11 @@ def test_external_verify_user_with_effective_permissions(
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == [permission_manage_orders]
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -854,6 +872,8 @@ def test_authenticate_user_with_access_token(
     assert user == customer_user
     assert user.is_staff is False
     assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
 
 
 @freeze_time("2021-03-08 12:00:00")
@@ -1033,6 +1053,11 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
     assert user == customer_user
     assert user.is_staff is True
     assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2021-03-08 12:00:00")

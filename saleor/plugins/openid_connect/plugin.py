@@ -28,6 +28,7 @@ from .dataclasses import OpenIDConnectConfig
 from .exceptions import AuthenticationError
 from .utils import (
     OAUTH_TOKEN_REFRESH_FIELD,
+    assign_staff_to_default_group,
     create_tokens_from_oauth_payload,
     get_incorrect_fields,
     get_or_create_user_from_payload,
@@ -56,6 +57,7 @@ class OpenIDConnectPlugin(BasePlugin):
         {"name": "user_info_url", "value": None},
         {"name": "audience", "value": None},
         {"name": "use_oauth_scope_permissions", "value": False},
+        {"name": "default_group_name_for_new_staff_users", "value": None},
     ]
     PLUGIN_NAME = "OpenID Connect"
     CONFIGURATION_PER_CHANNEL = False
@@ -140,6 +142,16 @@ class OpenIDConnectPlugin(BasePlugin):
             ),
             "label": "Use OAuth scope permissions",
         },
+        "default_group_name_for_new_staff_users": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": (
+                "Provide the name of the default permission group to which the new "
+                "staff user should be assigned to. When the provided group doesn't "
+                "exist, the new group without any permissions and any channels "
+                "will be created."
+            ),
+            "label": "Default permission group name for new staff users",
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -157,6 +169,7 @@ class OpenIDConnectPlugin(BasePlugin):
             audience=configuration["audience"],
             use_scope_permissions=configuration["use_oauth_scope_permissions"],
             user_info_url=configuration["user_info_url"],
+            default_group_name=configuration["default_group_name_for_new_staff_users"],
         )
 
         # Determine, if we have defined all fields required to use OAuth access token
@@ -278,6 +291,8 @@ class OpenIDConnectPlugin(BasePlugin):
             ):
                 user.is_staff = False
                 user.save(update_fields=["is_staff"])
+            if user.is_staff:
+                assign_staff_to_default_group(user, self.config.default_group_name)
 
         tokens = create_tokens_from_oauth_payload(
             token_data, user, parsed_id_token, user_permissions, owner=self.PLUGIN_ID
@@ -416,9 +431,11 @@ class OpenIDConnectPlugin(BasePlugin):
         except (ExpiredSignatureError, InvalidTokenError) as e:
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
-        if permissions is not None:
+        if permissions:
             user.effective_permissions = get_permissions_from_names(permissions)
             user.is_staff = True
+        if user.is_staff:
+            assign_staff_to_default_group(user, self.config.default_group_name)
         return user, payload
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:
@@ -443,5 +460,6 @@ class OpenIDConnectPlugin(BasePlugin):
                 self.config.user_info_url,
                 self.config.use_scope_permissions,
                 self.config.audience,
+                self.config.default_group_name,
             )
         return user or previous_value
