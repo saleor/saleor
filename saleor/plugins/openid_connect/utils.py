@@ -15,7 +15,7 @@ from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 from jwt import PyJWTError
 
-from ...account.models import User
+from ...account.models import Group, User
 from ...core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_OWNER_FIELD,
@@ -155,6 +155,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
     access_token: str,
     use_scope_permissions: bool,
     audience: str,
+    default_group_name: str,
 ):
     try:
         token_payload.validate()
@@ -207,6 +208,7 @@ def get_user_from_oauth_access_token_in_jwt_format(
         is_staff_in_scope = is_staff_id in scope
         is_staff_in_token_permissions = is_staff_id in token_permissions
         if is_staff_in_scope or is_staff_in_token_permissions or permissions:
+            assign_staff_to_default_group(user, default_group_name)
             if not user.is_staff:
                 user.is_staff = True
                 user.save(update_fields=["is_staff"])
@@ -225,6 +227,7 @@ def get_user_from_oauth_access_token(
     user_info_url: str,
     use_scope_permissions: bool,
     audience: str,
+    default_group_name: str,
 ):
     # we try to decode token to define if the structure is a jwt format.
     access_token_jwt_payload = decode_access_token(access_token, jwks_url)
@@ -235,6 +238,7 @@ def get_user_from_oauth_access_token(
             access_token=access_token,
             use_scope_permissions=use_scope_permissions,
             audience=audience,
+            default_group_name=default_group_name,
         )
 
     user_info = get_user_info_from_cache_or_fetch(
@@ -248,6 +252,8 @@ def get_user_from_oauth_access_token(
     user = get_or_create_user_from_payload(user_info, oauth_url=user_info_url)
     if not use_scope_permissions:
         user.is_staff = False
+    if user.is_staff:
+        assign_staff_to_default_group(user, default_group_name)
     return user
 
 
@@ -561,3 +567,14 @@ def get_saleor_permissions_from_list(permissions: list) -> QuerySet[Permission]:
 def get_saleor_permission_names(permissions: QuerySet) -> List[str]:
     permission_names = get_permission_names(permissions)
     return list(permission_names)
+
+
+def assign_staff_to_default_group(user: "User", default_group_name: str):
+    default_group_name = (
+        default_group_name.strip() if default_group_name else default_group_name
+    )
+    if default_group_name:
+        group, _ = Group.objects.get_or_create(
+            name=default_group_name, defaults={"restricted_access_to_channels": True}
+        )
+        user.groups.add(group)
