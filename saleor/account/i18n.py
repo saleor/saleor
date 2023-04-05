@@ -40,7 +40,9 @@ AREA_TYPE = {
 
 CountryAreaValues = namedtuple("CountryAreaValues", ["value", "choices"])
 
-COUNTRY_AREA_MAP = {"CH": CountryAreaValues("Graubünden", ["Graubünden"])}
+COUNTRY_AREA_MAP = {"CH": [
+    CountryAreaValues("Graubünden", ["Graubünden"]),
+]}
 
 
 class PossiblePhoneNumberFormField(forms.CharField):
@@ -188,14 +190,15 @@ class CountryAwareAddressForm(AddressForm):
             normalized_data = i18naddress.normalize_address(data)
 
             if data.get("country_area") and not normalized_data.get("country_area"):
-                country_area = COUNTRY_AREA_MAP.get(data["country_code"])
-                if data["country_area"] in country_area.choices:
-                    normalized_data["country_area"] = country_area.value
-                else:
-                    raise i18naddress.InvalidAddress(
-                        "This value is not valid for the address.",
-                        {"country_area": "invalid"},
-                    )
+                country_areas = COUNTRY_AREA_MAP.get(data["country_code"])
+                for country_area in country_areas:
+                    if data["country_area"] in country_area.choices:
+                        normalized_data["country_area"] = country_area.value
+                    else:
+                        raise i18naddress.InvalidAddress(
+                            "This value is not valid for the address.",
+                            {"country_area": "invalid"},
+                        )
 
             if getattr(self, "enable_normalization", True):
                 data = normalized_data
