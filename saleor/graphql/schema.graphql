@@ -22538,10 +22538,10 @@ input OrderBulkCreateInvoiceInput {
   """URL of the invoice to download."""
   url: String
 
-  """Metadata of the tax class."""
+  """Metadata of the invoice."""
   metadata: [MetadataInput!]
 
-  """Private metadata of the tax class."""
+  """Private metadata of the invoice."""
   privateMetadata: [MetadataInput!]
 }
 

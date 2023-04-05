@@ -255,9 +255,9 @@ class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
     )
     number = graphene.String(description="Invoice number.")
     url = graphene.String(description="URL of the invoice to download.")
-    metadata = NonNullList(MetadataInput, description="Metadata of the tax class.")
+    metadata = NonNullList(MetadataInput, description="Metadata of the invoice.")
     private_metadata = NonNullList(
-        MetadataInput, description="Private metadata of the tax class."
+        MetadataInput, description="Private metadata of the invoice."
     )
 
 
@@ -963,7 +963,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             created_at=created_at,
         )
 
-        if metadata := invoice_input["metadata"]:
+        if metadata := invoice_input.get("metadata"):
             if metadata_contains_empty_key(metadata):
                 errors.append(
                     OrderBulkError(
@@ -975,7 +975,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             else:
                 for data in metadata:
                     invoice.metadata.update({data["key"]: data["value"]})
-        if private_metadata := invoice_input["private_metadata"]:
+        if private_metadata := invoice_input.get("private_metadata"):
             if metadata_contains_empty_key(private_metadata):
                 errors.append(
                     OrderBulkError(

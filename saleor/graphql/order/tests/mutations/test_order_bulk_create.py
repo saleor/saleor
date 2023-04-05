@@ -184,6 +184,18 @@ ORDER_BULK_CREATE = """
                             amount
                             currency
                         }
+                        canceledAmount{
+                            currency
+                            amount
+                        }
+                        chargedAmount{
+                            currency
+                            amount
+                        }
+                        refundedAmount{
+                            currency
+                            amount
+                        }
                     }
                     invoices {
                         number
@@ -588,6 +600,7 @@ def test_order_bulk_create(
     assert transaction["authorizedAmount"]["currency"] == "PLN"
     db_transaction = TransactionItem.objects.get()
     assert db_transaction.authorized_value == Decimal("10")
+    assert db_transaction.currency == "PLN"
     assert db_transaction.psp_reference == "PSP reference - 123"
     assert db_transaction.status == "Authorized for 10$"
     assert db_transaction.order_id == db_order.id
@@ -879,6 +892,164 @@ def test_order_bulk_create_multiple_fulfillments(
 
     assert Fulfillment.objects.count() == fulfillments_count + 2
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 4
+
+
+def test_order_bulk_create_multiple_transactions(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    transactions_count = TransactionItem.objects.count()
+
+    transaction_1 = {
+        "status": "Authorized for 10$",
+    }
+
+    transaction_2 = {
+        "type": "Credit Card",
+        "amountCharged": {
+            "amount": Decimal("10"),
+            "currency": "PLN",
+        },
+    }
+
+    transaction_3 = {
+        "reference": "PSP reference - 123",
+        "amountRefunded": {
+            "amount": Decimal("15"),
+            "currency": "PLN",
+        },
+    }
+
+    transaction_4 = {
+        "amountCanceled": {
+            "amount": Decimal("20"),
+            "currency": "PLN",
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    order_bulk_input["transactions"] = [
+        transaction_1,
+        transaction_2,
+        transaction_3,
+        transaction_4,
+    ]
+
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+    order = data[0]["order"]
+
+    transaction_1, transaction_2, transaction_3, transaction_4 = order["transactions"]
+    assert transaction_1["status"] == "Authorized for 10$"
+    assert transaction_2["type"] == "Credit Card"
+    assert transaction_2["chargedAmount"]["amount"] == Decimal("10")
+    assert transaction_2["chargedAmount"]["currency"] == "PLN"
+    assert transaction_3["reference"] == "PSP reference - 123"
+    assert transaction_3["refundedAmount"]["amount"] == Decimal("15")
+    assert transaction_3["refundedAmount"]["currency"] == "PLN"
+    assert transaction_4["canceledAmount"]["amount"] == Decimal("20")
+    assert transaction_4["canceledAmount"]["currency"] == "PLN"
+
+    db_order = Order.objects.get()
+    (
+        db_transaction_1,
+        db_transaction_2,
+        db_transaction_3,
+        db_transaction_4,
+    ) = TransactionItem.objects.all()
+    assert db_transaction_1.status == "Authorized for 10$"
+    assert db_transaction_2.name == "Credit Card"
+    assert db_transaction_2.charged_value == Decimal("10")
+    assert db_transaction_3.psp_reference == "PSP reference - 123"
+    assert db_transaction_3.refunded_value == Decimal("15")
+    assert db_transaction_4.canceled_value == Decimal("20")
+    assert db_transaction_1.order_id == db_order.id
+    assert db_transaction_2.order_id == db_order.id
+    assert db_transaction_3.order_id == db_order.id
+    assert db_transaction_4.order_id == db_order.id
+
+    assert Order.objects.count() == orders_count + 1
+    assert TransactionItem.objects.count() == transactions_count + 4
+
+
+def test_order_bulk_create_multiple_invoices(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    invoices_count = Invoice.objects.count()
+
+    invoice_1 = {
+        "number": "01/12/2020/TEST",
+        "createdAt": timezone.now(),
+    }
+    invoice_2 = {
+        "url": "http://www.example2.com",
+        "createdAt": timezone.now(),
+    }
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    order_bulk_input["invoices"] = [invoice_1, invoice_2]
+
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+
+    order = data[0]["order"]
+    invoice_1 = order["invoices"][0]
+    assert invoice_1["number"] == "01/12/2020/TEST"
+    assert invoice_1["url"] is None
+    invoice_2 = order["invoices"][1]
+    assert invoice_2["number"] is None
+    assert invoice_2["url"] == "http://www.example2.com"
+
+    db_order = Order.objects.get()
+    db_invoice_1, db_invoice_2 = Invoice.objects.all()
+    assert db_invoice_1.number == "01/12/2020/TEST"
+    assert db_invoice_1.external_url is None
+    assert db_invoice_1.order_id == db_order.id
+    assert db_invoice_1.status == JobStatus.SUCCESS
+
+    assert db_invoice_2.number is None
+    assert db_invoice_2.external_url == "http://www.example2.com"
+    assert db_invoice_2.order_id == db_order.id
+    assert db_invoice_2.status == JobStatus.SUCCESS
+
+    assert Order.objects.count() == orders_count + 1
+    assert Invoice.objects.count() == invoices_count + 2
 
 
 def test_order_bulk_create_stock_update(
