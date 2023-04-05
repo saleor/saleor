@@ -7,6 +7,7 @@ from django.core import signing
 from django.core.exceptions import ValidationError
 from freezegun import freeze_time
 
+from ....account.models import Group
 from ....core.jwt import (
     JWT_ACCESS_TYPE,
     JWT_REFRESH_TOKEN_COOKIE_NAME,
@@ -193,8 +194,15 @@ def test_external_refresh_from_input(
 
 @freeze_time("2019-03-18 12:00:00")
 def test_external_refresh_with_scope_permissions(
-    openid_plugin, admin_user, monkeypatch, rf, id_token, id_payload
+    openid_plugin,
+    admin_user,
+    monkeypatch,
+    rf,
+    id_token,
+    id_payload,
+    permission_manage_users,
 ):
+    # given
     mocked_jwt_validator = MagicMock()
     mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
     mocked_jwt_validator.get.side_effect = id_payload.get
@@ -226,15 +234,21 @@ def test_external_refresh_with_scope_permissions(
     saleor_refresh_token = create_jwt_refresh_token(
         admin_user, oauth_refresh_token, csrf_token, plugin.PLUGIN_ID
     )
+    group = Group.objects.create(name=plugin.config.default_group_name)
+    group.permissions.add(permission_manage_users)
+    admin_user.groups.add(group)
 
     request = rf.request()
     data = {"refreshToken": saleor_refresh_token}
+
+    # when
     response = plugin.external_refresh(data, request, None)
 
+    # then
     decoded_token = jwt_decode(response.token)
     assert decoded_token["exp"] == id_payload["exp"]
     assert decoded_token["oauth_access_key"] == oauth_payload["access_token"]
-    assert decoded_token["permissions"] == ["MANAGE_ORDERS"]
+    assert set(decoded_token["permissions"]) == {"MANAGE_ORDERS", "MANAGE_USERS"}
 
     decoded_refresh_token = jwt_decode(response.refresh_token)
     assert decoded_refresh_token["oauth_refresh_token"] == "new_refresh"
@@ -243,6 +257,10 @@ def test_external_refresh_with_scope_permissions(
         "https://saleor.io/oauth/token",
         refresh_token=oauth_refresh_token,
     )
+
+    user = response.user
+    assert user.is_staff
+    assert permission_manage_users in user.effective_permissions
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -387,7 +405,10 @@ def test_external_obtain_access_tokens(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, oauth_url="https://saleor.io/oauth")
+    user = get_or_create_user_from_payload(
+        claims,
+        oauth_url="https://saleor.io/oauth",
+    )
     expected_tokens = create_tokens_from_oauth_payload(
         oauth_payload, user, claims, permissions=[], owner=plugin.PLUGIN_ID
     )
@@ -514,7 +535,10 @@ def test_external_obtain_access_tokens_with_saleor_staff(
         oauth_payload,
         plugin.config.json_web_key_set_url,
     )
-    user = get_or_create_user_from_payload(claims, "https://saleor.io/oauth")
+    user = get_or_create_user_from_payload(
+        claims,
+        "https://saleor.io/oauth",
+    )
     user.refresh_from_db()
 
     assert user.is_staff is True
@@ -774,6 +798,9 @@ def test_external_verify(id_payload, customer_user, openid_plugin, rf):
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == []
+    assert user.is_staff is False
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -794,6 +821,12 @@ def test_external_verify_user_with_effective_permissions(
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == [permission_manage_orders]
+    assert user.is_staff is True
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -828,6 +861,7 @@ def test_authenticate_user_with_access_token(
         json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
         user_info_url="https://saleor.io/userinfo",
         use_oauth_scope_permissions=True,
+        staff_user_domains="",
     )
     decoded_access_token["scope"] = ""
 
@@ -997,6 +1031,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
     monkeypatch,
     rf,
 ):
+    # given
     plugin = openid_plugin(
         oauth_authorization_url=None,
         oauth_token_url=None,
@@ -1008,6 +1043,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
     decoded_token.get.side_effect = decoded_access_token.get
+    assert Group.objects.count() == 0
 
     # mock get token from request
     monkeypatch.setattr(
@@ -1027,12 +1063,19 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_scope(
     # mock cache used for caching user info details
     monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
 
+    # when
     user = plugin.authenticate_user(rf.request(), None)
 
+    # then
     user.refresh_from_db()
     assert user == customer_user
     assert user.is_staff is True
     assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2021-03-08 12:00:00")
@@ -1044,6 +1087,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_in_permissions_
     monkeypatch,
     rf,
 ):
+    # given
     plugin = openid_plugin(
         oauth_authorization_url=None,
         oauth_token_url=None,
@@ -1056,6 +1100,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_in_permissions_
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
     decoded_token.get.side_effect = decoded_access_token.get
+    assert Group.objects.count() == 0
 
     # mock get token from request
     monkeypatch.setattr(
@@ -1075,12 +1120,19 @@ def test_authenticate_staff_user_with_jwt_access_token_and_staff_in_permissions_
     # mock cache used for caching user info details
     monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
 
+    # when
     user = plugin.authenticate_user(rf.request(), None)
 
+    # then
     user.refresh_from_db()
     assert user == customer_user
     assert user.is_staff is True
     assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2021-03-08 12:00:00")
@@ -1094,6 +1146,7 @@ def test_authenticate_staff_user_with_jwt_access_token_with_permissions_field(
     monkeypatch,
     rf,
 ):
+    # given
     plugin = openid_plugin(
         oauth_authorization_url=None,
         oauth_token_url=None,
@@ -1125,8 +1178,10 @@ def test_authenticate_staff_user_with_jwt_access_token_with_permissions_field(
     # mock cache used for caching user info details
     monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
 
+    # when
     user = plugin.authenticate_user(rf.request(), None)
 
+    # then
     user.refresh_from_db()
     assert user == customer_user
     assert user.is_staff is True
@@ -1134,6 +1189,11 @@ def test_authenticate_staff_user_with_jwt_access_token_with_permissions_field(
         permission_manage_apps,
         permission_manage_orders,
     }
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2021-03-08 12:00:00")
@@ -1233,6 +1293,7 @@ def test_authenticate_staff_user_with_jwt_access_token(
     permission_manage_apps,
     permission_manage_products,
 ):
+    # given
     staff_user.is_staff = False
     staff_user.save()
 
@@ -1248,6 +1309,7 @@ def test_authenticate_staff_user_with_jwt_access_token(
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
     decoded_token.get.side_effect = decoded_access_token.get
+    assert Group.objects.count() == 0
 
     user_info_response["email"] = staff_user.email
 
@@ -1269,8 +1331,10 @@ def test_authenticate_staff_user_with_jwt_access_token(
     # mock cache used for caching user info details
     monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
 
+    # when
     user = plugin.authenticate_user(rf.request(), None)
 
+    # then
     user.refresh_from_db()
     assert user == staff_user
     assert user.is_staff is True
@@ -1279,12 +1343,18 @@ def test_authenticate_staff_user_with_jwt_access_token(
         permission_manage_apps,
         permission_manage_products,
     }
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2021-03-08 12:00:00")
 def test_authenticate_staff_user_with_jwt_access_token_and_disabled_scope_permission(
     openid_plugin, decoded_access_token, user_info_response, staff_user, monkeypatch, rf
 ):
+    # given
     plugin = openid_plugin(
         oauth_authorization_url=None,
         oauth_token_url=None,
@@ -1296,6 +1366,7 @@ def test_authenticate_staff_user_with_jwt_access_token_and_disabled_scope_permis
     decoded_token = MagicMock()
     decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
     decoded_token.get.side_effect = decoded_access_token.get
+    assert Group.objects.count() == 0
 
     user_info_response["email"] = staff_user.email
 
@@ -1320,11 +1391,74 @@ def test_authenticate_staff_user_with_jwt_access_token_and_disabled_scope_permis
     # mock cache used for caching user info details
     monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
 
+    # when
     user = plugin.authenticate_user(rf.request(), None)
 
+    # then
     assert user == staff_user
     assert user.is_staff is False
     assert list(user.effective_permissions) == []
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
+
+
+@freeze_time("2021-03-08 12:00:00")
+def test_authenticate_user_with_jwt_access_token_user_email_in_staff_domains_group(
+    openid_plugin,
+    decoded_access_token,
+    user_info_response,
+    customer_user,
+    monkeypatch,
+    rf,
+    permission_manage_users,
+):
+    # given
+    plugin = openid_plugin(
+        oauth_authorization_url=None,
+        oauth_token_url=None,
+        json_web_key_set_url="https://saleor.io/.well-known/jwks.json",
+        user_info_url="https://saleor.io/userinfo",
+        use_oauth_scope_permissions=True,
+        staff_user_domains=user_info_response["email"].split("@")[1],
+    )
+    decoded_access_token["scope"] = ""
+    decoded_token = MagicMock()
+    decoded_token.__getitem__.side_effect = decoded_access_token.__getitem__
+    decoded_token.get.side_effect = decoded_access_token.get
+
+    group = Group.objects.create(name=plugin.config.default_group_name)
+    group.permissions.add(permission_manage_users)
+    group_count = Group.objects.count()
+
+    # mock get token from request
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.get_token_from_request",
+        lambda _: "OAuth_access_token",
+    )
+    # decode access token returns payload when access token is in JWT format
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.decode_access_token",
+        lambda x, y: decoded_token,
+    )
+    # mock request to api to fetch user info details
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info",
+        lambda x, z: user_info_response,
+    )
+    # mock cache used for caching user info details
+    monkeypatch.setattr("saleor.plugins.openid_connect.utils.cache.set", Mock())
+
+    # when
+    user = plugin.authenticate_user(rf.request(), None)
+
+    # then
+    assert user == customer_user
+    assert user.is_staff is True
+    assert Group.objects.count() == group_count
+    assert group in user.groups.all()
+    assert {perm.name for perm in user.effective_permissions} == set(
+        group.permissions.values_list("name", flat=True)
+    )
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -1419,7 +1553,9 @@ def test_authenticate_user_staff_user_with_effective_permissions(
     monkeypatch,
     rf,
 ):
+    # given
     plugin = openid_plugin()
+    assert Group.objects.count() == 0
     staff_user.user_permissions.add(
         permission_manage_gift_card, permission_manage_checkouts
     )
@@ -1434,12 +1570,21 @@ def test_authenticate_user_staff_user_with_effective_permissions(
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
     )
+
+    # when
     user = plugin.authenticate_user(rf.request(), None)
+
+    # then
     assert user == staff_user
     assert set(user.effective_permissions) == {
         permission_manage_orders,
         permission_manage_users,
     }
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -1450,6 +1595,7 @@ def test_authenticate_user_staff_user_without_permissions(
     monkeypatch,
     rf,
 ):
+    # given
     plugin = openid_plugin()
     token = create_jwt_token(
         id_payload,
@@ -1461,5 +1607,10 @@ def test_authenticate_user_staff_user_without_permissions(
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.plugin.get_token_from_request", lambda _: token
     )
+
+    # when
     user = plugin.authenticate_user(rf.request(), None)
+
+    # then
     assert user == staff_user
+    assert user.groups.count() == 1
