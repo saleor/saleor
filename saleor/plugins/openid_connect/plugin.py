@@ -464,9 +464,12 @@ class OpenIDConnectPlugin(BasePlugin):
         except (ExpiredSignatureError, InvalidTokenError) as e:
             raise ValidationError({"token": e})
         permissions = payload.get(PERMISSIONS_FIELD)
-        if permissions is not None:
-            user.effective_permissions = get_permissions_from_names(permissions)
+        if permissions:
             user.is_staff = True
+            user.effective_permissions = get_permissions_from_names(permissions)
+            assign_staff_to_default_group_and_update_permissions(
+                user, self.config.default_group_name
+            )
         return user, payload
 
     def authenticate_user(self, request: WSGIRequest, previous_value) -> Optional[User]:

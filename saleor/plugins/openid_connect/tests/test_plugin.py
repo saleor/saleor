@@ -798,6 +798,9 @@ def test_external_verify(id_payload, customer_user, openid_plugin, rf):
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == []
+    assert user.is_staff is False
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
 
 
 @freeze_time("2019-03-18 12:00:00")
@@ -818,6 +821,12 @@ def test_external_verify_user_with_effective_permissions(
     user, data = response
     assert user == customer_user
     assert list(user.effective_permissions) == [permission_manage_orders]
+    assert user.is_staff is True
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == plugin.config.default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
 
 
 @freeze_time("2019-03-18 12:00:00")
