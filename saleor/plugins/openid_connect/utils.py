@@ -292,8 +292,8 @@ def assign_staff_to_default_group_and_update_permissions(
 ):
     """Assign staff user to the default permission group. and update user permissions.
 
-    If the group doesn't exist, the new group without any assigned permissions or
-    channels.
+    If the group doesn't exist, the new group without any assigned permissions and
+    channels will be created.
     """
     default_group_name = (
         default_group_name.strip() if default_group_name else default_group_name
