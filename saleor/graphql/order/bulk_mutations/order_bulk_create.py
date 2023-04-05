@@ -14,6 +14,7 @@ from django.utils import timezone
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core import JobStatus
 from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
@@ -41,7 +42,7 @@ from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
 from ...payment.utils import metadata_contains_empty_key
-from ..enums import StockUpdatePolicyEnum
+from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
 from .utils import get_instance
@@ -252,8 +253,8 @@ class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
     created_at = graphene.DateTime(
         required=True, description="The date, when the invoice was created."
     )
-    number = graphene.String(required=True, description="Invoice number.")
-    url = graphene.String(required=True, description="URL of the invoice to download.")
+    number = graphene.String(description="Invoice number.")
+    url = graphene.String(description="URL of the invoice to download.")
     metadata = NonNullList(MetadataInput, description="Metadata of the tax class.")
     private_metadata = NonNullList(
         MetadataInput, description="Private metadata of the tax class."
@@ -382,7 +383,7 @@ class OrderBulkCreateInput(graphene.InputObjectType):
         required=True,
         description="The date, when the order was inserted to Saleor database.",
     )
-    status = graphene.String(description="Status of the order.")
+    status = OrderStatusEnum(description="Status of the order.")
     user = graphene.Field(
         OrderBulkCreateUserInput,
         required=True,
@@ -930,39 +931,62 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order: Order,
         errors: List[OrderBulkError],
     ) -> Invoice:
-        if not cls.is_datetime_valid(invoice_input["created_at"]):
+        created_at = invoice_input["created_at"]
+        if not cls.is_datetime_valid(created_at):
             errors.append(
                 OrderBulkError(
-                    message="Invoice contains future date.",
+                    message="Invoice input contains future date.",
                     field="created_at",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
+            created_at = None
 
-        validator = URLValidator()
-        try:
-            validator(invoice_input["url"])
-        except ValidationError:
-            errors.append(
-                OrderBulkError(
-                    message="Invalid URL format.",
-                    field="url",
-                    code=OrderBulkCreateErrorCode.INVALID_URL,
+        if url := invoice_input.get("url"):
+            try:
+                URLValidator()(url)
+            except ValidationError:
+                errors.append(
+                    OrderBulkError(
+                        message="Invalid URL format.",
+                        field="url",
+                        code=OrderBulkCreateErrorCode.INVALID_URL,
+                    )
                 )
-            )
+                url = None
 
         invoice = Invoice(
             order=order,
-            number=invoice_input["number"],
-            external_url=invoice_input["url"],
+            number=invoice_input.get("number"),
+            status=JobStatus.SUCCESS,
+            external_url=url,
+            created_at=created_at,
         )
 
         if metadata := invoice_input["metadata"]:
-            for data in metadata:
-                invoice.metadata.update({data["key"]: data["value"]})
+            if metadata_contains_empty_key(metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Metadata key cannot be empty.",
+                        field="metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
+                )
+            else:
+                for data in metadata:
+                    invoice.metadata.update({data["key"]: data["value"]})
         if private_metadata := invoice_input["private_metadata"]:
-            for data in private_metadata:
-                invoice.private_metadata.update({data["key"]: data["value"]})
+            if metadata_contains_empty_key(private_metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Private metadata key cannot be empty.",
+                        field="private_metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
+                )
+            else:
+                for data in private_metadata:
+                    invoice.private_metadata.update({data["key"]: data["value"]})
 
         return invoice
 

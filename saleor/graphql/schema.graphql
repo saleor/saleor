@@ -22303,7 +22303,7 @@ input OrderBulkCreateInput {
   createdAt: DateTime!
 
   """Status of the order."""
-  status: String
+  status: OrderStatus
 
   """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
@@ -22533,10 +22533,10 @@ input OrderBulkCreateInvoiceInput {
   createdAt: DateTime!
 
   """Invoice number."""
-  number: String!
+  number: String
 
   """URL of the invoice to download."""
-  url: String!
+  url: String
 
   """Metadata of the tax class."""
   metadata: [MetadataInput!]
