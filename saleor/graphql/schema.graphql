@@ -1783,6 +1783,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An order is cancelled."""
   ORDER_CANCELLED
 
+  """An order is expired."""
+  ORDER_EXPIRED
+
   """An order is fulfilled."""
   ORDER_FULFILLED
 
@@ -2397,6 +2400,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """An order is cancelled."""
   ORDER_CANCELLED
+
+  """An order is expired."""
+  ORDER_EXPIRED
 
   """An order is fulfilled."""
   ORDER_FULFILLED
@@ -3221,6 +3227,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
+  ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
   DRAFT_ORDER_CREATED
@@ -5081,6 +5088,15 @@ type OrderSettings {
   automaticallyFulfillNonShippableGiftCard: Boolean!
 
   """
+  Expiration time in minutes. Default null - means do not expire any orders.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  expireOrdersAfter: Minute
+
+  """
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
@@ -5100,6 +5116,11 @@ type OrderSettings {
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 }
+
+"""
+The `Minute` scalar type represents number of minutes by integer value.
+"""
+scalar Minute
 
 """
 Determine the mark as paid strategy for the channel.
@@ -10428,6 +10449,7 @@ enum OrderStatus @doc(category: "Orders") {
   RETURNED
   FULFILLED
   CANCELED
+  EXPIRED
 }
 
 """Represents order fulfillment."""
@@ -11124,6 +11146,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   PLACED_FROM_DRAFT
   OVERSOLD_ITEMS
   CANCELED
+  EXPIRED
   ORDER_MARKED_AS_PAID
   ORDER_FULLY_PAID
   ORDER_REPLACEMENT_CREATED
@@ -24356,6 +24379,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   automaticallyFulfillNonShippableGiftCard: Boolean
 
   """
+  Expiration time in minutes. Default null - means do not expire any orders. Enter 0 or null to disable.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  expireOrdersAfter: Minute
+
+  """
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
@@ -26987,6 +27019,30 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCancelled implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order becomes expired.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderExpired implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 

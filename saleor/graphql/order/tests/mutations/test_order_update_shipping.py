@@ -227,6 +227,7 @@ def test_order_update_shipping_shipping_required(
         OrderStatus.PARTIALLY_RETURNED,
         OrderStatus.RETURNED,
         OrderStatus.CANCELED,
+        OrderStatus.EXPIRED,
     ],
 )
 def test_order_update_shipping_not_editable_order(

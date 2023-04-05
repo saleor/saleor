@@ -27,6 +27,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
+from ...order import OrderStatus
 from ...order import models as order_models
 from ...order.events import transaction_event as order_transaction_event
 from ...order.models import Order
@@ -994,6 +995,33 @@ class TransactionCreate(BaseMutation):
         return ""
 
     @classmethod
+    def update_order(
+        cls, order: order_models.Order, money_data: dict, *args, **kwargs
+    ) -> None:
+        update_fields = []
+        if money_data:
+            update_order_search_vector(order, save=False)
+            updates_amounts_for_order(order, save=False)
+            update_fields.extend(
+                [
+                    "total_charged_amount",
+                    "charge_status",
+                    "total_authorized_amount",
+                    "authorize_status",
+                    "search_vector",
+                ]
+            )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status == OrderStatus.UNCONFIRMED
+        ):
+            order.status = OrderStatus.UNFULFILLED
+            update_fields.append("status")
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -1038,18 +1066,7 @@ class TransactionCreate(BaseMutation):
             recalculate_transaction_amounts(new_transaction)
         if transaction_data.get("order_id") and money_data:
             order = cast(order_models.Order, new_transaction.order)
-            update_order_search_vector(order, save=False)
-            updates_amounts_for_order(order, save=False)
-            order.save(
-                update_fields=[
-                    "total_charged_amount",
-                    "charge_status",
-                    "updated_at",
-                    "total_authorized_amount",
-                    "authorize_status",
-                    "search_vector",
-                ]
-            )
+            cls.update_order(order, money_data)
         if transaction_data.get("checkout_id") and money_data:
             discounts = load_discounts(info.context)
             manager = get_plugin_manager_promise(info.context).get()
@@ -1208,7 +1225,12 @@ class TransactionUpdate(TransactionCreate):
 
     @classmethod
     def update_order(
-        cls, order: "Order", money_data: dict, psp_reference: Optional[str]
+        cls,
+        order: "Order",
+        money_data: dict,
+        psp_reference: Optional[str] = None,
+        *args,
+        **kwargs
     ) -> None:
         update_fields = []
         if money_data:
@@ -1226,6 +1248,12 @@ class TransactionUpdate(TransactionCreate):
             update_fields.append(
                 "search_vector",
             )
+        if (
+            order.channel.automatically_confirm_all_new_orders
+            and order.status == OrderStatus.UNCONFIRMED
+        ):
+            order.status = OrderStatus.UNFULFILLED
+            update_fields.append("status")
         if update_fields:
             update_fields.append("updated_at")
             order.save(update_fields=update_fields)

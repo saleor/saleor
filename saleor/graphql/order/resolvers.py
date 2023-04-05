@@ -43,7 +43,7 @@ def resolve_orders_total(info, period, channel_slug):
     qs = (
         models.Order.objects.using(database_connection_name)
         .non_draft()
-        .exclude(status=OrderStatus.CANCELED)
+        .exclude(status__in=[OrderStatus.CANCELED, OrderStatus.EXPIRED])
         .filter(channel__slug=str(channel_slug))
     )
     qs = filter_by_period(qs, period, "created_at")

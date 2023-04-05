@@ -1121,7 +1121,10 @@ def _create_order_from_checkout(
     # status
     status = (
         OrderStatus.UNFULFILLED
-        if checkout_info.channel.automatically_confirm_all_new_orders
+        if (
+            checkout_info.channel.automatically_confirm_all_new_orders
+            and checkout_info.checkout.payment_transactions.exists()
+        )
         else OrderStatus.UNCONFIRMED
     )
     checkout_metadata = get_or_create_checkout_metadata(checkout_info.checkout)

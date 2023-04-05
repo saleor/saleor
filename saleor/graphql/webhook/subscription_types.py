@@ -468,6 +468,16 @@ class OrderCancelled(SubscriptionObjectType, OrderBase):
         )
 
 
+class OrderExpired(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when order becomes expired." + ADDED_IN_313 + PREVIEW_FEATURE
+        )
+
+
 class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -2183,6 +2193,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_FULLY_PAID: OrderFullyPaid,
     WebhookEventAsyncType.ORDER_FULFILLED: OrderFulfilled,
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
+    WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,

@@ -317,6 +317,20 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_and_transaction_item(checkout_with_item):
+    TransactionItem.objects.create(
+        status="Captured",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        checkout_id=checkout_with_item.pk,
+        charged_value=Decimal("10"),
+    )
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_tax_exemption(checkout_with_item):
     checkout_with_item.tax_exemption = True
     checkout_with_item.save(update_fields=["tax_exemption"])
@@ -4569,6 +4583,14 @@ def fulfilled_order(order_with_lines):
 
 
 @pytest.fixture
+def unconfirmed_order_with_lines(order_with_lines):
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    return order
+
+
+@pytest.fixture
 def fulfilled_order_without_inventory_tracking(
     order_with_line_without_inventory_tracking,
 ):
@@ -5613,6 +5635,13 @@ def transaction_item_created_by_user(order, staff_user, transaction_item_generat
         user=staff_user,
         app=None,
         charged_value=charged_amount,
+    )
+
+
+@pytest.fixture
+def transaction_item(order, transaction_item_generator):
+    return transaction_item_generator(
+        order_id=order.pk,
     )
 
 

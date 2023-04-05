@@ -43,11 +43,12 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.is_draft() or order.is_unconfirmed():
+        if order.is_draft() or order.is_unconfirmed() or order.is_expired():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft or unconfirmed order.",
+                        "Cannot request an invoice for draft, "
+                        "unconfirmed or expired order.",
                         code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }
@@ -150,11 +151,12 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info: ResolveInfo, order):
-        if order.is_draft() or order.is_unconfirmed():
+        if order.is_draft() or order.is_unconfirmed() or order.is_expired():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot create an invoice for draft or unconfirmed order.",
+                        "Cannot create an invoice for draft, "
+                        "unconfirmed or expired order.",
                         code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }

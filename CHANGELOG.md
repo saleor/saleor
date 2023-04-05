@@ -127,6 +127,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
 
 ### Other changes
+- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
+  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
+  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
 - Create order discounts for all voucher types - #12272 by @IKarbowiak
 - Core now supports Dev Containers for local development - #12391 by @patrys
 - Use mailhog smtp server on Dev Container - #12402 by @carlosa54

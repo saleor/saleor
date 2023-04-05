@@ -1,7 +1,9 @@
 import graphene
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
 from ....channel import models
+from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ChannelPermissions
 from ....tax.models import TaxConfiguration
@@ -21,6 +23,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PRODUCTS,
 )
 from ...core.mutations import ModelMutation
+from ...core.scalars import Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import (
@@ -55,6 +58,14 @@ class OrderSettingsInput(BaseInputObjectType):
         required=False,
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
+    )
+    expire_orders_after = Minute(
+        required=False,
+        description=(
+            "Expiration time in minutes. "
+            "Default null - means do not expire any orders. "
+            "Enter 0 or null to disable." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
     )
     mark_as_paid_strategy = MarkAsPaidStrategyEnum(
         required=False,
@@ -165,6 +176,7 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "automatically_confirm_all_new_orders"
                 ] = automatically_confirm_all_new_orders
+
             automatically_fulfill_non_shippable_gift_card = order_settings.get(
                 "automatically_fulfill_non_shippable_gift_card"
             )
@@ -175,6 +187,11 @@ class ChannelCreate(ModelMutation):
             if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
                 cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
 
+            if "expire_orders_after" in order_settings:
+                expire_orders_after = order_settings["expire_orders_after"]
+                cleaned_input["expire_orders_after"] = cls.clean_expire_orders_after(
+                    expire_orders_after
+                )
             if default_transaction_strategy := order_settings.get(
                 "default_transaction_flow_strategy"
             ):
@@ -183,6 +200,21 @@ class ChannelCreate(ModelMutation):
                 ] = default_transaction_strategy
 
         return cleaned_input
+
+    @classmethod
+    def clean_expire_orders_after(cls, expire_orders_after):
+        if expire_orders_after is None or expire_orders_after == 0:
+            return None
+        if expire_orders_after < 0:
+            raise ValidationError(
+                {
+                    "expire_orders_after": ValidationError(
+                        "Expiration time for orders cannot be lower than 0.",
+                        code=ChannelErrorCode.INVALID.value,
+                    )
+                }
+            )
+        return expire_orders_after
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

@@ -1106,6 +1106,7 @@ def _generate_sample_order_payload(event_name):
     elif event_name in [
         WebhookEventAsyncType.ORDER_CANCELLED,
         WebhookEventAsyncType.ORDER_UPDATED,
+        WebhookEventAsyncType.ORDER_EXPIRED,
     ]:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.CANCELED))
     if order:
