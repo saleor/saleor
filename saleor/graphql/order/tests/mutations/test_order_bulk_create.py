@@ -7,6 +7,8 @@ import pytest
 from django.utils import timezone
 
 from .....account.models import Address
+from .....core import JobStatus
+from .....invoice.models import Invoice
 from .....order import OrderEvents, OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import (
@@ -17,14 +19,13 @@ from .....order.models import (
     OrderEvent,
     OrderLine,
 )
-
 from .....payment.models import TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
 from ....payment.enums import TransactionActionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
-from ...enums import StockUpdatePolicyEnum
+from ...enums import OrderStatusEnum, StockUpdatePolicyEnum
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
@@ -183,18 +184,22 @@ ORDER_BULK_CREATE = """
                             amount
                             currency
                         }
-                        voidedAmount {
+                        canceledAmount{
                             currency
                             amount
                         }
-                        chargedAmount {
+                        chargedAmount{
                             currency
                             amount
                         }
-                        refundedAmount {
+                        refundedAmount{
                             currency
                             amount
                         }
+                    }
+                    invoices {
+                        number
+                        url
                     }
                 }
                 errors {
@@ -303,10 +308,18 @@ def order_bulk_input(
         "privateMetadata": [{"key": "test-2", "value": "321"}],
     }
 
+    invoice = {
+        "number": "01/12/2020/TEST",
+        "url": "http://www.example.com",
+        "createdAt": timezone.now(),
+        "metadata": [{"key": "md key", "value": "md value"}],
+        "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
+    }
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
-        "status": OrderStatus.DRAFT,
+        "status": OrderStatusEnum.DRAFT.name,
         "user": user,
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
@@ -320,76 +333,8 @@ def order_bulk_input(
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
         "transactions": [transaction],
+        "invoices": [invoice],
     }
-
-
-@pytest.fixture()
-def order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks(
-    order_bulk_input,
-    product_variant_list,
-    warehouses,
-):
-    order = order_bulk_input
-    order_line_1 = order["lines"][0]
-    order_line_2 = copy.deepcopy(order["lines"][0])
-    order_line_3 = copy.deepcopy(order["lines"][0])
-
-    warehouse_1_id = graphene.Node.to_global_id("Warehouse", warehouses[0].id)
-    warehouse_2_id = graphene.Node.to_global_id("Warehouse", warehouses[1].id)
-    variant_1_id = graphene.Node.to_global_id(
-        "ProductVariant", product_variant_list[0].id
-    )
-    variant_2_id = graphene.Node.to_global_id(
-        "ProductVariant", product_variant_list[1].id
-    )
-
-    order_line_1["variantId"] = variant_1_id
-    order_line_1["warehouse"] = warehouse_1_id
-    order_line_1["quantity"] = 10
-
-    order_line_2["variantId"] = variant_2_id
-    order_line_2["warehouse"] = warehouse_1_id
-    order_line_2["quantity"] = 50
-
-    order_line_3["variantId"] = variant_2_id
-    order_line_3["warehouse"] = warehouse_2_id
-    order_line_3["quantity"] = 20
-
-    fulfillment_1_line_1 = {
-        "variantId": variant_1_id,
-        "orderLineIndex": 0,
-        "quantity": 5,
-        "warehouse": warehouse_1_id,
-    }
-    fulfillment_1 = {"trackingCode": "abc-1", "lines": [fulfillment_1_line_1]}
-
-    fulfillment_2_line_1 = {
-        "variantId": variant_1_id,
-        "orderLineIndex": 0,
-        "quantity": 5,
-        "warehouse": warehouse_1_id,
-    }
-    fulfillment_2_line_2 = {
-        "variantId": variant_2_id,
-        "orderLineIndex": 1,
-        "quantity": 33,
-        "warehouse": warehouse_1_id,
-    }
-    fulfillment_2_line_3 = {
-        "variantId": variant_2_id,
-        "orderLineIndex": 2,
-        "quantity": 17,
-        "warehouse": warehouse_2_id,
-    }
-    fulfillment_2 = {
-        "trackingCode": "abc-2",
-        "lines": [fulfillment_2_line_1, fulfillment_2_line_2, fulfillment_2_line_3],
-    }
-
-    order["lines"] = [order_line_1, order_line_2, order_line_3]
-    order["fulfillments"] = [fulfillment_1, fulfillment_2]
-
-    return order
 
 
 @pytest.fixture()
@@ -483,6 +428,7 @@ def test_order_bulk_create(
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
     transactions_count = TransactionItem.objects.count()
+    invoice_count = Invoice.objects.count()
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -654,12 +600,24 @@ def test_order_bulk_create(
     assert transaction["authorizedAmount"]["currency"] == "PLN"
     db_transaction = TransactionItem.objects.get()
     assert db_transaction.authorized_value == Decimal("10")
+    assert db_transaction.currency == "PLN"
     assert db_transaction.psp_reference == "PSP reference - 123"
     assert db_transaction.status == "Authorized for 10$"
     assert db_transaction.order_id == db_order.id
     assert db_transaction.name == "Credit Card"
     assert db_transaction.metadata == {"test-1": "123"}
     assert db_transaction.private_metadata == {"test-2": "321"}
+
+    invoice = order["invoices"][0]
+    assert invoice["number"] == "01/12/2020/TEST"
+    assert invoice["url"] == "http://www.example.com"
+    db_invoice = Invoice.objects.get()
+    assert db_invoice.number == "01/12/2020/TEST"
+    assert db_invoice.external_url == "http://www.example.com"
+    assert db_invoice.private_metadata["pmd key"] == "pmd value"
+    assert db_invoice.metadata["md key"] == "md value"
+    assert db_invoice.order_id == db_order.id
+    assert db_invoice.status == JobStatus.SUCCESS
 
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
@@ -668,6 +626,7 @@ def test_order_bulk_create(
     assert Fulfillment.objects.count() == fulfillments_count + 1
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
     assert TransactionItem.objects.count() == transactions_count + 1
+    assert Invoice.objects.count() == invoice_count + 1
 
 
 def test_order_bulk_create_multiple_orders(
@@ -935,239 +894,56 @@ def test_order_bulk_create_multiple_fulfillments(
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 4
 
 
-def test_order_bulk_create_stock_update(
+def test_order_bulk_create_multiple_transactions(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
+    order_bulk_input,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    orders_count = Order.objects.count()
+    transactions_count = TransactionItem.objects.count()
 
-    variant_1 = product_variant_list[0]
-    variant_2 = product_variant_list[1]
-    warehouse_1 = warehouses[0]
-    warehouse_2 = warehouses[1]
-
-    stock_variant_1_warehouse_1 = Stock(
-        product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_1 = Stock(
-        product_variant=variant_2, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=100
-    )
-    Stock.objects.bulk_create(
-        [
-            stock_variant_1_warehouse_1,
-            stock_variant_2_warehouse_1,
-            stock_variant_2_warehouse_2,
-        ]
-    )
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
+    transaction_1 = {
+        "status": "Authorized for 10$",
     }
 
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["errors"]
-
-    stock_variant_1_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_2.refresh_from_db()
-
-    assert stock_variant_1_warehouse_1.quantity == 90
-    assert stock_variant_2_warehouse_1.quantity == 67
-    assert stock_variant_2_warehouse_2.quantity == 83
-
-
-def test_order_bulk_create_stock_update_insufficient_stock(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-
-    variant_1 = product_variant_list[0]
-    variant_2 = product_variant_list[1]
-    warehouse_1 = warehouses[0]
-    warehouse_2 = warehouses[1]
-
-    stock_variant_1_warehouse_1 = Stock(
-        product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_1 = Stock(
-        product_variant=variant_2, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=1
-    )
-    Stock.objects.bulk_create(
-        [
-            stock_variant_1_warehouse_1,
-            stock_variant_2_warehouse_1,
-            stock_variant_2_warehouse_2,
-        ]
-    )
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
+    transaction_2 = {
+        "type": "Credit Card",
+        "amountCharged": {
+            "amount": Decimal("10"),
+            "currency": "PLN",
+        },
     }
 
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert error["message"] == (
-        f"Insufficient stock for product variant: {variant_2.id} and warehouse: "
-        f"{warehouse_2.id}."
-    )
-    assert error["field"] == "order_line"
-    assert error["code"] == OrderBulkCreateErrorCode.INSUFFICIENT_STOCK.name
-
-    stock_variant_1_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_2.refresh_from_db()
-
-    assert stock_variant_1_warehouse_1.quantity == 100
-    assert stock_variant_2_warehouse_1.quantity == 100
-    assert stock_variant_2_warehouse_2.quantity == 1
-
-
-def test_order_bulk_create_stock_update_insufficient_stock_with_force_update_policy(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-
-    variant_1 = product_variant_list[0]
-    variant_2 = product_variant_list[1]
-    warehouse_1 = warehouses[0]
-    warehouse_2 = warehouses[1]
-
-    stock_variant_1_warehouse_1 = Stock(
-        product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_1 = Stock(
-        product_variant=variant_2, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=1
-    )
-    Stock.objects.bulk_create(
-        [
-            stock_variant_1_warehouse_1,
-            stock_variant_2_warehouse_1,
-            stock_variant_2_warehouse_2,
-        ]
-    )
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.FORCE.name,
+    transaction_3 = {
+        "reference": "PSP reference - 123",
+        "amountRefunded": {
+            "amount": Decimal("15"),
+            "currency": "PLN",
+        },
     }
 
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["errors"]
-
-    stock_variant_1_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_2.refresh_from_db()
-
-    assert stock_variant_1_warehouse_1.quantity == 90
-    assert stock_variant_2_warehouse_1.quantity == 67
-    assert stock_variant_2_warehouse_2.quantity == -16
-
-
-def test_order_bulk_create_stock_update_insufficient_stock_with_skip_update_policy(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-
-    variant_1 = product_variant_list[0]
-    variant_2 = product_variant_list[1]
-    warehouse_1 = warehouses[0]
-    warehouse_2 = warehouses[1]
-
-    stock_variant_1_warehouse_1 = Stock(
-        product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_1 = Stock(
-        product_variant=variant_2, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=100
-    )
-    Stock.objects.bulk_create(
-        [
-            stock_variant_1_warehouse_1,
-            stock_variant_2_warehouse_1,
-            stock_variant_2_warehouse_2,
-        ]
-    )
+    transaction_4 = {
+        "amountCanceled": {
+            "amount": Decimal("20"),
+            "currency": "PLN",
+        },
+    }
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
         permission_manage_orders,
-        permission_manage_users,
     )
+    order_bulk_input["transactions"] = [
+        transaction_1,
+        transaction_2,
+        transaction_3,
+        transaction_4,
+    ]
+
     variables = {
-        "orders": [order],
+        "orders": [order_bulk_input],
         "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
     }
 
@@ -1179,278 +955,67 @@ def test_order_bulk_create_stock_update_insufficient_stock_with_skip_update_poli
     assert content["data"]["orderBulkCreate"]["count"] == 1
     data = content["data"]["orderBulkCreate"]["results"]
     assert not data[0]["errors"]
+    order = data[0]["order"]
 
-    stock_variant_1_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_1.refresh_from_db()
-    stock_variant_2_warehouse_2.refresh_from_db()
+    transaction_1, transaction_2, transaction_3, transaction_4 = order["transactions"]
+    assert transaction_1["status"] == "Authorized for 10$"
+    assert transaction_2["type"] == "Credit Card"
+    assert transaction_2["chargedAmount"]["amount"] == Decimal("10")
+    assert transaction_2["chargedAmount"]["currency"] == "PLN"
+    assert transaction_3["reference"] == "PSP reference - 123"
+    assert transaction_3["refundedAmount"]["amount"] == Decimal("15")
+    assert transaction_3["refundedAmount"]["currency"] == "PLN"
+    assert transaction_4["canceledAmount"]["amount"] == Decimal("20")
+    assert transaction_4["canceledAmount"]["currency"] == "PLN"
 
-    assert stock_variant_1_warehouse_1.quantity == 100
-    assert stock_variant_2_warehouse_1.quantity == 100
-    assert stock_variant_2_warehouse_2.quantity == 100
+    db_order = Order.objects.get()
+    (
+        db_transaction_1,
+        db_transaction_2,
+        db_transaction_3,
+        db_transaction_4,
+    ) = TransactionItem.objects.all()
+    assert db_transaction_1.status == "Authorized for 10$"
+    assert db_transaction_2.name == "Credit Card"
+    assert db_transaction_2.charged_value == Decimal("10")
+    assert db_transaction_3.psp_reference == "PSP reference - 123"
+    assert db_transaction_3.refunded_value == Decimal("15")
+    assert db_transaction_4.canceled_value == Decimal("20")
+    assert db_transaction_1.order_id == db_order.id
+    assert db_transaction_2.order_id == db_order.id
+    assert db_transaction_3.order_id == db_order.id
+    assert db_transaction_4.order_id == db_order.id
+
+    assert Order.objects.count() == orders_count + 1
+    assert TransactionItem.objects.count() == transactions_count + 4
 
 
-def test_order_bulk_create_error_no_related_order_line_for_fulfillment(
+def test_order_bulk_create_multiple_invoices(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    warehouse,
-    variant,
+    order_bulk_input,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    order["fulfillments"][0]["lines"][0]["orderLineIndex"] = 5
+    orders_count = Order.objects.count()
+    invoices_count = Invoice.objects.count()
 
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    invoice_1 = {
+        "number": "01/12/2020/TEST",
+        "createdAt": timezone.now(),
     }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["order"]
-
-    error = data[0]["errors"][0]
-    assert error["message"] == "There is no order line with index: 5."
-    assert error["field"] == "order_line_index"
-    assert error["code"] == OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE.name
-
-
-def test_order_bulk_create_error_warehouse_mismatch_between_order_and_fulfillment_lines(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    warehouse,
-    variant,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
-    order["fulfillments"][0]["lines"][0]["warehouse"] = warehouse_id
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    invoice_2 = {
+        "url": "http://www.example2.com",
+        "createdAt": timezone.now(),
     }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["order"]
-
-    error = data[0]["errors"][0]
-    assert error["message"] == (
-        "Fulfillment line's warehouse is different then order line's warehouse."
-    )
-    assert error["field"] == "warehouse"
-    assert (
-        error["code"]
-        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
-    )
-
-
-def test_order_bulk_create_error_variant_mismatch_between_order_and_fulfillment_lines(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    warehouse,
-    variant,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    order["fulfillments"][0]["lines"][0]["variantId"] = variant_id
-
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
         permission_manage_orders,
-        permission_manage_users,
     )
+    order_bulk_input["invoices"] = [invoice_1, invoice_2]
+
     variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["order"]
-
-    error = data[0]["errors"][0]
-    assert error["message"] == (
-        "Fulfillment line's product variant is different "
-        "then order line's product variant."
-    )
-    assert error["field"] == "variant_id"
-    assert (
-        error["code"]
-        == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
-    )
-
-
-def test_order_bulk_create_stock_update_error_too_many_fulfillments(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    order["fulfillments"][0]["lines"][0]["quantity"] = 500
-
-    variant_1 = product_variant_list[0]
-    variant_2 = product_variant_list[1]
-    warehouse_1 = warehouses[0]
-    warehouse_2 = warehouses[1]
-
-    stock_variant_1_warehouse_1 = Stock(
-        product_variant=variant_1, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_1 = Stock(
-        product_variant=variant_2, warehouse=warehouse_1, quantity=100
-    )
-    stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=100
-    )
-    Stock.objects.bulk_create(
-        [
-            stock_variant_1_warehouse_1,
-            stock_variant_2_warehouse_1,
-            stock_variant_2_warehouse_2,
-        ]
-    )
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert (
-        error["message"] == f"There is more fulfillments, than ordered quantity "
-        f"for order line with variant: {variant_1.id} and warehouse: {warehouse_1.id}"
-    )
-    assert error["field"] == "order_line"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID_QUANTITY.name
-
-
-def test_order_bulk_create_update_stocks_missing_stocks(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-    product_variant_list,
-    warehouses,
-):
-    # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-    variant = product_variant_list[0]
-    warehouse = warehouses[0]
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
-    }
-
-    # whenzadd
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert (
-        error["message"] == f"There is no stock for given product variant:"
-        f" {variant.id} and warehouse: {warehouse.id}."
-    )
-    assert error["field"] == "order_line"
-    assert error["code"] == OrderBulkCreateErrorCode.NON_EXISTING_STOCK.name
-
-
-@pytest.mark.parametrize(
-    "error_policy,expected_order_count",
-    [
-        (ErrorPolicyEnum.REJECT_EVERYTHING.name, 0),
-        (ErrorPolicyEnum.REJECT_FAILED_ROWS.name, 1),
-        (ErrorPolicyEnum.IGNORE_FAILED.name, 2),
-    ],
-)
-def test_order_bulk_create_error_policy(
-    error_policy,
-    expected_order_count,
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
-):
-    # given
-    fulfillments_count = Fulfillment.objects.count()
-    fulfillment_lines_count = FulfillmentLine.objects.count()
-
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-        permission_manage_users,
-    )
-    variables = {
-        "errorPolicy": error_policy,
-        "orders": [order_1, order_2],
+        "orders": [order_bulk_input],
         "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
     }
 
@@ -1464,70 +1029,27 @@ def test_order_bulk_create_error_policy(
     assert not data[0]["errors"]
 
     order = data[0]["order"]
-    order_line_1, order_line_2, order_line_3 = order["lines"]
+    invoice_1 = order["invoices"][0]
+    assert invoice_1["number"] == "01/12/2020/TEST"
+    assert invoice_1["url"] is None
+    invoice_2 = order["invoices"][1]
+    assert invoice_2["number"] is None
+    assert invoice_2["url"] == "http://www.example2.com"
+
     db_order = Order.objects.get()
-    db_order_line_1, db_order_line_2, db_order_line_3 = OrderLine.objects.all()
+    db_invoice_1, db_invoice_2 = Invoice.objects.all()
+    assert db_invoice_1.number == "01/12/2020/TEST"
+    assert db_invoice_1.external_url is None
+    assert db_invoice_1.order_id == db_order.id
+    assert db_invoice_1.status == JobStatus.SUCCESS
 
-    fulfillment_1, fulfillment_2 = order["fulfillments"]
-    assert fulfillment_1["trackingNumber"] == "abc-1"
-    assert fulfillment_1["fulfillmentOrder"] == 1
-    assert fulfillment_1["status"] == FulfillmentStatus.FULFILLED.upper()
-    db_fulfillment_1, db_fulfillment_2 = Fulfillment.objects.all()
-    assert db_fulfillment_1.order_id == db_order.id
-    assert db_fulfillment_1.tracking_number == "abc-1"
-    assert db_fulfillment_1.fulfillment_order == 1
-    assert db_fulfillment_1.status == FulfillmentStatus.FULFILLED
+    assert db_invoice_2.number is None
+    assert db_invoice_2.external_url == "http://www.example2.com"
+    assert db_invoice_2.order_id == db_order.id
+    assert db_invoice_2.status == JobStatus.SUCCESS
 
-    fulfillment_1_line_1 = fulfillment_1["lines"][0]
-    assert fulfillment_1_line_1["quantity"] == 5
-    assert fulfillment_1_line_1["orderLine"]["id"] == order_line_1["id"]
-
-    (
-        db_fulfillment_1_line_1,
-        db_fulfillment_2_line_1,
-        db_fulfillment_2_line_2,
-        db_fulfillment_2_line_3,
-    ) = FulfillmentLine.objects.all()
-    assert db_fulfillment_1_line_1.quantity == 5
-    assert db_fulfillment_1_line_1.order_line_id == db_order_line_1.id
-    assert db_fulfillment_1_line_1.fulfillment_id == db_fulfillment_1.id
-    assert db_fulfillment_1.lines.all()[0].id == db_fulfillment_1_line_1.id
-
-    assert fulfillment_2["trackingNumber"] == "abc-2"
-    assert fulfillment_2["fulfillmentOrder"] == 2
-    assert fulfillment_2["status"] == FulfillmentStatus.FULFILLED.upper()
-    assert db_fulfillment_2.order_id == db_order.id
-    assert db_fulfillment_2.tracking_number == "abc-2"
-    assert db_fulfillment_2.fulfillment_order == 2
-    assert db_fulfillment_2.status == FulfillmentStatus.FULFILLED
-
-    (
-        fulfillment_2_line_1,
-        fulfillment_2_line_2,
-        fulfillment_2_line_3,
-    ) = fulfillment_2["lines"]
-    assert fulfillment_2_line_1["quantity"] == 5
-    assert fulfillment_2_line_1["orderLine"]["id"] == order_line_1["id"]
-    assert fulfillment_2_line_2["quantity"] == 33
-    assert fulfillment_2_line_2["orderLine"]["id"] == order_line_2["id"]
-    assert fulfillment_2_line_3["quantity"] == 17
-    assert fulfillment_2_line_3["orderLine"]["id"] == order_line_3["id"]
-
-    assert db_fulfillment_2_line_1.quantity == 5
-    assert db_fulfillment_2_line_1.order_line_id == db_order_line_1.id
-    assert db_fulfillment_2_line_1.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[0].id == db_fulfillment_2_line_1.id
-    assert db_fulfillment_2_line_2.quantity == 33
-    assert db_fulfillment_2_line_2.order_line_id == db_order_line_2.id
-    assert db_fulfillment_2_line_2.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[1].id == db_fulfillment_2_line_2.id
-    assert db_fulfillment_2_line_3.quantity == 17
-    assert db_fulfillment_2_line_3.order_line_id == db_order_line_3.id
-    assert db_fulfillment_2_line_3.fulfillment_id == db_fulfillment_2.id
-    assert db_fulfillment_2.lines.all()[2].id == db_fulfillment_2_line_3.id
-
-    assert Fulfillment.objects.count() == fulfillments_count + 2
-    assert FulfillmentLine.objects.count() == fulfillment_lines_count + 4
+    assert Order.objects.count() == orders_count + 1
+    assert Invoice.objects.count() == invoices_count + 2
 
 
 def test_order_bulk_create_stock_update(
@@ -2935,3 +2457,126 @@ def test_order_bulk_create_error_empty_shipping_tax_class_metadata_key(
     assert not db_order.shipping_tax_class_private_metadata
 
     assert Order.objects.count() == orders_count + 1
+
+
+def test_order_bulk_create_error_empty_invoice_metadata_key(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+    invoice_count = Invoice.objects.count()
+
+    order = order_bulk_input
+    order["invoices"][0]["metadata"] = [{"key": "", "value": "123"}]
+    order["invoices"][0]["privateMetadata"] = [{"key": "", "value": "321"}]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert errors[0]["message"] == "Metadata key cannot be empty."
+    assert errors[0]["field"] == "metadata"
+    assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+    assert errors[1]["message"] == "Private metadata key cannot be empty."
+    assert errors[1]["field"] == "private_metadata"
+    assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
+
+    db_invoice = Invoice.objects.get()
+    assert not db_invoice.metadata
+    assert not db_invoice.private_metadata
+
+    assert Order.objects.count() == orders_count + 1
+    assert Invoice.objects.count() == invoice_count + 1
+
+
+def test_order_bulk_create_error_invoice_future_date(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    invoice_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["invoices"][0]["createdAt"] = timezone.now() + timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Invoice input contains future date."
+    assert error["field"] == "created_at"
+    assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
+
+    assert Invoice.objects.count() == invoice_count + 1
+
+
+def test_order_bulk_create_error_invoice_invalid_url(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    invoice_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["invoices"][0]["url"] = "invalid_url"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Invalid URL format."
+    assert error["field"] == "url"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID_URL.name
+
+    assert Invoice.objects.count() == invoice_count + 1
