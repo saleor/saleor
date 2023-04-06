@@ -22440,6 +22440,8 @@ enum OrderBulkCreateErrorCode {
   NO_RELATED_ORDER_LINE
   NEGATIVE_INDEX
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
+  METADATA_KEY_REQUIRED
+  INCORRECT_CURRENCY
 }
 
 input OrderBulkCreateInput {
@@ -22515,6 +22517,9 @@ input OrderBulkCreateInput {
 
   """Fulfillments of the order."""
   fulfillments: [OrderBulkCreateFulfillmentInput!]
+
+  """Transactions related to the order."""
+  transactions: [TransactionCreateInput!]
 }
 
 input OrderBulkCreateUserInput {
