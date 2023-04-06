@@ -1,9 +1,12 @@
+from decimal import Decimal
+
 import graphene
 import pytest
 from django.utils import timezone
 
-from .....order import OrderStatus
+from ....payment.enums import TransactionActionEnum
 from ....tests.utils import get_graphql_content
+from ...enums import OrderStatusEnum
 
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
@@ -153,6 +156,32 @@ ORDER_BULK_CREATE = """
                         fulfillmentOrder
                         status
                     }
+                    transactions {
+                        id
+                        reference
+                        type
+                        status
+                        authorizedAmount {
+                            amount
+                            currency
+                        }
+                        canceledAmount{
+                            currency
+                            amount
+                        }
+                        chargedAmount{
+                            currency
+                            amount
+                        }
+                        refundedAmount{
+                            currency
+                            amount
+                        }
+                    }
+                    invoices {
+                        number
+                        url
+                    }
                 }
                 errors {
                     field
@@ -228,18 +257,8 @@ def order_bulk_input(
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
-        "taxClassMetadata": [
-            {
-                "key": "md key",
-                "value": "md value",
-            }
-        ],
-        "taxClassPrivateMetadata": [
-            {
-                "key": "pmd key",
-                "value": "pmd value",
-            }
-        ],
+        "taxClassMetadata": [{"key": "md key", "value": "md value"}],
+        "taxClassPrivateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
     note = {
         "message": "Test message",
@@ -254,10 +273,34 @@ def order_bulk_input(
     }
     fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
 
+    transaction = {
+        "status": "Authorized for 10$",
+        "type": "Credit Card",
+        "reference": "PSP reference - 123",
+        "availableActions": [
+            TransactionActionEnum.CHARGE.name,
+            TransactionActionEnum.VOID.name,
+        ],
+        "amountAuthorized": {
+            "amount": Decimal("10"),
+            "currency": "PLN",
+        },
+        "metadata": [{"key": "test-1", "value": "123"}],
+        "privateMetadata": [{"key": "test-2", "value": "321"}],
+    }
+
+    invoice = {
+        "number": "01/12/2020/TEST",
+        "url": "http://www.example.com",
+        "createdAt": timezone.now(),
+        "metadata": [{"key": "md key", "value": "md value"}],
+        "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
+    }
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
-        "status": OrderStatus.DRAFT,
+        "status": OrderStatusEnum.DRAFT.name,
         "user": user,
         "billingAddress": graphql_address_data,
         "shippingAddress": graphql_address_data,
@@ -270,6 +313,8 @@ def order_bulk_input(
         "weight": "10.15",
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
+        "transactions": [transaction],
+        "invoices": [invoice],
     }
 
 

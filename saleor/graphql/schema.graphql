@@ -14990,7 +14990,7 @@ type Mutation {
     Determine how stock should be updated, while processing the order. DEFAULT: UPDATE - Only do update, if there is enough stocks.
     """
     stockUpdatePolicy: StockUpdatePolicyEnum
-  ): OrderBulkCreate
+  ): OrderBulkCreate @doc(category: "Orders")
 
   """
   Delete metadata of an object. To use it, you need to have access to the modified object.
@@ -22393,7 +22393,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
 """
-type OrderBulkCreate {
+type OrderBulkCreate @doc(category: "Orders") {
   """Returns how many objects were created."""
   count: Int!
 
@@ -22402,7 +22402,7 @@ type OrderBulkCreate {
   errors: [OrderBulkCreateError!]!
 }
 
-type OrderBulkCreateResult {
+type OrderBulkCreateResult @doc(category: "Orders") {
   """Order data."""
   order: Order
 
@@ -22445,7 +22445,7 @@ enum OrderBulkCreateErrorCode {
   INVALID_URL
 }
 
-input OrderBulkCreateInput {
+input OrderBulkCreateInput @doc(category: "Orders") {
   """Unique string identifier of the order."""
   number: String
 
@@ -22526,7 +22526,7 @@ input OrderBulkCreateInput {
   invoices: [OrderBulkCreateInvoiceInput!]
 }
 
-input OrderBulkCreateUserInput {
+input OrderBulkCreateUserInput @doc(category: "Orders") {
   """Customer ID associated with the order."""
   id: ID
 
@@ -22537,7 +22537,7 @@ input OrderBulkCreateUserInput {
   externalReference: String
 }
 
-input OrderBulkCreateNoteInput {
+input OrderBulkCreateNoteInput @doc(category: "Orders") {
   """Note message. Max characters: 200."""
   message: String!
 
@@ -22557,7 +22557,7 @@ input OrderBulkCreateNoteInput {
   appId: ID
 }
 
-input OrderBulkCreateOrderLineInput {
+input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The ID of the product variant."""
   variantId: ID
 
@@ -22616,7 +22616,7 @@ input OrderBulkCreateOrderLineInput {
   taxClassPrivateMetadata: [MetadataInput!]
 }
 
-input TaxedMoneyInput {
+input TaxedMoneyInput @doc(category: "Orders") {
   """Gross value of an item."""
   gross: PositiveDecimal!
 
@@ -22624,7 +22624,7 @@ input TaxedMoneyInput {
   net: PositiveDecimal!
 }
 
-input OrderBulkCreateDeliveryMethodInput {
+input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
   """The ID of the warehouse."""
   warehouseId: ID
 
@@ -22656,7 +22656,7 @@ input OrderBulkCreateDeliveryMethodInput {
   shippingTaxClassPrivateMetadata: [MetadataInput!]
 }
 
-input OrderBulkCreateFulfillmentInput {
+input OrderBulkCreateFulfillmentInput @doc(category: "Orders") {
   """Fulfillments tracking code."""
   trackingCode: String
 
@@ -22664,7 +22664,7 @@ input OrderBulkCreateFulfillmentInput {
   lines: [OrderBulkCreateFulfillmentLineInput!]
 }
 
-input OrderBulkCreateFulfillmentLineInput {
+input OrderBulkCreateFulfillmentLineInput @doc(category: "Orders") {
   """The ID of the product variant."""
   variantId: ID
 
@@ -22684,7 +22684,7 @@ input OrderBulkCreateFulfillmentLineInput {
   orderLineIndex: Int!
 }
 
-input OrderBulkCreateInvoiceInput {
+input OrderBulkCreateInvoiceInput @doc(category: "Orders") {
   """The date, when the invoice was created."""
   createdAt: DateTime!
 

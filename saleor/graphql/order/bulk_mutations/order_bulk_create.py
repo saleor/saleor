@@ -34,10 +34,11 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
-from ...core.types import NonNullList
+from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
@@ -236,20 +237,26 @@ class LineAmounts:
     tax_rate: Decimal
 
 
-class TaxedMoneyInput(graphene.InputObjectType):
+class TaxedMoneyInput(BaseInputObjectType):
     gross = PositiveDecimal(required=True, description="Gross value of an item.")
     net = PositiveDecimal(required=True, description="Net value of an item.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateUserInput(graphene.InputObjectType):
+
+class OrderBulkCreateUserInput(BaseInputObjectType):
     id = graphene.ID(description="Customer ID associated with the order.")
     email = graphene.String(description="Customer email associated with the order.")
     external_reference = graphene.String(
         description="Customer external ID associated with the order."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
+
+class OrderBulkCreateInvoiceInput(BaseInputObjectType):
     created_at = graphene.DateTime(
         required=True, description="The date, when the invoice was created."
     )
@@ -260,8 +267,11 @@ class OrderBulkCreateInvoiceInput(graphene.InputObjectType):
         MetadataInput, description="Private metadata of the invoice."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
+
+class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
     warehouse_id = graphene.ID(description="The ID of the warehouse.")
     warehouse_name = graphene.String(description="The name of the warehouse.")
     shipping_method_id = graphene.ID(description="The ID of the shipping method.")
@@ -281,8 +291,11 @@ class OrderBulkCreateDeliveryMethodInput(graphene.InputObjectType):
         MetadataInput, description="Private metadata of the tax class."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateNoteInput(graphene.InputObjectType):
+
+class OrderBulkCreateNoteInput(BaseInputObjectType):
     message = graphene.String(
         required=True, description=f"Note message. Max characters: {MAX_NOTE_LENGTH}."
     )
@@ -294,8 +307,11 @@ class OrderBulkCreateNoteInput(graphene.InputObjectType):
     )
     app_id = graphene.ID(description="The app ID associated with the message.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
+
+class OrderBulkCreateFulfillmentLineInput(BaseInputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
     variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
@@ -316,16 +332,22 @@ class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
+
+class OrderBulkCreateFulfillmentInput(BaseInputObjectType):
     tracking_code = graphene.String(description="Fulfillments tracking code.")
     lines = NonNullList(
         OrderBulkCreateFulfillmentLineInput,
         description="List of items informing how to fulfill the order.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
+
+class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
     variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
@@ -372,8 +394,11 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         MetadataInput, description="Private metadata of the tax class."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateInput(graphene.InputObjectType):
+
+class OrderBulkCreateInput(BaseInputObjectType):
     number = graphene.String(description="Unique string identifier of the order.")
     external_reference = graphene.String(description="External ID of the order.")
     channel = graphene.String(
@@ -438,13 +463,19 @@ class OrderBulkCreateInput(graphene.InputObjectType):
         OrderBulkCreateInvoiceInput, description="Invoices related to the order."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class OrderBulkCreateResult(graphene.ObjectType):
+
+class OrderBulkCreateResult(BaseObjectType):
     order = graphene.Field(OrderType, description="Order data.")
     errors = NonNullList(
         OrderBulkCreateError,
         description="List of errors occurred on create attempt.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderBulkCreate(BaseMutation, I18nMixin):
@@ -484,6 +515,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     class Meta:
         description = "Creates multiple orders." + ADDED_IN_313 + PREVIEW_FEATURE
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
+        doc_category = DOC_CATEGORY_ORDERS
         error_type_class = OrderBulkCreateError
 
     @classmethod
@@ -518,6 +550,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
+
+        weight = order_input.get("weight")
+        if weight and weight.value < 0:
+            errors.append(
+                OrderBulkError(
+                    message="Product can't have negative weight.",
+                    field="weight",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
 
         # TODO validate status (wait for fulfillments)
         # TODO validate number (?)
