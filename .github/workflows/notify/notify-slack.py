@@ -2,9 +2,6 @@
 """
 Notifies about deployment status to a given slack channel.
 
-This file currently needs to be duplicated between repositories until
-https://github.com/github/roadmap/issues/98 is closed.
-
 Dependencies (already shipped by ubuntu-20.04):
 - Python 3.6+
 - requests package (any version)

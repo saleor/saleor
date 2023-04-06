@@ -152,7 +152,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SALEOR_RELEASE_TOKEN }}" \
             https://api.github.com/repos/saleor/saleor-cloud-deployments/dispatches \
             -d "{\"event_type\":\"deploy-demo-staging\",\"client_payload\":{\"version\":\"$VERSION\"}}"
-      
+
       - name: Notify Slack
         if: ${{ failure() }}
         env:
