@@ -18,6 +18,7 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
+from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
@@ -38,12 +39,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import (
-    clean_image_file,
-    get_filename_from_url,
-    is_image_url,
-    validate_image_url,
-)
+from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput

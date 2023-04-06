@@ -7,63 +7,12 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from ....product.error_codes import ProductErrorCode
-from ...core.utils import FILE_NAME_MAX_LENGTH
 from ..validators.file import (
     clean_image_file,
-    get_filename_from_url,
     is_image_mimetype,
     is_supported_image_mimetype,
     validate_image_url,
 )
-
-
-def test_get_filename_from_url_unique():
-    # given
-    file_format = "jpg"
-    file_name = "lenna"
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
-
-
-def test_get_filename_from_url_with_long_name_is_trimmed():
-    # given
-    file_format = "jpg"
-    file_name = "2Fvar2Ffolders2Fbj2F61gtb14j7rz474yd15tnkzjh0000gn2FT2Fa"
-    assert len(file_name) > FILE_NAME_MAX_LENGTH
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name[:FILE_NAME_MAX_LENGTH])
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
-    assert len(result.split("_")[0]) == FILE_NAME_MAX_LENGTH
-
-
-def test_get_filename_from_url_with_short_name_is_not_trimmed():
-    # given
-    file_format = "jpg"
-    file_name = "short"
-    assert len(file_name) < FILE_NAME_MAX_LENGTH
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
-    assert len(result.split("_")[0]) < FILE_NAME_MAX_LENGTH
 
 
 def test_is_image_mimetype_valid_mimetype():

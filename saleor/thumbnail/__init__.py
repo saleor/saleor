@@ -5,6 +5,8 @@ THUMBNAIL_SIZES = [32, 64, 128, 256, 512, 1024, 2048, 4096]
 
 DEFAULT_THUMBNAIL_SIZE = 4096
 
+FILE_NAME_MAX_LENGTH = 55
+
 
 class ThumbnailFormat:
     ORIGINAL = "original"
