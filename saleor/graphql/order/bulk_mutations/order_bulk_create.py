@@ -135,7 +135,6 @@ class OrderWithErrors:
             + self.notes_errors
             + self.fulfillments_errors
             + self.transactions_errors
-        )
 
     @property
     def all_order_lines(self) -> List[OrderLine]:
@@ -1327,7 +1326,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         )
                     )
                     order.is_critical_error = True
-
+                    
                 stock.quantity_allocated += quantity_to_allocate
 
                 fulfillment_lines: List[
