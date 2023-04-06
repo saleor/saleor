@@ -8,8 +8,8 @@ from ...order import (
     OrderEventsEmails,
     OrderOrigin,
     OrderStatus,
-    error_codes,
     StockUpdatePolicy,
+    error_codes,
 )
 from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
 from ..core.doc_category import DOC_CATEGORY_ORDERS
