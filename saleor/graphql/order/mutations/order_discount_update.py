@@ -43,7 +43,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         input["value"] = input.get("value") or order_discount.value
         input["value_type"] = input.get("value_type") or order_discount.value_type
 
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(order.undiscounted_total.gross, input)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

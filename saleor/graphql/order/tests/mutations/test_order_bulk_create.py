@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from .....account.models import Address
 from .....core import JobStatus
+from .....discount.models import OrderDiscount
 from .....invoice.models import Invoice
 from .....order import OrderEvents, OrderOrigin, OrderStatus
 from .....order.error_codes import OrderBulkCreateErrorCode
@@ -22,6 +23,7 @@ from .....order.models import (
 from .....payment.models import TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
+from ....discount.enums import DiscountValueTypeEnum
 from ....payment.enums import TransactionActionEnum
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...bulk_mutations.order_bulk_create import MAX_NOTE_LENGTH, MINUTES_DIFF
@@ -201,6 +203,11 @@ ORDER_BULK_CREATE = """
                         number
                         url
                     }
+                    discounts {
+                        valueType
+                        value
+                        reason
+                    }
                 }
                 errors {
                     field
@@ -316,6 +323,12 @@ def order_bulk_input(
         "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
 
+    discount = {
+        "valueType": DiscountValueTypeEnum.FIXED.name,
+        "value": 10,
+        "reason": "birthday",
+    }
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
@@ -334,6 +347,7 @@ def order_bulk_input(
         "redirectUrl": "https://www.example.com",
         "transactions": [transaction],
         "invoices": [invoice],
+        "discounts": [discount],
     }
 
 
@@ -429,6 +443,7 @@ def test_order_bulk_create(
     fulfillment_lines_count = FulfillmentLine.objects.count()
     transactions_count = TransactionItem.objects.count()
     invoice_count = Invoice.objects.count()
+    discount_count = OrderDiscount.objects.count()
 
     order = order_bulk_input
     order["externalReference"] = "ext-ref-1"
@@ -619,6 +634,16 @@ def test_order_bulk_create(
     assert db_invoice.order_id == db_order.id
     assert db_invoice.status == JobStatus.SUCCESS
 
+    discount = order["discounts"][0]
+    assert discount["valueType"] == DiscountValueTypeEnum.FIXED.name
+    assert discount["value"] == 10
+    assert discount["reason"] == "birthday"
+    db_discount = OrderDiscount.objects.get()
+    assert db_discount.value_type == DiscountValueTypeEnum.FIXED.value
+    assert db_discount.value == 10
+    assert db_discount.reason == "birthday"
+    assert db_discount.order_id == db_order.id
+
     assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == order_lines_count + 1
     assert Address.objects.count() == address_count + 2
@@ -627,6 +652,7 @@ def test_order_bulk_create(
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
     assert TransactionItem.objects.count() == transactions_count + 1
     assert Invoice.objects.count() == invoice_count + 1
+    assert OrderDiscount.objects.count() == discount_count + 1
 
 
 def test_order_bulk_create_multiple_orders(
@@ -1695,7 +1721,7 @@ def test_order_bulk_create_error_negative_weight(
     assert content["data"]["orderBulkCreate"]["count"] == 0
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
-    assert error["message"] == "Product can't have negative weight."
+    assert error["message"] == "Order can't have negative weight."
     assert error["field"] == "weight"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 

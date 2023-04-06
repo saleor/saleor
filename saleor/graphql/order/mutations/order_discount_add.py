@@ -52,7 +52,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     @classmethod
     def validate(cls, info: ResolveInfo, order, input):
         cls.validate_order(info, order)
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(order.undiscounted_total.gross, input)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -10,6 +10,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.utils import timezone
+from prices import Money
 
 from ....account.models import Address, User
 from ....app.models import App
@@ -19,6 +20,7 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
+from ....discount.models import OrderDiscount
 from ....invoice.models import Invoice
 from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePolicy
 from ....order.error_codes import OrderBulkCreateErrorCode
@@ -44,7 +46,10 @@ from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
 from ...payment.utils import metadata_contains_empty_key
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
-from ..mutations.order_discount_common import OrderDiscountCommonInput
+from ..mutations.order_discount_common import (
+    OrderDiscountCommon,
+    OrderDiscountCommonInput,
+)
 from ..types import Order as OrderType
 from .utils import get_instance
 
@@ -92,6 +97,8 @@ class OrderWithErrors:
     transactions_errors: List[OrderBulkError]
     invoices: List[Invoice]
     invoice_errors: List[OrderBulkError]
+    discounts: List[OrderDiscount]
+    discount_errors: List[OrderBulkError]
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -109,6 +116,8 @@ class OrderWithErrors:
         self.transactions_errors = []
         self.invoices = []
         self.invoice_errors = []
+        self.discounts = []
+        self.discount_errors = []
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -144,6 +153,7 @@ class OrderWithErrors:
             + self.fulfillments_errors
             + self.transactions_errors
             + self.invoice_errors
+            + self.discount_errors
         )
 
     @property
@@ -163,6 +173,10 @@ class OrderWithErrors:
     @property
     def all_invoices(self) -> List[Invoice]:
         return [invoice for invoice in self.invoices]
+
+    @property
+    def all_discounts(self) -> List[OrderDiscount]:
+        return [discount for discount in self.discounts]
 
     @property
     def orderline_fulfillmentlines_map(
@@ -555,7 +569,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if weight and weight.value < 0:
             errors.append(
                 OrderBulkError(
-                    message="Product can't have negative weight.",
+                    message="Order can't have negative weight.",
                     field="weight",
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
@@ -967,6 +981,34 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return event
 
     @classmethod
+    def create_single_discount(
+        cls,
+        discount_input: Dict[str, Any],
+        order: Order,
+        errors: List[OrderBulkError],
+        order_amounts: OrderAmounts,
+        currency: str,
+    ) -> OrderDiscount:
+        max_total = Money(order_amounts.undiscounted_total_gross, currency)
+        try:
+            OrderDiscountCommon.validate_order_discount_input(max_total, discount_input)
+        except ValidationError:
+            errors.append(
+                OrderBulkError(
+                    message="dupa",
+                    field="discounts",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
+
+        return OrderDiscount(
+            order=order,
+            value_type=discount_input["value_type"],
+            value=discount_input["value"],
+            reason=discount_input.get("reason"),
+        )
+
+    @classmethod
     def create_single_invoice(
         cls,
         invoice_input: Dict[str, Any],
@@ -1341,6 +1383,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
+        # create discounts
+        if discounts_input := order_input.get("discounts"):
+            for discount_input in discounts_input:
+                order.discounts.append(
+                    cls.create_single_discount(
+                        discount_input,
+                        order_instance,
+                        order.discount_errors,
+                        order_amounts,
+                        order_input["currency"],
+                    )
+                )
+
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -1550,6 +1605,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             [order.all_invoices for order in orders if order.order], []
         )
         Invoice.objects.bulk_create(invoices)
+
+        discounts: List[OrderDiscount] = sum(
+            [order.all_discounts for order in orders if order.order], []
+        )
+        OrderDiscount.objects.bulk_create(discounts)
 
         return orders
 
