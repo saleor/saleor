@@ -215,3 +215,35 @@ def test_remove_individual_country_rates_non_existing_rate(
 
     default_rate_de.refresh_from_db()
     assert default_rate_de.pk is not None
+
+
+def test_tax_class_update_zero_rate(staff_api_client, permission_manage_taxes):
+    # given
+    tax_class = TaxClass.objects.create(name="Tax Class")
+    tax_class.country_rates.create(country="PL", rate=21)
+
+    id = graphene.Node.to_global_id("TaxClass", tax_class.pk)
+
+    new_name = "New tax class name"
+    update_PL_rate = {"countryCode": "PL", "rate": 0}
+
+    variables = {
+        "id": id,
+        "input": {
+            "name": new_name,
+            "updateCountryRates": [update_PL_rate],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION, variables, permissions=[permission_manage_taxes]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["taxClassUpdate"]
+    assert not data["errors"]
+    assert data["taxClass"]["name"] == new_name
+    assert len(data["taxClass"]["countries"]) == 1
+    assert data["taxClass"]["countries"][0]["rate"] == 0.0
