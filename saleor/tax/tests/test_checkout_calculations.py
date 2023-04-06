@@ -12,7 +12,6 @@ from ...plugins.manager import get_plugins_manager
 from ...tax.models import TaxClassCountryRate
 from .. import TaxCalculationStrategy
 from ..calculations.checkout import (
-    _calculate_checkout_line_unit_price,
     calculate_checkout_line_total,
     calculate_checkout_shipping,
     update_checkout_prices_with_flat_rates,
@@ -486,48 +485,7 @@ def test_calculate_checkout_line_total_voucher_on_entire_order(
     )
 
 
-def test_calculate_checkout_line_unit_price(checkout_with_item, shipping_zone, address):
-    # given
-    manager = get_plugins_manager()
-    checkout = checkout_with_item
-    channel = checkout.channel
-    line = checkout_with_item.lines.first()
-
-    rate = Decimal(23)
-    prices_entered_with_tax = True
-    _enable_flat_rates(checkout, prices_entered_with_tax)
-
-    method = shipping_zone.shipping_methods.get()
-    checkout.shipping_address = address
-    checkout.shipping_method_name = method.name
-    checkout.shipping_method = method
-    checkout.save()
-
-    variant = line.variant
-    product = variant.product
-    product.tax_class.country_rates.update_or_create(country=address.country, rate=rate)
-
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    checkout_line_info = lines[0]
-
-    # when
-    line_price = _calculate_checkout_line_unit_price(
-        checkout_info,
-        lines,
-        checkout_line_info,
-        channel,
-        rate,
-        prices_entered_with_tax,
-    )
-
-    # then
-    assert quantize_price(line_price, line_price.currency) == TaxedMoney(
-        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
-    )
-
-
-def test_calculate_checkout_line_unit_price_with_voucher_one_line(
+def test_calculate_checkout_line_total_with_voucher_one_line(
     checkout_with_item, shipping_zone, address, voucher
 ):
     # given
@@ -561,25 +519,26 @@ def test_calculate_checkout_line_unit_price_with_voucher_one_line(
     checkout_line_info = lines[0]
 
     # when
-    line_price = _calculate_checkout_line_unit_price(
+    line_price = calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
-        channel,
         rate,
         prices_entered_with_tax,
     )
 
     # then
     currency = checkout_with_item.currency
-    unit_gross = Money(total_price.amount - discount_amount, currency) / line.quantity
-    assert quantize_price(line_price, line_price.currency) == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal(1.23), currency),
-        gross=quantize_price(unit_gross, currency),
+    expected_total_price = quantize_price(
+        total_price - Money(discount_amount, currency), currency
+    )
+    assert line_price == TaxedMoney(
+        net=quantize_price(expected_total_price / Decimal("1.23"), currency),
+        gross=expected_total_price,
     )
 
 
-def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines(
+def test_calculate_checkout_line_total_with_voucher_multiple_lines(
     checkout_with_item, shipping_zone, address, voucher, product_list
 ):
     # given
@@ -627,28 +586,29 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines(
     checkout_line_info = lines[0]
 
     # when
-    line_price = _calculate_checkout_line_unit_price(
+    line_total_price = calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
-        channel,
         rate,
         prices_entered_with_tax,
     )
 
     # then
     currency = checkout.currency
-    discount_amount = quantize_price(
+    discount_amount_for_first_line = quantize_price(
         total_line_price / total_unit_prices * discount_amount, currency
     )
-    unit_gross = (total_line_price - Money(discount_amount, currency)) / line.quantity
-    assert quantize_price(line_price, currency) == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal("1.23"), currency),
-        gross=quantize_price(unit_gross, currency),
+    expected_total_line_price = total_line_price - Money(
+        discount_amount_for_first_line, currency
+    )
+    assert line_total_price == TaxedMoney(
+        net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
+        gross=quantize_price(expected_total_line_price, currency),
     )
 
 
-def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines_last_line(
+def test_calculate_checkout_line_total_with_voucher_multiple_lines_last_line(
     checkout_with_item, shipping_zone, address, voucher, product_list
 ):
     # given
@@ -703,28 +663,29 @@ def test_calculate_checkout_line_unit_price_with_voucher_multiple_lines_last_lin
     checkout_line_info = lines[-1]
 
     # when
-    line_price = _calculate_checkout_line_unit_price(
+    line_total_price = calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
-        channel,
         rate,
         prices_entered_with_tax,
     )
 
     # then
-    discount_amount = (
+    discount_amount_for_last_line = (
         discount_amount
         - (total_unit_prices - total_line_price) / total_unit_prices * discount_amount
     )
-    unit_gross = (total_line_price - Money(discount_amount, currency)) / line.quantity
-    assert quantize_price(line_price, currency) == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal("1.23"), currency),
-        gross=quantize_price(unit_gross, currency),
+    expected_total_line_price = total_line_price - Money(
+        discount_amount_for_last_line, currency
+    )
+    assert line_total_price == TaxedMoney(
+        net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
+        gross=quantize_price(expected_total_line_price, currency),
     )
 
 
-def test_calculate_checkout_line_unit_price_with_shipping_voucher(
+def test_calculate_checkout_line_total_with_shipping_voucher(
     checkout_with_item,
     shipping_zone,
     address,
@@ -755,25 +716,26 @@ def test_calculate_checkout_line_unit_price_with_shipping_voucher(
     channel = checkout.channel
     channel_listing = variant.channel_listings.get(channel=channel)
     unit_gross = channel_listing.price
+    expected_total_line_price = unit_gross * line.quantity
 
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_line_info = lines[0]
 
     # when
-    line_price = _calculate_checkout_line_unit_price(
+    line_total_price = calculate_checkout_line_total(
         checkout_info,
         lines,
         checkout_line_info,
-        channel,
         rate,
         prices_entered_with_tax,
     )
 
     # then
-    assert quantize_price(line_price, checkout.currency) == TaxedMoney(
-        net=quantize_price(unit_gross / Decimal("1.23"), checkout.currency),
-        gross=unit_gross,
+    currency = checkout_with_item.currency
+    assert line_total_price == TaxedMoney(
+        net=quantize_price(expected_total_line_price / Decimal("1.23"), currency),
+        gross=expected_total_line_price,
     )
 
 

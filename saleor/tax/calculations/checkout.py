@@ -12,7 +12,6 @@ from . import calculate_flat_rate_tax
 
 if TYPE_CHECKING:
     from ...account.models import Address
-    from ...channel.models import Channel
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
 
@@ -100,36 +99,17 @@ def calculate_checkout_line_total(
     tax_rate: Decimal,
     prices_entered_with_tax: bool,
 ) -> TaxedMoney:
-    unit_taxed_price = _calculate_checkout_line_unit_price(
-        checkout_info,
-        lines,
+    base_total_price = base_calculations.calculate_base_line_total_price(
         checkout_line_info,
         checkout_info.channel,
-        tax_rate,
-        prices_entered_with_tax,
-    )
-    quantity = checkout_line_info.line.quantity
-    return quantize_price(unit_taxed_price * quantity, unit_taxed_price.currency)
-
-
-def _calculate_checkout_line_unit_price(
-    checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
-    checkout_line_info: "CheckoutLineInfo",
-    channel: "Channel",
-    tax_rate: Decimal,
-    prices_entered_with_tax: bool,
-):
-    quantity = checkout_line_info.line.quantity
-    unit_price = base_calculations.calculate_base_line_unit_price(
-        checkout_line_info,
-        channel,
     )
     total_price = base_calculations.apply_checkout_discount_on_checkout_line(
         checkout_info,
         lines,
         checkout_line_info,
-        unit_price * quantity,
+        base_total_price,
     )
-    unit_price = total_price / quantity
-    return calculate_flat_rate_tax(unit_price, tax_rate, prices_entered_with_tax)
+    total_price = calculate_flat_rate_tax(
+        total_price, tax_rate, prices_entered_with_tax
+    )
+    return quantize_price(total_price, total_price.currency)

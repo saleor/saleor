@@ -516,6 +516,58 @@ def test_calculate_base_line_total_price_with_variant_on_sale(
     assert total_price == expected_price * quantity
 
 
+def test_calculate_base_line_total_price_with_1_cent_variant_on_10_percentage_sale(
+    checkout_with_single_item, discount_info, category
+):
+    # given
+    quantity = 10
+    checkout_line = checkout_with_single_item.lines.first()
+    checkout_line.quantity = quantity
+    checkout_line.save()
+
+    # Create 10% sale
+    sale = discount_info.sale
+    sale.type = DiscountValueType.PERCENTAGE
+    sale.save()
+    sale_channel_listing = sale.channel_listings.get()
+    sale_channel_listing.discount_value = Decimal(10)
+    sale_channel_listing.save()
+
+    # Set product price to 0.01 USD
+    variant = checkout_line.variant
+    variant_channel_listing = variant.channel_listings.get()
+    variant_channel_listing.price_amount = Decimal("0.01")
+    variant_channel_listing.save()
+
+    manager = get_plugins_manager()
+    checkout_lines_info, _ = fetch_checkout_lines(checkout_with_single_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_single_item, checkout_lines_info, manager
+    )
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines_info, [discount_info]
+    )
+    checkout_line_info = checkout_lines_info[0]
+    assert not checkout_line_info.voucher
+    variant = checkout_line_info.variant
+    # set category on sale
+    variant.product.category = category
+    variant.product.save()
+    checkout_line_info.product = variant.product
+
+    # when
+    total_price = calculate_base_line_total_price(
+        checkout_line_info, checkout_with_single_item.channel
+    )
+
+    # then
+    sale_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert sale_channel_listing.discount_value == Decimal(10)
+    assert variant_channel_listing.price_amount == Decimal("0.01")
+    assert total_price == Money(Decimal("0.09"), checkout_line.currency)
+
+
 def test_calculate_base_line_total_price_with_fixed_voucher(
     checkout_with_single_item, voucher, channel_USD
 ):
