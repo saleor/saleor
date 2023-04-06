@@ -17,9 +17,11 @@ def update_type_to_transaction_cancel_requested(qs: QuerySet[OrderEvent]):
 
 @app.task
 def order_events_rename_transaction_void_events_task():
-    qs = OrderEvent.objects.filter(type="transaction_void_requested").order_by("-pk")
-    ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
-    qs = qs.filter(pk__in=ids)
+    events = OrderEvent.objects.filter(type="transaction_void_requested").order_by(
+        "-pk"
+    )
+    ids = events.values_list("pk", flat=True)[:BATCH_SIZE]
+    qs = OrderEvent.objects.filter(pk__in=ids)
 
     if ids:
         update_type_to_transaction_cancel_requested(qs)
@@ -35,9 +37,11 @@ def update_type_to_transaction_charge_requested(qs: QuerySet[OrderEvent]):
 
 @app.task
 def order_events_rename_transaction_capture_events_task():
-    qs = OrderEvent.objects.filter(type="transaction_capture_requested").order_by("-pk")
-    ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
-    qs = qs.filter(pk__in=ids)
+    events = OrderEvent.objects.filter(type="transaction_capture_requested").order_by(
+        "-pk"
+    )
+    ids = events.values_list("pk", flat=True)[:BATCH_SIZE]
+    qs = OrderEvent.objects.filter(pk__in=ids)
 
     if ids:
         update_type_to_transaction_charge_requested(qs)
