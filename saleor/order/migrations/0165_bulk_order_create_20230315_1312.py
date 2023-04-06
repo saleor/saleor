@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0163_order_events_rename_transaction_events"),
+        ("order", "0164_auto_20230329_1200"),
     ]
 
     operations = [

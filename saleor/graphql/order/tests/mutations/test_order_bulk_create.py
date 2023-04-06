@@ -1521,7 +1521,7 @@ def test_order_bulk_create_update_stocks_missing_stocks(
         "stockUpdatePolicy": StockUpdatePolicyEnum.UPDATE.name,
     }
 
-    # whenzadd
+    # when
     response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
     content = get_graphql_content(response)
 
@@ -1664,6 +1664,39 @@ def test_order_bulk_create_error_invalid_redirect_url(
         "Please check if URL is in RFC 1808 format.."
     )
     assert error["field"] == "redirect_url"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+    assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_negative_weight(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["weight"] = -5
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {"orders": [order]}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Product can't have negative weight."
+    assert error["field"] == "weight"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
