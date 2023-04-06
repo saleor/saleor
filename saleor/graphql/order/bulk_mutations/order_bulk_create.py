@@ -21,6 +21,7 @@ from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePo
 from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
+from ....payment.models import TransactionItem
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -36,6 +37,8 @@ from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
+from ...payment.mutations import TransactionCreate, TransactionCreateInput
+from ...payment.utils import metadata_contains_empty_key
 from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
@@ -81,6 +84,8 @@ class OrderWithErrors:
     notes_errors: List[OrderBulkError]
     fulfillments: List[OrderBulkFulfillment]
     fulfillments_errors: List[OrderBulkError]
+    transactions: List[TransactionItem]
+    transactions_errors: List[OrderBulkError]
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -94,6 +99,8 @@ class OrderWithErrors:
         self.notes_errors = []
         self.fulfillments = []
         self.fulfillments_errors = []
+        self.transactions = []
+        self.transactions_errors = []
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -127,7 +134,7 @@ class OrderWithErrors:
             + self.lines_errors
             + self.notes_errors
             + self.fulfillments_errors
-        )
+            + self.transactions_errors
 
     @property
     def all_order_lines(self) -> List[OrderLine]:
@@ -138,6 +145,10 @@ class OrderWithErrors:
         return [
             line.line for fulfillment in self.fulfillments for line in fulfillment.lines
         ]
+
+    @property
+    def all_transactions(self) -> List[TransactionItem]:
+        return [transaction for transaction in self.transactions]
 
     @property
     def orderline_fulfillmentlines_map(
@@ -394,6 +405,9 @@ class OrderBulkCreateInput(graphene.InputObjectType):
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
+    )
+    transactions = NonNullList(
+        TransactionCreateInput, description="Transactions related to the order."
     )
 
 
@@ -730,7 +744,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     ) -> Optional[DeliveryMethod]:
         warehouse, shipping_method, shipping_tax_class = None, None, None
         shipping_tax_class_metadata, shipping_tax_class_private_metadata = None, None
-
         is_warehouse_delivery = input.get("warehouse_id")
         is_shipping_delivery = input.get("shipping_method_id")
 
@@ -767,10 +780,29 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 key_map={"shipping_tax_class_id": "id"},
                 object_storage=object_storage,
             )
-            shipping_tax_class_metadata = input.get("shipping_tax_class_metadata")
-            shipping_tax_class_private_metadata = input.get(
+            if shipping_tax_class_metadata := input.get("shipping_tax_class_metadata"):
+                if metadata_contains_empty_key(shipping_tax_class_metadata):
+                    errors.append(
+                        OrderBulkError(
+                            message="Metadata key cannot be empty.",
+                            field="shipping_tax_class_metadata",
+                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                        )
+                    )
+                    shipping_tax_class_metadata = []
+
+            if shipping_tax_class_private_metadata := input.get(
                 "shipping_tax_class_private_metadata"
-            )
+            ):
+                if metadata_contains_empty_key(shipping_tax_class_private_metadata):
+                    errors.append(
+                        OrderBulkError(
+                            message="Private metadata key cannot be empty.",
+                            field="shipping_tax_class_private_metadata",
+                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                        )
+                    )
+                    shipping_tax_class_private_metadata = []
 
         delivery_method = None
         if not warehouse and not shipping_method:
@@ -943,13 +975,33 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         if metadata := order_line_input.get("tax_class_metadata"):
-            for data in metadata:
-                order_line.tax_class_metadata.update({data["key"]: data["value"]})
-        if private_metadata := order_line_input.get("tax_class_private_metadata"):
-            for data in private_metadata:
-                order_line.tax_class_private_metadata.update(
-                    {data["key"]: data["value"]}
+            if metadata_contains_empty_key(metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Metadata key cannot be empty.",
+                        field="tax_class_metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
                 )
+            else:
+                for data in metadata:
+                    order_line.tax_class_metadata.update({data["key"]: data["value"]})
+
+        if private_metadata := order_line_input.get("tax_class_private_metadata"):
+            if metadata_contains_empty_key(private_metadata):
+                errors.append(
+                    OrderBulkError(
+                        message="Private metadata key cannot be empty.",
+                        field="tax_class_private_metadata",
+                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                    )
+                )
+            else:
+                for data in private_metadata:
+                    order_line.tax_class_private_metadata.update(
+                        {data["key"]: data["value"]}
+                    )
+
         return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
 
     @classmethod
@@ -1056,7 +1108,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     ) -> OrderWithErrors:
         order = OrderWithErrors()
         cls.validate_order_input(order_input, order.order_errors)
-        order_instance = Order()
+        order_instance = Order(currency=order_input["currency"])
 
         # get order related instances
         instances = cls.get_instances_related_to_order(
@@ -1122,6 +1174,27 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order.is_critical_error = True
             if order.is_critical_error:
                 return order
+
+        # create transactions
+        if transactions_input := order_input.get("transactions"):
+            for transaction_input in transactions_input:
+                try:
+                    transaction = TransactionCreate.prepare_transaction_item_for_order(
+                        order_instance, transaction_input
+                    )
+                    order.transactions.append(transaction)
+                except ValidationError as error:
+                    for field, err in error.error_dict.items():
+                        message = str(err[0].message)
+                        field = field
+                        code = err[0].code
+                        order.transactions_errors.append(
+                            OrderBulkError(
+                                message=message,
+                                field=field,
+                                code=OrderBulkCreateErrorCode(code),
+                            )
+                        )
 
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
@@ -1253,7 +1326,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         )
                     )
                     order.is_critical_error = True
-
+                    
                 stock.quantity_allocated += quantity_to_allocate
 
                 fulfillment_lines: List[
@@ -1322,6 +1395,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         FulfillmentLine.objects.bulk_create(fulfillment_lines)
 
         Stock.objects.bulk_update(stocks, ["quantity"])
+
+        transactions: List[TransactionItem] = sum(
+            [order.all_transactions for order in orders if order.order], []
+        )
+        TransactionItem.objects.bulk_create(transactions)
 
         return orders
 

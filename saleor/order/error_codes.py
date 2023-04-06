@@ -63,3 +63,5 @@ class OrderBulkCreateErrorCode(Enum):
     NO_RELATED_ORDER_LINE = "no_related_order_line"
     NEGATIVE_INDEX = "negative_index"
     ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
+    METADATA_KEY_REQUIRED = "metadata_key_required"
+    INCORRECT_CURRENCY = "incorrect_currency"
