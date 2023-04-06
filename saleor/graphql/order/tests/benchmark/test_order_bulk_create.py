@@ -8,9 +8,14 @@ from ....tests.utils import get_graphql_content
 ORDER_BULK_CREATE = """
     mutation OrderBulkCreate(
         $orders: [OrderBulkCreateInput!]!,
-        $errorPolicy: ErrorPolicyEnum
+        $errorPolicy: ErrorPolicyEnum,
+        $stockUpdatePolicy: StockUpdatePolicyEnum
     ) {
-        orderBulkCreate(orders: $orders, errorPolicy: $errorPolicy) {
+        orderBulkCreate(
+            orders: $orders,
+            errorPolicy: $errorPolicy,
+            stockUpdatePolicy: $stockUpdatePolicy
+        ) {
             count
             results {
                 order {
@@ -144,6 +149,9 @@ ORDER_BULK_CREATE = """
                                 id
                             }
                         }
+                        trackingNumber
+                        fulfillmentOrder
+                        status
                     }
                 }
                 errors {
@@ -166,6 +174,7 @@ def order_bulk_input(
     graphql_address_data,
     shipping_method_channel_PLN,
     variant,
+    warehouse,
 ):
     shipping_method = shipping_method_channel_PLN
     user = {
@@ -207,7 +216,6 @@ def order_bulk_input(
         "isShippingRequired": True,
         "isGiftCard": False,
         "quantity": 5,
-        "quantityFulfilled": 0,
         "totalPrice": {
             "gross": 120,
             "net": 100,
@@ -216,6 +224,7 @@ def order_bulk_input(
             "gross": 120,
             "net": 100,
         },
+        "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
@@ -237,6 +246,14 @@ def order_bulk_input(
         "date": timezone.now(),
         "userId": graphene.Node.to_global_id("User", customer_user.id),
     }
+    fulfillment_line = {
+        "variantId": graphene.Node.to_global_id("ProductVariant", variant.id),
+        "quantity": 5,
+        "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+        "orderLineIndex": 0,
+    }
+    fulfillment = {"trackingCode": "abc-123", "lines": [fulfillment_line]}
+
     return {
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
@@ -249,6 +266,7 @@ def order_bulk_input(
         "deliveryMethod": delivery_method,
         "lines": [line],
         "notes": [note],
+        "fulfillments": [fulfillment],
         "weight": "10.15",
         "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
@@ -263,13 +281,6 @@ def test_order_bulk_create(
     permission_manage_orders_import,
     permission_manage_users,
     order_bulk_input,
-    app,
-    channel_PLN,
-    customer_user,
-    default_tax_class,
-    graphql_address_data,
-    shipping_method_channel_PLN,
-    variant,
 ):
     order = order_bulk_input
 

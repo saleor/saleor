@@ -1,7 +1,10 @@
+import copy
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -10,18 +13,19 @@ from django.utils import timezone
 from ....account.models import Address, User
 from ....app.models import App
 from ....channel.models import Channel
+from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....order import OrderEvents, OrderOrigin
+from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePolicy
 from ....order.error_codes import OrderBulkCreateErrorCode
-from ....order.models import Order, OrderEvent, OrderLine
+from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ....tax.models import TaxClass
-from ....warehouse.models import Warehouse
+from ....warehouse.models import Stock, Warehouse
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core import ResolveInfo
@@ -32,6 +36,7 @@ from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...meta.mutations import MetadataInput
+from ..enums import StockUpdatePolicyEnum
 from ..mutations.order_discount_common import OrderDiscountCommonInput
 from ..types import Order as OrderType
 from .utils import get_instance
@@ -49,23 +54,120 @@ class OrderBulkError:
 
 
 @dataclass
-class OrderWithErrors:
-    order: Optional[Order]
-    order_errors: List[OrderBulkError]
-    lines: List[OrderLine]
-    lines_errors: List[OrderBulkError]
-    notes: List[OrderEvent]
-    notes_errors: List[OrderBulkError]
-    is_each_line_created: bool = True
-
-    def get_all_errors(self) -> List[OrderBulkError]:
-        return self.order_errors + self.lines_errors + self.notes_errors
+class OrderBulkFulfillmentLine:
+    line: FulfillmentLine
+    warehouse: Warehouse
 
 
 @dataclass
-class OrderBulkStock:
-    quantity: int
+class OrderBulkFulfillment:
+    fulfillment: Fulfillment
+    lines: List[OrderBulkFulfillmentLine]
+
+
+@dataclass
+class OrderBulkOrderLine:
+    line: OrderLine
     warehouse: Warehouse
+
+
+@dataclass
+class OrderWithErrors:
+    order: Optional[Order]
+    order_errors: List[OrderBulkError]
+    lines: List[OrderBulkOrderLine]
+    lines_errors: List[OrderBulkError]
+    notes: List[OrderEvent]
+    notes_errors: List[OrderBulkError]
+    fulfillments: List[OrderBulkFulfillment]
+    fulfillments_errors: List[OrderBulkError]
+    # error which ignores error policy and disqualify order
+    is_critical_error: bool = False
+
+    def __init__(self):
+        super().__init__()
+        self.order = None
+        self.order_errors = []
+        self.lines = []
+        self.lines_errors = []
+        self.notes = []
+        self.notes_errors = []
+        self.fulfillments = []
+        self.fulfillments_errors = []
+
+    def set_fulfillment_id(self):
+        for fulfillment in self.fulfillments:
+            for line in fulfillment.lines:
+                line.line.fulfillment_id = fulfillment.fulfillment.id
+
+    def set_quantity_fulfilled(self):
+        map = self.orderline_quantityfulfilled_map
+        for order_line in self.lines:
+            order_line.line.quantity_fulfilled = map.get(order_line.line.id, 0)
+
+    def set_fulfillment_order(self):
+        order = 1
+        for fulfillment in self.fulfillments:
+            fulfillment.fulfillment.fulfillment_order = order
+            order += 1
+
+    @property
+    def order_lines_duplicates(self) -> bool:
+        keys = [
+            f"{line.line.variant.id}_{line.warehouse.id}"
+            for line in self.lines
+            if line.line.variant
+        ]
+        return len(keys) != len(list(set(keys)))
+
+    @property
+    def all_errors(self) -> List[OrderBulkError]:
+        return (
+            self.order_errors
+            + self.lines_errors
+            + self.notes_errors
+            + self.fulfillments_errors
+        )
+
+    @property
+    def all_order_lines(self) -> List[OrderLine]:
+        return [line.line for line in self.lines]
+
+    @property
+    def all_fulfillment_lines(self) -> List[FulfillmentLine]:
+        return [
+            line.line for fulfillment in self.fulfillments for line in fulfillment.lines
+        ]
+
+    @property
+    def orderline_fulfillmentlines_map(
+        self,
+    ) -> Dict[UUID, List[OrderBulkFulfillmentLine]]:
+        map: Dict[UUID, list] = defaultdict(list)
+        for fulfillment in self.fulfillments:
+            for line in fulfillment.lines:
+                map[line.line.order_line.id].append(line)
+        return map
+
+    @property
+    def orderline_quantityfulfilled_map(self) -> Dict[UUID, int]:
+        map: Dict[UUID, int] = defaultdict(int)
+        for (
+            order_line,
+            fulfillment_lines,
+        ) in self.orderline_fulfillmentlines_map.items():
+            map[order_line] = sum([line.line.quantity for line in fulfillment_lines])
+        return map
+
+    @property
+    def unique_variant_ids(self) -> List[int]:
+        return list(
+            set([line.line.variant.id for line in self.lines if line.line.variant])
+        )
+
+    @property
+    def unique_warehouse_ids(self) -> List[UUID]:
+        return list(set([line.warehouse.id for line in self.lines]))
 
 
 @dataclass
@@ -107,7 +209,6 @@ class LineAmounts:
     undiscounted_unit_gross: Decimal
     undiscounted_unit_net: Decimal
     quantity: int
-    quantity_fulfilled: int
     tax_rate: Decimal
 
 
@@ -158,32 +259,30 @@ class OrderBulkCreateNoteInput(graphene.InputObjectType):
     app_id = graphene.ID(description="The app ID associated with the message.")
 
 
-class OrderBulkCreateFulfillStockInput(graphene.InputObjectType):
+class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
+    variant_id = graphene.ID(description="The ID of the product variant.")
+    variant_sku = graphene.String(description="The SKU of the product variant.")
+    variant_external_reference = graphene.String(
+        description="The external ID of the product variant."
+    )
     quantity = graphene.Int(
         description="The number of line items to be fulfilled from given warehouse.",
         required=True,
     )
-    warehouse_id = graphene.ID(
+    warehouse = graphene.ID(
         description="ID of the warehouse from which the item will be fulfilled.",
+        required=True,
     )
-    warehouse_name = graphene.String(
-        description="Name of the warehouse from which the item will be fulfilled.",
-    )
-
-
-class OrderBulkCreateFulfillmentLineInput(graphene.InputObjectType):
-    variant_id = graphene.ID(description="The ID of the product variant.")
-    variant_sku = graphene.String(description="The sku of the product variant.")
-    variant_external_reference = graphene.String(
-        description="The external ID of the product variant."
-    )
-    stocks = NonNullList(
-        OrderBulkCreateFulfillStockInput, description="List of stock items."
+    order_line_index = graphene.Int(
+        required=True,
+        description=(
+            "0-based index of order line, which the fulfillment line refers to."
+        ),
     )
 
 
 class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
-    trackingCode = graphene.String(description="Fulfillments tracking code.")
+    tracking_code = graphene.String(description="Fulfillments tracking code.")
     lines = NonNullList(
         OrderBulkCreateFulfillmentLineInput,
         description="List of items informing how to fulfill the order.",
@@ -192,7 +291,7 @@ class OrderBulkCreateFulfillmentInput(graphene.InputObjectType):
 
 class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     variant_id = graphene.ID(description="The ID of the product variant.")
-    variant_sku = graphene.String(description="The sku of the product variant.")
+    variant_sku = graphene.String(description="The SKU of the product variant.")
     variant_external_reference = graphene.String(
         description="The external ID of the product variant."
     )
@@ -215,11 +314,6 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
     quantity = graphene.Int(
         required=True, description="Number of items in the order line"
     )
-    quantity_fulfilled = graphene.Int(
-        required=True,
-        description="Number of items in the order line, "
-        "which have been already fulfilled.",
-    )
     total_price = graphene.Field(
         TaxedMoneyInput, required=True, description="Price of the order line."
     )
@@ -227,6 +321,10 @@ class OrderBulkCreateOrderLineInput(graphene.InputObjectType):
         TaxedMoneyInput,
         required=True,
         description="Price of the order line excluding applied discount.",
+    )
+    warehouse = graphene.ID(
+        required=True,
+        description="The ID of the warehouse, where the line will be allocated.",
     )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
@@ -331,6 +429,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
+            ),
+        )
+        stock_update_policy = StockUpdatePolicyEnum(
+            required=False,
+            description=(
+                "Determine how stock should be updated, while processing the order. "
+                "DEFAULT: UPDATE - Only do update, if there is enough stocks."
             ),
         )
 
@@ -481,6 +586,77 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
         return instances
+
+    @classmethod
+    def make_order_line_calculations(
+        cls, line_input: Dict[str, Any], errors: List[OrderBulkError], currency: str
+    ) -> Optional[LineAmounts]:
+        gross_amount = line_input["total_price"]["gross"]
+        net_amount = line_input["total_price"]["net"]
+        undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
+        undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
+        quantity = line_input["quantity"]
+        tax_rate = line_input.get("tax_rate", None)
+
+        is_exit_error = False
+        if quantity < 1 or int(quantity) != quantity:
+            errors.append(
+                OrderBulkError(
+                    message="Invalid quantity. "
+                    "Must be integer greater then or equal to 1.",
+                    field="quantity",
+                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                )
+            )
+            is_exit_error = True
+        if gross_amount < net_amount:
+            errors.append(
+                OrderBulkError(
+                    message="Net price can't be greater then gross price.",
+                    field="total_price",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+            is_exit_error = True
+        if undiscounted_gross_amount < undiscounted_net_amount:
+            errors.append(
+                OrderBulkError(
+                    message="Net price can't be greater then gross price.",
+                    field="undiscounted_total_price",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+            is_exit_error = True
+
+        if is_exit_error:
+            return None
+
+        unit_price_net_amount = quantize_price(Decimal(net_amount / quantity), currency)
+        unit_price_gross_amount = quantize_price(
+            Decimal(gross_amount / quantity), currency
+        )
+        undiscounted_unit_price_net_amount = quantize_price(
+            Decimal(undiscounted_net_amount / quantity), currency
+        )
+        undiscounted_unit_price_gross_amount = quantize_price(
+            Decimal(undiscounted_gross_amount / quantity), currency
+        )
+
+        if tax_rate is None and net_amount > 0:
+            tax_rate = Decimal(gross_amount / net_amount - 1)
+
+        return LineAmounts(
+            total_gross=gross_amount,
+            total_net=net_amount,
+            unit_gross=unit_price_gross_amount,
+            unit_net=unit_price_net_amount,
+            undiscounted_total_gross=undiscounted_gross_amount,
+            undiscounted_total_net=undiscounted_net_amount,
+            undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
+            undiscounted_unit_net=undiscounted_unit_price_net_amount,
+            quantity=quantity,
+            tax_rate=tax_rate,
+        )
 
     @classmethod
     def make_order_calculations(
@@ -691,92 +867,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return event
 
     @classmethod
-    def make_order_line_calculations(
-        cls, line_input: Dict[str, Any], errors: List[OrderBulkError]
-    ) -> Optional[LineAmounts]:
-        gross_amount = line_input["total_price"]["gross"]
-        net_amount = line_input["total_price"]["net"]
-        undiscounted_gross_amount = line_input["undiscounted_total_price"]["gross"]
-        undiscounted_net_amount = line_input["undiscounted_total_price"]["net"]
-        quantity = line_input["quantity"]
-        quantity_fulfilled = line_input["quantity_fulfilled"]
-        tax_rate = line_input.get("tax_rate", None)
-
-        is_exit_error = False
-        if quantity < 1 or int(quantity) != quantity:
-            errors.append(
-                OrderBulkError(
-                    message="Invalid quantity; must be integer greater then 1.",
-                    field="quantity",
-                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
-                )
-            )
-            is_exit_error = True
-        if quantity_fulfilled < 0 or int(quantity_fulfilled) != quantity_fulfilled:
-            errors.append(
-                OrderBulkError(
-                    message="Invalid quantity; must be integer greater then 0.",
-                    field="quantity_fulfilled",
-                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
-                )
-            )
-            is_exit_error = True
-        if quantity_fulfilled > quantity:
-            errors.append(
-                OrderBulkError(
-                    message="Quantity fulfilled can't be greater then quantity.",
-                    field="quantity_fulfilled",
-                    code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
-                )
-            )
-            is_exit_error = True
-        if gross_amount < net_amount:
-            errors.append(
-                OrderBulkError(
-                    message="Net price can't be greater then gross price.",
-                    field="total_price",
-                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
-                )
-            )
-            is_exit_error = True
-        if undiscounted_gross_amount < undiscounted_net_amount:
-            errors.append(
-                OrderBulkError(
-                    message="Net price can't be greater then gross price.",
-                    field="undiscounted_total_price",
-                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
-                )
-            )
-            is_exit_error = True
-
-        if is_exit_error:
-            return None
-
-        unit_price_net_amount = Decimal(net_amount / quantity)
-        unit_price_gross_amount = Decimal(gross_amount / quantity)
-        undiscounted_unit_price_net_amount = Decimal(undiscounted_net_amount / quantity)
-        undiscounted_unit_price_gross_amount = Decimal(
-            undiscounted_gross_amount / quantity
-        )
-
-        if tax_rate is None and net_amount > 0:
-            tax_rate = Decimal(gross_amount / net_amount - 1)
-
-        return LineAmounts(
-            total_gross=gross_amount,
-            total_net=net_amount,
-            unit_gross=unit_price_gross_amount,
-            unit_net=unit_price_net_amount,
-            undiscounted_total_gross=undiscounted_gross_amount,
-            undiscounted_total_net=undiscounted_net_amount,
-            undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
-            undiscounted_unit_net=undiscounted_unit_price_net_amount,
-            quantity=quantity,
-            quantity_fulfilled=quantity_fulfilled,
-            tax_rate=tax_rate,
-        )
-
-    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -784,7 +874,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage,
         order_input: Dict[str, Any],
         errors: List[OrderBulkError],
-    ) -> Optional[OrderLine]:
+    ) -> Optional[OrderBulkOrderLine]:
         variant = cls.get_instance_with_errors(
             input=order_line_input,
             errors=errors,
@@ -796,8 +886,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             },
             object_storage=object_storage,
         )
-
         if not variant:
+            return None
+
+        warehouse = cls.get_instance_with_errors(
+            input=order_line_input,
+            errors=errors,
+            model=Warehouse,
+            key_map={"warehouse": "id"},
+            object_storage=object_storage,
+        )
+        if not warehouse:
             return None
 
         line_tax_class = cls.get_instance_with_errors(
@@ -811,7 +910,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             "tax_class_name", line_tax_class.name if line_tax_class else None
         )
 
-        line_amounts = cls.make_order_line_calculations(order_line_input, errors)
+        line_amounts = cls.make_order_line_calculations(
+            order_line_input, errors, order_input["currency"]
+        )
         if not line_amounts:
             return None
 
@@ -828,7 +929,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             is_gift_card=order_line_input["is_gift_card"],
             currency=order_input["currency"],
             quantity=line_amounts.quantity,
-            quantity_fulfilled=line_amounts.quantity_fulfilled,
             unit_price_net_amount=line_amounts.unit_net,
             unit_price_gross_amount=line_amounts.unit_gross,
             total_price_net_amount=line_amounts.total_net,
@@ -850,20 +950,111 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order_line.tax_class_private_metadata.update(
                     {data["key"]: data["value"]}
                 )
-        return order_line
+        return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
+
+    @classmethod
+    def create_single_fulfillment(
+        cls,
+        fulfillment_input: Dict[str, Any],
+        order_lines: List[OrderBulkOrderLine],
+        order: Order,
+        object_storage: Dict[str, Any],
+        errors: List[OrderBulkError],
+    ) -> Optional[OrderBulkFulfillment]:
+        fulfillment = Fulfillment(
+            order=order,
+            status=FulfillmentStatus.FULFILLED,
+            tracking_number=fulfillment_input.get("tracking_code", ""),
+            fulfillment_order=1,
+        )
+
+        lines_input = fulfillment_input["lines"]
+        lines: List[OrderBulkFulfillmentLine] = []
+        for line_input in lines_input:
+            variant = cls.get_instance_with_errors(
+                input=line_input,
+                errors=errors,
+                model=ProductVariant,
+                key_map={
+                    "variant_id": "id",
+                    "variant_external_reference": "external_reference",
+                    "variant_sku": "sku",
+                },
+                object_storage=object_storage,
+            )
+            if not variant:
+                return None
+
+            warehouse = cls.get_instance_with_errors(
+                input=line_input,
+                errors=errors,
+                model=Warehouse,
+                key_map={"warehouse": "id"},
+                object_storage=object_storage,
+            )
+            if not warehouse:
+                return None
+
+            order_line_index = line_input["order_line_index"]
+            if order_line_index < 0:
+                errors.append(
+                    OrderBulkError(
+                        message="Order line index can't be negative.",
+                        field="order_line_index",
+                        code=OrderBulkCreateErrorCode.NEGATIVE_INDEX,
+                    )
+                )
+                return None
+
+            try:
+                order_line = order_lines[order_line_index]
+            except IndexError:
+                errors.append(
+                    OrderBulkError(
+                        message=f"There is no order line with index:"
+                        f" {order_line_index}.",
+                        field="order_line_index",
+                        code=OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE,
+                    )
+                )
+                return None
+
+            if order_line.warehouse.id != warehouse.id:
+                errors.append(
+                    OrderBulkError(
+                        message="Fulfillment line's warehouse is different"
+                        " then order line's warehouse.",
+                        field="warehouse",
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH,
+                    )
+                )
+                return None
+
+            if order_line.line.variant.id != variant.id:
+                errors.append(
+                    OrderBulkError(
+                        message="Fulfillment line's product variant is different"
+                        " then order line's product variant.",
+                        field="variant_id",
+                        code=OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH,
+                    )
+                )
+                return None
+
+            fulfillment_line = FulfillmentLine(
+                fulfillment=fulfillment,
+                order_line=order_line.line,
+                quantity=line_input["quantity"],
+            )
+            lines.append(OrderBulkFulfillmentLine(fulfillment_line, warehouse))
+
+        return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
 
     @classmethod
     def create_single_order(
         cls, order_input, object_storage: Dict[str, Any]
     ) -> OrderWithErrors:
-        order = OrderWithErrors(
-            order=None,
-            order_errors=[],
-            lines=[],
-            lines_errors=[],
-            notes=[],
-            notes_errors=[],
-        )
+        order = OrderWithErrors()
         cls.validate_order_input(order_input, order.order_errors)
         order_instance = Order()
 
@@ -894,22 +1085,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             ):
                 order.lines.append(order_line)
             else:
-                order.is_each_line_created = False
+                order.is_critical_error = True
 
-        if not order.is_each_line_created:
-            order.order_errors.append(
-                OrderBulkError(
-                    message="At least one order line can't be created.",
-                    field="lines",
-                    code=OrderBulkCreateErrorCode.ORDER_LINE_ERROR,
-                )
-            )
+        if order.is_critical_error:
             return order
 
         # calculate order amounts
         order_amounts = cls.make_order_calculations(
             delivery_method,
-            order.lines,
+            order.all_order_lines,
             instances.channel,
             delivery_input,
             object_storage,
@@ -922,6 +1106,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     note_input, order_instance, object_storage, order.notes_errors
                 ):
                     order.notes.append(note)
+
+        # create fulfillments
+        if fulfillments_input := order_input.get("fulfillments"):
+            for fulfillment_input in fulfillments_input:
+                if fulfillment := cls.create_single_fulfillment(
+                    fulfillment_input,
+                    order.lines,
+                    order_instance,
+                    object_storage,
+                    order.fulfillments_errors,
+                ):
+                    order.fulfillments.append(fulfillment)
+                else:
+                    order.is_critical_error = True
+            if order.is_critical_error:
+                return order
 
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
@@ -979,27 +1179,115 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return order
 
     @classmethod
-    def handle_error_policy(
-        cls,
-        orders: List[OrderWithErrors],
-        policy: Optional[str],
-    ):
-        if not policy:
-            policy = ErrorPolicy.REJECT_EVERYTHING
+    def handle_stocks(
+        cls, orders: List[OrderWithErrors], stock_update_policy: str
+    ) -> List[Stock]:
+        variant_ids: List[int] = sum(
+            [order.unique_variant_ids for order in orders if order.order], []
+        )
+        warehouse_ids: List[UUID] = sum(
+            [order.unique_warehouse_ids for order in orders if order.order], []
+        )
+        stocks = Stock.objects.filter(
+            warehouse__id__in=warehouse_ids, product_variant__id__in=variant_ids
+        ).all()
+        stocks_map: Dict[str, Stock] = {
+            f"{stock.product_variant_id}_{stock.warehouse_id}": stock
+            for stock in stocks
+        }
 
-        errors = [error for order in orders for error in order.get_all_errors()]
+        for order in orders:
+            # Create a copy of stocks. If full iteration over order lines
+            # and fulfillments will not produce error, which disqualify whole order,
+            # than replace the copy with original stocks.
+            stocks_map_copy = copy.deepcopy(stocks_map)
+            for line in order.lines:
+                order_line = line.line
+                variant_id = order_line.variant_id
+                warehouse = line.warehouse.id
+                quantity_to_fulfill = order_line.quantity
+                quantity_fulfilled = order.orderline_quantityfulfilled_map.get(
+                    order_line.id, 0
+                )
+                quantity_to_allocate = quantity_to_fulfill - quantity_fulfilled
+
+                if quantity_to_allocate < 0:
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"There is more fulfillments, than ordered quantity"
+                            f" for order line with variant: {variant_id} and warehouse:"
+                            f" {warehouse}",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
+                        )
+                    )
+                    order.is_critical_error = True
+                    break
+
+                stock = stocks_map_copy.get(f"{variant_id}_{warehouse}")
+                if not stock:
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"There is no stock for given product variant:"
+                            f" {variant_id} and warehouse: "
+                            f"{warehouse}.",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
+                        )
+                    )
+                    order.is_critical_error = True
+                    break
+
+                available_quantity = stock.quantity - stock.quantity_allocated
+                if (
+                    quantity_to_allocate > available_quantity
+                    and stock_update_policy != StockUpdatePolicy.FORCE
+                ):
+                    order.lines_errors.append(
+                        OrderBulkError(
+                            message=f"Insufficient stock for product variant: "
+                            f"{variant_id} and warehouse: "
+                            f"{warehouse}.",
+                            field="order_line",
+                            code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
+                        )
+                    )
+                    order.is_critical_error = True
+
+                stock.quantity_allocated += quantity_to_allocate
+
+                fulfillment_lines: List[
+                    OrderBulkFulfillmentLine
+                ] = order.orderline_fulfillmentlines_map.get(order_line.id, [])
+                for fulfillment_line in fulfillment_lines:
+                    stock.quantity -= fulfillment_line.line.quantity
+
+            if not order.is_critical_error:
+                stocks_map = stocks_map_copy
+
+        return [stock for stock in stocks_map.values()]
+
+    @classmethod
+    def handle_error_policy(cls, orders: List[OrderWithErrors], error_policy: str):
+        errors = [error for order in orders for error in order.all_errors]
         if errors:
             for order in orders:
-                if policy == ErrorPolicy.REJECT_EVERYTHING:
+                if error_policy == ErrorPolicy.REJECT_EVERYTHING:
                     order.order = None
-                elif policy == ErrorPolicy.REJECT_FAILED_ROWS:
-                    if order.get_all_errors():
+                elif error_policy == ErrorPolicy.REJECT_FAILED_ROWS:
+                    if order.all_errors:
                         order.order = None
         return orders
 
     @classmethod
     @traced_atomic_transaction()
-    def save_data(cls, orders: List[OrderWithErrors]):
+    def save_data(cls, orders: List[OrderWithErrors], stocks: List[Stock]):
+        for order in orders:
+            order.set_quantity_fulfilled()
+            order.set_fulfillment_order()
+            if order.is_critical_error:
+                order.order = None
+
         addresses = []
         for order in orders:
             if order.order:
@@ -1011,11 +1299,29 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         Order.objects.bulk_create([order.order for order in orders if order.order])
 
-        order_lines = [line for order in orders for line in order.lines if order.order]
+        order_lines: List[OrderLine] = sum(
+            [order.all_order_lines for order in orders if order.order], []
+        )
         OrderLine.objects.bulk_create(order_lines)
 
         notes = [note for order in orders for note in order.notes if order.order]
         OrderEvent.objects.bulk_create(notes)
+
+        fulfillments = [
+            fulfillment.fulfillment
+            for order in orders
+            for fulfillment in order.fulfillments
+            if order.order
+        ]
+        Fulfillment.objects.bulk_create(fulfillments)
+        for order in orders:
+            order.set_fulfillment_id()
+        fulfillment_lines: List[FulfillmentLine] = sum(
+            [order.all_fulfillment_lines for order in orders if order.order], []
+        )
+        FulfillmentLine.objects.bulk_create(fulfillment_lines)
+
+        Stock.objects.bulk_update(stocks, ["quantity"])
 
         return orders
 
@@ -1038,11 +1344,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for order_input in orders_input:
             orders.append(cls.create_single_order(order_input, object_storage))
 
-        cls.handle_error_policy(orders, data.get("error_policy"))
-        cls.save_data(orders)
+        error_policy = data.get("error_policy", ErrorPolicy.REJECT_EVERYTHING)
+        stock_update_policy = data.get("stock_update_policy", StockUpdatePolicy.UPDATE)
+        stocks: List[Stock] = []
+
+        cls.handle_error_policy(orders, error_policy)
+        if stock_update_policy != StockUpdatePolicy.SKIP:
+            stocks = cls.handle_stocks(orders, stock_update_policy)
+        cls.save_data(orders, stocks)
 
         results = [
-            OrderBulkCreateResult(order=order.order, errors=order.get_all_errors())
+            OrderBulkCreateResult(order=order.order, errors=order.all_errors)
             for order in orders
         ]
         count = sum([order.order is not None for order in orders])
