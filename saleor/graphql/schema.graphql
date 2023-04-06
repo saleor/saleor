@@ -14790,6 +14790,11 @@ type Mutation {
 
     """Input list of orders to create. Orders limit: 50."""
     orders: [OrderBulkCreateInput!]!
+
+    """
+    Determine how stock should be updated, while processing the order. DEFAULT: UPDATE - Only do update, if there is enough stocks.
+    """
+    stockUpdatePolicy: StockUpdatePolicyEnum
   ): OrderBulkCreate
 
   """
@@ -22271,10 +22276,14 @@ enum OrderBulkCreateErrorCode {
   BULK_LIMIT
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
-  ORDER_LINE_ERROR
   INVALID_QUANTITY
   PRICE_ERROR
   NOTE_LENGTH
+  INSUFFICIENT_STOCK
+  NON_EXISTING_STOCK
+  NO_RELATED_ORDER_LINE
+  NEGATIVE_INDEX
+  ORDER_LINE_FULFILLMENT_LINE_MISMATCH
 }
 
 input OrderBulkCreateInput {
@@ -22387,7 +22396,7 @@ input OrderBulkCreateOrderLineInput {
   """The ID of the product variant."""
   variantId: ID
 
-  """The sku of the product variant."""
+  """The SKU of the product variant."""
   variantSku: String
 
   """The external ID of the product variant."""
@@ -22417,14 +22426,14 @@ input OrderBulkCreateOrderLineInput {
   """Number of items in the order line"""
   quantity: Int!
 
-  """Number of items in the order line, which have been already fulfilled."""
-  quantityFulfilled: Int!
-
   """Price of the order line."""
   totalPrice: TaxedMoneyInput!
 
   """Price of the order line excluding applied discount."""
   undiscountedTotalPrice: TaxedMoneyInput!
+
+  """The ID of the warehouse, where the line will be allocated."""
+  warehouse: ID!
 
   """Tax rate of the order line."""
   taxRate: PositiveDecimal
@@ -22494,25 +22503,33 @@ input OrderBulkCreateFulfillmentLineInput {
   """The ID of the product variant."""
   variantId: ID
 
-  """The sku of the product variant."""
+  """The SKU of the product variant."""
   variantSku: String
 
   """The external ID of the product variant."""
   variantExternalReference: String
 
-  """List of stock items."""
-  stocks: [OrderBulkCreateFulfillStockInput!]
-}
-
-input OrderBulkCreateFulfillStockInput {
   """The number of line items to be fulfilled from given warehouse."""
   quantity: Int!
 
   """ID of the warehouse from which the item will be fulfilled."""
-  warehouseId: ID
+  warehouse: ID!
 
-  """Name of the warehouse from which the item will be fulfilled."""
-  warehouseName: String
+  """0-based index of order line, which the fulfillment line refers to."""
+  orderLineIndex: Int!
+}
+
+"""
+Determine how stocks should be updated, while processing fulfillment.
+
+    SKIP - Stocks are not checked and not updated.
+    UPDATE - Only do update, if there is enough stocks.
+    FORCE - Force update, if there is not enough stocks.
+"""
+enum StockUpdatePolicyEnum {
+  SKIP
+  UPDATE
+  FORCE
 }
 
 """
