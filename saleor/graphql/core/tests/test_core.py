@@ -13,6 +13,7 @@ from micawber import ProviderException, ProviderRegistry
 from ....core.utils.validators import get_oembed_data
 from ....product import ProductMediaTypes
 from ....product.models import Product, ProductChannelListing
+from ....thumbnail import FILE_NAME_MAX_LENGTH
 from ...tests.utils import get_graphql_content, get_graphql_content_from_response
 from ...utils import requestor_is_superuser
 from ...utils.filters import filter_range_field, reporting_period_to_date
@@ -21,7 +22,6 @@ from ..filters import EnumFilter
 from ..mutations import BaseMutation, ModelWithExtRefMutation
 from ..types import FilterInputObjectType
 from ..utils import (
-    FILE_NAME_MAX_LENGTH,
     add_hash_to_file_name,
     ext_ref_to_global_id_or_error,
     get_duplicated_values,

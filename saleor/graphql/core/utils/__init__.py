@@ -9,9 +9,8 @@ from graphene import ObjectType
 from graphql.error import GraphQLError
 
 from ....plugins.const import APP_ID_PREFIX
+from ....thumbnail import FILE_NAME_MAX_LENGTH
 from ..validators import validate_if_int_or_uuid
-
-FILE_NAME_MAX_LENGTH = 55
 
 
 def snake_to_camel_case(name):

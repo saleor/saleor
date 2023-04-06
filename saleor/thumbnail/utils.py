@@ -1,3 +1,5 @@
+import os
+import secrets
 from io import BytesIO
 from typing import TYPE_CHECKING, Optional
 
@@ -9,6 +11,7 @@ from PIL import Image
 
 from . import (
     DEFAULT_THUMBNAIL_SIZE,
+    FILE_NAME_MAX_LENGTH,
     MIME_TYPE_TO_PIL_IDENTIFIER,
     THUMBNAIL_SIZES,
     ThumbnailFormat,
@@ -221,3 +224,12 @@ class ProcessedImage:
         )
         image.save(image_file, **save_kwargs)
         return image_file
+
+
+def get_filename_from_url(url: str) -> str:
+    """Prepare a unique filename for file from the URL to avoid overwriting."""
+    file_name = os.path.basename(url)
+    name, format = os.path.splitext(file_name)
+    name = name[:FILE_NAME_MAX_LENGTH]
+    hash = secrets.token_hex(nbytes=4)
+    return f"{name}_{hash}{format}"
