@@ -43,7 +43,7 @@ class JobNotifier:
         # ID of Slack Group to mention in case of failure
         self.slack_mention_group_id = os.environ["SLACK_MENTION_GROUP_ID"]
 
-        # Workflow Run ID to retrieve the logs permalink of the actual run (failed/succeeded)
+        # Workflow Run ID to retrieve the logs permalink of the actual run
         self.run_id: str = os.environ["GITHUB_RUN_ID"]
 
         # <owner>/<repo>
