@@ -133,50 +133,6 @@ def test_draft_order_delete_product(
     assert content["data"]["productDelete"]["product"]["id"] == product_id
 
 
-# @pytest.mark.parametrize(
-#     "order_status",
-#     [
-#         OrderStatus.UNFULFILLED,
-#         OrderStatus.UNCONFIRMED,
-#         OrderStatus.CANCELED,
-#         OrderStatus.PARTIALLY_FULFILLED,
-#         OrderStatus.FULFILLED,
-#         OrderStatus.PARTIALLY_RETURNED,
-#         OrderStatus.RETURNED,
-#         OrderStatus.EXPIRED,
-#     ],
-# )
-# def test_draft_order_delete_non_draft_order(
-#     staff_api_client, permission_manage_orders, order_with_lines, order_status
-# ):
-#     order = order_with_lines
-#     order.status = order_status
-#     order.save(update_fields=["status"])
-#     query = """
-#         mutation draftDelete($id: ID!) {
-#             draftOrderDelete(id: $id) {
-#                 order {
-#                     id
-#                 }
-#                 errors {
-#                     code
-#                     field
-#                 }
-#             }
-#         }
-#         """
-#     order_id = graphene.Node.to_global_id("Order", order.id)
-#     variables = {"id": order_id}
-#     response = staff_api_client.post_graphql(
-#         query, variables, permissions=[permission_manage_orders]
-#     )
-#     content = get_graphql_content(response)
-#     account_errors = content["data"]["draftOrderDelete"]["errors"]
-#     assert len(account_errors) == 1
-#     assert account_errors[0]["field"] == "id"
-#     assert account_errors[0]["code"] == OrderErrorCode.INVALID.name
-
-
 DRAFT_ORDER_DELETE_BY_EXTERNAL_REFERENCE = """
     mutation draftDelete($id: ID, $externalReference: String) {
         draftOrderDelete(id: $id, externalReference: $externalReference) {
