@@ -1,14 +1,18 @@
 from ....celeryconf import app
 from ...models import OrderEvent
 
+from django.db import transaction
 from django.db.models import QuerySet
 
-# Batch size of size 1000 is about 1MB memory usage in task
-BATCH_SIZE = 1000
+# Batch size of size 5000 is about 1MB memory usage in task
+BATCH_SIZE = 5000
 
 
 def update_type_to_transaction_cancel_requested(qs: QuerySet[OrderEvent]):
-    qs.update(type="transaction_cancel_requested")
+    with transaction.atomic():
+        # lock the batch of objects
+        _events = list(qs.select_for_update(of=(["self"])))
+        qs.update(type="transaction_cancel_requested")
 
 
 @app.task
@@ -23,7 +27,10 @@ def order_events_rename_transaction_void_events_task():
 
 
 def update_type_to_transaction_charge_requested(qs: QuerySet[OrderEvent]):
-    qs.update(type="transaction_charge_requested")
+    with transaction.atomic():
+        # lock the batch of objects
+        _events = list(qs.select_for_update(of=(["self"])))
+        qs.update(type="transaction_charge_requested")
 
 
 @app.task
