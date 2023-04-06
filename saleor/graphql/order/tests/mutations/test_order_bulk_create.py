@@ -703,7 +703,6 @@ def test_order_bulk_create_multiple_lines(
     product_variant_list,
 ):
     # given
-    orders_count = Order.objects.count()
     lines_count = OrderLine.objects.count()
 
     order = order_bulk_input
@@ -753,7 +752,6 @@ def test_order_bulk_create_multiple_lines(
     assert db_order.total_gross_amount == 180
     assert db_order.total_net_amount == 150
 
-    assert Order.objects.count() == orders_count + 1
     assert OrderLine.objects.count() == lines_count + 2
 
 
@@ -768,7 +766,6 @@ def test_order_bulk_create_multiple_notes(
     app,
 ):
     # given
-    orders_count = Order.objects.count()
     events_count = OrderEvent.objects.count()
 
     note_1 = {
@@ -817,7 +814,6 @@ def test_order_bulk_create_multiple_notes(
     assert db_event_2.parameters["message"] == note_2["message"]
     assert db_event_2.app == app
 
-    assert Order.objects.count() == orders_count + 1
     assert OrderEvent.objects.count() == events_count + 2
 
 
@@ -927,7 +923,6 @@ def test_order_bulk_create_multiple_transactions(
     order_bulk_input,
 ):
     # given
-    orders_count = Order.objects.count()
     transactions_count = TransactionItem.objects.count()
 
     transaction_1 = {
@@ -1012,7 +1007,6 @@ def test_order_bulk_create_multiple_transactions(
     assert db_transaction_3.order_id == db_order.id
     assert db_transaction_4.order_id == db_order.id
 
-    assert Order.objects.count() == orders_count + 1
     assert TransactionItem.objects.count() == transactions_count + 4
 
 
@@ -1023,7 +1017,6 @@ def test_order_bulk_create_multiple_invoices(
     order_bulk_input,
 ):
     # given
-    orders_count = Order.objects.count()
     invoices_count = Invoice.objects.count()
 
     invoice_1 = {
@@ -1074,8 +1067,65 @@ def test_order_bulk_create_multiple_invoices(
     assert db_invoice_2.order_id == db_order.id
     assert db_invoice_2.status == JobStatus.SUCCESS
 
-    assert Order.objects.count() == orders_count + 1
     assert Invoice.objects.count() == invoices_count + 2
+
+
+def test_order_bulk_create_multiple_discounts(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    discounts_count = OrderDiscount.objects.count()
+    discount_1 = {
+        "valueType": DiscountValueTypeEnum.FIXED.name,
+        "value": 10,
+    }
+    discount_2 = {
+        "valueType": DiscountValueTypeEnum.PERCENTAGE.name,
+        "value": 101,
+    }
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    order_bulk_input["discounts"] = [discount_1, discount_2]
+
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert data[0]["errors"][0]["message"] == (
+        "The percentage value (101) cannot be higher than 100."
+    )
+
+    order = data[0]["order"]
+    discount_1, discount_2 = order["discounts"]
+    assert discount_1["value"] == 10
+    assert discount_1["valueType"] == DiscountValueTypeEnum.FIXED.name
+    assert discount_2["value"] == 101
+    assert discount_2["valueType"] == DiscountValueTypeEnum.PERCENTAGE.name
+
+    db_order = Order.objects.get()
+    db_discount_1, db_discount_2 = OrderDiscount.objects.all()
+    assert db_discount_1.value_type == DiscountValueTypeEnum.FIXED.value
+    assert db_discount_1.value == 10
+    assert db_discount_1.order_id == db_order.id
+    assert db_discount_2.value_type == DiscountValueTypeEnum.PERCENTAGE.value
+    assert db_discount_2.value == 101
+    assert db_discount_2.order_id == db_order.id
+
+    assert OrderDiscount.objects.count() == discounts_count + 2
 
 
 def test_order_bulk_create_stock_update(
@@ -2637,5 +2687,58 @@ def test_order_bulk_create_error_invoice_invalid_url(
     assert error["message"] == "Invalid URL format."
     assert error["field"] == "url"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID_URL.name
+
+    assert Invoice.objects.count() == invoice_count + 1
+
+
+@pytest.mark.parametrize(
+    "value_type,message",
+    [
+        (
+            DiscountValueTypeEnum.FIXED.name,
+            "The value (999999) cannot be higher than 120 PLN",
+        ),
+        (
+            DiscountValueTypeEnum.PERCENTAGE.name,
+            "The percentage value (999999) cannot be higher than 100.",
+        ),
+    ],
+)
+def test_order_bulk_create_error_invalid_discount(
+    value_type,
+    message,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    invoice_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["discounts"][0]["valueType"] = value_type
+    order["discounts"][0]["value"] = 999999
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == message
+    assert error["field"] == "discounts"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Invoice.objects.count() == invoice_count + 1

@@ -992,10 +992,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         max_total = Money(order_amounts.undiscounted_total_gross, currency)
         try:
             OrderDiscountCommon.validate_order_discount_input(max_total, discount_input)
-        except ValidationError:
+        except ValidationError as err:
             errors.append(
                 OrderBulkError(
-                    message="dupa",
+                    message=err.messages[0],
                     field="discounts",
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
