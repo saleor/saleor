@@ -1,5 +1,5 @@
 from decimal import Decimal
-
+from django.db import transaction
 from django.db.models import (
     Case,
     Exists,
@@ -16,6 +16,7 @@ from django.contrib.postgres.functions import RandomUUID
 
 from ....celeryconf import app
 from ...models import TransactionEvent, TransactionItem
+
 
 # Batch size of 1000 is about ~20MB of memory usage in task
 BATCH_SIZE = 1000
@@ -163,7 +164,10 @@ def create_event_for_canceled_task():
 
 
 def transaction_item_migrate_type_to_name(qs: QuerySet[TransactionItem]):
-    qs.update(name=F("type"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _transactions = list(qs.select_for_update(of=(["self"])))
+        qs.update(name=F("type"))
 
 
 @app.task
@@ -180,7 +184,10 @@ def transaction_item_migrate_type_to_name_task():
 
 
 def transaction_item_migrate_reference_to_psp_reference(qs: QuerySet[TransactionItem]):
-    qs.update(psp_reference=F("reference"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _transactions = list(qs.select_for_update(of=(["self"])))
+        qs.update(psp_reference=F("reference"))
 
 
 @app.task
@@ -195,7 +202,10 @@ def transaction_item_migrate_reference_to_psp_reference_task():
 
 
 def transaction_item_migrate_voided_to_canceled(qs: QuerySet[TransactionItem]):
-    qs.update(canceled_value=F("voided_value"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _transactions = list(qs.select_for_update(of=(["self"])))
+        qs.update(canceled_value=F("voided_value"))
 
 
 @app.task
@@ -212,7 +222,10 @@ def transaction_item_migrate_voided_to_canceled_task():
 
 
 def transaction_event_migrate_name_to_message(qs: QuerySet[TransactionEvent]):
-    qs.update(message=F("name"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _events = list(qs.select_for_update(of=(["self"])))
+        qs.update(message=F("name"))
 
 
 @app.task
@@ -232,7 +245,10 @@ def transaction_event_migrate_name_to_message_task():
 def transaction_event_migrate_reference_to_psp_reference(
     qs: QuerySet[TransactionEvent],
 ):
-    qs.update(psp_reference=F("reference"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _events = list(qs.select_for_update(of=(["self"])))
+        qs.update(psp_reference=F("reference"))
 
 
 @app.task
@@ -249,7 +265,10 @@ def transaction_event_migrate_reference_to_psp_reference_task():
 
 
 def set_default_currency_for_transaction_event(qs: QuerySet[TransactionEvent]):
-    qs.update(currency=F("transaction_currency"))
+    with transaction.atomic():
+        # lock the batch of objects
+        _events = list(qs.select_for_update(of=(["self"])))
+        qs.update(currency=F("transaction_currency"))
 
 
 @app.task
@@ -275,9 +294,18 @@ def update_transaction_token_field(transaction_item_class, batch_size=None):
     if batch_size:
         transaction_ids = transaction_ids[:BATCH_SIZE]
     if transaction_ids:
-        transaction_item_class.objects.filter(id__in=transaction_ids).update(
-            token=Case(When(token__isnull=True, then=RandomUUID()), default="token")
-        )
+        with transaction.atomic():
+            qs = (
+                transaction_item_class.objects.filter(id__in=transaction_ids)
+                .select_for_update(of=(["self"]))
+                .order_by("-pk")
+            )
+
+            # lock the batch of objects
+            _transactions = list(qs)
+            qs.update(
+                token=Case(When(token__isnull=True, then=RandomUUID()), default="token")
+            )
         fully_processed = False
     return fully_processed
 
