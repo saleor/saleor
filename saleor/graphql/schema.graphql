@@ -22442,6 +22442,7 @@ enum OrderBulkCreateErrorCode {
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
   METADATA_KEY_REQUIRED
   INCORRECT_CURRENCY
+  INVALID_URL
 }
 
 input OrderBulkCreateInput {
@@ -22458,7 +22459,7 @@ input OrderBulkCreateInput {
   createdAt: DateTime!
 
   """Status of the order."""
-  status: String
+  status: OrderStatus
 
   """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
@@ -22520,6 +22521,9 @@ input OrderBulkCreateInput {
 
   """Transactions related to the order."""
   transactions: [TransactionCreateInput!]
+
+  """Invoices related to the order."""
+  invoices: [OrderBulkCreateInvoiceInput!]
 }
 
 input OrderBulkCreateUserInput {
@@ -22678,6 +22682,23 @@ input OrderBulkCreateFulfillmentLineInput {
 
   """0-based index of order line, which the fulfillment line refers to."""
   orderLineIndex: Int!
+}
+
+input OrderBulkCreateInvoiceInput {
+  """The date, when the invoice was created."""
+  createdAt: DateTime!
+
+  """Invoice number."""
+  number: String
+
+  """URL of the invoice to download."""
+  url: String
+
+  """Metadata of the invoice."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the invoice."""
+  privateMetadata: [MetadataInput!]
 }
 
 """
