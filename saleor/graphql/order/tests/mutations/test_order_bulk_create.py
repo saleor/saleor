@@ -230,6 +230,8 @@ def order_bulk_input(
     shipping_method_channel_PLN,
     variant,
     warehouse,
+    gift_card,
+    voucher_without_channel,
 ):
     shipping_method = shipping_method_channel_PLN
     user = {
@@ -348,6 +350,8 @@ def order_bulk_input(
         "transactions": [transaction],
         "invoices": [invoice],
         "discounts": [discount],
+        "giftCards": ["never_expiry"],
+        "vouchers": ["mirumee"],
     }
 
 
@@ -520,6 +524,7 @@ def test_order_bulk_create(
     assert db_order.tracking_client_id == "tracking-id-123"
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
+    assert db_order.gift_cards.first().code == "never_expiry"
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(

@@ -20,7 +20,8 @@ from ....core.prices import quantize_price
 from ....core.tracing import traced_atomic_transaction
 from ....core.utils.url import validate_storefront_url
 from ....core.weight import zero_weight
-from ....discount.models import OrderDiscount
+from ....discount.models import OrderDiscount, Voucher
+from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
 from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePolicy
 from ....order.error_codes import OrderBulkCreateErrorCode
@@ -99,6 +100,8 @@ class OrderWithErrors:
     invoice_errors: List[OrderBulkError]
     discounts: List[OrderDiscount]
     discount_errors: List[OrderBulkError]
+    gift_cards: List[GiftCard]
+    vouchers: List[Voucher]
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -118,6 +121,7 @@ class OrderWithErrors:
         self.invoice_errors = []
         self.discounts = []
         self.discount_errors = []
+        self.gift_cards = []
 
     def set_fulfillment_id(self):
         for fulfillment in self.fulfillments:
@@ -134,6 +138,10 @@ class OrderWithErrors:
         for fulfillment in self.fulfillments:
             fulfillment.fulfillment.fulfillment_order = order
             order += 1
+
+    def link_gift_cards(self):
+        if self.order:
+            self.order.gift_cards.add(*self.gift_cards)
 
     @property
     def order_lines_duplicates(self) -> bool:
@@ -465,7 +473,13 @@ class OrderBulkCreateInput(BaseInputObjectType):
         required=True,
         description="The delivery method selected for this order.",
     )
-    promo_codes = NonNullList(graphene.String, description="List of promo codes.")
+    gift_cards = NonNullList(
+        graphene.String,
+        description="List of gift card codes associated with the order.",
+    )
+    vouchers = NonNullList(
+        graphene.String, description="List of voucher codes associated with the order."
+    )
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
         OrderBulkCreateFulfillmentInput, description="Fulfillments of the order."
@@ -1075,6 +1089,30 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return invoice
 
     @classmethod
+    def get_gift_cards(
+        cls,
+        codes: List[str],
+        order: OrderWithErrors,
+        object_storage: Dict[str, Any],
+    ):
+        for code in codes:
+            key = f"GiftCard_code_{code}"
+            gift_card = object_storage.get(
+                key, GiftCard.objects.filter(code=code).first()
+            )
+            if gift_card:
+                object_storage[key] = gift_card
+                order.gift_cards.append(gift_card)
+            else:
+                order.order_errors.append(
+                    OrderBulkError(
+                        message=f"Gift card with code {code} doesn't exist.",
+                        code=OrderBulkCreateErrorCode.NOT_FOUND,
+                        field="gift_cards",
+                    )
+                )
+
+    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -1396,6 +1434,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
+        # get gift cards
+        if gift_card_codes := order_input.get("gift_cards"):
+            cls.get_gift_cards(gift_card_codes, order, object_storage)
+
         order_instance.external_reference = order_input.get("external_reference")
         order_instance.channel = instances.channel
         order_instance.created_at = order_input["created_at"]
@@ -1610,6 +1652,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             [order.all_discounts for order in orders if order.order], []
         )
         OrderDiscount.objects.bulk_create(discounts)
+
+        for order in orders:
+            order.link_gift_cards()
 
         return orders
 

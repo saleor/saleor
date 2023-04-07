@@ -22367,8 +22367,11 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """The delivery method selected for this order."""
   deliveryMethod: OrderBulkCreateDeliveryMethodInput!
 
-  """List of promo codes."""
-  promoCodes: [String!]
+  """List of gift card codes associated with the order."""
+  giftCards: [String!]
+
+  """List of voucher codes associated with the order."""
+  vouchers: [String!]
 
   """List of discounts."""
   discounts: [OrderDiscountCommonInput!]
