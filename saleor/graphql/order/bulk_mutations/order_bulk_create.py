@@ -9,7 +9,9 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db.models import Q
 from django.utils import timezone
+from graphql import GraphQLError
 from prices import Money
 
 from ....account.models import Address, User
@@ -43,6 +45,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal, WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
+from ...core.utils import from_global_id_or_error
 from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
 from ...payment.utils import metadata_contains_empty_key
@@ -523,6 +526,125 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         error_type_class = OrderBulkCreateError
 
     @classmethod
+    def get_all_instances(cls, orders_input) -> Dict[str, Any]:
+        """Retrieve all required instances to process orders.
+
+        Return:
+            Dictionary with keys "{model_name}.{key_name}.{key_value}" and model
+            instances as values.
+        """
+
+        # Collect all model keys from input
+        keys = defaultdict(list)
+        for order in orders_input:
+            keys["User.id"].append(order["user"].get("id"))
+            keys["User.email"].append(order["user"].get("email"))
+            keys["User.external_reference"].append(
+                order["user"].get("external_reference")
+            )
+            keys["Channel.slug"].append(order.get("channel"))
+            keys["Voucher.code"].append(order.get("voucher"))
+            keys["Warehouse.id"].append(order["delivery_method"].get("warehouse_id"))
+            keys["ShippingMethod.id"].append(
+                order["delivery_method"].get("shipping_method_id")
+            )
+            keys["TaxClass.id"].append(
+                order["delivery_method"].get("shipping_tax_class_id")
+            )
+            for note in order["notes"]:
+                keys["User.id"].append(note.get("id"))
+                keys["User.email"].append(note.get("email"))
+                keys["User.external_reference"].append(note.get("external_reference"))
+                keys["App.id"].append(note.get("app_id"))
+            for order_line in order["lines"]:
+                keys["ProductVariant.id"].append(order_line.get("variant_id"))
+                keys["ProductVariant.sku"].append(order_line.get("variant_sku"))
+                keys["ProductVariant.external_reference"].append(
+                    order_line.get("variant_external_reference")
+                )
+                keys["Warehouse.id"].append(order_line.get("warehouse"))
+                keys["TaxClass.id"].append(order_line.get("tax_class_id"))
+            for fulfillment in order["fulfillments"]:
+                for line in fulfillment["lines"]:
+                    keys["ProductVariant.id"].append(line.get("variant_id"))
+                    keys["ProductVariant.sku"].append(line.get("variant_sku"))
+                    keys["ProductVariant.external_reference"].append(
+                        line.get("variant_external_reference")
+                    )
+                    keys["Warehouse.id"].append(line.get("warehouse"))
+            for gift_card_code in order["gift_cards"]:
+                keys["GiftCard.code"].append(gift_card_code)
+
+        # Convert global ids to model ids and get rid of Nones
+        for key, values in keys.items():
+            keys[key] = [value for value in values if value is not None]
+            if key.split(".")[1] == "id":
+                model_ids = []
+                for global_id in values:
+                    try:
+                        _, id = from_global_id_or_error(
+                            str(global_id), key.split(".")[0], raise_error=True
+                        )
+                        model_ids.append(id)
+                    except GraphQLError:
+                        pass
+                keys[key] = model_ids
+
+        # Make API calls
+        users = User.objects.filter(
+            Q(pk__in=keys["User.id"])
+            | Q(email__in=keys["User.email"])
+            | Q(external_reference__in=keys["User.external_reference"])
+        ).all()
+        variants = ProductVariant.objects.filter(
+            Q(pk__in=keys["ProductVariant.id"])
+            | Q(sku__in=keys["ProductVariant.sku"])
+            | Q(external_reference__in=keys["ProductVariant.external_reference"])
+        ).all()
+        channels = Channel.objects.filter(slug__in=keys["Channel.slug"]).all()
+        vouchers = Voucher.objects.filter(code__in=keys["Voucher.code"]).all()
+        warehouses = Warehouse.objects.filter(pk__in=keys["Warehouse.id"]).all()
+        shipping_methods = ShippingMethod.objects.filter(
+            pk__in=keys["ShippingMethod.id"]
+        ).all()
+        tax_classes = TaxClass.objects.filter(pk__in=keys["TaxClass.id"]).all()
+        apps = App.objects.filter(pk__in=keys["App.id"]).all()
+        gift_cards = GiftCard.objects.filter(code__in=keys["GiftCard.code"]).all()
+
+        # Create dictionary
+        object_storage: Dict[str, Any] = {}
+        for user in users:
+            object_storage[f"User.id.{user.id}"] = user
+            object_storage[f"User.email.{user.email}"] = user
+            if user.external_reference:
+                object_storage[
+                    f"User.external_reference.{user.external_reference}"
+                ] = user
+
+        for variant in variants:
+            object_storage[f"ProductVariant.id.{variant.id}"] = variant
+            if variant.sku:
+                object_storage[f"ProductVariant.id.{variant.sku}"] = variant
+            if variant.external_reference:
+                object_storage[
+                    f"ProductVariant.external_reference.{variant.external_reference}"
+                ] = variant
+
+        for channel in channels:
+            object_storage[f"Channel.slug.{channel.slug}"] = channel
+
+        for voucher in vouchers:
+            object_storage[f"Voucher.code.{voucher.code}"] = voucher
+
+        for gift_card in gift_cards:
+            object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
+
+        for object in [*warehouses, *shipping_methods, *tax_classes, *apps]:
+            object_storage[f"{object.__class__.__name__}.id.{object.pk}"] = object
+
+        return object_storage
+
+    @classmethod
     def is_datetime_valid(cls, date: datetime) -> bool:
         """We accept future time values with 5 minutes from current time.
 
@@ -779,7 +901,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     shipping_price_gross_amount / shipping_price_net_amount - 1
                 )
             else:
-                lookup_key = f"shipping_price_{delivery_method.shipping_method.id}"
+                lookup_key = f"shipping_price.{delivery_method.shipping_method.id}"
                 db_price_amount = object_storage.get(lookup_key) or (
                     ShippingMethodChannelListing.objects.values_list(
                         "price_amount", flat=True
@@ -1080,12 +1202,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage: Dict[str, Any],
     ):
         for code in codes:
-            key = f"GiftCard_code_{code}"
-            gift_card = object_storage.get(
-                key, GiftCard.objects.filter(code=code).first()
-            )
-            if gift_card:
-                object_storage[key] = gift_card
+            key = f"GiftCard.code.{code}"
+            if gift_card := object_storage.get(key):
                 order.gift_cards.append(gift_card)
             else:
                 order.errors.append(
@@ -1640,9 +1758,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         orders: List[OrderBulkClass] = []
         # Create dictionary, which stores already resolved objects:
-        #   - key for instances: "{model_name}_{key_name}_{key_value}"
-        #   - key for shipping prices: "shipping_price_{shipping_method_id}"
-        object_storage: Dict[str, Any] = {}
+        #   - key for instances: "{model_name}.{key_name}.{key_value}"
+        #   - key for shipping prices: "shipping_price.{shipping_method_id}"
+        object_storage: Dict[str, Any] = cls.get_all_instances(orders_input)
         for order_input in orders_input:
             orders.append(cls.create_single_order(order_input, object_storage))
 

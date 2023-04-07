@@ -65,20 +65,14 @@ def get_instance(
                 except GraphQLError as err:
                     raise ValidationError(err.message)
 
-            lookup_key = "_".join((model_name, db_key, input[data_key]))
+            lookup_key = ".".join((model_name, db_key, input[data_key]))
             instance = instance_storage.get(lookup_key)
-            if instance:
-                return instance
-
-            instance = model.objects.filter(**{db_key: input[data_key]}).first()
             if not instance:
                 raise ValidationError(
                     message=f"{model_name} instance with {db_key}={input[data_key]} "
                     f"doesn't exist.",
                     code=error_enum.NOT_FOUND.value,
                 )
-
-            instance_storage[lookup_key] = instance
             return instance
 
     raise ValidationError(f"Can't return {model_name} instance.")
