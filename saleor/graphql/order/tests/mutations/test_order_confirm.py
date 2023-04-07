@@ -10,6 +10,7 @@ from .....order.error_codes import OrderErrorCode
 from .....order.fetch import fetch_order_info
 from .....order.models import OrderEvent
 from .....order.notifications import get_default_order_payload
+from .....order.utils import updates_amounts_for_order
 from .....product.models import ProductVariant
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
@@ -50,6 +51,7 @@ def test_order_confirm(
 
     order_unconfirmed.total_charged = order_unconfirmed.total.gross
     order_unconfirmed.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order_unconfirmed)
 
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     assert not OrderEvent.objects.exists()

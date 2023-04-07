@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...order import OrderAuthorizeStatus, OrderChargeStatus
 from ...plugins.manager import get_plugins_manager
+from ...tests.utils import flush_post_commit_hooks
 from .. import TransactionEventType
 from ..interface import (
     PaymentLineData,
@@ -498,6 +499,138 @@ def test_create_transaction_event_from_request_updates_order_charge(
     assert order.search_vector
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    transaction_item_generator,
+    app,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction = transaction_item_generator(order_id=order.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=order.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = order.total.gross.amount
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    order.refresh_from_db()
+    assert order.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_triggers_webhooks_when_partially_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    transaction_item_generator,
+    app,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction = transaction_item_generator(order_id=order.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.CHARGE_REQUEST,
+        amount_value=Decimal("12.00"),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = Decimal("12.00")
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    order.refresh_from_db()
+    assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_triggers_webhooks_when_authorized(
+    mock_order_fully_paid,
+    mock_order_updated,
+    transaction_item_generator,
+    app,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction = transaction_item_generator(order_id=order.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.AUTHORIZATION_REQUEST,
+        amount_value=order.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = order.total.gross.amount
+    event_type = TransactionEventType.AUTHORIZATION_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    order.refresh_from_db()
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.FULL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_updates_order_authorize(
     transaction_item_generator, app, order_with_lines
@@ -711,7 +844,7 @@ def test_create_transaction_event_from_request_and_webhook_response_same_event(
 
 
 @freeze_time("2018-05-31 12:00:01")
-def test_create_transaction_event_from_request_and_webhook_response_differnt_amout(
+def test_create_transaction_event_from_request_and_webhook_response_different_amount(
     transaction_item_generator,
     app,
 ):
@@ -1140,3 +1273,83 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
     assert transaction.charged_value == Decimal("0")
     assert transaction.authorize_pending_value == Decimal("0")
     assert transaction.charge_pending_value == Decimal("0")
+
+
+@pytest.mark.parametrize(
+    "response_result",
+    [
+        TransactionEventType.AUTHORIZATION_SUCCESS,
+        TransactionEventType.CHARGE_SUCCESS,
+    ],
+)
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_create_transaction_event_for_transaction_session_call_webhook_order_updated(
+    mock_order_fully_paid,
+    mock_order_updated,
+    response_result,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    order_with_lines,
+):
+    # given
+    expected_amount = Decimal("15")
+    response = transaction_session_response.copy()
+    response["result"] = response_result.upper()
+    response["amount"] = expected_amount
+    transaction = transaction_item_generator(order_id=order_with_lines.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    flush_post_commit_hooks()
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_create_transaction_event_for_transaction_session_call_webhook_for_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    transaction_item_generator,
+    transaction_session_response,
+    webhook_app,
+    plugins_manager,
+    order_with_lines,
+):
+    # given
+    response = transaction_session_response.copy()
+    response["result"] = TransactionEventType.CHARGE_SUCCESS.upper()
+    response["amount"] = order_with_lines.total.gross.amount
+    transaction = transaction_item_generator(order_id=order_with_lines.pk)
+    request_event = TransactionEvent.objects.create(
+        transaction=transaction, include_in_calculations=False
+    )
+
+    # when
+    create_transaction_event_for_transaction_session(
+        request_event,
+        webhook_app,
+        manager=plugins_manager,
+        discounts=[],
+        transaction_webhook_response=response,
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    flush_post_commit_hooks()
+    mock_order_fully_paid.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines)

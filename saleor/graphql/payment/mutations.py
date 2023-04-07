@@ -28,7 +28,9 @@ from ...core.tracing import traced_atomic_transaction
 from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import models as order_models
+from ...order.actions import order_transaction_updated
 from ...order.events import transaction_event as order_transaction_event
+from ...order.fetch import fetch_order_info
 from ...order.models import Order
 from ...order.search import update_order_search_vector
 from ...order.utils import updates_amounts_for_order
@@ -994,6 +996,30 @@ class TransactionCreate(BaseMutation):
         return ""
 
     @classmethod
+    def update_order(
+        cls, order: "Order", money_data: dict, update_search_vector: bool = True
+    ) -> None:
+        update_fields = []
+        if money_data:
+            updates_amounts_for_order(order, save=False)
+            update_fields.extend(
+                [
+                    "total_authorized_amount",
+                    "total_charged_amount",
+                    "authorize_status",
+                    "charge_status",
+                ]
+            )
+        if update_search_vector:
+            update_order_search_vector(order, save=False)
+            update_fields.append(
+                "search_vector",
+            )
+        if update_fields:
+            update_fields.append("updated_at")
+            order.save(update_fields=update_fields)
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -1013,6 +1039,7 @@ class TransactionCreate(BaseMutation):
         transaction_data["currency"] = order_or_checkout_instance.currency
         app = get_app_promise(info.context).get()
         user = info.context.user
+        manager = get_plugin_manager_promise(info.context).get()
 
         if isinstance(order_or_checkout_instance, checkout_models.Checkout):
             transaction_data["checkout_id"] = order_or_checkout_instance.pk
@@ -1038,21 +1065,20 @@ class TransactionCreate(BaseMutation):
             recalculate_transaction_amounts(new_transaction)
         if transaction_data.get("order_id") and money_data:
             order = cast(order_models.Order, new_transaction.order)
-            update_order_search_vector(order, save=False)
-            updates_amounts_for_order(order, save=False)
-            order.save(
-                update_fields=[
-                    "total_charged_amount",
-                    "charge_status",
-                    "updated_at",
-                    "total_authorized_amount",
-                    "authorize_status",
-                    "search_vector",
-                ]
+            cls.update_order(order, money_data, update_search_vector=True)
+
+            order_info = fetch_order_info(order)
+            order_transaction_updated(
+                order_info=order_info,
+                transaction_item=new_transaction,
+                manager=manager,
+                user=user,
+                app=app,
+                previous_authorized_value=Decimal(0),
+                previous_charged_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
             discounts = load_discounts(info.context)
-            manager = get_plugin_manager_promise(info.context).get()
             transaction_amounts_for_checkout_updated(
                 new_transaction, discounts, manager
             )
@@ -1166,11 +1192,10 @@ class TransactionUpdate(TransactionCreate):
         cls,
         instance: payment_models.TransactionItem,
         transaction_data: dict,
+        money_data: dict,
         user: Optional["User"],
         app: Optional["App"],
-        info: ResolveInfo,
     ):
-        money_data = cls.get_money_data_from_input(transaction_data)
         psp_reference = transaction_data.get(
             "psp_reference", transaction_data.pop("reference", None)
         )
@@ -1198,37 +1223,6 @@ class TransactionUpdate(TransactionCreate):
                 transaction=instance, money_data=money_data, user=user, app=app
             )
             recalculate_transaction_amounts(instance)
-        if instance.order_id:
-            order = cast(order_models.Order, instance.order)
-            cls.update_order(order, money_data, psp_reference)
-        if instance.checkout_id and money_data:
-            discounts = load_discounts(info.context)
-            manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, discounts, manager)
-
-    @classmethod
-    def update_order(
-        cls, order: "Order", money_data: dict, psp_reference: Optional[str]
-    ) -> None:
-        update_fields = []
-        if money_data:
-            updates_amounts_for_order(order)
-            update_fields.extend(
-                [
-                    "total_charged_amount",
-                    "charge_status",
-                    "total_authorized_amount",
-                    "authorize_status",
-                ]
-            )
-        if psp_reference:
-            update_order_search_vector(order, save=False)
-            update_fields.append(
-                "search_vector",
-            )
-        if update_fields:
-            update_fields.append("updated_at")
-            order.save(update_fields=update_fields)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -1244,20 +1238,27 @@ class TransactionUpdate(TransactionCreate):
         app = get_app_promise(info.context).get()
         user = info.context.user
         instance = get_transaction_item(id)
+        manager = get_plugin_manager_promise(info.context).get()
 
         cls.check_can_update(
             transaction=instance,
             user=user if user and user.is_authenticated else None,
             app=app,
         )
+        money_data = {}
+        previous_transaction_psp_reference = instance.psp_reference
+        previous_authorized_value = instance.authorized_value
+        previous_charged_value = instance.charged_value
 
         if transaction:
             cls.validate_transaction_input(instance, transaction)
             cls.cleanup_metadata_data(transaction)
-            cls.update_transaction(instance, transaction, user, app, info)
+            money_data = cls.get_money_data_from_input(transaction)
+            cls.update_transaction(instance, transaction, money_data, user, app)
 
+        event = None
         if transaction_event:
-            cls.create_transaction_event(transaction_event, instance, user, app)
+            event = cls.create_transaction_event(transaction_event, instance, user, app)
             if instance.order:
                 reference = transaction_event.pop("reference", None)
                 psp_reference = transaction_event.get("psp_reference", reference)
@@ -1269,6 +1270,30 @@ class TransactionUpdate(TransactionCreate):
                     status=transaction_event["status"],
                     message=cls.create_event_message(transaction_event),
                 )
+        if instance.order_id:
+            order = cast(order_models.Order, instance.order)
+            should_update_search_vector = bool(
+                (instance.psp_reference != previous_transaction_psp_reference)
+                or (event and event.psp_reference)
+            )
+            cls.update_order(
+                order, money_data, update_search_vector=should_update_search_vector
+            )
+            order_info = fetch_order_info(order)
+            order_transaction_updated(
+                order_info=order_info,
+                transaction_item=instance,
+                manager=manager,
+                user=user,
+                app=app,
+                previous_authorized_value=previous_authorized_value,
+                previous_charged_value=previous_charged_value,
+            )
+        if instance.checkout_id and money_data:
+            discounts = load_discounts(info.context)
+            manager = get_plugin_manager_promise(info.context).get()
+            transaction_amounts_for_checkout_updated(instance, discounts, manager)
+
         return TransactionUpdate(transaction=instance)
 
 
@@ -1488,6 +1513,8 @@ class TransactionEventReport(ModelMutation):
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
+        manager = get_plugin_manager_promise(info.context).get()
+
         transaction = get_transaction_item(id)
 
         if not check_if_requestor_has_access(
@@ -1563,6 +1590,8 @@ class TransactionEventReport(ModelMutation):
             create_failed_transaction_event(transaction_event, cause=error_msg)
             raise ValidationError({error_field: ValidationError(error_msg, error_code)})
         if not already_processed:
+            previous_authorized_value = transaction.authorized_value
+            previous_charged_value = transaction.charged_value
             if available_actions is not None:
                 transaction.available_actions = available_actions
                 transaction.save(update_fields=["available_actions"])
@@ -1580,6 +1609,16 @@ class TransactionEventReport(ModelMutation):
                         "authorize_status",
                         "search_vector",
                     ]
+                )
+                order_info = fetch_order_info(order)
+                order_transaction_updated(
+                    order_info=order_info,
+                    transaction_item=transaction,
+                    manager=manager,
+                    user=user,
+                    app=app,
+                    previous_authorized_value=previous_authorized_value,
+                    previous_charged_value=previous_charged_value,
                 )
             if transaction.checkout_id:
                 discounts = load_discounts(info.context)

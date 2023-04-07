@@ -7,7 +7,7 @@ from mock import patch
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....order import OrderEvents
+from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
@@ -2483,7 +2483,7 @@ def test_transaction_update_amounts_are_correct(
     ) == sum(provided_amounts.values())
 
 
-def test_transaction_create_for_checkout_updates_payment_statuses(
+def test_transaction_update_for_checkout_updates_payment_statuses(
     checkout_with_items,
     permission_manage_payments,
     app_api_client,
@@ -2528,7 +2528,7 @@ def test_transaction_create_for_checkout_updates_payment_statuses(
 
 
 @patch("saleor.plugins.manager.PluginsManager.checkout_fully_paid")
-def test_transaction_create_for_checkout_fully_paid(
+def test_transaction_update_for_checkout_fully_paid(
     mocked_checkout_fully_paid,
     checkout_with_prices,
     permission_manage_payments,
@@ -2631,3 +2631,141 @@ def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
     error = errors[0]
     assert error["code"] == TransactionUpdateErrorCode.NOT_FOUND.name
     assert error["field"] == "id"
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": order_with_lines.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    get_graphql_content(response)
+
+    assert order_with_lines.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_update_for_order_triggers_webhook_when_partially_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountCharged": {
+                "amount": Decimal("10"),
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    get_graphql_content(response)
+
+    assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_update_for_order_triggers_webhook_when_authorized(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    current_authorized_value = Decimal("1")
+    current_charged_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        authorized_value=current_authorized_value,
+        charged_value=current_charged_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountAuthorized": {
+                "amount": Decimal("10"),
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    get_graphql_content(response)
+
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)

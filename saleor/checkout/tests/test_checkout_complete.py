@@ -1277,6 +1277,7 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
     (
         order_marked_as_paid,
         order_placed_event,
+        order_fully_paid,
         order_confirmed_event,
     ) = order.events.all()  # type: OrderEvent
 
@@ -1309,6 +1310,9 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
         "recipient_email": order.get_customer_email(),
         **get_site_context_payload(site_settings.site),
     }
+
+    assert order_fully_paid.type == OrderEvents.ORDER_FULLY_PAID
+    assert order_fully_paid.user == checkout_user
 
     # Ensure the correct order confirmed event was created
     # should be order confirmed event
