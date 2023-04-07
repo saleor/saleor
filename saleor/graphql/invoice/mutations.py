@@ -12,8 +12,9 @@ from ...order import events as order_events
 from ...permission.enums import OrderPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import InvoiceError
+from ..core.types import BaseInputObjectType, InvoiceError
 from ..order.types import Order
 from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice
@@ -42,11 +43,12 @@ class InvoiceRequest(ModelMutation):
 
     @staticmethod
     def clean_order(order):
-        if order.is_draft() or order.is_unconfirmed():
+        if order.is_draft() or order.is_unconfirmed() or order.is_expired():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot request an invoice for draft or unconfirmed order.",
+                        "Cannot request an invoice for draft, "
+                        "unconfirmed or expired order.",
                         code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }
@@ -109,9 +111,12 @@ class InvoiceRequest(ModelMutation):
         return InvoiceRequest(invoice=invoice, order=order)
 
 
-class InvoiceCreateInput(graphene.InputObjectType):
+class InvoiceCreateInput(BaseInputObjectType):
     number = graphene.String(required=True, description="Invoice number.")
     url = graphene.String(required=True, description="URL of an invoice to download.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceCreate(ModelMutation):
@@ -146,11 +151,12 @@ class InvoiceCreate(ModelMutation):
 
     @classmethod
     def clean_order(cls, info: ResolveInfo, order):
-        if order.is_draft() or order.is_unconfirmed():
+        if order.is_draft() or order.is_unconfirmed() or order.is_expired():
             raise ValidationError(
                 {
                     "orderId": ValidationError(
-                        "Cannot create an invoice for draft or unconfirmed order.",
+                        "Cannot create an invoice for draft, "
+                        "unconfirmed or expired order.",
                         code=InvoiceErrorCode.INVALID_STATUS.value,
                     )
                 }
@@ -247,9 +253,12 @@ class InvoiceDelete(ModelDeleteMutation):
         return response
 
 
-class UpdateInvoiceInput(graphene.InputObjectType):
+class UpdateInvoiceInput(BaseInputObjectType):
     number = graphene.String(description="Invoice number")
     url = graphene.String(description="URL of an invoice to download.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceUpdate(ModelMutation):

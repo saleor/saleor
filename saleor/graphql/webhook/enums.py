@@ -91,6 +91,7 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_FULLY_PAID: order_fully_paid_event_enum_description,
     WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
     WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
+    WebhookEventAsyncType.ORDER_EXPIRED: "An order is expired.",
     WebhookEventAsyncType.ORDER_FULFILLED: "An order is fulfilled.",
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: (
         "An order metadata is updated." + ADDED_IN_38 + PREVIEW_FEATURE

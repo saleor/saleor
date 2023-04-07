@@ -164,7 +164,7 @@ def test_order_from_checkout(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
     assert str(order.pk) == order_token
@@ -205,6 +205,93 @@ def test_order_from_checkout(
 
     order_confirmed_mock.assert_called_once_with(order)
     _recalculate_order_prices_mock.assert_not_called()
+
+
+def test_order_from_checkout_with_transaction(
+    app_api_client,
+    site_settings,
+    checkout_with_item_and_transaction_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_transaction_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderCreateFromCheckout"]
+    assert not data["errors"]
+
+    order = Order.objects.first()
+
+    assert order.status == OrderStatus.UNFULFILLED
+    assert order.origin == OrderOrigin.CHECKOUT
+    assert not order.original
+
+
+@pytest.mark.parametrize(
+    "auto_confirm, order_status",
+    [(True, OrderStatus.UNFULFILLED), (False, OrderStatus.UNCONFIRMED)],
+)
+def test_order_from_checkout_auto_confirm_flag(
+    auto_confirm,
+    order_status,
+    app_api_client,
+    site_settings,
+    checkout_with_item_and_transaction_item,
+    permission_handle_checkouts,
+    permission_manage_checkouts,
+    address,
+    shipping_method,
+):
+    # given
+    checkout = checkout_with_item_and_transaction_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = auto_confirm
+    channel.save()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Checkout", checkout.pk),
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_ORDER_CREATE_FROM_CHECKOUT,
+        variables,
+        permissions=[permission_handle_checkouts, permission_manage_checkouts],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    order = Order.objects.first()
+    assert order.status == order_status
 
 
 @pytest.mark.integration
@@ -266,7 +353,7 @@ def test_order_from_checkout_with_metadata(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
     assert str(order.pk) == order_token
@@ -469,7 +556,7 @@ def test_order_from_checkout_with_variant_without_sku(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.get(pk=order_token)
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
 
     order_line = order.lines.first()
@@ -1367,7 +1454,7 @@ def test_order_from_draft_create_with_preorder_variant(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.status == OrderStatus.UNFULFILLED
+    assert order.status == OrderStatus.UNCONFIRMED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
     assert str(order.pk) == order_token

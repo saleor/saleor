@@ -669,6 +669,12 @@ class BasePlugin:
     # canceled.
     order_cancelled: Callable[["Order", Any], Any]
 
+    # Trigger when order is expired.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # expired.
+    order_expired: Callable[["Order", Any], Any]
+
     # Trigger when order is confirmed by staff.
     #
     # Overwrite this method if you need to trigger specific logic after an order is

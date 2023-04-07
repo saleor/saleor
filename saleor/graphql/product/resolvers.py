@@ -168,7 +168,7 @@ def resolve_report_product_sales(period, channel_slug) -> ChannelQsContext:
 
     # filter by channel and order status
     channels = Channel.objects.filter(slug=channel_slug).values("pk")
-    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
+    exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED, OrderStatus.EXPIRED]
     orders = Order.objects.exclude(status__in=exclude_status).filter(
         Exists(channels.filter(pk=OuterRef("channel_id")).values("pk"))
     )

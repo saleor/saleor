@@ -60,6 +60,7 @@ def test_draft_order_delete_product(
         OrderStatus.FULFILLED,
         OrderStatus.PARTIALLY_RETURNED,
         OrderStatus.RETURNED,
+        OrderStatus.EXPIRED,
     ],
 )
 def test_draft_order_delete_non_draft_order(

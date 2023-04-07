@@ -549,6 +549,11 @@ CELERY_TASK_ROUTES = {
     },
 }
 
+# Expire orders task setting
+BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
+    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
+)
+
 # Defines after how many seconds should the task triggered by the Celery beat
 # entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
 BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = 20
@@ -600,6 +605,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.product.tasks.update_products_search_vector_task",
         "schedule": timedelta(seconds=20),
         "options": {"expires": BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC},
+    },
+    "expire-orders": {
+        "task": "saleor.order.tasks.expire_orders_task",
+        "schedule": BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA,
     },
 }
 

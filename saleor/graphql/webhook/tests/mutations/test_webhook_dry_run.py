@@ -253,6 +253,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_order_confirmed_webhook,
     subscription_order_fully_paid_webhook,
     subscription_order_cancelled_webhook,
+    subscription_order_expired_webhook,
     subscription_order_fulfilled_webhook,
     subscription_order_metadata_updated_webhook,
     subscription_draft_order_created_webhook,
@@ -398,6 +399,7 @@ def async_subscription_webhooks_with_root_objects(
         events.ORDER_FULLY_PAID: [subscription_order_fully_paid_webhook, order],
         events.ORDER_FULFILLED: [subscription_order_fulfilled_webhook, order],
         events.ORDER_CANCELLED: [subscription_order_cancelled_webhook, order],
+        events.ORDER_EXPIRED: [subscription_order_expired_webhook, order],
         events.ORDER_METADATA_UPDATED: [
             subscription_order_metadata_updated_webhook,
             order,

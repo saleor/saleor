@@ -826,6 +826,12 @@ class PluginsManager(PaymentInterface):
             "order_cancelled", default_value, order, channel_slug=order.channel.slug
         )
 
+    def order_expired(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_expired", default_value, order, channel_slug=order.channel.slug
+        )
+
     def order_fulfilled(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(

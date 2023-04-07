@@ -35,6 +35,8 @@ DOC_CATEGORY_MAP = {
     "discount.VoucherChannelListing": DOC_CATEGORY_DISCOUNTS,
     "discount.Voucher": DOC_CATEGORY_DISCOUNTS,
     "discount.OrderDiscount": DOC_CATEGORY_DISCOUNTS,
+    "invoice.Invoice": DOC_CATEGORY_ORDERS,
+    "invoice.InvoiceEvent": DOC_CATEGORY_ORDERS,
     "giftcard.GiftCard": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftCardTag": DOC_CATEGORY_GIFT_CARDS,
     "giftcard.GiftEvent": DOC_CATEGORY_GIFT_CARDS,
