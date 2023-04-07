@@ -232,6 +232,7 @@ class InstancesRelatedToOrder:
     billing_address: Address
     channel: Channel
     shipping_address: Optional[Address] = None
+    voucher: Optional[Voucher] = None
 
 
 @dataclass
@@ -477,8 +478,8 @@ class OrderBulkCreateInput(BaseInputObjectType):
         graphene.String,
         description="List of gift card codes associated with the order.",
     )
-    vouchers = NonNullList(
-        graphene.String, description="List of voucher codes associated with the order."
+    voucher = graphene.String(
+        description="Code of a voucher associated with the order."
     )
     discounts = NonNullList(OrderDiscountCommonInput, description="List of discounts.")
     fulfillments = NonNullList(
@@ -686,6 +687,16 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
+        voucher = None
+        if order_input.get("voucher"):
+            voucher = cls.get_instance_with_errors(
+                input=order_input,
+                errors=errors,
+                model=Voucher,
+                key_map={"voucher": "code"},
+                object_storage=object_storage,
+            )
+
         instances = None
         if user and billing_address and channel:
             instances = InstancesRelatedToOrder(
@@ -693,6 +704,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 billing_address=billing_address,
                 shipping_address=shipping_address,
                 channel=channel,
+                voucher=voucher,
             )
 
         return instances
@@ -1477,6 +1489,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_instance.tracking_client_id = order_input.get("tracking_client_id")
         order_instance.currency = order_input["currency"]
         order_instance.should_refresh_prices = False
+        order_instance.voucher = instances.voucher
         update_order_display_gross_prices(order_instance)
 
         if metadata := delivery_method.shipping_tax_class_metadata:

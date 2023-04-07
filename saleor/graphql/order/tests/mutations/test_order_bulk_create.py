@@ -351,7 +351,7 @@ def order_bulk_input(
         "invoices": [invoice],
         "discounts": [discount],
         "giftCards": ["never_expiry"],
-        "vouchers": ["mirumee"],
+        "voucher": "mirumee",
     }
 
 
@@ -525,6 +525,7 @@ def test_order_bulk_create(
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
+    assert db_order.voucher.code == "mirumee"
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
