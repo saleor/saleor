@@ -4,7 +4,7 @@ from ...models import OrderEvent
 from django.db import transaction
 from django.db.models import QuerySet
 
-# Batch size of size 5000 is about 1MB memory usage in task
+# Batch size of size 5000 is about 3MB memory usage in task
 BATCH_SIZE = 5000
 
 
