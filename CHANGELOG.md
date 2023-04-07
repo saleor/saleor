@@ -134,6 +134,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Core now supports Dev Containers for local development - #12391 by @patrys
 - Use mailhog smtp server on Dev Container - #12402 by @carlosa54
 - Publish schema.graphql on releases - #12431 by @maarcingebala
+- Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
 
 ### Saleor Apps
 
