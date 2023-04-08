@@ -20,6 +20,8 @@ class ThumbnailFormat:
     ]
 
 
+ALLOWED_THUMBNAIL_FORMATS = {ThumbnailFormat.AVIF, ThumbnailFormat.WEBP}
+
 # PIL-supported file formats as found here:
 # https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html
 # Dict structure: {<mime-type>: <PIL-identifier>}
@@ -40,3 +42,22 @@ MIME_TYPE_TO_PIL_IDENTIFIER = {
     "image/x-xpm": "XPM",
     "image/webp": "WEBP",
 }
+PIL_IDENTIFIER_TO_MIME_TYPE = {v: k for k, v in MIME_TYPE_TO_PIL_IDENTIFIER.items()}
+
+
+# Icon images
+ICON_MIME_TYPES = ["image/png"]
+MIN_ICON_SIZE = 256
+
+
+class IconThumbnailFormat:
+    ORIGINAL = "original"
+    WEBP = "webp"
+
+    CHOICES = [
+        (ORIGINAL, "Original"),
+        (WEBP, "WebP"),
+    ]
+
+
+ALLOWED_ICON_THUMBNAIL_FORMATS = {IconThumbnailFormat.WEBP}
