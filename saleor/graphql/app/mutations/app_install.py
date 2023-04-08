@@ -1,3 +1,5 @@
+import uuid
+
 import graphene
 
 from ....app import models
@@ -63,6 +65,9 @@ class AppInstall(ModelMutation):
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
             ensure_can_manage_permissions(requestor, permissions)
+
+        if "uuid" not in cleaned_input:
+            cleaned_input["uuid"] = uuid.uuid4()
         return cleaned_input
 
     @classmethod

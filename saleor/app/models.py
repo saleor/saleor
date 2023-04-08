@@ -34,6 +34,7 @@ AppManager = models.Manager.from_queryset(AppQueryset)
 
 
 class App(ModelWithMetadata):
+    uuid = models.UUIDField(blank=True, null=True, unique=True)
     name = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -60,6 +61,7 @@ class App(ModelWithMetadata):
     audience = models.CharField(blank=True, null=True, max_length=256)
     is_installed = models.BooleanField(default=True)
     author = models.CharField(blank=True, null=True, max_length=60)
+    brand_logo_default = models.ImageField(upload_to="app-logos", blank=True, null=True)
     objects = AppManager()
 
     class Meta(ModelWithMetadata.Meta):
@@ -158,6 +160,7 @@ class AppExtension(models.Model):
 
 
 class AppInstallation(Job):
+    uuid = models.UUIDField(blank=True, null=True, unique=True)
     app_name = models.CharField(max_length=60)
     manifest_url = models.URLField()
     permissions = models.ManyToManyField(
@@ -166,6 +169,9 @@ class AppInstallation(Job):
         help_text="Specific permissions which will be assigned to app.",
         related_name="app_installation_set",
         related_query_name="app_installation",
+    )
+    brand_logo_default = models.ImageField(
+        upload_to="app-installation-logos", blank=True, null=True
     )
 
     def set_message(self, message: str, truncate=True):
