@@ -1,4 +1,5 @@
 import json
+import uuid
 from typing import Any, Optional
 
 import requests
@@ -47,7 +48,7 @@ class Command(BaseCommand):
         permissions = clean_permissions(manifest_data.get("permissions", []))
 
         app_job = AppInstallation.objects.create(
-            app_name=manifest_data["name"], manifest_url=manifest_url
+            uuid=uuid.uuid4(), app_name=manifest_data["name"], manifest_url=manifest_url
         )
         if permissions:
             app_job.permissions.set(permissions)
