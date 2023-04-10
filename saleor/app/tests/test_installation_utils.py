@@ -5,6 +5,7 @@ import graphene
 import pytest
 import requests
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from freezegun import freeze_time
 
 from ... import __version__
@@ -165,6 +166,29 @@ def test_install_app_with_empty_author(app_manifest, app_installation, monkeypat
     errors = validation_error.value.error_dict["author"]
     assert len(errors) == 1
     assert errors[0].code == AppErrorCode.INVALID.value
+
+
+def test_install_app_with_brand_data(
+    app_manifest, app_installation, monkeypatch, media_root
+):
+    # given
+    app_manifest["brand"] = {"logo": {"default": "https://example.com/logo.png"}}
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+    image_content = b"content"
+    icon_mock = Mock(return_value=ContentFile(image_content, "logo.png"))
+    monkeypatch.setattr("saleor.app.manifest_validations.fetch_icon_image", icon_mock)
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+    app_installation.refresh_from_db()
+    app.refresh_from_db()
+
+    # then
+    assert app_installation.brand_logo_default.read() == image_content
+    assert app.brand_logo_default.read() == image_content
 
 
 @freeze_time("2022-05-12 12:00:00")

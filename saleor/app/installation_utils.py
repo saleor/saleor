@@ -57,6 +57,13 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     clean_manifest_data(manifest_data, raise_for_saleor_version=True)
 
+    brand_logo_default = None
+    if manifest_data["brand"]:
+        brand_logo_default = manifest_data["brand"]["logo"]["default"]
+        if not app_installation.brand_logo_default:
+            app_installation.brand_logo_default = brand_logo_default
+            app_installation.save(update_fields=["brand_logo_default"])
+
     app = App.objects.create(
         uuid=uuid.uuid4(),
         name=app_installation.app_name,
@@ -75,6 +82,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         audience=manifest_data.get("audience"),
         is_installed=False,
         author=manifest_data.get("author"),
+        brand_logo_default=brand_logo_default,
     )
 
     app.permissions.set(app_installation.permissions.all())
