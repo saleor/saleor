@@ -10,7 +10,6 @@ from ..mutations.test_order_fulfill import ORDER_FULFILL_MUTATION
 
 def test_user_cannot_manage_order_after_loosing_the_channel_access(
     staff_api_client,
-    # superuser,
     superuser_api_client,
     permission_group_manage_orders,
     permission_group_all_perms_all_channels,
@@ -49,6 +48,7 @@ def test_user_cannot_manage_order_after_loosing_the_channel_access(
             ],
         },
     }
+
     response = staff_api_client.post_graphql(
         ORDER_FULFILL_MUTATION, fulfill_order_variables
     )
