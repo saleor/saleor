@@ -98,7 +98,7 @@ class TaxClassUpdate(ModelMutation):
         for obj in to_update:
             data = input_data_by_country[obj.country]
             rate = data.get("rate")
-            if rate:
+            if rate is not None:
                 obj.rate = rate
                 updated_countries.append(obj.country.code)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))
