@@ -4627,7 +4627,6 @@ def test_create_address_mutation_validate_country_area_from_map_success(
     data = content["data"]["addressCreate"]
     assert data["address"]["city"] == "Dummy"
     assert data["address"]["country"]["code"] == "CH"
-    # assert data["address"]["country_area"] == "Graubünden"
 
     address_obj = Address.objects.get(city="Dummy")
     assert address_obj.country_area == "Graubünden"
