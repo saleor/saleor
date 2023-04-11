@@ -14,7 +14,7 @@ from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Allocation, Stock
 from ....tests.utils import assert_no_permission, get_graphql_content
 
-ORDER_FULFILL_QUERY = """
+ORDER_FULFILL_MUTATION = """
     mutation fulfillOrder(
         $order: ID, $input: OrderFulfillInput!
     ) {
@@ -22,6 +22,9 @@ ORDER_FULFILL_QUERY = """
             order: $order,
             input: $input
         ) {
+            fulfillments {
+                id
+            }
             errors {
                 field
                 code
@@ -44,7 +47,7 @@ def test_order_fulfill_with_out_of_stock_webhook(
 ):
     order = order_with_lines
 
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     _, order_line2 = order.lines.all()
@@ -84,7 +87,7 @@ def test_order_fulfill(
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -142,7 +145,7 @@ def test_order_fulfill_no_channel_access(
     # given
     permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
 
     order.channel = channel_PLN
     order.save(update_fields=["channel"])
@@ -192,7 +195,7 @@ def test_order_fulfill_with_tracking_number(
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -248,7 +251,7 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
     warehouse,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -305,7 +308,7 @@ def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
     warehouse,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -365,7 +368,7 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     Stock.objects.filter(warehouse=order_fulfill_data.warehouse).delete()
 
     response = staff_api_client.post_graphql(
-        ORDER_FULFILL_QUERY,
+        ORDER_FULFILL_MUTATION,
         order_fulfill_data.variables,
     )
     get_graphql_content(response)
@@ -390,7 +393,7 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_sto
     Stock.objects.filter(warehouse=order_fulfill_data.warehouse).delete()
 
     response = staff_api_client.post_graphql(
-        ORDER_FULFILL_QUERY,
+        ORDER_FULFILL_MUTATION,
         order_fulfill_data.variables,
     )
     get_graphql_content(response)
@@ -415,7 +418,7 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_enabled_and_deleted_
     order.lines.first().variant.delete()
 
     response = staff_api_client.post_graphql(
-        ORDER_FULFILL_QUERY,
+        ORDER_FULFILL_MUTATION,
         order_fulfill_data.variables,
     )
     get_graphql_content(response)
@@ -440,7 +443,7 @@ def test_order_fulfill_with_allow_stock_to_be_exceeded_flag_disabled_deleted_var
     order.lines.first().variant.delete()
 
     response = staff_api_client.post_graphql(
-        ORDER_FULFILL_QUERY,
+        ORDER_FULFILL_MUTATION,
         order_fulfill_data.variables,
     )
     get_graphql_content(response)
@@ -466,7 +469,7 @@ def test_order_fulfill_above_available_quantity(
     warehouse,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -518,7 +521,7 @@ def test_order_fulfill_as_app(
     site_settings,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -578,7 +581,7 @@ def test_order_fulfill_many_warehouses(
     site_settings,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     warehouse1, warehouse2 = warehouses
@@ -646,7 +649,7 @@ def test_order_fulfill_with_gift_cards(
     permission_group_manage_orders,
     warehouse,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_line, order_line2 = (
@@ -731,7 +734,7 @@ def test_order_fulfill_with_gift_card_lines_waiting_for_approval(
     warehouse,
     site_settings,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     site_settings.fulfillment_auto_approve = False
@@ -782,7 +785,7 @@ def test_order_fulfill_with_gift_cards_by_app(
     warehouse,
     site_settings,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = gift_card_shippable_order_line
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -822,7 +825,7 @@ def test_order_fulfill_with_gift_cards_multiple_warehouses(
     shipping_zone,
     site_settings,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = gift_card_shippable_order_line
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -883,7 +886,7 @@ def test_order_fulfill_without_notification(
     site_settings,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
@@ -935,7 +938,7 @@ def test_order_fulfill_lines_with_empty_quantity(
     site_settings,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -1007,7 +1010,7 @@ def test_order_fulfill_without_sku(
     site_settings.fulfillment_auto_approve = fulfillment_auto_approve
     site_settings.save(update_fields=["fulfillment_auto_approve"])
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order.lines.update(product_sku=None)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line, order_line2 = order.lines.all()
@@ -1064,7 +1067,7 @@ def test_order_fulfill_zero_quantity(
     permission_group_manage_orders,
     warehouse,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
@@ -1103,7 +1106,7 @@ def test_order_fulfill_channel_without_shipping_zones(
     order = order_with_lines
     order.channel.shipping_zones.clear()
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1138,7 +1141,7 @@ def test_order_fulfill_fulfilled_order(
     permission_group_manage_orders,
     warehouse,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
@@ -1180,7 +1183,7 @@ def test_order_fulfill_unpaid_order_and_disallow_unpaid(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_allow_unpaid = False
     site_settings.save(update_fields=["fulfillment_allow_unpaid"])
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
@@ -1218,7 +1221,7 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
     warehouse_no_shipping_zone,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
@@ -1271,7 +1274,7 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
     warehouse,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
@@ -1314,7 +1317,7 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     warehouse,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
@@ -1356,7 +1359,7 @@ def test_order_fulfill_preorder(
     permission_group_manage_orders,
     warehouse,
 ):
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
@@ -1401,7 +1404,7 @@ def test_order_fulfill_preorder_waiting_fulfillment(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     site_settings.fulfillment_auto_approve = False
     site_settings.save(update_fields=["fulfillment_auto_approve"])
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     order_line = order_with_lines.lines.first()
     variant = order_line.variant
@@ -1441,7 +1444,7 @@ def test_create_digital_fulfillment(
     permission_group_manage_orders,
 ):
     order = order_with_lines
-    query = ORDER_FULFILL_QUERY
+    query = ORDER_FULFILL_MUTATION
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order.id)
     order_line = order.lines.first()
