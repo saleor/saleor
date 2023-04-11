@@ -220,6 +220,7 @@ def async_subscription_webhooks_with_root_objects(
     subscription_gift_card_created_webhook,
     subscription_gift_card_updated_webhook,
     subscription_gift_card_deleted_webhook,
+    subscription_gift_card_sent_webhook,
     subscription_gift_card_status_changed_webhook,
     subscription_gift_card_metadata_updated_webhook,
     subscription_menu_created_webhook,
@@ -379,6 +380,7 @@ def async_subscription_webhooks_with_root_objects(
         events.GIFT_CARD_CREATED: [subscription_gift_card_created_webhook, gift_card],
         events.GIFT_CARD_UPDATED: [subscription_gift_card_updated_webhook, gift_card],
         events.GIFT_CARD_DELETED: [subscription_gift_card_deleted_webhook, gift_card],
+        events.GIFT_CARD_SENT: [subscription_gift_card_sent_webhook, gift_card],
         events.GIFT_CARD_STATUS_CHANGED: [
             subscription_gift_card_status_changed_webhook,
             gift_card,

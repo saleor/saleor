@@ -347,7 +347,7 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.CHANNEL_STATUS_CHANGED, channel
         )
 
-    def _trigger_gift_card_event(self, event_type, gift_card):
+    def _trigger_gift_card_event(self, event_type, gift_card: "GiftCard"):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
                 {
@@ -380,6 +380,39 @@ class WebhookPlugin(BasePlugin):
         self._trigger_gift_card_event(
             WebhookEventAsyncType.GIFT_CARD_DELETED, gift_card
         )
+
+    def gift_card_sent(
+        self,
+        gift_card: "GiftCard",
+        channel_slug: str,
+        sent_to_email: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+
+        event_type = WebhookEventAsyncType.GIFT_CARD_SENT
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+                    "is_active": gift_card.is_active,
+                    "channel_slug": channel_slug,
+                    "sent_to_email": sent_to_email,
+                    "meta": self._generate_meta(),
+                }
+            )
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                {
+                    "gift_card": gift_card,
+                    "channel_slug": channel_slug,
+                    "sent_to_email": sent_to_email,
+                },
+                self.requestor,
+            )
 
     def gift_card_metadata_updated(
         self, gift_card: "GiftCard", previous_value: None

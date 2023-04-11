@@ -183,6 +183,13 @@ def subscription_gift_card_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_gift_card_sent_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.GIFT_CARD_SENT, WebhookEventAsyncType.GIFT_CARD_SENT
+    )
+
+
+@pytest.fixture
 def subscription_gift_card_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
         queries.GIFT_CARD_STATUS_CHANGED,

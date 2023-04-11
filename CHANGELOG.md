@@ -139,6 +139,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
 - Add new field `author` to the App manifest - #12166 by @przlada
+- Add `GIFT_CARD_SENT` asynchronous event to webhooks - #12472 by @rafalp
 
 # 3.12.0
 

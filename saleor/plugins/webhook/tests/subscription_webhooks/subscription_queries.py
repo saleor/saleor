@@ -253,6 +253,24 @@ GIFT_CARD_DELETED = (
 )
 
 
+GIFT_CARD_SENT = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardSent {
+          giftCard{
+            ...GiftCardDetails
+          }
+          channel
+          sentToEmail
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_STATUS_CHANGED = (
     fragments.GIFT_CARD_DETAILS
     + """

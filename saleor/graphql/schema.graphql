@@ -1734,6 +1734,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A gift card is deleted."""
   GIFT_CARD_DELETED
 
+  """
+  A gift card has been sent.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_SENT
+
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
 
@@ -2351,6 +2360,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A gift card is deleted."""
   GIFT_CARD_DELETED
+
+  """
+  A gift card has been sent.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  GIFT_CARD_SENT
 
   """A gift card status is changed."""
   GIFT_CARD_STATUS_CHANGED
@@ -3214,6 +3232,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   GIFT_CARD_CREATED
   GIFT_CARD_UPDATED
   GIFT_CARD_DELETED
+  GIFT_CARD_SENT
   GIFT_CARD_STATUS_CHANGED
   GIFT_CARD_METADATA_UPDATED
   MENU_CREATED
@@ -26679,6 +26698,36 @@ type GiftCardDeleted implements Event @doc(category: "Gift cards") {
 
   """The gift card the event relates to."""
   giftCard: GiftCard
+}
+
+"""
+Event sent when gift card is e-mailed.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type GiftCardSent implements Event @doc(category: "Gift cards") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The gift card the event relates to."""
+  giftCard: GiftCard
+
+  """Slug of a channel for which this gift card email was sent."""
+  channel: String
+
+  """E-mail address to which gift card was sent."""
+  sentToEmail: String
 }
 
 """
