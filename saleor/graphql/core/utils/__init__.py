@@ -11,6 +11,8 @@ from graphql.error import GraphQLError
 from ....plugins.const import APP_ID_PREFIX
 from ..validators import validate_if_int_or_uuid
 
+FILE_NAME_MAX_LENGTH = 55
+
 
 def snake_to_camel_case(name):
     """Convert snake_case variable name to camelCase."""
@@ -108,6 +110,7 @@ def to_global_id_or_none(instance):
 def add_hash_to_file_name(file):
     """Add unique text fragment to the file name to prevent file overriding."""
     file_name, format = os.path.splitext(file._name)
+    file_name = file_name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name
