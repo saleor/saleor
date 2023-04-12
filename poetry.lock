@@ -1483,14 +1483,14 @@ compatible-mypy = ["mypy (>=1.0,<1.1)"]
 
 [[package]]
 name = "django-stubs-ext"
-version = "0.7.0"
+version = "0.8.0"
 description = "Monkey-patching and extensions for django-stubs"
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "django-stubs-ext-0.7.0.tar.gz", hash = "sha256:4fd8cdbc68d1a421f21bb7e0d9e76d50f6a4b504d350ba786405daf536e90c21"},
-    {file = "django_stubs_ext-0.7.0-py3-none-any.whl", hash = "sha256:d729fbc7fe8970a7e26b35956c35b48502516f011d523c0577bdfb02ed956284"},
+    {file = "django-stubs-ext-0.8.0.tar.gz", hash = "sha256:9a9ba9e2808737949de96a0fce8b054f12d38e461011d77ebc074ffe8c43dfcb"},
+    {file = "django_stubs_ext-0.8.0-py3-none-any.whl", hash = "sha256:a454d349d19c26d6c50c4c6dbc1e8af4a9cda4ce1dc4104e3dd4c0330510cc56"},
 ]
 
 [package.dependencies]
@@ -5150,4 +5150,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "9a1e37febb417ec57dba04fa30e828af9c20cfa21680c36559d681aaa8209669"
+content-hash = "14d21132ec012dec624f5b871b9dfcad86c0bf286bd3874a42363b4b4efc6e25"
