@@ -944,6 +944,42 @@ def test_permission_group_update_mutation_to_not_restricted_channels_no_access(
     )
 
 
+def test_permission_group_update_mutation_to_not_restricted_channels_superuser(
+    permission_group_all_perms_channel_USD_only,
+    superuser_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    group = permission_group_all_perms_channel_USD_only
+
+    assert group.channels.count() > 0
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {
+            "name": "New permission group",
+            "restrictedAccessToChannels": False,
+            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+        },
+    }
+
+    # when
+    response = superuser_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    permission_group_data = data["group"]
+    assert data["errors"] == []
+    assert permission_group_data["restrictedAccessToChannels"] is False
+    assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
+    group.refresh_from_db()
+    assert group.channels.count() == 0
+
+
 def test_permission_group_update_mutation_not_restricted_channels(
     permission_group_all_perms_all_channels,
     staff_api_client,
@@ -1014,6 +1050,41 @@ def test_permission_group_update_mutation_no_channel_access(
     assert errors[0]["permissions"] is None
     assert errors[0]["users"] is None
     assert errors[0]["channels"] == [channel_id]
+
+
+def test_permission_group_update_mutation_out_of_scope_channel(
+    permission_group_all_perms_channel_USD_only,
+    permission_group_no_perms_all_channels,
+    staff_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    staff_user = staff_api_client.user
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_user)
+    group = permission_group_no_perms_all_channels
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["errors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
+    assert errors[0]["permissions"] is None
+    assert errors[0]["users"] is None
+    assert errors[0]["channels"] is None
 
 
 def test_permission_group_update_mutation_removing_perm_left_not_manageable_perms(
