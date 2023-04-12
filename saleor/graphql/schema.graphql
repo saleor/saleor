@@ -729,7 +729,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): OrderEventCountableConnection
+  ): OrderEventCountableConnection @doc(category: "Orders")
 
   """Look up an order by ID or external reference."""
   order(
@@ -3538,7 +3538,7 @@ enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
   ALL
 }
 
-type ShippingZoneCountableConnection {
+type ShippingZoneCountableConnection @doc(category: "Shipping") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ShippingZoneCountableEdge!]!
@@ -5187,7 +5187,7 @@ enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
   EXCLUDE
 }
 
-type ProductCountableConnection {
+type ProductCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductCountableEdge!]!
@@ -6031,7 +6031,7 @@ type AttributeTranslation implements Node {
   name: String!
 }
 
-type ProductTypeCountableConnection {
+type ProductTypeCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -6364,7 +6364,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   ): CategoryTranslation
 }
 
-type CategoryCountableConnection {
+type CategoryCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CategoryCountableEdge!]!
@@ -7072,7 +7072,7 @@ type ProductVariantTranslation implements Node {
   name: String!
 }
 
-type DigitalContent implements Node & ObjectWithMetadata {
+type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7133,7 +7133,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   productVariant: ProductVariant!
 }
 
-type DigitalContentUrl implements Node {
+type DigitalContentUrl implements Node @doc(category: "Products") {
   id: ID!
   content: DigitalContent!
   created: DateTime!
@@ -7461,7 +7461,7 @@ type CollectionTranslation implements Node {
 }
 
 """Represents collection channel listing."""
-type CollectionChannelListing implements Node {
+type CollectionChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -8177,7 +8177,7 @@ enum SaleType @doc(category: "Discounts") {
   PERCENTAGE
 }
 
-type CollectionCountableConnection {
+type CollectionCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -8194,7 +8194,7 @@ type CollectionCountableEdge {
   cursor: String!
 }
 
-type ProductVariantCountableConnection {
+type ProductVariantCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductVariantCountableEdge!]!
@@ -9061,7 +9061,7 @@ type GatewayConfigLine @doc(category: "Payments") {
   value: String
 }
 
-type ExternalAuthentication {
+type ExternalAuthentication @doc(category: "Authentication") {
   """ID of external authentication plugin."""
   id: String!
 
@@ -9684,7 +9684,7 @@ Added in Saleor 3.1.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardEvent implements Node {
+type GiftCardEvent implements Node @doc(category: "Gift cards") {
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -11560,7 +11560,7 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   OVERCHARGED
 }
 
-type CheckoutCountableConnection {
+type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutCountableEdge!]!
@@ -11577,7 +11577,7 @@ type CheckoutCountableEdge {
   cursor: String!
 }
 
-type GiftCardCountableConnection {
+type GiftCardCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardCountableEdge!]!
@@ -11594,7 +11594,7 @@ type GiftCardCountableEdge {
   cursor: String!
 }
 
-type OrderCountableConnection {
+type OrderCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -11770,7 +11770,7 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
-type DigitalContentCountableConnection {
+type DigitalContentCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [DigitalContentCountableEdge!]!
@@ -11944,7 +11944,7 @@ enum ProductVariantSortField @doc(category: "Products") {
   LAST_MODIFIED_AT
 }
 
-type PaymentCountableConnection {
+type PaymentCountableConnection @doc(category: "Payments") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PaymentCountableEdge!]!
@@ -11971,7 +11971,7 @@ input PaymentFilterInput @doc(category: "Payments") {
   checkouts: [ID!]
 }
 
-type PageCountableConnection {
+type PageCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageCountableEdge!]!
@@ -12043,7 +12043,7 @@ input PageFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type PageTypeCountableConnection {
+type PageTypeCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageTypeCountableEdge!]!
@@ -12081,7 +12081,7 @@ input PageTypeFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type OrderEventCountableConnection {
+type OrderEventCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderEventCountableEdge!]!
@@ -12294,7 +12294,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   code: String
 }
 
-type GiftCardTagCountableConnection {
+type GiftCardTagCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardTagCountableEdge!]!
@@ -12420,7 +12420,7 @@ enum PluginSortField {
   IS_ACTIVE
 }
 
-type SaleCountableConnection {
+type SaleCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [SaleCountableEdge!]!
@@ -12494,7 +12494,7 @@ enum SaleSortField @doc(category: "Discounts") {
   LAST_MODIFIED_AT
 }
 
-type VoucherCountableConnection {
+type VoucherCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [VoucherCountableEdge!]!
@@ -12703,7 +12703,7 @@ input CheckoutFilterInput @doc(category: "Checkout") {
   chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
-type CheckoutLineCountableConnection {
+type CheckoutLineCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutLineCountableEdge!]!
@@ -13986,7 +13986,7 @@ type Mutation {
   digitalContentUrlCreate(
     """Fields required to create a new url."""
     input: DigitalContentUrlCreateInput!
-  ): DigitalContentUrlCreate
+  ): DigitalContentUrlCreate @doc(category: "Products")
 
   """
   Creates a new variant for a product. 
@@ -20158,7 +20158,7 @@ Generate new URL to digital content.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type DigitalContentUrlCreate {
+type DigitalContentUrlCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   digitalContentUrl: DigitalContentUrl
@@ -25800,7 +25800,7 @@ type CustomerBulkResult @doc(category: "Users") {
   errors: [CustomerBulkUpdateError!]
 }
 
-type CustomerBulkUpdateError {
+type CustomerBulkUpdateError @doc(category: "Users") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -29327,7 +29327,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutFilterShippingMethods implements Event {
+type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29393,7 +29393,7 @@ Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CalculateTaxes implements Event {
+type CalculateTaxes implements Event @doc(category: "Taxes") {
   """Time of the event."""
   issuedAt: DateTime
 

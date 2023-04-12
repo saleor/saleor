@@ -20,6 +20,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
@@ -170,4 +171,5 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
 
 class CollectionCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Collection

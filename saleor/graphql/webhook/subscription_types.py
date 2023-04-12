@@ -40,6 +40,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_TAXES
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
@@ -2020,6 +2021,7 @@ class CalculateTaxes(SubscriptionObjectType):
             + ADDED_IN_37
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_tax_base(root, _info: ResolveInfo):
@@ -2045,6 +2047,7 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
         root_type = None
         enable_dry_run = False
         interfaces = (Event,)
+        doc_category = DOC_CATEGORY_CHECKOUT
         description = (
             "Filter shipping methods for checkout." + ADDED_IN_36 + PREVIEW_FEATURE
         )

@@ -144,7 +144,7 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
-class BulkError(graphene.ObjectType):
+class BulkError(BaseObjectType):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
@@ -160,7 +160,7 @@ class BulkError(graphene.ObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
@@ -238,7 +238,7 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
@@ -248,6 +248,9 @@ class CheckoutError(Error):
 
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class ProductWithoutVariantError(Error):
@@ -320,7 +323,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 

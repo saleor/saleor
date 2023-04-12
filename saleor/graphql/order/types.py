@@ -535,6 +535,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
 class OrderEventCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = OrderEvent
 
 
@@ -2151,4 +2152,5 @@ class Order(ModelObjectType[models.Order]):
 
 class OrderCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = Order

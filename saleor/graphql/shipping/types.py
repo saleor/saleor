@@ -409,6 +409,7 @@ class ShippingMethod(BaseObjectType):
 
 class ShippingZoneCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
         node = ShippingZone
 
 
