@@ -837,7 +837,7 @@ type Query {
 
     """The menu's slug."""
     slug: String
-  ): Menu
+  ): Menu @doc(category: "Menu")
 
   """List of the storefront's menus."""
   menus(
@@ -869,7 +869,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuCountableConnection
+  ): MenuCountableConnection @doc(category: "Menu")
 
   """Look up a menu item by ID."""
   menuItem(
@@ -878,7 +878,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): MenuItem
+  ): MenuItem @doc(category: "Menu")
 
   """List of the storefronts's menu items."""
   menuItems(
@@ -906,7 +906,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuItemCountableConnection
+  ): MenuItemCountableConnection @doc(category: "Menu")
 
   """
   Look up a gift card by ID.
@@ -3787,7 +3787,7 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   WEIGHT
 }
 
-type ShippingMethodTranslation implements Node {
+type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   id: ID!
 
   """Translation language."""
@@ -5969,7 +5969,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   externalReference: String
 }
 
-type AttributeValueTranslation implements Node {
+type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -6023,7 +6023,7 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   ids: [ID!]
 }
 
-type AttributeTranslation implements Node {
+type AttributeTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -6619,7 +6619,7 @@ enum ThumbnailFormatEnum {
   WEBP
 }
 
-type CategoryTranslation implements Node {
+type CategoryTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7064,7 +7064,7 @@ enum ProductMediaType @doc(category: "Products") {
   VIDEO
 }
 
-type ProductVariantTranslation implements Node {
+type ProductVariantTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7436,7 +7436,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   channelListings: [CollectionChannelListing!]
 }
 
-type CollectionTranslation implements Node {
+type CollectionTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7475,7 +7475,7 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
   channel: Channel!
 }
 
-type ProductTranslation implements Node {
+type ProductTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7747,7 +7747,7 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type PageTranslation implements Node {
+type PageTranslation implements Node @doc(category: "Pages") {
   id: ID!
 
   """Translation language."""
@@ -7996,7 +7996,7 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type SaleTranslation implements Node {
+type SaleTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8237,7 +8237,7 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type VoucherTranslation implements Node {
+type VoucherTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8449,7 +8449,7 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
   minSpent: Money
 }
 
-type MenuItemTranslatableContent implements Node {
+type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   id: ID!
   name: String!
 
@@ -8465,7 +8465,7 @@ type MenuItemTranslatableContent implements Node {
   menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type MenuItemTranslation implements Node {
+type MenuItemTranslation implements Node @doc(category: "Menu") {
   id: ID!
 
   """Translation language."""
@@ -8476,7 +8476,7 @@ type MenuItemTranslation implements Node {
 """
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
-type MenuItem implements Node & ObjectWithMetadata {
+type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8554,7 +8554,7 @@ type MenuItem implements Node & ObjectWithMetadata {
 """
 Represents a single menu - an object that is used to help navigate through the store.
 """
-type Menu implements Node & ObjectWithMetadata {
+type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9088,7 +9088,7 @@ type Domain {
   url: String!
 }
 
-type ShopTranslation implements Node {
+type ShopTranslation implements Node @doc(category: "Shop") {
   id: ID!
 
   """Translation language."""
@@ -12180,7 +12180,7 @@ input OrderDraftFilterInput @doc(category: "Orders") {
   channels: [ID!]
 }
 
-type MenuCountableConnection {
+type MenuCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuCountableEdge!]!
@@ -12189,7 +12189,7 @@ type MenuCountableConnection {
   totalCount: Int
 }
 
-type MenuCountableEdge {
+type MenuCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: Menu!
 
@@ -12220,7 +12220,7 @@ input MenuFilterInput {
   slugs: [String!]
 }
 
-type MenuItemCountableConnection {
+type MenuItemCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuItemCountableEdge!]!
@@ -12229,7 +12229,7 @@ type MenuItemCountableConnection {
   totalCount: Int
 }
 
-type MenuItemCountableEdge {
+type MenuItemCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: MenuItem!
 
@@ -15110,7 +15110,7 @@ type Mutation {
 
     """Type of the navigation bar to assign the menu to."""
     navigationType: NavigationType!
-  ): AssignNavigation
+  ): AssignNavigation @doc(category: "Menu")
 
   """
   Creates a new Menu. 
@@ -15120,7 +15120,7 @@ type Mutation {
   menuCreate(
     """Fields required to create a menu."""
     input: MenuCreateInput!
-  ): MenuCreate
+  ): MenuCreate @doc(category: "Menu")
 
   """
   Deletes a menu. 
@@ -15130,7 +15130,7 @@ type Mutation {
   menuDelete(
     """ID of a menu to delete."""
     id: ID!
-  ): MenuDelete
+  ): MenuDelete @doc(category: "Menu")
 
   """
   Deletes menus. 
@@ -15140,7 +15140,7 @@ type Mutation {
   menuBulkDelete(
     """List of menu IDs to delete."""
     ids: [ID!]!
-  ): MenuBulkDelete
+  ): MenuBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu. 
@@ -15153,7 +15153,7 @@ type Mutation {
 
     """Fields required to update a menu."""
     input: MenuInput!
-  ): MenuUpdate
+  ): MenuUpdate @doc(category: "Menu")
 
   """
   Creates a new menu item. 
@@ -15165,7 +15165,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemCreateInput!
-  ): MenuItemCreate
+  ): MenuItemCreate @doc(category: "Menu")
 
   """
   Deletes a menu item. 
@@ -15175,7 +15175,7 @@ type Mutation {
   menuItemDelete(
     """ID of a menu item to delete."""
     id: ID!
-  ): MenuItemDelete
+  ): MenuItemDelete @doc(category: "Menu")
 
   """
   Deletes menu items. 
@@ -15185,7 +15185,7 @@ type Mutation {
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
     ids: [ID!]!
-  ): MenuItemBulkDelete
+  ): MenuItemBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu item. 
@@ -15200,7 +15200,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemInput!
-  ): MenuItemUpdate
+  ): MenuItemUpdate @doc(category: "Menu")
 
   """
   Creates/updates translations for a menu item. 
@@ -15214,7 +15214,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): MenuItemTranslate
+  ): MenuItemTranslate @doc(category: "Menu")
 
   """
   Moves items of menus. 
@@ -15227,7 +15227,7 @@ type Mutation {
 
     """The menu position data."""
     moves: [MenuItemMoveInput!]!
-  ): MenuItemMove
+  ): MenuItemMove @doc(category: "Menu")
 
   """
   Request an invoice for the order using plugin. 
@@ -22549,14 +22549,14 @@ Assigns storefront's navigation menus.
 
 Requires one of the following permissions: MANAGE_MENUS, MANAGE_SETTINGS.
 """
-type AssignNavigation {
+type AssignNavigation @doc(category: "Menu") {
   """Assigned navigation menu."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
 }
 
-type MenuError {
+type MenuError @doc(category: "Menu") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22595,7 +22595,7 @@ Creates a new Menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuCreate {
+type MenuCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22634,7 +22634,7 @@ Deletes a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuDelete {
+type MenuDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22645,7 +22645,7 @@ Deletes menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuBulkDelete {
+type MenuBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22657,7 +22657,7 @@ Updates a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuUpdate {
+type MenuUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22676,7 +22676,7 @@ Creates a new menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemCreate {
+type MenuItemCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22710,7 +22710,7 @@ Deletes a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemDelete {
+type MenuItemDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22721,7 +22721,7 @@ Deletes menu items.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemBulkDelete {
+type MenuItemBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22733,7 +22733,7 @@ Updates a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemUpdate {
+type MenuItemUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22744,7 +22744,7 @@ Creates/updates translations for a menu item.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type MenuItemTranslate {
+type MenuItemTranslate @doc(category: "Menu") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   menuItem: MenuItem
@@ -22755,7 +22755,7 @@ Moves items of menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemMove {
+type MenuItemMove @doc(category: "Menu") {
   """Assigned menu to move within."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26785,7 +26785,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuCreated implements Event {
+type MenuCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26812,7 +26812,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuUpdated implements Event {
+type MenuUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26839,7 +26839,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuDeleted implements Event {
+type MenuDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26866,7 +26866,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemCreated implements Event {
+type MenuItemCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26893,7 +26893,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemUpdated implements Event {
+type MenuItemUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26920,7 +26920,7 @@ Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemDeleted implements Event {
+type MenuItemDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 

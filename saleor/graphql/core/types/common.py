@@ -14,6 +14,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MENU,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
     DOC_CATEGORY_PAYMENTS,
@@ -289,6 +290,9 @@ class ExternalNotificationError(Error):
 
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MENU
 
 
 class OrderSettingsError(Error):
