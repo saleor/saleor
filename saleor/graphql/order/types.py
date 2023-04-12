@@ -274,6 +274,9 @@ class OrderEventDiscountObject(OrderDiscount):
         Money, required=False, description="Returns amount of discount."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class OrderEventOrderLineObject(BaseObjectType):
     quantity = graphene.Int(description="The variant quantity.")

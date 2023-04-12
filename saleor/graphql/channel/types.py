@@ -24,9 +24,10 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import PermissionsField
 from ..core.scalars import Minute
-from ..core.types import CountryDisplay, ModelObjectType, NonNullList
+from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
 from ..warehouse.dataloaders import WarehousesByChannelIdLoader
@@ -152,7 +153,7 @@ class ChannelContextTypeWithMetadata(ChannelContextTypeWithMetadataForObjectType
         abstract = True
 
 
-class StockSettings(ObjectType):
+class StockSettings(BaseObjectType):
     allocation_strategy = AllocationStrategyEnum(
         description=(
             "Allocation strategy defines the preference of warehouses "
@@ -165,6 +166,7 @@ class StockSettings(ObjectType):
         description = (
             "Represents the channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class OrderSettings(ObjectType):

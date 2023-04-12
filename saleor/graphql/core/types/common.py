@@ -9,6 +9,7 @@ from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
+    DOC_CATEGORY_AUTH,
     DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
@@ -127,6 +128,7 @@ class Permission(BaseObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_AUTH
         description = "Represents a permission object in a friendly form."
 
 
@@ -448,6 +450,9 @@ class ProductBulkCreateError(BulkError):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
@@ -562,23 +567,38 @@ class TransactionRequestActionError(Error):
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionProcessError(Error):
     code = TransactionProcessErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class PaymentGatewayConfigError(Error):
     code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class GiftCardError(Error):

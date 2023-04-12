@@ -32,6 +32,7 @@ DOC_CATEGORY_MAP = {
     "checkout.Checkout": DOC_CATEGORY_CHECKOUT,
     "checkout.CheckoutLine": DOC_CATEGORY_CHECKOUT,
     "discount.Sale": DOC_CATEGORY_DISCOUNTS,
+    "discount.SaleChannelListing": DOC_CATEGORY_DISCOUNTS,
     "discount.VoucherChannelListing": DOC_CATEGORY_DISCOUNTS,
     "discount.Voucher": DOC_CATEGORY_DISCOUNTS,
     "discount.OrderDiscount": DOC_CATEGORY_DISCOUNTS,

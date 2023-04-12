@@ -22,7 +22,11 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_AUTH, DOC_CATEGORY_GIFT_CARDS
+from ..core.doc_category import (
+    DOC_CATEGORY_AUTH,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.tracing import traced_resolver
@@ -65,6 +69,7 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Order related settings from site settings."
+        doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
 

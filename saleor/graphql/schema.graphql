@@ -2923,7 +2923,7 @@ Example:
 scalar Metadata
 
 """Represents a permission object in a friendly form."""
-type Permission {
+type Permission @doc(category: "Authentication") {
   """Internal code for permission."""
   code: PermissionEnum!
 
@@ -3511,7 +3511,7 @@ type CountryDisplay {
 }
 
 """Represents a VAT rate for a country."""
-type VAT {
+type VAT @doc(category: "Taxes") {
   """Country code."""
   countryCode: String!
 
@@ -3523,7 +3523,7 @@ type VAT {
 }
 
 """Represents a reduced VAT rate for a particular type of goods."""
-type ReducedRate {
+type ReducedRate @doc(category: "Taxes") {
   """Reduced VAT rate in percent."""
   rate: Float!
 
@@ -5074,7 +5074,7 @@ Added in Saleor 3.7.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StockSettings {
+type StockSettings @doc(category: "Products") {
   """
   Allocation strategy defines the preference of warehouses for allocations and reservations.
   """
@@ -8212,7 +8212,7 @@ type ProductVariantCountableEdge {
 }
 
 """Represents sale channel listing."""
-type SaleChannelListing implements Node {
+type SaleChannelListing implements Node @doc(category: "Discounts") {
   id: ID!
   channel: Channel!
   discountValue: Float!
@@ -11244,7 +11244,7 @@ type OrderEventOrderLineObject @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 }
 
-type OrderEventDiscountObject {
+type OrderEventDiscountObject @doc(category: "Orders") {
   """Type of the discount: fixed or percent."""
   valueType: DiscountValueTypeEnum!
 
@@ -11735,7 +11735,7 @@ type Limits {
 }
 
 """Gift card related settings from site settings."""
-type GiftCardSettings {
+type GiftCardSettings @doc(category: "Gift cards") {
   """The gift card expiry type settings."""
   expiryType: GiftCardSettingsExpiryTypeEnum!
 
@@ -19291,7 +19291,7 @@ type ProductBulkResult @doc(category: "Products") {
   errors: [ProductBulkCreateError!]
 }
 
-type ProductBulkCreateError {
+type ProductBulkCreateError @doc(category: "Products") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21237,7 +21237,7 @@ type TransactionEventReport @doc(category: "Payments") {
   errors: [TransactionEventReportError!]!
 }
 
-type TransactionEventReportError {
+type TransactionEventReportError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21271,7 +21271,7 @@ type PaymentGatewayInitialize @doc(category: "Payments") {
   errors: [PaymentGatewayInitializeError!]!
 }
 
-type PaymentGatewayConfig {
+type PaymentGatewayConfig @doc(category: "Payments") {
   """The app identifier."""
   id: String!
 
@@ -21282,7 +21282,7 @@ type PaymentGatewayConfig {
 
 scalar JSON
 
-type PaymentGatewayConfigError {
+type PaymentGatewayConfigError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21302,7 +21302,7 @@ enum PaymentGatewayConfigErrorCode @doc(category: "Payments") {
   NOT_FOUND
 }
 
-type PaymentGatewayInitializeError {
+type PaymentGatewayInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21349,7 +21349,7 @@ type TransactionInitialize @doc(category: "Payments") {
   errors: [TransactionInitializeError!]!
 }
 
-type TransactionInitializeError {
+type TransactionInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21388,7 +21388,7 @@ type TransactionProcess @doc(category: "Payments") {
   errors: [TransactionProcessError!]!
 }
 
-type TransactionProcessError {
+type TransactionProcessError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -27511,7 +27511,7 @@ Added in Saleor 3.11.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantStockUpdated implements Event {
+type ProductVariantStockUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28402,7 +28402,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceCreated implements Event {
+type ShippingPriceCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28435,7 +28435,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceUpdated implements Event {
+type ShippingPriceUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28468,7 +28468,7 @@ Added in Saleor 3.2.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceDeleted implements Event {
+type ShippingPriceDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28681,7 +28681,7 @@ Added in Saleor 3.4.
 
 DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 """
-type TransactionActionRequest implements Event {
+type TransactionActionRequest implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28701,7 +28701,7 @@ type TransactionActionRequest implements Event {
   action: TransactionAction!
 }
 
-type TransactionAction {
+type TransactionAction @doc(category: "Payments") {
   """Determines the action type."""
   actionType: TransactionActionEnum!
 
@@ -29045,7 +29045,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentAuthorize implements Event {
+type PaymentAuthorize implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29069,7 +29069,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentCaptureEvent implements Event {
+type PaymentCaptureEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29093,7 +29093,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentRefundEvent implements Event {
+type PaymentRefundEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29117,7 +29117,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentVoidEvent implements Event {
+type PaymentVoidEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29141,7 +29141,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentConfirmEvent implements Event {
+type PaymentConfirmEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29165,7 +29165,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentProcessEvent implements Event {
+type PaymentProcessEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29189,7 +29189,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentListGateways implements Event {
+type PaymentListGateways implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29213,7 +29213,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionCancelationRequested implements Event {
+type TransactionCancelationRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29240,7 +29240,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionChargeRequested implements Event {
+type TransactionChargeRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29267,7 +29267,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionRefundRequested implements Event {
+type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29294,7 +29294,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFilterShippingMethods implements Event {
+type OrderFilterShippingMethods implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29360,7 +29360,7 @@ Added in Saleor 3.6.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingListMethodsForCheckout implements Event {
+type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29477,7 +29477,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentGatewayInitializeSession implements Event {
+type PaymentGatewayInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29509,7 +29509,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionInitializeSession implements Event {
+type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29538,7 +29538,7 @@ type TransactionInitializeSession implements Event {
   action: TransactionProcessAction!
 }
 
-type TransactionProcessAction {
+type TransactionProcessAction @doc(category: "Payments") {
   """Transaction amount to process."""
   amount: PositiveDecimal!
 
@@ -29554,7 +29554,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionProcessSession implements Event {
+type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
