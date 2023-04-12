@@ -1966,6 +1966,14 @@ def image():
 
 
 @pytest.fixture
+def icon_image():
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="PNG")
+    return SimpleUploadedFile("logo.png", img_data.getvalue())
+
+
+@pytest.fixture
 def image_list():
     img_data_1 = BytesIO()
     image_1 = Image.new("RGB", size=(1, 1))
