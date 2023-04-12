@@ -1514,19 +1514,20 @@ pytz = "*"
 
 [[package]]
 name = "django-versatileimagefield"
-version = "2.2"
+version = "3.0"
 description = "A drop-in replacement for django's ImageField that provides a flexible, intuitive and easily-extensible interface for creating new images from the one assigned to the field."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-versatileimagefield-2.2.tar.gz", hash = "sha256:6569d5c3e13c69ab8912ba5100084aa5abcdcffb8d1f5abc085b226e7bbd65b3"},
-    {file = "django_versatileimagefield-2.2-py2.py3-none-any.whl", hash = "sha256:03766f4d2332f192978879fdb196e18c53e6ccef6c55c5c26b59747b76a97288"},
+    {file = "django-versatileimagefield-3.0.tar.gz", hash = "sha256:1651db2ed36d843cfb1788f2601472a293d9ba86729369b6f6e5591112357ac7"},
+    {file = "django_versatileimagefield-3.0-py2.py3-none-any.whl", hash = "sha256:19c09c2a887a1fe14eb8c72397c52aa348b315d5fdcc43bf1a1e683283750fd7"},
 ]
 
 [package.dependencies]
+Django = ">=3.0"
 Pillow = ">=2.4.0"
-python-magic = ">=0.4.15,<1.0.0"
+python-magic = ">=0.4.22,<1.0.0"
 
 [[package]]
 name = "draftjs-sanitizer"
@@ -5149,4 +5150,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "471de2ca576ffe40cdfd8d0727d2bda8a9c9e4603687431a0043b8d33873e4d6"
+content-hash = "9a1e37febb417ec57dba04fa30e828af9c20cfa21680c36559d681aaa8209669"
