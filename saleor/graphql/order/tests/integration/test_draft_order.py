@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from .....order import OrderStatus
 from ....account.tests.test_account_permission_group import (
@@ -13,6 +14,7 @@ from ..mutations.test_order_mark_as_paid import MARK_ORDER_AS_PAID_MUTATION
 from ..queries.test_order import QUERY_ORDER_BY_ID
 
 
+@pytest.mark.integration
 def test_create_order_by_staff_in_accessible_channel(
     staff_api_client,
     permission_group_manage_orders,
@@ -85,6 +87,7 @@ def test_create_order_by_staff_in_accessible_channel(
     assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
 
 
+@pytest.mark.integration
 def test_user_cannot_manage_draft_order_after_loosing_the_channel_access(
     staff_api_client,
     permission_group_manage_orders,

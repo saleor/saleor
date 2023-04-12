@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from ....account.tests.test_account_permission_group import (
     PERMISSION_GROUP_UPDATE_MUTATION,
@@ -8,6 +9,7 @@ from ..mutations.test_fulfillment_cancel import CANCEL_FULFILLMENT_MUTATION
 from ..mutations.test_order_fulfill import ORDER_FULFILL_MUTATION
 
 
+@pytest.mark.integration
 def test_user_cannot_manage_order_after_loosing_the_channel_access(
     staff_api_client,
     superuser_api_client,
