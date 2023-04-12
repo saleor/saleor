@@ -14,7 +14,11 @@ from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
 from ..core import ResolveInfo
 from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
-from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS, DOC_CATEGORY_ORDERS
+from ..core.doc_category import (
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_SHOP,
+)
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
@@ -112,6 +116,9 @@ class SiteDomainInput(graphene.InputObjectType):
     domain = graphene.String(description="Domain name for shop.")
     name = graphene.String(description="Shop site name.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
 
 class ShopSettingsUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated shop.")
@@ -123,6 +130,7 @@ class ShopSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Updates shop settings."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -193,6 +201,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
             "Update the shop's address. If the `null` value is passed, the currently "
             "selected address will be deleted."
         )
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -227,6 +236,7 @@ class ShopDomainUpdate(BaseMutation):
 
     class Meta:
         description = "Updates site domain of the shop."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -252,6 +262,7 @@ class ShopFetchTaxRates(BaseMutation):
 
     class Meta:
         description = "Fetch tax rates."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"

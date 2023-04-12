@@ -20,6 +20,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
     DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_SHOP,
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
@@ -497,6 +498,9 @@ class ProductVariantBulkError(Error):
 
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class ShippingError(Error):

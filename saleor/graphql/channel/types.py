@@ -24,7 +24,7 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_PRODUCTS
+from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
 from ..core.fields import PermissionsField
 from ..core.scalars import Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
@@ -217,6 +217,7 @@ class OrderSettings(ObjectType):
 
     class Meta:
         description = "Represents the channel-specific order settings."
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class Channel(ModelObjectType):

@@ -13284,7 +13284,7 @@ type Mutation {
   shopDomainUpdate(
     """Fields required to update site."""
     input: SiteDomainInput
-  ): ShopDomainUpdate
+  ): ShopDomainUpdate @doc(category: "Shop")
 
   """
   Updates shop settings. 
@@ -13294,14 +13294,14 @@ type Mutation {
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate
+  ): ShopSettingsUpdate @doc(category: "Shop")
 
   """
   Fetch tax rates. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  shopFetchTaxRates: ShopFetchTaxRates @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
+  shopFetchTaxRates: ShopFetchTaxRates @doc(category: "Shop") @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates/updates translations for shop settings. 
@@ -13314,7 +13314,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ShopSettingsTranslate
+  ): ShopSettingsTranslate @doc(category: "Shop")
 
   """
   Update the shop's address. If the `null` value is passed, the currently selected address will be deleted. 
@@ -13324,7 +13324,7 @@ type Mutation {
   shopAddressUpdate(
     """Fields required to update shop address."""
     input: AddressInput
-  ): ShopAddressUpdate
+  ): ShopAddressUpdate @doc(category: "Shop")
 
   """
   Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
@@ -17913,7 +17913,7 @@ type StaffNotificationRecipientCreate @doc(category: "Users") {
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
-type ShopError {
+type ShopError @doc(category: "Shop") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17975,7 +17975,7 @@ Updates site domain of the shop.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopDomainUpdate {
+type ShopDomainUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17995,7 +17995,7 @@ Updates shop settings.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopSettingsUpdate {
+type ShopSettingsUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18097,7 +18097,7 @@ Fetch tax rates.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopFetchTaxRates {
+type ShopFetchTaxRates @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18109,7 +18109,7 @@ Creates/updates translations for shop settings.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ShopSettingsTranslate {
+type ShopSettingsTranslate @doc(category: "Shop") {
   """Updated shop settings."""
   shop: Shop
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18147,7 +18147,7 @@ Update the shop's address. If the `null` value is passed, the currently selected
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopAddressUpdate {
+type ShopAddressUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
