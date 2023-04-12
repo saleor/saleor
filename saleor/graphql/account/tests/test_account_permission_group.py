@@ -2725,3 +2725,42 @@ def test_group_delete_mutation_cannot_remove_requestor_last_group(
     assert (
         errors[0]["code"] == PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.name
     )
+
+
+def test_group_delete_mutation_no_channel_access(
+    staff_users,
+    permission_group_all_perms_channel_USD_only,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+):
+    # given
+    staff_user, staff_user1, staff_user2 = staff_users
+    staff_user.groups.add(permission_group_all_perms_channel_USD_only)
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["errors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
