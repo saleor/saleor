@@ -96,7 +96,7 @@ class ChannelInput(BaseInputObjectType):
     is_active = graphene.Boolean(description="isActive flag.")
     stock_settings = graphene.Field(
         StockSettingsInput,
-        description=("The channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE),
+        description=("The channel stock settings." + ADDED_IN_37),
         required=False,
     )
     add_shipping_zones = NonNullList(
@@ -106,9 +106,7 @@ class ChannelInput(BaseInputObjectType):
     )
     add_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to assign to the channel."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="List of warehouses to assign to the channel." + ADDED_IN_35,
         required=False,
     )
     order_settings = graphene.Field(
@@ -131,9 +129,7 @@ class ChannelCreateInput(ChannelInput):
         description=(
             "Default country for the channel. Default country can be "
             "used in checkout to determine the stock quantities or calculate taxes "
-            "when the country was not explicitly provided."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "when the country was not explicitly provided." + ADDED_IN_31
         ),
         required=True,
     )

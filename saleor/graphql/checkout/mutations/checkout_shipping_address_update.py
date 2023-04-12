@@ -19,12 +19,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....warehouse.reservations import is_reservation_enabled
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.descriptions import (
-    ADDED_IN_34,
-    ADDED_IN_35,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
@@ -72,7 +67,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             description=(
                 "The rules for changing validation for received shipping address data."
                 + ADDED_IN_35
-                + PREVIEW_FEATURE
             ),
         )
 

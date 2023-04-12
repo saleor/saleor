@@ -15,7 +15,6 @@ from ..core.descriptions import (
     ADDED_IN_310,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.fields import ConnectionField, PermissionsField
@@ -70,14 +69,12 @@ class WarehouseUpdateInput(WarehouseInput):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=False,
     )
     is_private = graphene.Boolean(
-        description="Visibility of warehouse stocks." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Visibility of warehouse stocks." + ADDED_IN_31,
         required=False,
     )
 
@@ -101,9 +98,7 @@ class Warehouse(ModelObjectType[models.Warehouse]):
     )
     click_and_collect_option = WarehouseClickAndCollectOptionEnum(
         description=(
-            "Click and collect options: local, all or disabled."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Click and collect options: local, all or disabled." + ADDED_IN_31
         ),
         required=True,
     )

@@ -801,9 +801,7 @@ class TransactionCreate(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Create transaction for checkout or order." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Create transaction for checkout or order." + ADDED_IN_34
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionCreateError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
@@ -1126,7 +1124,6 @@ class TransactionUpdate(TransactionCreate):
         description = (
             "Create transaction for checkout or order."
             + ADDED_IN_34
-            + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
             + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
@@ -1321,9 +1318,7 @@ class TransactionRequestAction(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Request an action for payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
-        )
+        description = "Request an action for payment transaction." + ADDED_IN_34
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionRequestActionError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)

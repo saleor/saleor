@@ -13,7 +13,6 @@ from ...core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID, PositiveDecimal
@@ -51,7 +50,6 @@ class CheckoutLineUpdateInput(BaseInputObjectType):
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
         ),
     )
     line_id = graphene.ID(
