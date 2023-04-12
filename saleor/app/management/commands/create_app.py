@@ -1,5 +1,4 @@
 import json
-import uuid
 from typing import Any, Dict, Optional
 
 import requests
@@ -62,7 +61,7 @@ class Command(BaseCommand):
         target_url = options["target_url"]
         permissions = list(set(options["permissions"]))
         permissions = clean_permissions(permissions)
-        app = App.objects.create(uuid=uuid.uuid4(), name=name, is_active=is_active)
+        app = App.objects.create(name=name, is_active=is_active)
         app.permissions.set(permissions)
         _, auth_token = app.tokens.create()  # type: ignore[call-arg] # method of a related manager # noqa: E501
         data = {
