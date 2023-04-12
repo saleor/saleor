@@ -75,6 +75,7 @@ class AppFetchManifest(BaseMutation):
             audience=cleaned_data.get("audience"),
             required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
             author=cleaned_data.get("author"),
+            brand=cleaned_data.get("brand"),
         )
 
     @classmethod
