@@ -748,7 +748,7 @@ class Group(ModelObjectType[models.Group]):
         user = info.context.user
         if not user:
             return False
-        return can_user_manage_group(user, root)
+        return can_user_manage_group(info, user, root)
 
     @staticmethod
     def resolve_accessible_channels(root: models.Group, info: ResolveInfo):

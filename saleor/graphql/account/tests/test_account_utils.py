@@ -8,7 +8,7 @@ from ....permission.enums import (
 )
 from ..utils import (
     can_manage_app,
-    can_user_manage_group,
+    can_user_manage_group_permissions,
     get_group_permission_codes,
     get_group_to_permissions_and_users_mapping,
     get_groups_which_user_can_manage,
@@ -29,7 +29,9 @@ from ..utils import (
 def test_can_manage_group_user_without_permissions(
     staff_user, permission_group_manage_users
 ):
-    result = can_user_manage_group(staff_user, permission_group_manage_users)
+    result = can_user_manage_group_permissions(
+        staff_user, permission_group_manage_users
+    )
     assert result is False
 
 
@@ -40,7 +42,9 @@ def test_can_manage_group_user_with_different_permissions(
     permission_manage_orders,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    result = can_user_manage_group(staff_user, permission_group_manage_users)
+    result = can_user_manage_group_permissions(
+        staff_user, permission_group_manage_users
+    )
     assert result is False
 
 
@@ -51,14 +55,18 @@ def test_can_manage_group(
     permission_manage_orders,
 ):
     staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
-    result = can_user_manage_group(staff_user, permission_group_manage_users)
+    result = can_user_manage_group_permissions(
+        staff_user, permission_group_manage_users
+    )
     assert result is True
 
 
 def test_can_manage_group_user_superuser(
     admin_user, permission_group_manage_users, permission_manage_orders
 ):
-    result = can_user_manage_group(admin_user, permission_group_manage_users)
+    result = can_user_manage_group_permissions(
+        admin_user, permission_group_manage_users
+    )
     assert result is True
 
 

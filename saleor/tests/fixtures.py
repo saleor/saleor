@@ -5023,7 +5023,7 @@ def permission_manage_payments():
 @pytest.fixture
 def permission_group_manage_orders(permission_manage_orders, staff_users):
     group = Group.objects.create(
-        name="Manage user group.", restricted_access_to_channels=False
+        name="Manage orders group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_orders)
 
@@ -5048,6 +5048,28 @@ def permission_group_manage_users(permission_manage_users, staff_users):
         name="Manage user group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_users)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_staff(permission_manage_staff, staff_users):
+    group = Group.objects.create(
+        name="Manage staff group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_staff)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_apps(permission_manage_apps, staff_users):
+    group = Group.objects.create(
+        name="Manage apps group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_apps)
 
     group.user_set.add(staff_users[1])
     return group
