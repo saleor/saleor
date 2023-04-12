@@ -50,11 +50,11 @@ services:
     volumes:
       - ..:/app
 
-  mailhog:
-    image: mailhog/mailhog
+  mailpit:
+    image: axllent/mailpit
     ports:
       - "1025" # SMTP Server
-      - "8025" # Mailhog UI
+      - "8025" # Mailpit UI
     restart: unless-stopped
 
 volumes:
