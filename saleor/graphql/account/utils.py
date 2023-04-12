@@ -237,6 +237,8 @@ def can_user_manage_group_permissions(user: "User", group: Group) -> bool:
 
 def can_user_manage_group_channels(info, user: "User", group: Group) -> bool:
     """User can't manage a group with channel that is out of the user's scope."""
+    if user.is_superuser:
+        return True
     accessible_channels = set(get_user_accessible_channels(info, user))
     group_channels = set(
         AccessibleChannelsByGroupIdLoader(info.context).load(group.id).get()
