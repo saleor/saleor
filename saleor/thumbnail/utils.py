@@ -1,10 +1,11 @@
 import os
 import secrets
 from io import BytesIO
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 import graphene
 import magic
+from django.core.files import File
 from django.core.files.storage import default_storage
 from django.urls import reverse
 from PIL import Image
@@ -14,6 +15,7 @@ from . import (
     FILE_NAME_MAX_LENGTH,
     MIME_TYPE_TO_PIL_IDENTIFIER,
     THUMBNAIL_SIZES,
+    IconThumbnailFormat,
     ThumbnailFormat,
 )
 
@@ -70,6 +72,13 @@ def get_thumbnail_format(format: Optional[str]) -> Optional[str]:
     return format
 
 
+def get_icon_thumbnail_format(format: Optional[str]) -> Optional[str]:
+    """Return the icon thumbnail format if it's supported, otherwise None."""
+    if not format or format.lower() == IconThumbnailFormat.ORIGINAL:
+        return None
+    return format
+
+
 def prepare_thumbnail_file_name(
     file_name: str, size: int, format: Optional[str]
 ) -> str:
@@ -97,12 +106,12 @@ class ProcessedImage:
 
     def __init__(
         self,
-        image_path: str,
+        image_source: Union[str, File],
         size: int,
         format: Optional[str] = None,
         storage=default_storage,
     ):
-        self.image_path = image_path
+        self.image_source = image_source
         self.size = size
         self.format = format.upper() if format else None
         self.storage = storage
@@ -110,15 +119,17 @@ class ProcessedImage:
     def create_thumbnail(self):
         image, image_format = self.retrieve_image()
         image, save_kwargs = self.preprocess(image, image_format)
-        image_file = self.process_image(
+        image_file, thumbnail_format = self.process_image(
             image=image,
             save_kwargs=save_kwargs,
         )
-        return image_file
+        return image_file, thumbnail_format
 
     def retrieve_image(self):
-        """Return a PIL Image instance stored at `image_path`."""
-        image = self.storage.open(self.image_path, "rb")
+        """Return a PIL Image instance stored at `image_source`."""
+        image = self.image_source
+        if isinstance(self.image_source, str):
+            image = self.storage.open(self.image_source, "rb")
         image_format = self.get_image_metadata_from_file(image)
         return (Image.open(image), image_format)
 
@@ -223,7 +234,12 @@ class ProcessedImage:
             (self.size, self.size),
         )
         image.save(image_file, **save_kwargs)
-        return image_file
+        image_file.seek(0)
+        return image_file, save_kwargs["format"]
+
+
+class ProcessedIconImage(ProcessedImage):
+    LOSSLESS_WEBP = True
 
 
 def get_filename_from_url(url: str) -> str:

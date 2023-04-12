@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from ..account.models import User
+from ..app.models import App, AppInstallation
 from ..product.models import Category, Collection, ProductMedia
 from . import THUMBNAIL_SIZES, ThumbnailFormat
 
@@ -43,4 +44,14 @@ class Thumbnail(models.Model):
     )
     user = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.CASCADE, related_name="thumbnails"
+    )
+    app = models.ForeignKey(
+        App, null=True, blank=True, on_delete=models.CASCADE, related_name="thumbnails"
+    )
+    app_installation = models.ForeignKey(
+        AppInstallation,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="thumbnails",
     )
