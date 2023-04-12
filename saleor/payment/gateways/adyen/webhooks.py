@@ -37,7 +37,7 @@ from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
     order_authorized,
-    order_captured,
+    order_charged,
     order_refunded,
 )
 from ....order.events import external_notification_event
@@ -326,7 +326,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
                     order_info = fetch_order_info(payment.order)
-                    order_captured(
+                    order_charged(
                         order_info,
                         None,
                         None,
@@ -440,7 +440,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
                 order_info = fetch_order_info(payment.order)
-                order_captured(
+                order_charged(
                     order_info, None, None, new_transaction.amount, payment, manager
                 )
 

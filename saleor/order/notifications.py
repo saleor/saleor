@@ -374,22 +374,27 @@ def send_fulfillment_update(order, fulfillment, manager):
 def send_payment_confirmation(order_info, manager):
     """Send notification with the payment confirmation."""
     payment = order_info.payment
-    payment_currency = payment.currency
     payload = {
         "order": get_default_order_payload(order_info.order),
         "recipient_email": order_info.customer_email,
-        "payment": {
-            "created": payment.created_at,
-            "modified": payment.modified_at,
-            "charge_status": payment.charge_status,
-            "total": quantize_price(payment.total, payment_currency),
-            "captured_amount": quantize_price(
-                payment.captured_amount, payment_currency
-            ),
-            "currency": payment_currency,
-        },
         **get_site_context(),
     }
+    if payment:
+        payment_currency = payment.currency
+        payload.update(
+            {
+                "payment": {
+                    "created": payment.created_at,
+                    "modified": payment.modified_at,
+                    "charge_status": payment.charge_status,
+                    "total": quantize_price(payment.total, payment_currency),
+                    "captured_amount": quantize_price(
+                        payment.captured_amount, payment_currency
+                    ),
+                    "currency": payment_currency,
+                }
+            }
+        )
     manager.notify(
         NotifyEventType.ORDER_PAYMENT_CONFIRMATION,
         payload,

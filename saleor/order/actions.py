@@ -23,7 +23,7 @@ from ..payment import (
     gateway,
 )
 from ..payment.interface import RefundData
-from ..payment.models import Payment, Transaction
+from ..payment.models import Payment, Transaction, TransactionItem
 from ..payment.utils import create_payment, create_transaction_for_order
 from ..warehouse.management import (
     deallocate_stock,
@@ -35,6 +35,7 @@ from ..warehouse.models import Stock
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
+    OrderChargeStatus,
     OrderOrigin,
     OrderStatus,
     events,
@@ -96,26 +97,26 @@ def order_created(
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     call_event(manager.order_created, order)
     payment = order_info.payment
-    if payment:
-        if order.is_captured():
-            order_captured(
-                order_info=order_info,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-                site_settings=site_settings,
-            )
-        elif order.is_pre_authorized():
-            order_authorized(
-                order=order,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-            )
+    if payment and order.is_pre_authorized():
+        order_authorized(
+            order=order,
+            user=user,
+            app=app,
+            amount=payment.total,
+            payment=payment,
+            manager=manager,
+        )
+    if order.charge_status in [OrderChargeStatus.FULL, OrderChargeStatus.OVERCHARGED]:
+        order_charged(
+            order_info=order_info,
+            user=user,
+            app=app,
+            amount=payment.total if payment else None,
+            payment=payment,
+            manager=manager,
+            site_settings=site_settings,
+        )
+
     channel = order_info.channel
     if channel.automatically_confirm_all_new_orders or from_draft:
         order_confirmed(order, user, app, manager)
@@ -310,22 +311,56 @@ def order_authorized(
     call_event(manager.order_updated, order)
 
 
-def order_captured(
+def order_charged(
     order_info: "OrderInfo",
     user: Optional[User],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    amount: Optional["Decimal"],
+    payment: Optional["Payment"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
 ):
     order = order_info.order
-    events.payment_captured_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
-    call_event(manager.order_updated, order)
-    if order.is_fully_paid():
+    if payment and amount is not None:
+        events.payment_captured_event(
+            order=order, user=user, app=app, amount=amount, payment=payment
+        )
+    if order.charge_status in [OrderChargeStatus.FULL, OrderChargeStatus.OVERCHARGED]:
         handle_fully_paid_order(manager, order_info, user, app, site_settings)
+    else:
+        call_event(manager.order_updated, order)
+
+
+def order_transaction_updated(
+    order_info: "OrderInfo",
+    transaction_item: "TransactionItem",
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+    previous_authorized_value: Decimal,
+    previous_charged_value: Decimal,
+    site_settings: Optional["SiteSettings"] = None,
+):
+    order_updated = False
+    if transaction_item.authorized_value != previous_authorized_value:
+        order_updated = True
+    if transaction_item.charged_value > previous_charged_value:
+        # order_updated False as order_charged triggers order_updated
+        order_updated = False
+        order_charged(
+            order_info,
+            user,
+            app,
+            amount=order_info.payment.total if order_info.payment else None,
+            payment=order_info.payment,
+            site_settings=site_settings,
+            manager=manager,
+        )
+    elif transaction_item.charged_value != previous_charged_value:
+        order_updated = True
+
+    if order_updated:
+        call_event(manager.order_updated, order_info.order)
 
 
 def fulfillment_tracking_updated(

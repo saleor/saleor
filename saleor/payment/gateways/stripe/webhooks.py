@@ -14,7 +14,7 @@ from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
 from ....discount.utils import fetch_active_discounts
-from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.actions import order_charged, order_refunded, order_voided
 from ....order.fetch import fetch_order_info
 from ....order.models import Order
 from ....plugins.manager import get_plugins_manager
@@ -442,7 +442,7 @@ def handle_successful_payment_intent(
                 payment_intent.currency,
             )
             order_info = fetch_order_info(payment.order)
-            order_captured(
+            order_charged(
                 order_info,
                 None,
                 None,

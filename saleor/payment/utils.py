@@ -23,6 +23,7 @@ from ..core.tracing import traced_atomic_transaction
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
+from ..order.fetch import fetch_order_info
 from ..order.models import Order
 from ..order.search import update_order_search_vector
 from ..order.utils import update_order_authorize_data, updates_amounts_for_order
@@ -1127,6 +1128,9 @@ def create_transaction_event_for_transaction_session(
         TransactionEventType.CHARGE_SUCCESS,
     ]:
         transaction_item = event.transaction
+        previous_authorized_value = transaction_item.authorized_value
+        previous_charged_value = transaction_item.charged_value
+
         transaction_item.psp_reference = event.psp_reference
         recalculate_transaction_amounts(transaction_item, save=False)
         transaction_item.save(
@@ -1143,7 +1147,21 @@ def create_transaction_event_for_transaction_session(
             ]
         )
         if transaction_item.order_id:
+            # circular import
+            from ..order.actions import order_transaction_updated
+
             update_order_with_transaction_details(transaction_item)
+            order = cast(Order, transaction_item.order)
+            order_info = fetch_order_info(order)
+            order_transaction_updated(
+                order_info=order_info,
+                transaction_item=transaction_item,
+                manager=manager,
+                user=None,
+                app=app,
+                previous_authorized_value=previous_authorized_value,
+                previous_charged_value=previous_charged_value,
+            )
         elif transaction_item.checkout_id:
             transaction_amounts_for_checkout_updated(
                 transaction_item, discounts, manager
@@ -1178,10 +1196,27 @@ def create_transaction_event_from_request_and_webhook_response(
             return create_failed_transaction_event(request_event, cause=error_msg)
 
     transaction_item = request_event.transaction
+    previous_authorized_value = transaction_item.authorized_value
+    previous_charged_value = transaction_item.charged_value
     recalculate_transaction_amounts(transaction_item)
 
     if transaction_item.order_id:
+        # circular import
+        from ..order.actions import order_transaction_updated
+
+        manager = get_plugins_manager()
+        order = cast(Order, transaction_item.order)
+        order_info = fetch_order_info(order)
         update_order_with_transaction_details(transaction_item)
+        order_transaction_updated(
+            order_info=order_info,
+            transaction_item=transaction_item,
+            manager=manager,
+            user=None,
+            app=app,
+            previous_authorized_value=previous_authorized_value,
+            previous_charged_value=previous_charged_value,
+        )
     elif transaction_item.checkout_id:
         discounts = fetch_active_discounts()
         manager = get_plugins_manager()

@@ -7,7 +7,7 @@ from mock import patch
 from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....order import OrderAuthorizeStatus, OrderEvents, OrderStatus
+from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.utils import update_order_authorize_data, update_order_charge_data
 from .....payment import TransactionEventStatus, TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
@@ -1767,3 +1767,123 @@ def test_transaction_create_creates_calculation_events(
     ).first()
     assert cancel_event
     assert cancel_event.amount.amount == canceled_value
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+    charged_value = order_with_lines.total.gross.amount
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    get_graphql_content(response)
+
+    assert order_with_lines.charge_status == OrderChargeStatus.FULL
+    mock_order_fully_paid.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+    charged_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountCharged": {
+                "amount": charged_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    get_graphql_content(response)
+
+    assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
+def test_transaction_create_for_order_triggers_webhook_when_authorized(
+    mock_order_fully_paid,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+    authorized_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    get_graphql_content(response)
+
+    assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
+    assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
