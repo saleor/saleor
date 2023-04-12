@@ -14103,7 +14103,9 @@ type Mutation {
   """
   Create transaction for checkout or order.
   
-  Added in Saleor 3.4. 
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -20615,7 +20617,9 @@ input MoneyInput {
 """
 Create transaction for checkout or order.
 
-Added in Saleor 3.4. 
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
