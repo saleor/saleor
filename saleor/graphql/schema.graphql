@@ -3547,7 +3547,7 @@ type ShippingZoneCountableConnection @doc(category: "Shipping") {
   totalCount: Int
 }
 
-type ShippingZoneCountableEdge {
+type ShippingZoneCountableEdge @doc(category: "Shipping") {
   """The item at the end of the edge."""
   node: ShippingZone!
 
@@ -5196,7 +5196,7 @@ type ProductCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type ProductCountableEdge {
+type ProductCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Product!
 
@@ -5902,7 +5902,7 @@ type AttributeValueCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeValueCountableEdge {
+type AttributeValueCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: AttributeValue!
 
@@ -6040,7 +6040,7 @@ type ProductTypeCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type ProductTypeCountableEdge {
+type ProductTypeCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductType!
 
@@ -6078,7 +6078,7 @@ type AttributeCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeCountableEdge {
+type AttributeCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: Attribute!
 
@@ -6373,7 +6373,7 @@ type CategoryCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type CategoryCountableEdge {
+type CategoryCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Category!
 
@@ -7508,7 +7508,7 @@ type WarehouseCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type WarehouseCountableEdge {
+type WarehouseCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Warehouse!
 
@@ -8186,7 +8186,7 @@ type CollectionCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type CollectionCountableEdge {
+type CollectionCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Collection!
 
@@ -8203,7 +8203,7 @@ type ProductVariantCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type ProductVariantCountableEdge {
+type ProductVariantCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductVariant!
 
@@ -8740,7 +8740,7 @@ type TaxConfigurationCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxConfigurationCountableEdge {
+type TaxConfigurationCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxConfiguration!
 
@@ -8762,7 +8762,7 @@ type TaxClassCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxClassCountableEdge {
+type TaxClassCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxClass!
 
@@ -8813,7 +8813,7 @@ type StockCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type StockCountableEdge {
+type StockCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Stock!
 
@@ -11569,7 +11569,7 @@ type CheckoutCountableConnection @doc(category: "Checkout") {
   totalCount: Int
 }
 
-type CheckoutCountableEdge {
+type CheckoutCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: Checkout!
 
@@ -11586,7 +11586,7 @@ type GiftCardCountableConnection @doc(category: "Gift cards") {
   totalCount: Int
 }
 
-type GiftCardCountableEdge {
+type GiftCardCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCard!
 
@@ -11603,7 +11603,7 @@ type OrderCountableConnection @doc(category: "Orders") {
   totalCount: Int
 }
 
-type OrderCountableEdge {
+type OrderCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: Order!
 
@@ -11779,7 +11779,7 @@ type DigitalContentCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type DigitalContentCountableEdge {
+type DigitalContentCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: DigitalContent!
 
@@ -11953,7 +11953,7 @@ type PaymentCountableConnection @doc(category: "Payments") {
   totalCount: Int
 }
 
-type PaymentCountableEdge {
+type PaymentCountableEdge @doc(category: "Payments") {
   """The item at the end of the edge."""
   node: Payment!
 
@@ -11980,7 +11980,7 @@ type PageCountableConnection @doc(category: "Pages") {
   totalCount: Int
 }
 
-type PageCountableEdge {
+type PageCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: Page!
 
@@ -12052,7 +12052,7 @@ type PageTypeCountableConnection @doc(category: "Pages") {
   totalCount: Int
 }
 
-type PageTypeCountableEdge {
+type PageTypeCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: PageType!
 
@@ -12090,7 +12090,7 @@ type OrderEventCountableConnection @doc(category: "Orders") {
   totalCount: Int
 }
 
-type OrderEventCountableEdge {
+type OrderEventCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: OrderEvent!
 
@@ -12303,7 +12303,7 @@ type GiftCardTagCountableConnection @doc(category: "Gift cards") {
   totalCount: Int
 }
 
-type GiftCardTagCountableEdge {
+type GiftCardTagCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCardTag!
 
@@ -12429,7 +12429,7 @@ type SaleCountableConnection @doc(category: "Discounts") {
   totalCount: Int
 }
 
-type SaleCountableEdge {
+type SaleCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Sale!
 
@@ -12503,7 +12503,7 @@ type VoucherCountableConnection @doc(category: "Discounts") {
   totalCount: Int
 }
 
-type VoucherCountableEdge {
+type VoucherCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Voucher!
 
@@ -12712,7 +12712,7 @@ type CheckoutLineCountableConnection @doc(category: "Checkout") {
   totalCount: Int
 }
 
-type CheckoutLineCountableEdge {
+type CheckoutLineCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: CheckoutLine!
 
@@ -12787,7 +12787,7 @@ type AppCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppCountableEdge {
+type AppCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: App!
 
@@ -12826,7 +12826,7 @@ type AppExtensionCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppExtensionCountableEdge {
+type AppExtensionCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: AppExtension!
 
@@ -12874,7 +12874,7 @@ type UserCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type UserCountableEdge {
+type UserCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: User!
 
@@ -12935,7 +12935,7 @@ type GroupCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type GroupCountableEdge {
+type GroupCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: Group!
 
