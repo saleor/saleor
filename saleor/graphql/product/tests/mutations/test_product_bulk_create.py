@@ -1275,7 +1275,7 @@ def test_product_bulk_create_with_variants_and_invalid_stock(
     assert not data["results"][0]["product"]
     errors = data["results"][0]["errors"]
     assert errors
-    assert errors[0]["path"] == "variants.1.warehouses"
+    assert errors[0]["path"] == "variants.1.stocks.0.warehouse"
     assert errors[0]["code"] == ProductBulkCreateErrorCode.NOT_FOUND.name
     assert data["count"] == 0
 
@@ -1500,9 +1500,9 @@ def test_product_bulk_create_with_variants_and_channel_listings_with_wrong_price
     assert not data["results"][0]["product"]
     errors = data["results"][0]["errors"]
     assert len(errors) == 2
-    assert errors[0]["path"] == "variants.0.price"
+    assert errors[0]["path"] == "variants.0.channelListings.0.price"
     assert errors[0]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[0]["channels"] == [channel_id]
-    assert errors[1]["path"] == "variants.0.costPrice"
+    assert errors[1]["path"] == "variants.0.channelListings.0.costPrice"
     assert errors[1]["code"] == ProductBulkCreateErrorCode.INVALID_PRICE.name
     assert errors[1]["channels"] == [channel_id]
