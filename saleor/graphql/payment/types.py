@@ -18,6 +18,7 @@ from ..core.descriptions import (
     ADDED_IN_34,
     ADDED_IN_36,
     ADDED_IN_313,
+    PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
@@ -491,7 +492,9 @@ class TransactionItem(ModelObjectType[models.TransactionItem]):
     )
 
     class Meta:
-        description = "Represents a payment transaction." + ADDED_IN_34
+        description = (
+            "Represents a payment transaction." + ADDED_IN_34 + PREVIEW_FEATURE
+        )
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.TransactionItem
 

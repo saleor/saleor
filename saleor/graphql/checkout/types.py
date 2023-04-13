@@ -493,7 +493,9 @@ class Checkout(ModelObjectType[models.Checkout]):
         TransactionItem,
         description=(
             "List of transactions for the checkout. Requires one of the "
-            "following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS." + ADDED_IN_34
+            "following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS."
+            + ADDED_IN_34
+            + PREVIEW_FEATURE
         ),
     )
     display_gross_prices = graphene.Boolean(

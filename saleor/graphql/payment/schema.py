@@ -3,7 +3,7 @@ import graphene
 from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_36
+from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
@@ -49,7 +49,7 @@ class PaymentQueries(graphene.ObjectType):
     )
     transaction = PermissionsField(
         TransactionItem,
-        description="Look up a transaction by ID." + ADDED_IN_36,
+        description="Look up a transaction by ID." + ADDED_IN_36 + PREVIEW_FEATURE,
         id=graphene.Argument(
             graphene.ID, description="ID of a transaction.", required=True
         ),

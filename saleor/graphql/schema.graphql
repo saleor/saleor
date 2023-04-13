@@ -626,6 +626,8 @@ type Query {
   
   Added in Saleor 3.6.
   
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
   transaction(
@@ -9339,6 +9341,8 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]
 
@@ -9709,6 +9713,8 @@ union DeliveryMethod = Warehouse | ShippingMethod
 Represents a payment transaction.
 
 Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Payments") {
   """The ID of the object."""
@@ -14125,6 +14131,8 @@ type Mutation {
   
   Added in Saleor 3.4.
   
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
   Requires the following permissions: OWNER and HANDLE_PAYMENTS.
   """
   transactionUpdate(
@@ -14141,7 +14149,9 @@ type Mutation {
   """
   Request an action for payment transaction.
   
-  Added in Saleor 3.4. 
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: HANDLE_PAYMENTS.
   """
@@ -20776,6 +20786,8 @@ Create transaction for checkout or order.
 
 Added in Saleor 3.4.
 
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+
 Requires the following permissions: OWNER and HANDLE_PAYMENTS.
 """
 type TransactionUpdate @doc(category: "Payments") {
@@ -20892,7 +20904,9 @@ input TransactionUpdateInput @doc(category: "Payments") {
 """
 Request an action for payment transaction.
 
-Added in Saleor 3.4. 
+Added in Saleor 3.4.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: HANDLE_PAYMENTS.
 """
