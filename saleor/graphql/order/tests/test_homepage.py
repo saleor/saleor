@@ -38,7 +38,7 @@ def test_homepage_events(order_events, staff_api_client, permission_manage_order
             ]
         ).values_list("order__number", flat=True)
     )
-    assert {int(edge["node"]["orderNumber"]) for edge in edges} == expected_numbers
+    assert {edge["node"]["orderNumber"] for edge in edges} == expected_numbers
 
 
 QUERY_ORDER_TOTAL = """
