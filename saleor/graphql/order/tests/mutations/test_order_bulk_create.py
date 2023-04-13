@@ -2737,7 +2737,7 @@ def test_order_bulk_create_error_invoice_invalid_url(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Invalid URL format."
     assert error["path"] == "invoices.[0].url"
-    assert error["code"] == OrderBulkCreateErrorCode.INVALID_URL.name
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Invoice.objects.count() == invoice_count + 1
 

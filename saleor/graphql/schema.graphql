@@ -22286,7 +22286,7 @@ type OrderBulkCreateResult @doc(category: "Orders") {
   errors: [OrderBulkCreateError!]
 }
 
-type OrderBulkCreateError {
+type OrderBulkCreateError @doc(category: "Orders") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22319,7 +22319,6 @@ enum OrderBulkCreateErrorCode {
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
   METADATA_KEY_REQUIRED
   INCORRECT_CURRENCY
-  INVALID_URL
 }
 
 input OrderBulkCreateInput @doc(category: "Orders") {

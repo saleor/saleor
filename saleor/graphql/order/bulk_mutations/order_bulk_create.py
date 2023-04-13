@@ -1271,7 +1271,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkError(
                         message="Invalid URL format.",
                         path=f"invoices.[{index}].url",
-                        code=OrderBulkCreateErrorCode.INVALID_URL,
+                        code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
                 url = None
@@ -1534,11 +1534,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls, order_input, object_storage: Dict[str, Any]
     ) -> OrderBulkClass:
         order = OrderBulkClass()
-        order.order = Order(currency=order_input["currency"])
         cls.validate_order_input(order_input, order, object_storage)
         if order.is_critical_error:
             return order
 
+        order.order = Order(currency=order_input["currency"])
         # get order related instances
         cls.get_instances_related_to_order(
             order_input=order_input,
@@ -1557,6 +1557,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             and order.channel
             and order.billing_address
         ):
+            order.order = None
             return order
 
         # create lines
@@ -1572,6 +1573,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order_line_index += 1
 
         if order.is_critical_error:
+            order.order = None
             return order
 
         # calculate order amounts
@@ -1609,6 +1611,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order.is_critical_error = True
                 fulfillment_index += 1
             if order.is_critical_error:
+                order.order = None
                 return order
 
         # create transactions
