@@ -316,6 +316,7 @@ def test_order_confirm_by_app(
 
     order_unconfirmed.total_charged = order_unconfirmed.total.gross
     order_unconfirmed.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order_unconfirmed)
 
     assert not OrderEvent.objects.exists()
 
