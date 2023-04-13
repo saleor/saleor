@@ -3,7 +3,6 @@ from decimal import Decimal
 from unittest import mock
 
 import graphene
-import ipdb
 import pytest
 from django.core.exceptions import ValidationError
 from django.db.models import Sum
