@@ -438,6 +438,16 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
         description = "Event sent when order metadata is updated." + ADDED_IN_38
 
 
+class OrderBulkCreated(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when order is imported." + ADDED_IN_313 + PREVIEW_FEATURE
+        )
+
+
 class DraftOrderCreated(SubscriptionObjectType, OrderBase):
     class Meta:
         root_type = "Order"
@@ -2012,6 +2022,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
     WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
+    WebhookEventAsyncType.ORDER_BULK_CREATED: OrderBulkCreated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,

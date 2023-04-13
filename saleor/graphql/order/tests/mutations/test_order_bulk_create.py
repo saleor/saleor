@@ -1,6 +1,7 @@
 import copy
 from datetime import timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 import graphene
 import pytest
@@ -677,6 +678,7 @@ def test_order_bulk_create_multiple_orders(
 
     order_1 = order_bulk_input
     order_2 = order_bulk_input
+    order_2["number"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -1646,6 +1648,7 @@ def test_order_bulk_create_error_policy(
     order_1 = order_bulk_input
     order_2 = copy.deepcopy(order_bulk_input)
     order_2["notes"][0]["appId"] = graphene.Node.to_global_id("App", app.id)
+    order_2["number"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2986,3 +2989,30 @@ def test_order_bulk_create_error_order_number_already_exist(
     )
     assert error["field"] == "number"
     assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_bulk_created")
+def test_order_bulk_create_webhook(
+    mocked_order_bulk_created,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+
+    # then
+    db_order = Order.objects.get()
+    mocked_order_bulk_created.assert_called_once_with(db_order)

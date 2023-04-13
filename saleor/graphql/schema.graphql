@@ -1783,6 +1783,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  An order is imported.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2377,6 +2386,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   ORDER_METADATA_UPDATED
+
+  """
+  An order is imported.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -3172,6 +3190,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
+  ORDER_BULK_CREATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -27126,6 +27145,30 @@ Event sent when order metadata is updated.
 Added in Saleor 3.8.
 """
 type OrderMetadataUpdated implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Event sent when order is imported.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderBulkCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 

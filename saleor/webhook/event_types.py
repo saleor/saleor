@@ -67,6 +67,7 @@ class WebhookEventAsyncType:
     ORDER_EXPIRED = "order_expired"
     ORDER_FULFILLED = "order_fulfilled"
     ORDER_METADATA_UPDATED = "order_metadata_updated"
+    ORDER_BULK_CREATED = "order_bulk_created"
 
     FULFILLMENT_CREATED = "fulfillment_created"
     FULFILLMENT_CANCELED = "fulfillment_canceled"
@@ -208,6 +209,7 @@ class WebhookEventAsyncType:
         ORDER_EXPIRED: "Order expired",
         ORDER_FULFILLED: "Order fulfilled",
         ORDER_METADATA_UPDATED: "Order metadata updated",
+        ORDER_BULK_CREATED: "Order bulk created",
         DRAFT_ORDER_CREATED: "Draft order created",
         DRAFT_ORDER_UPDATED: "Draft order updated",
         DRAFT_ORDER_DELETED: "Draft order deleted",
@@ -326,6 +328,7 @@ class WebhookEventAsyncType:
         (ORDER_EXPIRED, DISPLAY_LABELS[ORDER_EXPIRED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
         (ORDER_METADATA_UPDATED, DISPLAY_LABELS[ORDER_METADATA_UPDATED]),
+        (ORDER_BULK_CREATED, DISPLAY_LABELS[ORDER_BULK_CREATED]),
         (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
         (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
         (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
@@ -454,6 +457,7 @@ class WebhookEventAsyncType:
         ORDER_EXPIRED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_METADATA_UPDATED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_BULK_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,

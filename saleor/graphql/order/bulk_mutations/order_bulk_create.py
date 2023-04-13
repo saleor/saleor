@@ -56,6 +56,7 @@ from ...core.utils import from_global_id_or_error
 from ...meta.mutations import MetadataInput
 from ...payment.mutations import TransactionCreate, TransactionCreateInput
 from ...payment.utils import metadata_contains_empty_key
+from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
 from ..mutations.order_discount_common import (
     OrderDiscountCommon,
@@ -774,7 +775,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             elif order.order:
                 numbers.append(order.order.number)
 
-        int_numbers = [int(number) for number in numbers if number.isdigit()]
+        int_numbers = [int(number) for number in numbers if number and number.isdigit()]
         if int_numbers:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT currval('order_order_number_seq')")
@@ -1628,7 +1629,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         cls.validate_order_status(order_input["status"], order)
 
-        order.order.number = order_input.get("number")
+        if order_number := order_input.get("number"):
+            order.order.number = order_number
         order.order.external_reference = order_input.get("external_reference")
         order.order.channel = order.channel
         order.order.created_at = order_input["created_at"]
@@ -1849,7 +1851,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return orders
 
     @classmethod
-    def perform_mutation(cls, _root, _info: ResolveInfo, /, **data):
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         orders_input = data["orders"]
         if len(orders_input) > MAX_ORDERS:
             error = OrderBulkError(
@@ -1879,6 +1881,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             if stock_update_policy != StockUpdatePolicy.SKIP:
                 stocks = cls.handle_stocks(orders, stock_update_policy)
             cls.save_data(orders, stocks)
+
+            manager = get_plugin_manager_promise(info.context).get()
+            for order in orders:
+                if order.order:
+                    cls.call_event(manager.order_bulk_created, order.order)
 
             results = [
                 OrderBulkCreateResult(order=order.order, errors=order.errors)

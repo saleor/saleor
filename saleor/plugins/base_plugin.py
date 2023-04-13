@@ -711,6 +711,12 @@ class BasePlugin:
     # metadata is changed.
     order_metadata_updated: Callable[["Order", Any], Any]
 
+    # Trigger when order is imported.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order
+    # is imported.
+    order_bulk_created: Callable[["Order", Any], Any]
+
     # Trigger when page is created.
     #
     # Overwrite this method if you need to trigger specific logic when a page is
