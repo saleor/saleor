@@ -147,6 +147,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
+- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 
 ### Saleor Apps
 
