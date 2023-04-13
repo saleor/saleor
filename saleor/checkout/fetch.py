@@ -548,7 +548,13 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
     is_shipping_voucher = (
         checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
     )
-    if not is_shipping_voucher:
+
+    is_voucher_for_specific_product = (
+        checkout_info.voucher
+        and checkout_info.voucher.type == VoucherType.SPECIFIC_PRODUCT
+    )
+
+    if not is_shipping_voucher and not is_voucher_for_specific_product:
         subtotal -= checkout_info.checkout.discount
 
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
