@@ -25,7 +25,13 @@ from ....core.weight import zero_weight
 from ....discount.models import OrderDiscount, Voucher
 from ....giftcard.models import GiftCard
 from ....invoice.models import Invoice
-from ....order import FulfillmentStatus, OrderEvents, OrderOrigin, StockUpdatePolicy
+from ....order import (
+    FulfillmentStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderStatus,
+    StockUpdatePolicy,
+)
 from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....order.utils import update_order_display_gross_prices
@@ -198,6 +204,20 @@ class OrderBulkClass:
     @property
     def unique_warehouse_ids(self) -> List[UUID]:
         return list(set([line.warehouse.id for line in self.lines]))
+
+    @property
+    def total_order_quantity(self):
+        return sum((line.line.quantity for line in self.lines))
+
+    @property
+    def total_fulfillment_quantity(self):
+        return sum(
+            (
+                line.line.quantity
+                for fulfillment in self.fulfillments
+                for line in fulfillment.lines
+            )
+        )
 
 
 @dataclass
@@ -548,9 +568,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order["delivery_method"].get("shipping_tax_class_id")
             )
             for note in order["notes"]:
-                keys["User.id"].append(note.get("id"))
-                keys["User.email"].append(note.get("email"))
-                keys["User.external_reference"].append(note.get("external_reference"))
+                keys["User.id"].append(note.get("user_id"))
+                keys["User.email"].append(note.get("user_email"))
+                keys["User.external_reference"].append(
+                    note.get("user_external_reference")
+                )
                 keys["App.id"].append(note.get("app_id"))
             for order_line in order["lines"]:
                 keys["ProductVariant.id"].append(order_line.get("variant_id"))
@@ -686,6 +708,38 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return errors
 
     @classmethod
+    def validate_order_status(cls, status: str, order: OrderBulkClass):
+        total_order_quantity = order.total_order_quantity
+        total_fulfillment_quantity = order.total_fulfillment_quantity
+
+        is_invalid = False
+        if total_fulfillment_quantity == 0 and status in [
+            OrderStatus.PARTIALLY_FULFILLED,
+            OrderStatus.FULFILLED,
+        ]:
+            is_invalid = True
+        if (
+            total_fulfillment_quantity > 0
+            and (total_order_quantity - total_fulfillment_quantity) > 0
+            and status in [OrderStatus.FULFILLED, OrderStatus.UNFULFILLED]
+        ):
+            is_invalid = True
+        if total_order_quantity == total_fulfillment_quantity and status in [
+            OrderStatus.PARTIALLY_FULFILLED,
+            OrderStatus.UNFULFILLED,
+        ]:
+            is_invalid = True
+
+        if is_invalid:
+            order.errors.append(
+                OrderBulkError(
+                    message="Invalid order status.",
+                    field="status",
+                    code=OrderBulkCreateErrorCode.INVALID,
+                )
+            )
+
+    @classmethod
     def get_instance_with_errors(
         cls,
         input: Dict[str, Any],
@@ -706,7 +760,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                               resolved instances
 
         Return:
-            model instance and error list.
+            model instance
 
         """
         instance = None
@@ -743,6 +797,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             },
             object_storage=object_storage,
         )
+
+        # If user can't be found, but email is provided, consider it valid
+        if (
+            not user
+            and order.errors[-1].code == OrderBulkCreateErrorCode.NOT_FOUND
+            and order_input["user"].get("email")
+        ):
+            order.errors.pop()
 
         channel = cls.get_instance_with_errors(
             input=order_input,
@@ -1245,6 +1307,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if not line_amounts:
             return None
 
+        if not cls.is_datetime_valid(order_line_input["created_at"]):
+            order.errors.append(
+                OrderBulkError(
+                    message="Order line input contains future date.",
+                    field="created_at",
+                    code=OrderBulkCreateErrorCode.FUTURE_DATE,
+                )
+            )
+
         order_line = OrderLine(
             order=order.order,
             variant=variant,
@@ -1418,11 +1489,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=order.errors,
             object_storage=object_storage,
         )
-        if (
-            not delivery_method
-            or not order.user
-            or not order.channel
-            or not order.billing_address
+        if not (
+            delivery_method
+            and (order.user or order_input["user"].get("email"))
+            and order.channel
+            and order.billing_address
         ):
             return order
 
@@ -1510,6 +1581,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
+        cls.validate_order_status(order_input["status"], order)
+
         order.order.external_reference = order_input.get("external_reference")
         order.order.channel = order.channel
         order.order.created_at = order_input["created_at"]
@@ -1518,7 +1591,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.order.billing_address = order.billing_address
         order.order.shipping_address = order.shipping_address
         order.order.language_code = order_input["language_code"]
-        order.order.user_email = order.user.email
+        order.order.user_email = (
+            order.user.email if order.user else order_input["user"].get("email")
+        )
         order.order.collection_point = delivery_method.warehouse
         order.order.collection_point_name = delivery_input.get(
             "warehouse_name"

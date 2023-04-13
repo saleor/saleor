@@ -1712,6 +1712,45 @@ def test_order_bulk_create_error_order_future_date(
     assert Order.objects.count() == orders_count
 
 
+def test_order_bulk_create_error_order_line_future_date(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["createdAt"] = timezone.now() + timedelta(
+        minutes=MINUTES_DIFF + 1
+    )
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Order line input contains future date."
+    assert error["field"] == "created_at"
+    assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
+
+    assert Order.objects.count() == orders_count + 1
+
+
 def test_order_bulk_create_error_invalid_redirect_url(
     staff_api_client,
     permission_manage_orders,
@@ -2111,8 +2150,7 @@ def test_order_bulk_create_error_instance_not_found(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["user"]["email"] = "non-existing-user@example.com"
-    order["user"]["id"] = None
+    order["channel"] = "non-existing-channel"
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2133,7 +2171,7 @@ def test_order_bulk_create_error_instance_not_found(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert (
         error["message"]
-        == "User instance with email=non-existing-user@example.com doesn't exist."
+        == "Channel instance with slug=non-existing-channel doesn't exist."
     )
     assert not error["field"]
     assert error["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
@@ -2748,3 +2786,86 @@ def test_order_bulk_create_error_invalid_discount(
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Invoice.objects.count() == invoice_count + 1
+
+
+def test_order_bulk_create_user_not_found_but_user_email_provided(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["user"]["id"] = None
+    order["user"]["email"] = "new_email@example.com"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    db_order = Order.objects.get()
+    assert not db_order.user
+    assert db_order.user_email == "new_email@example.com"
+
+
+@pytest.mark.parametrize(
+    "status,fulfillment_quantity,is_invalid",
+    [
+        (OrderStatusEnum.FULFILLED, 5, False),
+        (OrderStatusEnum.UNFULFILLED, 0, False),
+        (OrderStatusEnum.PARTIALLY_FULFILLED, 3, False),
+        (OrderStatusEnum.FULFILLED, 3, True),
+        (OrderStatusEnum.UNFULFILLED, 1, True),
+        (OrderStatusEnum.PARTIALLY_FULFILLED, 5, True),
+    ],
+)
+def test_order_bulk_create_validate_order_status(
+    status,
+    fulfillment_quantity,
+    is_invalid,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["status"] = status.name
+    order["fulfillments"][0]["lines"][0]["quantity"] = fulfillment_quantity
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    if is_invalid:
+        assert content["data"]["orderBulkCreate"]["count"] == 0
+        error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+        assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+        assert error["field"] == "status"
+    else:
+        assert content["data"]["orderBulkCreate"]["count"] == 1
+        order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+        assert order["status"] == status.name.upper()

@@ -17,8 +17,11 @@ def test_get_instance(customer_user):
         "user_id": graphene.Node.to_global_id("User", customer_user.id),
         "dummy_data": ["abc", 1],
     }
+    object_storage = {f"User.id.{customer_user.id}": customer_user}
     assert (
-        get_instance(input, User, USER_KEY_MAP, {}, OrderBulkCreateErrorCode)
+        get_instance(
+            input, User, USER_KEY_MAP, object_storage, OrderBulkCreateErrorCode
+        )
         == customer_user
     )
 
