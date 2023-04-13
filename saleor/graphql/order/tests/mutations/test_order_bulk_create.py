@@ -213,7 +213,7 @@ ORDER_BULK_CREATE = """
                     }
                 }
                 errors {
-                    field
+                    path
                     message
                     code
                 }
@@ -360,7 +360,7 @@ def order_bulk_input(
 
 
 @pytest.fixture()
-def order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks(
+def order_bulk_input_with_multiple_order_lines_and_fulfillments(
     order_bulk_input,
     product_variant_list,
     warehouses,
@@ -834,13 +834,13 @@ def test_order_bulk_create_multiple_fulfillments(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
 ):
     # given
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
 
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -1145,12 +1145,12 @@ def test_order_bulk_create_stock_update(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
@@ -1207,12 +1207,12 @@ def test_order_bulk_create_stock_update_insufficient_stock(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
@@ -1258,7 +1258,7 @@ def test_order_bulk_create_stock_update_insufficient_stock(
         f"Insufficient stock for product variant: {variant_2.id} and warehouse: "
         f"{warehouse_2.id}."
     )
-    assert error["field"] == "order_line"
+    assert error["path"] == "lines.[2]"
     assert error["code"] == OrderBulkCreateErrorCode.INSUFFICIENT_STOCK.name
 
     stock_variant_1_warehouse_1.refresh_from_db()
@@ -1275,12 +1275,12 @@ def test_order_bulk_create_stock_update_insufficient_stock_with_force_update_pol
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
@@ -1337,12 +1337,12 @@ def test_order_bulk_create_stock_update_insufficient_stock_with_skip_update_poli
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
 
     variant_1 = product_variant_list[0]
     variant_2 = product_variant_list[1]
@@ -1399,12 +1399,12 @@ def test_order_bulk_create_error_no_related_order_line_for_fulfillment(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     warehouse,
     variant,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
     order["fulfillments"][0]["lines"][0]["orderLineIndex"] = 5
 
     staff_api_client.user.user_permissions.add(
@@ -1429,7 +1429,7 @@ def test_order_bulk_create_error_no_related_order_line_for_fulfillment(
 
     error = data[0]["errors"][0]
     assert error["message"] == "There is no order line with index: 5."
-    assert error["field"] == "order_line_index"
+    assert error["path"] == "fulfillments.[0].lines.[0].order_line_index"
     assert error["code"] == OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE.name
 
 
@@ -1438,12 +1438,12 @@ def test_order_bulk_create_error_warehouse_mismatch_between_order_and_fulfillmen
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     warehouse,
     variant,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     order["fulfillments"][0]["lines"][0]["warehouse"] = warehouse_id
 
@@ -1471,7 +1471,7 @@ def test_order_bulk_create_error_warehouse_mismatch_between_order_and_fulfillmen
     assert error["message"] == (
         "Fulfillment line's warehouse is different then order line's warehouse."
     )
-    assert error["field"] == "warehouse"
+    assert error["path"] == "fulfillments.[0].lines.[0].warehouse"
     assert (
         error["code"]
         == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
@@ -1483,12 +1483,12 @@ def test_order_bulk_create_error_variant_mismatch_between_order_and_fulfillment_
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     warehouse,
     variant,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     order["fulfillments"][0]["lines"][0]["variantId"] = variant_id
 
@@ -1517,7 +1517,7 @@ def test_order_bulk_create_error_variant_mismatch_between_order_and_fulfillment_
         "Fulfillment line's product variant is different "
         "then order line's product variant."
     )
-    assert error["field"] == "variant_id"
+    assert error["path"] == "fulfillments.[0].lines.[0].variant_id"
     assert (
         error["code"]
         == OrderBulkCreateErrorCode.ORDER_LINE_FULFILLMENT_LINE_MISMATCH.name
@@ -1529,12 +1529,12 @@ def test_order_bulk_create_stock_update_error_too_many_fulfillments(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
     order["fulfillments"][0]["lines"][0]["quantity"] = 500
 
     variant_1 = product_variant_list[0]
@@ -1581,7 +1581,7 @@ def test_order_bulk_create_stock_update_error_too_many_fulfillments(
         error["message"] == f"There is more fulfillments, than ordered quantity "
         f"for order line with variant: {variant_1.id} and warehouse: {warehouse_1.id}"
     )
-    assert error["field"] == "order_line"
+    assert error["path"] == "lines.[0]"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID_QUANTITY.name
 
 
@@ -1590,12 +1590,12 @@ def test_order_bulk_create_update_stocks_missing_stocks(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
     product_variant_list,
     warehouses,
 ):
     # given
-    order = order_bulk_input_with_multiple_order_lines_and_fulfillments_with_stocks
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
     variant = product_variant_list[0]
     warehouse = warehouses[0]
 
@@ -1621,7 +1621,7 @@ def test_order_bulk_create_update_stocks_missing_stocks(
         error["message"] == f"There is no stock for given product variant:"
         f" {variant.id} and warehouse: {warehouse.id}."
     )
-    assert error["field"] == "order_line"
+    assert error["path"] == "lines.[0]"
     assert error["code"] == OrderBulkCreateErrorCode.NON_EXISTING_STOCK.name
 
 
@@ -1713,7 +1713,7 @@ def test_order_bulk_create_error_order_future_date(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order input contains future date."
-    assert error["field"] == "created_at"
+    assert error["path"] == "created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
@@ -1752,7 +1752,7 @@ def test_order_bulk_create_error_order_line_future_date(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order line input contains future date."
-    assert error["field"] == "created_at"
+    assert error["path"] == "lines.[0].created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count + 1
@@ -1791,7 +1791,7 @@ def test_order_bulk_create_error_invalid_redirect_url(
         error["message"] == "Invalid redirect url: Invalid URL. "
         "Please check if URL is in RFC 1808 format.."
     )
-    assert error["field"] == "redirect_url"
+    assert error["path"] == "redirect_url"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
@@ -1824,7 +1824,7 @@ def test_order_bulk_create_error_negative_weight(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order can't have negative weight."
-    assert error["field"] == "weight"
+    assert error["path"] == "weight"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
@@ -1861,12 +1861,12 @@ def test_order_bulk_create_error_invalid_address(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error_1 = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error_1["message"] == "Invalid billing address."
-    assert error_1["field"] == "billing_address"
+    assert error_1["path"] == "billing_address"
     assert error_1["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     error_2 = content["data"]["orderBulkCreate"]["results"][0]["errors"][1]
     assert error_2["message"] == "Invalid shipping address."
-    assert error_2["field"] == "shipping_address"
+    assert error_2["path"] == "shipping_address"
     assert error_2["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Order.objects.count() == orders_count
@@ -1942,7 +1942,7 @@ def test_order_bulk_create_error_delivery_with_both_shipping_method_and_warehous
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Can't provide both warehouse and shipping method IDs."
-    assert error["field"] == "delivery_method"
+    assert error["path"] == "delivery_method"
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
@@ -2023,7 +2023,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "No delivery method provided."
-    assert error["field"] == "delivery_method"
+    assert error["path"] == "delivery_method"
     assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
@@ -2059,7 +2059,7 @@ def test_order_bulk_create_error_note_with_future_date(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Note input contains future date."
-    assert error["field"] == "date"
+    assert error["path"] == "notes.[0].date"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Order.objects.count() == orders_count
@@ -2099,7 +2099,7 @@ def test_order_bulk_create_error_note_exceeds_character_limit(
     assert (
         error["message"] == f"Note message exceeds character limit: {MAX_NOTE_LENGTH}."
     )
-    assert error["field"] == "message"
+    assert error["path"] == "notes.[0].message"
     assert error["code"] == OrderBulkCreateErrorCode.NOTE_LENGTH.name
 
     assert Order.objects.count() == orders_count + 1
@@ -2141,7 +2141,7 @@ def test_order_bulk_create_error_non_existing_instance(
         errors[0]["message"]
         == "ProductVariant instance with sku=non-existing-sku doesn't exist."
     )
-    assert not errors[0]["field"]
+    assert not errors[0]["path"]
     assert errors[0]["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
@@ -2180,7 +2180,7 @@ def test_order_bulk_create_error_instance_not_found(
         error["message"]
         == "Channel instance with slug=non-existing-channel doesn't exist."
     )
-    assert not error["field"]
+    assert not error["path"]
     assert error["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
@@ -2219,7 +2219,7 @@ def test_order_bulk_create_error_get_instance_with_multiple_keys(
         error["message"] == "Only one of [id, email, external_reference] arguments"
         " can be provided to resolve User instance."
     )
-    assert not error["field"]
+    assert not error["path"]
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
@@ -2258,7 +2258,7 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
         error["message"] == "One of [id, email, external_reference] arguments"
         " must be provided to resolve User instance."
     )
-    assert not error["field"]
+    assert not error["path"]
     assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
@@ -2297,7 +2297,7 @@ def test_order_bulk_create_error_invalid_quantity(
         errors[0]["message"] == "Invalid quantity. "
         "Must be integer greater then or equal to 1."
     )
-    assert errors[0]["field"] == "quantity"
+    assert errors[0]["path"] == "lines.[0].quantity"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.INVALID_QUANTITY.name
     assert Order.objects.count() == orders_count
 
@@ -2369,7 +2369,7 @@ def test_order_bulk_create_error_order_line_calculations(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
     assert errors[0]["message"] == message
-    assert errors[0]["field"] == field
+    assert errors[0]["path"] == f"lines.[0].{field}"
     assert errors[0]["code"] == code
 
     assert Order.objects.count() == orders_count
@@ -2485,7 +2485,7 @@ def test_order_bulk_create_error_currency_mismatch_between_transaction_and_order
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Currency needs to be the same as for order: PLN"
-    assert error["field"] == "amount_authorized"
+    assert error["path"] == "transactions.[0]"
     assert error["code"] == OrderBulkCreateErrorCode.INCORRECT_CURRENCY.name
 
     assert Order.objects.count() == orders_count
@@ -2521,7 +2521,7 @@ def test_order_bulk_create_error_empty_transaction_metadata_key(
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "metadata key cannot be empty."
-    assert error["field"] == "transaction"
+    assert error["path"] == "transactions.[0]"
     assert error["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
 
     assert Order.objects.count() == orders_count
@@ -2559,10 +2559,10 @@ def test_order_bulk_create_error_empty_order_line_tax_class_metadata_key(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
     assert errors[0]["message"] == "Metadata key cannot be empty."
-    assert errors[0]["field"] == "tax_class_metadata"
+    assert errors[0]["path"] == "lines.[0].tax_class_metadata"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
     assert errors[1]["message"] == "Private metadata key cannot be empty."
-    assert errors[1]["field"] == "tax_class_private_metadata"
+    assert errors[1]["path"] == "lines.[0].tax_class_private_metadata"
     assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
 
     db_order_line = OrderLine.objects.get()
@@ -2606,10 +2606,10 @@ def test_order_bulk_create_error_empty_shipping_tax_class_metadata_key(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
     assert errors[0]["message"] == "Metadata key cannot be empty."
-    assert errors[0]["field"] == "shipping_tax_class_metadata"
+    assert errors[0]["path"] == "delivery_method.shipping_tax_class_metadata"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
     assert errors[1]["message"] == "Private metadata key cannot be empty."
-    assert errors[1]["field"] == "shipping_tax_class_private_metadata"
+    assert errors[1]["path"] == "delivery_method.shipping_tax_class_private_metadata"
     assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
 
     db_order = Order.objects.get()
@@ -2652,10 +2652,10 @@ def test_order_bulk_create_error_empty_invoice_metadata_key(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
     assert errors[0]["message"] == "Metadata key cannot be empty."
-    assert errors[0]["field"] == "metadata"
+    assert errors[0]["path"] == "invoices.[0].metadata"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
     assert errors[1]["message"] == "Private metadata key cannot be empty."
-    assert errors[1]["field"] == "private_metadata"
+    assert errors[1]["path"] == "invoices.[0].private_metadata"
     assert errors[1]["code"] == OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED.name
 
     db_invoice = Invoice.objects.get()
@@ -2699,7 +2699,7 @@ def test_order_bulk_create_error_invoice_future_date(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Invoice input contains future date."
-    assert error["field"] == "created_at"
+    assert error["path"] == "invoices.[0].created_at"
     assert error["code"] == OrderBulkCreateErrorCode.FUTURE_DATE.name
 
     assert Invoice.objects.count() == invoice_count + 1
@@ -2736,7 +2736,7 @@ def test_order_bulk_create_error_invoice_invalid_url(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Invalid URL format."
-    assert error["field"] == "url"
+    assert error["path"] == "invoices.[0].url"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID_URL.name
 
     assert Invoice.objects.count() == invoice_count + 1
@@ -2789,7 +2789,7 @@ def test_order_bulk_create_error_invalid_discount(
     assert content["data"]["orderBulkCreate"]["results"][0]["order"]
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == message
-    assert error["field"] == "discounts"
+    assert error["path"] == "discounts.[0]"
     assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
 
     assert Invoice.objects.count() == invoice_count + 1
@@ -2871,7 +2871,7 @@ def test_order_bulk_create_validate_order_status(
         assert content["data"]["orderBulkCreate"]["count"] == 0
         error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
         assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
-        assert error["field"] == "status"
+        assert error["path"] == "status"
     else:
         assert content["data"]["orderBulkCreate"]["count"] == 1
         order = content["data"]["orderBulkCreate"]["results"][0]["order"]
@@ -2916,7 +2916,7 @@ def test_order_bulk_create_error_duplicate_order_number(
     assert order_2["number"] == "order-2"
     error = data[2]["errors"][0]
     assert error["message"] == "Input contains multiple orders with number: order-2."
-    assert error["field"] == "number"
+    assert error["path"] == "number"
     assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
 
 
@@ -2987,7 +2987,7 @@ def test_order_bulk_create_error_order_number_already_exist(
         error["message"]
         == f"Order with number: {order_with_number.number} already exists."
     )
-    assert error["field"] == "number"
+    assert error["path"] == "number"
     assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
 
 

@@ -22288,9 +22288,9 @@ type OrderBulkCreateResult @doc(category: "Orders") {
 
 type OrderBulkCreateError {
   """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
-  field: String
+  path: String
 
   """The error message."""
   message: String
