@@ -721,7 +721,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): OrderEventCountableConnection
+  ): OrderEventCountableConnection @doc(category: "Orders")
 
   """Look up an order by ID or external reference."""
   order(
@@ -829,7 +829,7 @@ type Query {
 
     """The menu's slug."""
     slug: String
-  ): Menu
+  ): Menu @doc(category: "Menu")
 
   """List of the storefront's menus."""
   menus(
@@ -861,7 +861,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuCountableConnection
+  ): MenuCountableConnection @doc(category: "Menu")
 
   """Look up a menu item by ID."""
   menuItem(
@@ -870,7 +870,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): MenuItem
+  ): MenuItem @doc(category: "Menu")
 
   """List of the storefronts's menu items."""
   menuItems(
@@ -898,7 +898,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuItemCountableConnection
+  ): MenuItemCountableConnection @doc(category: "Menu")
 
   """
   Look up a gift card by ID.
@@ -2841,7 +2841,7 @@ Example:
 scalar Metadata
 
 """Represents a permission object in a friendly form."""
-type Permission {
+type Permission @doc(category: "Authentication") {
   """Internal code for permission."""
   code: PermissionEnum!
 
@@ -3427,7 +3427,7 @@ type CountryDisplay {
 }
 
 """Represents a VAT rate for a country."""
-type VAT {
+type VAT @doc(category: "Taxes") {
   """Country code."""
   countryCode: String!
 
@@ -3439,7 +3439,7 @@ type VAT {
 }
 
 """Represents a reduced VAT rate for a particular type of goods."""
-type ReducedRate {
+type ReducedRate @doc(category: "Taxes") {
   """Reduced VAT rate in percent."""
   rate: Float!
 
@@ -3454,7 +3454,7 @@ enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
   ALL
 }
 
-type ShippingZoneCountableConnection {
+type ShippingZoneCountableConnection @doc(category: "Shipping") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ShippingZoneCountableEdge!]!
@@ -3463,7 +3463,7 @@ type ShippingZoneCountableConnection {
   totalCount: Int
 }
 
-type ShippingZoneCountableEdge {
+type ShippingZoneCountableEdge @doc(category: "Shipping") {
   """The item at the end of the edge."""
   node: ShippingZone!
 
@@ -3703,7 +3703,7 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   WEIGHT
 }
 
-type ShippingMethodTranslation implements Node {
+type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   id: ID!
 
   """Translation language."""
@@ -4978,7 +4978,7 @@ Represents the channel stock settings.
 
 Added in Saleor 3.7.
 """
-type StockSettings {
+type StockSettings @doc(category: "Products") {
   """
   Allocation strategy defines the preference of warehouses for allocations and reservations.
   """
@@ -5091,7 +5091,7 @@ enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
   EXCLUDE
 }
 
-type ProductCountableConnection {
+type ProductCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductCountableEdge!]!
@@ -5100,7 +5100,7 @@ type ProductCountableConnection {
   totalCount: Int
 }
 
-type ProductCountableEdge {
+type ProductCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Product!
 
@@ -5800,7 +5800,7 @@ type AttributeValueCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeValueCountableEdge {
+type AttributeValueCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: AttributeValue!
 
@@ -5867,7 +5867,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   externalReference: String
 }
 
-type AttributeValueTranslation implements Node {
+type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -5921,7 +5921,7 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   ids: [ID!]
 }
 
-type AttributeTranslation implements Node {
+type AttributeTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -5929,7 +5929,7 @@ type AttributeTranslation implements Node {
   name: String!
 }
 
-type ProductTypeCountableConnection {
+type ProductTypeCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -5938,7 +5938,7 @@ type ProductTypeCountableConnection {
   totalCount: Int
 }
 
-type ProductTypeCountableEdge {
+type ProductTypeCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductType!
 
@@ -5976,7 +5976,7 @@ type AttributeCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeCountableEdge {
+type AttributeCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: Attribute!
 
@@ -6260,7 +6260,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   ): CategoryTranslation
 }
 
-type CategoryCountableConnection {
+type CategoryCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CategoryCountableEdge!]!
@@ -6269,7 +6269,7 @@ type CategoryCountableConnection {
   totalCount: Int
 }
 
-type CategoryCountableEdge {
+type CategoryCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Category!
 
@@ -6515,7 +6515,7 @@ enum ThumbnailFormatEnum {
   WEBP
 }
 
-type CategoryTranslation implements Node {
+type CategoryTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -6952,7 +6952,7 @@ enum ProductMediaType @doc(category: "Products") {
   VIDEO
 }
 
-type ProductVariantTranslation implements Node {
+type ProductVariantTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -6960,7 +6960,7 @@ type ProductVariantTranslation implements Node {
   name: String!
 }
 
-type DigitalContent implements Node & ObjectWithMetadata {
+type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7021,7 +7021,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   productVariant: ProductVariant!
 }
 
-type DigitalContentUrl implements Node {
+type DigitalContentUrl implements Node @doc(category: "Products") {
   id: ID!
   content: DigitalContent!
   created: DateTime!
@@ -7320,7 +7320,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   channelListings: [CollectionChannelListing!]
 }
 
-type CollectionTranslation implements Node {
+type CollectionTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7345,7 +7345,7 @@ type CollectionTranslation implements Node {
 }
 
 """Represents collection channel listing."""
-type CollectionChannelListing implements Node {
+type CollectionChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7359,7 +7359,7 @@ type CollectionChannelListing implements Node {
   channel: Channel!
 }
 
-type ProductTranslation implements Node {
+type ProductTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7392,7 +7392,7 @@ type WarehouseCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type WarehouseCountableEdge {
+type WarehouseCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Warehouse!
 
@@ -7631,7 +7631,7 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type PageTranslation implements Node {
+type PageTranslation implements Node @doc(category: "Pages") {
   id: ID!
 
   """Translation language."""
@@ -7880,7 +7880,7 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type SaleTranslation implements Node {
+type SaleTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8061,7 +8061,7 @@ enum SaleType @doc(category: "Discounts") {
   PERCENTAGE
 }
 
-type CollectionCountableConnection {
+type CollectionCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -8070,7 +8070,7 @@ type CollectionCountableConnection {
   totalCount: Int
 }
 
-type CollectionCountableEdge {
+type CollectionCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Collection!
 
@@ -8078,7 +8078,7 @@ type CollectionCountableEdge {
   cursor: String!
 }
 
-type ProductVariantCountableConnection {
+type ProductVariantCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductVariantCountableEdge!]!
@@ -8087,7 +8087,7 @@ type ProductVariantCountableConnection {
   totalCount: Int
 }
 
-type ProductVariantCountableEdge {
+type ProductVariantCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductVariant!
 
@@ -8096,7 +8096,7 @@ type ProductVariantCountableEdge {
 }
 
 """Represents sale channel listing."""
-type SaleChannelListing implements Node {
+type SaleChannelListing implements Node @doc(category: "Discounts") {
   id: ID!
   channel: Channel!
   discountValue: Float!
@@ -8121,7 +8121,7 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type VoucherTranslation implements Node {
+type VoucherTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8333,7 +8333,7 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
   minSpent: Money
 }
 
-type MenuItemTranslatableContent implements Node {
+type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   id: ID!
   name: String!
 
@@ -8349,7 +8349,7 @@ type MenuItemTranslatableContent implements Node {
   menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type MenuItemTranslation implements Node {
+type MenuItemTranslation implements Node @doc(category: "Menu") {
   id: ID!
 
   """Translation language."""
@@ -8360,7 +8360,7 @@ type MenuItemTranslation implements Node {
 """
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
-type MenuItem implements Node & ObjectWithMetadata {
+type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8438,7 +8438,7 @@ type MenuItem implements Node & ObjectWithMetadata {
 """
 Represents a single menu - an object that is used to help navigate through the store.
 """
-type Menu implements Node & ObjectWithMetadata {
+type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8620,7 +8620,7 @@ type TaxConfigurationCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxConfigurationCountableEdge {
+type TaxConfigurationCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxConfiguration!
 
@@ -8642,7 +8642,7 @@ type TaxClassCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxClassCountableEdge {
+type TaxClassCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxClass!
 
@@ -8691,7 +8691,7 @@ type StockCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type StockCountableEdge {
+type StockCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Stock!
 
@@ -8937,7 +8937,7 @@ type GatewayConfigLine @doc(category: "Payments") {
   value: String
 }
 
-type ExternalAuthentication {
+type ExternalAuthentication @doc(category: "Authentication") {
   """ID of external authentication plugin."""
   id: String!
 
@@ -8964,7 +8964,7 @@ type Domain {
   url: String!
 }
 
-type ShopTranslation implements Node {
+type ShopTranslation implements Node @doc(category: "Shop") {
   id: ID!
 
   """Translation language."""
@@ -9530,7 +9530,7 @@ History log of the gift card.
 
 Added in Saleor 3.1.
 """
-type GiftCardEvent implements Node {
+type GiftCardEvent implements Node @doc(category: "Gift cards") {
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -11054,7 +11054,7 @@ type OrderEventOrderLineObject @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 }
 
-type OrderEventDiscountObject {
+type OrderEventDiscountObject @doc(category: "Orders") {
   """Type of the discount: fixed or percent."""
   valueType: DiscountValueTypeEnum!
 
@@ -11370,7 +11370,7 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   OVERCHARGED
 }
 
-type CheckoutCountableConnection {
+type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutCountableEdge!]!
@@ -11379,7 +11379,7 @@ type CheckoutCountableConnection {
   totalCount: Int
 }
 
-type CheckoutCountableEdge {
+type CheckoutCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: Checkout!
 
@@ -11387,7 +11387,7 @@ type CheckoutCountableEdge {
   cursor: String!
 }
 
-type GiftCardCountableConnection {
+type GiftCardCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardCountableEdge!]!
@@ -11396,7 +11396,7 @@ type GiftCardCountableConnection {
   totalCount: Int
 }
 
-type GiftCardCountableEdge {
+type GiftCardCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCard!
 
@@ -11404,7 +11404,7 @@ type GiftCardCountableEdge {
   cursor: String!
 }
 
-type OrderCountableConnection {
+type OrderCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -11413,7 +11413,7 @@ type OrderCountableConnection {
   totalCount: Int
 }
 
-type OrderCountableEdge {
+type OrderCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: Order!
 
@@ -11545,7 +11545,7 @@ type Limits {
 }
 
 """Gift card related settings from site settings."""
-type GiftCardSettings {
+type GiftCardSettings @doc(category: "Gift cards") {
   """The gift card expiry type settings."""
   expiryType: GiftCardSettingsExpiryTypeEnum!
 
@@ -11580,7 +11580,7 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
-type DigitalContentCountableConnection {
+type DigitalContentCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [DigitalContentCountableEdge!]!
@@ -11589,7 +11589,7 @@ type DigitalContentCountableConnection {
   totalCount: Int
 }
 
-type DigitalContentCountableEdge {
+type DigitalContentCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: DigitalContent!
 
@@ -11754,7 +11754,7 @@ enum ProductVariantSortField @doc(category: "Products") {
   LAST_MODIFIED_AT
 }
 
-type PaymentCountableConnection {
+type PaymentCountableConnection @doc(category: "Payments") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PaymentCountableEdge!]!
@@ -11763,7 +11763,7 @@ type PaymentCountableConnection {
   totalCount: Int
 }
 
-type PaymentCountableEdge {
+type PaymentCountableEdge @doc(category: "Payments") {
   """The item at the end of the edge."""
   node: Payment!
 
@@ -11781,7 +11781,7 @@ input PaymentFilterInput @doc(category: "Payments") {
   checkouts: [ID!]
 }
 
-type PageCountableConnection {
+type PageCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageCountableEdge!]!
@@ -11790,7 +11790,7 @@ type PageCountableConnection {
   totalCount: Int
 }
 
-type PageCountableEdge {
+type PageCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: Page!
 
@@ -11853,7 +11853,7 @@ input PageFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type PageTypeCountableConnection {
+type PageTypeCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageTypeCountableEdge!]!
@@ -11862,7 +11862,7 @@ type PageTypeCountableConnection {
   totalCount: Int
 }
 
-type PageTypeCountableEdge {
+type PageTypeCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: PageType!
 
@@ -11891,7 +11891,7 @@ input PageTypeFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type OrderEventCountableConnection {
+type OrderEventCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderEventCountableEdge!]!
@@ -11900,7 +11900,7 @@ type OrderEventCountableConnection {
   totalCount: Int
 }
 
-type OrderEventCountableEdge {
+type OrderEventCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: OrderEvent!
 
@@ -11990,7 +11990,7 @@ input OrderDraftFilterInput @doc(category: "Orders") {
   channels: [ID!]
 }
 
-type MenuCountableConnection {
+type MenuCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuCountableEdge!]!
@@ -11999,7 +11999,7 @@ type MenuCountableConnection {
   totalCount: Int
 }
 
-type MenuCountableEdge {
+type MenuCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: Menu!
 
@@ -12030,7 +12030,7 @@ input MenuFilterInput {
   slugs: [String!]
 }
 
-type MenuItemCountableConnection {
+type MenuItemCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuItemCountableEdge!]!
@@ -12039,7 +12039,7 @@ type MenuItemCountableConnection {
   totalCount: Int
 }
 
-type MenuItemCountableEdge {
+type MenuItemCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: MenuItem!
 
@@ -12104,7 +12104,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   code: String
 }
 
-type GiftCardTagCountableConnection {
+type GiftCardTagCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardTagCountableEdge!]!
@@ -12113,7 +12113,7 @@ type GiftCardTagCountableConnection {
   totalCount: Int
 }
 
-type GiftCardTagCountableEdge {
+type GiftCardTagCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCardTag!
 
@@ -12230,7 +12230,7 @@ enum PluginSortField {
   IS_ACTIVE
 }
 
-type SaleCountableConnection {
+type SaleCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [SaleCountableEdge!]!
@@ -12239,7 +12239,7 @@ type SaleCountableConnection {
   totalCount: Int
 }
 
-type SaleCountableEdge {
+type SaleCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Sale!
 
@@ -12304,7 +12304,7 @@ enum SaleSortField @doc(category: "Discounts") {
   LAST_MODIFIED_AT
 }
 
-type VoucherCountableConnection {
+type VoucherCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [VoucherCountableEdge!]!
@@ -12313,7 +12313,7 @@ type VoucherCountableConnection {
   totalCount: Int
 }
 
-type VoucherCountableEdge {
+type VoucherCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Voucher!
 
@@ -12513,7 +12513,7 @@ input CheckoutFilterInput @doc(category: "Checkout") {
   chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
-type CheckoutLineCountableConnection {
+type CheckoutLineCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutLineCountableEdge!]!
@@ -12522,7 +12522,7 @@ type CheckoutLineCountableConnection {
   totalCount: Int
 }
 
-type CheckoutLineCountableEdge {
+type CheckoutLineCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: CheckoutLine!
 
@@ -12597,7 +12597,7 @@ type AppCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppCountableEdge {
+type AppCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: App!
 
@@ -12636,7 +12636,7 @@ type AppExtensionCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppExtensionCountableEdge {
+type AppExtensionCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: AppExtension!
 
@@ -12684,7 +12684,7 @@ type UserCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type UserCountableEdge {
+type UserCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: User!
 
@@ -12745,7 +12745,7 @@ type GroupCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type GroupCountableEdge {
+type GroupCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: Group!
 
@@ -13080,7 +13080,7 @@ type Mutation {
   shopDomainUpdate(
     """Fields required to update site."""
     input: SiteDomainInput
-  ): ShopDomainUpdate
+  ): ShopDomainUpdate @doc(category: "Shop")
 
   """
   Updates shop settings. 
@@ -13090,14 +13090,14 @@ type Mutation {
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate
+  ): ShopSettingsUpdate @doc(category: "Shop")
 
   """
   Fetch tax rates. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  shopFetchTaxRates: ShopFetchTaxRates @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
+  shopFetchTaxRates: ShopFetchTaxRates @doc(category: "Shop") @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates/updates translations for shop settings. 
@@ -13110,7 +13110,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ShopSettingsTranslate
+  ): ShopSettingsTranslate @doc(category: "Shop")
 
   """
   Update the shop's address. If the `null` value is passed, the currently selected address will be deleted. 
@@ -13120,7 +13120,7 @@ type Mutation {
   shopAddressUpdate(
     """Fields required to update shop address."""
     input: AddressInput
-  ): ShopAddressUpdate
+  ): ShopAddressUpdate @doc(category: "Shop")
 
   """
   Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
@@ -13782,7 +13782,7 @@ type Mutation {
   digitalContentUrlCreate(
     """Fields required to create a new url."""
     input: DigitalContentUrlCreateInput!
-  ): DigitalContentUrlCreate
+  ): DigitalContentUrlCreate @doc(category: "Products")
 
   """
   Creates a new variant for a product. 
@@ -14904,7 +14904,7 @@ type Mutation {
 
     """Type of the navigation bar to assign the menu to."""
     navigationType: NavigationType!
-  ): AssignNavigation
+  ): AssignNavigation @doc(category: "Menu")
 
   """
   Creates a new Menu. 
@@ -14914,7 +14914,7 @@ type Mutation {
   menuCreate(
     """Fields required to create a menu."""
     input: MenuCreateInput!
-  ): MenuCreate
+  ): MenuCreate @doc(category: "Menu")
 
   """
   Deletes a menu. 
@@ -14924,7 +14924,7 @@ type Mutation {
   menuDelete(
     """ID of a menu to delete."""
     id: ID!
-  ): MenuDelete
+  ): MenuDelete @doc(category: "Menu")
 
   """
   Deletes menus. 
@@ -14934,7 +14934,7 @@ type Mutation {
   menuBulkDelete(
     """List of menu IDs to delete."""
     ids: [ID!]!
-  ): MenuBulkDelete
+  ): MenuBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu. 
@@ -14947,7 +14947,7 @@ type Mutation {
 
     """Fields required to update a menu."""
     input: MenuInput!
-  ): MenuUpdate
+  ): MenuUpdate @doc(category: "Menu")
 
   """
   Creates a new menu item. 
@@ -14959,7 +14959,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemCreateInput!
-  ): MenuItemCreate
+  ): MenuItemCreate @doc(category: "Menu")
 
   """
   Deletes a menu item. 
@@ -14969,7 +14969,7 @@ type Mutation {
   menuItemDelete(
     """ID of a menu item to delete."""
     id: ID!
-  ): MenuItemDelete
+  ): MenuItemDelete @doc(category: "Menu")
 
   """
   Deletes menu items. 
@@ -14979,7 +14979,7 @@ type Mutation {
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
     ids: [ID!]!
-  ): MenuItemBulkDelete
+  ): MenuItemBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu item. 
@@ -14994,7 +14994,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemInput!
-  ): MenuItemUpdate
+  ): MenuItemUpdate @doc(category: "Menu")
 
   """
   Creates/updates translations for a menu item. 
@@ -15008,7 +15008,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): MenuItemTranslate
+  ): MenuItemTranslate @doc(category: "Menu")
 
   """
   Moves items of menus. 
@@ -15021,7 +15021,7 @@ type Mutation {
 
     """The menu position data."""
     moves: [MenuItemMoveInput!]!
-  ): MenuItemMove
+  ): MenuItemMove @doc(category: "Menu")
 
   """
   Request an invoice for the order using plugin. 
@@ -17657,7 +17657,7 @@ type StaffNotificationRecipientCreate @doc(category: "Users") {
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
-type ShopError {
+type ShopError @doc(category: "Shop") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -17719,7 +17719,7 @@ Updates site domain of the shop.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopDomainUpdate {
+type ShopDomainUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17739,7 +17739,7 @@ Updates shop settings.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopSettingsUpdate {
+type ShopSettingsUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17839,7 +17839,7 @@ Fetch tax rates.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopFetchTaxRates {
+type ShopFetchTaxRates @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17851,7 +17851,7 @@ Creates/updates translations for shop settings.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ShopSettingsTranslate {
+type ShopSettingsTranslate @doc(category: "Shop") {
   """Updated shop settings."""
   shop: Shop
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -17889,7 +17889,7 @@ Update the shop's address. If the `null` value is passed, the currently selected
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopAddressUpdate {
+type ShopAddressUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -19033,7 +19033,7 @@ type ProductBulkResult @doc(category: "Products") {
   errors: [ProductBulkCreateError!]
 }
 
-type ProductBulkCreateError {
+type ProductBulkCreateError @doc(category: "Products") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -19894,7 +19894,7 @@ Generate new URL to digital content.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type DigitalContentUrlCreate {
+type DigitalContentUrlCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   digitalContentUrl: DigitalContentUrl
@@ -20959,7 +20959,7 @@ type TransactionEventReport @doc(category: "Payments") {
   errors: [TransactionEventReportError!]!
 }
 
-type TransactionEventReportError {
+type TransactionEventReportError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -20993,7 +20993,7 @@ type PaymentGatewayInitialize @doc(category: "Payments") {
   errors: [PaymentGatewayInitializeError!]!
 }
 
-type PaymentGatewayConfig {
+type PaymentGatewayConfig @doc(category: "Payments") {
   """The app identifier."""
   id: String!
 
@@ -21004,7 +21004,7 @@ type PaymentGatewayConfig {
 
 scalar JSON
 
-type PaymentGatewayConfigError {
+type PaymentGatewayConfigError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21024,7 +21024,7 @@ enum PaymentGatewayConfigErrorCode @doc(category: "Payments") {
   NOT_FOUND
 }
 
-type PaymentGatewayInitializeError {
+type PaymentGatewayInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21071,7 +21071,7 @@ type TransactionInitialize @doc(category: "Payments") {
   errors: [TransactionInitializeError!]!
 }
 
-type TransactionInitializeError {
+type TransactionInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21110,7 +21110,7 @@ type TransactionProcess @doc(category: "Payments") {
   errors: [TransactionProcessError!]!
 }
 
-type TransactionProcessError {
+type TransactionProcessError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22269,14 +22269,14 @@ Assigns storefront's navigation menus.
 
 Requires one of the following permissions: MANAGE_MENUS, MANAGE_SETTINGS.
 """
-type AssignNavigation {
+type AssignNavigation @doc(category: "Menu") {
   """Assigned navigation menu."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
 }
 
-type MenuError {
+type MenuError @doc(category: "Menu") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22315,7 +22315,7 @@ Creates a new Menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuCreate {
+type MenuCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22354,7 +22354,7 @@ Deletes a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuDelete {
+type MenuDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22365,7 +22365,7 @@ Deletes menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuBulkDelete {
+type MenuBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22377,7 +22377,7 @@ Updates a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuUpdate {
+type MenuUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22396,7 +22396,7 @@ Creates a new menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemCreate {
+type MenuItemCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22430,7 +22430,7 @@ Deletes a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemDelete {
+type MenuItemDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22441,7 +22441,7 @@ Deletes menu items.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemBulkDelete {
+type MenuItemBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22453,7 +22453,7 @@ Updates a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemUpdate {
+type MenuItemUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22464,7 +22464,7 @@ Creates/updates translations for a menu item.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type MenuItemTranslate {
+type MenuItemTranslate @doc(category: "Menu") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   menuItem: MenuItem
@@ -22475,7 +22475,7 @@ Moves items of menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemMove {
+type MenuItemMove @doc(category: "Menu") {
   """Assigned menu to move within."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25456,7 +25456,7 @@ type CustomerBulkResult @doc(category: "Users") {
   errors: [CustomerBulkUpdateError!]
 }
 
-type CustomerBulkUpdateError {
+type CustomerBulkUpdateError @doc(category: "Users") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -26387,7 +26387,7 @@ Event sent when new menu is created.
 
 Added in Saleor 3.4.
 """
-type MenuCreated implements Event {
+type MenuCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26412,7 +26412,7 @@ Event sent when menu is updated.
 
 Added in Saleor 3.4.
 """
-type MenuUpdated implements Event {
+type MenuUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26437,7 +26437,7 @@ Event sent when menu is deleted.
 
 Added in Saleor 3.4.
 """
-type MenuDeleted implements Event {
+type MenuDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26462,7 +26462,7 @@ Event sent when new menu item is created.
 
 Added in Saleor 3.4.
 """
-type MenuItemCreated implements Event {
+type MenuItemCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26487,7 +26487,7 @@ Event sent when menu item is updated.
 
 Added in Saleor 3.4.
 """
-type MenuItemUpdated implements Event {
+type MenuItemUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26512,7 +26512,7 @@ Event sent when menu item is deleted.
 
 Added in Saleor 3.4.
 """
-type MenuItemDeleted implements Event {
+type MenuItemDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27067,7 +27067,7 @@ Added in Saleor 3.11.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantStockUpdated implements Event {
+type ProductVariantStockUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27890,7 +27890,7 @@ Event sent when new shipping price is created.
 
 Added in Saleor 3.2.
 """
-type ShippingPriceCreated implements Event {
+type ShippingPriceCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27921,7 +27921,7 @@ Event sent when shipping price is updated.
 
 Added in Saleor 3.2.
 """
-type ShippingPriceUpdated implements Event {
+type ShippingPriceUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27952,7 +27952,7 @@ Event sent when shipping price is deleted.
 
 Added in Saleor 3.2.
 """
-type ShippingPriceDeleted implements Event {
+type ShippingPriceDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28151,7 +28151,7 @@ Added in Saleor 3.4.
 
 DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 """
-type TransactionActionRequest implements Event {
+type TransactionActionRequest implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28171,7 +28171,7 @@ type TransactionActionRequest implements Event {
   action: TransactionAction!
 }
 
-type TransactionAction {
+type TransactionAction @doc(category: "Payments") {
   """Determines the action type."""
   actionType: TransactionActionEnum!
 
@@ -28487,7 +28487,7 @@ Authorize payment.
 
 Added in Saleor 3.6.
 """
-type PaymentAuthorize implements Event {
+type PaymentAuthorize implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28509,7 +28509,7 @@ Capture payment.
 
 Added in Saleor 3.6.
 """
-type PaymentCaptureEvent implements Event {
+type PaymentCaptureEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28531,7 +28531,7 @@ Refund payment.
 
 Added in Saleor 3.6.
 """
-type PaymentRefundEvent implements Event {
+type PaymentRefundEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28553,7 +28553,7 @@ Void payment.
 
 Added in Saleor 3.6.
 """
-type PaymentVoidEvent implements Event {
+type PaymentVoidEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28575,7 +28575,7 @@ Confirm payment.
 
 Added in Saleor 3.6.
 """
-type PaymentConfirmEvent implements Event {
+type PaymentConfirmEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28597,7 +28597,7 @@ Process payment.
 
 Added in Saleor 3.6.
 """
-type PaymentProcessEvent implements Event {
+type PaymentProcessEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28619,7 +28619,7 @@ List payment gateways.
 
 Added in Saleor 3.6.
 """
-type PaymentListGateways implements Event {
+type PaymentListGateways implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28643,7 +28643,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionCancelationRequested implements Event {
+type TransactionCancelationRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28670,7 +28670,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionChargeRequested implements Event {
+type TransactionChargeRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28697,7 +28697,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionRefundRequested implements Event {
+type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28722,7 +28722,7 @@ Filter shipping methods for order.
 
 Added in Saleor 3.6.
 """
-type OrderFilterShippingMethods implements Event {
+type OrderFilterShippingMethods implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28751,7 +28751,7 @@ Filter shipping methods for checkout.
 
 Added in Saleor 3.6.
 """
-type CheckoutFilterShippingMethods implements Event {
+type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28780,7 +28780,7 @@ List shipping methods for checkout.
 
 Added in Saleor 3.6.
 """
-type ShippingListMethodsForCheckout implements Event {
+type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28809,7 +28809,7 @@ Synchronous webhook for calculating checkout/order taxes.
 
 Added in Saleor 3.7.
 """
-type CalculateTaxes implements Event {
+type CalculateTaxes implements Event @doc(category: "Taxes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28893,7 +28893,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentGatewayInitializeSession implements Event {
+type PaymentGatewayInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28925,7 +28925,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionInitializeSession implements Event {
+type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28954,7 +28954,7 @@ type TransactionInitializeSession implements Event {
   action: TransactionProcessAction!
 }
 
-type TransactionProcessAction {
+type TransactionProcessAction @doc(category: "Payments") {
   """Transaction amount to process."""
   amount: PositiveDecimal!
 
@@ -28970,7 +28970,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionProcessSession implements Event {
+type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 

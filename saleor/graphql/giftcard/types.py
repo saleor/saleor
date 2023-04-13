@@ -552,9 +552,11 @@ class GiftCard(ModelObjectType[models.GiftCard]):
 
 class GiftCardCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCard
 
 
 class GiftCardTagCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCardTag

@@ -13,6 +13,7 @@ from ...permission.enums import MenuPermissions, SitePermissions
 from ...product import models as product_models
 from ..channel import ChannelContext
 from ..core import ResolveInfo
+from ..core.doc_category import DOC_CATEGORY_MENU
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import MenuError, NonNullList
 from ..core.utils.reordering import perform_reordering
@@ -346,6 +347,7 @@ class MenuItemMove(BaseMutation):
 
     class Meta:
         description = "Moves items of menus."
+        doc_category = DOC_CATEGORY_MENU
         permissions = (MenuPermissions.MANAGE_MENUS,)
         error_type_class = MenuError
         error_type_field = "menu_errors"
@@ -510,6 +512,7 @@ class AssignNavigation(BaseMutation):
 
     class Meta:
         description = "Assigns storefront's navigation menus."
+        doc_category = DOC_CATEGORY_MENU
         permissions = (MenuPermissions.MANAGE_MENUS, SitePermissions.MANAGE_SETTINGS)
         error_type_class = MenuError
         error_type_field = "menu_errors"

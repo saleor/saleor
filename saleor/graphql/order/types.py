@@ -274,6 +274,9 @@ class OrderEventDiscountObject(OrderDiscount):
         Money, required=False, description="Returns amount of discount."
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class OrderEventOrderLineObject(BaseObjectType):
     quantity = graphene.Int(description="The variant quantity.")
@@ -535,6 +538,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
 
 class OrderEventCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = OrderEvent
 
 
@@ -2132,4 +2136,5 @@ class Order(ModelObjectType[models.Order]):
 
 class OrderCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
         node = Order

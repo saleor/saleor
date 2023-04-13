@@ -805,6 +805,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
 class ProductVariantCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductVariant
 
 
@@ -1559,6 +1560,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
 class ProductCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Product
 
 
@@ -1762,6 +1764,7 @@ class ProductType(ModelObjectType[models.ProductType]):
 
 class ProductTypeCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductType
 
 

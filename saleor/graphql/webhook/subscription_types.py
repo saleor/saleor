@@ -40,6 +40,14 @@ from ..core.descriptions import (
     ADDED_IN_313,
     PREVIEW_FEATURE,
 )
+from ..core.doc_category import (
+    DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_PAYMENTS,
+    DOC_CATEGORY_PRODUCTS,
+    DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_TAXES,
+)
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
@@ -817,6 +825,7 @@ class ProductVariantStockUpdated(SubscriptionObjectType, ProductVariantBase):
             + ADDED_IN_311
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @staticmethod
     def resolve_product_variant(root, info: ResolveInfo, channel=None):
@@ -1265,6 +1274,7 @@ class ShippingPriceCreated(SubscriptionObjectType, ShippingPriceBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when new shipping price is created." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
@@ -1273,6 +1283,7 @@ class ShippingPriceUpdated(SubscriptionObjectType, ShippingPriceBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when shipping price is updated." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
@@ -1281,6 +1292,7 @@ class ShippingPriceDeleted(SubscriptionObjectType, ShippingPriceBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Event sent when shipping price is deleted." + ADDED_IN_32
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingZoneBase(AbstractType):
@@ -1364,6 +1376,9 @@ class TransactionAction(SubscriptionObjectType, AbstractType):
         description="Transaction request amount. Null when action type is VOID.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
     @staticmethod
     def resolve_amount(root: TransactionActionData, _info: ResolveInfo):
         if root.action_value:
@@ -1407,6 +1422,7 @@ class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
             + "(Preview Feature). Use `TransactionChargeRequested`, "
             + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
@@ -1419,6 +1435,7 @@ class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
@@ -1431,6 +1448,7 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
@@ -1443,6 +1461,7 @@ class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectT
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeSession(SubscriptionObjectType):
@@ -1467,6 +1486,7 @@ class PaymentGatewayInitializeSession(SubscriptionObjectType):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_source_object(root, _info: ResolveInfo):
@@ -1493,6 +1513,9 @@ class TransactionProcessAction(SubscriptionObjectType, AbstractType):
     )
     currency = graphene.String(description="Currency of the amount.", required=True)
     action_type = graphene.Field(TransactionFlowStrategyEnum, required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionSessionBase(SubscriptionObjectType, AbstractType):
@@ -1562,6 +1585,7 @@ class TransactionInitializeSession(TransactionSessionBase):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionProcessSession(TransactionSessionBase):
@@ -1574,6 +1598,7 @@ class TransactionProcessSession(TransactionSessionBase):
             + ADDED_IN_313
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionItemMetadataUpdated(SubscriptionObjectType):
@@ -1589,6 +1614,7 @@ class TransactionItemMetadataUpdated(SubscriptionObjectType):
         description = (
             "Event sent when transaction item metadata is updated." + ADDED_IN_38
         )
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @staticmethod
     def resolve_transaction(root, _info: ResolveInfo):
@@ -1701,6 +1727,7 @@ class PaymentAuthorize(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Authorize payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
@@ -1709,6 +1736,7 @@ class PaymentCaptureEvent(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Capture payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
@@ -1717,6 +1745,7 @@ class PaymentRefundEvent(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Refund payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
@@ -1725,6 +1754,7 @@ class PaymentVoidEvent(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Void payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
@@ -1733,6 +1763,7 @@ class PaymentConfirmEvent(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Confirm payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
@@ -1741,6 +1772,7 @@ class PaymentProcessEvent(SubscriptionObjectType, PaymentBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Process payment." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
@@ -1749,6 +1781,7 @@ class PaymentListGateways(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "List payment gateways." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
@@ -1769,6 +1802,7 @@ class ShippingListMethodsForCheckout(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "List shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class CalculateTaxes(SubscriptionObjectType):
@@ -1783,6 +1817,7 @@ class CalculateTaxes(SubscriptionObjectType):
         description = (
             "Synchronous webhook for calculating checkout/order taxes." + ADDED_IN_37
         )
+        doc_category = DOC_CATEGORY_TAXES
 
     @staticmethod
     def resolve_tax_base(root, _info: ResolveInfo):
@@ -1808,6 +1843,7 @@ class CheckoutFilterShippingMethods(SubscriptionObjectType, CheckoutBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Filter shipping methods for checkout." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
@@ -1838,6 +1874,7 @@ class OrderFilterShippingMethods(SubscriptionObjectType, OrderBase):
         enable_dry_run = False
         interfaces = (Event,)
         description = "Filter shipping methods for order." + ADDED_IN_36
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class WarehouseBase(AbstractType):

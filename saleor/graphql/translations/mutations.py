@@ -21,6 +21,7 @@ from ..attribute.types import Attribute, AttributeValue
 from ..channel import ChannelContext
 from ..core import ResolveInfo
 from ..core.descriptions import RICH_CONTENT
+from ..core.doc_category import DOC_CATEGORY_SHOP
 from ..core.enums import LanguageCodeEnum, TranslationErrorCode
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
@@ -538,6 +539,7 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = "Creates/updates translations for shop settings."
+        doc_category = DOC_CATEGORY_SHOP
         error_type_class = TranslationError
         error_type_field = "translation_errors"
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)

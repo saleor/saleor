@@ -37,7 +37,7 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
-from ..core.doc_category import DOC_CATEGORY_PAYMENTS
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ..core.enums import LanguageCodeEnum
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
@@ -352,6 +352,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
 class CheckoutLineCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
         node = CheckoutLine
 
 
@@ -943,4 +944,5 @@ class Checkout(ModelObjectType[models.Checkout]):
 
 class CheckoutCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
         node = Checkout

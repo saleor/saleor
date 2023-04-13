@@ -21,10 +21,16 @@ from ..core.descriptions import (
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
+from ..core.doc_category import (
+    DOC_CATEGORY_AUTH,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+)
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     LanguageDisplay,
     ModelObjectType,
@@ -62,6 +68,7 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Order related settings from site settings."
+        doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
 
@@ -75,6 +82,7 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Gift card related settings from site settings."
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = site_models.SiteSettings
 
     def resolve_expiry_type(root, info):
@@ -88,11 +96,14 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
         )
 
 
-class ExternalAuthentication(graphene.ObjectType):
+class ExternalAuthentication(BaseObjectType):
     id = graphene.String(
         description="ID of external authentication plugin.", required=True
     )
     name = graphene.String(description="Name of external authentication plugin.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_AUTH
 
 
 class Limits(graphene.ObjectType):

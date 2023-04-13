@@ -5,6 +5,7 @@ from ....product import models
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.scalars import UUID
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
@@ -68,4 +69,5 @@ class DigitalContent(ModelObjectType[models.DigitalContent]):
 
 class DigitalContentCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = DigitalContent

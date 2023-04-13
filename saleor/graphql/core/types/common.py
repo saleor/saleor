@@ -9,15 +9,18 @@ from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
+    DOC_CATEGORY_AUTH,
     DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MENU,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
     DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_SHOP,
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
@@ -122,6 +125,7 @@ class Permission(BaseObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_AUTH
         description = "Represents a permission object in a friendly form."
 
 
@@ -139,7 +143,7 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
-class BulkError(graphene.ObjectType):
+class BulkError(BaseObjectType):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
@@ -244,6 +248,9 @@ class CheckoutError(Error):
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class ProductWithoutVariantError(Error):
     products = NonNullList(
@@ -279,6 +286,9 @@ class ExternalNotificationError(Error):
 
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MENU
 
 
 class OrderSettingsError(Error):
@@ -440,6 +450,9 @@ class ProductBulkCreateError(BulkError):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
@@ -480,6 +493,9 @@ class ProductVariantBulkError(Error):
 
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class ShippingError(Error):
@@ -554,23 +570,38 @@ class TransactionRequestActionError(Error):
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionProcessError(Error):
     code = TransactionProcessErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class PaymentGatewayConfigError(Error):
     code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class GiftCardError(Error):
