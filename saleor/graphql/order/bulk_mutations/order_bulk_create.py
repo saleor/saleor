@@ -9,6 +9,7 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
 from graphql import GraphQLError
@@ -567,6 +568,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             keys["TaxClass.id"].append(
                 order["delivery_method"].get("shipping_tax_class_id")
             )
+            keys["Order.number"].append(order.get("number"))
             for note in order["notes"]:
                 keys["User.id"].append(note.get("user_id"))
                 keys["User.email"].append(note.get("user_email"))
@@ -628,6 +630,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         tax_classes = TaxClass.objects.filter(pk__in=keys["TaxClass.id"]).all()
         apps = App.objects.filter(pk__in=keys["App.id"]).all()
         gift_cards = GiftCard.objects.filter(code__in=keys["GiftCard.code"]).all()
+        orders = Order.objects.filter(number__in=keys["Order.number"]).all()
 
         # Create dictionary
         object_storage: Dict[str, Any] = {}
@@ -657,6 +660,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         for gift_card in gift_cards:
             object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
 
+        for order in orders:
+            object_storage[f"Order.number.{order.number}"] = order
+
         for object in [*warehouses, *shipping_methods, *tax_classes, *apps]:
             object_storage[f"{object.__class__.__name__}.id.{object.pk}"] = object
 
@@ -672,10 +678,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return date < timezone.now() + timedelta(minutes=MINUTES_DIFF)
 
     @classmethod
-    def validate_order_input(cls, order_input, errors: List[OrderBulkError]):
+    def validate_order_input(
+        cls, order_input, order: OrderBulkClass, object_storage: Dict[str, Any]
+    ):
         date = order_input.get("created_at")
         if date and not cls.is_datetime_valid(date):
-            errors.append(
+            order.errors.append(
                 OrderBulkError(
                     message="Order input contains future date.",
                     field="created_at",
@@ -687,7 +695,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             try:
                 validate_storefront_url(redirect_url)
             except ValidationError as err:
-                errors.append(
+                order.errors.append(
                     OrderBulkError(
                         message=f"Invalid redirect url: {err.message}.",
                         field="redirect_url",
@@ -697,7 +705,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         weight = order_input.get("weight")
         if weight and weight.value < 0:
-            errors.append(
+            order.errors.append(
                 OrderBulkError(
                     message="Order can't have negative weight.",
                     field="weight",
@@ -705,7 +713,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        return errors
+        if number := order_input.get("number"):
+            lookup_key = f"Order.number.{number}"
+            if object_storage.get(lookup_key):
+                order.errors.append(
+                    OrderBulkError(
+                        message=f"Order with number: {number} already exists.",
+                        field="number",
+                        code=OrderBulkCreateErrorCode.UNIQUE,
+                    )
+                )
+                order.is_critical_error = True
 
     @classmethod
     def validate_order_status(cls, status: str, order: OrderBulkClass):
@@ -738,6 +756,32 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
+
+    @classmethod
+    def validate_order_numbers(cls, orders: List[OrderBulkClass]):
+        numbers = []
+        for order in orders:
+            if order.order and order.order.number in numbers:
+                order.errors.append(
+                    OrderBulkError(
+                        message=f"Input contains multiple orders with number:"
+                        f" {order.order.number}.",
+                        field="number",
+                        code=OrderBulkCreateErrorCode.UNIQUE,
+                    )
+                )
+                order.order = None
+            elif order.order:
+                numbers.append(order.order.number)
+
+        int_numbers = [int(number) for number in numbers if number.isdigit()]
+        if int_numbers:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT currval('order_order_number_seq')")
+                curr_number = cursor.fetchone()[0]
+                int_numbers.append(curr_number)
+                max_number = max(int_numbers)
+                cursor.execute(f"SELECT setval('order_order_number_seq', {max_number})")
 
     @classmethod
     def get_instance_with_errors(
@@ -785,7 +829,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         object_storage: Dict[str, Any],
     ):
         """Get all instances of objects needed to create an order."""
-
         user = cls.get_instance_with_errors(
             input=order_input["user"],
             errors=order.errors,
@@ -798,7 +841,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage=object_storage,
         )
 
-        # If user can't be found, but email is provided, consider it valid
+        # If user can't be found, but email is provided, consider it as valid.
         if (
             not user
             and order.errors[-1].code == OrderBulkCreateErrorCode.NOT_FOUND
@@ -952,7 +995,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     ) -> OrderAmounts:
         """Calculate all order amount fields."""
 
-        # calculate shipping amounts
+        # Calculate shipping amounts
         shipping_price_net_amount = Decimal(0)
         shipping_price_gross_amount = Decimal(0)
         shipping_price_tax_rate = Decimal(delivery_input.get("shipping_tax_rate", 0))
@@ -983,7 +1026,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                     object_storage[lookup_key] = db_price_amount
 
-        # calculate lines
+        # Calculate lines
         order_total_gross_amount = Decimal(
             sum((line.total_price_gross_amount for line in order_lines))
         )
@@ -1474,8 +1517,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         cls, order_input, object_storage: Dict[str, Any]
     ) -> OrderBulkClass:
         order = OrderBulkClass()
-        cls.validate_order_input(order_input, order.errors)
         order.order = Order(currency=order_input["currency"])
+        cls.validate_order_input(order_input, order, object_storage)
+        if order.is_critical_error:
+            return order
 
         # get order related instances
         cls.get_instances_related_to_order(
@@ -1583,6 +1628,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         cls.validate_order_status(order_input["status"], order)
 
+        order.order.number = order_input.get("number")
         order.order.external_reference = order_input.get("external_reference")
         order.order.channel = order.channel
         order.order.created_at = order_input["created_at"]
@@ -1740,7 +1786,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return orders
 
     @classmethod
-    @traced_atomic_transaction()
     def save_data(cls, orders: List[OrderBulkClass], stocks: List[Stock]):
         for order in orders:
             order.set_quantity_fulfilled()
@@ -1815,25 +1860,29 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             return OrderBulkCreate(count=0, results=result)
 
         orders: List[OrderBulkClass] = []
-        # Create dictionary, which stores already resolved objects:
-        #   - key for instances: "{model_name}.{key_name}.{key_value}"
-        #   - key for shipping prices: "shipping_price.{shipping_method_id}"
-        object_storage: Dict[str, Any] = cls.get_all_instances(orders_input)
-        for order_input in orders_input:
-            orders.append(cls.create_single_order(order_input, object_storage))
+        with traced_atomic_transaction():
+            # Create dictionary, which stores already resolved objects:
+            #   - key for instances: "{model_name}.{key_name}.{key_value}"
+            #   - key for shipping prices: "shipping_price.{shipping_method_id}"
+            object_storage: Dict[str, Any] = cls.get_all_instances(orders_input)
+            for order_input in orders_input:
+                orders.append(cls.create_single_order(order_input, object_storage))
 
-        error_policy = data.get("error_policy", ErrorPolicy.REJECT_EVERYTHING)
-        stock_update_policy = data.get("stock_update_policy", StockUpdatePolicy.UPDATE)
-        stocks: List[Stock] = []
+            error_policy = data.get("error_policy", ErrorPolicy.REJECT_EVERYTHING)
+            stock_update_policy = data.get(
+                "stock_update_policy", StockUpdatePolicy.UPDATE
+            )
+            stocks: List[Stock] = []
 
-        cls.handle_error_policy(orders, error_policy)
-        if stock_update_policy != StockUpdatePolicy.SKIP:
-            stocks = cls.handle_stocks(orders, stock_update_policy)
-        cls.save_data(orders, stocks)
+            cls.validate_order_numbers(orders)
+            cls.handle_error_policy(orders, error_policy)
+            if stock_update_policy != StockUpdatePolicy.SKIP:
+                stocks = cls.handle_stocks(orders, stock_update_policy)
+            cls.save_data(orders, stocks)
 
-        results = [
-            OrderBulkCreateResult(order=order.order, errors=order.errors)
-            for order in orders
-        ]
-        count = sum([order.order is not None for order in orders])
-        return OrderBulkCreate(count=count, results=results)
+            results = [
+                OrderBulkCreateResult(order=order.order, errors=order.errors)
+                for order in orders
+            ]
+            count = sum([order.order is not None for order in orders])
+            return OrderBulkCreate(count=count, results=results)

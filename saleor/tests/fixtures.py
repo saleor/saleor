@@ -1058,6 +1058,13 @@ def order(customer_user, channel_USD):
 
 
 @pytest.fixture
+def order_with_number(order):
+    order.number = "order-1"
+    order.save(update_fields=["number"])
+    return order
+
+
+@pytest.fixture
 def order_with_search_vector_value(order):
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
