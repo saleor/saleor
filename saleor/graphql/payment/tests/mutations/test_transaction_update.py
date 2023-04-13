@@ -2633,11 +2633,13 @@ def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
     assert error["field"] == "id"
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     order_with_lines,
     permission_manage_payments,
     app_api_client,
@@ -2677,13 +2679,16 @@ def test_transaction_update_for_order_triggers_webhooks_when_fully_paid(
     assert order_with_lines.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order_with_lines)
     mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_paid.assert_called_once_with(order_with_lines)
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_update_for_order_triggers_webhook_when_partially_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     order_with_lines,
     permission_manage_payments,
     app_api_client,
@@ -2723,6 +2728,7 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_paid(
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_paid.assert_called_once_with(order_with_lines)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -2769,3 +2775,95 @@ def test_transaction_update_for_order_triggers_webhook_when_authorized(
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_update_for_order_triggers_webhooks_when_fully_refunded(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    current_refunded_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        refunded_value=current_refunded_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountRefunded": {
+                "amount": order_with_lines.total.gross.amount,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    get_graphql_content(response)
+
+    mock_order_refunded.assert_called_once_with(order_with_lines)
+    mock_order_fully_refunded.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_update_for_order_triggers_webhook_when_partially_refunded(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    app_api_client,
+    app,
+    transaction_item_generator,
+):
+    # given
+    current_refunded_value = Decimal("2")
+    transaction = transaction_item_generator(
+        order_id=order_with_lines.pk,
+        app=app,
+        refunded_value=current_refunded_value,
+    )
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "amountRefunded": {
+                "amount": Decimal("10"),
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+
+    get_graphql_content(response)
+
+    assert not mock_order_fully_refunded.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_refunded.assert_called_once_with(order_with_lines)

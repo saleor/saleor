@@ -351,6 +351,96 @@ def test_order_fully_paid(
 @freeze_time("1914-06-28 10:50")
 @mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
 @mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_paid(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_paid(order_with_lines)
+
+    # then
+    expected_data = generate_order_payload(order_with_lines)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.ORDER_PAID,
+        [any_webhook],
+        order_with_lines,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_refunded(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_refunded(order_with_lines)
+
+    # then
+    expected_data = generate_order_payload(order_with_lines)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.ORDER_REFUNDED,
+        [any_webhook],
+        order_with_lines,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_order_fully_refunded(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    settings,
+    order_with_lines,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
+
+    # when
+    manager.order_fully_refunded(order_with_lines)
+
+    # then
+    expected_data = generate_order_payload(order_with_lines)
+
+    mocked_webhook_trigger.assert_called_once_with(
+        expected_data,
+        WebhookEventAsyncType.ORDER_FULLY_REFUNDED,
+        [any_webhook],
+        order_with_lines,
+        None,
+    )
+
+
+@freeze_time("1914-06-28 10:50")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
 def test_collection_created(
     mocked_webhook_trigger,
     mocked_get_webhooks_for_event,

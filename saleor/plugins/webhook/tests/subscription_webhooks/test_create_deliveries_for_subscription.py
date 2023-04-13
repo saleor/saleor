@@ -1200,6 +1200,42 @@ def test_order_fully_paid(order, subscription_order_fully_paid_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_order_paid(order, subscription_order_paid_webhook):
+    webhooks = [subscription_order_paid_webhook]
+    event_type = WebhookEventAsyncType.ORDER_PAID
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    expected_payload = json.dumps({"order": {"id": order_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_order_fully_refunded(order, subscription_order_fully_refunded_webhook):
+    webhooks = [subscription_order_fully_refunded_webhook]
+    event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    expected_payload = json.dumps({"order": {"id": order_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_order_refunded(order, subscription_order_refunded_webhook):
+    webhooks = [subscription_order_refunded_webhook]
+    event_type = WebhookEventAsyncType.ORDER_REFUNDED
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    deliveries = create_deliveries_for_subscriptions(event_type, order, webhooks)
+    expected_payload = json.dumps({"order": {"id": order_id}})
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_order_updated(order, subscription_order_updated_webhook):
     webhooks = [subscription_order_updated_webhook]
     event_type = WebhookEventAsyncType.ORDER_UPDATED

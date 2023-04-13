@@ -91,7 +91,20 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.NOTIFY_USER: "User notification triggered.",
     WebhookEventAsyncType.ORDER_CREATED: "A new order is placed.",
     WebhookEventAsyncType.ORDER_CONFIRMED: order_confirmed_event_enum_description,
+    WebhookEventAsyncType.ORDER_PAID: (
+        "Payment has been made. The order may be partially or fully paid."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.ORDER_FULLY_PAID: order_fully_paid_event_enum_description,
+    WebhookEventAsyncType.ORDER_REFUNDED: (
+        "The order received a refund. The order may be partially or fully refunded."
+        + ADDED_IN_313
+        + PREVIEW_FEATURE
+    ),
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: (
+        "The order is fully refunded." + ADDED_IN_313 + PREVIEW_FEATURE
+    ),
     WebhookEventAsyncType.ORDER_UPDATED: order_updated_event_enum_description,
     WebhookEventAsyncType.ORDER_CANCELLED: "An order is cancelled.",
     WebhookEventAsyncType.ORDER_EXPIRED: "An order is expired.",

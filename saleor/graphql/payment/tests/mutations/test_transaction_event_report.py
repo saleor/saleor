@@ -1232,11 +1232,13 @@ def test_transaction_event_report_doesnt_accept_old_id_for_new_transaction(
     assert error["field"] == "id"
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     transaction_item_generator,
     app_api_client,
     permission_manage_payments,
@@ -1285,6 +1287,7 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_paid(
     assert order.charge_status == OrderChargeStatusEnum.FULL.value
     mock_order_fully_paid.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1449,4 +1452,118 @@ def test_transaction_event_report_for_order_triggers_webhooks_when_fully_authori
 
     assert order.authorize_status == OrderAuthorizeStatusEnum.FULL.value
     assert not mock_order_fully_paid.called
+    mock_order_updated.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_event_report_for_order_triggers_webhooks_when_fully_refunded(
+    mock_order_fully_refunded,
+    mock_order_updated,
+    mock_order_refunded,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    psp_reference = "111-abc"
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.REFUND_SUCCESS.name,
+        "amount": order.total.gross.amount,
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    mock_order_fully_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_refunded.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_event_report_for_order_triggers_webhooks_when_partially_refunded(
+    mock_order_fully_refunded,
+    mock_order_updated,
+    mock_order_refunded,
+    transaction_item_generator,
+    app_api_client,
+    permission_manage_payments,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    psp_reference = "111-abc"
+    transaction = transaction_item_generator(app=app_api_client.app, order_id=order.pk)
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.REFUND_SUCCESS.name,
+        "amount": Decimal(10),
+        "pspReference": psp_reference,
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+    mutation TransactionEventReport(
+        $id: ID!
+        $type: TransactionEventTypeEnum!
+        $amount: PositiveDecimal!
+        $pspReference: String!
+    ) {
+        transactionEventReport(
+            id: $id
+            type: $type
+            amount: $amount
+            pspReference: $pspReference
+        ) {
+            ...TransactionEventData
+        }
+    }
+    """
+    )
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    order.refresh_from_db()
+
+    assert not mock_order_fully_refunded.called
+    mock_order_refunded.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)

@@ -1781,8 +1781,35 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_CONFIRMED
 
+  """
+  Payment has been made. The order may be partially or fully paid.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_PAID
+
   """Payment is made and an order is fully paid."""
   ORDER_FULLY_PAID
+
+  """
+  The order received a refund. The order may be partially or fully refunded.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_REFUNDED
+
+  """
+  The order is fully refunded.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_FULLY_REFUNDED
 
   """
   An order is updated; triggered for all changes related to an order; covers all other order webhooks, except for ORDER_CREATED.
@@ -2408,8 +2435,35 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_CONFIRMED
 
+  """
+  Payment has been made. The order may be partially or fully paid.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_PAID
+
   """Payment is made and an order is fully paid."""
   ORDER_FULLY_PAID
+
+  """
+  The order received a refund. The order may be partially or fully refunded.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_REFUNDED
+
+  """
+  The order is fully refunded.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_FULLY_REFUNDED
 
   """
   An order is updated; triggered for all changes related to an order; covers all other order webhooks, except for ORDER_CREATED.
@@ -3243,7 +3297,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   MENU_ITEM_DELETED
   ORDER_CREATED
   ORDER_CONFIRMED
+  ORDER_PAID
   ORDER_FULLY_PAID
+  ORDER_REFUNDED
+  ORDER_FULLY_REFUNDED
   ORDER_UPDATED
   ORDER_CANCELLED
   ORDER_EXPIRED
@@ -27020,6 +27077,78 @@ Added in Saleor 3.2.
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderFullyPaid implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+Payment has been made. The order may be partially or fully paid.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderPaid implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+The order received a refund. The order may be partially or fully refunded.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderRefunded implements Event @doc(category: "Orders") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The order the event relates to."""
+  order: Order
+}
+
+"""
+The order is fully refunded.
+
+Added in Saleor 3.13.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderFullyRefunded implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 

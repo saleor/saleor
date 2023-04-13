@@ -884,6 +884,42 @@ ORDER_FULLY_PAID = """
     }
 """
 
+ORDER_PAID = """
+    subscription{
+      event{
+        ...on OrderPaid{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_FULLY_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderFullyRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CANCELLED = """
     subscription{
       event{

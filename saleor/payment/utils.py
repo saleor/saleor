@@ -1130,6 +1130,7 @@ def create_transaction_event_for_transaction_session(
         transaction_item = event.transaction
         previous_authorized_value = transaction_item.authorized_value
         previous_charged_value = transaction_item.charged_value
+        previous_refunded_value = transaction_item.refunded_value
 
         transaction_item.psp_reference = event.psp_reference
         recalculate_transaction_amounts(transaction_item, save=False)
@@ -1161,6 +1162,7 @@ def create_transaction_event_for_transaction_session(
                 app=app,
                 previous_authorized_value=previous_authorized_value,
                 previous_charged_value=previous_charged_value,
+                previous_refunded_value=previous_refunded_value,
             )
         elif transaction_item.checkout_id:
             transaction_amounts_for_checkout_updated(
@@ -1198,6 +1200,7 @@ def create_transaction_event_from_request_and_webhook_response(
     transaction_item = request_event.transaction
     previous_authorized_value = transaction_item.authorized_value
     previous_charged_value = transaction_item.charged_value
+    previous_refunded_value = transaction_item.refunded_value
     recalculate_transaction_amounts(transaction_item)
 
     if transaction_item.order_id:
@@ -1216,6 +1219,7 @@ def create_transaction_event_from_request_and_webhook_response(
             app=app,
             previous_authorized_value=previous_authorized_value,
             previous_charged_value=previous_charged_value,
+            previous_refunded_value=previous_refunded_value,
         )
     elif transaction_item.checkout_id:
         discounts = fetch_active_discounts()
