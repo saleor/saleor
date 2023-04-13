@@ -135,6 +135,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Use mailhog smtp server on Dev Container - #12402 by @carlosa54
 - Publish schema.graphql on releases - #12431 by @maarcingebala
 - Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
+- Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
 
 ### Saleor Apps
 
