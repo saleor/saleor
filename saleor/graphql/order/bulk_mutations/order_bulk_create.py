@@ -98,6 +98,11 @@ class OrderBulkClass:
     invoices: List[Invoice]
     discounts: List[OrderDiscount]
     gift_cards: List[GiftCard]
+    user: Optional[User] = None
+    billing_address: Optional[Address] = None
+    channel: Optional[Channel] = None
+    shipping_address: Optional[Address] = None
+    voucher: Optional[Voucher] = None
     # error which ignores error policy and disqualify order
     is_critical_error: bool = False
 
@@ -202,15 +207,6 @@ class DeliveryMethod:
     shipping_tax_class: Optional[TaxClass]
     shipping_tax_class_metadata: Optional[List[Dict[str, str]]]
     shipping_tax_class_private_metadata: Optional[List[Dict[str, str]]]
-
-
-@dataclass
-class InstancesRelatedToOrder:
-    user: User
-    billing_address: Address
-    channel: Channel
-    shipping_address: Optional[Address] = None
-    voucher: Optional[Voucher] = None
 
 
 @dataclass
@@ -532,8 +528,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         Return:
             Dictionary with keys "{model_name}.{key_name}.{key_value}" and model
             instances as values.
-        """
 
+        """
         # Collect all model keys from input
         keys = defaultdict(list)
         for order in orders_input:
@@ -687,8 +683,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        # TODO validate status (wait for fulfillments)
-        # TODO validate number (?)
         return errors
 
     @classmethod
@@ -733,14 +727,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def get_instances_related_to_order(
         cls,
         order_input: Dict[str, Any],
-        errors: List[OrderBulkError],
+        order: OrderBulkClass,
         object_storage: Dict[str, Any],
-    ) -> Optional[InstancesRelatedToOrder]:
+    ):
         """Get all instances of objects needed to create an order."""
 
         user = cls.get_instance_with_errors(
             input=order_input["user"],
-            errors=errors,
+            errors=order.errors,
             model=User,
             key_map={
                 "id": "id",
@@ -752,7 +746,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         channel = cls.get_instance_with_errors(
             input=order_input,
-            errors=errors,
+            errors=order.errors,
             model=Channel,
             key_map={"channel": "slug"},
             object_storage=object_storage,
@@ -763,7 +757,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         try:
             billing_address = cls.validate_address(billing_address_input)
         except Exception:
-            errors.append(
+            order.errors.append(
                 OrderBulkError(
                     message="Invalid billing address.",
                     field="billing_address",
@@ -776,7 +770,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             try:
                 shipping_address = cls.validate_address(shipping_address_input)
             except Exception:
-                errors.append(
+                order.errors.append(
                     OrderBulkError(
                         message="Invalid shipping address.",
                         field="shipping_address",
@@ -788,23 +782,31 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         if order_input.get("voucher"):
             voucher = cls.get_instance_with_errors(
                 input=order_input,
-                errors=errors,
+                errors=order.errors,
                 model=Voucher,
                 key_map={"voucher": "code"},
                 object_storage=object_storage,
             )
 
-        instances = None
-        if user and billing_address and channel:
-            instances = InstancesRelatedToOrder(
-                user=user,
-                billing_address=billing_address,
-                shipping_address=shipping_address,
-                channel=channel,
-                voucher=voucher,
-            )
+        for code in order_input.get("gift_cards", []):
+            key = f"GiftCard.code.{code}"
+            if gift_card := object_storage.get(key):
+                order.gift_cards.append(gift_card)
+            else:
+                order.errors.append(
+                    OrderBulkError(
+                        message=f"Gift card with code {code} doesn't exist.",
+                        code=OrderBulkCreateErrorCode.NOT_FOUND,
+                        field="gift_cards",
+                    )
+                )
 
-        return instances
+        order.user = user
+        order.channel = channel
+        order.billing_address = billing_address
+        order.shipping_address = shipping_address
+        order.voucher = voucher
+        return
 
     @classmethod
     def make_order_line_calculations(
@@ -1195,26 +1197,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return invoice
 
     @classmethod
-    def get_gift_cards(
-        cls,
-        codes: List[str],
-        order: OrderBulkClass,
-        object_storage: Dict[str, Any],
-    ):
-        for code in codes:
-            key = f"GiftCard.code.{code}"
-            if gift_card := object_storage.get(key):
-                order.gift_cards.append(gift_card)
-            else:
-                order.errors.append(
-                    OrderBulkError(
-                        message=f"Gift card with code {code} doesn't exist.",
-                        code=OrderBulkCreateErrorCode.NOT_FOUND,
-                        field="gift_cards",
-                    )
-                )
-
-    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -1425,9 +1407,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.order = Order(currency=order_input["currency"])
 
         # get order related instances
-        instances = cls.get_instances_related_to_order(
+        cls.get_instances_related_to_order(
             order_input=order_input,
-            errors=order.errors,
+            order=order,
             object_storage=object_storage,
         )
         delivery_input = order_input["delivery_method"]
@@ -1436,7 +1418,12 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors=order.errors,
             object_storage=object_storage,
         )
-        if not instances or not delivery_method:
+        if (
+            not delivery_method
+            or not order.user
+            or not order.channel
+            or not order.billing_address
+        ):
             return order
 
         # create lines
@@ -1459,7 +1446,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_amounts = cls.make_order_calculations(
             delivery_method,
             order.all_order_lines,
-            instances.channel,
+            order.channel,
             delivery_input,
             object_storage,
         )
@@ -1523,19 +1510,15 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                 )
 
-        # get gift cards
-        if gift_card_codes := order_input.get("gift_cards"):
-            cls.get_gift_cards(gift_card_codes, order, object_storage)
-
         order.order.external_reference = order_input.get("external_reference")
-        order.order.channel = instances.channel
+        order.order.channel = order.channel
         order.order.created_at = order_input["created_at"]
         order.order.status = order_input["status"]
-        order.order.user = instances.user
-        order.order.billing_address = instances.billing_address
-        order.order.shipping_address = instances.shipping_address
+        order.order.user = order.user
+        order.order.billing_address = order.billing_address
+        order.order.shipping_address = order.shipping_address
         order.order.language_code = order_input["language_code"]
-        order.order.user_email = instances.user.email
+        order.order.user_email = order.user.email
         order.order.collection_point = delivery_method.warehouse
         order.order.collection_point_name = delivery_input.get(
             "warehouse_name"
@@ -1564,7 +1547,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.order.tracking_client_id = order_input.get("tracking_client_id")
         order.order.currency = order_input["currency"]
         order.order.should_refresh_prices = False
-        order.order.voucher = instances.voucher
+        order.order.voucher = order.voucher
         update_order_display_gross_prices(order.order)
 
         if metadata := delivery_method.shipping_tax_class_metadata:
