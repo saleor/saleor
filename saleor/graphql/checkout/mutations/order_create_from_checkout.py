@@ -10,7 +10,7 @@ from ....discount.models import NotApplicable
 from ....permission.enums import CheckoutPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_32, ADDED_IN_38, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
@@ -78,7 +78,6 @@ class OrderCreateFromCheckout(BaseMutation):
             "Create new order from existing checkout. Requires the "
             "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
             + ADDED_IN_32
-            + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_CHECKOUT
         object_type = Order

@@ -5,7 +5,7 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39
 from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import BaseMutation
 from ...core.types import Error
@@ -38,11 +38,7 @@ class TaxCountryConfigurationDelete(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Remove all tax class rates for a specific country."
-            + ADDED_IN_39
-            + PREVIEW_FEATURE
-        )
+        description = "Remove all tax class rates for a specific country." + ADDED_IN_39
         doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxCountryConfigurationDeleteError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)

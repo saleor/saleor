@@ -243,14 +243,13 @@ class Manifest(BaseObjectType):
     extensions = NonNullList(AppManifestExtension, required=True)
     webhooks = NonNullList(
         AppManifestWebhook,
-        description="List of the app's webhooks." + ADDED_IN_35 + PREVIEW_FEATURE,
+        description="List of the app's webhooks." + ADDED_IN_35,
         required=True,
     )
     audience = graphene.String(
         description=(
             "The audience that will be included in all JWT tokens for the app."
             + ADDED_IN_38
-            + PREVIEW_FEATURE
         )
     )
     required_saleor_version = graphene.Field(
@@ -358,7 +357,7 @@ class App(ModelObjectType[models.App]):
     )
     extensions = NonNullList(
         AppExtension,
-        description="App's dashboard extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="App's dashboard extensions." + ADDED_IN_31,
         required=True,
     )
 

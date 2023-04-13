@@ -11,7 +11,7 @@ from ....shipping.tasks import (
 )
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_35
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
@@ -39,9 +39,7 @@ class ChannelUpdateInput(ChannelInput):
     )
     remove_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to unassign from the channel."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="List of warehouses to unassign from the channel." + ADDED_IN_35,
         required=False,
     )
 

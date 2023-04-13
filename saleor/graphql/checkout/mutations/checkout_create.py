@@ -20,7 +20,6 @@ from ...core.descriptions import (
     ADDED_IN_36,
     ADDED_IN_38,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.enums import LanguageCodeEnum
@@ -107,7 +106,6 @@ class CheckoutLineInput(BaseInputObjectType):
             "with `HANDLE_CHECKOUTS` permission. When the line with the same variant "
             "will be provided multiple times, the last price will be used."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
         ),
     )
     force_new_line = graphene.Boolean(
@@ -115,7 +113,7 @@ class CheckoutLineInput(BaseInputObjectType):
         default_value=False,
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
-            "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
+            "by skipping the matching logic. " + ADDED_IN_36
         ),
     )
     metadata = NonNullList(
@@ -155,9 +153,7 @@ class CheckoutCreateInput(BaseInputObjectType):
     validation_rules = CheckoutValidationRules(
         required=False,
         description=(
-            "The checkout validation rules that can be changed."
-            + ADDED_IN_35
-            + PREVIEW_FEATURE
+            "The checkout validation rules that can be changed." + ADDED_IN_35
         ),
     )
 
