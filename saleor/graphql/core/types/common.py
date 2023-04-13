@@ -25,12 +25,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
-from ..descriptions import (
-    ADDED_IN_36,
-    ADDED_IN_312,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-)
+from ..descriptions import ADDED_IN_36, ADDED_IN_312, DEPRECATED_IN_3X_FIELD
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -806,7 +801,7 @@ class ThumbnailField(graphene.Field):
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used." + ADDED_IN_36 + PREVIEW_FEATURE
+            "image will be used." + ADDED_IN_36
         ),
     )
 

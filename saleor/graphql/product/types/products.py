@@ -59,7 +59,6 @@ from ...core.descriptions import (
     ADDED_IN_312,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -210,7 +209,7 @@ class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39 + PREVIEW_FEATURE
+            "should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
@@ -362,9 +361,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=(
-            "Preorder data for product variant." + ADDED_IN_31 + PREVIEW_FEATURE
-        ),
+        description=("Preorder data for product variant." + ADDED_IN_31),
     )
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)

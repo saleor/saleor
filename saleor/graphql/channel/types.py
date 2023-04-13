@@ -163,9 +163,7 @@ class StockSettings(BaseObjectType):
     )
 
     class Meta:
-        description = (
-            "Represents the channel stock settings." + ADDED_IN_37 + PREVIEW_FEATURE
-        )
+        description = "Represents the channel stock settings." + ADDED_IN_37
         doc_category = DOC_CATEGORY_PRODUCTS
 
 
@@ -277,9 +275,7 @@ class Channel(ModelObjectType):
     )
     warehouses = PermissionsField(
         NonNullList(Warehouse),
-        description="List of warehouses assigned to this channel."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="List of warehouses assigned to this channel." + ADDED_IN_35,
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,
@@ -288,23 +284,18 @@ class Channel(ModelObjectType):
     )
     countries = NonNullList(
         CountryDisplay,
-        description="List of shippable countries for the channel."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        description="List of shippable countries for the channel." + ADDED_IN_36,
     )
 
     available_shipping_methods_per_country = graphene.Field(
         NonNullList("saleor.graphql.shipping.types.ShippingMethodsPerCountry"),
         countries=graphene.Argument(NonNullList(CountryCodeEnum)),
         description="Shipping methods that are available for the channel."
-        + ADDED_IN_36
-        + PREVIEW_FEATURE,
+        + ADDED_IN_36,
     )
     stock_settings = PermissionsField(
         StockSettings,
-        description=(
-            "Define the stock setting for this channel." + ADDED_IN_37 + PREVIEW_FEATURE
-        ),
+        description=("Define the stock setting for this channel." + ADDED_IN_37),
         required=True,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_APP,

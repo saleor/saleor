@@ -13,7 +13,7 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT
 from ..core.doc_category import (
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_ORDERS,
@@ -82,9 +82,7 @@ class ShopSettingsInput(graphene.InputObjectType):
         description=(
             "Default number of maximum line quantity "
             "in single checkout. Minimum possible value is 1, default "
-            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}." + ADDED_IN_31
         )
     )
 

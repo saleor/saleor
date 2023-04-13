@@ -30,9 +30,7 @@ class AttributeQueries(graphene.ObjectType):
         description="List of the shop's attributes.",
         filter=AttributeFilterInput(description="Filtering options for attributes."),
         where=AttributeWhereInput(
-            description="Filtering options for attributes."
-            + ADDED_IN_311
-            + PREVIEW_FEATURE
+            description="Filtering options for attributes." + ADDED_IN_311
         ),
         search=graphene.String(
             description="Search attributes." + ADDED_IN_311 + PREVIEW_FEATURE

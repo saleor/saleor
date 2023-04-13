@@ -361,7 +361,7 @@ class DeliveryMethod(graphene.Union):
         description = (
             "Represents a delivery method chosen for the checkout. "
             '`Warehouse` type is used when checkout is marked as "click and collect" '
-            "and `ShippingMethod` otherwise." + ADDED_IN_31 + PREVIEW_FEATURE
+            "and `ShippingMethod` otherwise." + ADDED_IN_31
         )
         types = (Warehouse, ShippingMethod)
 
@@ -410,9 +410,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         Warehouse,
         required=True,
         description=(
-            "Collection points that can be used for this order."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Collection points that can be used for this order." + ADDED_IN_31
         ),
     )
     available_payment_gateways = NonNullList(
@@ -456,11 +454,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=(
-            "The delivery method selected for this checkout."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        ),
+        description=("The delivery method selected for this checkout." + ADDED_IN_31),
     )
     subtotal_price = graphene.Field(
         TaxedMoney,
@@ -469,9 +463,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     tax_exemption = graphene.Boolean(
         description=(
-            "Returns True if checkout has to be exempt from taxes."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "Returns True if checkout has to be exempt from taxes." + ADDED_IN_38
         ),
         required=True,
     )
@@ -510,7 +502,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+            "in a storefront." + ADDED_IN_39
         ),
         required=True,
     )

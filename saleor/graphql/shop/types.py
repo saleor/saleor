@@ -20,7 +20,6 @@ from ..core.descriptions import (
     ADDED_IN_35,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
     DOC_CATEGORY_AUTH,
@@ -264,7 +263,7 @@ class Shop(graphene.ObjectType):
         graphene.Int,
         description=(
             "Default number of maximum line quantity in single checkout "
-            "(per single checkout line)." + ADDED_IN_31 + PREVIEW_FEATURE
+            "(per single checkout line)." + ADDED_IN_31
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )

@@ -21,12 +21,7 @@ from ..channel.types import (
     ChannelContextTypeWithMetadataForObjectType,
 )
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import (
-    ADDED_IN_36,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-    RICH_CONTENT,
-)
+from ..core.descriptions import ADDED_IN_36, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
 from ..core.doc_category import DOC_CATEGORY_SHIPPING
 from ..core.fields import ConnectionField, JSONString, PermissionsField
 from ..core.tracing import traced_resolver
@@ -424,7 +419,5 @@ class ShippingMethodsPerCountry(BaseObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_SHIPPING
         description = (
-            "List of shipping methods available for the country."
-            + ADDED_IN_36
-            + PREVIEW_FEATURE
+            "List of shipping methods available for the country." + ADDED_IN_36
         )

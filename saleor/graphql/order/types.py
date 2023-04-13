@@ -688,9 +688,9 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     tax_class = PermissionsField(
         TaxClass,
-        description="Denormalized tax class of the product in this order line."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description=(
+            "Denormalized tax class of the product in this order line." + ADDED_IN_39
+        ),
         required=False,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -699,24 +699,20 @@ class OrderLine(ModelObjectType[models.OrderLine]):
     )
     tax_class_name = graphene.Field(
         graphene.String,
-        description="Denormalized name of the tax class."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description="Denormalized name of the tax class." + ADDED_IN_39,
         required=False,
     )
     tax_class_metadata = NonNullList(
         MetadataItem,
         required=True,
-        description="Denormalized public metadata of the tax class."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        description="Denormalized public metadata of the tax class." + ADDED_IN_39,
     )
     tax_class_private_metadata = NonNullList(
         MetadataItem,
         required=True,
         description=(
             "Denormalized private metadata of the tax class. Requires staff "
-            "permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+            "permissions to access." + ADDED_IN_39
         ),
     )
 
@@ -1006,9 +1002,7 @@ class Order(ModelObjectType[models.Order]):
     available_collection_points = NonNullList(
         Warehouse,
         description=(
-            "Collection points that can be used for this order."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Collection points that can be used for this order." + ADDED_IN_31
         ),
         required=True,
     )
@@ -1038,20 +1032,16 @@ class Order(ModelObjectType[models.Order]):
         description="User-friendly payment status.", required=True
     )
     authorize_status = OrderAuthorizeStatusEnum(
-        description=(
-            "The authorize status of the order." + ADDED_IN_34 + PREVIEW_FEATURE
-        ),
+        description=("The authorize status of the order." + ADDED_IN_34),
         required=True,
     )
     charge_status = OrderChargeStatusEnum(
-        description=("The charge status of the order." + ADDED_IN_34 + PREVIEW_FEATURE),
+        description=("The charge status of the order." + ADDED_IN_34),
         required=True,
     )
     tax_exemption = graphene.Boolean(
         description=(
-            "Returns True if order has to be exempt from taxes."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "Returns True if order has to be exempt from taxes." + ADDED_IN_38
         ),
         required=True,
     )
@@ -1059,9 +1049,7 @@ class Order(ModelObjectType[models.Order]):
         TransactionItem,
         description=(
             "List of transactions for the order. Requires one of the "
-            "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS."
-            + ADDED_IN_34
-            + PREVIEW_FEATURE
+            "following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS." + ADDED_IN_34
         ),
         required=True,
     )
@@ -1088,8 +1076,7 @@ class Order(ModelObjectType[models.Order]):
     shipping_tax_class = PermissionsField(
         TaxClass,
         description="Denormalized tax class assigned to the shipping method."
-        + ADDED_IN_39
-        + PREVIEW_FEATURE,
+        + ADDED_IN_39,
         required=False,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
@@ -1101,7 +1088,6 @@ class Order(ModelObjectType[models.Order]):
         description=(
             "Denormalized name of the tax class assigned to the shipping method."
             + ADDED_IN_39
-            + PREVIEW_FEATURE
         ),
         required=False,
     )
@@ -1111,7 +1097,6 @@ class Order(ModelObjectType[models.Order]):
         description=(
             "Denormalized public metadata of the shipping method's tax class."
             + ADDED_IN_39
-            + PREVIEW_FEATURE
         ),
     )
     shipping_tax_class_private_metadata = NonNullList(
@@ -1119,7 +1104,7 @@ class Order(ModelObjectType[models.Order]):
         required=True,
         description=(
             "Denormalized private metadata of the shipping method's tax class. "
-            "Requires staff permissions to access." + ADDED_IN_39 + PREVIEW_FEATURE
+            "Requires staff permissions to access." + ADDED_IN_39
         ),
     )
     token = graphene.String(
@@ -1193,11 +1178,7 @@ class Order(ModelObjectType[models.Order]):
     )
     delivery_method = graphene.Field(
         DeliveryMethod,
-        description=(
-            "The delivery method selected for this order."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        ),
+        description=("The delivery method selected for this order." + ADDED_IN_31),
     )
     language_code = graphene.String(
         deprecation_reason=(
@@ -1242,7 +1223,7 @@ class Order(ModelObjectType[models.Order]):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether checkout prices should include taxes when displayed "
-            "in a storefront." + ADDED_IN_39 + PREVIEW_FEATURE
+            "in a storefront." + ADDED_IN_39
         ),
         required=True,
     )

@@ -13,7 +13,7 @@ from ...giftcard.utils import is_gift_card_expired
 from ...permission.enums import GiftcardPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
 from ..core.scalars import Date
@@ -61,7 +61,7 @@ class GiftCardBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Create gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "Create gift cards." + ADDED_IN_31
         doc_category = DOC_CATEGORY_GIFT_CARDS
         model = models.GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -174,7 +174,7 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         )
 
     class Meta:
-        description = "Delete gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "Delete gift cards." + ADDED_IN_31
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -196,7 +196,7 @@ class GiftCardBulkActivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Activate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "Activate gift cards." + ADDED_IN_31
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
@@ -234,7 +234,7 @@ class GiftCardBulkDeactivate(BaseBulkMutation):
         )
 
     class Meta:
-        description = "Deactivate gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "Deactivate gift cards." + ADDED_IN_31
         model = models.GiftCard
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
