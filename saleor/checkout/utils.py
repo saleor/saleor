@@ -40,8 +40,6 @@ from .fetch import (
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import Address
     from ..order.models import Order
     from .fetch import CheckoutInfo, CheckoutLineInfo
@@ -402,7 +400,6 @@ def _get_shipping_voucher_discount_for_checkout(
 def get_discounted_lines(
     lines: Iterable["CheckoutLineInfo"], voucher_info: "VoucherInfo"
 ) -> Iterable["CheckoutLineInfo"]:
-
     discounted_lines = []
     if (
         voucher_info.product_pks
