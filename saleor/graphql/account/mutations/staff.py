@@ -100,6 +100,7 @@ class CustomerCreate(BaseCustomerCreate):
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
+        support_meta_field = True
         error_type_class = AccountError
         error_type_field = "account_errors"
 

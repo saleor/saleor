@@ -25368,6 +25368,13 @@ input UserCreateInput @doc(category: "Users") {
   Slug of a channel which will be used for notify user. Optional when only one channel exists.
   """
   channel: String
+
+  """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
 }
 
 """

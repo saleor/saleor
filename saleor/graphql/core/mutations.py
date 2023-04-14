@@ -782,6 +782,14 @@ class ModelMutation(BaseMutation):
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
+
+        # add to cleaned_input popped metadata to allow running post save events
+        # that depends on the metadata inputs
+        if metadata_list:
+            cleaned_input["metadata"] = metadata_list
+        if private_metadata_list:
+            cleaned_input["private_metadata"] = private_metadata_list
+
         cls.post_save_action(info, instance, cleaned_input)
         return cls.success_response(instance)
 

@@ -1534,7 +1534,7 @@ CUSTOMER_CREATE_MUTATION = """
         $email: String, $firstName: String, $lastName: String, $channel: String
         $note: String, $billing: AddressInput, $shipping: AddressInput,
         $redirect_url: String, $languageCode: LanguageCodeEnum,
-        $externalReference: String
+        $externalReference: String, $metadata: [MetadataInput!]
     ) {
         customerCreate(input: {
             email: $email,
@@ -1547,6 +1547,7 @@ CUSTOMER_CREATE_MUTATION = """
             languageCode: $languageCode,
             channel: $channel,
             externalReference: $externalReference
+            metadata: $metadata
         }) {
             errors {
                 field
@@ -1569,23 +1570,30 @@ CUSTOMER_CREATE_MUTATION = """
                 isStaff
                 note
                 externalReference
+                metadata {
+                    key
+                    value
+                }
             }
         }
     }
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
 @patch("saleor.account.notifications.default_token_generator.make_token")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_create(
     mocked_notify,
     mocked_generator,
+    mocked_customer_metadata_updated,
     staff_api_client,
     address,
     permission_manage_users,
     channel_PLN,
     site_settings,
 ):
+    # given
     mocked_generator.return_value = "token"
     email = "api_user@example.com"
     first_name = "api_first_name"
@@ -1597,6 +1605,7 @@ def test_customer_create(
 
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
+    metadata = [{"key": "test key", "value": "test value"}]
     variables = {
         "email": email,
         "firstName": first_name,
@@ -1608,11 +1617,15 @@ def test_customer_create(
         "languageCode": "PL",
         "channel": channel_PLN.slug,
         "externalReference": external_reference,
+        "metadata": metadata,
     }
 
+    # when
     response = staff_api_client.post_graphql(
         CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
     )
+
+    # then
     content = get_graphql_content(response)
 
     new_customer = User.objects.get(email=email)
@@ -1635,6 +1648,7 @@ def test_customer_create(
     assert data["user"]["externalReference"] == external_reference
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
+    assert data["user"]["metadata"] == metadata
 
     new_user = User.objects.get(email=email)
     assert (
@@ -1656,6 +1670,7 @@ def test_customer_create(
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
     )
+    mocked_customer_metadata_updated.assert_called_once_with(new_user)
 
     assert set([shipping_address, billing_address]) == set(new_user.addresses.all())
     customer_creation_event = account_events.CustomerEvent.objects.get()
@@ -1706,6 +1721,52 @@ def test_customer_create_send_password_with_url(
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
     )
+
+
+def test_customer_create_empty_metadata_key(
+    staff_api_client,
+    address,
+    permission_manage_users,
+    channel_PLN,
+    site_settings,
+):
+    # then
+    email = "api_user@example.com"
+    first_name = "api_first_name"
+    last_name = "api_last_name"
+    note = "Test user"
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+    address_data.pop("metadata")
+    address_data.pop("privateMetadata")
+
+    redirect_url = "https://www.example.com"
+    external_reference = "test-ext-ref"
+    metadata = [{"key": "", "value": "test value"}]
+    variables = {
+        "email": email,
+        "firstName": first_name,
+        "lastName": last_name,
+        "note": note,
+        "shipping": address_data,
+        "billing": address_data,
+        "redirect_url": redirect_url,
+        "languageCode": "PL",
+        "channel": channel_PLN.slug,
+        "externalReference": external_reference,
+        "metadata": metadata,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["customerCreate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "input"
+    assert errors[0]["code"] == AccountErrorCode.REQUIRED.name
 
 
 def test_customer_create_without_send_password(
