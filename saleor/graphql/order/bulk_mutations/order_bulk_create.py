@@ -599,12 +599,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # Convert global ids to model ids and get rid of Nones
         for key, values in keys.items():
             keys[key] = [value for value in values if value is not None]
-            if key.split(".")[1] == "id":
+            object_type, key_field = key.split(".")
+            if key_field == "id":
                 model_ids = []
                 for global_id in values:
                     try:
                         _, id = from_global_id_or_error(
-                            str(global_id), key.split(".")[0], raise_error=True
+                            str(global_id), object_type, raise_error=True
                         )
                         model_ids.append(id)
                     except GraphQLError:
@@ -616,22 +617,22 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             Q(pk__in=keys["User.id"])
             | Q(email__in=keys["User.email"])
             | Q(external_reference__in=keys["User.external_reference"])
-        ).all()
+        )
         variants = ProductVariant.objects.filter(
             Q(pk__in=keys["ProductVariant.id"])
             | Q(sku__in=keys["ProductVariant.sku"])
             | Q(external_reference__in=keys["ProductVariant.external_reference"])
-        ).all()
-        channels = Channel.objects.filter(slug__in=keys["Channel.slug"]).all()
-        vouchers = Voucher.objects.filter(code__in=keys["Voucher.code"]).all()
-        warehouses = Warehouse.objects.filter(pk__in=keys["Warehouse.id"]).all()
+        )
+        channels = Channel.objects.filter(slug__in=keys["Channel.slug"])
+        vouchers = Voucher.objects.filter(code__in=keys["Voucher.code"])
+        warehouses = Warehouse.objects.filter(pk__in=keys["Warehouse.id"])
         shipping_methods = ShippingMethod.objects.filter(
             pk__in=keys["ShippingMethod.id"]
-        ).all()
-        tax_classes = TaxClass.objects.filter(pk__in=keys["TaxClass.id"]).all()
-        apps = App.objects.filter(pk__in=keys["App.id"]).all()
-        gift_cards = GiftCard.objects.filter(code__in=keys["GiftCard.code"]).all()
-        orders = Order.objects.filter(number__in=keys["Order.number"]).all()
+        )
+        tax_classes = TaxClass.objects.filter(pk__in=keys["TaxClass.id"])
+        apps = App.objects.filter(pk__in=keys["App.id"])
+        gift_cards = GiftCard.objects.filter(code__in=keys["GiftCard.code"])
+        orders = Order.objects.filter(number__in=keys["Order.number"])
 
         # Create dictionary
         object_storage: Dict[str, Any] = {}

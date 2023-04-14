@@ -1,7 +1,10 @@
 import pytest
 
 from ....tests.utils import get_graphql_content
-from ..mutations.test_order_bulk_create import ORDER_BULK_CREATE
+from ..mutations.test_order_bulk_create import (  # noqa F401
+    ORDER_BULK_CREATE,
+    order_bulk_input,
+)
 
 
 @pytest.mark.django_db
@@ -11,7 +14,7 @@ def test_order_bulk_create(
     permission_manage_orders,
     permission_manage_orders_import,
     permission_manage_users,
-    order_bulk_input,
+    order_bulk_input,  # noqa F881
 ):
     order = order_bulk_input
 
