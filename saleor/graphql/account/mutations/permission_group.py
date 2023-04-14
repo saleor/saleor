@@ -270,13 +270,12 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
-            with traced_atomic_transaction():
-                if remove_users := cleaned_data.get("remove_users"):
-                    instance.user_set.remove(*remove_users)
-                if remove_permissions := cleaned_data.get("remove_permissions"):
-                    instance.permissions.remove(*remove_permissions)
-                if remove_channels := cleaned_data.get("remove_channels"):
-                    instance.channels.remove(*remove_channels)
+            if remove_users := cleaned_data.get("remove_users"):
+                instance.user_set.remove(*remove_users)
+            if remove_permissions := cleaned_data.get("remove_permissions"):
+                instance.permissions.remove(*remove_permissions)
+            if remove_channels := cleaned_data.get("remove_channels"):
+                instance.channels.remove(*remove_channels)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

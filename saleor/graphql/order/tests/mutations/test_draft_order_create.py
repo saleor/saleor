@@ -17,22 +17,10 @@ from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
-        $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput!],
-        $shippingAddress: AddressInput, $billingAddress: AddressInput,
-        $shippingMethod: ID, $voucher: ID, $customerNote: String, $channel: ID,
-        $redirectUrl: String, $externalReference: String
+            $input: DraftOrderCreateInput!
         ) {
             draftOrderCreate(
-                input: {
-                    user: $user, discount: $discount,
-                    lines: $lines, shippingAddress: $shippingAddress,
-                    billingAddress: $billingAddress,
-                    shippingMethod: $shippingMethod, voucher: $voucher,
-                    channelId: $channel,
-                    redirectUrl: $redirectUrl,
-                    customerNote: $customerNote,
-                    externalReference: $externalReference
-                }
+                input: $input
             ) {
                 errors {
                     field
@@ -120,17 +108,19 @@ def test_draft_order_create(
     external_reference = "test-ext-ref"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
-        "externalReference": external_reference,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -218,13 +208,15 @@ def test_draft_order_create_by_user_no_channel_access(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
 
     # when
@@ -264,13 +256,15 @@ def test_draft_order_create_by_app(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
 
     # when
@@ -319,16 +313,18 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -421,14 +417,16 @@ def test_draft_order_create_with_inactive_channel(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -497,16 +495,18 @@ def test_draft_order_create_without_sku(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -580,11 +580,13 @@ def test_draft_order_create_variant_with_0_price(
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -651,14 +653,16 @@ def test_draft_order_create_tax_error(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -701,14 +705,16 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -741,13 +747,15 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     variant.product.channel_listings.all().delete()
     variant.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -781,13 +789,15 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -823,8 +833,10 @@ def test_draft_order_create_without_channel(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     variables = {
-        "user": user_id,
-        "lines": variant_list,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -862,9 +874,11 @@ def test_draft_order_create_with_negative_quantity_line(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "channelId": channel_id,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -913,14 +927,16 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -972,14 +988,16 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -1028,14 +1046,16 @@ def test_draft_order_create_with_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1099,14 +1119,16 @@ def test_draft_order_create_product_without_shipping(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
     # when
@@ -1176,16 +1198,18 @@ def test_draft_order_create_invalid_billing_address(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": billing_address,
-        "shippingAddress": graphql_address_data,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": billing_address,
+            "shippingAddress": graphql_address_data,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1235,16 +1259,18 @@ def test_draft_order_create_invalid_shipping_address(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": graphql_address_data,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1296,13 +1322,15 @@ def test_draft_order_create_price_recalculation(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": lines,
-        "billingAddress": address,
-        "shippingAddress": address,
-        "voucher": voucher_id,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": lines,
+            "billingAddress": address,
+            "shippingAddress": address,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+        }
     }
 
     # when
@@ -1342,10 +1370,12 @@ def test_draft_order_create_update_display_gross_prices(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
 
     variables = {
-        "lines": variant_list,
-        "billingAddress": graphql_address_data,
-        "shippingAddress": graphql_address_data,
-        "channel": channel_id,
+        "input": {
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": graphql_address_data,
+            "channelId": channel_id,
+        }
     }
 
     # when
@@ -1376,7 +1406,7 @@ def test_draft_order_create_with_non_unique_external_reference(
     order.external_reference = ext_ref
     order.save(update_fields=["external_reference"])
 
-    variables = {"channel": channel_id, "externalReference": ext_ref}
+    variables = {"input": {"channelId": channel_id, "externalReference": ext_ref}}
 
     # when
     response = staff_api_client.post_graphql(query, variables)

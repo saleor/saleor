@@ -9,7 +9,7 @@ from .....order.error_codes import OrderErrorCode
 from .....payment import TransactionEventType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
-MUTATION_MARK_ORDER_AS_PAID = """
+MARK_ORDER_AS_PAID_MUTATION = """
     mutation markPaid($id: ID!, $transaction: String) {
         orderMarkAsPaid(id: $id, transactionReference: $transaction) {
             errors {
@@ -37,7 +37,7 @@ def test_paid_order_mark_as_paid_with_payment(
 ):
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = payment_txn_preauth.order
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     response = staff_api_client.post_graphql(query, variables)
@@ -57,7 +57,7 @@ def test_order_mark_as_paid_with_external_reference_with_payment(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     transaction_reference = "searchable-id"
     order = order_with_lines
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "transaction": transaction_reference}
@@ -98,7 +98,7 @@ def test_order_mark_as_paid_with_payment(
     channel.order_mark_as_paid_strategy = order_mark_as_paid_strategy
     channel.save(update_fields=["order_mark_as_paid_strategy"])
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -129,14 +129,14 @@ def test_paid_order_mark_as_paid_by_user_no_channel_access(
     order.channel = channel_PLN
     order.save(update_fields=["channel"])
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
 
     assert not order.is_fully_paid()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
@@ -152,7 +152,7 @@ def test_order_mark_as_paid_by_app(
 ):
     # given
     order = order_with_lines
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -195,7 +195,7 @@ def test_order_mark_as_paid_no_billing_address_with_payment(
     channel.order_mark_as_paid_strategy = order_mark_as_paid_strategy
     channel.save(update_fields=["order_mark_as_paid_strategy"])
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
@@ -223,7 +223,7 @@ def test_draft_order_mark_as_paid_check_price_recalculation_with_payment(
     order.should_refresh_prices = True
     order.status = OrderStatus.DRAFT
     order.save()
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
@@ -255,7 +255,7 @@ def test_paid_order_mark_as_paid_with_transaction(
 
     order.payment_transactions.create(charged_value=order.total.gross.amount)
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
@@ -284,7 +284,7 @@ def test_order_mark_as_paid_with_external_reference_with_transaction(
     channel.save(update_fields=["order_mark_as_paid_strategy"])
 
     transaction_reference = "searchable-id"
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     assert not order.is_fully_paid()
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id, "transaction": transaction_reference}
@@ -322,7 +322,7 @@ def test_order_mark_as_paid_with_transaction_creates_transaction_event(
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save(update_fields=["order_mark_as_paid_strategy"])
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
@@ -361,7 +361,7 @@ def test_draft_order_mark_as_paid_check_price_recalculation_transaction(
     channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
     channel.save(update_fields=["order_mark_as_paid_strategy"])
 
-    query = MUTATION_MARK_ORDER_AS_PAID
+    query = MARK_ORDER_AS_PAID_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
 
