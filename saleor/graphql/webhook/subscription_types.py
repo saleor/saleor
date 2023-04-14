@@ -38,6 +38,7 @@ from ..core.descriptions import (
     ADDED_IN_311,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -444,7 +445,7 @@ class OrderBulkCreated(SubscriptionObjectType, OrderBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = (
-            "Event sent when order is imported." + ADDED_IN_313 + PREVIEW_FEATURE
+            "Event sent when order is imported." + ADDED_IN_314 + PREVIEW_FEATURE
         )
 
 

@@ -27163,7 +27163,7 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 """
 Event sent when order is imported.
 
-Added in Saleor 3.13.
+Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
