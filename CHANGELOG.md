@@ -33,6 +33,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
+- [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
 
 ### Saleor Apps
 
@@ -192,7 +193,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
-- [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
 
 ### Saleor Apps
 
