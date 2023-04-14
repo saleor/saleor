@@ -2,16 +2,30 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-# 3.13.0 [Unreleased]
+3.14.0 [Unreleased]
+
+### Breaking changes
+
+### GraphQL API
+
+### Saleor Apps
+
+### Other changes
+
+# 3.13.0
+
 ### Highlights
+
 - Improve support for handling transactions - #10350 by @korycins
+
   - API changes:
+
     - Add new mutations:
       - `transactionEventReport` - Report the event for the transaction.
       - `orderGrantRefundCreate` - Add granted refund to the order.
       - `orderGrantRefundUpdate` - Update granted refund.
     - Add new types:
-      - `OrderGrantedRefund` - The details of granted refund.
+      - `OrderGrantedRefund` - The details of the granted refund.
     - Add new webhooks:
       - `TRANSACTION_CHARGE_REQUESTED` - triggered when a staff user request charge for the transaction.
       - `TRANSACTION_REFUND_REQUESTED` - triggered when a staff user request refund for the transaction.
@@ -30,13 +44,13 @@ All notable, unreleased changes to this project will be documented in this file.
         - `canceledAmount` - Total amount canceled for this transaction.
         - `name` - Name of the transaction.
         - `message` - Message related to the transaction.
-        - `pspReference` -  PSP reference of transaction.
+        - `pspReference` - PSP reference of transaction.
         - `createdBy` - User or App that created the transaction.
-        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction details.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction details.
       - `TransactionEvent`:
-        - `pspReference` -  PSP reference related to the event.
+        - `pspReference` - PSP reference related to the event.
         - `message` - Message related to the transaction's event.
-        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction event details.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction event details.
         - `amount` - The amount related to this event.
         - `type` - The type of action related to this event.
         - `createdBy` - User or App that created the event.
@@ -47,21 +61,22 @@ All notable, unreleased changes to this project will be documented in this file.
         - `totalGrantedRefund` - Total amount of granted refund.
         - `totalRefunded` - Total refund amount for the order.
         - `totalRefundPending` - Total amount of ongoing refund requests for the order's transactions.
-        - `totalAuthorizePending` - Total amount of ongoing authorize requests for the order's transactions.
+        - `totalAuthorizePending` - Total amount of ongoing authorization requests for the order's transactions.
         - `totalChargePending` - Total amount of ongoing charge requests for the order's transactions.
         - `totalCancelPending` - Total amount of ongoing cancel requests for the order's transactions.
-        - `totalRemainingGrant` - The difference amount between granted refund and the amounts that are pending and refunded.
+        - `totalRemainingGrant` - The difference between the granted refund and the pending and refunded amounts.
       - `OrderEventsEnum`:
         - `TRANSACTION_CHARGE_REQUESTED`
         - `TRANSACTION_CANCEL_REQUESTED`
         - `TRANSACTION_MARK_AS_PAID_FAILED`
     - Add new input fields:
+
       - `TransactionCreateInput` & `TransactionUpdateInput`:
         - `name` - The name of the transaction.
-        - `message` -  The message of the transaction.
+        - `message` - The message of the transaction.
         - `pspReference` - The PSP Reference of the transaction.
         - `amountCanceled` - Amount canceled by this transaction.
-        - `externalUrl` - The url that will allow to redirect user to payment provider page with transaction.
+        - `externalUrl` - The URL that will allow to redirect user to payment provider page with transaction.
       - `TransactionEventInput`:
         - `pspReference` - The PSP Reference of the transaction.
         - `message` - Message related to the transaction's event.
@@ -69,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - Deprecate webhooks:
       - `TRANSACTION_ACTION_REQUEST` - Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
     - Deprecate object fields:
+
       - `TransactionItem`:
         - `voidedAmount` - Use `canceledAmount`. This field will be removed in Saleor 3.14 (Preview feature).
         - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This field will be removed in Saleor 3.14 (Preview feature).
@@ -89,7 +105,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
     - Deprecate input fields:
       - `TransactionCreateInput` & `TransactionUpdateInput`:
-        - `status` - Not needed anymore. The transaction amounts will be used to determine a current status of transactions. This input field will be removed in Saleor 3.14 (Preview feature).
+        - `status` - Not needed anymore. The transaction amounts will be used to determine the current status of transactions. This input field will be removed in Saleor 3.14 (Preview feature).
         - `type` - Use `name` and `message` instead. This input field will be removed in Saleor 3.14 (Preview feature).
         - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
         - `amountVoided` - Use `amountCanceled` instead. This input field will be removed in Saleor 3.14 (Preview feature).
@@ -97,6 +113,7 @@ All notable, unreleased changes to this project will be documented in this file.
         - `status` - Status will be calculated by Saleor. This input field will be removed in Saleor 3.14 (Preview feature).
         - `reference` - Use `pspReference` instead. This input field will be removed in Saleor 3.14 (Preview feature).
         - `name` - Use `message` instead. This field will be removed in Saleor 3.14 (Preview feature).
+
 - Support for payment apps - #12179 by @korycins
   - Add new mutations:
     - `paymentGatewayInitialize` - Initialize the payment gateway to process a payment.
@@ -105,43 +122,49 @@ All notable, unreleased changes to this project will be documented in this file.
   - Add new synchronous webhooks:
     - `PAYMENT_GATEWAY_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment gateway.
     - `TRANSACTION_INITIALIZE_SESSION` - Triggered when a customer requests the initialization of a payment processing.
-    - `TRANSACTION_PROCESS_SESSION` - Triggered when a customer requests the processing of the initialized payment.
+    - `TRANSACTION_PROCESS_SESSION` - Triggered when a customer requests processing the initialized payment.
 
 ### Breaking changes
+
 - **Feature preview breaking change**:
+
   - Improve support for handling transactions - #10350 by @korycins
-    - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This changes has impact only on new `transactionItem`, already existing will work in the same way as previously.
+    - For all new `transactionItem` created by `transactionCreate`, any update action can be done only by the same app/user that performed `transactionCreate` action. This change impacts only on new `transactionItem,` the already existing will work in the same way as previously.
     - `transactionRequestAction` mutation can't be executed with `MANAGE_ORDERS` permission. Permission `HANDLE_PAYMENTS` is required.
-    - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use dedicated mutation for triggering an action: `transactionRequestAction`.
+    - Drop calling `TRANSACTION_ACTION_REQUEST` webhook inside a mutation related to `Payment` types. The related mutations: `orderVoid`, `orderCapture`, `orderRefund`, `orderFulfillmentRefundProducts`, `orderFulfillmentReturnProducts`. Use a dedicated mutation for triggering an action: `transactionRequestAction`.
+
+  See the [3.12 to 3.13](https://docs.saleor.io/docs/3.x/upgrade-guides/3-12-to-3-13) upgrade guide for more details.
 
 ### GraphQL API
+
 - [Preview] Add `StockBulkUpdate` mutation - #12139 by @SzymJ
 - Upgrade GraphiQL to `2.4.0` for playground - #12271 by @zaiste
 - Add new object type `AppManifestRequiredSaleorVersion` - #12164 by @przlada
   - Add new optional field `Manifest.requiredSaleorVersion`
   - Add `requiredSaleorVersion` validation to `appInstall` and `appFetchManifest` mutations
 - Add new field `author` to `Manifest` and `App` object types - #12166 by @przlada
-- Add backwards compatibility for `taxCode` field - #12325 by @maarcingebala
+- Add backward compatibility for `taxCode` field - #12325 by @maarcingebala
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
-
-### Other changes
-- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
-  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
-  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
-- Create order discounts for all voucher types - #12272 by @IKarbowiak
-- Core now supports Dev Containers for local development - #12391 by @patrys
-- Use mailhog smtp server on Dev Container - #12402 by @carlosa54
-- Publish schema.graphql on releases - #12431 by @maarcingebala
-- Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
-- Remove mailhog in favor of mailpit - #12447 by @carlosa54
 
 ### Saleor Apps
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada
 - Add new field `author` to the App manifest - #12166 by @przlada
 - Add `GIFT_CARD_SENT` asynchronous event to webhooks - #12472 by @rafalp
+
+### Other changes
+
+- Add Celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
+  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
+  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
+- Create order discounts for all voucher types - #12272 by @IKarbowiak
+- Core now supports Dev Containers for local development - #12391 by @patrys
+- Use Mailhog SMTP server on Dev Container - #12402 by @carlosa54
+- Publish schema.graphql on releases - #12431 by @maarcingebala
+- Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
+- Remove Mailhog in favor of Mailpit - #12447 by @carlosa54
 
 # 3.12.0
 
