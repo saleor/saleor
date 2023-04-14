@@ -2141,7 +2141,7 @@ def test_order_bulk_create_error_non_existing_instance(
         errors[0]["message"]
         == "ProductVariant instance with sku=non-existing-sku doesn't exist."
     )
-    assert not errors[0]["path"]
+    assert errors[0]["path"] == "lines.[0].variant_sku"
     assert errors[0]["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
@@ -2180,7 +2180,7 @@ def test_order_bulk_create_error_instance_not_found(
         error["message"]
         == "Channel instance with slug=non-existing-channel doesn't exist."
     )
-    assert not error["path"]
+    assert error["path"] == "channel"
     assert error["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
 
     assert Order.objects.count() == orders_count
@@ -2219,7 +2219,7 @@ def test_order_bulk_create_error_get_instance_with_multiple_keys(
         error["message"] == "Only one of [id, email, external_reference] arguments"
         " can be provided to resolve User instance."
     )
-    assert not error["path"]
+    assert error["path"] == "user"
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
 
     assert Order.objects.count() == orders_count
@@ -2258,7 +2258,7 @@ def test_order_bulk_create_error_get_instance_with_no_keys(
         error["message"] == "One of [id, email, external_reference] arguments"
         " must be provided to resolve User instance."
     )
-    assert not error["path"]
+    assert error["path"] == "user"
     assert error["code"] == OrderBulkCreateErrorCode.REQUIRED.name
 
     assert Order.objects.count() == orders_count
@@ -3016,3 +3016,69 @@ def test_order_bulk_create_webhook(
     # then
     db_order = Order.objects.get()
     mocked_order_bulk_created.assert_called_once_with(db_order)
+
+
+def test_order_bulk_create_error_path_fulfillments(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order["fulfillments"][1]["lines"][2]["warehouse"] = "dummy"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Couldn't resolve id: dummy."
+    assert error["path"] == "fulfillments.[1].lines.[2].warehouse"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name
+
+
+def test_order_bulk_create_error_path_order_lines(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order["lines"][2]["variantId"] = "dummy"
+    order["lines"][2]["variantSku"] = "dummy"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert (
+        error["message"] == "Only one of [variant_id, variant_external_reference, "
+        "variant_sku] arguments can be provided to resolve ProductVariant instance."
+    )
+    assert error["path"] == "lines.[2]"
+    assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name

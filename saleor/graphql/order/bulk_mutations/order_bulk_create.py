@@ -793,6 +793,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         key_map: Dict[str, str],
         errors: List[OrderBulkError],
         object_storage: Dict[str, Any],
+        path: str = "",
     ):
         """Resolve instance based on input data, model and `key_map` argument provided.
 
@@ -804,6 +805,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage: dict with key pattern: {model_name}_{key_name}_{key_value}
                               and instances as values; it is used to search for already
                               resolved instances
+            path: path to input field, which caused an error
 
         Return:
             model instance
@@ -812,13 +814,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         instance = None
         try:
             instance = get_instance(
-                input, model, key_map, object_storage, OrderBulkCreateErrorCode
+                input, model, key_map, object_storage, OrderBulkCreateErrorCode, path
             )
         except ValidationError as err:
             errors.append(
                 OrderBulkError(
                     message=str(err.message),
                     code=OrderBulkCreateErrorCode(err.code),
+                    path=err.params["path"] if err.params else None,
                 )
             )
         return instance
@@ -841,6 +844,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "external_reference": "external_reference",
             },
             object_storage=object_storage,
+            path="user",
         )
 
         # If user can't be found, but email is provided, consider it as valid.
@@ -1083,6 +1087,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=Warehouse,
                 key_map={"warehouse_id": "id"},
                 object_storage=object_storage,
+                path="delivery_method",
             )
 
         if is_shipping_delivery:
@@ -1092,6 +1097,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=ShippingMethod,
                 key_map={"shipping_method_id": "id"},
                 object_storage=object_storage,
+                path="delivery_method",
             )
             shipping_tax_class = cls.get_instance_with_errors(
                 input=input,
@@ -1099,6 +1105,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=TaxClass,
                 key_map={"shipping_tax_class_id": "id"},
                 object_storage=object_storage,
+                path="delivery_method",
             )
             if shipping_tax_class_metadata := input.get("shipping_tax_class_metadata"):
                 if metadata_contains_empty_key(shipping_tax_class_metadata):
@@ -1186,6 +1193,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=User,
                 key_map=user_key_map,
                 object_storage=object_storage,
+                path=f"notes.[{index}]",
             )
 
         if note_input.get("app_id"):
@@ -1195,6 +1203,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=App,
                 key_map={"app_id": "id"},
                 object_storage=object_storage,
+                path=f"notes.[{index}]",
             )
 
         if user and app:
@@ -1331,6 +1340,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "variant_sku": "sku",
             },
             object_storage=object_storage,
+            path=f"lines.[{index}]",
         )
         if not variant:
             return None
@@ -1341,6 +1351,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=Warehouse,
             key_map={"warehouse": "id"},
             object_storage=object_storage,
+            path=f"lines.[{index}]",
         )
         if not warehouse:
             return None
@@ -1351,6 +1362,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=TaxClass,
             key_map={"tax_class_id": "id"},
             object_storage=object_storage,
+            path=f"lines.[{index}]",
         )
         tax_class_name = order_line_input.get(
             "tax_class_name", line_tax_class.name if line_tax_class else None
@@ -1447,6 +1459,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         lines: List[OrderBulkFulfillmentLine] = []
         line_index = 0
         for line_input in lines_input:
+            path = f"fulfillments.[{index}].lines.[{line_index}]"
             variant = cls.get_instance_with_errors(
                 input=line_input,
                 errors=order.errors,
@@ -1457,6 +1470,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     "variant_sku": "sku",
                 },
                 object_storage=object_storage,
+                path=path,
             )
             if not variant:
                 return None
@@ -1467,17 +1481,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=Warehouse,
                 key_map={"warehouse": "id"},
                 object_storage=object_storage,
+                path=path,
             )
             if not warehouse:
                 return None
 
             order_line_index = line_input["order_line_index"]
             if order_line_index < 0:
-                path = f"fulfillments.[{index}].lines.[{line_index}].order_line_index"
                 order.errors.append(
                     OrderBulkError(
                         message="Order line index can't be negative.",
-                        path=path,
+                        path=f"{path}.order_line_index",
                         code=OrderBulkCreateErrorCode.NEGATIVE_INDEX,
                     )
                 )
@@ -1486,12 +1500,11 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             try:
                 order_line = order_lines[order_line_index]
             except IndexError:
-                path = f"fulfillments.[{index}].lines.[{line_index}].order_line_index"
                 order.errors.append(
                     OrderBulkError(
                         message=f"There is no order line with index:"
                         f" {order_line_index}.",
-                        path=path,
+                        path=f"{path}.order_line_index",
                         code=OrderBulkCreateErrorCode.NO_RELATED_ORDER_LINE,
                     )
                 )
@@ -1503,7 +1516,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkError(
                         message="Fulfillment line's warehouse is different"
                         " then order line's warehouse.",
-                        path=f"fulfillments.[{index}].lines.[{line_index}].warehouse",
+                        path=f"{path}.warehouse",
                         code=code,
                     )
                 )
@@ -1515,7 +1528,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkError(
                         message="Fulfillment line's product variant is different"
                         " then order line's product variant.",
-                        path=f"fulfillments.[{index}].lines.[{line_index}].variant_id",
+                        path=f"{path}.variant_id",
                         code=code,
                     )
                 )
@@ -1527,6 +1540,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 quantity=line_input["quantity"],
             )
             lines.append(OrderBulkFulfillmentLine(fulfillment_line, warehouse))
+            line_index += 1
 
         return OrderBulkFulfillment(fulfillment=fulfillment, lines=lines)
 
