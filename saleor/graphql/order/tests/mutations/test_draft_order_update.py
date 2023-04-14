@@ -8,7 +8,7 @@ from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
-DRAFT_UPDATE_QUERY = """
+DRAFT_ORDER_UPDATE_MUTATION = """
         mutation draftUpdate(
         $id: ID!,
         $input: DraftOrderInput!,
@@ -24,6 +24,7 @@ DRAFT_UPDATE_QUERY = """
                 }
                 order {
                     userEmail
+                    externalReference
                     channel {
                         id
                     }
@@ -40,7 +41,7 @@ def test_draft_order_update_existing_channel_id(
     order.status = OrderStatus.DRAFT
     order.save()
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = DRAFT_UPDATE_QUERY
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
@@ -66,7 +67,7 @@ def test_draft_order_update_voucher_not_available(
     order.save()
     assert order.voucher is None
     permission_group_manage_orders.user_set.add(staff_api_client.user)
-    query = DRAFT_UPDATE_QUERY
+    query = DRAFT_ORDER_UPDATE_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     voucher.channel_listings.all().delete()
@@ -85,33 +86,6 @@ def test_draft_order_update_voucher_not_available(
     assert error["field"] == "voucher"
 
 
-DRAFT_ORDER_UPDATE_MUTATION = """
-    mutation draftUpdate(
-        $id: ID!, $voucher: ID, $customerNote: String, $shippingAddress: AddressInput,
-        $externalReference: String
-    ) {
-        draftOrderUpdate(
-            id: $id,
-            input: {
-                voucher: $voucher,
-                customerNote: $customerNote,
-                shippingAddress: $shippingAddress,
-                externalReference: $externalReference
-            }) {
-            errors {
-                field
-                message
-                code
-            }
-            order {
-                userEmail
-                externalReference
-            }
-        }
-    }
-"""
-
-
 def test_draft_order_update(
     staff_api_client, permission_group_manage_orders, draft_order, voucher
 ):
@@ -126,9 +100,11 @@ def test_draft_order_update(
     external_reference = "test-ext-ref"
     variables = {
         "id": order_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "externalReference": external_reference,
+        "input": {
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "externalReference": external_reference,
+        },
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -155,7 +131,10 @@ def test_draft_order_update_with_non_draft_order(
     order_id = graphene.Node.to_global_id("Order", order.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     customer_note = "Test customer note"
-    variables = {"id": order_id, "voucher": voucher_id, "customerNote": customer_note}
+    variables = {
+        "id": order_id,
+        "input": {"voucher": voucher_id, "customerNote": customer_note},
+    }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderUpdate"]["errors"][0]
@@ -181,8 +160,10 @@ def test_draft_order_update_invalid_address(
 
     variables = {
         "id": order_id,
-        "voucher": voucher_id,
-        "shippingAddress": graphql_address_data,
+        "input": {
+            "voucher": voucher_id,
+            "shippingAddress": graphql_address_data,
+        },
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -216,7 +197,9 @@ def test_draft_order_update_by_user_no_channel_access(
     customer_note = "Test customer note"
     variables = {
         "id": order_id,
-        "customerNote": customer_note,
+        "input": {
+            "customerNote": customer_note,
+        },
     }
 
     # when
@@ -241,7 +224,9 @@ def test_draft_order_update_by_app(
     customer_note = "Test customer note"
     variables = {
         "id": order_id,
-        "customerNote": customer_note,
+        "input": {
+            "customerNote": customer_note,
+        },
     }
 
     # when

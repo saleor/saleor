@@ -1009,8 +1009,9 @@ def test_order_query_in_pln_channel(
 QUERY_ORDER_BY_ID = """
     query OrderQuery($id: ID) {
         order(id: $id) {
-            number
             id
+            number
+            status
         }
     }
 """
