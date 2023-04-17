@@ -408,6 +408,7 @@ class StaffUpdate(StaffCreate):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        support_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

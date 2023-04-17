@@ -3545,6 +3545,10 @@ STAFF_UPDATE_MUTATIONS = """
                 }
                 isActive
                 email
+                metadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -3567,6 +3571,30 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert data["errors"] == []
     assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
+    staff_user.refresh_from_db()
+    assert not staff_user.search_document
+
+
+def test_staff_update_metadata(staff_api_client, permission_manage_staff):
+    # given
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    assert not staff_user.search_document
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    metadata = [{"key": "test key", "value": "test value"}]
+    variables = {"id": id, "input": {"metadata": metadata}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["userPermissions"] == []
+    assert data["user"]["metadata"] == metadata
     staff_user.refresh_from_db()
     assert not staff_user.search_document
 
