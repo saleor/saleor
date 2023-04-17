@@ -174,7 +174,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
 
-
 ### Saleor Apps
 
 - Add `requiredSaleorVersion` field to the App manifest determining the required Saleor version as semver range - #12164 by @przlada

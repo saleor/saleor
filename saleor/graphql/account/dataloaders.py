@@ -100,7 +100,7 @@ class BaseAccessibleChannels(DataLoader):
             )
 
         if groups_with_no_channel_restriction:
-            channels = list(Channel.objects.all())
+            channels = list(Channel.objects.using(self.database_connection_name).all())
             for group_id in groups_with_no_channel_restriction.values_list(
                 "id", flat=True
             ):
@@ -110,9 +110,11 @@ class BaseAccessibleChannels(DataLoader):
 
     def get_group_channels(self, group_ids, group_to_channels):
         GroupChannels = Group.channels.through
-        group_channels = GroupChannels.objects.filter(group_id__in=group_ids)
+        group_channels = GroupChannels.objects.using(
+            self.database_connection_name
+        ).filter(group_id__in=group_ids)
         channels_in_bulk = Channel.objects.using(self.database_connection_name).in_bulk(
-            group_channels.values_list("channel_id", flat=True)
+            list(group_channels.values_list("channel_id", flat=True))
         )
 
         for group_id, channel_id in group_channels.values_list(
