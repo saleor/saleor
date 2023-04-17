@@ -1534,7 +1534,8 @@ CUSTOMER_CREATE_MUTATION = """
         $email: String, $firstName: String, $lastName: String, $channel: String
         $note: String, $billing: AddressInput, $shipping: AddressInput,
         $redirect_url: String, $languageCode: LanguageCodeEnum,
-        $externalReference: String, $metadata: [MetadataInput!]
+        $externalReference: String, $metadata: [MetadataInput!],
+        $privateMetadata: [MetadataInput!],
     ) {
         customerCreate(input: {
             email: $email,
@@ -1547,7 +1548,7 @@ CUSTOMER_CREATE_MUTATION = """
             languageCode: $languageCode,
             channel: $channel,
             externalReference: $externalReference
-            metadata: $metadata
+            metadata: $metadata, privateMetadata: $privateMetadata
         }) {
             errors {
                 field
@@ -1571,6 +1572,10 @@ CUSTOMER_CREATE_MUTATION = """
                 note
                 externalReference
                 metadata {
+                    key
+                    value
+                }
+                privateMetadata {
                     key
                     value
                 }
@@ -1606,6 +1611,7 @@ def test_customer_create(
     redirect_url = "https://www.example.com"
     external_reference = "test-ext-ref"
     metadata = [{"key": "test key", "value": "test value"}]
+    private_metadata = [{"key": "private test key", "value": "private test value"}]
     variables = {
         "email": email,
         "firstName": first_name,
@@ -1618,6 +1624,7 @@ def test_customer_create(
         "channel": channel_PLN.slug,
         "externalReference": external_reference,
         "metadata": metadata,
+        "privateMetadata": private_metadata,
     }
 
     # when
@@ -1649,6 +1656,7 @@ def test_customer_create(
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
     assert data["user"]["metadata"] == metadata
+    assert data["user"]["privateMetadata"] == private_metadata
 
     new_user = User.objects.get(email=email)
     assert (
@@ -1861,29 +1869,17 @@ def test_customer_create_with_non_unique_external_reference(
     assert error["message"] == "User with this External reference already exists."
 
 
-def test_customer_update(
-    staff_api_client, staff_user, customer_user, address, permission_manage_users
-):
-    query = """
+CUSTOMER_UPDATE_MUTATION = """
     mutation UpdateCustomer(
-            $id: ID!, $firstName: String, $lastName: String,
-            $isActive: Boolean, $note: String, $billing: AddressInput,
-            $shipping: AddressInput, $languageCode: LanguageCodeEnum,
+            $id: ID!
             $externalReference: String
+            $input: CustomerInput!
         ) {
         customerUpdate(
             id: $id,
-            input: {
-                isActive: $isActive,
-                firstName: $firstName,
-                lastName: $lastName,
-                note: $note,
-                defaultBillingAddress: $billing
-                defaultShippingAddress: $shipping,
-                languageCode: $languageCode,
-                externalReference: $externalReference
-                }
-            ) {
+            externalReference: $externalReference,
+            input: $input
+        ) {
             errors {
                 field
                 message
@@ -1902,10 +1898,31 @@ def test_customer_update(
                 isActive
                 note
                 externalReference
+                metadata {
+                    key
+                    value
+                }
+                privateMetadata {
+                    key
+                    value
+                }
             }
         }
     }
-    """
+"""
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_customer_update(
+    mocked_customer_metadata_updated,
+    staff_api_client,
+    staff_user,
+    customer_user,
+    address,
+    permission_manage_users,
+):
+    # given
+    query = CUSTOMER_UPDATE_MUTATION
 
     # this test requires addresses to be set and checks whether new address
     # instances weren't created, but the existing ones got updated
@@ -1926,34 +1943,32 @@ def test_customer_update(
     new_street_address = "Updated street address"
     address_data["streetAddress1"] = new_street_address
 
+    metadata = {"key": "test key", "value": "test value"}
+    private_metadata = {"key": "private test key", "value": "private test value"}
+
     variables = {
         "id": user_id,
-        "firstName": first_name,
-        "lastName": last_name,
-        "isActive": False,
-        "note": note,
-        "billing": address_data,
-        "shipping": address_data,
-        "languageCode": "PL",
-        "externalReference": external_reference,
+        "input": {
+            "externalReference": external_reference,
+            "firstName": first_name,
+            "lastName": last_name,
+            "isActive": False,
+            "note": note,
+            "defaultBillingAddress": address_data,
+            "defaultShippingAddress": address_data,
+            "languageCode": "PL",
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+        },
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
     )
+
+    # then
     content = get_graphql_content(response)
-
-    customer = User.objects.get(email=customer_user.email)
-
-    # check that existing instances are updated
-    shipping_address, billing_address = (
-        customer.default_shipping_address,
-        customer.default_billing_address,
-    )
-    assert billing_address.pk == billing_address_pk
-    assert shipping_address.pk == shipping_address_pk
-
-    assert billing_address.street_address_1 == new_street_address
-    assert shipping_address.street_address_1 == new_street_address
 
     data = content["data"]["customerUpdate"]
     assert data["errors"] == []
@@ -1963,6 +1978,21 @@ def test_customer_update(
     assert data["user"]["languageCode"] == "PL"
     assert data["user"]["externalReference"] == external_reference
     assert not data["user"]["isActive"]
+    assert metadata in data["user"]["metadata"]
+    assert private_metadata in data["user"]["privateMetadata"]
+
+    customer_user.refresh_from_db()
+
+    # check that existing instances are updated
+    shipping_address, billing_address = (
+        customer_user.default_shipping_address,
+        customer_user.default_billing_address,
+    )
+    assert billing_address.pk == billing_address_pk
+    assert shipping_address.pk == shipping_address_pk
+
+    assert billing_address.street_address_1 == new_street_address
+    assert shipping_address.street_address_1 == new_street_address
 
     (
         name_changed_event,
@@ -1971,7 +2001,7 @@ def test_customer_update(
 
     assert name_changed_event.type == account_events.CustomerEvents.NAME_ASSIGNED
     assert name_changed_event.user.pk == staff_user.pk
-    assert name_changed_event.parameters == {"message": customer.get_full_name()}
+    assert name_changed_event.parameters == {"message": customer_user.get_full_name()}
 
     assert deactivated_event.type == account_events.CustomerEvents.ACCOUNT_DEACTIVATED
     assert deactivated_event.user.pk == staff_user.pk
@@ -1986,6 +2016,7 @@ def test_customer_update(
         generate_address_search_document_value(shipping_address)
         in customer_user.search_document
     )
+    mocked_customer_metadata_updated.assert_called_once_with(customer_user)
 
 
 UPDATE_CUSTOMER_BY_EXTERNAL_REFERENCE = """
@@ -3078,6 +3109,10 @@ STAFF_CREATE_MUTATION = """
                     key
                     value
                 }
+                privateMetadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -3104,12 +3139,14 @@ def test_staff_create(
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
     metadata = [{"key": "test key", "value": "test value"}]
+    private_metadata = [{"key": "private test key", "value": "private test value"}]
     variables = {
         "input": {
             "email": email,
             "redirectUrl": redirect_url,
             "addGroups": [graphene.Node.to_global_id("Group", group.pk)],
             "metadata": metadata,
+            "privateMetadata": private_metadata,
         }
     }
 
@@ -3123,6 +3160,7 @@ def test_staff_create(
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
     assert data["user"]["metadata"] == metadata
+    assert data["user"]["privateMetadata"] == private_metadata
 
     expected_perms = {
         permission_manage_products.codename,
@@ -3549,6 +3587,10 @@ STAFF_UPDATE_MUTATIONS = """
                     key
                     value
                 }
+                privateMetadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -3595,6 +3637,30 @@ def test_staff_update_metadata(staff_api_client, permission_manage_staff):
     assert data["errors"] == []
     assert data["user"]["userPermissions"] == []
     assert data["user"]["metadata"] == metadata
+    staff_user.refresh_from_db()
+    assert not staff_user.search_document
+
+
+def test_staff_update_private_metadata(staff_api_client, permission_manage_staff):
+    # given
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    assert not staff_user.search_document
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    metadata = [{"key": "test key", "value": "test value"}]
+    variables = {"id": id, "input": {"privateMetadata": metadata}}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+    assert data["user"]["userPermissions"] == []
+    assert data["user"]["privateMetadata"] == metadata
     staff_user.refresh_from_db()
     assert not staff_user.search_document
 

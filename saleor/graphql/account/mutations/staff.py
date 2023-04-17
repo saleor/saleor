@@ -27,7 +27,7 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.descriptions import ADDED_IN_310
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import (
     BaseMutation,
@@ -37,7 +37,6 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.validators.file import clean_image_file
-from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..i18n import I18nMixin
@@ -62,11 +61,6 @@ class StaffInput(UserInput):
     add_groups = NonNullList(
         graphene.ID,
         description="List of permission group IDs to which user should be assigned.",
-        required=False,
-    )
-    metadata = NonNullList(
-        MetadataInput,
-        description="Fields required to update the object's metadata." + ADDED_IN_314,
         required=False,
     )
 
@@ -107,6 +101,7 @@ class CustomerCreate(BaseCustomerCreate):
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
         support_meta_field = True
+        support_private_meta_field = True
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -131,6 +126,8 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def generate_events(
@@ -185,7 +182,13 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Clean the input and generate a new instance from the new data
         cleaned_input = cls.clean_input(info, original_instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
         new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
+        cls.validate_and_update_metadata(
+            new_instance, metadata_list, private_metadata_list
+        )
 
         # Save the new instance data
         cls.clean_instance(info, new_instance)
@@ -194,6 +197,10 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Generate events by comparing the instances
         cls.generate_events(info, original_instance, new_instance)
+
+        if metadata_list:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.customer_metadata_updated, new_instance)
 
         # Return the response
         return cls.success_response(new_instance)
@@ -252,6 +259,7 @@ class StaffCreate(ModelMutation):
         error_type_class = StaffError
         error_type_field = "staff_errors"
         support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -379,9 +387,10 @@ class StaffCreate(ModelMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
 
-        cls.validate_and_update_metadata(instance, metadata_list, None)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input, send_notification)
         cls._save_m2m(info, instance, cleaned_input)
@@ -409,6 +418,7 @@ class StaffUpdate(StaffCreate):
         error_type_class = StaffError
         error_type_field = "staff_errors"
         support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

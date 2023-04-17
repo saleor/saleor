@@ -459,6 +459,18 @@ class UserInput(BaseInputObjectType):
     email = graphene.String(description="The unique email address of the user.")
     is_active = graphene.Boolean(required=False, description="User account is active.")
     note = graphene.String(description="A note about the user.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the user metadata." + ADDED_IN_314,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the user private metadata." + ADDED_IN_314
+        ),
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -500,11 +512,6 @@ class UserCreateInput(CustomerInput):
             "Slug of a channel which will be used for notify user. Optional when "
             "only one channel exists."
         )
-    )
-    metadata = NonNullList(
-        MetadataInput,
-        description="Fields required to update the object's metadata." + ADDED_IN_314,
-        required=False,
     )
 
     class Meta:

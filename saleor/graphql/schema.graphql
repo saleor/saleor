@@ -25197,9 +25197,6 @@ input AccountRegisterInput @doc(category: "Users") {
   """User language code."""
   languageCode: LanguageCodeEnum
 
-  """User public metadata."""
-  metadata: [MetadataInput!]
-
   """The email address of the user."""
   email: String!
 
@@ -25208,6 +25205,9 @@ input AccountRegisterInput @doc(category: "Users") {
 
   """Base of frontend URL that will be needed to create confirmation URL."""
   redirectUrl: String
+
+  """User public metadata."""
+  metadata: [MetadataInput!]
 
   """
   Slug of a channel which will be used to notify users. Optional when only one channel exists.
@@ -25237,14 +25237,18 @@ input AccountInput @doc(category: "Users") {
   """User language code."""
   languageCode: LanguageCodeEnum
 
-  """User public metadata."""
-  metadata: [MetadataInput!]
-
   """Billing address of the customer."""
   defaultBillingAddress: AddressInput
 
   """Shipping address of the customer."""
   defaultShippingAddress: AddressInput
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
 }
 
 """
@@ -25352,6 +25356,20 @@ input UserCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
   """User language code."""
   languageCode: LanguageCodeEnum
 
@@ -25371,13 +25389,6 @@ input UserCreateInput @doc(category: "Users") {
   Slug of a channel which will be used for notify user. Optional when only one channel exists.
   """
   channel: String
-
-  """
-  Fields required to update the object's metadata.
-  
-  Added in Saleor 3.14.
-  """
-  metadata: [MetadataInput!]
 }
 
 """
@@ -25412,6 +25423,20 @@ input CustomerInput @doc(category: "Users") {
 
   """A note about the user."""
   note: String
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 
   """User language code."""
   languageCode: LanguageCodeEnum
@@ -25562,15 +25587,22 @@ input StaffCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """List of permission group IDs to which user should be assigned."""
-  addGroups: [ID!]
-
   """
-  Fields required to update the object's metadata.
+  Fields required to update the user metadata.
   
   Added in Saleor 3.14.
   """
   metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """List of permission group IDs to which user should be assigned."""
+  addGroups: [ID!]
 
   """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
@@ -25606,15 +25638,22 @@ input StaffUpdateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
-  """List of permission group IDs to which user should be assigned."""
-  addGroups: [ID!]
-
   """
-  Fields required to update the object's metadata.
+  Fields required to update the user metadata.
   
   Added in Saleor 3.14.
   """
   metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """List of permission group IDs to which user should be assigned."""
+  addGroups: [ID!]
 
   """List of permission group IDs from which user should be unassigned."""
   removeGroups: [ID!]
