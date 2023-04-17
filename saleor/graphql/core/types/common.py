@@ -28,7 +28,7 @@ from ...core.doc_category import (
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
-    ADDED_IN_313,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
 )
 from ..enums import (
@@ -464,7 +464,7 @@ class ProductVariantBulkError(Error):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
-            "the error isn't associated with a particular field." + ADDED_IN_313
+            "the error isn't associated with a particular field." + ADDED_IN_314
         ),
         required=False,
     )

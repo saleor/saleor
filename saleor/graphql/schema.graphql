@@ -20032,7 +20032,7 @@ type ProductVariantBulkError @doc(category: "Products") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   """
   path: String
 

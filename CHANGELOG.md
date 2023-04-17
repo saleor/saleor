@@ -5,8 +5,10 @@ All notable, unreleased changes to this project will be documented in this file.
 3.14.0 [Unreleased]
 
 ### Breaking changes
+- `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
 
 ### GraphQL API
+- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 
 ### Saleor Apps
 
@@ -147,7 +149,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
-- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 
 ### Saleor Apps
 
