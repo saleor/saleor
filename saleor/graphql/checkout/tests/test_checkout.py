@@ -658,6 +658,70 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
     assert shipping_method.name in shipping_methods
 
 
+def test_checkout_shipping_methods_with_price_based_method_and_once_per_order_discount(
+    api_client, checkout_with_item, address, shipping_method, voucher, channel_USD
+):
+    """Ensure that price based shipping method is returned when
+    checkout with discounts once_per_order is lower than maximal order price with
+    specific product discount."""
+
+    # given
+    checkout_with_item.shipping_address = address
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+
+    line = checkout_with_item.lines.first()
+
+    voucher.products.add(line.variant.product)
+    voucher.type = VoucherType.ENTIRE_ORDER
+    voucher.discount_value_type = DiscountValueType.PERCENTAGE
+    voucher.apply_once_per_order = True
+    voucher.save()
+
+    voucher_percent_value = Decimal(50)
+    voucher_channel_listing = voucher.channel_listings.get(channel=channel_USD)
+    voucher_channel_listing.discount_value = voucher_percent_value
+    voucher_channel_listing.save()
+
+    checkout_with_item.save(update_fields=["shipping_address"])
+
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher)
+
+    subtotal = calculations.checkout_subtotal(
+        manager=manager,
+        checkout_info=checkout_info,
+        lines=lines,
+        address=checkout_with_item.shipping_address,
+    )
+    shipping_method.name = "Price based"
+    shipping_method.save(update_fields=["name"])
+
+    shipping_channel_listing = shipping_method.channel_listings.get(
+        channel=checkout_with_item.channel
+    )
+    shipping_channel_listing.price_amount = Decimal(0)
+
+    # set minimum order price on 50% of total. It's to ensure that discount was not
+    # doubled during shipping methods fetching. If it was subtotal would be 0
+    shipping_channel_listing.minimum_order_price_amount = subtotal.gross.amount / 2
+    shipping_channel_listing.save(
+        update_fields=["minimum_order_price_amount", "price_amount"]
+    )
+
+    query = GET_CHECKOUT_AVAILABLE_SHIPPING_METHODS
+    variables = {"id": to_global_id_or_none(checkout_with_item)}
+
+    # when
+    response = api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+    shipping_methods = [method["name"] for method in data["availableShippingMethods"]]
+    assert shipping_method.name in shipping_methods
+
+
 def test_checkout_available_shipping_methods_shipping_zone_without_channels(
     api_client, checkout_with_item, address, shipping_zone
 ):
