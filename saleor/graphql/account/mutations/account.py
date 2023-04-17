@@ -43,6 +43,11 @@ class AccountBaseInput(BaseInputObjectType):
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="User language code."
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description="User public metadata.",
+        required=False,
+    )
 
 
 class AccountRegisterInput(AccountBaseInput):
@@ -58,11 +63,6 @@ class AccountRegisterInput(AccountBaseInput):
     )
     language_code = graphene.Argument(
         LanguageCodeEnum, required=False, description="User language code."
-    )
-    metadata = NonNullList(
-        MetadataInput,
-        description="User public metadata.",
-        required=False,
     )
     channel = graphene.String(
         description=(
@@ -194,6 +194,7 @@ class AccountUpdate(BaseCustomerCreate):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

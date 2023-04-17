@@ -2366,6 +2366,7 @@ ACCOUNT_UPDATE_QUERY = """
         $firstName: String,
         $lastName: String
         $languageCode: LanguageCodeEnum
+        $metadata: [MetadataInput!]
     ) {
         accountUpdate(
           input: {
@@ -2373,7 +2374,8 @@ ACCOUNT_UPDATE_QUERY = """
             defaultShippingAddress: $shipping,
             firstName: $firstName,
             lastName: $lastName,
-            languageCode: $languageCode
+            languageCode: $languageCode,
+            metadata: $metadata
         }) {
             errors {
                 field
@@ -2392,6 +2394,10 @@ ACCOUNT_UPDATE_QUERY = """
                     id
                 }
                 languageCode
+                metadata {
+                    key
+                    value
+                }
             }
         }
     }
@@ -2505,6 +2511,26 @@ def test_logged_customer_update_anonymous_user(api_client):
     query = ACCOUNT_UPDATE_QUERY
     response = api_client.post_graphql(query, {})
     assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_logged_customer_updates_metadata(
+    mocked_customer_metadata_updated, user_api_client
+):
+    # given
+    metadata = {"key": "test key", "value": "test value"}
+    variables = {"metadata": [metadata]}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["accountUpdate"]
+
+    assert not data["errors"]
+    assert metadata in data["user"]["metadata"]
+    mocked_customer_metadata_updated.assert_called_once_with(user_api_client.user)
 
 
 ACCOUNT_REQUEST_DELETION_MUTATION = """

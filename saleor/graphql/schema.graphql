@@ -25197,6 +25197,9 @@ input AccountRegisterInput @doc(category: "Users") {
   """User language code."""
   languageCode: LanguageCodeEnum
 
+  """User public metadata."""
+  metadata: [MetadataInput!]
+
   """The email address of the user."""
   email: String!
 
@@ -25205,9 +25208,6 @@ input AccountRegisterInput @doc(category: "Users") {
 
   """Base of frontend URL that will be needed to create confirmation URL."""
   redirectUrl: String
-
-  """User public metadata."""
-  metadata: [MetadataInput!]
 
   """
   Slug of a channel which will be used to notify users. Optional when only one channel exists.
@@ -25236,6 +25236,9 @@ input AccountInput @doc(category: "Users") {
 
   """User language code."""
   languageCode: LanguageCodeEnum
+
+  """User public metadata."""
+  metadata: [MetadataInput!]
 
   """Billing address of the customer."""
   defaultBillingAddress: AddressInput
