@@ -23,7 +23,7 @@ from ...account.utils import (
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_313, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
@@ -48,7 +48,7 @@ class PermissionGroupInput(BaseInputObjectType):
     add_channels = NonNullList(
         graphene.ID,
         description="List of channels to assign to this group."
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
 
@@ -62,7 +62,7 @@ class PermissionGroupCreateInput(PermissionGroupInput):
         description=(
             "Determine if the group has restricted access to channels.  DEFAULT: False"
         )
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
         default_value=False,
         required=False,
@@ -295,12 +295,12 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
     remove_channels = NonNullList(
         graphene.ID,
         description="List of channels to unassign from this group."
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
     restricted_access_to_channels = graphene.Boolean(
         description="Determine if the group has restricted access to channels."
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
         required=False,
     )

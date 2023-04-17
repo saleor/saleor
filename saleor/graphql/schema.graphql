@@ -9208,7 +9208,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """
   List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -9217,7 +9217,7 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   """
   Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11538,7 +11538,7 @@ type Group implements Node @doc(category: "Users") {
   """
   List of channels the group has access to.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11547,7 +11547,7 @@ type Group implements Node @doc(category: "Users") {
   """
   Determine if the group have restricted access to channels.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25899,7 +25899,7 @@ input PermissionGroupCreateInput @doc(category: "Users") {
   """
   List of channels to assign to this group.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25911,7 +25911,7 @@ input PermissionGroupCreateInput @doc(category: "Users") {
   """
   Determine if the group has restricted access to channels.  DEFAULT: False
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25939,7 +25939,7 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """
   List of channels to assign to this group.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25957,7 +25957,7 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """
   List of channels to unassign from this group.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -25966,7 +25966,7 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
   """
   Determine if the group has restricted access to channels.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """

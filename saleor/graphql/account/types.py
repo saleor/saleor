@@ -29,7 +29,7 @@ from ..core.connection import CountableConnection, create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_310,
-    ADDED_IN_313,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -337,7 +337,7 @@ class User(ModelObjectType[models.User]):
         description=(
             "List of channels the user has access to. The sum of channels from all "
             "user groups. If at least one group has `restrictedAccessToChannels` "
-            "set to False - all channels are returned." + ADDED_IN_313 + PREVIEW_FEATURE
+            "set to False - all channels are returned." + ADDED_IN_314 + PREVIEW_FEATURE
         ),
     )
     restricted_access_to_channels = graphene.Boolean(
@@ -346,7 +346,7 @@ class User(ModelObjectType[models.User]):
             "Determine if user have restricted access to channels. False if at least "
             "one user group has `restrictedAccessToChannels` set to False."
         )
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
     avatar = ThumbnailField()
@@ -716,13 +716,13 @@ class Group(ModelObjectType[models.Group]):
     accessible_channels = NonNullList(
         Channel,
         description="List of channels the group has access to."
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
     restricted_access_to_channels = graphene.Boolean(
         required=True,
         description="Determine if the group have restricted access to channels."
-        + ADDED_IN_313
+        + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
 
