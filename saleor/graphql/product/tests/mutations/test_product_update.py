@@ -278,6 +278,44 @@ def test_update_product_doesnt_clear_description_plaintext_when_no_description(
     assert product.description_plaintext == description_plaintext
 
 
+def test_update_product_seo_fields(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    old_seo_description = "old seo description"
+    product.seo_description = old_seo_description
+    product.seo_title = "old_seo_title"
+    product.save(update_fields=["seo_description", "seo_title"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_seo_title = "new_seo_title"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "seo": {
+                "title": new_seo_title,
+            },
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.seo_description == old_seo_description
+    assert product.seo_title == new_seo_title
+
+
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
 def test_update_product_with_boolean_attribute_value(
     updated_webhook_mock,
