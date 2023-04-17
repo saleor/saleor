@@ -3,7 +3,7 @@ from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
 import graphene
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
@@ -561,9 +561,11 @@ def restock_fulfillment_lines(fulfillment, warehouse):
 
 
 def sum_order_totals(qs, currency_code):
-    zero = Money(0, currency=currency_code)
-    taxed_zero = TaxedMoney(zero, zero)
-    return sum([order.total for order in qs], taxed_zero)
+    totals = qs.aggregate(net=Sum("total_net_amount"), gross=Sum("total_gross_amount"))
+    return TaxedMoney(
+        Money(totals["net"] or 0, currency=currency_code),
+        Money(totals["gross"] or 0, currency=currency_code),
+    )
 
 
 def get_all_shipping_methods_for_order(
