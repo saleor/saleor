@@ -103,7 +103,7 @@ def test_create_product(
     # given
 
     description_json = json.dumps(description_json)
-    metadata_key = ""
+    metadata_key = "md key"
     metadata_value = "md value"
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)

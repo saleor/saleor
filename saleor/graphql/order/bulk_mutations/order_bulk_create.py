@@ -576,14 +576,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order["delivery_method"].get("shipping_tax_class_id")
             )
             keys["Order.number"].append(order.get("number"))
-            for note in order["notes"]:
+            for note in order.get("notes", []):
                 keys["User.id"].append(note.get("user_id"))
                 keys["User.email"].append(note.get("user_email"))
                 keys["User.external_reference"].append(
                     note.get("user_external_reference")
                 )
                 keys["App.id"].append(note.get("app_id"))
-            for order_line in order["lines"]:
+            for order_line in order.get("lines", []):
                 keys["ProductVariant.id"].append(order_line.get("variant_id"))
                 keys["ProductVariant.sku"].append(order_line.get("variant_sku"))
                 keys["ProductVariant.external_reference"].append(
@@ -591,7 +591,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 keys["Warehouse.id"].append(order_line.get("warehouse"))
                 keys["TaxClass.id"].append(order_line.get("tax_class_id"))
-            for fulfillment in order["fulfillments"]:
+            for fulfillment in order.get("fulfillments", []):
                 for line in fulfillment["lines"]:
                     keys["ProductVariant.id"].append(line.get("variant_id"))
                     keys["ProductVariant.sku"].append(line.get("variant_sku"))
@@ -599,7 +599,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         line.get("variant_external_reference")
                     )
                     keys["Warehouse.id"].append(line.get("warehouse"))
-            for gift_card_code in order["gift_cards"]:
+            for gift_card_code in order.get("gift_cards", []):
                 keys["GiftCard.code"].append(gift_card_code)
 
         # Convert global ids to model ids and get rid of Nones
