@@ -1,4 +1,5 @@
 import graphene
+from django.utils.functional import LazyObject
 from promise import Promise
 
 from ...checkout import calculations, models
@@ -7,6 +8,7 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_unit_price,
 )
 from ...checkout.utils import get_valid_collection_points_for_checkout
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -506,6 +508,7 @@ class Checkout(ModelObjectType):
                 delivery_method, ShippingMethodData
             ):
                 return
+            assert isinstance(delivery_method, LazyObject) is False  # TODO: drop
             return delivery_method
 
         return (
@@ -521,7 +524,7 @@ class Checkout(ModelObjectType):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
-            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+            .then(lambda checkout_info: unwrap_lazy(checkout_info.all_shipping_methods))
         )
 
     @staticmethod
@@ -530,7 +533,9 @@ class Checkout(ModelObjectType):
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
             .then(
-                lambda checkout_info: checkout_info.delivery_method_info.delivery_method
+                lambda checkout_info: unwrap_lazy(
+                    checkout_info.delivery_method_info
+                ).delivery_method
             )
         )
 
