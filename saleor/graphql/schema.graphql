@@ -20029,6 +20029,13 @@ type ProductVariantBulkError @doc(category: "Products") {
   """The error code."""
   code: ProductVariantBulkErrorCode!
 
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  
+  Added in Saleor 3.14.
+  """
+  path: String
+
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
 

@@ -176,7 +176,9 @@ class ProductVariantBulkUpdate(BaseMutation):
         currency_code,
         channel_id,
         variant_index,
+        listing_index,
         index_error_map,
+        path_prefix="channelListings.update",
     ):
         clean_price(
             price,
@@ -184,8 +186,10 @@ class ProductVariantBulkUpdate(BaseMutation):
             currency_code,
             channel_id,
             variant_index,
+            listing_index,
             None,
             index_error_map,
+            path_prefix,
         )
         clean_price(
             cost_price,
@@ -193,8 +197,10 @@ class ProductVariantBulkUpdate(BaseMutation):
             currency_code,
             channel_id,
             variant_index,
+            listing_index,
             None,
             index_error_map,
+            path_prefix,
         )
 
     @classmethod
@@ -206,8 +212,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_index,
         index_error_map,
     ):
-        wrong_listings_ids: list = []
-
         if listings_data := cleaned_input["channel_listings"].get("create"):
             cleaned_input["channel_listings"][
                 "create"
@@ -217,14 +221,22 @@ class ProductVariantBulkUpdate(BaseMutation):
                 None,
                 variant_index,
                 index_error_map,
+                "channelListings.create",
             )
         if listings_data := cleaned_input["channel_listings"].get("update"):
             listings_to_update = []
-            for listing_data in listings_data:
+            for index, listing_data in enumerate(listings_data):
                 listing_id = listing_data["channel_listing"]
-
                 if listing_id not in listings_global_id_to_instance_map.keys():
-                    wrong_listings_ids.append(listing_id)
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="channelListing",
+                            path=f"channelListings.update.{index}.channelListing",
+                            message="Channel listing was not found.",
+                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                            channel_listings=[listing_id],
+                        )
+                    )
                     continue
 
                 channel_listing = listings_global_id_to_instance_map[listing_id]
@@ -240,6 +252,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                     currency_code,
                     channel_id,
                     variant_index,
+                    index,
                     index_error_map,
                 )
 
@@ -252,23 +265,20 @@ class ProductVariantBulkUpdate(BaseMutation):
 
         if listings_ids := cleaned_input["channel_listings"].get("remove"):
             listings_to_remove = []
-            for listing_id in listings_ids:
+            for index, listing_id in enumerate(listings_ids):
                 if listing_id not in listings_global_id_to_instance_map.keys():
-                    wrong_listings_ids.append(listing_id)
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            path=f"channelListings.remove.{index}",
+                            message="Channel listing was not found.",
+                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                            channel_listings=[listing_id],
+                        )
+                    )
                     continue
 
                 listings_to_remove.append(graphene.Node.from_global_id(listing_id)[1])
             cleaned_input["channel_listings"]["remove"] = listings_to_remove
-
-        if wrong_listings_ids:
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="channelListing",
-                    message="Channel listing was not found.",
-                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                    channel_listings=[wrong_listings_ids],
-                )
-            )
 
     @classmethod
     def clean_stocks(
@@ -279,8 +289,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_index,
         index_error_map,
     ):
-        wrong_stocks_ids: list = []
-
         if stocks_data := cleaned_input["stocks"].get("create"):
             cleaned_input["stocks"]["create"] = ProductVariantBulkCreate.clean_stocks(
                 stocks_data,
@@ -288,14 +296,23 @@ class ProductVariantBulkUpdate(BaseMutation):
                 None,
                 variant_index,
                 index_error_map,
+                "stocks.create",
             )
 
         if stocks_data := cleaned_input["stocks"].get("update"):
             stocks_to_update = []
-            for stock_data in stocks_data:
+            for stock_index, stock_data in enumerate(stocks_data):
                 stock_id = stock_data["stock"]
                 if stock_id not in stock_global_id_to_instance_map.keys():
-                    wrong_stocks_ids.append(stock_id)
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="stock",
+                            path=f"stocks.update.{stock_index}.stock",
+                            message="Stock was not found.",
+                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                            stocks=[stock_id],
+                        )
+                    )
                     continue
 
                 stock_data["stock"] = stock_global_id_to_instance_map[stock_id]
@@ -306,22 +323,20 @@ class ProductVariantBulkUpdate(BaseMutation):
 
         if stocks_ids := cleaned_input["stocks"].get("remove"):
             stocks_to_remove = []
-            for stock_id in stocks_ids:
+            for stock_index, stock_id in enumerate(stocks_ids):
                 if stock_id not in stock_global_id_to_instance_map.keys():
-                    wrong_stocks_ids.append(stock_id)
+                    index_error_map[variant_index].append(
+                        ProductVariantBulkError(
+                            field="stock",
+                            path=f"stocks.remove.{stock_index}",
+                            message="Stock was not found.",
+                            code=ProductVariantBulkErrorCode.NOT_FOUND.value,
+                            stocks=[stock_id],
+                        )
+                    )
                     continue
                 stocks_to_remove.append(graphene.Node.from_global_id(stock_id)[1])
             cleaned_input["stocks"]["remove"] = stocks_to_remove
-
-        if wrong_stocks_ids:
-            index_error_map[variant_index].append(
-                ProductVariantBulkError(
-                    field="stock",
-                    message="Stock was not found.",
-                    code=ProductVariantBulkErrorCode.NOT_FOUND.value,
-                    stocks=[wrong_stocks_ids],
-                )
-            )
 
     @classmethod
     def clean_variant(
@@ -452,7 +467,10 @@ class ProductVariantBulkUpdate(BaseMutation):
                 message = f"Variant #{variant_id} does not exist."
                 index_error_map[index].append(
                     ProductVariantBulkError(
-                        field="id", message=message, code=ProductErrorCode.INVALID
+                        field="id",
+                        pth="id",
+                        message=message,
+                        code=ProductErrorCode.INVALID,
                     )
                 )
                 continue

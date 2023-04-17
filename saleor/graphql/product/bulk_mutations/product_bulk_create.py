@@ -488,8 +488,8 @@ class ProductBulkCreate(BaseMutation):
             for error in errors:
                 index_error_map[product_index].append(
                     ProductBulkCreateError(
-                        path=f"variants.{index}.{error.field}"
-                        if error.field
+                        path=f"variants.{index}.{error.path}"
+                        if error.path
                         else f"variants.{index}",
                         message=error.message,
                         code=error.code,

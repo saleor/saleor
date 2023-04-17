@@ -19,6 +19,7 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
                 results{
                     errors {
                         field
+                        path
                         message
                         code
                         warehouses
@@ -300,6 +301,7 @@ def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
     assert data["count"] == 0
     error = data["results"][0]["errors"][0]
     assert error["field"] == "warehouses"
+    assert error["path"] == "stocks.create.0.warehouse"
     assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
     assert error["warehouses"] == [not_existing_warehouse_id]
 
@@ -472,6 +474,7 @@ def test_product_variant_bulk_update_channel_listings_with_invalid_price(
     assert not data["results"][0]["productVariant"]
     error = data["results"][0]["errors"][0]
     assert error["field"] == "price"
+    assert error["path"] == "channelListings.update.0.price"
     assert error["code"] == ProductVariantBulkErrorCode.INVALID_PRICE.name
 
 

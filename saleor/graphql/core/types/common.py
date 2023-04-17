@@ -25,7 +25,12 @@ from ...core.doc_category import (
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
-from ..descriptions import ADDED_IN_36, ADDED_IN_312, DEPRECATED_IN_3X_FIELD
+from ..descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_312,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+)
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
@@ -456,6 +461,13 @@ class ProductBulkCreateError(BulkError):
 
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
+    path = graphene.String(
+        description=(
+            "Path to field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field." + ADDED_IN_314
+        ),
+        required=False,
+    )
     attributes = NonNullList(
         graphene.ID,
         description="List of attributes IDs which causes the error.",
