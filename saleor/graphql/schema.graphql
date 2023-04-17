@@ -22479,6 +22479,12 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
 
+  """Metadata of the order line."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order line."""
+  privateMetadata: [MetadataInput!]
+
   """Tax rate of the order line."""
   taxRate: PositiveDecimal
 

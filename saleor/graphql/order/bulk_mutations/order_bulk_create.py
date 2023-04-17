@@ -403,6 +403,10 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
         required=True,
         description="The ID of the warehouse, where the line will be allocated.",
     )
+    metadata = NonNullList(MetadataInput, description="Metadata of the order line.")
+    private_metadata = NonNullList(
+        MetadataInput, description="Private metadata of the order line."
+    )
     tax_rate = PositiveDecimal(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
@@ -542,6 +546,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         permissions = (OrderPermissions.MANAGE_ORDERS_IMPORT,)
         doc_category = DOC_CATEGORY_ORDERS
         error_type_class = OrderBulkCreateError
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def get_all_instances(cls, orders_input) -> Dict[str, Any]:
@@ -784,6 +790,26 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 int_numbers.append(curr_number)
                 max_number = max(int_numbers)
                 cursor.execute(f"SELECT setval('order_order_number_seq', {max_number})")
+
+    @classmethod
+    def process_metadata(
+        cls,
+        metadata: List[Dict[str, str]],
+        errors: List[OrderBulkError],
+        path: str,
+        field: Any,
+    ):
+        if metadata_contains_empty_key(metadata):
+            errors.append(
+                OrderBulkError(
+                    message="Metadata key cannot be empty.",
+                    path=path,
+                    code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
+                )
+            )
+            metadata = [data for data in metadata if data["key"].strip() != ""]
+        for data in metadata:
+            field.update({data["key"]: data["value"]})
 
     @classmethod
     def get_instance_with_errors(
@@ -1107,29 +1133,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 object_storage=object_storage,
                 path="delivery_method",
             )
-            if shipping_tax_class_metadata := input.get("shipping_tax_class_metadata"):
-                if metadata_contains_empty_key(shipping_tax_class_metadata):
-                    errors.append(
-                        OrderBulkError(
-                            message="Metadata key cannot be empty.",
-                            path="delivery_method.shipping_tax_class_metadata",
-                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                        )
-                    )
-                    shipping_tax_class_metadata = []
-
-            if shipping_tax_class_private_metadata := input.get(
+            shipping_tax_class_metadata = input.get("shipping_tax_class_metadata")
+            shipping_tax_class_private_metadata = input.get(
                 "shipping_tax_class_private_metadata"
-            ):
-                if metadata_contains_empty_key(shipping_tax_class_private_metadata):
-                    errors.append(
-                        OrderBulkError(
-                            message="Private metadata key cannot be empty.",
-                            path="delivery_method.shipping_tax_class_private_metadata",
-                            code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                        )
-                    )
-                    shipping_tax_class_private_metadata = []
+            )
 
         delivery_method = None
         if not warehouse and not shipping_method:
@@ -1295,29 +1302,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         )
 
         if metadata := invoice_input.get("metadata"):
-            if metadata_contains_empty_key(metadata):
-                order.errors.append(
-                    OrderBulkError(
-                        message="Metadata key cannot be empty.",
-                        path=f"invoices.[{index}].metadata",
-                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                    )
-                )
-            else:
-                for data in metadata:
-                    invoice.metadata.update({data["key"]: data["value"]})
+            cls.process_metadata(
+                metadata=metadata,
+                errors=order.errors,
+                path=f"invoices.[{index}].metadata",
+                field=invoice.metadata,
+            )
         if private_metadata := invoice_input.get("private_metadata"):
-            if metadata_contains_empty_key(private_metadata):
-                order.errors.append(
-                    OrderBulkError(
-                        message="Private metadata key cannot be empty.",
-                        path=f"invoices.[{index}].private_metadata",
-                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                    )
-                )
-            else:
-                for data in private_metadata:
-                    invoice.private_metadata.update({data["key"]: data["value"]})
+            cls.process_metadata(
+                metadata=private_metadata,
+                errors=order.errors,
+                path=f"invoices.[{index}].private_metadata",
+                field=invoice.private_metadata,
+            )
 
         return invoice
 
@@ -1409,33 +1406,36 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             tax_class_name=tax_class_name,
         )
 
-        if metadata := order_line_input.get("tax_class_metadata"):
-            if metadata_contains_empty_key(metadata):
-                order.errors.append(
-                    OrderBulkError(
-                        message="Metadata key cannot be empty.",
-                        path=f"lines.[{index}].tax_class_metadata",
-                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                    )
-                )
-            else:
-                for data in metadata:
-                    order_line.tax_class_metadata.update({data["key"]: data["value"]})
-
-        if private_metadata := order_line_input.get("tax_class_private_metadata"):
-            if metadata_contains_empty_key(private_metadata):
-                order.errors.append(
-                    OrderBulkError(
-                        message="Private metadata key cannot be empty.",
-                        path=f"lines.[{index}].tax_class_private_metadata",
-                        code=OrderBulkCreateErrorCode.METADATA_KEY_REQUIRED,
-                    )
-                )
-            else:
-                for data in private_metadata:
-                    order_line.tax_class_private_metadata.update(
-                        {data["key"]: data["value"]}
-                    )
+        if metadata := order_line_input.get("metadata"):
+            cls.process_metadata(
+                metadata=metadata,
+                errors=order.errors,
+                path=f"lines.[{index}].metadata",
+                field=order_line.metadata,
+            )
+        if private_metadata := order_line_input.get("private_metadata"):
+            cls.process_metadata(
+                metadata=private_metadata,
+                errors=order.errors,
+                path=f"lines.[{index}].private_metadata",
+                field=order_line.private_metadata,
+            )
+        if tax_class_metadata := order_line_input.get("tax_class_metadata"):
+            cls.process_metadata(
+                metadata=tax_class_metadata,
+                errors=order.errors,
+                path=f"lines.[{index}].tax_class_metadata",
+                field=order_line.tax_class_metadata,
+            )
+        if tax_class_private_metadata := order_line_input.get(
+            "tax_class_private_metadata"
+        ):
+            cls.process_metadata(
+                metadata=tax_class_private_metadata,
+                errors=order.errors,
+                path=f"lines.[{index}].tax_class_private_metadata",
+                field=order_line.tax_class_private_metadata,
+            )
 
         return OrderBulkOrderLine(line=order_line, warehouse=warehouse)
 
@@ -1721,16 +1721,35 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order.order.voucher = order.voucher
         update_order_display_gross_prices(order.order)
 
-        if metadata := delivery_method.shipping_tax_class_metadata:
-            for data in metadata:
-                order.order.shipping_tax_class_metadata.update(
-                    {data["key"]: data["value"]}
-                )
-        if private_metadata := delivery_method.shipping_tax_class_private_metadata:
-            for data in private_metadata:
-                order.order.shipping_tax_class_private_metadata.update(
-                    {data["key"]: data["value"]}
-                )
+        if metadata := order_input.get("metadata"):
+            cls.process_metadata(
+                metadata=metadata,
+                errors=order.errors,
+                path="metadata",
+                field=order.order.metadata,
+            )
+        if private_metadata := order_input.get("private_metadata"):
+            cls.process_metadata(
+                metadata=private_metadata,
+                errors=order.errors,
+                path="private_metadata",
+                field=order.order.private_metadata,
+            )
+        if shipping_metadata := delivery_method.shipping_tax_class_metadata:
+            cls.process_metadata(
+                metadata=shipping_metadata,
+                errors=order.errors,
+                path="delivery_method.shipping_tax_class_metadata",
+                field=order.order.shipping_tax_class_metadata,
+            )
+        shipping_private_metadata = delivery_method.shipping_tax_class_private_metadata
+        if shipping_private_metadata:
+            cls.process_metadata(
+                metadata=shipping_private_metadata,
+                errors=order.errors,
+                path="delivery_method.shipping_tax_class_private_metadata",
+                field=order.order.shipping_tax_class_private_metadata,
+            )
 
         return order
 

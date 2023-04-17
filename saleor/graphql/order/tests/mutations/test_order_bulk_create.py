@@ -51,6 +51,14 @@ ORDER_BULK_CREATE = """
                         id
                         email
                     }
+                    metadata {
+                        key
+                        value
+                    }
+                    privateMetadata {
+                        key
+                        value
+                    }
                     lines {
                         id
                         variant {
@@ -87,6 +95,14 @@ ORDER_BULK_CREATE = """
                             net {
                                 amount
                             }
+                        }
+                        metadata {
+                            key
+                            value
+                        }
+                        privateMetadata {
+                            key
+                            value
                         }
                         taxClass {
                             id
@@ -285,6 +301,8 @@ def order_bulk_input(
             "net": 100,
         },
         "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+        "metadata": [{"key": "md key", "value": "md value"}],
+        "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
         "taxRate": 0.2,
         "taxClassId": graphene.Node.to_global_id("TaxClass", default_tax_class.id),
         "taxClassName": "Line Tax Class Name",
@@ -356,6 +374,8 @@ def order_bulk_input(
         "discounts": [discount],
         "giftCards": ["never_expiry"],
         "voucher": "mirumee",
+        "metadata": [{"key": "md key", "value": "md value"}],
+        "privateMetadata": [{"key": "pmd key", "value": "pmd value"}],
     }
 
 
@@ -479,6 +499,7 @@ def test_order_bulk_create(
     assert order["externalReference"] == "ext-ref-1"
     assert order["channel"]["slug"] == channel_PLN.slug
     assert order["created"]
+    assert order["number"] == "order-1"
     assert order["status"] == OrderStatus.DRAFT.upper()
     assert order["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert order["languageCode"] == "pl"
@@ -500,6 +521,10 @@ def test_order_bulk_create(
     assert order["weight"]["value"] == 10.15
     assert order["trackingClientId"] == "tracking-id-123"
     assert order["displayGrossPrices"]
+    assert order["metadata"][0]["key"] == "md key"
+    assert order["metadata"][0]["value"] == "md value"
+    assert order["privateMetadata"][0]["key"] == "pmd key"
+    assert order["privateMetadata"][0]["value"] == "pmd value"
     db_order = Order.objects.get()
     assert db_order.external_reference == "ext-ref-1"
     assert db_order.channel.slug == channel_PLN.slug
@@ -531,6 +556,8 @@ def test_order_bulk_create(
     assert db_order.gift_cards.first().code == "never_expiry"
     assert db_order.voucher.code == "mirumee"
     assert db_order.number == "order-1"
+    assert db_order.metadata["md key"] == "md value"
+    assert db_order.private_metadata["pmd key"] == "pmd value"
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
@@ -549,6 +576,10 @@ def test_order_bulk_create(
     assert order_line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
     assert order_line["totalPrice"]["gross"]["amount"] == 120
     assert order_line["totalPrice"]["net"]["amount"] == 100
+    assert order_line["metadata"][0]["key"] == "md key"
+    assert order_line["metadata"][0]["value"] == "md value"
+    assert order_line["privateMetadata"][0]["key"] == "pmd key"
+    assert order_line["privateMetadata"][0]["value"] == "pmd value"
     assert order_line["taxClass"]["id"] == graphene.Node.to_global_id(
         "TaxClass", default_tax_class.id
     )
@@ -575,6 +606,8 @@ def test_order_bulk_create(
     assert db_order_line.total_price.net.amount == 100
     assert db_order_line.undiscounted_total_price.gross.amount == 120
     assert db_order_line.undiscounted_total_price.net.amount == 100
+    assert db_order_line.metadata["md key"] == "md value"
+    assert db_order_line.private_metadata["pmd key"] == "pmd value"
     assert db_order_line.tax_class == default_tax_class
     assert db_order_line.tax_class_name == "Line Tax Class Name"
     assert db_order_line.tax_rate == Decimal("0.2")
