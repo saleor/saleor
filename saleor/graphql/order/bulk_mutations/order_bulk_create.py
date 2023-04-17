@@ -936,7 +936,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkError(
                         message=f"Gift card with code {code} doesn't exist.",
                         code=OrderBulkCreateErrorCode.NOT_FOUND,
-                        path=f"gift_cards.[{code_index}]",
+                        path=f"gift_cards.{code_index}",
                     )
                 )
 
@@ -968,7 +968,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="Invalid quantity. "
                     "Must be integer greater then or equal to 1.",
-                    path=f"lines.[{index}].quantity",
+                    path=f"lines.{index}.quantity",
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
@@ -977,7 +977,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    path=f"lines.[{index}].total_price",
+                    path=f"lines.{index}.total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -986,7 +986,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
-                    path=f"lines.[{index}].undiscounted_total_price",
+                    path=f"lines.{index}.undiscounted_total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
@@ -1113,7 +1113,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=Warehouse,
                 key_map={"warehouse_id": "id"},
                 object_storage=object_storage,
-                path="delivery_method",
+                path="delivery_method.warehouse_id",
             )
 
         if is_shipping_delivery:
@@ -1123,7 +1123,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=ShippingMethod,
                 key_map={"shipping_method_id": "id"},
                 object_storage=object_storage,
-                path="delivery_method",
+                path="delivery_method.shipping_method_id",
             )
             shipping_tax_class = cls.get_instance_with_errors(
                 input=input,
@@ -1131,7 +1131,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=TaxClass,
                 key_map={"shipping_tax_class_id": "id"},
                 object_storage=object_storage,
-                path="delivery_method",
+                path="delivery_method.shipping_tax_class_id",
             )
             shipping_tax_class_metadata = input.get("shipping_tax_class_metadata")
             shipping_tax_class_private_metadata = input.get(
@@ -1170,7 +1170,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order.errors.append(
                 OrderBulkError(
                     message=f"Note message exceeds character limit: {MAX_NOTE_LENGTH}.",
-                    path=f"notes.[{index}].message",
+                    path=f"notes.{index}.message",
                     code=OrderBulkCreateErrorCode.NOTE_LENGTH,
                 )
             )
@@ -1181,7 +1181,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order.errors.append(
                 OrderBulkError(
                     message="Note input contains future date.",
-                    path=f"notes.[{index}].date",
+                    path=f"notes.{index}.date",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
@@ -1200,7 +1200,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=User,
                 key_map=user_key_map,
                 object_storage=object_storage,
-                path=f"notes.[{index}]",
+                path=f"notes.{index}",
             )
 
         if note_input.get("app_id"):
@@ -1210,7 +1210,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 model=App,
                 key_map={"app_id": "id"},
                 object_storage=object_storage,
-                path=f"notes.[{index}]",
+                path=f"notes.{index}",
             )
 
         if user and app:
@@ -1219,7 +1219,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 OrderBulkError(
                     message="Note input contains both user and app identifier.",
                     code=OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS,
-                    path=f"notes.[{index}]",
+                    path=f"notes.{index}",
                 )
             )
 
@@ -1250,7 +1250,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order.errors.append(
                 OrderBulkError(
                     message=err.messages[0],
-                    path=f"discounts.[{index}]",
+                    path=f"discounts.{index}",
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
@@ -1274,7 +1274,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order.errors.append(
                 OrderBulkError(
                     message="Invoice input contains future date.",
-                    path=f"invoices.[{index}].created_at",
+                    path=f"invoices.{index}.created_at",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
@@ -1287,7 +1287,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 order.errors.append(
                     OrderBulkError(
                         message="Invalid URL format.",
-                        path=f"invoices.[{index}].url",
+                        path=f"invoices.{index}.url",
                         code=OrderBulkCreateErrorCode.INVALID,
                     )
                 )
@@ -1305,14 +1305,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             cls.process_metadata(
                 metadata=metadata,
                 errors=order.errors,
-                path=f"invoices.[{index}].metadata",
+                path=f"invoices.{index}.metadata",
                 field=invoice.metadata,
             )
         if private_metadata := invoice_input.get("private_metadata"):
             cls.process_metadata(
                 metadata=private_metadata,
                 errors=order.errors,
-                path=f"invoices.[{index}].private_metadata",
+                path=f"invoices.{index}.private_metadata",
                 field=invoice.private_metadata,
             )
 
@@ -1337,7 +1337,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "variant_sku": "sku",
             },
             object_storage=object_storage,
-            path=f"lines.[{index}]",
+            path=f"lines.{index}",
         )
         if not variant:
             return None
@@ -1348,7 +1348,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=Warehouse,
             key_map={"warehouse": "id"},
             object_storage=object_storage,
-            path=f"lines.[{index}]",
+            path=f"lines.{index}",
         )
         if not warehouse:
             return None
@@ -1359,7 +1359,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             model=TaxClass,
             key_map={"tax_class_id": "id"},
             object_storage=object_storage,
-            path=f"lines.[{index}]",
+            path=f"lines.{index}",
         )
         tax_class_name = order_line_input.get(
             "tax_class_name", line_tax_class.name if line_tax_class else None
@@ -1375,7 +1375,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order.errors.append(
                 OrderBulkError(
                     message="Order line input contains future date.",
-                    path=f"lines.[{index}].created_at",
+                    path=f"lines.{index}.created_at",
                     code=OrderBulkCreateErrorCode.FUTURE_DATE,
                 )
             )
@@ -1410,21 +1410,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             cls.process_metadata(
                 metadata=metadata,
                 errors=order.errors,
-                path=f"lines.[{index}].metadata",
+                path=f"lines.{index}.metadata",
                 field=order_line.metadata,
             )
         if private_metadata := order_line_input.get("private_metadata"):
             cls.process_metadata(
                 metadata=private_metadata,
                 errors=order.errors,
-                path=f"lines.[{index}].private_metadata",
+                path=f"lines.{index}.private_metadata",
                 field=order_line.private_metadata,
             )
         if tax_class_metadata := order_line_input.get("tax_class_metadata"):
             cls.process_metadata(
                 metadata=tax_class_metadata,
                 errors=order.errors,
-                path=f"lines.[{index}].tax_class_metadata",
+                path=f"lines.{index}.tax_class_metadata",
                 field=order_line.tax_class_metadata,
             )
         if tax_class_private_metadata := order_line_input.get(
@@ -1433,7 +1433,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             cls.process_metadata(
                 metadata=tax_class_private_metadata,
                 errors=order.errors,
-                path=f"lines.[{index}].tax_class_private_metadata",
+                path=f"lines.{index}.tax_class_private_metadata",
                 field=order_line.tax_class_private_metadata,
             )
 
@@ -1459,7 +1459,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         lines: List[OrderBulkFulfillmentLine] = []
         line_index = 0
         for line_input in lines_input:
-            path = f"fulfillments.[{index}].lines.[{line_index}]"
+            path = f"fulfillments.{index}.lines.{line_index}"
             variant = cls.get_instance_with_errors(
                 input=line_input,
                 errors=order.errors,
@@ -1645,7 +1645,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         order.errors.append(
                             OrderBulkError(
                                 message=message,
-                                path=f"transactions.[{transaction_index}]",
+                                path=f"transactions.{transaction_index}",
                                 code=OrderBulkCreateErrorCode(code),
                             )
                         )
@@ -1793,7 +1793,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             message=f"There is more fulfillments, than ordered quantity"
                             f" for order line with variant: {variant_id} and warehouse:"
                             f" {warehouse}",
-                            path=f"lines.[{line_index}]",
+                            path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                         )
                     )
@@ -1807,7 +1807,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             message=f"There is no stock for given product variant:"
                             f" {variant_id} and warehouse: "
                             f"{warehouse}.",
-                            path=f"lines.[{line_index}]",
+                            path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
                         )
                     )
@@ -1824,7 +1824,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                             message=f"Insufficient stock for product variant: "
                             f"{variant_id} and warehouse: "
                             f"{warehouse}.",
-                            path=f"lines.[{line_index}]",
+                            path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
                         )
                     )
