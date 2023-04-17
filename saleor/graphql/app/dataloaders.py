@@ -3,10 +3,12 @@ from functools import partial, wraps
 from typing import Optional
 
 from django.contrib.auth.hashers import check_password
+from django.utils.functional import LazyObject
 from promise import Promise
 
 from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
+from ...core.utils.lazyobjects import unwrap_lazy
 from ..core import SaleorContext
 from ..core.dataloaders import DataLoader
 
@@ -83,7 +85,10 @@ def promise_app(context: SaleorContext) -> Promise[Optional[App]]:
 
 def get_app_promise(context: SaleorContext) -> Promise[Optional[App]]:
     if hasattr(context, "app"):
-        return Promise.resolve(context.app)
+        app = context.app
+        if isinstance(app, LazyObject):
+            app = unwrap_lazy(app)
+        return Promise.resolve(app)
 
     return promise_app(context)
 
