@@ -41,6 +41,7 @@ PERMISSION_GROUP_CREATE_MUTATION = """
                 permissions
                 users
                 message
+                channels
             }
         }
     }
@@ -51,16 +52,17 @@ def test_permission_group_create_mutation(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "input": {
-            "name": "New permission group",
+            "name": name,
             "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AppPermission.MANAGE_APPS.name,
@@ -77,7 +79,7 @@ def test_permission_group_create_mutation(
     data = content["data"]["permissionGroupCreate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert permission_group_data["name"] == group.name == variables["input"]["name"]
     assert permission_group_data["restrictedAccessToChannels"] is False
     assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
@@ -112,8 +114,8 @@ def test_permission_group_create_mutation_trigger_webhook(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     settings,
 ):
     # given
@@ -121,7 +123,7 @@ def test_permission_group_create_mutation_trigger_webhook(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
@@ -170,11 +172,11 @@ def test_permission_group_create_app_no_permission(
     staff_users,
     permission_manage_staff,
     app_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
@@ -196,18 +198,62 @@ def test_permission_group_create_app_no_permission(
     assert_no_permission(response)
 
 
+def test_permission_group_create_no_channel_access(
+    staff_users,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    staff_user = staff_users[0]
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_user)
+    query = PERMISSION_GROUP_CREATE_MUTATION
+    channel_PLN_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    channel_USD_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            "restrictedAccessToChannels": True,
+            "addPermissions": [
+                AccountPermissions.MANAGE_USERS.name,
+                AppPermission.MANAGE_APPS.name,
+            ],
+            "addUsers": [
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
+            ],
+            "addChannels": [channel_PLN_id, channel_USD_id],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "addChannels"
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
+    assert errors[0]["channels"] == [channel_PLN_id]
+
+
 def test_permission_group_create_mutation_only_required_fields(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
 
-    variables = {"input": {"name": "New permission group"}}
+    variables = {"input": {"name": name}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -215,7 +261,7 @@ def test_permission_group_create_mutation_only_required_fields(
     data = content["data"]["permissionGroupCreate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert permission_group_data["name"] == group.name == variables["input"]["name"]
     assert permission_group_data["permissions"] == []
     assert not group.permissions.all()
@@ -227,16 +273,17 @@ def test_permission_group_create_mutation_only_required_fields_not_none(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "input": {
-            "name": "New permission group",
+            "name": name,
             "addUsers": None,
             "addPermissions": None,
         }
@@ -248,7 +295,7 @@ def test_permission_group_create_mutation_only_required_fields_not_none(
     data = content["data"]["permissionGroupCreate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert permission_group_data["name"] == group.name == variables["input"]["name"]
     assert permission_group_data["permissions"] == []
     assert not group.permissions.all()
@@ -261,17 +308,19 @@ def test_permission_group_create_mutation_lack_of_permission(
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
+    permission_group_all_perms_all_channels,
 ):
     """Ensue staff user can't create group with wider scope of permissions.
     Ensure that superuser pass restrictions.
     """
-    staff_user.user_permissions.add(permission_manage_orders)
+    staff_user.groups.add(permission_group_manage_orders)
     query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "input": {
-            "name": "New permission group",
+            "name": name,
             "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 OrderPermissions.MANAGE_ORDERS.name,
@@ -304,7 +353,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     errors = data["errors"]
 
     assert not errors
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert data["group"]["name"] == group.name == variables["input"]["name"]
     permissions_codes = {
         permission["code"].lower() for permission in data["group"]["permissions"]
@@ -321,10 +370,9 @@ def test_permission_group_create_mutation_group_exists(
     permission_manage_staff,
     staff_api_client,
     permission_group_manage_users,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_apps,
 ):
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
@@ -359,8 +407,9 @@ def test_permission_group_create_mutation_add_customer_user(
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
+    permission_group_all_perms_all_channels,
 ):
     """Ensure creating permission group with customer user in input field for adding
     users failed. Mutations should failed. Error should contains list of wrong users
@@ -372,7 +421,7 @@ def test_permission_group_create_mutation_add_customer_user(
         email="second_customer@test.com", password="test"
     )
 
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     user_ids = [
@@ -426,9 +475,9 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     customer_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
+    permission_group_manage_users,
 ):
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     user_ids = [
@@ -471,15 +520,14 @@ def test_permission_group_create_mutation_requestor_does_not_have_all_users_perm
     permission_group_manage_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_apps,
 ):
     """Ensure user can create group with user whose permission scope
     is wider than requestor scope.
     """
 
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_apps)
     permission_group_manage_users.user_set.add(staff_users[1])
     query = PERMISSION_GROUP_CREATE_MUTATION
 
@@ -524,14 +572,14 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     channel_PLN,
     channel_USD,
 ):
     # given
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
@@ -561,19 +609,20 @@ def test_permission_group_create_mutation_restricted_access_to_channels(
 def test_permission_group_create_mutation_not_restricted_channels(
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_no_perms_all_channels,
     channel_PLN,
     channel_USD,
 ):
     """Ensure that creating permission group with restrictedAccessToChannels se to
     False won't assign any channels to the group."""
     # given
+    permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
     query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "input": {
-            "name": "New permission group",
+            "name": name,
             "restrictedAccessToChannels": False,
             "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
         }
@@ -592,8 +641,43 @@ def test_permission_group_create_mutation_not_restricted_channels(
     assert data["errors"] == []
     assert permission_group_data["restrictedAccessToChannels"] is False
     assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert group.channels.count() == 0
+
+
+def test_permission_group_create_mutation_not_restricted_channels_no_access(
+    permission_manage_staff,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+    channel_USD,
+):
+    """Ensure that user with restricted channel access is not able to create a group
+    with not restricted channel access."""
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    query = PERMISSION_GROUP_CREATE_MUTATION
+    name = "New permission group"
+
+    variables = {
+        "input": {
+            "name": name,
+            "restrictedAccessToChannels": False,
+            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["errors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "restrictedAccessToChannels"
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
 
 
 PERMISSION_GROUP_UPDATE_MUTATION = """
@@ -632,16 +716,17 @@ PERMISSION_GROUP_UPDATE_MUTATION = """
 
 def test_permission_group_update_mutation(
     staff_users,
-    permission_manage_staff,
     staff_api_client,
-    permission_manage_apps,
+    permission_group_manage_apps,
+    permission_group_manage_users,
     permission_manage_users,
+    permission_manage_staff,
     channel_PLN,
     channel_USD,
 ):
     # given
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
     group1, group2 = Group.objects.bulk_create(
@@ -717,9 +802,10 @@ def test_permission_group_update_mutation_trigger_webhook(
     any_webhook,
     staff_users,
     permission_manage_staff,
-    staff_api_client,
-    permission_manage_apps,
     permission_manage_users,
+    staff_api_client,
+    permission_group_manage_apps,
+    permission_group_manage_users,
     settings,
 ):
     # given
@@ -727,7 +813,7 @@ def test_permission_group_update_mutation_trigger_webhook(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
     group1, group2 = Group.objects.bulk_create(
@@ -779,6 +865,48 @@ def test_permission_group_update_mutation_trigger_webhook(
 
 
 def test_permission_group_update_mutation_to_not_restricted_channels(
+    permission_group_no_perms_all_channels,
+    permission_group_all_perms_channel_USD_only,
+    staff_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    staff_user = staff_api_client.user
+    group = permission_group_all_perms_channel_USD_only
+    staff_user.groups.add(
+        permission_group_no_perms_all_channels,
+        permission_group_all_perms_channel_USD_only,
+    )
+
+    assert group.channels.count() > 0
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {
+            "name": "New permission group",
+            "restrictedAccessToChannels": False,
+            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    permission_group_data = data["group"]
+    assert data["errors"] == []
+    assert permission_group_data["restrictedAccessToChannels"] is False
+    assert len(permission_group_data["accessibleChannels"]) == Channel.objects.count()
+    group.refresh_from_db()
+    assert group.channels.count() == 0
+
+
+def test_permission_group_update_mutation_to_not_restricted_channels_no_access(
     permission_group_all_perms_channel_USD_only,
     staff_api_client,
     channel_PLN,
@@ -802,6 +930,42 @@ def test_permission_group_update_mutation_to_not_restricted_channels(
 
     # when
     response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    assert not data["group"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "restrictedAccessToChannels"
+    assert (
+        data["errors"][0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
+    )
+
+
+def test_permission_group_update_mutation_to_not_restricted_channels_superuser(
+    permission_group_all_perms_channel_USD_only,
+    superuser_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    group = permission_group_all_perms_channel_USD_only
+
+    assert group.channels.count() > 0
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {
+            "name": "New permission group",
+            "restrictedAccessToChannels": False,
+            "addChannels": [graphene.Node.to_global_id("Channel", channel_PLN.pk)],
+        },
+    }
+
+    # when
+    response = superuser_api_client.post_graphql(
         PERMISSION_GROUP_UPDATE_MUTATION, variables
     )
 
@@ -852,16 +1016,88 @@ def test_permission_group_update_mutation_not_restricted_channels(
     assert group.channels.count() == 0
 
 
+def test_permission_group_update_mutation_no_channel_access(
+    permission_group_all_perms_channel_USD_only,
+    staff_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    staff_user = staff_api_client.user
+    group = permission_group_all_perms_channel_USD_only
+    group.user_set.add(staff_user)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.pk)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"addChannels": [channel_id]},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["errors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "addChannels"
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
+    assert errors[0]["permissions"] is None
+    assert errors[0]["users"] is None
+    assert errors[0]["channels"] == [channel_id]
+
+
+def test_permission_group_update_mutation_out_of_scope_channel(
+    permission_group_all_perms_channel_USD_only,
+    permission_group_no_perms_all_channels,
+    staff_api_client,
+    channel_PLN,
+    channel_USD,
+):
+    # given
+    staff_user = staff_api_client.user
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_user)
+    group = permission_group_no_perms_all_channels
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"name": "New name"},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PERMISSION_GROUP_UPDATE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["errors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name
+    assert errors[0]["permissions"] is None
+    assert errors[0]["users"] is None
+    assert errors[0]["channels"] is None
+
+
 def test_permission_group_update_mutation_removing_perm_left_not_manageable_perms(
-    permission_group_manage_users,
-    staff_user,
+    staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_apps,
-    permission_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_users,
 ):
     """Ensure user cannot remove permissions if it left not meanagable perms."""
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_api_client.user.groups.add(
+        permission_group_manage_apps, permission_group_manage_users
+    )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -872,7 +1108,7 @@ def test_permission_group_update_mutation_removing_perm_left_not_manageable_perm
             "name": "New permission group",
             "addPermissions": [AppPermission.MANAGE_APPS.name],
             "removePermissions": [AccountPermissions.MANAGE_USERS.name],
-            "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
+            "addUsers": [graphene.Node.to_global_id("User", staff_users[-1].pk)],
             "removeUsers": [graphene.Node.to_global_id("User", group_user.pk)],
         },
     }
@@ -892,16 +1128,15 @@ def test_permission_group_update_mutation_removing_perm_left_not_manageable_perm
     )
     assert errors[0]["permissions"] == [AccountPermissions.MANAGE_USERS.name]
     assert errors[0]["users"] is None
-    assert staff_user.groups.count() == 0
+    assert staff_users[-1].groups.count() == 0
 
 
 def test_permission_group_update_mutation_superuser_can_remove_any_perms(
-    permission_group_manage_users,
     permission_manage_staff,
     superuser_api_client,
     staff_user,
-    permission_manage_apps,
-    permission_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_users,
 ):
     """Ensure superuser can remove any permissions."""
     group = permission_group_manage_users
@@ -949,14 +1184,13 @@ def test_permission_group_update_mutation_superuser_can_remove_any_perms(
 
 
 def test_permission_group_update_mutation_app_no_permission(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     app_api_client,
-    permission_manage_apps,
-    permission_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_users,
 ):
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -979,15 +1213,14 @@ def test_permission_group_update_mutation_app_no_permission(
 
 
 def test_permission_group_update_mutation_remove_me_from_last_group(
-    permission_group_manage_users,
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
+    permission_group_manage_users,
 ):
     """Ensure mutation failed when user removing himself from user's last group."""
     staff_user, staff_user1, staff_user2 = staff_users
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     group = permission_group_manage_users
     group.permissions.add(permission_manage_staff)
     # ensure user is in group
@@ -1019,16 +1252,16 @@ def test_permission_group_update_mutation_remove_me_from_last_group(
 
 
 def test_permission_group_update_mutation_remove_me_from_not_last_group(
-    permission_group_manage_users,
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
+    permission_group_manage_users,
     permission_manage_orders,
+    permission_manage_users,
 ):
     """Ensure user can remove himself from group if he is a member of another group."""
     staff_user, staff_user1, _ = staff_users
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     groups = Group.objects.bulk_create(
         [Group(name="manage users"), Group(name="manage staff and users")]
     )
@@ -1041,7 +1274,7 @@ def test_permission_group_update_mutation_remove_me_from_not_last_group(
     group1.user_set.add(staff_user)
     group2.user_set.add(staff_user, staff_user1)
 
-    assert staff_user.groups.count() == 2
+    assert staff_user.groups.count() == 3
 
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1058,7 +1291,7 @@ def test_permission_group_update_mutation_remove_me_from_not_last_group(
 
     assert not errors
     assert staff_user_id not in permission_group_data["users"]
-    assert staff_user.groups.count() == 1
+    assert staff_user.groups.count() == 2
 
 
 def test_permission_group_update_mutation_remove_last_user_from_group(
@@ -1070,7 +1303,7 @@ def test_permission_group_update_mutation_remove_last_user_from_group(
 ):
     """Ensure user can remove last user from the group."""
     staff_user, staff_user1, staff_user2 = staff_users
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     groups = Group.objects.bulk_create(
         [Group(name="manage users"), Group(name="manage staff and users")]
     )
@@ -1080,6 +1313,7 @@ def test_permission_group_update_mutation_remove_last_user_from_group(
 
     group1.user_set.add(staff_user1)
     group2.user_set.add(staff_user2)
+    assert staff_user.groups.count() == 1
 
     # ensure group contains only 1 user
     assert group1.user_set.count() == 1
@@ -1102,33 +1336,34 @@ def test_permission_group_update_mutation_remove_last_user_from_group(
     errors = data["errors"]
 
     assert not errors
-    assert staff_user.groups.count() == 0
+    assert staff_user.groups.count() == 1
     assert permission_group_data["users"] == []
 
 
 def test_permission_group_update_mutation_only_name(
     permission_group_manage_users,
+    permission_group_manage_staff,
     staff_user,
-    permission_manage_staff,
     staff_api_client,
     permission_manage_users,
 ):
     """Ensure mutation update group when only name are passed in input."""
-    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_staff, permission_group_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
     query = PERMISSION_GROUP_UPDATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"name": "New permission group"},
+        "input": {"name": name},
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert group.name != old_group_name
     assert permission_group_data["name"] == group.name
     assert group.permissions.all().count() == 1
@@ -1154,20 +1389,21 @@ def test_permission_group_update_mutation_only_name(
 def test_permission_group_update_mutation_only_name_other_fields_with_none(
     permission_group_manage_users,
     staff_user,
-    permission_manage_staff,
+    permission_group_manage_staff,
     staff_api_client,
     permission_manage_users,
 ):
     """Ensure mutation update group when only name are passed in input."""
-    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_staff, permission_group_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
     query = PERMISSION_GROUP_UPDATE_MUTATION
+    name = "New permission group"
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
-            "name": "New permission group",
+            "name": name,
             "addPermissions": None,
             "removePermissions": None,
             "addUsers": None,
@@ -1179,7 +1415,7 @@ def test_permission_group_update_mutation_only_name_other_fields_with_none(
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group = Group.objects.get(name=name)
     assert group.name != old_group_name
     assert permission_group_data["name"] == group.name
     assert group.permissions.all().count() == 1
@@ -1204,15 +1440,14 @@ def test_permission_group_update_mutation_only_name_other_fields_with_none(
 
 def test_permission_group_update_mutation_with_name_which_exists(
     permission_group_manage_users,
+    permission_group_manage_staff,
     staff_user,
-    permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
 ):
     """Ensure mutation failed where updating name with value which already is a name of
     different group.
     """
-    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_staff, permission_group_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1241,15 +1476,14 @@ def test_permission_group_update_mutation_with_name_which_exists(
 
 
 def test_permission_group_update_mutation_only_permissions(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     """Ensure mutation update group when only permissions are passed in input."""
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     old_group_name = group.name
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1265,7 +1499,7 @@ def test_permission_group_update_mutation_only_permissions(
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
 
-    group = Group.objects.get()
+    group.refresh_from_db()
     assert group.name == old_group_name
     assert permission_group_data["name"] == group.name
     permissions = {
@@ -1276,14 +1510,13 @@ def test_permission_group_update_mutation_only_permissions(
 
 
 def test_permission_group_update_mutation_no_input_data(
-    permission_group_manage_users,
     staff_user,
-    permission_manage_staff,
-    permission_manage_users,
+    permission_group_manage_users,
+    permission_group_manage_staff,
     staff_api_client,
 ):
     """Ensure mutation doesn't change group when input is empty."""
-    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_staff, permission_group_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1308,13 +1541,13 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_apps,
+    permission_group_manage_apps,
 ):
     """Ensure that update mutation failed when user try to update group for which
     he doesn't have permission.
     Ensure superuser pass restrictions.
     """
-    staff_user.user_permissions.add(permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1359,19 +1592,18 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
 
 
 def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
-    permission_group_manage_users,
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
 ):
     """Ensure update mutation failed when user IDs are in both lists for adding
     and removing. Ensure mutation contains list of user IDs which cause
     the problem.
     """
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1402,22 +1634,21 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
 
 
 def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
-    permission_manage_orders,
+    permission_group_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_orders,
 ):
     """Ensure update mutation failed when permission items are in both lists for
     adding and removing. Ensure mutation contains list of permissions which cause
     the problem.
     """
-    staff_user.user_permissions.add(
-        permission_manage_users,
-        permission_manage_apps,
-        permission_manage_orders,
+    staff_user.groups.add(
+        permission_group_manage_users,
+        permission_group_manage_apps,
+        permission_group_manage_orders,
     )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1449,23 +1680,22 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
 
 
 def test_permission_group_update_mutation_permissions_and_users_duplicated(
-    permission_group_manage_users,
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
-    permission_manage_orders,
+    permission_group_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_orders,
 ):
     """Ensure updating mutations with the same permission and users in list for
     adding and removing failed. Mutation should failed. Error should contains list of
     users IDs and permissions that are duplicated.
     """
     staff_user = staff_users[0]
-    staff_user.user_permissions.add(
-        permission_manage_users,
-        permission_manage_apps,
-        permission_manage_orders,
+    staff_user.groups.add(
+        permission_group_manage_users,
+        permission_group_manage_apps,
+        permission_group_manage_orders,
     )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -1507,20 +1737,19 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
 
 
 def test_permission_group_update_mutation_user_add_customer_user(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     customer_user,
 ):
     """Ensure update mutation with customer user in field for adding users failed.
     Ensure error contains list with user IDs which cause the problem.
     Ensure it also fail for superuser.
     """
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1565,20 +1794,19 @@ def test_permission_group_update_mutation_user_add_customer_user(
 
 
 def test_permission_group_update_mutation_lack_of_permission(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     permission_manage_orders,
 ):
     """Ensure update mutation failed when user trying to add permission which
     he doesn't have.
     Ensure superuser pass the restrictions.
     """
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_apps)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1629,12 +1857,11 @@ def test_permission_group_update_mutation_lack_of_permission(
 
 def test_permission_group_update_mutation_out_of_scope_users(
     staff_users,
-    permission_group_manage_users,
     permission_manage_staff,
     staff_api_client,
     superuser_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     permission_manage_orders,
     permission_manage_products,
 ):
@@ -1651,7 +1878,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
         is_active=True,
     )
 
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     staff_users[1].user_permissions.add(permission_manage_products)
     staff_user3.user_permissions.add(permission_manage_orders)
 
@@ -1695,7 +1922,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     errors = data["errors"]
 
     assert not errors
-    group = Group.objects.get()
+    group.refresh_from_db()
     assert not errors
     permissions_codes = {
         permission["code"].lower() for permission in data["group"]["permissions"]
@@ -1712,12 +1939,11 @@ def test_permission_group_update_mutation_out_of_scope_users(
 
 
 def test_permission_group_update_mutation_duplicated_channels(
-    permission_group_manage_users,
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     channel_PLN,
     channel_USD,
     channel_JPY,
@@ -1727,9 +1953,9 @@ def test_permission_group_update_mutation_duplicated_channels(
     the problem.
     """
     # given
-    staff_user.user_permissions.add(
-        permission_manage_users,
-        permission_manage_apps,
+    staff_user.groups.add(
+        permission_group_manage_users,
+        permission_group_manage_apps,
     )
     group = permission_group_manage_users
 
@@ -1773,13 +1999,12 @@ def test_permission_group_update_mutation_duplicated_channels(
 
 
 def test_permission_group_update_mutation_multiple_errors(
-    permission_group_manage_users,
     staff_user,
     customer_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
     permission_manage_orders,
 ):
     """Ensure update mutation failed with all validation errors when input data
@@ -1788,7 +2013,7 @@ def test_permission_group_update_mutation_multiple_errors(
         - adding customer user (ASSIGN_NON_STAFF_MEMBER)
     """
 
-    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
+    staff_user.groups.add(permission_group_manage_apps, permission_group_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -1845,9 +2070,11 @@ def test_permission_group_update_mutation_multiple_errors(
 
 def test_permission_group_update_mutation_remove_all_users_manageable_perms(
     staff_users,
-    permission_manage_users,
+    permission_group_manage_users,
+    permission_group_manage_orders,
     permission_manage_staff,
     permission_manage_orders,
+    permission_manage_users,
     staff_api_client,
 ):
     """Ensure that user can remove group users if there is other source of all group
@@ -1867,7 +2094,7 @@ def test_permission_group_update_mutation_remove_all_users_manageable_perms(
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -1894,8 +2121,10 @@ def test_permission_group_update_mutation_remove_all_users_manageable_perms(
 
 def test_permission_group_update_mutation_remove_all_group_users_not_manageable_perms(
     staff_users,
-    permission_manage_users,
+    permission_group_manage_users,
+    permission_group_manage_orders,
     permission_manage_staff,
+    permission_manage_users,
     permission_manage_orders,
     staff_api_client,
     superuser_api_client,
@@ -1917,7 +2146,7 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -1961,9 +2190,11 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
 
 def test_permission_group_update_mutation_remove_group_users_add_with_manage_stuff(
     staff_users,
-    permission_manage_users,
+    permission_group_manage_users,
+    permission_group_manage_orders,
     permission_manage_staff,
     permission_manage_orders,
+    permission_manage_users,
     staff_api_client,
 ):
     """Ensure that user can remove all group users when adding somebody with
@@ -1982,7 +2213,7 @@ def test_permission_group_update_mutation_remove_group_users_add_with_manage_stu
     group1.user_set.add(staff_user1)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -2006,33 +2237,32 @@ def test_permission_group_update_mutation_remove_group_users_add_with_manage_stu
     assert group_data["users"][0]["email"] == staff_user2.email
 
 
-def test_group_update_mutation_remove_some_users_from_group_with_manage_stuff(
+def test_group_update_mutation_remove_some_users_from_group_with_manage_staff(
     staff_users,
-    permission_manage_users,
+    permission_group_manage_users,
+    permission_group_manage_staff,
     permission_manage_staff,
     staff_api_client,
-    permission_group_manage_users,
 ):
     """Ensure that user can remove some of user group if group has manage
     staff permission.
     """
     staff_user, staff_user1, staff_user2 = staff_users
     group = permission_group_manage_users
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_staff)
 
     group.permissions.add(permission_manage_staff)
-
     group.user_set.add(staff_user1, staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users)
+    assert group.user_set.count() == 3
+
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {"removeUsers": [graphene.Node.to_global_id("User", staff_user1.id)]},
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     errors = data["errors"]
@@ -2040,12 +2270,13 @@ def test_group_update_mutation_remove_some_users_from_group_with_manage_stuff(
 
     assert not errors
     assert group_data["name"] == group.name
-    assert len(group_data["users"]) == 1
-    assert group_data["users"][0]["email"] == staff_user2.email
+    assert len(group_data["users"]) == 2
+    assert staff_user1.email not in [user["email"] for user in group_data["users"]]
 
 
 def test_group_update_mutation_remove_some_users_from_group_user_with_manage_stuff(
     staff_users,
+    permission_group_manage_users,
     permission_manage_users,
     permission_manage_staff,
     staff_api_client,
@@ -2067,7 +2298,7 @@ def test_group_update_mutation_remove_some_users_from_group_user_with_manage_stu
 
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -2090,6 +2321,8 @@ def test_group_update_mutation_remove_some_users_from_group_user_with_manage_stu
 
 def test_permission_group_update_mutation_remove_user_with_manage_staff(
     staff_users,
+    permission_group_manage_users,
+    permission_group_manage_orders,
     permission_manage_users,
     permission_manage_staff,
     permission_manage_orders,
@@ -2110,7 +2343,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff(
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    staff_user.groups.add(permission_group_manage_users, permission_group_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -2140,6 +2373,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff(
 
 def test_permission_group_update_mutation_remove_user_with_manage_staff_add_user(
     staff_users,
+    permission_group_manage_users,
     permission_manage_users,
     permission_manage_staff,
     permission_manage_orders,
@@ -2161,7 +2395,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff_add_user
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2, staff_user)
 
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
@@ -2459,13 +2693,12 @@ def test_group_delete_mutation_left_not_manageable_permission(
 
 def test_group_delete_mutation_delete_last_group(
     staff_users,
-    permission_group_manage_users,
     staff_api_client,
     permission_manage_staff,
-    permission_manage_users,
+    permission_group_manage_users,
 ):
     staff_user, staff_user1, staff_user2 = staff_users
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_DELETE_MUTATION
 
@@ -2495,7 +2728,7 @@ def test_group_delete_mutation_delete_last_group_with_manage_staff(
     permission_manage_users,
 ):
     staff_user, staff_user1, staff_user2 = staff_users
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.groups.add(permission_group_manage_users)
     groups = Group.objects.bulk_create(
         [Group(name="manage users and staff"), Group(name="manage users")]
     )
@@ -2563,3 +2796,42 @@ def test_group_delete_mutation_cannot_remove_requestor_last_group(
     assert (
         errors[0]["code"] == PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.name
     )
+
+
+def test_group_delete_mutation_no_channel_access(
+    staff_users,
+    permission_group_all_perms_channel_USD_only,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+):
+    # given
+    staff_user, staff_user1, staff_user2 = staff_users
+    staff_user.groups.add(permission_group_all_perms_channel_USD_only)
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["errors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.name

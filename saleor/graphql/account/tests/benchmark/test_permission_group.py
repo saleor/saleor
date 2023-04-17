@@ -12,11 +12,16 @@ def test_permission_group_create(
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
-    permission_manage_apps,
+    permission_group_manage_users,
+    permission_group_manage_apps,
+    permission_group_manage_staff,
     count_queries,
 ):
-    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
+    staff_user.groups.add(
+        permission_group_manage_users,
+        permission_group_manage_apps,
+        permission_group_manage_staff,
+    )
     query = """
         mutation PermissionGroupCreate(
         $input: PermissionGroupCreateInput!) {
@@ -54,9 +59,7 @@ def test_permission_group_create(
             "addUsers": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=(permission_manage_staff,)
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
 
