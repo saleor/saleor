@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Fix saving `description_plaintext` for product - #12586 by @SzymJ
 
 # 3.13.0
 
