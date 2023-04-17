@@ -25566,6 +25566,13 @@ input StaffCreateInput @doc(category: "Users") {
   addGroups: [ID!]
 
   """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
   URL of a view where users should be redirected to set the password. URL in RFC 1808 format.
   """
   redirectUrl: String
@@ -25601,6 +25608,13 @@ input StaffUpdateInput @doc(category: "Users") {
 
   """List of permission group IDs to which user should be assigned."""
   addGroups: [ID!]
+
+  """
+  Fields required to update the object's metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
 
   """List of permission group IDs from which user should be unassigned."""
   removeGroups: [ID!]

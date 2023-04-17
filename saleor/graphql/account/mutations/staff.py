@@ -27,7 +27,7 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_310
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import (
     BaseMutation,
@@ -37,6 +37,7 @@ from ...core.mutations import (
 )
 from ...core.types import AccountError, NonNullList, StaffError, Upload
 from ...core.validators.file import clean_image_file
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..i18n import I18nMixin
@@ -61,6 +62,11 @@ class StaffInput(UserInput):
     add_groups = NonNullList(
         graphene.ID,
         description="List of permission group IDs to which user should be assigned.",
+        required=False,
+    )
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the object's metadata." + ADDED_IN_314,
         required=False,
     )
 
@@ -245,6 +251,7 @@ class StaffCreate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        support_meta_field = True
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -371,7 +378,10 @@ class StaffCreate(ModelMutation):
         instance, send_notification = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.validate_and_update_metadata(instance, metadata_list, None)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input, send_notification)
         cls._save_m2m(info, instance, cleaned_input)

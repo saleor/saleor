@@ -3046,11 +3046,11 @@ def test_delete_customer_by_external_reference_not_existing(
 
 STAFF_CREATE_MUTATION = """
     mutation CreateStaff(
-            $email: String, $redirect_url: String, $add_groups: [ID!]
-        ) {
-        staffCreate(input: {email: $email, redirectUrl: $redirect_url,
-            addGroups: $add_groups}
-        ) {
+        $input: StaffCreateInput!
+    ) {
+        staffCreate(
+            input: $input
+        ){
             errors {
                 field
                 code
@@ -3073,6 +3073,10 @@ STAFF_CREATE_MUTATION = """
                 }
                 avatar {
                     url
+                }
+                metadata {
+                    key
+                    value
                 }
             }
         }
@@ -3099,10 +3103,14 @@ def test_staff_create(
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
+    metadata = [{"key": "test key", "value": "test value"}]
     variables = {
-        "email": email,
-        "redirect_url": redirect_url,
-        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+        "input": {
+            "email": email,
+            "redirectUrl": redirect_url,
+            "addGroups": [graphene.Node.to_global_id("Group", group.pk)],
+            "metadata": metadata,
+        }
     }
 
     response = staff_api_client.post_graphql(
@@ -3114,6 +3122,7 @@ def test_staff_create(
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
+    assert data["user"]["metadata"] == metadata
 
     expected_perms = {
         permission_manage_products.codename,
@@ -3170,9 +3179,11 @@ def test_promote_customer_to_staff_user(
     redirect_url = "https://www.example.com"
     email = customer_user.email
     variables = {
-        "email": email,
-        "redirect_url": redirect_url,
-        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+        "input": {
+            "email": email,
+            "redirectUrl": redirect_url,
+            "addGroups": [graphene.Node.to_global_id("Group", group.pk)],
+        }
     }
 
     response = staff_api_client.post_graphql(
@@ -3226,11 +3237,13 @@ def test_staff_create_trigger_webhook(
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
     variables = {
-        "email": email,
-        "redirect_url": redirect_url,
-        "add_groups": [
-            graphene.Node.to_global_id("Group", permission_group_manage_users.pk)
-        ],
+        "input": {
+            "email": email,
+            "redirectUrl": redirect_url,
+            "addGroups": [
+                graphene.Node.to_global_id("Group", permission_group_manage_users.pk)
+            ],
+        }
     }
 
     # when
@@ -3280,9 +3293,11 @@ def test_staff_create_app_no_permission(
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
     email = "api_user@example.com"
     variables = {
-        "email": email,
-        "redirect_url": "https://www.example.com",
-        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+        "input": {
+            "email": email,
+            "redirectUrl": "https://www.example.com",
+            "addGroups": [graphene.Node.to_global_id("Group", group.pk)],
+        }
     }
 
     response = app_api_client.post_graphql(
@@ -3314,11 +3329,13 @@ def test_staff_create_out_of_scope_group(
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
     variables = {
-        "email": email,
-        "redirect_url": redirect_url,
-        "add_groups": [
-            graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
-        ],
+        "input": {
+            "email": email,
+            "redirectUrl": redirect_url,
+            "addGroups": [
+                graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+            ],
+        }
     }
 
     # for staff user
@@ -3402,7 +3419,7 @@ def test_staff_create_send_password_with_url(
 ):
     email = "api_user@example.com"
     redirect_url = "https://www.example.com"
-    variables = {"email": email, "redirect_url": redirect_url}
+    variables = {"input": {"email": email, "redirectUrl": redirect_url}}
 
     response = staff_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
@@ -3437,7 +3454,7 @@ def test_staff_create_without_send_password(
     staff_api_client, media_root, permission_manage_staff
 ):
     email = "api_user@example.com"
-    variables = {"email": email}
+    variables = {"input": {"email": email}}
     response = staff_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
     )
@@ -3451,7 +3468,7 @@ def test_staff_create_with_invalid_url(
     staff_api_client, media_root, permission_manage_staff
 ):
     email = "api_user@example.com"
-    variables = {"email": email, "redirect_url": "invalid"}
+    variables = {"input": {"email": email, "redirectUrl": "invalid"}}
     response = staff_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
     )
@@ -3471,7 +3488,7 @@ def test_staff_create_with_not_allowed_url(
     staff_api_client, media_root, permission_manage_staff
 ):
     email = "api_userrr@example.com"
-    variables = {"email": email, "redirect_url": "https://www.fake.com"}
+    variables = {"input": {"email": email, "redirectUrl": "https://www.fake.com"}}
     response = staff_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
     )
@@ -3492,7 +3509,7 @@ def test_staff_create_with_upper_case_email(
 ):
     # given
     email = "api_user@example.com"
-    variables = {"email": email}
+    variables = {"input": {"email": email}}
 
     # when
     response = staff_api_client.post_graphql(
