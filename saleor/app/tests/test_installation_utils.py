@@ -431,6 +431,33 @@ def test_install_app_with_webhook(
     assert webhook.custom_headers == {"x-key": "Value"}
 
 
+def test_install_app_with_sync_webhook(
+    app_manifest, app_manifest_sync_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest["webhooks"] = [app_manifest_sync_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    assert app.id == App.objects.get().id
+
+    webhook = app.webhooks.get()
+    assert webhook.name == app_manifest_sync_webhook["name"]
+    assert sorted(webhook.events.values_list("event_type", flat=True)) == sorted(
+        app_manifest_sync_webhook["events"]
+    )
+    assert webhook.subscription_query is None
+    assert webhook.target_url == app_manifest_sync_webhook["targetUrl"]
+    assert webhook.is_active is True
+
+
 def test_install_app_webhook_incorrect_url(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):

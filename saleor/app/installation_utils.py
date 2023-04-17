@@ -92,7 +92,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             app=app,
             name=webhook["name"],
             target_url=webhook["targetUrl"],
-            subscription_query=webhook["query"],
+            subscription_query=webhook.get("query", None),
             custom_headers=webhook.get("customHeaders", None),
         )
         for webhook in manifest_data.get("webhooks", [])

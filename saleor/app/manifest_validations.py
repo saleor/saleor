@@ -246,17 +246,19 @@ def clean_webhooks(manifest_data, errors):
                     )
                 )
 
-        subscription_query = SubscriptionQuery(webhook["query"])
-        if not subscription_query.is_valid:
-            errors["webhooks"].append(
-                ValidationError(
-                    "Subscription query is not valid: " + subscription_query.error_msg,
-                    code=AppErrorCode.INVALID.value,
+        if webhook.get("query", None):
+            subscription_query = SubscriptionQuery(webhook["query"])
+            if not subscription_query.is_valid:
+                errors["webhooks"].append(
+                    ValidationError(
+                        "Subscription query is not valid: "
+                        + subscription_query.error_msg,
+                        code=AppErrorCode.INVALID.value,
+                    )
                 )
-            )
 
-        if not webhook["events"]:
-            webhook["events"] = subscription_query.events
+            if not webhook["events"]:
+                webhook["events"] = subscription_query.events
 
         try:
             target_url_validator(webhook["targetUrl"])
@@ -283,7 +285,7 @@ def clean_webhooks(manifest_data, errors):
 def validate_required_fields(manifest_data, errors):
     manifest_required_fields = {"id", "version", "name", "tokenTargetUrl"}
     extension_required_fields = {"label", "url", "mount"}
-    webhook_required_fields = {"name", "targetUrl", "query"}
+    webhook_required_fields = {"name", "targetUrl"}
 
     if manifest_missing_fields := manifest_required_fields.difference(manifest_data):
         for missing_field in manifest_missing_fields:
@@ -306,7 +308,12 @@ def validate_required_fields(manifest_data, errors):
     webhooks = manifest_data.get("webhooks", [])
     for webhook in webhooks:
         webhook_fields = set(webhook.keys())
-        if missing_fields := webhook_required_fields.difference(webhook_fields):
+        required_fields = (
+            webhook_required_fields | {"query"}
+            if "asyncEvents" in webhook_fields
+            else webhook_required_fields
+        )
+        if missing_fields := required_fields.difference(webhook_fields):
             errors["webhooks"].append(
                 ValidationError(
                     f"Missing required fields for webhook: "

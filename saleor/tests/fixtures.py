@@ -6665,6 +6665,15 @@ def app_manifest_webhook():
 
 
 @pytest.fixture
+def app_manifest_sync_webhook():
+    return {
+        "name": "sync_webhook",
+        "syncEvents": ["PAYMENT_PROCESS", "PAYMENT_REFUND"],
+        "targetUrl": "https://app.example/api/sync_webhook",
+    }
+
+
+@pytest.fixture
 def event_payload():
     """Return event payload."""
     return EventPayload.objects.create(payload='{"payload_key": "payload_value"}')
