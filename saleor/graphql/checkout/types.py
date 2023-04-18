@@ -594,8 +594,8 @@ class Checkout(ModelObjectType[models.Checkout]):
             .load(root.token)
             .then(
                 lambda checkout_info: unwrap_lazy(
-                    checkout_info.delivery_method_info.delivery_method
-                )
+                    checkout_info.delivery_method_info
+                ).delivery_method
             )
         )
 
