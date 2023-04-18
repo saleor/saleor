@@ -208,9 +208,8 @@ def test_update_and_search_product_by_description(
     assert data["product"]["description"] == other_description_json
 
 
-def test_update_product_without_description_clear_description_plaintext(
+def test_update_product_clear_description_plaintext_when_description_is_none(
     staff_api_client,
-    category,
     non_default_category,
     product,
     other_description_json,
@@ -222,16 +221,13 @@ def test_update_product_without_description_clear_description_plaintext(
     product.description_plaintext = description_plaintext
     product.save()
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
-    product_slug = "updated-product"
 
     variables = {
         "productId": product_id,
         "input": {
-            "category": category_id,
             "name": product_name,
-            "slug": product_slug,
+            "description": None,
         },
     }
 
@@ -242,11 +238,120 @@ def test_update_product_without_description_clear_description_plaintext(
     data = content["data"]["productUpdate"]
     assert not data["errors"]
     assert data["product"]["name"] == product_name
-    assert data["product"]["slug"] == product_slug
     assert data["product"]["description"] is None
 
     product.refresh_from_db()
     assert product.description_plaintext == ""
+
+
+def test_update_product_doesnt_clear_description_plaintext_when_no_description(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    description_plaintext = "some desc"
+    product.description_plaintext = description_plaintext
+    product.save()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    product_name = "updated name"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "name": product_name,
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+    assert data["product"]["name"] == product_name
+
+    product.refresh_from_db()
+    assert product.description_plaintext == description_plaintext
+
+
+def test_update_product_seo_field_title(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    old_seo_description = "old seo description"
+    product.seo_description = old_seo_description
+    product.seo_title = "old_seo_title"
+    product.save(update_fields=["seo_description", "seo_title"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_seo_title = "new_seo_title"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "seo": {
+                "title": new_seo_title,
+            },
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.seo_description == old_seo_description
+    assert product.seo_title == new_seo_title
+
+
+def test_update_product_seo_field_description(
+    staff_api_client,
+    non_default_category,
+    product,
+    other_description_json,
+    permission_manage_products,
+    color_attribute,
+):
+    query = MUTATION_UPDATE_PRODUCT
+    old_seo_title = "old_seo_title"
+    product.seo_description = "old seo description"
+    product.seo_title = old_seo_title
+    product.save(update_fields=["seo_description", "seo_title"])
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    new_seo_description = "new_seo_description"
+
+    variables = {
+        "productId": product_id,
+        "input": {
+            "seo": {
+                "description": new_seo_description,
+            },
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    assert not data["errors"]
+
+    product.refresh_from_db()
+    assert product.seo_description == new_seo_description
+    assert product.seo_title == old_seo_title
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_updated")
