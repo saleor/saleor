@@ -9,18 +9,16 @@ from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput
 from .mutations import (
-    PageCreate,
-    PageDelete,
-    PageTypeCreate,
-    PageTypeDelete,
-    PageTypeUpdate,
-    PageUpdate,
-)
-from .mutations.attributes import (
     PageAttributeAssign,
     PageAttributeUnassign,
+    PageCreate,
+    PageDelete,
     PageReorderAttributeValues,
+    PageTypeCreate,
+    PageTypeDelete,
     PageTypeReorderAttributes,
+    PageTypeUpdate,
+    PageUpdate,
 )
 from .resolvers import (
     resolve_page,
