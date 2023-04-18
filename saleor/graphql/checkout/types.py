@@ -8,7 +8,6 @@ from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_unit_price,
 )
 from ...checkout.utils import get_valid_collection_points_for_checkout
-from ...core.utils.lazyobjects import unwrap_lazy
 from ...core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -16,6 +15,7 @@ from ...core.permissions import (
 )
 from ...core.taxes import zero_taxed_money
 from ...core.tracing import traced_resolver
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...shipping.interface import ShippingMethodData
 from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
