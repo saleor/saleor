@@ -183,7 +183,10 @@ class WebhookUpdate(ModelMutation):
         description = "Updates a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -225,6 +228,12 @@ class WebhookUpdate(ModelMutation):
                     for event in events
                 ]
             )
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        if app := get_app_promise(info.context).get():
+            data["qs"] = app.webhooks
+        return super().get_instance(info, **data)
 
 
 class WebhookDelete(ModelDeleteMutation):
