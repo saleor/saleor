@@ -27,7 +27,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
-- Alter `Order.number` integer field into string - #12536 by @zedzior
 
 # 3.13.0
 
