@@ -1,5 +1,4 @@
 import graphene
-from django.utils.functional import LazyObject
 from promise import Promise
 
 from ...checkout import calculations, models
