@@ -540,20 +540,7 @@ def get_valid_internal_shipping_method_list_for_checkout_info(
         discounts,
     )
 
-    # if a voucher is applied to shipping, we don't want to subtract the discount amount
-    # as some methods based on shipping price may become unavailable,
-    # for example, method on which the discount was applied
-    is_shipping_voucher = (
-        checkout_info.voucher and checkout_info.voucher.type == VoucherType.SHIPPING
-    )
-
-    is_voucher_for_specific_product = (
-        checkout_info.voucher
-        and checkout_info.voucher.type == VoucherType.SPECIFIC_PRODUCT
-    )
-
-    if not is_shipping_voucher and not is_voucher_for_specific_product:
-        subtotal -= checkout_info.checkout.discount
+    subtotal = recalculate_subtotal_with_discounts(subtotal, checkout_info)
 
     valid_shipping_methods = get_valid_internal_shipping_methods_for_checkout(
         checkout_info,
@@ -672,3 +659,32 @@ def update_checkout_info_delivery_method(
     checkout_info.delivery_method_info = get_delivery_method_info(
         delivery_method, checkout_info.shipping_address
     )
+
+
+def recalculate_subtotal_with_discounts(subtotal, checkout_info):
+    # If a voucher is applied to shipping, we don't want to subtract the discount amount
+    # as some methods based on shipping price may become unavailable,
+    # for example, method on which the discount was applied.
+    # The same goes for once_per_order discounts and product_specific vouchers. Those
+    # discounts are already applied to subtotal.
+    if checkout_info.voucher:
+        is_shipping_voucher = checkout_info.voucher.type == VoucherType.SHIPPING
+
+        is_voucher_for_specific_product = (
+            checkout_info.voucher.type == VoucherType.SPECIFIC_PRODUCT
+        )
+        is_once_per_order_voucher = checkout_info.voucher.apply_once_per_order
+
+        if not any(
+            (
+                is_shipping_voucher,
+                is_voucher_for_specific_product,
+                is_once_per_order_voucher,
+            )
+        ):
+            return subtotal - checkout_info.checkout.discount
+
+    else:
+        return subtotal - checkout_info.checkout.discount
+
+    return subtotal
