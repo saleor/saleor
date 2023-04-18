@@ -14,6 +14,7 @@ from typing import (
 )
 
 from django.utils.encoding import smart_text
+
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountInfo, VoucherType
 from ..discount.interface import fetch_voucher_info
