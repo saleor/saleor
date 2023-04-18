@@ -1430,7 +1430,11 @@ type Query {
     cityArea: String
   ): AddressValidationData @doc(category: "Users")
 
-  """Look up an address by ID."""
+  """
+  Look up an address by ID.
+  
+  Requires one of the following permissions: MANAGE_USERS, OWNER.
+  """
   address(
     """ID of an address."""
     id: ID!
