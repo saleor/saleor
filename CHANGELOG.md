@@ -5,14 +5,18 @@ All notable, unreleased changes to this project will be documented in this file.
 3.14.0 [Unreleased]
 
 ### Breaking changes
+
 - `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
 
 ### GraphQL API
+
 - Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 
 ### Saleor Apps
 
 ### Other changes
+
+- Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 
 # 3.13.0
 
