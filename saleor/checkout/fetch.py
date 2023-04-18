@@ -14,8 +14,8 @@ from typing import (
 )
 
 from django.utils.encoding import smart_text
-from django.utils.functional import SimpleLazyObject
 
+from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountInfo, VoucherType
 from ..discount.interface import fetch_voucher_info
 from ..discount.utils import fetch_active_discounts
@@ -473,7 +473,7 @@ def update_checkout_info_delivery_method_info(
     else:
         delivery_method = collection_point
 
-    checkout_info.delivery_method_info = SimpleLazyObject(
+    checkout_info.delivery_method_info = lazy_no_retry(
         lambda: get_delivery_method_info(
             delivery_method,
             checkout_info.shipping_address,
@@ -615,10 +615,10 @@ def update_delivery_method_lists_for_checkout_info(
         initialize_shipping_method_active_status(all_methods, excluded_methods)
         return all_methods
 
-    checkout_info.all_shipping_methods = SimpleLazyObject(
+    checkout_info.all_shipping_methods = lazy_no_retry(
         _resolve_all_shipping_methods
     )  # type: ignore
-    checkout_info.valid_pick_up_points = SimpleLazyObject(
+    checkout_info.valid_pick_up_points = lazy_no_retry(
         lambda: (get_valid_collection_points_for_checkout_info(lines, checkout_info))
     )  # type: ignore
     update_checkout_info_delivery_method_info(
@@ -638,7 +638,7 @@ def get_valid_collection_points_for_checkout_info(
     valid_collection_points = get_valid_collection_points_for_checkout(
         lines, checkout_info.channel.id, quantity_check=False
     )
-    return SimpleLazyObject(lambda: list(valid_collection_points))
+    return list(valid_collection_points)
 
 
 def update_checkout_info_delivery_method(
