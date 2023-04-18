@@ -1,6 +1,6 @@
 from decimal import Decimal
 from celery.utils.log import get_task_logger
-from django.db.models import Q, F
+from django.db.models import Q, F, Exists, OuterRef
 
 from ....core.prices import quantize_price
 from ....tax.models import TaxConfiguration
@@ -58,10 +58,14 @@ def recalculate_tax_for_prices(
 def get_order_prices_entered_with_tax_mapping(
     order_lines, order_model, channel_model, tax_configuration
 ):
-    orders = order_model.objects.filter(id__in=order_lines.values("order_id"))
-    channels = channel_model.objects.filter(id__in=orders.values("channel_id"))
+    orders = order_model.objects.filter(
+        Exists(order_lines.filter(order_id=OuterRef("id")))
+    )
+    channels = channel_model.objects.filter(
+        Exists(orders.filter(channel_id=OuterRef("id")))
+    )
     tax_configurations = tax_configuration.objects.filter(
-        id__in=channels.values("tax_configuration__id")
+        Exists(channels.filter(tax_configuration__id="id"))
     )
     tax_conf_to_prices_entered_with_taxes = {
         tc_id: price_entered_with_taxes

@@ -28,8 +28,8 @@ def order_lines(order_with_lines):
 @pytest.fixture
 def tax_data(order_with_lines, order_lines):
     order = order_with_lines
-    tax_rate = Decimal("1.23")
-    shipping_tax_rate = Decimal("1.17")
+    tax_rate = Decimal("0.23")
+    shipping_tax_rate = Decimal("0.17")
     lines = []
     for i, line in enumerate(order_lines, start=1):
         line_tax_rate = tax_rate + Decimal(f"{i}") / 100

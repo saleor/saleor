@@ -11,7 +11,7 @@ from ..order import base_calculations
 from ..payment.model_helpers import get_subtotal
 from ..plugins.manager import PluginsManager
 from ..tax import TaxCalculationStrategy
-from ..tax.calculations import add_tax_to_undiscounted_price
+from ..tax.calculations import calculate_flat_rate_tax
 from ..tax.calculations.order import update_order_prices_with_flat_rates
 from ..tax.utils import (
     calculate_tax_rate,
@@ -59,14 +59,14 @@ def _recalculate_order_prices(
                 line.tax_rate = manager.get_order_line_tax_rate(
                     order, product, variant, None, line_unit.undiscounted_price
                 )
-                line.undiscounted_unit_price = add_tax_to_undiscounted_price(
-                    price=line.undiscounted_base_unit_price,
-                    tax_rate=line.tax_rate,
+                line.undiscounted_unit_price = calculate_flat_rate_tax(
+                    money=line.undiscounted_base_unit_price,
+                    tax_rate=line.tax_rate * 100,
                     prices_entered_with_tax=prices_entered_with_tax,
                 )
-                line.undiscounted_total_price = add_tax_to_undiscounted_price(
-                    price=line_total.undiscounted_price.net,
-                    tax_rate=line.tax_rate,
+                line.undiscounted_total_price = calculate_flat_rate_tax(
+                    money=line_total.undiscounted_price.net,
+                    tax_rate=line.tax_rate * 100,
                     prices_entered_with_tax=prices_entered_with_tax,
                 )
             except TaxError:

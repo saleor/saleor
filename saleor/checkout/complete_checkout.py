@@ -57,7 +57,7 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
-from ..tax.calculations import add_tax_to_undiscounted_price
+from ..tax.calculations import calculate_flat_rate_tax
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -245,15 +245,15 @@ def _create_line_for_order(
         discounts=discounts,
     )
 
-    undiscounted_unit_price = add_tax_to_undiscounted_price(
-        price=undiscounted_base_unit_price,
-        tax_rate=tax_rate,
+    undiscounted_unit_price = calculate_flat_rate_tax(
+        money=undiscounted_base_unit_price,
+        tax_rate=tax_rate * 100,
         prices_entered_with_tax=prices_entered_with_tax,
     )
 
-    undiscounted_total_price = add_tax_to_undiscounted_price(
-        price=undiscounted_base_total_price,
-        tax_rate=tax_rate,
+    undiscounted_total_price = calculate_flat_rate_tax(
+        money=undiscounted_base_total_price,
+        tax_rate=tax_rate * 100,
         prices_entered_with_tax=prices_entered_with_tax,
     )
 
