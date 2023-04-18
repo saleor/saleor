@@ -16,6 +16,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffCreate`
     - `staffUpdate`
     - `accountUpdate`
+    - `customerBulkUpdate`
 
 ### Saleor Apps
 
