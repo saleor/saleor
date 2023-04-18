@@ -13,6 +13,7 @@ from ...core.permissions import (
     PaymentPermissions,
 )
 from ...core.taxes import zero_taxed_money
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...shipping.interface import ShippingMethodData
 from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
@@ -524,7 +525,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
-            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+            .then(lambda checkout_info: unwrap_lazy(checkout_info.all_shipping_methods))
         )
 
     @staticmethod
