@@ -508,7 +508,6 @@ class Checkout(ModelObjectType):
                 delivery_method, ShippingMethodData
             ):
                 return
-            assert isinstance(delivery_method, LazyObject) is False  # TODO: drop
             return delivery_method
 
         return (
