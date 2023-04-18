@@ -9,6 +9,14 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
+- Allow setting metadata during user creating and updating - #12577 by @IKarbowiak
+  - The following mutations have been updated:
+    - `customerCreate`
+    - `customerUpdate`
+    - `staffCreate`
+    - `staffUpdate`
+    - `accountUpdate`
+    - `customerBulkUpdate`
 
 ### Saleor Apps
 

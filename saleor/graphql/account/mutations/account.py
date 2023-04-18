@@ -20,6 +20,7 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_314
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -172,6 +173,11 @@ class AccountInput(AccountBaseInput):
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the user metadata." + ADDED_IN_314,
+        required=False,
+    )
 
     class Meta:
         description = "Fields required to update the user."
@@ -194,6 +200,7 @@ class AccountUpdate(BaseCustomerCreate):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
