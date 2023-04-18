@@ -32,7 +32,7 @@ def lazy_no_retry(func: Callable) -> SimpleLazyObject:
     return SimpleLazyObject(_wrapper)
 
 
-def unwrap_lazy(obj: LazyObject) -> Any:  # TODO: can a useful type hint be added?
+def unwrap_lazy(obj: LazyObject) -> Any:
     """Return the value of a given ``LazyObject``."""
     if obj._wrapped is empty:  # type: ignore[attr-defined] # valid attribute
         obj._setup()  # type: ignore[attr-defined] # valid attribute
