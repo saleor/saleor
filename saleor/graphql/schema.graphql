@@ -12182,7 +12182,7 @@ type Mutation {
   """
   Updates a webhook subscription. 
   
-  Requires one of the following permissions: MANAGE_APPS.
+  Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
   """
   webhookUpdate(
     """ID of a webhook to update."""
@@ -16163,7 +16163,7 @@ type WebhookDelete {
 """
 Updates a webhook subscription. 
 
-Requires one of the following permissions: MANAGE_APPS.
+Requires one of the following permissions: MANAGE_APPS, AUTHENTICATED_APP.
 """
 type WebhookUpdate {
   webhookErrors: [WebhookError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
