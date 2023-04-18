@@ -822,7 +822,7 @@ class ProductBulkCreate(BaseMutation):
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
-            cls.call_event(manager.product_created, product)
+            cls.call_event(manager.product_created, product.node)
 
         for variant in variants:
             cls.call_event(manager.product_variant_created, variant)
