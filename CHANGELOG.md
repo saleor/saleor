@@ -25,6 +25,8 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
+- Fix sending `product_created` event in `ProductBulkCreate` mutation
+
 
 # 3.13.0
 
