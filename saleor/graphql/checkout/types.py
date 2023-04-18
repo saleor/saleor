@@ -8,6 +8,7 @@ from ...checkout.base_calculations import (
 )
 from ...checkout.utils import get_valid_collection_points_for_checkout
 from ...core.taxes import zero_taxed_money
+from ...core.utils.lazyobjects import unwrap_lazy
 from ...permission.enums import (
     AccountPermissions,
     CheckoutPermissions,
@@ -526,7 +527,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
-            .then(lambda checkout_info: checkout_info.all_shipping_methods)
+            .then(lambda checkout_info: unwrap_lazy(checkout_info.all_shipping_methods))
         )
 
     @staticmethod
