@@ -140,10 +140,11 @@ class ProductCreate(ModelMutation):
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
-        description = cleaned_input.get("description")
-        cleaned_input["description_plaintext"] = (
-            clean_editor_js(description, to_string=True) if description else ""
-        )
+        if "description" in cleaned_input:
+            description = cleaned_input["description"]
+            cleaned_input["description_plaintext"] = (
+                clean_editor_js(description, to_string=True) if description else ""
+            )
 
         weight = cleaned_input.get("weight")
         if weight and weight.value < 0:
