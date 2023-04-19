@@ -101,6 +101,11 @@ DATABASES = {
         conn_max_age=DB_CONN_MAX_AGE,
     ),
 }
+# For purpose of running concurrent transaction inside celery task
+DATABASE_CONNECTION_DEFAULT_NAME_ALIAS = "default_alias"
+DATABASES[DATABASE_CONNECTION_DEFAULT_NAME_ALIAS] = DATABASES[
+    DATABASE_CONNECTION_DEFAULT_NAME
+]
 
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 

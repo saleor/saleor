@@ -27,9 +27,13 @@ def celery_task_lock(task_name: str):
     obj = None
     acquired = False
     try:
-        with transaction.atomic():
-            obj = CeleryTask.objects.select_for_update(nowait=True, of=(["self"])).get(
-                name=task_name
+        with transaction.atomic(using=settings.DATABASE_CONNECTION_DEFAULT_NAME_ALIAS):
+            obj = (
+                CeleryTask.objects.using(
+                    settings.DATABASE_CONNECTION_DEFAULT_NAME_ALIAS
+                )
+                .select_for_update(nowait=True, of=(["self"]))
+                .get(name=task_name)
             )
 
             acquired = True
@@ -37,10 +41,14 @@ def celery_task_lock(task_name: str):
             obj.save()
             yield obj, acquired
     except CeleryTask.DoesNotExist:
-        obj, _created = CeleryTask.objects.get_or_create(name=task_name)
+        obj, _created = CeleryTask.objects.using(
+            settings.DATABASE_CONNECTION_DEFAULT_NAME_ALIAS
+        ).get_or_create(name=task_name)
         yield obj, acquired
     except DatabaseError:
-        obj = CeleryTask.objects.get(name=task_name)
+        obj = CeleryTask.objects.using(
+            settings.DATABASE_CONNECTION_DEFAULT_NAME_ALIAS
+        ).get(name=task_name)
         yield obj, acquired
 
 
