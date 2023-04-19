@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Fix saving `description_plaintext` for product - #12586 by @SzymJ
 
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 
