@@ -203,8 +203,8 @@ class RefreshToken(BaseMutation):
         description = (
             "Refresh JWT token. Mutation tries to take refreshToken from the input."
             "If it fails it will try to take `refreshToken` from the http-only cookie "
-            f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. csrfToken is required when `refreshToken` "
-            "is provided as a cookie."
+            f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. "
+            "`csrfToken` is required when `refreshToken` is provided as a cookie."
         )
         doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
