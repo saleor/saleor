@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.storage import default_storage
+from django.db import DatabaseError, transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
@@ -23,14 +24,24 @@ def celery_task_lock(task_name: str):
 
     """
 
-    lock = None
-    created = False
+    obj = None
+    acquired = False
     try:
-        lock, created = CeleryTask.objects.get_or_create(name=task_name)
-        yield lock, created
-    finally:
-        if lock and created:
-            lock.delete()
+        with transaction.atomic():
+            obj = CeleryTask.objects.select_for_update(nowait=True, of=(["self"])).get(
+                name=task_name
+            )
+
+            acquired = True
+            obj.updated_at = timezone.now()
+            obj.save()
+            yield obj, acquired
+    except CeleryTask.DoesNotExist:
+        obj, _created = CeleryTask.objects.get_or_create(name=task_name)
+        yield obj, acquired
+    except DatabaseError:
+        obj = CeleryTask.objects.get(name=task_name)
+        yield obj, acquired
 
 
 @app.task

@@ -11,8 +11,13 @@ from ..models import OrderEvent
 from ..tasks import expire_orders_task
 
 
+@pytest.fixture
+def expire_orders_lock():
+    return CeleryTask.objects.create(name="expire_orders")
+
+
 def test_expire_orders_task_check_voucher(
-    order_list, allocations, channel_USD, voucher_customer
+    order_list, allocations, channel_USD, voucher_customer, expire_orders_lock
 ):
     # given
     channel_USD.expire_orders_after = 1
@@ -73,6 +78,7 @@ def test_expire_orders_task_check_multiple_vouchers(
     channel_USD,
     voucher,
     voucher_percentage,
+    expire_orders_lock,
 ):
     # given
     channel_USD.expire_orders_after = 1
@@ -130,7 +136,9 @@ def test_expire_orders_task_check_multiple_vouchers(
     assert voucher_percentage.used == 0
 
 
-def test_expire_orders_task_creates_order_events(order_list, allocations, channel_USD):
+def test_expire_orders_task_creates_order_events(
+    order_list, allocations, channel_USD, expire_orders_lock
+):
     # given
     channel_USD.expire_orders_after = 60
     channel_USD.save()
@@ -180,6 +188,7 @@ def test_expire_orders_task_with_transaction_item(
     transaction_item,
     allocations,
     channel_USD,
+    expire_orders_lock,
 ):
     # given
     channel_USD.expire_orders_after = 1
@@ -231,6 +240,7 @@ def test_expire_orders_task_with_payment(
     payment_dummy,
     allocations,
     channel_USD,
+    expire_orders_lock,
 ):
     # given
     channel_USD.expire_orders_after = 1
@@ -283,6 +293,7 @@ def test_expire_orders_task_none_expiration_time(
     order_list,
     allocations,
     channel_USD,
+    expire_orders_lock,
 ):
     # given
     channel_USD.expire_orders_after = expire_after
@@ -321,7 +332,9 @@ def test_expire_orders_task_none_expiration_time(
     ).exists()
 
 
-def test_expire_orders_task_after(order_list, allocations, channel_USD):
+def test_expire_orders_task_after(
+    order_list, allocations, channel_USD, expire_orders_lock
+):
     # given
     channel_USD.expire_orders_after = 60
     channel_USD.save()
@@ -364,16 +377,19 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
 
 
 @patch("logging.Logger.error")
-def test_expire_orders_task_locked_over_hour(logger_mock, order_list, allocations):
+@patch("saleor.order.tasks.celery_task_lock")
+def test_expire_orders_task_locked_over_hour(
+    context_lock_mock, logger_mock, order_list, allocations, expire_orders_lock
+):
     # given
     task_name = "expire_orders"
     error_msg = "%s task exceeded 1h working time."
 
     now = timezone.now()
 
-    lock = CeleryTask.objects.create(name=task_name)
-    lock.created_at = now - timezone.timedelta(hours=2)
-    lock.save()
+    lock = CeleryTask.objects.get(name=task_name)
+    lock.updated_at = now - timezone.timedelta(hours=2)
+    context_lock_mock.return_value.__enter__.return_value = (lock, False)
 
     # when
     expire_orders_task()
