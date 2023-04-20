@@ -8,17 +8,15 @@ from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput
-from .mutations.attributes import (
+from .mutations import (
     PageAttributeAssign,
     PageAttributeUnassign,
-    PageReorderAttributeValues,
-    PageTypeReorderAttributes,
-)
-from .mutations.pages import (
     PageCreate,
     PageDelete,
+    PageReorderAttributeValues,
     PageTypeCreate,
     PageTypeDelete,
+    PageTypeReorderAttributes,
     PageTypeUpdate,
     PageUpdate,
 )
