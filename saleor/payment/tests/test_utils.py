@@ -1397,7 +1397,6 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1433,7 +1432,6 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
