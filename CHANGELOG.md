@@ -20,7 +20,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `accountUpdate`
     - `customerBulkUpdate`
 - [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
-- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for each successfully imported order - #12536 by @zedzior
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 
 ### Saleor Apps
 
