@@ -1,4 +1,5 @@
 from typing import Iterable, Set, Tuple, Union
+from uuid import uuid4
 
 from django.contrib.auth.hashers import make_password
 from django.db import models
@@ -34,7 +35,7 @@ AppManager = models.Manager.from_queryset(AppQueryset)
 
 
 class App(ModelWithMetadata):
-    uuid = models.UUIDField(blank=True, null=True, unique=True)
+    uuid = models.UUIDField(unique=True, default=uuid4)
     name = models.CharField(max_length=60)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -159,7 +160,7 @@ class AppExtension(models.Model):
 
 
 class AppInstallation(Job):
-    uuid = models.UUIDField(blank=True, null=True, unique=True)
+    uuid = models.UUIDField(unique=True, default=uuid4)
     app_name = models.CharField(max_length=60)
     manifest_url = models.URLField()
     permissions = models.ManyToManyField(

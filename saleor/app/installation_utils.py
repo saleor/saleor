@@ -1,5 +1,3 @@
-import uuid
-
 import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -60,7 +58,6 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     clean_manifest_data(manifest_data, raise_for_saleor_version=True)
 
     app = App.objects.create(
-        uuid=uuid.uuid4(),
         name=app_installation.app_name,
         is_active=activate,
         identifier=manifest_data.get("id"),
