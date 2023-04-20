@@ -2,6 +2,7 @@ from .checkout_add_promo_code import CheckoutAddPromoCode
 from .checkout_billing_address_update import CheckoutBillingAddressUpdate
 from .checkout_complete import CheckoutComplete
 from .checkout_create import CheckoutCreate
+from .checkout_create_from_order import CheckoutCreateFromOrder
 from .checkout_customer_attach import CheckoutCustomerAttach
 from .checkout_customer_detach import CheckoutCustomerDetach
 from .checkout_delivery_method_update import CheckoutDeliveryMethodUpdate
@@ -21,6 +22,7 @@ __all__ = [
     "CheckoutBillingAddressUpdate",
     "CheckoutComplete",
     "CheckoutCreate",
+    "CheckoutCreateFromOrder",
     "CheckoutCustomerAttach",
     "CheckoutCustomerDetach",
     "CheckoutDeliveryMethodUpdate",

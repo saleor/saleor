@@ -152,7 +152,9 @@ def validate_variants_is_available(order: "Order", errors: T_ERRORS):
     variants_ids = {line.variant_id for line in order.lines.all()}
     try:
         validate_variants_available_in_channel(
-            variants_ids, order.channel_id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
+            variants_ids,
+            order.channel_id,
+            OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value,
         )
     except ValidationError as e:
         errors["lines"].extend(e.error_dict["lines"])
@@ -223,7 +225,7 @@ def validate_variant_channel_listings(
 
     variant_ids = {variant.id for variant in variants}
     validate_variants_available_in_channel(
-        variant_ids, channel.id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL
+        variant_ids, channel.id, OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.value
     )
 
 

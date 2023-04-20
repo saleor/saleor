@@ -18,3 +18,13 @@ CheckoutAuthorizeStatusEnum = to_enum(
     CheckoutAuthorizeStatus, description=CheckoutAuthorizeStatus.__doc__
 )
 CheckoutAuthorizeStatusEnum.doc_category = DOC_CATEGORY_CHECKOUT
+
+CheckoutCreateFromOrderErrorCode = graphene.Enum.from_enum(
+    error_codes.CheckoutCreateFromOrderErrorCode
+)
+CheckoutCreateFromOrderErrorCode.doc_category = DOC_CATEGORY_CHECKOUT
+
+CheckoutCreateFromOrderUnavailableVariantErrorCode = graphene.Enum.from_enum(
+    error_codes.CheckoutCreateFromOrderUnavailableVariantErrorCode
+)
+CheckoutCreateFromOrderUnavailableVariantErrorCode.doc_category = DOC_CATEGORY_CHECKOUT
