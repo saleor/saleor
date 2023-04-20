@@ -27167,13 +27167,13 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 }
 
 """
-Event sent when order is imported.
+Event sent when orders are imported.
 
 Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderBulkCreated implements Event @doc(category: "Orders") {
+type OrderBulkCreated implements Event {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27186,8 +27186,24 @@ type OrderBulkCreated implements Event @doc(category: "Orders") {
   """The application receiving the webhook."""
   recipient: App
 
-  """The order the event relates to."""
-  order: Order
+  """The orders the event relates to."""
+  orders(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): OrderCountableConnection
 }
 
 """

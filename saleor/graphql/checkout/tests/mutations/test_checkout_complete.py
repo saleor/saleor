@@ -2611,7 +2611,7 @@ def test_complete_checkout_for_global_click_and_collect(
     assert not content["errors"]
     assert Order.objects.count() == order_count + 1
 
-    order = Order.objects.first()
+    order = Order.objects.latest("created_at")
 
     assert order.collection_point == warehouse_for_cc
     assert order.shipping_method is None

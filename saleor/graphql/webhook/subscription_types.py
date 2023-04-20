@@ -27,6 +27,7 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
+from ..core.connection import create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -49,10 +50,12 @@ from ..core.doc_category import (
     DOC_CATEGORY_SHIPPING,
     DOC_CATEGORY_TAXES,
 )
+from ..core.fields import ConnectionField
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
+from ..order.types import OrderCountableConnection
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -439,13 +442,23 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
         description = "Event sent when order metadata is updated." + ADDED_IN_38
 
 
-class OrderBulkCreated(SubscriptionObjectType, OrderBase):
+class OrderBulkCreated(SubscriptionObjectType):
+    orders = ConnectionField(
+        OrderCountableConnection,
+        description="The orders the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_orders(root, info: ResolveInfo, **kwargs):
+        _, orders = root
+        return create_connection_slice(orders, info, kwargs, OrderCountableConnection)
+
     class Meta:
-        root_type = "Order"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
-            "Event sent when order is imported." + ADDED_IN_314 + PREVIEW_FEATURE
+            "Event sent when orders are imported." + ADDED_IN_314 + PREVIEW_FEATURE
         )
 
 

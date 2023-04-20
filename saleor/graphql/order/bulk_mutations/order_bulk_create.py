@@ -2038,9 +2038,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             cls.save_data(orders_data, stocks)
 
             manager = get_plugin_manager_promise(info.context).get()
-            for order_data in orders_data:
-                if order_data.order:
-                    cls.call_event(manager.order_bulk_created, order_data.order)
+            if created_orders := [
+                order_data.order for order_data in orders_data if order_data.order
+            ]:
+                cls.call_event(manager.order_bulk_created, created_orders)
 
             results = [
                 OrderBulkCreateResult(order=order_data.order, errors=order_data.errors)

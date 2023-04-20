@@ -715,7 +715,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic when an order
     # is imported.
-    order_bulk_created: Callable[["Order", Any], Any]
+    order_bulk_created: Callable[[List["Order"], Any], Any]
 
     # Trigger when page is created.
     #

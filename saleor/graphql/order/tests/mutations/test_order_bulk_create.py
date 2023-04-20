@@ -3048,7 +3048,7 @@ def test_order_bulk_create_webhook(
 
     # then
     db_order = Order.objects.get()
-    mocked_order_bulk_created.assert_called_once_with(db_order)
+    mocked_order_bulk_created.assert_called_once_with([db_order])
 
 
 def test_order_bulk_create_error_path_fulfillments(
