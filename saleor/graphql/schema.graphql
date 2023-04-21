@@ -1430,7 +1430,11 @@ type Query {
     cityArea: String
   ): AddressValidationData @doc(category: "Users")
 
-  """Look up an address by ID."""
+  """
+  Look up an address by ID.
+  
+  Requires one of the following permissions: MANAGE_USERS, OWNER.
+  """
   address(
     """ID of an address."""
     id: ID!
@@ -25316,6 +25320,13 @@ input AccountInput @doc(category: "Users") {
 
   """Shipping address of the customer."""
   defaultShippingAddress: AddressInput
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
 }
 
 """
@@ -25423,6 +25434,20 @@ input UserCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
   """User language code."""
   languageCode: LanguageCodeEnum
 
@@ -25476,6 +25501,20 @@ input CustomerInput @doc(category: "Users") {
 
   """A note about the user."""
   note: String
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 
   """User language code."""
   languageCode: LanguageCodeEnum
@@ -25626,6 +25665,20 @@ input StaffCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
   """List of permission group IDs to which user should be assigned."""
   addGroups: [ID!]
 
@@ -25662,6 +25715,20 @@ input StaffUpdateInput @doc(category: "Users") {
 
   """A note about the user."""
   note: String
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""
   addGroups: [ID!]

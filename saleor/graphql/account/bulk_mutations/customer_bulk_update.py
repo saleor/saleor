@@ -1,5 +1,6 @@
 from collections import defaultdict
-from copy import copy
+from copy import deepcopy
+from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -26,6 +27,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import validate_one_of_args_is_in_mutation
+from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
 from ..mutations.base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD
@@ -182,6 +184,26 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             cls.format_errors(index, exc, index_error_map, field_prefix=field)
 
     @classmethod
+    def clean_metadata(
+        cls,
+        field_name: str,
+        metadata_list: List[dict],
+        errors_count: int,
+        index: int,
+        index_error_map: dict,
+    ):
+        if metadata_contains_empty_key(metadata_list):
+            index_error_map[index].append(
+                CustomerBulkUpdateError(
+                    path=f"input.{field_name}",
+                    message="Metadata key cannot be empty.",
+                    code=CustomerBulkUpdateErrorCode.REQUIRED.value,
+                )
+            )
+            errors_count += 1
+        return errors_count
+
+    @classmethod
     def clean_customers(cls, info, customers_input, index_error_map):
         cleaned_inputs_map: dict = {}
 
@@ -270,6 +292,20 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     )
                     base_error_count += 1
 
+            if metadata := customer_input["input"].get("metadata"):
+                base_error_count = cls.clean_metadata(
+                    "metadata", metadata, base_error_count, index, index_error_map
+                )
+
+            if private_metadata := customer_input["input"].get("private_metadata"):
+                base_error_count = cls.clean_metadata(
+                    "privateMetadata",
+                    private_metadata,
+                    base_error_count,
+                    index,
+                    index_error_map,
+                )
+
             if base_error_count > 0:
                 cleaned_inputs_map[index] = None
             else:
@@ -328,6 +364,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             data = cleaned_input["input"]
             shipping_address_input = data.pop(SHIPPING_ADDRESS_FIELD, None)
             billing_address_input = data.pop(BILLING_ADDRESS_FIELD, None)
+            metadata_list = data.pop("metadata", None)
+            private_metadata_list = data.pop("private_metadata", None)
 
             filtered_customers = list(
                 filter(
@@ -341,7 +379,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                     billing_address = None
 
                     old_instance = filtered_customers[0]
-                    new_instance = cls.construct_instance(copy(old_instance), data)
+                    new_instance = cls.construct_instance(deepcopy(old_instance), data)
                     new_instance.full_clean(exclude=["password"])
 
                     if shipping_address_input:
@@ -357,6 +395,14 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                             new_instance,
                             billing_address_input,
                             BILLING_ADDRESS_FIELD,
+                        )
+
+                    if metadata_list is not None:
+                        cls.update_metadata(new_instance, metadata_list)
+
+                    if private_metadata_list is not None:
+                        cls.update_metadata(
+                            new_instance, private_metadata_list, is_private=True
                         )
 
                     instances_data_and_errors_list.append(
@@ -460,6 +506,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 "language_code",
                 "external_reference",
                 "updated_at",
+                "metadata",
+                "private_metadata",
             ],
         )
 
@@ -500,6 +548,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             has_new_email = old_instance.email != new_email
             was_activated = not old_instance.is_active and updated_instance.is_active
             was_deactivated = old_instance.is_active and not updated_instance.is_active
+            metadata_update = old_instance.metadata != updated_instance.metadata
 
             # Generate the events accordingly
             if has_new_email:
@@ -543,6 +592,9 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"account_id": updated_instance.id},
                     )
                 )
+
+            if metadata_update:
+                cls.call_event(manager.customer_metadata_updated, updated_instance)
 
         models.CustomerEvent.objects.bulk_create(customer_events)
 
