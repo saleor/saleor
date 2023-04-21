@@ -27,6 +27,20 @@ task_logger = get_task_logger(__name__)
 VARIANTS_UPDATE_BATCH = 500
 
 
+def _variants_in_batches(variants_qs):
+    """Slice a variants queryset into batches."""
+    start_pk = 0
+
+    while True:
+        variants = list(
+            variants_qs.order_by("pk").filter(pk__gt=start_pk)[:VARIANTS_UPDATE_BATCH]
+        )
+        if not variants:
+            break
+        yield variants
+        start_pk = variants[-1].pk
+
+
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
 
@@ -43,17 +57,12 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         product__product_type__variant_attributes__in=attributes_changed,
     )
 
-    variants_to_update = []
-    for variant in variants:
-        variants_to_update.append(
+    for variants_batch in _variants_in_batches(variants):
+        variants_to_update = [
             generate_and_set_variant_name(variant, variant.sku, save=False)
-        )
-        if len(variants_to_update) > VARIANTS_UPDATE_BATCH:
-            ProductVariant.objects.bulk_update(
-                variants_to_update, ["name", "updated_at"]
-            )
-            variants_to_update = []
-    ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
+            for variant in variants_batch
+        ]
+        ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
 
 
 @app.task
