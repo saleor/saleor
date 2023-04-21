@@ -9,12 +9,7 @@ from ....checkout.utils import (
 from ....core.tracing import traced_atomic_transaction
 from ...account.types import AddressInput
 from ...core import ResolveInfo
-from ...core.descriptions import (
-    ADDED_IN_34,
-    ADDED_IN_35,
-    DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_34, ADDED_IN_35, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
@@ -52,7 +47,6 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
             description=(
                 "The rules for changing validation for received billing address data."
                 + ADDED_IN_35
-                + PREVIEW_FEATURE
             ),
         )
 

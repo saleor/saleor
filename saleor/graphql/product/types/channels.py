@@ -22,12 +22,7 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_33,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_33, DEPRECATED_IN_3X_FIELD
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date
@@ -357,7 +352,7 @@ class ProductVariantChannelListing(
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description="Preorder variant data." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Preorder variant data." + ADDED_IN_31,
     )
 
     class Meta:

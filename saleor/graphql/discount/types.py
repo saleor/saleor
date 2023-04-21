@@ -15,6 +15,7 @@ from ..core import ResolveInfo, types
 from ..core.connection import CountableConnection, create_connection_slice
 from ..core.context import get_database_connection_name
 from ..core.descriptions import ADDED_IN_31
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import ConnectionField, PermissionsField
 from ..core.scalars import PositiveDecimal
 from ..core.types import ModelObjectType, Money, NonNullList
@@ -191,6 +192,7 @@ class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
 
 class SaleCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         node = Sale
 
 
@@ -379,6 +381,7 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
 
 class VoucherCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         node = Voucher
 
 

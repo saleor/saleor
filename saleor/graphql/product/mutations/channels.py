@@ -27,7 +27,6 @@ from ...core.descriptions import (
     ADDED_IN_33,
     ADDED_IN_38,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation
@@ -391,11 +390,7 @@ class ProductVariantChannelListingAddInput(BaseInputObjectType):
     )
     cost_price = PositiveDecimal(description="Cost price of the variant in channel.")
     preorder_threshold = graphene.Int(
-        description=(
-            "The threshold for preorder variant in channel."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        )
+        description=("The threshold for preorder variant in channel." + ADDED_IN_31)
     )
 
     class Meta:

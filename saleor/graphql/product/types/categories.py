@@ -19,6 +19,7 @@ from ...core.connection import (
     filter_connection_queryset,
 )
 from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
 from ...core.tracing import traced_resolver
@@ -179,4 +180,5 @@ class Category(ModelObjectType[models.Category]):
 
 class CategoryCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Category

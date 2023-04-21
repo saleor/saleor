@@ -100,6 +100,8 @@ class CustomerCreate(BaseCustomerCreate):
         model = models.User
         object_type = User
         permissions = (AccountPermissions.MANAGE_USERS,)
+        support_meta_field = True
+        support_private_meta_field = True
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -124,6 +126,8 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def generate_events(
@@ -178,7 +182,13 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Clean the input and generate a new instance from the new data
         cleaned_input = cls.clean_input(info, original_instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
         new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
+        cls.validate_and_update_metadata(
+            new_instance, metadata_list, private_metadata_list
+        )
 
         # Save the new instance data
         cls.clean_instance(info, new_instance)
@@ -187,6 +197,10 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
 
         # Generate events by comparing the instances
         cls.generate_events(info, original_instance, new_instance)
+
+        if metadata_list:
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.customer_metadata_updated, new_instance)
 
         # Return the response
         return cls.success_response(new_instance)
@@ -244,6 +258,8 @@ class StaffCreate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -370,7 +386,11 @@ class StaffCreate(ModelMutation):
         instance, send_notification = cls.get_instance(info, **data)
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input, send_notification)
         cls._save_m2m(info, instance, cleaned_input)
@@ -397,6 +417,8 @@ class StaffUpdate(StaffCreate):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

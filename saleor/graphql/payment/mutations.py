@@ -98,7 +98,7 @@ from ..core.enums import (
 from ..core.fields import JSONString
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import JSON, UUID, PositiveDecimal
-from ..core.types import BaseInputObjectType
+from ..core.types import BaseInputObjectType, BaseObjectType
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_or_error
 from ..discount.dataloaders import load_discounts
@@ -1672,12 +1672,15 @@ class TransactionEventReport(ModelMutation):
         )
 
 
-class PaymentGatewayConfig(graphene.ObjectType):
+class PaymentGatewayConfig(BaseObjectType):
     id = graphene.String(required=True, description="The app identifier.")
     data = graphene.Field(
         JSON, description="The JSON data required to initialize the payment gateway."
     )
     errors = common_types.NonNullList(common_types.PaymentGatewayConfigError)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayToInitialize(BaseInputObjectType):

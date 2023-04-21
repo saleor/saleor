@@ -121,8 +121,6 @@ type Query {
   
   Added in Saleor 3.9.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxConfiguration(
@@ -134,8 +132,6 @@ type Query {
   List of tax configurations.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
@@ -165,8 +161,6 @@ type Query {
   
   Added in Saleor 3.9.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass(
@@ -178,8 +172,6 @@ type Query {
   List of tax classes.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
@@ -729,7 +721,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): OrderEventCountableConnection
+  ): OrderEventCountableConnection @doc(category: "Orders")
 
   """Look up an order by ID or external reference."""
   order(
@@ -837,7 +829,7 @@ type Query {
 
     """The menu's slug."""
     slug: String
-  ): Menu
+  ): Menu @doc(category: "Menu")
 
   """List of the storefront's menus."""
   menus(
@@ -869,7 +861,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuCountableConnection
+  ): MenuCountableConnection @doc(category: "Menu")
 
   """Look up a menu item by ID."""
   menuItem(
@@ -878,7 +870,7 @@ type Query {
 
     """Slug of a channel for which the data should be returned."""
     channel: String
-  ): MenuItem
+  ): MenuItem @doc(category: "Menu")
 
   """List of the storefronts's menu items."""
   menuItems(
@@ -906,7 +898,7 @@ type Query {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): MenuItemCountableConnection
+  ): MenuItemCountableConnection @doc(category: "Menu")
 
   """
   Look up a gift card by ID.
@@ -928,8 +920,6 @@ type Query {
     Sort gift cards.
     
     Added in Saleor 3.1.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     sortBy: GiftCardSortingInput
 
@@ -937,8 +927,6 @@ type Query {
     Filtering options for gift cards.
     
     Added in Saleor 3.1.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     filter: GiftCardFilterInput
 
@@ -964,8 +952,6 @@ type Query {
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   giftCardCurrencies: [String!]! @doc(category: "Gift cards")
@@ -974,8 +960,6 @@ type Query {
   List of gift card tags.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -1274,8 +1258,6 @@ type Query {
     Slug of the channel.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     slug: String
   ): Channel @doc(category: "Channels")
@@ -1296,8 +1278,6 @@ type Query {
     Filtering options for attributes.
     
     Added in Saleor 3.11.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     where: AttributeWhereInput
 
@@ -1400,8 +1380,6 @@ type Query {
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   appExtensions(
@@ -1430,8 +1408,6 @@ type Query {
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   appExtension(
@@ -1454,7 +1430,11 @@ type Query {
     cityArea: String
   ): AddressValidationData @doc(category: "Users")
 
-  """Look up an address by ID."""
+  """
+  Look up an address by ID.
+  
+  Requires one of the following permissions: MANAGE_USERS, OWNER.
+  """
   address(
     """ID of an address."""
     id: ID!
@@ -1750,8 +1730,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A gift card metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   GIFT_CARD_METADATA_UPDATED
 
@@ -1829,8 +1807,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   An order metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_METADATA_UPDATED
 
@@ -1877,8 +1853,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A customer account metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CUSTOMER_METADATA_UPDATED
 
@@ -1895,8 +1869,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A collection metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   COLLECTION_METADATA_UPDATED
 
@@ -1934,8 +1906,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A product metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   PRODUCT_METADATA_UPDATED
 
@@ -1961,8 +1931,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A product variant metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   PRODUCT_VARIANT_METADATA_UPDATED
 
@@ -1979,8 +1947,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A checkout metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CHECKOUT_METADATA_UPDATED
 
@@ -1997,8 +1963,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A fulfillment metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   FULFILLMENT_METADATA_UPDATED
 
@@ -2054,8 +2018,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A shipping zone metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   SHIPPING_ZONE_METADATA_UPDATED
 
@@ -2079,8 +2041,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Transaction item metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   TRANSACTION_ITEM_METADATA_UPDATED
 
@@ -2103,8 +2063,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A warehouse metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   WAREHOUSE_METADATA_UPDATED
 
@@ -2121,8 +2079,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   A voucher metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   VOUCHER_METADATA_UPDATED
 
@@ -2188,8 +2144,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Event called for checkout tax calculation.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CHECKOUT_CALCULATE_TAXES
 
@@ -2197,8 +2151,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   Event called for order tax calculation.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_CALCULATE_TAXES
 
@@ -2278,8 +2230,6 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   Event called for checkout tax calculation.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CHECKOUT_CALCULATE_TAXES
 
@@ -2287,8 +2237,6 @@ enum WebhookEventTypeSyncEnum @doc(category: "Webhooks") {
   Event called for order tax calculation.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_CALCULATE_TAXES
 
@@ -2404,8 +2352,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A gift card metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   GIFT_CARD_METADATA_UPDATED
 
@@ -2483,8 +2429,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   An order metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   ORDER_METADATA_UPDATED
 
@@ -2531,8 +2475,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A customer account metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CUSTOMER_METADATA_UPDATED
 
@@ -2549,8 +2491,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A collection metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   COLLECTION_METADATA_UPDATED
 
@@ -2588,8 +2528,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A product metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   PRODUCT_METADATA_UPDATED
 
@@ -2615,8 +2553,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A product variant metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   PRODUCT_VARIANT_METADATA_UPDATED
 
@@ -2633,8 +2569,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A checkout metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   CHECKOUT_METADATA_UPDATED
 
@@ -2651,8 +2585,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A fulfillment metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   FULFILLMENT_METADATA_UPDATED
 
@@ -2708,8 +2640,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A shipping zone metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   SHIPPING_ZONE_METADATA_UPDATED
 
@@ -2733,8 +2663,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Transaction item metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   TRANSACTION_ITEM_METADATA_UPDATED
 
@@ -2757,8 +2685,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A warehouse metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   WAREHOUSE_METADATA_UPDATED
 
@@ -2775,8 +2701,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   A voucher metadata is updated.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   VOUCHER_METADATA_UPDATED
 
@@ -2917,8 +2841,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   App's dashboard extensions.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   extensions: [AppExtension!]!
 }
@@ -2977,7 +2899,7 @@ Example:
 scalar Metadata
 
 """Represents a permission object in a friendly form."""
-type Permission {
+type Permission @doc(category: "Authentication") {
   """Internal code for permission."""
   code: PermissionEnum!
 
@@ -3444,8 +3366,6 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Click and collect options: local, all or disabled.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
   shippingZones(
@@ -3568,7 +3488,7 @@ type CountryDisplay {
 }
 
 """Represents a VAT rate for a country."""
-type VAT {
+type VAT @doc(category: "Taxes") {
   """Country code."""
   countryCode: String!
 
@@ -3580,7 +3500,7 @@ type VAT {
 }
 
 """Represents a reduced VAT rate for a particular type of goods."""
-type ReducedRate {
+type ReducedRate @doc(category: "Taxes") {
   """Reduced VAT rate in percent."""
   rate: Float!
 
@@ -3595,7 +3515,7 @@ enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
   ALL
 }
 
-type ShippingZoneCountableConnection {
+type ShippingZoneCountableConnection @doc(category: "Shipping") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ShippingZoneCountableEdge!]!
@@ -3604,7 +3524,7 @@ type ShippingZoneCountableConnection {
   totalCount: Int
 }
 
-type ShippingZoneCountableEdge {
+type ShippingZoneCountableEdge @doc(category: "Shipping") {
   """The item at the end of the edge."""
   node: ShippingZone!
 
@@ -3844,7 +3764,7 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   WEIGHT
 }
 
-type ShippingMethodTranslation implements Node {
+type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   id: ID!
 
   """Translation language."""
@@ -4708,8 +4628,6 @@ type Channel implements Node @doc(category: "Channels") {
   
   Added in Saleor 3.5.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
   warehouses: [Warehouse!]!
@@ -4718,8 +4636,6 @@ type Channel implements Node @doc(category: "Channels") {
   List of shippable countries for the channel.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   countries: [CountryDisplay!]
 
@@ -4727,8 +4643,6 @@ type Channel implements Node @doc(category: "Channels") {
   Shipping methods that are available for the channel.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
 
@@ -4736,8 +4650,6 @@ type Channel implements Node @doc(category: "Channels") {
   Define the stock setting for this channel.
   
   Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
   """
@@ -4757,8 +4669,6 @@ type Channel implements Node @doc(category: "Channels") {
 List of shipping methods available for the country.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ShippingMethodsPerCountry @doc(category: "Shipping") {
   """The country code."""
@@ -5128,10 +5038,8 @@ enum WeightUnitsEnum {
 Represents the channel stock settings.
 
 Added in Saleor 3.7.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type StockSettings {
+type StockSettings @doc(category: "Products") {
   """
   Allocation strategy defines the preference of warehouses for allocations and reservations.
   """
@@ -5244,7 +5152,7 @@ enum PostalCodeRuleInclusionTypeEnum @doc(category: "Shipping") {
   EXCLUDE
 }
 
-type ProductCountableConnection {
+type ProductCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductCountableEdge!]!
@@ -5253,7 +5161,7 @@ type ProductCountableConnection {
   totalCount: Int
 }
 
-type ProductCountableEdge {
+type ProductCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Product!
 
@@ -5351,8 +5259,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -5634,8 +5540,6 @@ type TaxType @doc(category: "Taxes") {
 Tax class is a named object used to define tax rates per country. Tax class can be assigned to product types, products and shipping methods to define their tax rates.
 
 Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
@@ -5698,8 +5602,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
 Tax rate for a country. When tax class is null, it represents the default tax rate for that country; otherwise it's a country tax rate specific to the given tax class.
 
 Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TaxClassCountryRate @doc(category: "Taxes") {
   """Country in which this tax rate applies."""
@@ -5959,7 +5861,7 @@ type AttributeValueCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeValueCountableEdge {
+type AttributeValueCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: AttributeValue!
 
@@ -6026,7 +5928,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   externalReference: String
 }
 
-type AttributeValueTranslation implements Node {
+type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -6080,7 +5982,7 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   ids: [ID!]
 }
 
-type AttributeTranslation implements Node {
+type AttributeTranslation implements Node @doc(category: "Attributes") {
   id: ID!
 
   """Translation language."""
@@ -6088,7 +5990,7 @@ type AttributeTranslation implements Node {
   name: String!
 }
 
-type ProductTypeCountableConnection {
+type ProductTypeCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductTypeCountableEdge!]!
@@ -6097,7 +5999,7 @@ type ProductTypeCountableConnection {
   totalCount: Int
 }
 
-type ProductTypeCountableEdge {
+type ProductTypeCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductType!
 
@@ -6135,7 +6037,7 @@ type AttributeCountableConnection @doc(category: "Attributes") {
   totalCount: Int
 }
 
-type AttributeCountableEdge {
+type AttributeCountableEdge @doc(category: "Attributes") {
   """The item at the end of the edge."""
   node: Attribute!
 
@@ -6408,8 +6310,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -6421,7 +6321,7 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   ): CategoryTranslation
 }
 
-type CategoryCountableConnection {
+type CategoryCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CategoryCountableEdge!]!
@@ -6430,7 +6330,7 @@ type CategoryCountableConnection {
   totalCount: Int
 }
 
-type CategoryCountableEdge {
+type CategoryCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Category!
 
@@ -6676,7 +6576,7 @@ enum ThumbnailFormatEnum {
   WEBP
 }
 
-type CategoryTranslation implements Node {
+type CategoryTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -6860,8 +6760,6 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Preorder data for product variant.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorder: PreorderData
   created: DateTime!
@@ -6895,8 +6793,6 @@ type ProductVariantChannelListing implements Node @doc(category: "Products") {
   Preorder variant data.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorderThreshold: PreorderThreshold
 }
@@ -7019,8 +6915,6 @@ type ProductImage @doc(category: "Products") {
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
@@ -7101,8 +6995,6 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): String!
@@ -7121,7 +7013,7 @@ enum ProductMediaType @doc(category: "Products") {
   VIDEO
 }
 
-type ProductVariantTranslation implements Node {
+type ProductVariantTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7129,7 +7021,7 @@ type ProductVariantTranslation implements Node {
   name: String!
 }
 
-type DigitalContent implements Node & ObjectWithMetadata {
+type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7190,7 +7082,7 @@ type DigitalContent implements Node & ObjectWithMetadata {
   productVariant: ProductVariant!
 }
 
-type DigitalContentUrl implements Node {
+type DigitalContentUrl implements Node @doc(category: "Products") {
   id: ID!
   content: DigitalContent!
   created: DateTime!
@@ -7279,8 +7171,6 @@ type ProductPricingInfo @doc(category: "Products") {
   Determines whether this product's price displayed in a storefront should include taxes.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 }
@@ -7473,8 +7363,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -7493,7 +7381,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   channelListings: [CollectionChannelListing!]
 }
 
-type CollectionTranslation implements Node {
+type CollectionTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7518,7 +7406,7 @@ type CollectionTranslation implements Node {
 }
 
 """Represents collection channel listing."""
-type CollectionChannelListing implements Node {
+type CollectionChannelListing implements Node @doc(category: "Products") {
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7532,7 +7420,7 @@ type CollectionChannelListing implements Node {
   channel: Channel!
 }
 
-type ProductTranslation implements Node {
+type ProductTranslation implements Node @doc(category: "Products") {
   id: ID!
 
   """Translation language."""
@@ -7565,7 +7453,7 @@ type WarehouseCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type WarehouseCountableEdge {
+type WarehouseCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Warehouse!
 
@@ -7804,7 +7692,7 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
-type PageTranslation implements Node {
+type PageTranslation implements Node @doc(category: "Pages") {
   id: ID!
 
   """Translation language."""
@@ -8053,7 +7941,7 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type SaleTranslation implements Node {
+type SaleTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8234,7 +8122,7 @@ enum SaleType @doc(category: "Discounts") {
   PERCENTAGE
 }
 
-type CollectionCountableConnection {
+type CollectionCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CollectionCountableEdge!]!
@@ -8243,7 +8131,7 @@ type CollectionCountableConnection {
   totalCount: Int
 }
 
-type CollectionCountableEdge {
+type CollectionCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Collection!
 
@@ -8251,7 +8139,7 @@ type CollectionCountableEdge {
   cursor: String!
 }
 
-type ProductVariantCountableConnection {
+type ProductVariantCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [ProductVariantCountableEdge!]!
@@ -8260,7 +8148,7 @@ type ProductVariantCountableConnection {
   totalCount: Int
 }
 
-type ProductVariantCountableEdge {
+type ProductVariantCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: ProductVariant!
 
@@ -8269,7 +8157,7 @@ type ProductVariantCountableEdge {
 }
 
 """Represents sale channel listing."""
-type SaleChannelListing implements Node {
+type SaleChannelListing implements Node @doc(category: "Discounts") {
   id: ID!
   channel: Channel!
   discountValue: Float!
@@ -8294,7 +8182,7 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type VoucherTranslation implements Node {
+type VoucherTranslation implements Node @doc(category: "Discounts") {
   id: ID!
 
   """Translation language."""
@@ -8506,7 +8394,7 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
   minSpent: Money
 }
 
-type MenuItemTranslatableContent implements Node {
+type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   id: ID!
   name: String!
 
@@ -8522,7 +8410,7 @@ type MenuItemTranslatableContent implements Node {
   menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
-type MenuItemTranslation implements Node {
+type MenuItemTranslation implements Node @doc(category: "Menu") {
   id: ID!
 
   """Translation language."""
@@ -8533,7 +8421,7 @@ type MenuItemTranslation implements Node {
 """
 Represents a single item of the related menu. Can store categories, collection or pages.
 """
-type MenuItem implements Node & ObjectWithMetadata {
+type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8611,7 +8499,7 @@ type MenuItem implements Node & ObjectWithMetadata {
 """
 Represents a single menu - an object that is used to help navigate through the store.
 """
-type Menu implements Node & ObjectWithMetadata {
+type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8682,8 +8570,6 @@ enum TranslatableKinds {
 Channel-specific tax configuration.
 
 Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   """The ID of the object."""
@@ -8767,8 +8653,6 @@ enum TaxCalculationStrategy @doc(category: "Taxes") {
 Country-specific exceptions of a channel's tax configuration.
 
 Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TaxConfigurationPerCountry @doc(category: "Taxes") {
   """Country in which this configuration applies."""
@@ -8797,7 +8681,7 @@ type TaxConfigurationCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxConfigurationCountableEdge {
+type TaxConfigurationCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxConfiguration!
 
@@ -8819,7 +8703,7 @@ type TaxClassCountableConnection @doc(category: "Taxes") {
   totalCount: Int
 }
 
-type TaxClassCountableEdge {
+type TaxClassCountableEdge @doc(category: "Taxes") {
   """The item at the end of the edge."""
   node: TaxClass!
 
@@ -8850,8 +8734,6 @@ input TaxClassFilterInput @doc(category: "Taxes") {
 Tax class rates grouped by country.
 
 Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TaxCountryConfiguration @doc(category: "Taxes") {
   """A country for which tax class rates are grouped."""
@@ -8870,7 +8752,7 @@ type StockCountableConnection @doc(category: "Products") {
   totalCount: Int
 }
 
-type StockCountableEdge {
+type StockCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: Stock!
 
@@ -9028,8 +8910,6 @@ type Shop {
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   limitQuantityPerCheckout: Int
@@ -9118,7 +8998,7 @@ type GatewayConfigLine @doc(category: "Payments") {
   value: String
 }
 
-type ExternalAuthentication {
+type ExternalAuthentication @doc(category: "Authentication") {
   """ID of external authentication plugin."""
   id: String!
 
@@ -9145,7 +9025,7 @@ type Domain {
   url: String!
 }
 
-type ShopTranslation implements Node {
+type ShopTranslation implements Node @doc(category: "Shop") {
   id: ID!
 
   """Translation language."""
@@ -9334,8 +9214,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -9447,8 +9325,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Collection points that can be used for this order.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableCollectionPoints: [Warehouse!]!
 
@@ -9489,8 +9365,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   The delivery method selected for this checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deliveryMethod: DeliveryMethod
 
@@ -9501,8 +9375,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Returns True if checkout has to be exempt from taxes.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   taxExemption: Boolean!
 
@@ -9539,8 +9411,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Determines whether checkout prices should include taxes when displayed in a storefront.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 
@@ -9631,8 +9501,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   The user who bought or issued a gift card.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   createdBy: User
 
@@ -9640,8 +9508,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   The customer who used a gift card.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   usedBy: User
 
@@ -9649,8 +9515,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Email address of the user who bought or issued gift card.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_USERS, OWNER.
   """
@@ -9660,8 +9524,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Email address of the customer who used a gift card.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   usedByEmail: String
   lastUsedOn: DateTime
@@ -9672,8 +9534,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_APPS, OWNER.
   """
   app: App
@@ -9682,8 +9542,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Related gift card product.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   product: Product
 
@@ -9691,8 +9549,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   List of events associated with the gift card.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -9706,8 +9562,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
   tags: [GiftCardTag!]!
@@ -9716,8 +9570,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Slug of the channel where the gift card was bought.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   boughtInChannel: String
   isActive: Boolean!
@@ -9738,10 +9590,8 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
 History log of the gift card.
 
 Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardEvent implements Node {
+type GiftCardEvent implements Node @doc(category: "Gift cards") {
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -9827,8 +9677,6 @@ input GiftCardEventFilterInput @doc(category: "Gift cards") {
 The gift card tag.
 
 Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardTag implements Node @doc(category: "Gift cards") {
   id: ID!
@@ -9919,8 +9767,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 Represents a delivery method chosen for the checkout. `Warehouse` type is used when checkout is marked as "click and collect" and `ShippingMethod` otherwise.
 
 Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 union DeliveryMethod = Warehouse | ShippingMethod
 
@@ -10200,8 +10046,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Collection points that can be used for this order.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   availableCollectionPoints: [Warehouse!]!
 
@@ -10232,8 +10076,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   The authorize status of the order.
   
   Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   authorizeStatus: OrderAuthorizeStatusEnum!
 
@@ -10241,8 +10083,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   The charge status of the order.
   
   Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   chargeStatus: OrderChargeStatusEnum!
 
@@ -10250,8 +10090,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Returns True if order has to be exempt from taxes.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   taxExemption: Boolean!
 
@@ -10259,8 +10097,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   List of transactions for the order. Requires one of the following permissions: MANAGE_ORDERS, HANDLE_PAYMENTS.
   
   Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   transactions: [TransactionItem!]!
 
@@ -10287,8 +10123,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   
   Added in Saleor 3.9.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   shippingTaxClass: TaxClass
@@ -10297,8 +10131,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized name of the tax class assigned to the shipping method.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingTaxClassName: String
 
@@ -10306,8 +10138,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized public metadata of the shipping method's tax class.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingTaxClassMetadata: [MetadataItem!]!
 
@@ -10315,8 +10145,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized private metadata of the shipping method's tax class. Requires staff permissions to access.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingTaxClassPrivateMetadata: [MetadataItem!]!
   token: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `id` instead.")
@@ -10381,8 +10209,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   The delivery method selected for this order.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deliveryMethod: DeliveryMethod
   languageCode: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `languageCodeEnum` field to fetch the language code. ")
@@ -10409,8 +10235,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Determines whether checkout prices should include taxes when displayed in a storefront.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   displayGrossPrices: Boolean!
 
@@ -10691,8 +10515,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
     The format of the image. When not provided, format of the original image will be used.
     
     Added in Saleor 3.6.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     format: ThumbnailFormatEnum = ORIGINAL
   ): Image
@@ -10747,8 +10569,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   
   Added in Saleor 3.9.
   
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
   """
   taxClass: TaxClass
@@ -10757,8 +10577,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized name of the tax class.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   taxClassName: String
 
@@ -10766,8 +10584,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized public metadata of the tax class.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   taxClassMetadata: [MetadataItem!]!
 
@@ -10775,8 +10591,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Denormalized private metadata of the tax class. Requires staff permissions to access.
   
   Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   taxClassPrivateMetadata: [MetadataItem!]!
 }
@@ -11301,7 +11115,7 @@ type OrderEventOrderLineObject @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 }
 
-type OrderEventDiscountObject {
+type OrderEventDiscountObject @doc(category: "Orders") {
   """Type of the discount: fixed or percent."""
   valueType: DiscountValueTypeEnum!
 
@@ -11617,7 +11431,7 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   OVERCHARGED
 }
 
-type CheckoutCountableConnection {
+type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutCountableEdge!]!
@@ -11626,7 +11440,7 @@ type CheckoutCountableConnection {
   totalCount: Int
 }
 
-type CheckoutCountableEdge {
+type CheckoutCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: Checkout!
 
@@ -11634,7 +11448,7 @@ type CheckoutCountableEdge {
   cursor: String!
 }
 
-type GiftCardCountableConnection {
+type GiftCardCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardCountableEdge!]!
@@ -11643,7 +11457,7 @@ type GiftCardCountableConnection {
   totalCount: Int
 }
 
-type GiftCardCountableEdge {
+type GiftCardCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCard!
 
@@ -11651,7 +11465,7 @@ type GiftCardCountableEdge {
   cursor: String!
 }
 
-type OrderCountableConnection {
+type OrderCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderCountableEdge!]!
@@ -11660,7 +11474,7 @@ type OrderCountableConnection {
   totalCount: Int
 }
 
-type OrderCountableEdge {
+type OrderCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: Order!
 
@@ -11792,7 +11606,7 @@ type Limits {
 }
 
 """Gift card related settings from site settings."""
-type GiftCardSettings {
+type GiftCardSettings @doc(category: "Gift cards") {
   """The gift card expiry type settings."""
   expiryType: GiftCardSettingsExpiryTypeEnum!
 
@@ -11827,7 +11641,7 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
-type DigitalContentCountableConnection {
+type DigitalContentCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [DigitalContentCountableEdge!]!
@@ -11836,7 +11650,7 @@ type DigitalContentCountableConnection {
   totalCount: Int
 }
 
-type DigitalContentCountableEdge {
+type DigitalContentCountableEdge @doc(category: "Products") {
   """The item at the end of the edge."""
   node: DigitalContent!
 
@@ -12001,7 +11815,7 @@ enum ProductVariantSortField @doc(category: "Products") {
   LAST_MODIFIED_AT
 }
 
-type PaymentCountableConnection {
+type PaymentCountableConnection @doc(category: "Payments") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PaymentCountableEdge!]!
@@ -12010,7 +11824,7 @@ type PaymentCountableConnection {
   totalCount: Int
 }
 
-type PaymentCountableEdge {
+type PaymentCountableEdge @doc(category: "Payments") {
   """The item at the end of the edge."""
   node: Payment!
 
@@ -12028,7 +11842,7 @@ input PaymentFilterInput @doc(category: "Payments") {
   checkouts: [ID!]
 }
 
-type PageCountableConnection {
+type PageCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageCountableEdge!]!
@@ -12037,7 +11851,7 @@ type PageCountableConnection {
   totalCount: Int
 }
 
-type PageCountableEdge {
+type PageCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: Page!
 
@@ -12100,7 +11914,7 @@ input PageFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type PageTypeCountableConnection {
+type PageTypeCountableConnection @doc(category: "Pages") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [PageTypeCountableEdge!]!
@@ -12109,7 +11923,7 @@ type PageTypeCountableConnection {
   totalCount: Int
 }
 
-type PageTypeCountableEdge {
+type PageTypeCountableEdge @doc(category: "Pages") {
   """The item at the end of the edge."""
   node: PageType!
 
@@ -12138,7 +11952,7 @@ input PageTypeFilterInput @doc(category: "Pages") {
   slugs: [String!]
 }
 
-type OrderEventCountableConnection {
+type OrderEventCountableConnection @doc(category: "Orders") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [OrderEventCountableEdge!]!
@@ -12147,7 +11961,7 @@ type OrderEventCountableConnection {
   totalCount: Int
 }
 
-type OrderEventCountableEdge {
+type OrderEventCountableEdge @doc(category: "Orders") {
   """The item at the end of the edge."""
   node: OrderEvent!
 
@@ -12237,7 +12051,7 @@ input OrderDraftFilterInput @doc(category: "Orders") {
   channels: [ID!]
 }
 
-type MenuCountableConnection {
+type MenuCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuCountableEdge!]!
@@ -12246,7 +12060,7 @@ type MenuCountableConnection {
   totalCount: Int
 }
 
-type MenuCountableEdge {
+type MenuCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: Menu!
 
@@ -12277,7 +12091,7 @@ input MenuFilterInput {
   slugs: [String!]
 }
 
-type MenuItemCountableConnection {
+type MenuItemCountableConnection @doc(category: "Menu") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [MenuItemCountableEdge!]!
@@ -12286,7 +12100,7 @@ type MenuItemCountableConnection {
   totalCount: Int
 }
 
-type MenuItemCountableEdge {
+type MenuItemCountableEdge @doc(category: "Menu") {
   """The item at the end of the edge."""
   node: MenuItem!
 
@@ -12351,7 +12165,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   code: String
 }
 
-type GiftCardTagCountableConnection {
+type GiftCardTagCountableConnection @doc(category: "Gift cards") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [GiftCardTagCountableEdge!]!
@@ -12360,7 +12174,7 @@ type GiftCardTagCountableConnection {
   totalCount: Int
 }
 
-type GiftCardTagCountableEdge {
+type GiftCardTagCountableEdge @doc(category: "Gift cards") {
   """The item at the end of the edge."""
   node: GiftCardTag!
 
@@ -12477,7 +12291,7 @@ enum PluginSortField {
   IS_ACTIVE
 }
 
-type SaleCountableConnection {
+type SaleCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [SaleCountableEdge!]!
@@ -12486,7 +12300,7 @@ type SaleCountableConnection {
   totalCount: Int
 }
 
-type SaleCountableEdge {
+type SaleCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Sale!
 
@@ -12551,7 +12365,7 @@ enum SaleSortField @doc(category: "Discounts") {
   LAST_MODIFIED_AT
 }
 
-type VoucherCountableConnection {
+type VoucherCountableConnection @doc(category: "Discounts") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [VoucherCountableEdge!]!
@@ -12560,7 +12374,7 @@ type VoucherCountableConnection {
   totalCount: Int
 }
 
-type VoucherCountableEdge {
+type VoucherCountableEdge @doc(category: "Discounts") {
   """The item at the end of the edge."""
   node: Voucher!
 
@@ -12760,7 +12574,7 @@ input CheckoutFilterInput @doc(category: "Checkout") {
   chargeStatus: [CheckoutChargeStatusEnum!]
 }
 
-type CheckoutLineCountableConnection {
+type CheckoutLineCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
   edges: [CheckoutLineCountableEdge!]!
@@ -12769,7 +12583,7 @@ type CheckoutLineCountableConnection {
   totalCount: Int
 }
 
-type CheckoutLineCountableEdge {
+type CheckoutLineCountableEdge @doc(category: "Checkout") {
   """The item at the end of the edge."""
   node: CheckoutLine!
 
@@ -12844,7 +12658,7 @@ type AppCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppCountableEdge {
+type AppCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: App!
 
@@ -12883,7 +12697,7 @@ type AppExtensionCountableConnection @doc(category: "Apps") {
   totalCount: Int
 }
 
-type AppExtensionCountableEdge {
+type AppExtensionCountableEdge @doc(category: "Apps") {
   """The item at the end of the edge."""
   node: AppExtension!
 
@@ -12931,7 +12745,7 @@ type UserCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type UserCountableEdge {
+type UserCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: User!
 
@@ -12992,7 +12806,7 @@ type GroupCountableConnection @doc(category: "Users") {
   totalCount: Int
 }
 
-type GroupCountableEdge {
+type GroupCountableEdge @doc(category: "Users") {
   """The item at the end of the edge."""
   node: Group!
 
@@ -13174,9 +12988,7 @@ type Mutation {
   """
   Create a tax class.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13188,9 +13000,7 @@ type Mutation {
   """
   Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13202,9 +13012,7 @@ type Mutation {
   """
   Update a tax class.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13219,9 +13027,7 @@ type Mutation {
   """
   Update tax configuration for a channel.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13236,9 +13042,7 @@ type Mutation {
   """
   Update tax class rates for a specific country.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13255,9 +13059,7 @@ type Mutation {
   """
   Remove all tax class rates for a specific country.
   
-  Added in Saleor 3.9.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.9. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13269,9 +13071,7 @@ type Mutation {
   """
   Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
   
-  Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.8. 
   
   Requires one of the following permissions: MANAGE_TAXES.
   """
@@ -13341,7 +13141,7 @@ type Mutation {
   shopDomainUpdate(
     """Fields required to update site."""
     input: SiteDomainInput
-  ): ShopDomainUpdate
+  ): ShopDomainUpdate @doc(category: "Shop")
 
   """
   Updates shop settings. 
@@ -13351,14 +13151,14 @@ type Mutation {
   shopSettingsUpdate(
     """Fields required to update shop settings."""
     input: ShopSettingsInput!
-  ): ShopSettingsUpdate
+  ): ShopSettingsUpdate @doc(category: "Shop")
 
   """
   Fetch tax rates. 
   
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
-  shopFetchTaxRates: ShopFetchTaxRates @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
+  shopFetchTaxRates: ShopFetchTaxRates @doc(category: "Shop") @deprecated(reason: "\\n\\nDEPRECATED: this mutation will be removed in Saleor 4.0.")
 
   """
   Creates/updates translations for shop settings. 
@@ -13371,7 +13171,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): ShopSettingsTranslate
+  ): ShopSettingsTranslate @doc(category: "Shop")
 
   """
   Update the shop's address. If the `null` value is passed, the currently selected address will be deleted. 
@@ -13381,7 +13181,7 @@ type Mutation {
   shopAddressUpdate(
     """Fields required to update shop address."""
     input: AddressInput
-  ): ShopAddressUpdate
+  ): ShopAddressUpdate @doc(category: "Shop")
 
   """
   Update shop order settings across all channels. Returns `orderSettings` for the first `channel` in alphabetical order.  
@@ -14043,7 +13843,7 @@ type Mutation {
   digitalContentUrlCreate(
     """Fields required to create a new url."""
     input: DigitalContentUrlCreateInput!
-  ): DigitalContentUrlCreate
+  ): DigitalContentUrlCreate @doc(category: "Products")
 
   """
   Creates a new variant for a product. 
@@ -14278,9 +14078,7 @@ type Mutation {
   """
   Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   """
@@ -15167,7 +14965,7 @@ type Mutation {
 
     """Type of the navigation bar to assign the menu to."""
     navigationType: NavigationType!
-  ): AssignNavigation
+  ): AssignNavigation @doc(category: "Menu")
 
   """
   Creates a new Menu. 
@@ -15177,7 +14975,7 @@ type Mutation {
   menuCreate(
     """Fields required to create a menu."""
     input: MenuCreateInput!
-  ): MenuCreate
+  ): MenuCreate @doc(category: "Menu")
 
   """
   Deletes a menu. 
@@ -15187,7 +14985,7 @@ type Mutation {
   menuDelete(
     """ID of a menu to delete."""
     id: ID!
-  ): MenuDelete
+  ): MenuDelete @doc(category: "Menu")
 
   """
   Deletes menus. 
@@ -15197,7 +14995,7 @@ type Mutation {
   menuBulkDelete(
     """List of menu IDs to delete."""
     ids: [ID!]!
-  ): MenuBulkDelete
+  ): MenuBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu. 
@@ -15210,7 +15008,7 @@ type Mutation {
 
     """Fields required to update a menu."""
     input: MenuInput!
-  ): MenuUpdate
+  ): MenuUpdate @doc(category: "Menu")
 
   """
   Creates a new menu item. 
@@ -15222,7 +15020,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemCreateInput!
-  ): MenuItemCreate
+  ): MenuItemCreate @doc(category: "Menu")
 
   """
   Deletes a menu item. 
@@ -15232,7 +15030,7 @@ type Mutation {
   menuItemDelete(
     """ID of a menu item to delete."""
     id: ID!
-  ): MenuItemDelete
+  ): MenuItemDelete @doc(category: "Menu")
 
   """
   Deletes menu items. 
@@ -15242,7 +15040,7 @@ type Mutation {
   menuItemBulkDelete(
     """List of menu item IDs to delete."""
     ids: [ID!]!
-  ): MenuItemBulkDelete
+  ): MenuItemBulkDelete @doc(category: "Menu")
 
   """
   Updates a menu item. 
@@ -15257,7 +15055,7 @@ type Mutation {
     Fields required to update a menu item. Only one of `url`, `category`, `page`, `collection` is allowed per item.
     """
     input: MenuItemInput!
-  ): MenuItemUpdate
+  ): MenuItemUpdate @doc(category: "Menu")
 
   """
   Creates/updates translations for a menu item. 
@@ -15271,7 +15069,7 @@ type Mutation {
 
     """Translation language code."""
     languageCode: LanguageCodeEnum!
-  ): MenuItemTranslate
+  ): MenuItemTranslate @doc(category: "Menu")
 
   """
   Moves items of menus. 
@@ -15284,7 +15082,7 @@ type Mutation {
 
     """The menu position data."""
     moves: [MenuItemMoveInput!]!
-  ): MenuItemMove
+  ): MenuItemMove @doc(category: "Menu")
 
   """
   Request an invoice for the order using plugin. 
@@ -15378,9 +15176,7 @@ type Mutation {
   """
   Delete gift card.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15415,9 +15211,7 @@ type Mutation {
   """
   Resend a gift card.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15429,9 +15223,7 @@ type Mutation {
   """
   Adds note to the gift card.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15446,9 +15238,7 @@ type Mutation {
   """
   Create gift cards.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15460,9 +15250,7 @@ type Mutation {
   """
   Delete gift cards.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15474,9 +15262,7 @@ type Mutation {
   """
   Activate gift cards.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15488,9 +15274,7 @@ type Mutation {
   """
   Deactivate gift cards.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15738,9 +15522,7 @@ type Mutation {
   """
   Export gift cards to csv file.
   
-  Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   """
@@ -15816,8 +15598,6 @@ type Mutation {
     The rules for changing validation for received billing address data.
     
     Added in Saleor 3.5.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     validationRules: CheckoutAddressValidationRules
   ): CheckoutBillingAddressUpdate @doc(category: "Checkout")
@@ -16158,8 +15938,6 @@ type Mutation {
     The rules for changing validation for received shipping address data.
     
     Added in Saleor 3.5.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     validationRules: CheckoutAddressValidationRules
   ): CheckoutShippingAddressUpdate @doc(category: "Checkout")
@@ -16195,8 +15973,6 @@ type Mutation {
   Updates the delivery method (shipping method or pick up point) of the checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   checkoutDeliveryMethodUpdate(
     """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
@@ -16248,8 +16024,6 @@ type Mutation {
   Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
   
   Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -16335,9 +16109,7 @@ type Mutation {
   """
   Reorder the warehouses of a channel.
   
-  Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  Added in Saleor 3.7. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   """
@@ -16624,8 +16396,6 @@ type Mutation {
     The audience that will be included to JWT tokens with prefix `custom:`.
     
     Added in Saleor 3.8.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     audience: String
 
@@ -16637,11 +16407,11 @@ type Mutation {
   ): CreateToken @doc(category: "Authentication")
 
   """
-  Refresh JWT token. Mutation tries to take refreshToken from the input.If it fails it will try to take refreshToken from the http-only cookie -refreshToken. csrfToken is required when refreshToken is provided as a cookie.
+  Refresh JWT token. Mutation tries to take refreshToken from the input. If it fails it will try to take `refreshToken` from the http-only cookie `refreshToken`. `csrfToken` is required when `refreshToken` is provided as a cookie.
   """
   tokenRefresh(
     """
-    CSRF token required to refresh token. This argument is required when refreshToken is provided as a cookie.
+    CSRF token required to refresh token. This argument is required when `refreshToken` is provided as a cookie.
     """
     csrfToken: String
 
@@ -17198,8 +16968,6 @@ input WebhookCreateInput @doc(category: "Webhooks") {
   Subscription query used to define a webhook payload.
   
   Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
 
@@ -17272,8 +17040,6 @@ input WebhookUpdateInput @doc(category: "Webhooks") {
   Subscription query used to define a webhook payload.
   
   Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   query: String
 
@@ -17480,8 +17246,6 @@ input WarehouseUpdateInput @doc(category: "Products") {
   Click and collect options: local, all or disabled.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum
 
@@ -17489,8 +17253,6 @@ input WarehouseUpdateInput @doc(category: "Products") {
   Visibility of warehouse stocks.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isPrivate: Boolean
 }
@@ -17531,9 +17293,7 @@ type WarehouseShippingZoneUnassign @doc(category: "Products") {
 """
 Create a tax class.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17586,9 +17346,7 @@ input CountryRateInput @doc(category: "Taxes") {
 """
 Delete a tax class. After deleting the tax class any products, product types or shipping methods using it are updated to use the default tax class.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17620,9 +17378,7 @@ enum TaxClassDeleteErrorCode @doc(category: "Taxes") {
 """
 Update a tax class.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17683,9 +17439,7 @@ input CountryRateUpdateInput @doc(category: "Taxes") {
 """
 Update tax configuration for a channel.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17765,9 +17519,7 @@ input TaxConfigurationPerCountryInput @doc(category: "Taxes") {
 """
 Update tax class rates for a specific country.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17813,9 +17565,7 @@ input TaxClassRateInput @doc(category: "Taxes") {
 """
 Remove all tax class rates for a specific country.
 
-Added in Saleor 3.9.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.9. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17848,9 +17598,7 @@ enum TaxCountryConfigurationDeleteErrorCode @doc(category: "Taxes") {
 """
 Exempt checkout or order from charging the taxes. When tax exemption is enabled, taxes won't be charged for the checkout or order. Taxes may still be calculated in cases when product prices are entered with the tax included and the net price needs to be known.
 
-Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.8. 
 
 Requires one of the following permissions: MANAGE_TAXES.
 """
@@ -17970,7 +17718,7 @@ type StaffNotificationRecipientCreate @doc(category: "Users") {
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
-type ShopError {
+type ShopError @doc(category: "Shop") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -18032,7 +17780,7 @@ Updates site domain of the shop.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopDomainUpdate {
+type ShopDomainUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18052,7 +17800,7 @@ Updates shop settings.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopSettingsUpdate {
+type ShopSettingsUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18122,8 +17870,6 @@ input ShopSettingsInput {
   Default number of maximum line quantity in single checkout. Minimum possible value is 1, default value is 50.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   limitQuantityPerCheckout: Int
 
@@ -18154,7 +17900,7 @@ Fetch tax rates.
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopFetchTaxRates {
+type ShopFetchTaxRates @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18166,7 +17912,7 @@ Creates/updates translations for shop settings.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type ShopSettingsTranslate {
+type ShopSettingsTranslate @doc(category: "Shop") {
   """Updated shop settings."""
   shop: Shop
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -18204,7 +17950,7 @@ Update the shop's address. If the `null` value is passed, the currently selected
 
 Requires one of the following permissions: MANAGE_SETTINGS.
 """
-type ShopAddressUpdate {
+type ShopAddressUpdate @doc(category: "Shop") {
   """Updated shop."""
   shop: Shop
   shopErrors: [ShopError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -19348,7 +19094,7 @@ type ProductBulkResult @doc(category: "Products") {
   errors: [ProductBulkCreateError!]
 }
 
-type ProductBulkCreateError {
+type ProductBulkCreateError @doc(category: "Products") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -19522,8 +19268,6 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   Determines if variant is in preorder.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorder: PreorderSettingsInput
 
@@ -19531,8 +19275,6 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   quantityLimitPerCustomer: Int
 
@@ -19686,8 +19428,6 @@ input ProductVariantChannelListingAddInput @doc(category: "Products") {
   The threshold for preorder variant in channel.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorderThreshold: Int
 }
@@ -20215,7 +19955,7 @@ Generate new URL to digital content.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
-type DigitalContentUrlCreate {
+type DigitalContentUrlCreate @doc(category: "Products") {
   productErrors: [ProductError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ProductError!]!
   digitalContentUrl: DigitalContentUrl
@@ -20259,8 +19999,6 @@ input ProductVariantCreateInput @doc(category: "Products") {
   Determines if variant is in preorder.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorder: PreorderSettingsInput
 
@@ -20268,8 +20006,6 @@ input ProductVariantCreateInput @doc(category: "Products") {
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   quantityLimitPerCustomer: Int
 
@@ -20353,6 +20089,13 @@ type ProductVariantBulkError @doc(category: "Products") {
 
   """The error code."""
   code: ProductVariantBulkErrorCode!
+
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  
+  Added in Saleor 3.14.
+  """
+  path: String
 
   """List of attributes IDs which causes the error."""
   attributes: [ID!]
@@ -20470,8 +20213,6 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   Determines if variant is in preorder.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorder: PreorderSettingsInput
 
@@ -20479,8 +20220,6 @@ input ProductVariantBulkUpdateInput @doc(category: "Products") {
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   quantityLimitPerCustomer: Int
 
@@ -20697,8 +20436,6 @@ input ProductVariantInput @doc(category: "Products") {
   Determines if variant is in preorder.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   preorder: PreorderSettingsInput
 
@@ -20706,8 +20443,6 @@ input ProductVariantInput @doc(category: "Products") {
   Determines maximum quantity of `ProductVariant`,that can be bought in a single checkout.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   quantityLimitPerCustomer: Int
 
@@ -20786,9 +20521,7 @@ type ProductVariantReorderAttributeValues @doc(category: "Products") {
 """
 Deactivates product variant preorder. It changes all preorder allocation into regular allocation.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 """
@@ -21294,7 +21027,7 @@ type TransactionEventReport @doc(category: "Payments") {
   errors: [TransactionEventReportError!]!
 }
 
-type TransactionEventReportError {
+type TransactionEventReportError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21328,7 +21061,7 @@ type PaymentGatewayInitialize @doc(category: "Payments") {
   errors: [PaymentGatewayInitializeError!]!
 }
 
-type PaymentGatewayConfig {
+type PaymentGatewayConfig @doc(category: "Payments") {
   """The app identifier."""
   id: String!
 
@@ -21339,7 +21072,7 @@ type PaymentGatewayConfig {
 
 scalar JSON
 
-type PaymentGatewayConfigError {
+type PaymentGatewayConfigError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21359,7 +21092,7 @@ enum PaymentGatewayConfigErrorCode @doc(category: "Payments") {
   NOT_FOUND
 }
 
-type PaymentGatewayInitializeError {
+type PaymentGatewayInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21406,7 +21139,7 @@ type TransactionInitialize @doc(category: "Payments") {
   errors: [TransactionInitializeError!]!
 }
 
-type TransactionInitializeError {
+type TransactionInitializeError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21445,7 +21178,7 @@ type TransactionProcess @doc(category: "Payments") {
   errors: [TransactionProcessError!]!
 }
 
-type TransactionProcessError {
+type TransactionProcessError @doc(category: "Payments") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -21854,8 +21587,6 @@ input OrderLineCreateInput @doc(category: "Orders") {
   Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
 }
@@ -22606,14 +22337,14 @@ Assigns storefront's navigation menus.
 
 Requires one of the following permissions: MANAGE_MENUS, MANAGE_SETTINGS.
 """
-type AssignNavigation {
+type AssignNavigation @doc(category: "Menu") {
   """Assigned navigation menu."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
 }
 
-type MenuError {
+type MenuError @doc(category: "Menu") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -22652,7 +22383,7 @@ Creates a new Menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuCreate {
+type MenuCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22691,7 +22422,7 @@ Deletes a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuDelete {
+type MenuDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22702,7 +22433,7 @@ Deletes menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuBulkDelete {
+type MenuBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22714,7 +22445,7 @@ Updates a menu.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuUpdate {
+type MenuUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menu: Menu
@@ -22733,7 +22464,7 @@ Creates a new menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemCreate {
+type MenuItemCreate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22767,7 +22498,7 @@ Deletes a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemDelete {
+type MenuItemDelete @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22778,7 +22509,7 @@ Deletes menu items.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemBulkDelete {
+type MenuItemBulkDelete @doc(category: "Menu") {
   """Returns how many objects were affected."""
   count: Int!
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22790,7 +22521,7 @@ Updates a menu item.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemUpdate {
+type MenuItemUpdate @doc(category: "Menu") {
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [MenuError!]!
   menuItem: MenuItem
@@ -22801,7 +22532,7 @@ Creates/updates translations for a menu item.
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type MenuItemTranslate {
+type MenuItemTranslate @doc(category: "Menu") {
   translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [TranslationError!]!
   menuItem: MenuItem
@@ -22812,7 +22543,7 @@ Moves items of menus.
 
 Requires one of the following permissions: MANAGE_MENUS.
 """
-type MenuItemMove {
+type MenuItemMove @doc(category: "Menu") {
   """Assigned menu to move within."""
   menu: Menu
   menuErrors: [MenuError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -22997,8 +22728,6 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   The gift card tags to add.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addTags: [String!]
 
@@ -23006,8 +22735,6 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   The gift card expiry date.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expiryDate: Date
 
@@ -23035,8 +22762,6 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   Slug of a channel from which the email should be sent.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   channel: String
 
@@ -23044,8 +22769,6 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   Determine if gift card is active.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   isActive: Boolean!
 
@@ -23060,8 +22783,6 @@ input GiftCardCreateInput @doc(category: "Gift cards") {
   The gift card note from the staff member.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   note: String
 }
@@ -23077,9 +22798,7 @@ input PriceInput {
 """
 Delete gift card.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23117,8 +22836,6 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   The gift card tags to add.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addTags: [String!]
 
@@ -23126,8 +22843,6 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   The gift card expiry date.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expiryDate: Date
 
@@ -23149,8 +22864,6 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   The gift card tags to remove.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeTags: [String!]
 
@@ -23158,8 +22871,6 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
   The gift card balance amount.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   balanceAmount: PositiveDecimal
 }
@@ -23167,9 +22878,7 @@ input GiftCardUpdateInput @doc(category: "Gift cards") {
 """
 Resend a gift card.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23193,9 +22902,7 @@ input GiftCardResendInput @doc(category: "Gift cards") {
 """
 Adds note to the gift card.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23216,9 +22923,7 @@ input GiftCardAddNoteInput @doc(category: "Gift cards") {
 """
 Create gift cards.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23251,9 +22956,7 @@ input GiftCardBulkCreateInput @doc(category: "Gift cards") {
 """
 Delete gift cards.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23266,9 +22969,7 @@ type GiftCardBulkDelete @doc(category: "Gift cards") {
 """
 Activate gift cards.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23281,9 +22982,7 @@ type GiftCardBulkActivate @doc(category: "Gift cards") {
 """
 Deactivate gift cards.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -23840,9 +23539,7 @@ enum FileTypesEnum {
 """
 Export gift cards to csv file.
 
-Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 """
@@ -24040,8 +23737,6 @@ input CheckoutCreateInput @doc(category: "Checkout") {
   The checkout validation rules that can be changed.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   validationRules: CheckoutValidationRules
 }
@@ -24057,8 +23752,6 @@ input CheckoutLineInput @doc(category: "Checkout") {
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
 
@@ -24066,8 +23759,6 @@ input CheckoutLineInput @doc(category: "Checkout") {
   Flag that allow force splitting the same variant into multiple lines by skipping the matching logic. 
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   forceNewLine: Boolean = false
 
@@ -24173,8 +23864,6 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   Custom price of the item. Can be set only by apps with `HANDLE_CHECKOUTS` permission. When the line with the same variant will be provided multiple times, the last price will be used.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   price: PositiveDecimal
 
@@ -24275,8 +23964,6 @@ type CheckoutShippingMethodUpdate @doc(category: "Checkout") {
 Updates the delivery method (shipping method or pick up point) of the checkout.
 
 Added in Saleor 3.1.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") {
   """An updated checkout."""
@@ -24296,8 +23983,6 @@ type CheckoutLanguageCodeUpdate @doc(category: "Checkout") {
 Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCreateFromCheckout @doc(category: "Checkout") {
   """Placed order."""
@@ -24393,8 +24078,6 @@ input ChannelCreateInput @doc(category: "Channels") {
   The channel stock settings.
   
   Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   stockSettings: StockSettingsInput
 
@@ -24405,8 +24088,6 @@ input ChannelCreateInput @doc(category: "Channels") {
   List of warehouses to assign to the channel.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addWarehouses: [ID!]
 
@@ -24430,8 +24111,6 @@ input ChannelCreateInput @doc(category: "Channels") {
   Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
   
   Added in Saleor 3.1.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultCountry: CountryCode!
 }
@@ -24504,8 +24183,6 @@ input ChannelUpdateInput @doc(category: "Channels") {
   The channel stock settings.
   
   Added in Saleor 3.7.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   stockSettings: StockSettingsInput
 
@@ -24516,8 +24193,6 @@ input ChannelUpdateInput @doc(category: "Channels") {
   List of warehouses to assign to the channel.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addWarehouses: [ID!]
 
@@ -24548,8 +24223,6 @@ input ChannelUpdateInput @doc(category: "Channels") {
   List of warehouses to unassign from the channel.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeWarehouses: [ID!]
 }
@@ -24597,9 +24270,7 @@ type ChannelDeactivate @doc(category: "Channels") {
 """
 Reorder the warehouses of a channel.
 
-Added in Saleor 3.7.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+Added in Saleor 3.7. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 """
@@ -25166,8 +24837,6 @@ type Manifest @doc(category: "Apps") {
   List of the app's webhooks.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   webhooks: [AppManifestWebhook!]!
 
@@ -25175,8 +24844,6 @@ type Manifest @doc(category: "Apps") {
   The audience that will be included in all JWT tokens for the app.
   
   Added in Saleor 3.8.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   audience: String
 
@@ -25348,7 +25015,7 @@ enum AccountErrorCode @doc(category: "Users") {
 }
 
 """
-Refresh JWT token. Mutation tries to take refreshToken from the input.If it fails it will try to take refreshToken from the http-only cookie -refreshToken. csrfToken is required when refreshToken is provided as a cookie.
+Refresh JWT token. Mutation tries to take refreshToken from the input. If it fails it will try to take `refreshToken` from the http-only cookie `refreshToken`. `csrfToken` is required when `refreshToken` is provided as a cookie.
 """
 type RefreshToken @doc(category: "Authentication") {
   """JWT token, required to authenticate."""
@@ -25636,6 +25303,13 @@ input AccountInput @doc(category: "Users") {
 
   """Shipping address of the customer."""
   defaultShippingAddress: AddressInput
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
 }
 
 """
@@ -25743,6 +25417,20 @@ input UserCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
   """User language code."""
   languageCode: LanguageCodeEnum
 
@@ -25796,6 +25484,20 @@ input CustomerInput @doc(category: "Users") {
 
   """A note about the user."""
   note: String
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 
   """User language code."""
   languageCode: LanguageCodeEnum
@@ -25857,7 +25559,7 @@ type CustomerBulkResult @doc(category: "Users") {
   errors: [CustomerBulkUpdateError!]
 }
 
-type CustomerBulkUpdateError {
+type CustomerBulkUpdateError @doc(category: "Users") {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -25946,6 +25648,20 @@ input StaffCreateInput @doc(category: "Users") {
   """A note about the user."""
   note: String
 
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
+
   """List of permission group IDs to which user should be assigned."""
   addGroups: [ID!]
 
@@ -25982,6 +25698,20 @@ input StaffUpdateInput @doc(category: "Users") {
 
   """A note about the user."""
   note: String
+
+  """
+  Fields required to update the user metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the user private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 
   """List of permission group IDs to which user should be assigned."""
   addGroups: [ID!]
@@ -26146,8 +25876,6 @@ type Subscription {
   Look up subscription event.
   
   Added in Saleor 3.2.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   event: Event
 }
@@ -26209,8 +25937,6 @@ enum VolumeUnitsEnum {
 Event sent when new address is created.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AddressCreated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -26233,8 +25959,6 @@ type AddressCreated implements Event @doc(category: "Users") {
 Event sent when address is updated.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AddressUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -26257,8 +25981,6 @@ type AddressUpdated implements Event @doc(category: "Users") {
 Event sent when address is deleted.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AddressDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -26281,8 +26003,6 @@ type AddressDeleted implements Event @doc(category: "Users") {
 Event sent when new app is installed.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AppInstalled implements Event @doc(category: "Apps") {
   """Time of the event."""
@@ -26305,8 +26025,6 @@ type AppInstalled implements Event @doc(category: "Apps") {
 Event sent when app is updated.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AppUpdated implements Event @doc(category: "Apps") {
   """Time of the event."""
@@ -26329,8 +26047,6 @@ type AppUpdated implements Event @doc(category: "Apps") {
 Event sent when app is deleted.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AppDeleted implements Event @doc(category: "Apps") {
   """Time of the event."""
@@ -26353,8 +26069,6 @@ type AppDeleted implements Event @doc(category: "Apps") {
 Event sent when app status has changed.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AppStatusChanged implements Event @doc(category: "Apps") {
   """Time of the event."""
@@ -26377,8 +26091,6 @@ type AppStatusChanged implements Event @doc(category: "Apps") {
 Event sent when new attribute is created.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26401,8 +26113,6 @@ type AttributeCreated implements Event @doc(category: "Attributes") {
 Event sent when attribute is updated.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26425,8 +26135,6 @@ type AttributeUpdated implements Event @doc(category: "Attributes") {
 Event sent when attribute is deleted.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26449,8 +26157,6 @@ type AttributeDeleted implements Event @doc(category: "Attributes") {
 Event sent when new attribute value is created.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeValueCreated implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26473,8 +26179,6 @@ type AttributeValueCreated implements Event @doc(category: "Attributes") {
 Event sent when attribute value is updated.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeValueUpdated implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26497,8 +26201,6 @@ type AttributeValueUpdated implements Event @doc(category: "Attributes") {
 Event sent when attribute value is deleted.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type AttributeValueDeleted implements Event @doc(category: "Attributes") {
   """Time of the event."""
@@ -26521,8 +26223,6 @@ type AttributeValueDeleted implements Event @doc(category: "Attributes") {
 Event sent when new category is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CategoryCreated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -26545,8 +26245,6 @@ type CategoryCreated implements Event @doc(category: "Products") {
 Event sent when category is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CategoryUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -26569,8 +26267,6 @@ type CategoryUpdated implements Event @doc(category: "Products") {
 Event sent when category is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CategoryDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -26593,8 +26289,6 @@ type CategoryDeleted implements Event @doc(category: "Products") {
 Event sent when new channel is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ChannelCreated implements Event @doc(category: "Channels") {
   """Time of the event."""
@@ -26617,8 +26311,6 @@ type ChannelCreated implements Event @doc(category: "Channels") {
 Event sent when channel is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ChannelUpdated implements Event @doc(category: "Channels") {
   """Time of the event."""
@@ -26641,8 +26333,6 @@ type ChannelUpdated implements Event @doc(category: "Channels") {
 Event sent when channel is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ChannelDeleted implements Event @doc(category: "Channels") {
   """Time of the event."""
@@ -26665,8 +26355,6 @@ type ChannelDeleted implements Event @doc(category: "Channels") {
 Event sent when channel status has changed.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ChannelStatusChanged implements Event @doc(category: "Channels") {
   """Time of the event."""
@@ -26689,8 +26377,6 @@ type ChannelStatusChanged implements Event @doc(category: "Channels") {
 Event sent when new gift card is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardCreated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
@@ -26713,8 +26399,6 @@ type GiftCardCreated implements Event @doc(category: "Gift cards") {
 Event sent when gift card is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
@@ -26737,8 +26421,6 @@ type GiftCardUpdated implements Event @doc(category: "Gift cards") {
 Event sent when gift card is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardDeleted implements Event @doc(category: "Gift cards") {
   """Time of the event."""
@@ -26791,8 +26473,6 @@ type GiftCardSent implements Event @doc(category: "Gift cards") {
 Event sent when gift card status has changed.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
   """Time of the event."""
@@ -26815,8 +26495,6 @@ type GiftCardStatusChanged implements Event @doc(category: "Gift cards") {
 Event sent when gift card metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
   """Time of the event."""
@@ -26839,10 +26517,8 @@ type GiftCardMetadataUpdated implements Event @doc(category: "Gift cards") {
 Event sent when new menu is created.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuCreated implements Event {
+type MenuCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26866,10 +26542,8 @@ type MenuCreated implements Event {
 Event sent when menu is updated.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuUpdated implements Event {
+type MenuUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26893,10 +26567,8 @@ type MenuUpdated implements Event {
 Event sent when menu is deleted.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuDeleted implements Event {
+type MenuDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26920,10 +26592,8 @@ type MenuDeleted implements Event {
 Event sent when new menu item is created.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemCreated implements Event {
+type MenuItemCreated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26947,10 +26617,8 @@ type MenuItemCreated implements Event {
 Event sent when menu item is updated.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemUpdated implements Event {
+type MenuItemUpdated implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -26974,10 +26642,8 @@ type MenuItemUpdated implements Event {
 Event sent when menu item is deleted.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type MenuItemDeleted implements Event {
+type MenuItemDeleted implements Event @doc(category: "Menu") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27001,8 +26667,6 @@ type MenuItemDeleted implements Event {
 Event sent when new order is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27025,8 +26689,6 @@ type OrderCreated implements Event @doc(category: "Orders") {
 Event sent when order is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27049,8 +26711,6 @@ type OrderUpdated implements Event @doc(category: "Orders") {
 Event sent when order is confirmed.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderConfirmed implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27073,8 +26733,6 @@ type OrderConfirmed implements Event @doc(category: "Orders") {
 Event sent when order is fully paid.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderFullyPaid implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27169,8 +26827,6 @@ type OrderFullyRefunded implements Event @doc(category: "Orders") {
 Event sent when order is fulfilled.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderFulfilled implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27193,8 +26849,6 @@ type OrderFulfilled implements Event @doc(category: "Orders") {
 Event sent when order is canceled.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderCancelled implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27241,8 +26895,6 @@ type OrderExpired implements Event @doc(category: "Orders") {
 Event sent when order metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type OrderMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27265,8 +26917,6 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 Event sent when new draft order is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type DraftOrderCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27289,8 +26939,6 @@ type DraftOrderCreated implements Event @doc(category: "Orders") {
 Event sent when draft order is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type DraftOrderUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27313,8 +26961,6 @@ type DraftOrderUpdated implements Event @doc(category: "Orders") {
 Event sent when draft order is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type DraftOrderDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27337,8 +26983,6 @@ type DraftOrderDeleted implements Event @doc(category: "Orders") {
 Event sent when new product is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductCreated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27367,8 +27011,6 @@ type ProductCreated implements Event @doc(category: "Products") {
 Event sent when product is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27397,8 +27039,6 @@ type ProductUpdated implements Event @doc(category: "Products") {
 Event sent when product is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27427,8 +27067,6 @@ type ProductDeleted implements Event @doc(category: "Products") {
 Event sent when product metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27523,8 +27161,6 @@ type ProductMediaDeleted implements Event @doc(category: "Products") {
 Event sent when new product variant is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantCreated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27550,8 +27186,6 @@ type ProductVariantCreated implements Event @doc(category: "Products") {
 Event sent when product variant is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27577,8 +27211,6 @@ type ProductVariantUpdated implements Event @doc(category: "Products") {
 Event sent when product variant is out of stock.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantOutOfStock implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27607,8 +27239,6 @@ type ProductVariantOutOfStock implements Event @doc(category: "Products") {
 Event sent when product variant is back in stock.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantBackInStock implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27640,7 +27270,7 @@ Added in Saleor 3.11.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ProductVariantStockUpdated implements Event {
+type ProductVariantStockUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -27667,8 +27297,6 @@ type ProductVariantStockUpdated implements Event {
 Event sent when product variant is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27694,8 +27322,6 @@ type ProductVariantDeleted implements Event @doc(category: "Products") {
 Event sent when product variant metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -27721,8 +27347,6 @@ type ProductVariantMetadataUpdated implements Event @doc(category: "Products") {
 Event sent when new sale is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type SaleCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -27748,8 +27372,6 @@ type SaleCreated implements Event @doc(category: "Discounts") {
 Event sent when sale is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type SaleUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -27775,8 +27397,6 @@ type SaleUpdated implements Event @doc(category: "Discounts") {
 Event sent when sale is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type SaleDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -27802,8 +27422,6 @@ type SaleDeleted implements Event @doc(category: "Discounts") {
 The event informs about the start or end of the sale.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type SaleToggle implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -27822,8 +27440,6 @@ type SaleToggle implements Event @doc(category: "Discounts") {
   The sale the event relates to.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   sale(
     """Slug of a channel for which the data should be returned."""
@@ -27835,8 +27451,6 @@ type SaleToggle implements Event @doc(category: "Discounts") {
 Event sent when invoice is requested.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type InvoiceRequested implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27866,8 +27480,6 @@ type InvoiceRequested implements Event @doc(category: "Orders") {
 Event sent when invoice is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type InvoiceDeleted implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27897,8 +27509,6 @@ type InvoiceDeleted implements Event @doc(category: "Orders") {
 Event sent when invoice is sent.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type InvoiceSent implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27928,8 +27538,6 @@ type InvoiceSent implements Event @doc(category: "Orders") {
 Event sent when new fulfillment is created.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentCreated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27955,8 +27563,6 @@ type FulfillmentCreated implements Event @doc(category: "Orders") {
 Event sent when fulfillment is canceled.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentCanceled implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -27982,8 +27588,6 @@ type FulfillmentCanceled implements Event @doc(category: "Orders") {
 Event sent when fulfillment is approved.
 
 Added in Saleor 3.7.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentApproved implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -28009,8 +27613,6 @@ type FulfillmentApproved implements Event @doc(category: "Orders") {
 Event sent when fulfillment metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
   """Time of the event."""
@@ -28036,8 +27638,6 @@ type FulfillmentMetadataUpdated implements Event @doc(category: "Orders") {
 Event sent when new customer user is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerCreated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28060,8 +27660,6 @@ type CustomerCreated implements Event @doc(category: "Users") {
 Event sent when customer user is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28084,8 +27682,6 @@ type CustomerUpdated implements Event @doc(category: "Users") {
 Event sent when customer user metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CustomerMetadataUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28108,8 +27704,6 @@ type CustomerMetadataUpdated implements Event @doc(category: "Users") {
 Event sent when new collection is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CollectionCreated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -28135,8 +27729,6 @@ type CollectionCreated implements Event @doc(category: "Products") {
 Event sent when collection is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CollectionUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -28162,8 +27754,6 @@ type CollectionUpdated implements Event @doc(category: "Products") {
 Event sent when collection is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CollectionDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -28189,8 +27779,6 @@ type CollectionDeleted implements Event @doc(category: "Products") {
 Event sent when collection metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CollectionMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -28216,8 +27804,6 @@ type CollectionMetadataUpdated implements Event @doc(category: "Products") {
 Event sent when new checkout is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutCreated implements Event @doc(category: "Checkout") {
   """Time of the event."""
@@ -28240,8 +27826,6 @@ type CheckoutCreated implements Event @doc(category: "Checkout") {
 Event sent when checkout is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
@@ -28288,8 +27872,6 @@ type CheckoutFullyPaid implements Event @doc(category: "Checkout") {
 Event sent when checkout metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
   """Time of the event."""
@@ -28312,8 +27894,6 @@ type CheckoutMetadataUpdated implements Event @doc(category: "Checkout") {
 Event sent when new page is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28336,8 +27916,6 @@ type PageCreated implements Event @doc(category: "Pages") {
 Event sent when page is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28360,8 +27938,6 @@ type PageUpdated implements Event @doc(category: "Pages") {
 Event sent when page is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28384,8 +27960,6 @@ type PageDeleted implements Event @doc(category: "Pages") {
 Event sent when new page type is created.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageTypeCreated implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28408,8 +27982,6 @@ type PageTypeCreated implements Event @doc(category: "Pages") {
 Event sent when page type is updated.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageTypeUpdated implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28432,8 +28004,6 @@ type PageTypeUpdated implements Event @doc(category: "Pages") {
 Event sent when page type is deleted.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PageTypeDeleted implements Event @doc(category: "Pages") {
   """Time of the event."""
@@ -28456,8 +28026,6 @@ type PageTypeDeleted implements Event @doc(category: "Pages") {
 Event sent when new permission group is created.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PermissionGroupCreated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28480,8 +28048,6 @@ type PermissionGroupCreated implements Event @doc(category: "Users") {
 Event sent when permission group is updated.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PermissionGroupUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28504,8 +28070,6 @@ type PermissionGroupUpdated implements Event @doc(category: "Users") {
 Event sent when permission group is deleted.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PermissionGroupDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28528,10 +28092,8 @@ type PermissionGroupDeleted implements Event @doc(category: "Users") {
 Event sent when new shipping price is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceCreated implements Event {
+type ShippingPriceCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28561,10 +28123,8 @@ type ShippingPriceCreated implements Event {
 Event sent when shipping price is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceUpdated implements Event {
+type ShippingPriceUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28594,10 +28154,8 @@ type ShippingPriceUpdated implements Event {
 Event sent when shipping price is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingPriceDeleted implements Event {
+type ShippingPriceDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28627,8 +28185,6 @@ type ShippingPriceDeleted implements Event {
 Event sent when new shipping zone is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ShippingZoneCreated implements Event @doc(category: "Shipping") {
   """Time of the event."""
@@ -28654,8 +28210,6 @@ type ShippingZoneCreated implements Event @doc(category: "Shipping") {
 Event sent when shipping zone is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
@@ -28681,8 +28235,6 @@ type ShippingZoneUpdated implements Event @doc(category: "Shipping") {
 Event sent when shipping zone is deleted.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
   """Time of the event."""
@@ -28708,8 +28260,6 @@ type ShippingZoneDeleted implements Event @doc(category: "Shipping") {
 Event sent when shipping zone metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
   """Time of the event."""
@@ -28735,8 +28285,6 @@ type ShippingZoneMetadataUpdated implements Event @doc(category: "Shipping") {
 Event sent when new staff user is created.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type StaffCreated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28759,8 +28307,6 @@ type StaffCreated implements Event @doc(category: "Users") {
 Event sent when staff user is updated.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type StaffUpdated implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28783,8 +28329,6 @@ type StaffUpdated implements Event @doc(category: "Users") {
 Event sent when staff user is deleted.
 
 Added in Saleor 3.5.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type StaffDeleted implements Event @doc(category: "Users") {
   """Time of the event."""
@@ -28810,7 +28354,7 @@ Added in Saleor 3.4.
 
 DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
 """
-type TransactionActionRequest implements Event {
+type TransactionActionRequest implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -28830,7 +28374,7 @@ type TransactionActionRequest implements Event {
   action: TransactionAction!
 }
 
-type TransactionAction {
+type TransactionAction @doc(category: "Payments") {
   """Determines the action type."""
   actionType: TransactionActionEnum!
 
@@ -28842,8 +28386,6 @@ type TransactionAction {
 Event sent when transaction item metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") {
   """Time of the event."""
@@ -28858,11 +28400,7 @@ type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") 
   """The application receiving the webhook."""
   recipient: App
 
-  """
-  Look up a transaction.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
+  """Look up a transaction."""
   transaction: TransactionItem
 }
 
@@ -28870,8 +28408,6 @@ type TransactionItemMetadataUpdated implements Event @doc(category: "Payments") 
 Event sent when new translation is created.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TranslationCreated implements Event {
   """Time of the event."""
@@ -28896,8 +28432,6 @@ union TranslationTypes = ProductTranslation | CollectionTranslation | CategoryTr
 Event sent when translation is updated.
 
 Added in Saleor 3.2.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type TranslationUpdated implements Event {
   """Time of the event."""
@@ -28920,8 +28454,6 @@ type TranslationUpdated implements Event {
 Event sent when new voucher is created.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type VoucherCreated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -28947,8 +28479,6 @@ type VoucherCreated implements Event @doc(category: "Discounts") {
 Event sent when voucher is updated.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type VoucherUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -28974,8 +28504,6 @@ type VoucherUpdated implements Event @doc(category: "Discounts") {
 Event sent when voucher is deleted.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type VoucherDeleted implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -29001,8 +28529,6 @@ type VoucherDeleted implements Event @doc(category: "Discounts") {
 Event sent when voucher metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
   """Time of the event."""
@@ -29028,8 +28554,6 @@ type VoucherMetadataUpdated implements Event @doc(category: "Discounts") {
 Event sent when new warehouse is created.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type WarehouseCreated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -29052,8 +28576,6 @@ type WarehouseCreated implements Event @doc(category: "Products") {
 Event sent when warehouse is updated.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type WarehouseUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -29076,8 +28598,6 @@ type WarehouseUpdated implements Event @doc(category: "Products") {
 Event sent when warehouse is deleted.
 
 Added in Saleor 3.4.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type WarehouseDeleted implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -29100,8 +28620,6 @@ type WarehouseDeleted implements Event @doc(category: "Products") {
 Event sent when warehouse metadata is updated.
 
 Added in Saleor 3.8.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type WarehouseMetadataUpdated implements Event @doc(category: "Products") {
   """Time of the event."""
@@ -29171,10 +28689,8 @@ type ThumbnailCreated implements Event {
 Authorize payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentAuthorize implements Event {
+type PaymentAuthorize implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29195,10 +28711,8 @@ type PaymentAuthorize implements Event {
 Capture payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentCaptureEvent implements Event {
+type PaymentCaptureEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29219,10 +28733,8 @@ type PaymentCaptureEvent implements Event {
 Refund payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentRefundEvent implements Event {
+type PaymentRefundEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29243,10 +28755,8 @@ type PaymentRefundEvent implements Event {
 Void payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentVoidEvent implements Event {
+type PaymentVoidEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29267,10 +28777,8 @@ type PaymentVoidEvent implements Event {
 Confirm payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentConfirmEvent implements Event {
+type PaymentConfirmEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29291,10 +28799,8 @@ type PaymentConfirmEvent implements Event {
 Process payment.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentProcessEvent implements Event {
+type PaymentProcessEvent implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29315,10 +28821,8 @@ type PaymentProcessEvent implements Event {
 List payment gateways.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentListGateways implements Event {
+type PaymentListGateways implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29342,7 +28846,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionCancelationRequested implements Event {
+type TransactionCancelationRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29369,7 +28873,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionChargeRequested implements Event {
+type TransactionChargeRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29396,7 +28900,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionRefundRequested implements Event {
+type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29420,10 +28924,8 @@ type TransactionRefundRequested implements Event {
 Filter shipping methods for order.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type OrderFilterShippingMethods implements Event {
+type OrderFilterShippingMethods implements Event @doc(category: "Orders") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29443,8 +28945,6 @@ type OrderFilterShippingMethods implements Event {
   Shipping methods that can be used with this checkout.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
 }
@@ -29453,10 +28953,8 @@ type OrderFilterShippingMethods implements Event {
 Filter shipping methods for checkout.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutFilterShippingMethods implements Event {
+type CheckoutFilterShippingMethods implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29476,8 +28974,6 @@ type CheckoutFilterShippingMethods implements Event {
   Shipping methods that can be used with this checkout.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
 }
@@ -29486,10 +28982,8 @@ type CheckoutFilterShippingMethods implements Event {
 List shipping methods for checkout.
 
 Added in Saleor 3.6.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type ShippingListMethodsForCheckout implements Event {
+type ShippingListMethodsForCheckout implements Event @doc(category: "Checkout") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29509,8 +29003,6 @@ type ShippingListMethodsForCheckout implements Event {
   Shipping methods that can be used with this checkout.
   
   Added in Saleor 3.6.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   shippingMethods: [ShippingMethod!]
 }
@@ -29519,10 +29011,8 @@ type ShippingListMethodsForCheckout implements Event {
 Synchronous webhook for calculating checkout/order taxes.
 
 Added in Saleor 3.7.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CalculateTaxes implements Event {
+type CalculateTaxes implements Event @doc(category: "Taxes") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29606,7 +29096,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PaymentGatewayInitializeSession implements Event {
+type PaymentGatewayInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29638,7 +29128,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionInitializeSession implements Event {
+type TransactionInitializeSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 
@@ -29667,7 +29157,7 @@ type TransactionInitializeSession implements Event {
   action: TransactionProcessAction!
 }
 
-type TransactionProcessAction {
+type TransactionProcessAction @doc(category: "Payments") {
   """Transaction amount to process."""
   amount: PositiveDecimal!
 
@@ -29683,7 +29173,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type TransactionProcessSession implements Event {
+type TransactionProcessSession implements Event @doc(category: "Payments") {
   """Time of the event."""
   issuedAt: DateTime
 

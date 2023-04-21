@@ -631,6 +631,7 @@ class NonNullConnection(BaseConnection):
         edge_name = cls.Edge._meta.name
         edge_bases = (EdgeBase, graphene.ObjectType)
         edge = type(edge_name, edge_bases, {})
+        edge.doc_category = options.get("doc_category")  # type: ignore[attr-defined]
         cls.Edge = edge
 
         # Override the `edges` field to make it non-null list

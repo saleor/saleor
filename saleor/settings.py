@@ -125,18 +125,16 @@ if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
         f":{SENDGRID_PASSWORD}@smtp.sendgrid.net:587/?tls=True"
     )
 
-email_config = dj_email_url.parse(
-    EMAIL_URL or "console://demo@example.com:console@example/"
-)
+email_config = dj_email_url.parse(EMAIL_URL or "")
 
-EMAIL_FILE_PATH: str = email_config["EMAIL_FILE_PATH"]
-EMAIL_HOST_USER: str = email_config["EMAIL_HOST_USER"]
-EMAIL_HOST_PASSWORD: str = email_config["EMAIL_HOST_PASSWORD"]
-EMAIL_HOST: str = email_config["EMAIL_HOST"]
-EMAIL_PORT: int = email_config["EMAIL_PORT"]
-EMAIL_BACKEND: str = email_config["EMAIL_BACKEND"]
-EMAIL_USE_TLS: bool = email_config["EMAIL_USE_TLS"]
-EMAIL_USE_SSL: bool = email_config["EMAIL_USE_SSL"]
+EMAIL_FILE_PATH: str = email_config.get("EMAIL_FILE_PATH", "")
+EMAIL_HOST_USER: str = email_config.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD: str = email_config.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_HOST: str = email_config.get("EMAIL_HOST", "")
+EMAIL_PORT: str = str(email_config.get("EMAIL_PORT", ""))
+EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
+EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
+EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
 # If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
 ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
@@ -148,7 +146,9 @@ ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL: str = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL: str = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "noreply@example.com"
+)
 
 MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")

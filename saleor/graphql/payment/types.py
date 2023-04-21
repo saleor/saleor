@@ -249,6 +249,7 @@ class Payment(ModelObjectType[models.Payment]):
 
 class PaymentCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
         node = Payment
 
 

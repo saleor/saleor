@@ -50,7 +50,9 @@ class ModelObjectType(Generic[MT], BaseObjectType):
             _meta.metadata_since = options.pop("metadata_since", None)
 
             doc_category_key = f"{model._meta.app_label}.{model.__name__}"
-            if "doc_category" not in options and doc_category_key in DOC_CATEGORY_MAP:
+            if doc_category not in options:
+                options["doc_category"] = doc_category
+            if not options["doc_category"] and doc_category_key in DOC_CATEGORY_MAP:
                 options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         super(ModelObjectType, cls).__init_subclass_with_meta__(

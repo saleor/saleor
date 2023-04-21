@@ -5018,6 +5018,15 @@ def permission_group_manage_users(permission_manage_users, staff_users):
 
 
 @pytest.fixture
+def permission_group_manage_staff(permission_manage_staff, staff_users):
+    group = Group.objects.create(name="Manage staff groups.")
+    group.permissions.add(permission_manage_staff)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name="Collection",

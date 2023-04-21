@@ -27,7 +27,7 @@ from ....core.jwt import (
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import get_permissions_from_names
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_AUTH
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
@@ -90,7 +90,7 @@ class CreateToken(BaseMutation):
             required=False,
             description=(
                 "The audience that will be included to JWT tokens with "
-                "prefix `custom:`." + ADDED_IN_38 + PREVIEW_FEATURE
+                "prefix `custom:`." + ADDED_IN_38
             ),
         )
 
@@ -195,16 +195,16 @@ class RefreshToken(BaseMutation):
             required=False,
             description=(
                 "CSRF token required to refresh token. This argument is "
-                "required when refreshToken is provided as a cookie."
+                "required when `refreshToken` is provided as a cookie."
             ),
         )
 
     class Meta:
         description = (
-            "Refresh JWT token. Mutation tries to take refreshToken from the input."
-            "If it fails it will try to take refreshToken from the http-only cookie -"
-            f"{JWT_REFRESH_TOKEN_COOKIE_NAME}. csrfToken is required when refreshToken "
-            "is provided as a cookie."
+            "Refresh JWT token. Mutation tries to take refreshToken from the input. "
+            "If it fails it will try to take `refreshToken` from the http-only cookie "
+            f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. "
+            "`csrfToken` is required when `refreshToken` is provided as a cookie."
         )
         doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError

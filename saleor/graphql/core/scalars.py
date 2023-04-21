@@ -57,9 +57,22 @@ class PositiveDecimal(Decimal):
 class JSON(GenericScalar):
     @staticmethod
     def parse_literal(node):
-        if not isinstance(node, ast.ObjectValue):
-            raise GraphQLError("JSON scalar needs to recieve a correct JSON structure.")
-        return node
+        if isinstance(node, ast.ObjectValue):
+            return {
+                field.name.value: GenericScalar.parse_literal(field.value)
+                for field in node.fields
+            }
+        elif isinstance(node, ast.ListValue):
+            return [GenericScalar.parse_literal(value) for value in node.values]
+        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
+
+    @staticmethod
+    def parse_value(value):
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, list):
+            return [GenericScalar.parse_value(v) for v in value]
+        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
 
 
 class WeightScalar(graphene.Scalar):

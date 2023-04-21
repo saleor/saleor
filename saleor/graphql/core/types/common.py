@@ -9,15 +9,18 @@ from ...account.enums import AddressTypeEnum
 from ...core.doc_category import (
     DOC_CATEGORY_APPS,
     DOC_CATEGORY_ATTRIBUTES,
+    DOC_CATEGORY_AUTH,
     DOC_CATEGORY_CHANNELS,
     DOC_CATEGORY_CHECKOUT,
     DOC_CATEGORY_DISCOUNTS,
     DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_MENU,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAGES,
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
     DOC_CATEGORY_SHIPPING,
+    DOC_CATEGORY_SHOP,
     DOC_CATEGORY_TAXES,
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
@@ -25,8 +28,8 @@ from ...core.doc_category import (
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
 )
 from ..enums import (
     AccountErrorCode,
@@ -127,6 +130,7 @@ class Permission(BaseObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_AUTH
         description = "Represents a permission object in a friendly form."
 
 
@@ -144,7 +148,7 @@ class Error(BaseObjectType):
         description = "Represents an error in the input of a mutation."
 
 
-class BulkError(graphene.ObjectType):
+class BulkError(BaseObjectType):
     path = graphene.String(
         description=(
             "Path to field that caused the error. A value of `null` indicates that "
@@ -249,6 +253,9 @@ class CheckoutError(Error):
 class CustomerBulkUpdateError(BulkError):
     code = CustomerBulkUpdateErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
+
 
 class ProductWithoutVariantError(Error):
     products = NonNullList(
@@ -284,6 +291,9 @@ class ExternalNotificationError(Error):
 
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_MENU
 
 
 class OrderSettingsError(Error):
@@ -445,9 +455,19 @@ class ProductBulkCreateError(BulkError):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantBulkError(Error):
     code = ProductVariantBulkErrorCode(description="The error code.", required=True)
+    path = graphene.String(
+        description=(
+            "Path to field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field." + ADDED_IN_314
+        ),
+        required=False,
+    )
     attributes = NonNullList(
         graphene.ID,
         description="List of attributes IDs which causes the error.",
@@ -485,6 +505,9 @@ class ProductVariantBulkError(Error):
 
 class ShopError(Error):
     code = ShopErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
 
 
 class ShippingError(Error):
@@ -559,23 +582,38 @@ class TransactionRequestActionError(Error):
 class TransactionEventReportError(Error):
     code = TransactionEventReportErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class TransactionInitializeError(Error):
     code = TransactionInitializeErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class TransactionProcessError(Error):
     code = TransactionProcessErrorCode(description="The error code.", required=True)
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
+
 
 class PaymentGatewayConfigError(Error):
     code = PaymentGatewayConfigErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class PaymentGatewayInitializeError(Error):
     code = PaymentGatewayInitializeErrorCode(
         description="The error code.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
 
 class GiftCardError(Error):
@@ -775,7 +813,7 @@ class ThumbnailField(graphene.Field):
         default_value="ORIGINAL",
         description=(
             "The format of the image. When not provided, format of the original "
-            "image will be used." + ADDED_IN_36 + PREVIEW_FEATURE
+            "image will be used." + ADDED_IN_36
         ),
     )
 

@@ -56,7 +56,7 @@ class WebhookUpdateInput(BaseInputObjectType):
     )
     query = graphene.String(
         description="Subscription query used to define a webhook payload."
-        f"{ADDED_IN_32}{PREVIEW_FEATURE}",
+        + ADDED_IN_32,
         required=False,
     )
     custom_headers = JSONString(
@@ -64,7 +64,8 @@ class WebhookUpdateInput(BaseInputObjectType):
         f"There is a limitation of {HEADERS_NUMBER_LIMIT} headers per webhook "
         f"and {HEADERS_LENGTH_LIMIT} characters per header."
         f'Only "X-*" and "Authorization*" keys are allowed.'
-        f"{ADDED_IN_312}{PREVIEW_FEATURE}",
+        + ADDED_IN_312
+        + PREVIEW_FEATURE,
         required=False,
     )
 

@@ -6,6 +6,7 @@ from .....account import models
 from .....account.error_codes import CustomerBulkUpdateErrorCode
 from .....account.events import CustomerEvents
 from .....account.search import generate_address_search_document_value
+from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
 from ...tests.utils import convert_dict_keys_to_camel_case
 
@@ -643,3 +644,138 @@ def test_customers_bulk_update_with_duplicated_external_ref(
         data["results"][1]["errors"][0]["code"]
         == CustomerBulkUpdateErrorCode.DUPLICATED_INPUT_ITEM.name
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_customers_bulk_update_metadata(
+    mocked_customer_metadata_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+):
+    # given
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    metadata_1 = {"key": "test key 1", "value": "test value 1"}
+    private_metadata_1 = {"key": "private test key 1", "value": "private test value 1"}
+    metadata_2 = {"key": "test key 2", "value": "test value 2"}
+    private_metadata_2 = {"key": "private test key 2", "value": "private test value 2"}
+
+    customers_input = [
+        {
+            "id": customer_1_id,
+            "input": {
+                "metadata": [metadata_1],
+                "privateMetadata": [private_metadata_1],
+            },
+        },
+        {
+            "id": customer_2_id,
+            "input": {
+                "metadata": [metadata_2],
+                "privateMetadata": [private_metadata_2],
+            },
+        },
+    ]
+
+    variables = {"customers": customers_input}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+
+    # then
+    customer_1.refresh_from_db()
+    customer_2.refresh_from_db()
+    assert not data["results"][0]["errors"]
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
+    assert customer_1.metadata.get(metadata_1["key"]) == metadata_1["value"]
+    assert customer_2.metadata.get(metadata_2["key"]) == metadata_2["value"]
+    assert (
+        customer_1.private_metadata.get(private_metadata_1["key"])
+        == private_metadata_1["value"]
+    )
+    assert (
+        customer_2.private_metadata.get(private_metadata_2["key"])
+        == private_metadata_2["value"]
+    )
+    assert mocked_customer_metadata_updated.call_count == 2
+
+
+@patch("saleor.plugins.manager.PluginsManager.customer_metadata_updated")
+def test_customers_bulk_update_metadata_empty_key_in_one_input(
+    mocked_customer_metadata_updated,
+    staff_api_client,
+    customer_users,
+    permission_manage_users,
+):
+    # given
+    customer_1 = customer_users[0]
+    customer_2 = customer_users[1]
+
+    customer_1_id = graphene.Node.to_global_id("User", customer_1.pk)
+    customer_2_id = graphene.Node.to_global_id("User", customer_2.pk)
+
+    metadata_1 = {"key": "", "value": "test value 1"}
+    private_metadata_1 = {"key": "", "value": "private test value 1"}
+    metadata_2 = {"key": "test key 2", "value": "test value 2"}
+    private_metadata_2 = {"key": "private test key 2", "value": "private test value 2"}
+
+    customers_input = [
+        {
+            "id": customer_1_id,
+            "input": {
+                "metadata": [metadata_1],
+                "privateMetadata": [private_metadata_1],
+            },
+        },
+        {
+            "id": customer_2_id,
+            "input": {
+                "metadata": [metadata_2],
+                "privateMetadata": [private_metadata_2],
+            },
+        },
+    ]
+
+    variables = {
+        "customers": customers_input,
+        "errorPolicy": ErrorPolicyEnum.REJECT_FAILED_ROWS.name,
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(CUSTOMER_BULK_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["customerBulkUpdate"]
+
+    # then
+    customer_1.refresh_from_db()
+    customer_2.refresh_from_db()
+    customer_1_errors = data["results"][0]["errors"]
+    assert len(customer_1_errors) == 2
+    assert {error["code"] for error in customer_1_errors} == {
+        CustomerBulkUpdateErrorCode.REQUIRED.name
+    }
+    assert {error["path"] for error in customer_1_errors} == {
+        "input.metadata",
+        "input.privateMetadata",
+    }
+
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 1
+    assert metadata_1["key"] not in customer_1.metadata
+    assert customer_2.metadata.get(metadata_2["key"]) == metadata_2["value"]
+    assert private_metadata_1["key"] not in customer_1.private_metadata
+    assert (
+        customer_2.private_metadata.get(private_metadata_2["key"])
+        == private_metadata_2["value"]
+    )
+    mocked_customer_metadata_updated.called_once_with(customer_2)

@@ -1,6 +1,8 @@
 import graphene
 
+from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AccountPermissions, OrderPermissions
+from ...permission.utils import message_one_of_permissions_required
 from ..app.dataloaders import app_promise_callback
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
@@ -127,7 +129,10 @@ class AccountQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of an address.", required=True
         ),
-        description="Look up an address by ID.",
+        description="Look up an address by ID."
+        + message_one_of_permissions_required(
+            [AccountPermissions.MANAGE_USERS, AuthorizationFilters.OWNER]
+        ),
         doc_category=DOC_CATEGORY_USERS,
     )
     customers = FilterConnectionField(
