@@ -1762,7 +1762,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   Payment has been made. The order may be partially or fully paid.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -1774,7 +1774,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   The order received a refund. The order may be partially or fully refunded.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -1783,7 +1783,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   The order is fully refunded.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -2384,7 +2384,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   Payment has been made. The order may be partially or fully paid.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -2396,7 +2396,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   The order received a refund. The order may be partially or fully refunded.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -2405,7 +2405,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   The order is fully refunded.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.14.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -26754,7 +26754,7 @@ type OrderFullyPaid implements Event @doc(category: "Orders") {
 """
 Payment has been made. The order may be partially or fully paid.
 
-Added in Saleor 3.13.
+Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -26778,7 +26778,7 @@ type OrderPaid implements Event @doc(category: "Orders") {
 """
 The order received a refund. The order may be partially or fully refunded.
 
-Added in Saleor 3.13.
+Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -26802,7 +26802,7 @@ type OrderRefunded implements Event @doc(category: "Orders") {
 """
 The order is fully refunded.
 
-Added in Saleor 3.13.
+Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """

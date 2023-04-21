@@ -38,6 +38,7 @@ from ..core.descriptions import (
     ADDED_IN_311,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -411,7 +412,7 @@ class OrderPaid(SubscriptionObjectType, OrderBase):
         interfaces = (Event,)
         description = (
             "Payment has been made. The order may be partially or fully paid."
-            + ADDED_IN_313
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )
 
@@ -423,7 +424,7 @@ class OrderRefunded(SubscriptionObjectType, OrderBase):
         interfaces = (Event,)
         description = (
             "The order received a refund. The order may be partially or fully refunded."
-            + ADDED_IN_313
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )
 
@@ -433,7 +434,7 @@ class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
         root_type = "Order"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "The order is fully refunded." + ADDED_IN_313 + PREVIEW_FEATURE
+        description = "The order is fully refunded." + ADDED_IN_314 + PREVIEW_FEATURE
 
 
 class OrderFulfilled(SubscriptionObjectType, OrderBase):
