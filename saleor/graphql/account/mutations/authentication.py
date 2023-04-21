@@ -201,7 +201,7 @@ class RefreshToken(BaseMutation):
 
     class Meta:
         description = (
-            "Refresh JWT token. Mutation tries to take refreshToken from the input."
+            "Refresh JWT token. Mutation tries to take refreshToken from the input. "
             "If it fails it will try to take `refreshToken` from the http-only cookie "
             f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. "
             "`csrfToken` is required when `refreshToken` is provided as a cookie."
