@@ -415,36 +415,10 @@ class OrderDiscount(BaseDiscount):
         ordering = ("created_at", "id")
 
 
-class CheckoutDiscount(BaseDiscount):
-    checkout = models.ForeignKey(
-        "checkout.Checkout",
-        related_name="discounts",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        ordering = ("created_at", "id")
-
-
 class CheckoutLineDiscount(BaseDiscount):
     line = models.ForeignKey(
         "checkout.CheckoutLine",
         related_name="discounts",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        ordering = ("created_at", "id")
-
-
-class CheckoutShippingDiscount(BaseDiscount):
-    checkout = models.ForeignKey(
-        "checkout.Checkout",
-        related_name="checkout_shipping_discounts",
         blank=True,
         null=True,
         on_delete=models.CASCADE,
