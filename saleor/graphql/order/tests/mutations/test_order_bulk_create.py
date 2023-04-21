@@ -2036,7 +2036,7 @@ def test_order_bulk_create_error_no_delivery_method_provided(
     orders_count = Order.objects.count()
 
     order = order_bulk_input
-    order["deliveryMethod"]["shippingMethodId"] = None
+    order["deliveryMethod"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3115,3 +3115,128 @@ def test_order_bulk_create_error_path_order_lines(
     )
     assert error["path"] == "lines.2"
     assert error["code"] == OrderBulkCreateErrorCode.TOO_MANY_IDENTIFIERS.name
+
+
+def test_order_bulk_create_shipping_not_required(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order["lines"][0]["isShippingRequired"] = False
+    order["lines"][1]["isShippingRequired"] = False
+    order["lines"][2]["isShippingRequired"] = False
+    order["deliveryMethod"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert not order["shippingMethodName"]
+    assert not order["collectionPointName"]
+    assert order["shippingPrice"]["gross"]["amount"] == 0
+    assert order["shippingPrice"]["net"]["amount"] == 0
+
+    db_order = Order.objects.get()
+    assert not db_order.shipping_method
+    assert not db_order.shipping_method_name
+    assert db_order.shipping_price_gross_amount == 0
+    assert db_order.shipping_price_net_amount == 0
+
+
+def test_order_bulk_create_error_missing_delivery_method(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input_with_multiple_order_lines_and_fulfillments,
+):
+    # given
+    order = order_bulk_input_with_multiple_order_lines_and_fulfillments
+    order["lines"][0]["isShippingRequired"] = False
+    order["lines"][1]["isShippingRequired"] = False
+    order["lines"][2]["isShippingRequired"] = False
+    order["deliveryMethod"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    assert not order["shippingMethodName"]
+    assert not order["collectionPointName"]
+    assert order["shippingPrice"]["gross"]["amount"] == 0
+    assert order["shippingPrice"]["net"]["amount"] == 0
+
+    db_order = Order.objects.get()
+    assert not db_order.shipping_method
+    assert not db_order.shipping_method_name
+    assert db_order.shipping_price_gross_amount == 0
+    assert db_order.shipping_price_net_amount == 0
+
+
+def test_order_bulk_create_optional_fields_set_to_none(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["notes"] = None
+    order["fulfillments"] = None
+    order["giftCards"] = None
+    order["transactions"] = None
+    order["invoices"] = None
+    order["discounts"] = None
+    order["deliveryMethod"] = None
+    order["customerNote"] = None
+    order["weight"] = None
+    order["lines"][0]["isShippingRequired"] = False
+    order["lines"][0]["productName"] = None
+    order["lines"][0]["variantName"] = None
+    order["lines"][0]["translatedProductName"] = None
+    order["lines"][0]["translatedVariantName"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]

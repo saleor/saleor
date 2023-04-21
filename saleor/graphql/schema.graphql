@@ -22384,7 +22384,7 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   lines: [OrderBulkCreateOrderLineInput!]!
 
   """The delivery method selected for this order."""
-  deliveryMethod: OrderBulkCreateDeliveryMethodInput!
+  deliveryMethod: OrderBulkCreateDeliveryMethodInput
 
   """List of gift card codes associated with the order."""
   giftCards: [String!]
