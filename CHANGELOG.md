@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffUpdate`
     - `accountUpdate`
     - `customerBulkUpdate`
+- Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 
 ### Saleor Apps
 
