@@ -9,6 +9,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 - Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
+- Add mutation to create checkout from order - #12628 by @korycins
 
 ### Saleor Apps
 
