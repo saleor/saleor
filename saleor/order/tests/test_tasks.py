@@ -363,7 +363,7 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     ).exists()
 
 
-@patch("logging.Logger.error")
+@patch("logging.Logger.warning")
 def test_expire_orders_task_locked_over_hour(logger_mock, order_list, allocations):
     # given
     task_name = "expire_orders"

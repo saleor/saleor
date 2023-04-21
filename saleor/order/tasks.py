@@ -136,9 +136,9 @@ def expire_orders_task():
         with celery_task_lock(task_name) as (lock_obj, acquired):
             if not acquired:
                 if lock_obj.created_at < now - timedelta(hours=1):
-                    logger.error("%s task exceeded 1h working time.", [task_name])
+                    logger.warning("%s task exceeded 1h working time.", [task_name])
             else:
                 _expire_orders(manager, now)
 
     except SoftTimeLimitExceeded as e:
-        logger.error(e)
+        logger.warning(e)
