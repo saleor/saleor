@@ -64,12 +64,32 @@ def update_product_discounted_price(product, discounts=None):
     )
 
 
+def _products_in_batches(products_qs):
+    """Slice a products queryset into batches."""
+    start_pk = 0
+
+    # Results in memory usage of ~40MB for 500 products
+    BATCH_SIZE = 500
+
+    while True:
+        products = list(
+            products_qs.order_by("pk")
+            .filter(pk__gt=start_pk)
+            .prefetch_related("channel_listings", "collections")[:BATCH_SIZE]
+        )
+        if not products:
+            break
+        yield products
+        start_pk = products[-1].pk
+
+
 def update_products_discounted_prices(products, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
 
-    for product in products.prefetch_related("channel_listings", "collections"):
-        update_product_discounted_price(product, discounts)
+    for product_batch in _products_in_batches(products):
+        for product in product_batch:
+            update_product_discounted_price(product, discounts)
 
 
 def update_products_discounted_prices_of_catalogues(
