@@ -1,8 +1,10 @@
 import graphene
 
+from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AppPermission
 from ....webhook import models
 from ....webhook.validators import HEADERS_LENGTH_LIMIT, HEADERS_NUMBER_LIMIT
+from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import (
     ADDED_IN_32,
@@ -79,7 +81,10 @@ class WebhookUpdate(WebhookCreate):
         description = "Updates a webhook subscription."
         model = models.Webhook
         object_type = Webhook
-        permissions = (AppPermission.MANAGE_APPS,)
+        permissions = (
+            AppPermission.MANAGE_APPS,
+            AuthorizationFilters.AUTHENTICATED_APP,
+        )
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
 
@@ -98,4 +103,6 @@ class WebhookUpdate(WebhookCreate):
 
     @classmethod
     def get_instance(cls, info: ResolveInfo, **data):
+        if app := get_app_promise(info.context).get():
+            data["qs"] = app.webhooks
         return super(WebhookCreate, cls).get_instance(info, **data)
