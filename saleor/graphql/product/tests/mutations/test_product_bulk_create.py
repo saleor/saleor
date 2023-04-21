@@ -198,6 +198,8 @@ def test_product_bulk_create_send_product_created_webhook(
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
     assert created_webhook_mock.call_count == 2
+    for call in created_webhook_mock.call_args_list:
+        assert isinstance(call.args[0], Product)
 
 
 def test_product_bulk_create_with_same_name_and_no_slug(
