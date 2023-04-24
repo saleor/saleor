@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffUpdate`
     - `accountUpdate`
     - `customerBulkUpdate`
+- Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 
 ### Saleor Apps
 
@@ -26,7 +27,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ
 
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
+- Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
+
 
 # 3.13.0
 
@@ -163,16 +166,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Support resolving `Order` as an entity in Apollo Federation - #12328 by @binary-koan
 - [Preview] Add `ProductBulkCreate` mutation - #12177 by @SzymJ
 - [Preview] Add `CustomerBulkUpdate` mutation - #12268 by @SzymJ
-
-### Other changes
-- Add celery beat task for expiring unconfirmed not paid orders - #11960 by @kadewu:
-  - Add `expireOrdersAfter` to `orderSettings` for `Channel` type.
-  - Add `ORDER_EXPIRED` webhook triggered when `Order` is marked as expired.
-- Create order discounts for all voucher types - #12272 by @IKarbowiak
-- Core now supports Dev Containers for local development - #12391 by @patrys
-- Use mailhog smtp server on Dev Container - #12402 by @carlosa54
-- Publish schema.graphql on releases - #12431 by @maarcingebala
-- Fix missing webhook triggers for `order_updated` and `order_fully_paid` when an order is paid with a `transactionItem` - #12508 by @korycins
 
 ### Saleor Apps
 

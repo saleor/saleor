@@ -250,7 +250,6 @@ class ProductVariantBulkCreate(BaseMutation):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
@@ -908,7 +907,7 @@ class ProductVariantBulkCreate(BaseMutation):
             models.Product,
             cls.get_node_or_error(info, data["product_id"], only_type="Product"),
         )
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         errors: dict = defaultdict(list)
         index_error_map: dict = defaultdict(list)
 
