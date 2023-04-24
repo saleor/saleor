@@ -1,9 +1,6 @@
-from unittest.mock import patch
-
 import pytest
 from django.utils import timezone
 
-from ...core.models import CeleryTask
 from ...discount.models import VoucherCustomer
 from ...warehouse.models import Allocation
 from .. import OrderEvents, OrderStatus
@@ -361,22 +358,3 @@ def test_expire_orders_task_after(order_list, allocations, channel_USD):
     assert Allocation.objects.filter(
         order_line__order=order_3, quantity_allocated__gt=0
     ).exists()
-
-
-@patch("logging.Logger.error")
-def test_expire_orders_task_locked_over_hour(logger_mock, order_list, allocations):
-    # given
-    task_name = "expire_orders"
-    error_msg = "%s task exceeded 1h working time."
-
-    now = timezone.now()
-
-    lock = CeleryTask.objects.create(name=task_name)
-    lock.created_at = now - timezone.timedelta(hours=2)
-    lock.save()
-
-    # when
-    expire_orders_task()
-
-    # then
-    logger_mock.assert_called_once_with(error_msg, [task_name])
