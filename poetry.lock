@@ -4086,14 +4086,14 @@ starkbank-ecdsa = ">=2.0.1"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.19.1"
+version = "1.20.0"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "sentry-sdk-1.19.1.tar.gz", hash = "sha256:7ae78bd921981a5010ab540d6bdf3b793659a4db8cccf7f16180702d48a80d84"},
-    {file = "sentry_sdk-1.19.1-py2.py3-none-any.whl", hash = "sha256:885a11c69df23e53eb281d003b9ff15a5bdfa43d8a2a53589be52104a1b4582f"},
+    {file = "sentry-sdk-1.20.0.tar.gz", hash = "sha256:a3410381ae769a436c0852cce140a5e5e49f566a07fb7c2ab445af1302f6ad89"},
+    {file = "sentry_sdk-1.20.0-py2.py3-none-any.whl", hash = "sha256:0ad6bbbe78057b8031a07de7aca6d2a83234e51adc4d436eaf8d8c697184db71"},
 ]
 
 [package.dependencies]
@@ -5136,4 +5136,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "299d160ae4d2bbd6ab06bfe8fe6c53a08af64c5bed9139fa3c00a4c5ed721585"
+content-hash = "ab39feb17cb9c932a4fa8e5b52cb972b293fd2d79c1bbc249f4fdc1c11a28d76"
