@@ -459,7 +459,12 @@ def test_app_query_access_token_with_audience(
 
 
 @pytest.mark.parametrize(
-    "format", (None, IconThumbnailFormat.WEBP, IconThumbnailFormat.ORIGINAL)
+    "format",
+    (
+        None,
+        IconThumbnailFormat.WEBP,
+        IconThumbnailFormat.ORIGINAL,
+    ),
 )
 @pytest.mark.parametrize("thumbnail_exists", (True, False))
 def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
@@ -502,7 +507,12 @@ def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
 
 
 @pytest.mark.parametrize(
-    "format", (None, IconThumbnailFormat.WEBP, IconThumbnailFormat.ORIGINAL)
+    "format",
+    (
+        None,
+        IconThumbnailFormat.WEBP,
+        IconThumbnailFormat.ORIGINAL,
+    ),
 )
 def test_app_query_logo_thumbnail_with_zero_size_value_original_image_url_returned(
     format, staff_api_client, app, site_settings, icon_image, media_root
