@@ -37,7 +37,6 @@ class JobNotifier:
         self.title: str = os.environ["JOB_TITLE"]
 
         # Incoming Webhook Endpoint, it is set a the organization level
-        # Development notifier configuration is available at: https://api.slack.com/apps/A0210C30YLD/
         self.slack_endpoint = os.environ["SLACK_WEBHOOK_URL"]
 
         # ID of Slack Group to mention in case of failure
