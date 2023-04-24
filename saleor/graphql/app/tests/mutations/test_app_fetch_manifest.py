@@ -754,7 +754,7 @@ def test_app_fetch_manifest_with_empty_author(
     [
         (None, "png", None),
         (IconThumbnailFormat.WEBP, "webp", 120),
-        (IconThumbnailFormat.ORIGINAL, "png", 250),
+        (IconThumbnailFormat.ORIGINAL, "png", 0),
     ],
 )
 def test_app_fetch_manifest_with_brand_data(

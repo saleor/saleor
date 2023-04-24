@@ -63,6 +63,9 @@ from .resolvers import (
     resolve_app_extension_url,
 )
 
+# Maximal thumbnail size for manifest preview
+MANIFEST_THUMBNAIL_MAX_SIZE = 512
+
 
 def has_required_permission(app: models.App, context: SaleorContext):
     requester = get_user_or_app_from_context(context)
@@ -275,8 +278,8 @@ class AppManifestBrandLogo(BaseObjectType):
         # limit thumbnail max size as it is transferred
         # as text and used for preview purposes only
         if size == 0:
-            size = 512
-        size = min(get_thumbnail_size(size), 512)
+            size = MANIFEST_THUMBNAIL_MAX_SIZE
+        size = min(get_thumbnail_size(size), MANIFEST_THUMBNAIL_MAX_SIZE)
 
         logo_img = root["default"]
         # prepare thumbnail on the fly
