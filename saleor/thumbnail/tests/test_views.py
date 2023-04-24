@@ -209,13 +209,24 @@ def test_handle_thumbnail_view_invalid_object_type(client, order):
     assert response.status_code == 404
 
 
-def test_handle_thumbnail_view_invalid_format(client, order):
+def test_handle_thumbnail_view_invalid_format(client, category):
     # given
     size = 60
-    category_id = graphene.Node.to_global_id("Order", order.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
 
     # when
     response = client.get(f"/thumbnail/{category_id}/{size}/XYZ/")
+
+    # then
+    assert response.status_code == 404
+
+
+def test_handle_icon_thumbnail_view_invalid_format(client, app):
+    # given
+    app_uuid = graphene.Node.to_global_id("App", app.uuid)
+
+    # when
+    response = client.get(f"/thumbnail/{app_uuid}/60/XYZ/")
 
     # then
     assert response.status_code == 404

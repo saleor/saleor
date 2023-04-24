@@ -798,3 +798,27 @@ def test_app_fetch_manifest_with_brand_data(
     icon_thumbnail = BytesIO(base64.b64decode(base64_icon.encode()))
     with Image.open(icon_thumbnail) as image:
         assert image.format == expected_format.upper()
+
+
+def test_app_fetch_manifest_with_invalid_brand_data(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["brand"] = {"logo": {"default": "wrong-url.png"}}
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "brand"
+    assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name
