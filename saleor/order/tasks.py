@@ -1,14 +1,11 @@
 import logging
-from datetime import timedelta
 from typing import List
 
-from celery.exceptions import SoftTimeLimitExceeded
 from django.db.models import Exists, F, Func, OuterRef, Subquery, Value
 from django.utils import timezone
 
 from ..celeryconf import app
 from ..channel.models import Channel
-from ..core.tasks import celery_task_lock
 from ..core.tracing import traced_atomic_transaction
 from ..core.utils.events import call_event
 from ..discount.models import Voucher, VoucherCustomer
@@ -21,7 +18,7 @@ from .utils import invalidate_order_prices
 
 logger = logging.getLogger(__name__)
 
-# Batch size of 100 is about ~87MB of memory usage in task
+# Batch size of 100 is about ~1MB of memory usage in task
 ORDER_BATCH_SIZE = 100
 
 
@@ -40,18 +37,6 @@ def send_order_updated(order_ids):
     manager = get_plugins_manager()
     for order in Order.objects.filter(id__in=order_ids):
         manager.order_updated(order)
-
-
-def _batch_ids(iterable, batch_size=1):
-    length = len(iterable)
-    for index in range(0, length, batch_size):
-        yield iterable[index : min(index + batch_size, length)]
-
-
-def _queryset_in_batches(queryset):
-    ids = queryset.values_list("id", flat=True)
-    for ids_batch in _batch_ids(ids, ORDER_BATCH_SIZE):
-        yield ids_batch
 
 
 def _bulk_release_voucher_usage(order_ids):
@@ -117,28 +102,18 @@ def _expire_orders(manager, now):
         Exists(channels),
         status=OrderStatus.UNCONFIRMED,
     )
-    for ids_batch in _queryset_in_batches(qs):
-        with traced_atomic_transaction():
-            Order.objects.filter(id__in=ids_batch).update(status=OrderStatus.EXPIRED)
+    ids_batch = list(qs.values_list("pk", flat=True)[:ORDER_BATCH_SIZE])
+    with traced_atomic_transaction():
+        Order.objects.filter(id__in=ids_batch).update(status=OrderStatus.EXPIRED)
 
-            _bulk_release_voucher_usage(ids_batch)
-            _order_expired_events(ids_batch)
-            deallocate_stock_for_orders(ids_batch, manager)
-            _call_expired_order_events(ids_batch, manager)
+        _bulk_release_voucher_usage(ids_batch)
+        _order_expired_events(ids_batch)
+        deallocate_stock_for_orders(ids_batch, manager)
+        _call_expired_order_events(ids_batch, manager)
 
 
-@app.task(soft_time_limit=60 * 30)
+@app.task()
 def expire_orders_task():
     now = timezone.now()
-    task_name = "expire_orders"
     manager = get_plugins_manager()
-    try:
-        with celery_task_lock(task_name) as (lock_obj, acquired):
-            if not acquired:
-                if lock_obj.created_at < now - timedelta(hours=1):
-                    logger.error("%s task exceeded 1h working time.", [task_name])
-            else:
-                _expire_orders(manager, now)
-
-    except SoftTimeLimitExceeded as e:
-        logger.error(e)
+    _expire_orders(manager, now)
