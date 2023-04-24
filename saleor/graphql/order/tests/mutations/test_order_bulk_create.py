@@ -11,7 +11,13 @@ from .....account.models import Address
 from .....core import JobStatus
 from .....discount.models import OrderDiscount
 from .....invoice.models import Invoice
-from .....order import OrderEvents, OrderOrigin, OrderStatus
+from .....order import (
+    OrderAuthorizeStatus,
+    OrderChargeStatus,
+    OrderEvents,
+    OrderOrigin,
+    OrderStatus,
+)
 from .....order.error_codes import OrderBulkCreateErrorCode
 from .....order.models import (
     Fulfillment,
@@ -22,7 +28,8 @@ from .....order.models import (
     OrderLine,
     get_order_number,
 )
-from .....payment.models import TransactionItem
+from .....payment import TransactionEventType
+from .....payment.models import TransactionEvent, TransactionItem
 from .....warehouse.models import Stock
 from ....core.enums import ErrorPolicyEnum
 from ....discount.enums import DiscountValueTypeEnum
@@ -216,6 +223,12 @@ ORDER_BULK_CREATE = """
                         refundedAmount{
                             currency
                             amount
+                        }
+                        events {
+                            amount {
+                                amount
+                            }
+                            type
                         }
                     }
                     invoices {
@@ -470,6 +483,7 @@ def test_order_bulk_create(
     fulfillments_count = Fulfillment.objects.count()
     fulfillment_lines_count = FulfillmentLine.objects.count()
     transactions_count = TransactionItem.objects.count()
+    transaction_events_count = TransactionEvent.objects.count()
     invoice_count = Invoice.objects.count()
     discount_count = OrderDiscount.objects.count()
 
@@ -558,6 +572,8 @@ def test_order_bulk_create(
     assert db_order.number == "order-1"
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
+    assert db_order.total_authorized_amount == Decimal("10")
+    assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
 
     order_line = order["lines"][0]
     assert order_line["variant"]["id"] == graphene.Node.to_global_id(
@@ -667,6 +683,16 @@ def test_order_bulk_create(
     assert db_transaction.metadata == {"test-1": "123"}
     assert db_transaction.private_metadata == {"test-2": "321"}
 
+    transaction_event = order["transactions"][0]["events"][0]
+    assert transaction_event["amount"]["amount"] == Decimal("10")
+    assert (
+        transaction_event["type"] == TransactionEventType.AUTHORIZATION_SUCCESS.upper()
+    )
+    db_transaction_event = TransactionEvent.objects.get()
+    assert db_transaction_event.amount.amount == Decimal("10")
+    assert db_transaction_event.type == TransactionEventType.AUTHORIZATION_SUCCESS
+    assert db_transaction_event.transaction_id == db_transaction.id
+
     invoice = order["invoices"][0]
     assert invoice["number"] == "01/12/2020/TEST"
     assert invoice["url"] == "http://www.example.com"
@@ -695,6 +721,7 @@ def test_order_bulk_create(
     assert Fulfillment.objects.count() == fulfillments_count + 1
     assert FulfillmentLine.objects.count() == fulfillment_lines_count + 1
     assert TransactionItem.objects.count() == transactions_count + 1
+    assert TransactionEvent.objects.count() == transaction_events_count + 1
     assert Invoice.objects.count() == invoice_count + 1
     assert OrderDiscount.objects.count() == discount_count + 1
 
@@ -972,12 +999,16 @@ def test_order_bulk_create_multiple_transactions(
 
     transaction_1 = {
         "status": "Authorized for 10$",
+        "amountAuthorized": {
+            "amount": Decimal("20"),
+            "currency": "PLN",
+        },
     }
 
     transaction_2 = {
         "type": "Credit Card",
         "amountCharged": {
-            "amount": Decimal("10"),
+            "amount": Decimal("100"),
             "currency": "PLN",
         },
     }
@@ -1025,8 +1056,9 @@ def test_order_bulk_create_multiple_transactions(
 
     transaction_1, transaction_2, transaction_3, transaction_4 = order["transactions"]
     assert transaction_1["status"] == "Authorized for 10$"
+    assert transaction_1["authorizedAmount"]["amount"] == Decimal("20")
     assert transaction_2["type"] == "Credit Card"
-    assert transaction_2["chargedAmount"]["amount"] == Decimal("10")
+    assert transaction_2["chargedAmount"]["amount"] == Decimal("100")
     assert transaction_2["chargedAmount"]["currency"] == "PLN"
     assert transaction_3["reference"] == "PSP reference - 123"
     assert transaction_3["refundedAmount"]["amount"] == Decimal("15")
@@ -1042,8 +1074,9 @@ def test_order_bulk_create_multiple_transactions(
         db_transaction_4,
     ) = TransactionItem.objects.all()
     assert db_transaction_1.status == "Authorized for 10$"
+    assert db_transaction_1.authorized_value == Decimal("20")
     assert db_transaction_2.name == "Credit Card"
-    assert db_transaction_2.charged_value == Decimal("10")
+    assert db_transaction_2.charged_value == Decimal("100")
     assert db_transaction_3.psp_reference == "PSP reference - 123"
     assert db_transaction_3.refunded_value == Decimal("15")
     assert db_transaction_4.canceled_value == Decimal("20")
@@ -1051,6 +1084,11 @@ def test_order_bulk_create_multiple_transactions(
     assert db_transaction_2.order_id == db_order.id
     assert db_transaction_3.order_id == db_order.id
     assert db_transaction_4.order_id == db_order.id
+
+    assert db_order.total_authorized_amount == Decimal("20")
+    assert db_order.total_charged_amount == Decimal("100")
+    assert db_order.authorize_status == OrderAuthorizeStatus.FULL.lower()
+    assert db_order.charge_status == OrderChargeStatus.PARTIAL.lower()
 
     assert TransactionItem.objects.count() == transactions_count + 4
 

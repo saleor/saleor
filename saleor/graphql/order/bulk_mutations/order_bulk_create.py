@@ -37,8 +37,11 @@ from ....order import (
 )
 from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
-from ....order.utils import update_order_display_gross_prices
-from ....payment.models import TransactionItem
+from ....order.search import update_order_search_vector
+from ....order.utils import update_order_display_gross_prices, updates_amounts_for_order
+from ....payment.models import TransactionEvent, TransactionItem
+from ....payment.transaction_item_calculations import recalculate_transaction_amounts
+from ....payment.utils import create_manual_adjustment_events
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -98,13 +101,19 @@ class OrderBulkOrderLine:
 
 
 @dataclass
+class OrderBulkTransaction:
+    transaction: TransactionItem
+    events: List[TransactionEvent]
+
+
+@dataclass
 class OrderBulkCreateData:
     order: Optional[Order] = None
     errors: List[OrderBulkError] = dataclass_field(default_factory=list)
     lines: List[OrderBulkOrderLine] = dataclass_field(default_factory=list)
     notes: List[OrderEvent] = dataclass_field(default_factory=list)
     fulfillments: List[OrderBulkFulfillment] = dataclass_field(default_factory=list)
-    transactions: List[TransactionItem] = dataclass_field(default_factory=list)
+    transactions: List[OrderBulkTransaction] = dataclass_field(default_factory=list)
     invoices: List[Invoice] = dataclass_field(default_factory=list)
     discounts: List[OrderDiscount] = dataclass_field(default_factory=list)
     gift_cards: List[GiftCard] = dataclass_field(default_factory=list)
@@ -132,9 +141,23 @@ class OrderBulkCreateData:
             fulfillment.fulfillment.fulfillment_order = order
             order += 1
 
+    def set_transaction_id(self):
+        for transaction_data in self.transactions:
+            for event in transaction_data.events:
+                event.transaction = transaction_data.transaction
+
     def link_gift_cards(self):
         if self.order:
             self.order.gift_cards.add(*self.gift_cards)
+
+    def recalculate_transaction_amounts(self):
+        for transaction_data in self.transactions:
+            recalculate_transaction_amounts(transaction_data.transaction, save=False)
+
+    def post_create_order_update(self):
+        if self.order:
+            updates_amounts_for_order(self.order, save=False)
+            update_order_search_vector(self.order, save=False)
 
     @property
     def order_lines_duplicates(self) -> bool:
@@ -159,7 +182,15 @@ class OrderBulkCreateData:
 
     @property
     def all_transactions(self) -> List[TransactionItem]:
-        return [transaction for transaction in self.transactions]
+        return [transaction_data.transaction for transaction_data in self.transactions]
+
+    @property
+    def all_transaction_events(self) -> List[TransactionEvent]:
+        return [
+            event
+            for transaction_data in self.transactions
+            for event in transaction_data.events
+        ]
 
     @property
     def all_invoices(self) -> List[Invoice]:
@@ -1384,6 +1415,51 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         return invoice
 
     @classmethod
+    def create_single_transaction(
+        cls,
+        transaction_input: Dict[str, Any],
+        order_data: OrderBulkCreateData,
+        index: int,
+    ):
+        try:
+            assert order_data.order
+            order = TransactionCreate.validate_input(
+                order_data.order, transaction_input
+            )
+            transaction_data = {**transaction_input}
+            transaction_data["currency"] = order.currency
+            transaction_data["order_id"] = order.pk
+            money_data = TransactionCreate.get_money_data_from_input(transaction_data)
+            new_transaction = TransactionCreate.create_transaction(
+                transaction_data, None, None, save=False
+            )
+            events: List[TransactionEvent] = []
+            if money_data:
+                for k, v in money_data.items():
+                    transaction_data[k] = v
+                events = create_manual_adjustment_events(
+                    transaction=new_transaction,
+                    money_data=money_data,
+                    user=None,
+                    app=None,
+                    save=False,
+                )
+            order_data.transactions.append(
+                OrderBulkTransaction(transaction=new_transaction, events=events)
+            )
+        except ValidationError as error:
+            for field, err in error.error_dict.items():
+                message = str(err[0].message)
+                code = err[0].code
+                order_data.errors.append(
+                    OrderBulkError(
+                        message=message,
+                        path=f"transactions.{index}",
+                        code=OrderBulkCreateErrorCode(code),
+                    )
+                )
+
+    @classmethod
     def create_single_order_line(
         cls,
         order_line_input: Dict[str, Any],
@@ -1649,25 +1725,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     ):
         transactions_input = order_input.get("transactions")
         if transactions_input and order_data.order:
-            transaction_index = 0
+            index = 0
             for transaction_input in transactions_input:
-                try:
-                    transaction = TransactionCreate.prepare_transaction_item_for_order(
-                        order_data.order, transaction_input
-                    )
-                    order_data.transactions.append(transaction)
-                except ValidationError as error:
-                    for field, err in error.error_dict.items():
-                        message = str(err[0].message)
-                        code = err[0].code
-                        order_data.errors.append(
-                            OrderBulkError(
-                                message=message,
-                                path=f"transactions.{transaction_index}",
-                                code=OrderBulkCreateErrorCode(code),
-                            )
-                        )
-                transaction_index += 1
+                cls.create_single_transaction(transaction_input, order_data, index)
+                index += 1
 
     @classmethod
     def create_discounts(
@@ -1999,9 +2060,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     addresses.append(shipping_address)
         Address.objects.bulk_create(addresses)
 
-        Order.objects.bulk_create(
-            [order_data.order for order_data in orders_data if order_data.order]
-        )
+        orders = [order_data.order for order_data in orders_data if order_data.order]
+        Order.objects.bulk_create(orders)
 
         order_lines: List[OrderLine] = sum(
             [
@@ -2051,6 +2111,17 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             [],
         )
         TransactionItem.objects.bulk_create(transactions)
+        for order_data in orders_data:
+            order_data.set_transaction_id()
+        transaction_events: List[TransactionEvent] = sum(
+            [
+                order_data.all_transaction_events
+                for order_data in orders_data
+                if order_data.order
+            ],
+            [],
+        )
+        TransactionEvent.objects.bulk_create(transaction_events)
 
         invoices: List[Invoice] = sum(
             [order_data.all_invoices for order_data in orders_data if order_data.order],
@@ -2070,6 +2141,34 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         for order_data in orders_data:
             order_data.link_gift_cards()
+            order_data.recalculate_transaction_amounts()
+        TransactionItem.objects.bulk_update(
+            transactions,
+            [
+                "authorized_value",
+                "charged_value",
+                "refunded_value",
+                "canceled_value",
+                "authorize_pending_value",
+                "charge_pending_value",
+                "refund_pending_value",
+                "cancel_pending_value",
+            ],
+        )
+
+        for order_data in orders_data:
+            order_data.post_create_order_update()
+        Order.objects.bulk_update(
+            orders,
+            [
+                "total_charged_amount",
+                "charge_status",
+                "updated_at",
+                "total_authorized_amount",
+                "authorize_status",
+                "search_vector",
+            ],
+        )
 
         return orders_data
 
