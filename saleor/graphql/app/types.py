@@ -252,19 +252,30 @@ class AppManifestBrandLogo(BaseObjectType):
     default = IconThumbnailField(
         graphene.String,
         required=True,
-        description="Data URL with a logo image base64 encoded.",
+        description="Data URL with a base64 encoded logo image."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
+        description = (
+            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
 
     @staticmethod
     def resolve_default(
-        root, _info: ResolveInfo, *, size: int = 128, format: Optional[str] = None
+        root,
+        _info: ResolveInfo,
+        *,
+        size: Optional[int] = None,
+        format: Optional[str] = None
     ):
         format = get_icon_thumbnail_format(format)
         # limit thumbnail max size as it is transferred
         # as text and used for preview purposes only
+        if size == 0:
+            size = 512
         size = min(get_thumbnail_size(size), 512)
 
         logo_img = root["default"]
@@ -279,11 +290,16 @@ class AppManifestBrandLogo(BaseObjectType):
 
 class AppBrandLogo(BaseObjectType):
     default = IconThumbnailField(
-        graphene.String, required=True, description="URL to the default logo image."
+        graphene.String,
+        required=True,
+        description="URL to the default logo image." + ADDED_IN_314 + PREVIEW_FEATURE,
     )
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
+        description = (
+            "Represents the app's brand logo data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
 
     @staticmethod
     def resolve_default(
@@ -324,10 +340,16 @@ class AppBrandLogo(BaseObjectType):
 
 
 class AppBrand(BaseObjectType):
-    logo = graphene.Field(AppBrandLogo, required=True)
+    logo = graphene.Field(
+        AppBrandLogo,
+        required=True,
+        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+    )
 
     class Meta:
-        description = "Represents the app's brand data."
+        description = (
+            "Represents the app's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
         doc_category = DOC_CATEGORY_APPS
 
     @staticmethod
@@ -338,10 +360,16 @@ class AppBrand(BaseObjectType):
 
 
 class AppManifestBrand(BaseObjectType):
-    logo = graphene.Field(AppManifestBrandLogo, required=True)
+    logo = graphene.Field(
+        AppManifestBrandLogo,
+        required=True,
+        description="App's logos details." + ADDED_IN_314 + PREVIEW_FEATURE,
+    )
 
     class Meta:
-        description = "Represents the app's manifest brand data."
+        description = (
+            "Represents the app's manifest brand data." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
         doc_category = DOC_CATEGORY_APPS
 
 
