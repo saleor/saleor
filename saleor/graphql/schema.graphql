@@ -22572,6 +22572,20 @@ input InvoiceCreateInput @doc(category: "Orders") {
 
   """URL of an invoice to download."""
   url: String!
+
+  """
+  Fields required to update the invoice metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the invoice private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
@@ -22602,6 +22616,20 @@ input UpdateInvoiceInput @doc(category: "Orders") {
 
   """URL of an invoice to download."""
   url: String
+
+  """
+  Fields required to update the invoice metadata.
+  
+  Added in Saleor 3.14.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Fields required to update the invoice private metadata.
+  
+  Added in Saleor 3.14.
+  """
+  privateMetadata: [MetadataInput!]
 }
 
 """
