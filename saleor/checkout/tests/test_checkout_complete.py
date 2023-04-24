@@ -1482,7 +1482,6 @@ def test_complete_checkout_when_checkout_doesnt_exists(
         lines=lines,
         payment_data={},
         store_source=False,
-        discounts=None,
         user=customer_user,
         app=None,
     )
@@ -1540,7 +1539,6 @@ def test_complete_checkout_checkout_was_deleted_before_compliting(
             lines=lines,
             payment_data={},
             store_source=False,
-            discounts=None,
             user=customer_user,
             app=app,
         )
