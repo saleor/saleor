@@ -7,7 +7,7 @@ from ..tasks import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_task,
 )
-from ..utils.variant_prices import update_product_discounted_price
+from ..utils.variant_prices import update_products_discounted_price
 
 
 def test_update_product_discounted_price(product, channel_USD):
@@ -20,7 +20,7 @@ def test_update_product_discounted_price(product, channel_USD):
 
     assert product_channel_listing.discounted_price == Money("10", "USD")
 
-    update_product_discounted_price(product)
+    update_products_discounted_price([product])
 
     product_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
@@ -38,7 +38,7 @@ def test_update_product_discounted_price_without_price(
 
     assert product_channel_listing.discounted_price == Money("10", "USD")
 
-    update_product_discounted_price(product)
+    update_products_discounted_price([product])
 
     product_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
@@ -127,7 +127,7 @@ def test_update_products_discounted_prices_task(product_list):
 @patch(
     "saleor.product.management.commands"
     ".update_all_products_discounted_prices"
-    ".update_product_discounted_price"
+    ".update_products_discounted_price"
 )
 def test_management_commmand_update_all_products_discounted_price(
     mock_update_product_discounted_price, product_list
@@ -135,4 +135,4 @@ def test_management_commmand_update_all_products_discounted_price(
     call_command("update_all_products_discounted_prices")
     call_args_list = mock_update_product_discounted_price.call_args_list
     for (args, kwargs), product in zip(call_args_list, product_list):
-        assert args[0] == product
+        assert args[0] == [product]

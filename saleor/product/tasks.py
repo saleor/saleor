@@ -14,7 +14,7 @@ from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
-    update_product_discounted_price,
+    update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_of_discount,
@@ -83,7 +83,7 @@ def update_product_discounted_price_task(product_pk: int):
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find product with id: {product_pk}.")
         return
-    update_product_discounted_price(product)
+    update_products_discounted_price([product])
 
 
 @app.task

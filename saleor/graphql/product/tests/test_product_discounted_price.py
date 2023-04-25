@@ -9,7 +9,7 @@ from ...tests.utils import get_graphql_content
 
 @patch(
     "saleor.graphql.product.mutations.product_variant.product_variant_delete"
-    ".update_product_discounted_price_task"
+    ".update_products_discounted_price_task"
 )
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_product_variant_delete_updates_discounted_price(

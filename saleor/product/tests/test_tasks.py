@@ -40,16 +40,16 @@ def test_update_products_discounted_prices_of_discount_task_discount_does_not_ex
     assert f"Cannot find discount with id: {discount_id}" in caplog.text
 
 
-@patch("saleor.product.tasks.update_product_discounted_price")
+@patch("saleor.product.tasks.update_products_discounted_price")
 def test_update_product_discounted_price_task(update_product_price_mock, product):
     # when
     update_product_discounted_price_task(product.id)
 
     # then
-    update_product_price_mock.assert_called_once_with(product)
+    update_product_price_mock.assert_called_once_with([product])
 
 
-@patch("saleor.product.tasks.update_product_discounted_price")
+@patch("saleor.product.tasks.update_products_discounted_price")
 def test_update_product_discounted_price_task_product_does_not_exist(
     update_product_price_mock, caplog
 ):
