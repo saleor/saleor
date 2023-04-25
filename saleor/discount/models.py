@@ -358,17 +358,9 @@ class SaleTranslation(Translation):
         return {"name": self.name}
 
 
-class OrderDiscount(models.Model):
+class BaseDiscount(models.Model):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    order = models.ForeignKey(
-        "order.Order",
-        related_name="discounts",
-        blank=True,
-        null=True,
-        on_delete=models.CASCADE,
-    )
     type = models.CharField(
         max_length=10,
         choices=OrderDiscountType.CHOICES,
@@ -398,8 +390,41 @@ class OrderDiscount(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     translated_name = models.CharField(max_length=255, null=True, blank=True)
     reason = models.TextField(blank=True, null=True)
+    sale = models.ForeignKey(
+        Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    )
+    voucher = models.ForeignKey(
+        Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        abstract = True
+
+
+class OrderDiscount(BaseDiscount):
+    order = models.ForeignKey(
+        "order.Order",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+    old_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
 
     class Meta:
         # Orders searching index
         indexes = [GinIndex(fields=["name", "translated_name"])]
+        ordering = ("created_at", "id")
+
+
+class CheckoutLineDiscount(BaseDiscount):
+    line = models.ForeignKey(
+        "checkout.CheckoutLine",
+        related_name="discounts",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
         ordering = ("created_at", "id")
