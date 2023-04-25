@@ -1805,6 +1805,24 @@ protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4
 libcst = ["libcst (>=0.3.10)"]
 
 [[package]]
+name = "google-cloud-secret-manager"
+version = "2.13.0"
+description = "Google Cloud Secret Manager API client library"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "google-cloud-secret-manager-2.13.0.tar.gz", hash = "sha256:d4104e11d921d235411ed4951273ac5ed6823c5fc6b9707dd0509978e9ae7bd2"},
+    {file = "google_cloud_secret_manager-2.13.0-py2.py3-none-any.whl", hash = "sha256:e451f06253a568f56bc52d9a7ae78fb731930723cf82ed6d6a83fa57f3828e4e"},
+]
+
+[package.dependencies]
+google-api-core = {version = ">=1.34.0,<2.0.0 || >=2.11.0,<3.0.0dev", extras = ["grpc"]}
+grpc-google-iam-v1 = ">=0.12.4,<1.0.0dev"
+proto-plus = ">=1.22.0,<2.0.0dev"
+protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
+
+[[package]]
 name = "google-cloud-storage"
 version = "2.8.0"
 description = "Google Cloud Storage API client library"
@@ -5185,4 +5203,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "e574961434ddb4be153f85ef56adb851e117617ddbb8ff017646a1f860d9a40e"
+content-hash = "23b358e0c62be458628309b3ef1d643b9068024789a4f145f143036143a95ea1"
