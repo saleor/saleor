@@ -1285,6 +1285,15 @@ def complete_checkout(
     :raises ValidationError
     """
     with transaction_with_commit_on_errors():
+        checkout = (
+            Checkout.objects.select_for_update()
+            .filter(pk=checkout_info.checkout.pk)
+            .first()
+        )
+        if not checkout:
+            order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
+            return order, False, {}
+
         payment, customer_id, order_data = complete_checkout_pre_payment_part(
             manager=manager,
             checkout_info=checkout_info,
@@ -1296,15 +1305,6 @@ def complete_checkout(
             redirect_url=redirect_url,
         )
         reservations = _reserve_stocks_without_availability_check(checkout_info, lines)
-
-    # Fetch the checkout with a lock just to ensure that no payment is created
-    # for this checkout right now.
-    with transaction.atomic():
-        (
-            Checkout.objects.select_for_update()
-            .filter(pk=checkout_info.checkout.pk)
-            .first()
-        )
 
     # Process payments out of transaction to unlock stock rows for another user,
     # who potentially can order the same product variants.
@@ -1333,6 +1333,15 @@ def complete_checkout(
             )
 
     with transaction_with_commit_on_errors():
+        checkout = (
+            Checkout.objects.select_for_update()
+            .filter(pk=checkout_info.checkout.pk)
+            .first()
+        )
+        if not checkout:
+            order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
+            return order, False, {}
+
         # Run pre-payment checks to make sure, that nothing has changed to the
         # checkout, during processing payment.
         checkout_info.checkout.voucher_code = None
