@@ -1,6 +1,7 @@
 from decimal import Decimal
 from unittest import mock
 
+import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
@@ -31,6 +32,7 @@ from ..complete_checkout import (
     complete_checkout,
 )
 from ..fetch import fetch_checkout_info, fetch_checkout_lines
+from ..models import Checkout
 from ..utils import add_variant_to_checkout
 
 
@@ -1399,6 +1401,120 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
 
     # then
     assert not order
+    mocked_create_order.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+def test_complete_checkout_when_checkout_doesnt_exists(
+    mocked_create_order,
+    customer_user,
+    checkout,
+    payment_txn_to_confirm,
+    order,
+):
+    # given
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = False
+    payment.save()
+    payment.transactions.create(
+        is_success=True,
+        action_required=False,
+        kind=TransactionKind.REFUND_ONGOING,
+        amount=payment.total,
+        currency=payment.currency,
+        token="test",
+        gateway_response={},
+    )
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    order.checkout_token = checkout.token
+    order.save()
+    Checkout.objects.filter(token=checkout.token).delete()
+
+    # when
+    order_from_checkout, _, _ = complete_checkout(
+        checkout_info=checkout_info,
+        manager=manager,
+        lines=lines,
+        payment_data={},
+        store_source=False,
+        discounts=None,
+        user=customer_user,
+        app=None,
+    )
+
+    # then
+
+    assert order.pk == order_from_checkout.pk
+    mocked_create_order.assert_not_called()
+
+
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+@mock.patch("saleor.checkout.complete_checkout._process_payment")
+def test_complete_checkout_checkout_was_deleted_before_compliting(
+    mocked_process_payment,
+    mocked_create_order,
+    customer_user,
+    checkout,
+    app,
+    payment_txn_to_confirm,
+    action_required_gateway_response,
+    order,
+):
+    # given
+    mocked_process_payment.return_value = action_required_gateway_response
+
+    payment = Payment.objects.create(
+        gateway="mirumee.payments.dummy", is_active=True, checkout=checkout
+    )
+    payment.to_confirm = True
+    payment.save()
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    def convert_checkout_to_order(*args, **kwargs):
+        order.checkout_token = checkout.token
+        order.save()
+        Checkout.objects.filter(token=checkout.token).delete()
+
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment", convert_checkout_to_order
+    ):
+        order_from_checkout, action_required, _ = complete_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            lines=lines,
+            payment_data={},
+            store_source=False,
+            discounts=None,
+            user=customer_user,
+            app=app,
+        )
+    # then
+    assert order.pk == order_from_checkout.pk
+    assert action_required is False
     mocked_create_order.assert_not_called()
 
 
