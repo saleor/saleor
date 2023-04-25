@@ -374,7 +374,7 @@ class BasePlugin:
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address", bool], "Address"
+        ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
