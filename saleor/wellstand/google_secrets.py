@@ -1,13 +1,13 @@
 import os
 import json
 
-from i42_elfy_common.i42_secrets.base_secrets import SecretManager
+from saleor.wellstand.base_secrets import SecretManager
 from google.cloud import secretmanager_v1
 
-from i42_elfy_common.i42_logging.loggers import get_logger
-
 from cachetools import cached
-from i42_elfy_common.i42_secrets import cache
+from saleor.wellstand import cache
+
+import logging
 
 
 class GoogleSecretManager(SecretManager):
@@ -25,12 +25,12 @@ class GoogleSecretManager(SecretManager):
     def __init__(self):
         super().__init__()
         self.client = secretmanager_v1.SecretManagerServiceClient()
-        self.project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
+        # self.project_id = os.getenv("GOOGLE_CLOUD_PROJECT")
 
     @staticmethod
     @cached(cache)
     def get_secret(secret_key: str) -> dict:
-        logger = get_logger("ea_common.logging.loggers.GoogleSecretManager")
+        logger = logging.getLogger(__name__)
         logger.debug(f"Getting configuration for {secret_key}")
         env_name = os.environ["ENVIRONMENT_NAME"]
         google_project = os.environ["GOOGLE_PROJECT_NAME"]

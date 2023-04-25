@@ -24,12 +24,13 @@ from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.integrations.logging import ignore_logger
 
-from . import PatchedSubscriberExecutionContext, __version__
-from .core.languages import LANGUAGES as CORE_LANGUAGES
-from .core.schedules import initiated_sale_webhook_schedule
+from saleor import PatchedSubscriberExecutionContext, __version__
+from saleor.core.languages import LANGUAGES as CORE_LANGUAGES
+from saleor.core.schedules import initiated_sale_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
+from saleor.wellstand.google_secrets import GoogleSecretManager
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]
@@ -88,13 +89,24 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 # This variable should be set to `replica`
 DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
+google_secret_manager = GoogleSecretManager()
+db_config = google_secret_manager.get_secret("saleor_pg")
+
+db_url = "postgres://{username}:{password}@{host}:{port}/{database}".format(
+    username=db_config["username"],
+    password=db_config["password"],
+    host=db_config["host"],
+    port=db_config["port"],
+    database=db_config["database"],
+)
+
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default=db_url,
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default=db_url,
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
