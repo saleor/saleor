@@ -1093,6 +1093,81 @@ def test_order_bulk_create_multiple_transactions(
     assert TransactionItem.objects.count() == transactions_count + 4
 
 
+def test_order_bulk_create_transactions_with_multiple_amounts(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    transactions_count = TransactionItem.objects.count()
+
+    transaction = {
+        "amountAuthorized": {
+            "amount": Decimal("10"),
+            "currency": "PLN",
+        },
+        "amountCharged": {
+            "amount": Decimal("100"),
+            "currency": "PLN",
+        },
+        "amountRefunded": {
+            "amount": Decimal("15"),
+            "currency": "PLN",
+        },
+        "amountCanceled": {
+            "amount": Decimal("20"),
+            "currency": "PLN",
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    order_bulk_input["transactions"] = [transaction]
+
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["errors"]
+    order = data[0]["order"]
+
+    transaction = order["transactions"][0]
+    assert transaction["authorizedAmount"]["amount"] == Decimal("10")
+    assert transaction["authorizedAmount"]["currency"] == "PLN"
+    assert transaction["chargedAmount"]["amount"] == Decimal("100")
+    assert transaction["chargedAmount"]["currency"] == "PLN"
+    assert transaction["refundedAmount"]["amount"] == Decimal("15")
+    assert transaction["refundedAmount"]["currency"] == "PLN"
+    assert transaction["canceledAmount"]["amount"] == Decimal("20")
+    assert transaction["canceledAmount"]["currency"] == "PLN"
+
+    db_order = Order.objects.get()
+    db_transaction = TransactionItem.objects.get()
+    assert db_transaction.authorized_value == Decimal("10")
+    assert db_transaction.charged_value == Decimal("100")
+    assert db_transaction.refunded_value == Decimal("15")
+    assert db_transaction.canceled_value == Decimal("20")
+    assert db_transaction.order_id == db_order.id
+
+    assert db_order.total_authorized_amount == Decimal("10")
+    assert db_order.total_charged_amount == Decimal("100")
+    assert db_order.authorize_status == OrderAuthorizeStatus.PARTIAL.lower()
+    assert db_order.charge_status == OrderChargeStatus.PARTIAL.lower()
+
+    assert TransactionItem.objects.count() == transactions_count + 1
+
+
 def test_order_bulk_create_multiple_invoices(
     staff_api_client,
     permission_manage_orders,

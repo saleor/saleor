@@ -1278,7 +1278,6 @@ def create_manual_adjustment_events(
     money_data: Dict[str, Decimal],
     user: Optional["User"],
     app: Optional["App"],
-    save: bool = True,
 ) -> list[TransactionEvent]:
     """Create TransactionEvent used to recalculate the transaction amounts.
 
@@ -1335,9 +1334,9 @@ def create_manual_adjustment_events(
         app=app,
         user=user,
     )
-    if save:
+    if events_to_create:
         return TransactionEvent.objects.bulk_create(events_to_create)
-    return events_to_create
+    return []
 
 
 def create_transaction_item(

@@ -39,9 +39,10 @@ from ....order.error_codes import OrderBulkCreateErrorCode
 from ....order.models import Fulfillment, FulfillmentLine, Order, OrderEvent, OrderLine
 from ....order.search import update_order_search_vector
 from ....order.utils import update_order_display_gross_prices, updates_amounts_for_order
+from ....payment import TransactionEventType
 from ....payment.models import TransactionEvent, TransactionItem
 from ....payment.transaction_item_calculations import recalculate_transaction_amounts
-from ....payment.utils import create_manual_adjustment_events
+from ....payment.utils import prepare_manual_event
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -1426,24 +1427,34 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order = TransactionCreate.validate_input(
                 order_data.order, transaction_input
             )
-            transaction_data = {**transaction_input}
-            transaction_data["currency"] = order.currency
-            transaction_data["order_id"] = order.pk
+            transaction_data = {
+                **transaction_input,
+                "currency": order.currency,
+                "order_id": order.pk,
+            }
             money_data = TransactionCreate.get_money_data_from_input(transaction_data)
             new_transaction = TransactionCreate.create_transaction(
                 transaction_data, None, None, save=False
             )
             events: List[TransactionEvent] = []
             if money_data:
+                amountfield_eventtype_map = {
+                    "authorized_value": TransactionEventType.AUTHORIZATION_SUCCESS,
+                    "charged_value": TransactionEventType.CHARGE_SUCCESS,
+                    "refunded_value": TransactionEventType.REFUND_SUCCESS,
+                    "canceled_value": TransactionEventType.CANCEL_SUCCESS,
+                }
                 for amount_field, amount in money_data.items():
                     transaction_data[amount_field] = amount
-                events = create_manual_adjustment_events(
-                    transaction=new_transaction,
-                    money_data=money_data,
-                    user=None,
-                    app=None,
-                    save=False,
-                )
+                    prepare_manual_event(
+                        events_to_create=events,
+                        amount_field=amount_field,
+                        money_data=money_data,
+                        event_type=amountfield_eventtype_map[amount_field],
+                        transaction=new_transaction,
+                        user=None,
+                        app=None,
+                    )
             order_data.transactions.append(
                 OrderBulkTransaction(transaction=new_transaction, events=events)
             )
