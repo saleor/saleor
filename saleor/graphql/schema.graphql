@@ -27187,23 +27187,7 @@ type OrderBulkCreated implements Event {
   recipient: App
 
   """The orders the event relates to."""
-  orders(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): OrderCountableConnection
+  orders: [Order!]
 }
 
 """

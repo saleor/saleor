@@ -27,7 +27,6 @@ from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.enums import TransactionFlowStrategyEnum
 from ..core import ResolveInfo
-from ..core.connection import create_connection_slice
 from ..core.descriptions import (
     ADDED_IN_32,
     ADDED_IN_34,
@@ -50,12 +49,11 @@ from ..core.doc_category import (
     DOC_CATEGORY_SHIPPING,
     DOC_CATEGORY_TAXES,
 )
-from ..core.fields import ConnectionField
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
-from ..order.types import OrderCountableConnection
+from ..order.types import Order
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -443,15 +441,15 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
 
 
 class OrderBulkCreated(SubscriptionObjectType):
-    orders = ConnectionField(
-        OrderCountableConnection,
+    orders = NonNullList(
+        Order,
         description="The orders the event relates to.",
     )
 
     @staticmethod
-    def resolve_orders(root, info: ResolveInfo, **kwargs):
+    def resolve_orders(root, _info: ResolveInfo):
         _, orders = root
-        return create_connection_slice(orders, info, kwargs, OrderCountableConnection)
+        return orders
 
     class Meta:
         root_type = None

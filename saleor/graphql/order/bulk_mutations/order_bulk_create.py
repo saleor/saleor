@@ -1435,8 +1435,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
             events: List[TransactionEvent] = []
             if money_data:
-                for k, v in money_data.items():
-                    transaction_data[k] = v
+                for amount_field, amount in money_data.items():
+                    transaction_data[amount_field] = amount
                 events = create_manual_adjustment_events(
                     transaction=new_transaction,
                     money_data=money_data,
