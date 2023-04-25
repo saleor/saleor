@@ -22542,7 +22542,7 @@ input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
 }
 
 input OrderBulkCreateFulfillmentInput @doc(category: "Orders") {
-  """Fulfillments tracking code."""
+  """Fulfillment's tracking code."""
   trackingCode: String
 
   """List of items informing how to fulfill the order."""

@@ -2454,20 +2454,25 @@ def test_order_bulk_create_error_invalid_quantity(
 
 
 @pytest.mark.parametrize(
-    "quantity,total_net,undiscounted_net,message,code,field",
+    "quantity,total_net,total_gross,undiscounted_net,undiscounted_gross,message,code,"
+    "field",
     [
         (
             -5,
             100,
-            100,
+            120,
+            200,
+            240,
             "Invalid quantity. Must be integer greater then or equal to 1.",
             OrderBulkCreateErrorCode.INVALID_QUANTITY.name,
             "quantity",
         ),
         (
             5,
-            300,
+            120,
             100,
+            200,
+            240,
             "Net price can't be greater then gross price.",
             OrderBulkCreateErrorCode.PRICE_ERROR.name,
             "total_price",
@@ -2475,8 +2480,20 @@ def test_order_bulk_create_error_invalid_quantity(
         (
             5,
             100,
-            300,
+            120,
+            240,
+            120,
             "Net price can't be greater then gross price.",
+            OrderBulkCreateErrorCode.PRICE_ERROR.name,
+            "undiscounted_total_price",
+        ),
+        (
+            5,
+            200,
+            240,
+            100,
+            120,
+            "Total price can't be greater then undiscounted total price.",
             OrderBulkCreateErrorCode.PRICE_ERROR.name,
             "undiscounted_total_price",
         ),
@@ -2485,7 +2502,9 @@ def test_order_bulk_create_error_invalid_quantity(
 def test_order_bulk_create_error_order_line_calculations(
     quantity,
     total_net,
+    total_gross,
     undiscounted_net,
+    undiscounted_gross,
     message,
     code,
     field,
@@ -2500,7 +2519,9 @@ def test_order_bulk_create_error_order_line_calculations(
     order = order_bulk_input
     order["lines"][0]["quantity"] = quantity
     order["lines"][0]["totalPrice"]["net"] = total_net
+    order["lines"][0]["totalPrice"]["gross"] = total_gross
     order["lines"][0]["undiscountedTotalPrice"]["net"] = undiscounted_net
+    order["lines"][0]["undiscountedTotalPrice"]["gross"] = undiscounted_gross
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2519,6 +2540,7 @@ def test_order_bulk_create_error_order_line_calculations(
     assert content["data"]["orderBulkCreate"]["count"] == 0
     assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
     errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    assert len(errors) == 1
     assert errors[0]["message"] == message
     assert errors[0]["path"] == f"lines.0.{field}"
     assert errors[0]["code"] == code

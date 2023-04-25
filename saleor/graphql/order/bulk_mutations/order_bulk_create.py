@@ -419,7 +419,7 @@ class OrderBulkCreateFulfillmentLineInput(BaseInputObjectType):
 
 
 class OrderBulkCreateFulfillmentInput(BaseInputObjectType):
-    tracking_code = graphene.String(description="Fulfillments tracking code.")
+    tracking_code = graphene.String(description="Fulfillment's tracking code.")
     lines = NonNullList(
         OrderBulkCreateFulfillmentLineInput,
         description="List of items informing how to fulfill the order.",
@@ -1073,6 +1073,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
+                    path=f"lines.{index}.undiscounted_total_price",
+                    code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                )
+            )
+            is_exit_error = True
+        if (
+            undiscounted_gross_amount < gross_amount
+            or undiscounted_net_amount < net_amount
+        ):
+            errors.append(
+                OrderBulkError(
+                    message=(
+                        "Total price can't be greater then undiscounted total price."
+                    ),
                     path=f"lines.{index}.undiscounted_total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
