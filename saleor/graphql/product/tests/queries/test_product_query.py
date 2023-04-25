@@ -2483,8 +2483,8 @@ def test_product_query_by_external_reference(
 
 
 PRODUCT_TAX_CLASS_QUERY = """
-    query getProduct($id: ID!) {
-        product(id: $id) {
+    query getProduct($id: ID!, $channel: String) {
+        product(id: $id, channel: $channel) {
             id
             taxClass {
                 id
@@ -2494,10 +2494,11 @@ PRODUCT_TAX_CLASS_QUERY = """
 """
 
 
-def test_product_tax_class_query_by_app(app_api_client, product):
+def test_product_tax_class_query_by_app(app_api_client, product, channel_USD):
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
     }
 
     # when
@@ -2511,10 +2512,11 @@ def test_product_tax_class_query_by_app(app_api_client, product):
     assert data["product"]["taxClass"]["id"]
 
 
-def test_product_tax_class_query_by_staff(staff_api_client, product):
+def test_product_tax_class_query_by_staff(staff_api_client, product, channel_USD):
     # given
     variables = {
         "id": graphene.Node.to_global_id("Product", product.id),
+        "channel": channel_USD.slug,
     }
 
     # when
