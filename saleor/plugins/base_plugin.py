@@ -699,6 +699,24 @@ class BasePlugin:
     # fully paid.
     order_fully_paid: Callable[["Order", Any], Any]
 
+    # Trigger when order is paid.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # received the payment.
+    order_paid: Callable[["Order", Any], Any]
+
+    # Trigger when order is refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # refunded.
+    order_refunded: Callable[["Order", Any], Any]
+
+    # Trigger when order is fully refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fully refunded.
+    order_fully_refunded: Callable[["Order", Any], Any]
+
     # Trigger when order is updated.
     #
     # Overwrite this method if you need to trigger specific logic when an order is

@@ -437,6 +437,25 @@ def subscription_order_fully_paid_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_order_paid_webhook(subscription_webhook):
+    return subscription_webhook(queries.ORDER_PAID, WebhookEventAsyncType.ORDER_PAID)
+
+
+@pytest.fixture
+def subscription_order_fully_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_FULLY_REFUNDED, WebhookEventAsyncType.ORDER_FULLY_REFUNDED
+    )
+
+
+@pytest.fixture
+def subscription_order_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_REFUNDED, WebhookEventAsyncType.ORDER_REFUNDED
+    )
+
+
+@pytest.fixture
 def subscription_order_cancelled_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CANCELLED, WebhookEventAsyncType.ORDER_CANCELLED

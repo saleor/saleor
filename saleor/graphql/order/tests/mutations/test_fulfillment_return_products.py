@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import ANY, patch
 
 import graphene
+import mock
 from prices import Money, TaxedMoney
 
 from .....core.prices import quantize_price
@@ -11,6 +12,7 @@ from .....order.fetch import OrderLineInfo
 from .....order.models import FulfillmentStatus, Order
 from .....payment import ChargeStatus, PaymentError
 from .....payment.interface import RefundData
+from .....tests.utils import flush_post_commit_hooks
 from .....warehouse.models import Stock
 from ....tests.utils import get_graphql_content
 
@@ -968,4 +970,92 @@ def test_fulfillment_return_products_fulfillment_lines_and_order_lines(
                 )
             ],
         ),
+    )
+
+
+@patch("saleor.order.actions.order_refunded")
+@patch("saleor.order.actions.gateway.refund")
+def test_fulfillment_return_products_calls_order_refunded(
+    mocked_refund,
+    mocked_order_refunded,
+    warehouse,
+    variant,
+    channel_USD,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    payment_dummy,
+):
+    # given
+    payment_dummy.total = fulfilled_order.total_gross_amount
+    payment_dummy.captured_amount = payment_dummy.total
+    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
+    payment_dummy.save()
+    fulfilled_order.payments.add(payment_dummy)
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
+    )
+    channel_listing = variant.channel_listings.get()
+    net = variant.get_price(variant.product, [], channel_USD, channel_listing)
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    variant.track_inventory = False
+    variant.save()
+    unit_price = TaxedMoney(net=net, gross=gross)
+    quantity = 5
+    order_line = fulfilled_order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        product_variant_id=variant.get_global_id(),
+        is_shipping_required=variant.is_shipping_required(),
+        is_gift_card=variant.is_gift_card(),
+        quantity=quantity,
+        quantity_fulfilled=2,
+        variant=variant,
+        unit_price=unit_price,
+        total_price=unit_price * quantity,
+        tax_rate=Decimal("0.23"),
+    )
+    fulfillment = fulfilled_order.fulfillments.get()
+    fulfillment.lines.create(order_line=order_line, quantity=2, stock=stock)
+    fulfillment_line_to_replace = fulfilled_order.fulfillments.first().lines.first()
+    order_id = graphene.Node.to_global_id("Order", fulfilled_order.pk)
+    fulfillment_line_id = graphene.Node.to_global_id(
+        "FulfillmentLine", fulfillment_line_to_replace.pk
+    )
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "refund": True,
+            "orderLines": [
+                {"orderLineId": order_line_id, "quantity": 2, "replace": False}
+            ],
+            "fulfillmentLines": [
+                {
+                    "fulfillmentLineId": fulfillment_line_id,
+                    "quantity": 1,
+                    "replace": True,
+                }
+            ],
+        },
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    # when
+    staff_api_client.post_graphql(ORDER_FULFILL_RETURN_MUTATION, variables)
+
+    # then
+    flush_post_commit_hooks()
+    amount = order_line.unit_price_gross_amount * 2
+    amount = amount.quantize(Decimal("0.001"))
+
+    mocked_order_refunded.assert_called_once_with(
+        order=fulfilled_order,
+        user=staff_api_client.user,
+        app=None,
+        amount=amount,
+        payment=payment_dummy,
+        manager=mock.ANY,
+        trigger_order_updated=False,
     )

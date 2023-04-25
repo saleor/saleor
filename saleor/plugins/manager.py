@@ -814,6 +814,27 @@ class PluginsManager(PaymentInterface):
             "order_fully_paid", default_value, order, channel_slug=order.channel.slug
         )
 
+    def order_paid(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_paid", default_value, order, channel_slug=order.channel.slug
+        )
+
+    def order_fully_refunded(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_fully_refunded",
+            default_value,
+            order,
+            channel_slug=order.channel.slug,
+        )
+
+    def order_refunded(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "order_refunded", default_value, order, channel_slug=order.channel.slug
+        )
+
     def order_updated(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins(

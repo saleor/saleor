@@ -525,6 +525,36 @@ class WebhookPlugin(BasePlugin):
                 order_data, event_type, webhooks, order, self.requestor
             )
 
+    def order_paid(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.ORDER_PAID
+        if webhooks := get_webhooks_for_event(event_type):
+            order_data = generate_order_payload(order, self.requestor)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
+
+    def order_refunded(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.ORDER_REFUNDED
+        if webhooks := get_webhooks_for_event(event_type):
+            order_data = generate_order_payload(order, self.requestor)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
+
+    def order_fully_refunded(self, order: "Order", previous_value: Any) -> Any:
+        if not self.active:
+            return previous_value
+        event_type = WebhookEventAsyncType.ORDER_FULLY_REFUNDED
+        if webhooks := get_webhooks_for_event(event_type):
+            order_data = generate_order_payload(order, self.requestor)
+            trigger_webhooks_async(
+                order_data, event_type, webhooks, order, self.requestor
+            )
+
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         if not self.active:
             return previous_value

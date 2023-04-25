@@ -1,9 +1,13 @@
+from decimal import Decimal
+
 import graphene
+from mock import patch
 
 from .....order import FulfillmentStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....payment import ChargeStatus
+from .....tests.utils import flush_post_commit_hooks
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import get_graphql_content
 
@@ -25,15 +29,88 @@ ORDER_REFUND_MUTATION = """
 """
 
 
-def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_order_refund(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
+):
+    # given
     order = payment_txn_captured.order
+    query = ORDER_REFUND_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    amount = Decimal(10)
+    variables = {"id": order_id, "amount": amount}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderRefund"]["order"]
+    order.refresh_from_db()
+    assert data["status"] == order.status.upper()
+    assert data["paymentStatus"] == PaymentChargeStatusEnum.PARTIALLY_REFUNDED.name
+    payment_status_display = dict(ChargeStatus.CHOICES).get(
+        ChargeStatus.PARTIALLY_REFUNDED
+    )
+    assert data["paymentStatusDisplay"] == payment_status_display
+    assert data["isPaid"] is False
+
+    refund_order_event = order.events.filter(
+        type=order_events.OrderEvents.PAYMENT_REFUNDED
+    ).first()
+    assert refund_order_event.parameters["amount"] == str(amount)
+
+    refunded_fulfillment = order.fulfillments.filter(
+        status=FulfillmentStatus.REFUNDED
+    ).first()
+    assert refunded_fulfillment
+    assert refunded_fulfillment.total_refund_amount == amount
+    assert refunded_fulfillment.shipping_refund_amount is None
+
+    flush_post_commit_hooks()
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_refunded.assert_called_once_with(order)
+    assert amount < order.total.gross.amount
+    assert not mock_order_fully_refunded.called
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_order_fully_refunded(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    staff_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
+):
+    # given
+    order = payment_txn_captured.order
+    payment_txn_captured.total = order.total.gross.amount
+    payment_txn_captured.captured_amount = payment_txn_captured.total
+    payment_txn_captured.save()
+
     query = ORDER_REFUND_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
     amount = float(payment_txn_captured.total)
     variables = {"id": order_id, "amount": amount}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["orderRefund"]["order"]
     order.refresh_from_db()
@@ -54,6 +131,11 @@ def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_ca
     assert refunded_fulfillment
     assert refunded_fulfillment.total_refund_amount == payment_txn_captured.total
     assert refunded_fulfillment.shipping_refund_amount is None
+
+    flush_post_commit_hooks()
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_refunded.assert_called_once_with(order)
+    mock_order_fully_refunded.assert_called_once_with(order)
 
 
 def test_order_refund_with_gift_card_lines(

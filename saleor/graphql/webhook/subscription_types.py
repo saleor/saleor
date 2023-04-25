@@ -38,6 +38,7 @@ from ..core.descriptions import (
     ADDED_IN_311,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -402,6 +403,38 @@ class OrderFullyPaid(SubscriptionObjectType, OrderBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when order is fully paid." + ADDED_IN_32
+
+
+class OrderPaid(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Payment has been made. The order may be partially or fully paid."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        )
+
+
+class OrderRefunded(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "The order received a refund. The order may be partially or fully refunded."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        )
+
+
+class OrderFullyRefunded(SubscriptionObjectType, OrderBase):
+    class Meta:
+        root_type = "Order"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = "The order is fully refunded." + ADDED_IN_314 + PREVIEW_FEATURE
 
 
 class OrderFulfilled(SubscriptionObjectType, OrderBase):
@@ -2008,6 +2041,9 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_UPDATED: OrderUpdated,
     WebhookEventAsyncType.ORDER_CONFIRMED: OrderConfirmed,
     WebhookEventAsyncType.ORDER_FULLY_PAID: OrderFullyPaid,
+    WebhookEventAsyncType.ORDER_PAID: OrderPaid,
+    WebhookEventAsyncType.ORDER_REFUNDED: OrderRefunded,
+    WebhookEventAsyncType.ORDER_FULLY_REFUNDED: OrderFullyRefunded,
     WebhookEventAsyncType.ORDER_FULFILLED: OrderFulfilled,
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
     WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
