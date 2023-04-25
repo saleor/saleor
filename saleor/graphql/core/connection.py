@@ -327,6 +327,7 @@ def create_connection_slice(
     max_limit: Optional[int] = None,
 ):
     _validate_slice_args(info, args, max_limit)
+
     if isinstance(iterable, list):
         return slice_connection_iterable(
             iterable,

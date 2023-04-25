@@ -938,7 +938,7 @@ ORDER_BULK_CREATED = """
     subscription{
       event{
         ...on OrderBulkCreated{
-          order{
+          orders{
             id
           }
         }

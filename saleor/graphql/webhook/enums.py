@@ -6,6 +6,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_WEBHOOKS
@@ -99,8 +100,8 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: (
         "An order metadata is updated." + ADDED_IN_38
     ),
-    WebhookEventAsyncType.ORDER_BULK_CREATED: "An order is imported."
-    + ADDED_IN_313
+    WebhookEventAsyncType.ORDER_BULK_CREATED: "Orders are imported."
+    + ADDED_IN_314
     + PREVIEW_FEATURE,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: "A draft order is created.",
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: "A draft order is updated.",
