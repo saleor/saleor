@@ -288,6 +288,7 @@ class LineAmounts:
     undiscounted_total_net: Decimal
     undiscounted_unit_gross: Decimal
     undiscounted_unit_net: Decimal
+    unit_discount_amount: Decimal
     quantity: int
     tax_rate: Decimal
 
@@ -1091,6 +1092,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         undiscounted_unit_price_gross_amount = quantize_price(
             Decimal(undiscounted_gross_amount / quantity), currency
         )
+        unit_discount_amount = (
+            undiscounted_unit_price_net_amount - unit_price_net_amount
+        )
 
         if tax_rate is None and net_amount > 0:
             tax_rate = Decimal(gross_amount / net_amount - 1)
@@ -1104,6 +1108,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_total_net=undiscounted_net_amount,
             undiscounted_unit_gross=undiscounted_unit_price_gross_amount,
             undiscounted_unit_net=undiscounted_unit_price_net_amount,
+            unit_discount_amount=unit_discount_amount,
             quantity=quantity,
             tax_rate=tax_rate,
         )
@@ -1555,6 +1560,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             undiscounted_unit_price_gross_amount=line_amounts.undiscounted_unit_gross,
             undiscounted_total_price_net_amount=line_amounts.undiscounted_total_net,
             undiscounted_total_price_gross_amount=line_amounts.undiscounted_total_gross,
+            unit_discount_amount=line_amounts.unit_discount_amount,
             tax_rate=line_amounts.tax_rate,
             tax_class=line_tax_class,
             tax_class_name=tax_class_name,

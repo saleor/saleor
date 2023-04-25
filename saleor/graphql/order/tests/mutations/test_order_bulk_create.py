@@ -87,6 +87,9 @@ ORDER_BULK_CREATE = """
                                 amount
                             }
                         }
+                        unitDiscount {
+                            amount
+                        }
                         totalPrice {
                             gross {
                                 amount
@@ -590,6 +593,7 @@ def test_order_bulk_create(
     assert order_line["unitPrice"]["net"]["amount"] == Decimal(100 / 5)
     assert order_line["undiscountedUnitPrice"]["gross"]["amount"] == Decimal(120 / 5)
     assert order_line["undiscountedUnitPrice"]["net"]["amount"] == Decimal(100 / 5)
+    assert order_line["unitDiscount"]["amount"] == 0
     assert order_line["totalPrice"]["gross"]["amount"] == 120
     assert order_line["totalPrice"]["net"]["amount"] == 100
     assert order_line["metadata"][0]["key"] == "md key"
@@ -618,6 +622,7 @@ def test_order_bulk_create(
     assert db_order_line.unit_price.net.amount == Decimal(100 / 5)
     assert db_order_line.undiscounted_unit_price.gross.amount == Decimal(120 / 5)
     assert db_order_line.undiscounted_unit_price.net.amount == Decimal(100 / 5)
+    assert db_order_line.unit_discount_amount == 0
     assert db_order_line.total_price.gross.amount == 120
     assert db_order_line.total_price.net.amount == 100
     assert db_order_line.undiscounted_total_price.gross.amount == 120
@@ -2568,9 +2573,9 @@ def test_order_bulk_create_quantize_prices(
     order = order_bulk_input
     order["lines"][0]["quantity"] = 3
     order["lines"][0]["totalPrice"]["net"] = 10
-    order["lines"][0]["undiscountedTotalPrice"]["net"] = 10
+    order["lines"][0]["undiscountedTotalPrice"]["net"] = 13
     order["lines"][0]["totalPrice"]["gross"] = 20
-    order["lines"][0]["undiscountedTotalPrice"]["gross"] = 20
+    order["lines"][0]["undiscountedTotalPrice"]["gross"] = 23
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -2591,14 +2596,16 @@ def test_order_bulk_create_quantize_prices(
     assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
     assert order["lines"][0]["unitPrice"]["gross"]["amount"] == 6.67
     assert order["lines"][0]["unitPrice"]["net"]["amount"] == 3.33
-    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == 6.67
-    assert order["lines"][0]["undiscountedUnitPrice"]["net"]["amount"] == 3.33
+    assert order["lines"][0]["undiscountedUnitPrice"]["gross"]["amount"] == 7.67
+    assert order["lines"][0]["undiscountedUnitPrice"]["net"]["amount"] == 4.33
+    assert order["lines"][0]["unitDiscount"]["amount"] == 1
 
     db_order_line = OrderLine.objects.get()
     assert db_order_line.unit_price.gross.amount == Decimal("6.67")
     assert db_order_line.unit_price.net.amount == Decimal("3.33")
-    assert db_order_line.undiscounted_unit_price.gross.amount == Decimal("6.67")
-    assert db_order_line.undiscounted_unit_price.net.amount == Decimal("3.33")
+    assert db_order_line.undiscounted_unit_price.gross.amount == Decimal("7.67")
+    assert db_order_line.undiscounted_unit_price.net.amount == Decimal("4.33")
+    assert db_order_line.unit_discount_amount == Decimal("1")
 
 
 def test_order_bulk_create_error_currency_mismatch_between_transaction_and_order(
