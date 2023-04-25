@@ -1,4 +1,3 @@
-
 import graphene
 from mock import patch
 
@@ -102,7 +101,9 @@ def test_payment_refund_success_by_app(
     mock_order_fully_refunded,
     mock_order_refunded,
     mock_order_updated,
-    app_api_client, permission_manage_orders, payment_txn_captured
+    app_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
 ):
     # given
     payment = payment_txn_captured
@@ -156,9 +157,7 @@ def test_payment_refund_with_invalid_argument(
     variables = {"paymentId": payment_id, "amount": 0}
 
     # when
-    response = staff_api_client.post_graphql(
-        REFUND_QUERY, variables
-    )
+    response = staff_api_client.post_graphql(REFUND_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -194,9 +193,7 @@ def test_payment_refund_error(
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
 
     # when
-    response = staff_api_client.post_graphql(
-        REFUND_QUERY, variables
-    )
+    response = staff_api_client.post_graphql(REFUND_QUERY, variables)
 
     # then
     content = get_graphql_content(response)

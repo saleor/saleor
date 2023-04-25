@@ -49,9 +49,7 @@ def test_order_refund(
     variables = {"id": order_id, "amount": amount}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -169,7 +167,9 @@ def test_order_refund_by_app(
     mock_order_fully_refunded,
     mock_order_refunded,
     mock_order_updated,
-    app_api_client, permission_manage_orders, payment_txn_captured
+    app_api_client,
+    permission_manage_orders,
+    payment_txn_captured,
 ):
     # given
     order = payment_txn_captured.order
