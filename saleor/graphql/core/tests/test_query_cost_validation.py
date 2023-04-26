@@ -177,6 +177,7 @@ query productsQueryCost($channel: String, $first: Int) {
   }
 }
 """
+
 PRODUCTS_QUERY_WITH_FRAGMENT = """
 fragment category on Category {
   products(channel: $channel, first: $first) {
