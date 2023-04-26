@@ -148,6 +148,32 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
     assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
+def test_update_products_discounted_prices_of_catalogues_for_variants(
+    collection, product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(
+        channel=channel_USD,
+        variant=variant,
+    )
+    variant_channel_listing.price = Money("0.79", "USD")
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+    collection.products.add(product)
+    assert product_channel_listing.discounted_price == Money("10", "USD")
+
+    # when
+    update_products_discounted_prices_of_catalogues(variant_ids=[variant.pk])
+
+    # then
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert variant_channel_listing.discounted_price == variant_channel_listing.price
+
+
 def test_update_products_discounted_prices_task(product_list):
     price = Money("0.01", "USD")
     for product in product_list:

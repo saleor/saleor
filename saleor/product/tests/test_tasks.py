@@ -13,31 +13,34 @@ from ..tasks import (
 )
 
 
-@patch(
-    "saleor.product.utils.variant_prices."
-    "update_products_discounted_prices_of_catalogues"
-)
+@patch("saleor.product.utils.variant_prices." "update_products_discounted_prices")
 def test_update_products_discounted_prices_of_discount_task(
-    update_products_discounted_prices_of_catalogues_mock, sale
+    update_products_discounted_prices_mock,
+    new_sale,
+    product_list,
+    product,
+    category,
+    collection,
 ):
+    # given
+    new_sale.products.add(product)
+    category.products.add(product_list[0])
+    new_sale.categories.add(category)
+    collection.products.add(product_list[1])
+    new_sale.variants.add(product_list[2].variants.first())
+
     # when
-    update_products_discounted_prices_of_discount_task(sale.id)
+    update_products_discounted_prices_of_discount_task(new_sale.id)
 
     # then
-    update_products_discounted_prices_of_catalogues_mock.assert_called_once()
-    args, kwargs = update_products_discounted_prices_of_catalogues_mock.call_args
-    assert list(kwargs["category_ids"]) == list(
-        sale.categories.values_list("id", flat=True)
-    )
-    assert list(kwargs["collection_ids"]) == list(
-        sale.collections.values_list("id", flat=True)
-    )
-    assert list(kwargs["product_ids"]) == list(
-        sale.products.values_list("id", flat=True)
-    )
-    assert list(kwargs["variant_ids"]) == list(
-        sale.variants.values_list("id", flat=True)
-    )
+    update_products_discounted_prices_mock.assert_called_once()
+    args, kwargs = update_products_discounted_prices_mock.call_args
+
+    expected_products = [product] + product_list
+    assert len(args[0]) == len(expected_products)
+    assert {product.id for product in args[0]} == {
+        instance.id for instance in expected_products
+    }
 
 
 @patch("saleor.product.tasks.update_products_discounted_prices_of_discount")

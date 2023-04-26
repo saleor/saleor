@@ -1,6 +1,4 @@
-import operator
 from collections import defaultdict
-from functools import reduce
 from typing import Dict, Iterable, List, Set, Tuple, Union
 
 from django.db.models import Exists, OuterRef
@@ -12,6 +10,7 @@ from ...discount import DiscountInfo
 from ...discount.models import Sale, Voucher
 from ...discount.utils import calculate_discounted_price, fetch_active_discounts
 from ..models import (
+    Category,
     CollectionProduct,
     Product,
     ProductChannelListing,
@@ -170,38 +169,35 @@ def update_products_discounted_prices(products, discounts=None):
 def update_products_discounted_prices_of_catalogues(
     product_ids=None, category_ids=None, collection_ids=None, variant_ids=None
 ):
-    # Building the matching products query
-    q_list = []
+    lookup = Q()
     if product_ids:
-        q_list.append(Q(pk__in=product_ids))
+        lookup |= Q(pk__in=product_ids)
     if category_ids:
-        q_list.append(Q(category_id__in=category_ids))
+        categories = Category.objects.filter(id__in=category_ids)
+        lookup |= Q(Exists(categories.filter(id=OuterRef("category_id"))))
     if collection_ids:
-        q_list.append(Q(collectionproduct__collection_id__in=collection_ids))
-    # Asserting that the function was called with some ids
+        collection_products = CollectionProduct.objects.filter(
+            collection_id__in=collection_ids
+        )
+        lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
     if variant_ids:
-        q_list.append(Q(variants__id__in=variant_ids))
-    if q_list:
-        # Querying the products
-        q_or = reduce(operator.or_, q_list)
-        products = Product.objects.filter(q_or).distinct()
+        lookup |= Q(Exists(ProductVariant.objects.filter(product_id=OuterRef("id"))))
+
+    if lookup:
+        products = Product.objects.filter(lookup)
 
         update_products_discounted_prices(products)
 
 
 def update_products_discounted_prices_of_discount(discount: Union[Sale, Voucher]):
-    model_name = discount._meta.model.__name__.lower()
+    product_lookup = Q()
+    product_lookup |= Q(Exists(discount.variants.filter(product_id=OuterRef("id"))))
+    product_lookup |= Q(Exists(discount.categories.filter(id=OuterRef("category_id"))))
+    collection_products = CollectionProduct.objects.filter(
+        Exists(discount.collections.filter(id=OuterRef("collection_id")))
+    )
+    product_lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
 
-    kwargs = {}
-    for field in ["product", "category", "collection", "variant"]:
-        relation_field = f"{field}s" if field != "category" else "categories"
-        DiscountThroughModel = getattr(discount, relation_field).through
+    products = discount.products.all() | Product.objects.filter(product_lookup)
 
-        db_field_name = field if field != "variant" else "productvariant"
-        ids = DiscountThroughModel.objects.filter(
-            **{f"{model_name}_id": discount.id}
-        ).values_list(f"{db_field_name}_id", flat=True)
-
-        kwargs[f"{field}_ids"] = ids
-
-    update_products_discounted_prices_of_catalogues(**kwargs)
+    update_products_discounted_prices(products)
