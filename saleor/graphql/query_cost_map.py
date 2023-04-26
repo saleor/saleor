@@ -137,6 +137,7 @@ COST_MAP = {
         "extensions": {"complexity": 1},
         "tokens": {"complexity": 1},
         "webhooks": {"complexity": 1},
+        "events": {"complexity": 1, "multipliers": ["first", "last"]},
     },
     "Attribute": {
         "choices": {"complexity": 1, "multipliers": ["first", "last"]},
