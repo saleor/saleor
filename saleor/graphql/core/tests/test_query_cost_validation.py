@@ -154,6 +154,7 @@ query productsQueryCost($channel: String, $first: Int) {
   }
 }
 """
+
 PRODUCTS_QUERY_WITH_INLINE_FRAGMENT = """
 query productsQueryCost($channel: String, $first: Int) {
   products(channel: $channel, first: $first) {
