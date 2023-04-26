@@ -1,7 +1,7 @@
 import operator
 from collections import defaultdict
 from functools import reduce
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Set, Tuple, Union
 
 from django.db.models import Exists, OuterRef
 from django.db.models.query_utils import Q
@@ -9,6 +9,7 @@ from prices import Money
 
 from ...channel.models import Channel
 from ...discount import DiscountInfo
+from ...discount.models import Sale, Voucher
 from ...discount.utils import calculate_discounted_price, fetch_active_discounts
 from ..models import (
     CollectionProduct,
@@ -188,10 +189,19 @@ def update_products_discounted_prices_of_catalogues(
         update_products_discounted_prices(products)
 
 
-def update_products_discounted_prices_of_discount(discount):
-    update_products_discounted_prices_of_catalogues(
-        product_ids=discount.products.all().values_list("id", flat=True),
-        category_ids=discount.categories.all().values_list("id", flat=True),
-        collection_ids=discount.collections.all().values_list("id", flat=True),
-        variant_ids=discount.variants.all().values_list("id", flat=True),
-    )
+def update_products_discounted_prices_of_discount(discount: Union[Sale, Voucher]):
+    model_name = discount._meta.model.__name__.lower()
+
+    kwargs = {}
+    for field in ["product", "category", "collection", "variant"]:
+        relation_field = f"{field}s" if field != "category" else "categories"
+        DiscountThroughModel = getattr(discount, relation_field).through
+
+        db_field_name = field if field != "variant" else "productvariant"
+        ids = DiscountThroughModel.objects.filter(
+            **{f"{model_name}_id": discount.id}
+        ).values_list(f"{db_field_name}_id", flat=True)
+
+        kwargs[f"{field}_ids"] = ids
+
+    update_products_discounted_prices_of_catalogues(**kwargs)

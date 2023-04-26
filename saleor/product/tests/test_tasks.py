@@ -13,15 +13,31 @@ from ..tasks import (
 )
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
+@patch(
+    "saleor.product.utils.variant_prices."
+    "update_products_discounted_prices_of_catalogues"
+)
 def test_update_products_discounted_prices_of_discount_task(
-    update_product_prices_mock, sale
+    update_products_discounted_prices_of_catalogues_mock, sale
 ):
     # when
     update_products_discounted_prices_of_discount_task(sale.id)
 
     # then
-    update_product_prices_mock.assert_called_once_with(sale)
+    update_products_discounted_prices_of_catalogues_mock.assert_called_once()
+    args, kwargs = update_products_discounted_prices_of_catalogues_mock.call_args
+    assert list(kwargs["category_ids"]) == list(
+        sale.categories.values_list("id", flat=True)
+    )
+    assert list(kwargs["collection_ids"]) == list(
+        sale.collections.values_list("id", flat=True)
+    )
+    assert list(kwargs["product_ids"]) == list(
+        sale.products.values_list("id", flat=True)
+    )
+    assert list(kwargs["variant_ids"]) == list(
+        sale.variants.values_list("id", flat=True)
+    )
 
 
 @patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
