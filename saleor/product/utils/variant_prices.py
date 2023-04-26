@@ -71,10 +71,16 @@ def _products_in_batches(products_qs):
     # Results in memory usage of ~40MB for 500 products
     BATCH_SIZE = 500
 
+    first_batch = True
+
     while True:
+        filter_args = {}
+        if not first_batch:
+            filter_args = {"pk__lt": start_pk}
+        first_batch = False
         products = list(
-            products_qs.order_by("pk")
-            .filter(pk__gt=start_pk)
+            products_qs.order_by("-pk")
+            .filter(**filter_args)
             .prefetch_related("channel_listings", "collections")[:BATCH_SIZE]
         )
         if not products:
