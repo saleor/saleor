@@ -25,6 +25,7 @@ from ..thumbnail.utils import get_filename_from_url
 from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
+from .events import app_event_installed
 from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
@@ -257,6 +258,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         fetch_brand_data_async(manifest_data, app_installation=app_installation)
         app.delete()
         raise e
+    app_event_installed(app, requestor=None)
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
     fetch_brand_data_async(manifest_data, app=app)
     return app, token
