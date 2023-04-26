@@ -14,7 +14,7 @@ from django.utils.timezone import make_aware
 from freezegun import freeze_time
 from requests import Response
 
-from ....account.models import User
+from ....account.models import Group, User
 from ....core.jwt import (
     JWT_REFRESH_TYPE,
     PERMISSIONS_FIELD,
@@ -337,6 +337,7 @@ def test_get_or_create_user_from_payload_with_last_login(customer_user, settings
 
 
 def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
+    # given
     monkeypatch.setattr(
         "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
         lambda *args, **kwargs: {
@@ -350,11 +351,61 @@ def test_jwt_token_without_expiration_claim(monkeypatch, decoded_access_token):
         decoded_access_token,
         {},
     )
+    default_group_name = "test group"
+    assert Group.objects.count() == 0
+
+    # when
     user = get_user_from_oauth_access_token_in_jwt_format(
         token_payload,
         "https://example.com",
         access_token="fake-token",
         use_scope_permissions=False,
         audience="",
+        default_group_name=default_group_name,
     )
+
+    # then
     assert user.email == "test@example.org"
+    assert user.is_staff is False
+    assert Group.objects.count() == 0
+    assert user.groups.count() == 0
+
+
+def test_jwt_token_without_expiration_claim_staff_user(
+    monkeypatch, decoded_access_token
+):
+    # given
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_user_info_from_cache_or_fetch",
+        lambda *args, **kwargs: {
+            "email": "test@example.org",
+            "sub": token_payload["sub"],
+            "scope": token_payload["scope"],
+        },
+    )
+    decoded_access_token.pop("exp")
+    token_payload = JWTClaims(
+        decoded_access_token,
+        {},
+    )
+    default_group_name = "test group"
+    assert Group.objects.count() == 0
+
+    # when
+    user = get_user_from_oauth_access_token_in_jwt_format(
+        token_payload,
+        "https://example.com",
+        access_token="fake-token",
+        use_scope_permissions=True,
+        audience="perms",
+        default_group_name=default_group_name,
+    )
+
+    # then
+    assert user.email == "test@example.org"
+    assert user.is_staff is True
+    assert Group.objects.count() == 1
+    group = Group.objects.get()
+    assert group.name == default_group_name
+    assert user.groups.count() == 1
+    assert user.groups.first() == group
