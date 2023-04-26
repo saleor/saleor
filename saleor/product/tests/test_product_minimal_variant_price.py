@@ -23,7 +23,39 @@ def test_update_product_discounted_price(product, channel_USD):
     update_products_discounted_price([product])
 
     product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert variant_channel_listing.discounted_price == variant_channel_listing.price
+
+
+def test_update_product_discounted_price_discount_on_variant(
+    product, discount_info, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    discount_info.variants_ids.add(variant.id)
+
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+    variant_channel_listing.price = Money("9.99", "USD")
+    variant_channel_listing.discounted_price = Money("9.99", "USD")
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    assert product_channel_listing.discounted_price == Money("10", "USD")
+
+    # when
+    update_products_discounted_price([product])
+
+    # then
+    expected_price_amount = (
+        variant_channel_listing.price.amount
+        - discount_info.channel_listings[channel_USD.slug].discount_value
+    )
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
 
 
 def test_update_product_discounted_price_without_price(
@@ -41,6 +73,7 @@ def test_update_product_discounted_price_without_price(
     update_products_discounted_price([product])
 
     product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
     assert second_product_channel_listing.discounted_price is None
 
@@ -60,12 +93,15 @@ def test_update_products_discounted_prices_of_catalogues_for_product(
     update_products_discounted_prices_of_catalogues(product_ids=[product.pk])
 
     product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
 def test_update_products_discounted_prices_of_catalogues_for_category(
     category, product, channel_USD
 ):
+    # given
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get(
         channel=channel_USD,
@@ -79,9 +115,15 @@ def test_update_products_discounted_prices_of_catalogues_for_category(
     product_channel_listing.refresh_from_db()
 
     assert product_channel_listing.discounted_price == Money("10", "USD")
+
+    # when
     update_products_discounted_prices_of_catalogues(category_ids=[product.category_id])
+
+    # then
     product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
 def test_update_products_discounted_prices_of_catalogues_for_collection(
@@ -101,7 +143,9 @@ def test_update_products_discounted_prices_of_catalogues_for_collection(
 
     update_products_discounted_prices_of_catalogues(collection_ids=[collection.pk])
     product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
+    assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
 def test_update_products_discounted_prices_task(product_list):
