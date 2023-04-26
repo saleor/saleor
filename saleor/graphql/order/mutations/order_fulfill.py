@@ -105,7 +105,7 @@ class OrderFulfill(BaseMutation):
                 ) % {
                     "quantity": line_quantity_unfulfilled,
                     "item_pluralize": pluralize(line_quantity_unfulfilled),
-                    "order_line": order_line,
+                    "order_line": str(order_line).replace("%", "%%"),
                 }
                 order_line_global_id = graphene.Node.to_global_id(
                     "OrderLine", order_line.pk
