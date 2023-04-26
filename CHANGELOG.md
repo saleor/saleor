@@ -34,6 +34,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 - [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 
 ### Saleor Apps
 

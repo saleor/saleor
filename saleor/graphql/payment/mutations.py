@@ -1044,21 +1044,6 @@ class TransactionCreate(BaseMutation):
             order.save(update_fields=update_fields)
 
     @classmethod
-    def prepare_transaction_item_for_order(
-        cls,
-        order: Order,
-        transaction: Dict,
-    ) -> payment_models.TransactionItem:
-        order = cls.validate_input(order, transaction)
-        transaction_data = {**transaction}
-        transaction_data["currency"] = order.currency
-        transaction_data["order_id"] = order.pk
-        money_data = cls.get_money_data_from_input(transaction_data)
-        for k, v in money_data.items():
-            transaction_data[k] = v
-        return cls.create_transaction(transaction_data, None, None, save=False)
-
-    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,

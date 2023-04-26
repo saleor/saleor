@@ -844,6 +844,10 @@ class PluginsManager(PaymentInterface):
             "order_metadata_updated", default_value, order
         )
 
+    def order_bulk_created(self, orders: List["Order"]):
+        default_value = None
+        return self.__run_method_on_plugins("order_bulk_created", default_value, orders)
+
     def fulfillment_created(self, fulfillment: "Fulfillment"):
         default_value = None
         return self.__run_method_on_plugins(

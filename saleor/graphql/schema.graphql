@@ -1810,6 +1810,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2431,6 +2440,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   Added in Saleor 3.8.
   """
   ORDER_METADATA_UPDATED
+
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
 
   """A draft order is created."""
   DRAFT_ORDER_CREATED
@@ -3229,6 +3247,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
+  ORDER_BULK_CREATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -22410,11 +22429,11 @@ type OrderBulkCreateResult @doc(category: "Orders") {
   errors: [OrderBulkCreateError!]
 }
 
-type OrderBulkCreateError {
+type OrderBulkCreateError @doc(category: "Orders") {
   """
-  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
-  field: String
+  path: String
 
   """The error message."""
   message: String
@@ -22429,6 +22448,7 @@ enum OrderBulkCreateErrorCode {
   REQUIRED
   INVALID
   NOT_FOUND
+  UNIQUE
   BULK_LIMIT
   TOO_MANY_IDENTIFIERS
   FUTURE_DATE
@@ -22442,7 +22462,6 @@ enum OrderBulkCreateErrorCode {
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
   METADATA_KEY_REQUIRED
   INCORRECT_CURRENCY
-  INVALID_URL
 }
 
 input OrderBulkCreateInput @doc(category: "Orders") {
@@ -22508,10 +22527,13 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   lines: [OrderBulkCreateOrderLineInput!]!
 
   """The delivery method selected for this order."""
-  deliveryMethod: OrderBulkCreateDeliveryMethodInput!
+  deliveryMethod: OrderBulkCreateDeliveryMethodInput
 
-  """List of promo codes."""
-  promoCodes: [String!]
+  """List of gift card codes associated with the order."""
+  giftCards: [String!]
+
+  """Code of a voucher associated with the order."""
+  voucher: String
 
   """List of discounts."""
   discounts: [OrderDiscountCommonInput!]
@@ -22600,6 +22622,12 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   """The ID of the warehouse, where the line will be allocated."""
   warehouse: ID!
 
+  """Metadata of the order line."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order line."""
+  privateMetadata: [MetadataInput!]
+
   """Tax rate of the order line."""
   taxRate: PositiveDecimal
 
@@ -22657,7 +22685,7 @@ input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
 }
 
 input OrderBulkCreateFulfillmentInput @doc(category: "Orders") {
-  """Fulfillments tracking code."""
+  """Fulfillment's tracking code."""
   trackingCode: String
 
   """List of items informing how to fulfill the order."""
@@ -22702,11 +22730,11 @@ input OrderBulkCreateInvoiceInput @doc(category: "Orders") {
 }
 
 """
-Determine how stocks should be updated, while processing fulfillment.
+Determine how stocks should be updated, while processing an order.
 
-    SKIP - Stocks are not checked and not updated.
-    UPDATE - Only do update, if there is enough stocks.
-    FORCE - Force update, if there is not enough stocks.
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
 """
 enum StockUpdatePolicyEnum {
   SKIP
@@ -27499,6 +27527,30 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 
   """The order the event relates to."""
   order: Order
+}
+
+"""
+Event sent when orders are imported.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderBulkCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The orders the event relates to."""
+  orders: [Order!]
 }
 
 """

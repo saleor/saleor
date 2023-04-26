@@ -339,8 +339,11 @@ class OrderError(Error):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class OrderBulkCreateError(Error):
+class OrderBulkCreateError(BulkError):
     code = OrderBulkCreateErrorCode(description="The error code.", required=False)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class InvoiceError(Error):

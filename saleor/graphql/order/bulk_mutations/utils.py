@@ -13,6 +13,7 @@ def get_instance(
     key_map: Dict[str, str],
     instance_storage: Dict[str, Any],
     error_enum: Type[OrderBulkCreateErrorCode],
+    path: str = "",
 ):
     """Resolve instance based on input data, model and `key_map` argument provided.
 
@@ -24,6 +25,7 @@ def get_instance(
                           and instances as values; it is used to search for already
                           resolved instances
         error_enum: enum with error codes
+        path: path to input field, which caused an error
 
     Return:
         Model instance
@@ -44,6 +46,7 @@ def get_instance(
                 message=f"Only one of [{args}] arguments can be provided "
                 f"to resolve {model_name} instance.",
                 code=error_enum.TOO_MANY_IDENTIFIERS.value,
+                params={"path": path},
             )
 
         if all((input.get(key) is None for key in key_map.keys())):
@@ -52,6 +55,7 @@ def get_instance(
                 message=f"One of [{args}] arguments must be provided "
                 f"to resolve {model_name} instance.",
                 code=error_enum.REQUIRED.value,
+                params={"path": path},
             )
 
     for data_key, db_key in key_map.items():
@@ -63,22 +67,21 @@ def get_instance(
                     )
                     input[data_key] = id
                 except GraphQLError as err:
-                    raise ValidationError(err.message)
+                    raise ValidationError(
+                        message=err.message,
+                        code=error_enum.INVALID.value,
+                        params={"path": f"{path}.{data_key}" if path else data_key},
+                    )
 
-            lookup_key = "_".join((model_name, db_key, input[data_key]))
+            lookup_key = ".".join((model_name, db_key, input[data_key]))
             instance = instance_storage.get(lookup_key)
-            if instance:
-                return instance
-
-            instance = model.objects.filter(**{db_key: input[data_key]}).first()
             if not instance:
                 raise ValidationError(
                     message=f"{model_name} instance with {db_key}={input[data_key]} "
                     f"doesn't exist.",
                     code=error_enum.NOT_FOUND.value,
+                    params={"path": f"{path}.{data_key}" if path else data_key},
                 )
-
-            instance_storage[lookup_key] = instance
             return instance
 
     raise ValidationError(f"Can't return {model_name} instance.")

@@ -80,7 +80,7 @@ def test_homepage_events(
             ]
         ).values_list("order__number", flat=True)
     )
-    assert {int(edge["node"]["orderNumber"]) for edge in edges} == expected_numbers
+    assert {edge["node"]["orderNumber"] for edge in edges} == expected_numbers
 
 
 def test_query_homepage_events_by_user_with_restricted_access_to_channels(

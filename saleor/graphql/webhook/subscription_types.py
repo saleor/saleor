@@ -53,6 +53,7 @@ from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
+from ..order.types import Order
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -469,6 +470,26 @@ class OrderMetadataUpdated(SubscriptionObjectType, OrderBase):
         enable_dry_run = True
         interfaces = (Event,)
         description = "Event sent when order metadata is updated." + ADDED_IN_38
+
+
+class OrderBulkCreated(SubscriptionObjectType):
+    orders = NonNullList(
+        Order,
+        description="The orders the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_orders(root, _info: ResolveInfo):
+        _, orders = root
+        return orders
+
+    class Meta:
+        root_type = None
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when orders are imported." + ADDED_IN_314 + PREVIEW_FEATURE
+        )
 
 
 class DraftOrderCreated(SubscriptionObjectType, OrderBase):
@@ -2048,6 +2069,7 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ORDER_CANCELLED: OrderCancelled,
     WebhookEventAsyncType.ORDER_EXPIRED: OrderExpired,
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: OrderMetadataUpdated,
+    WebhookEventAsyncType.ORDER_BULK_CREATED: OrderBulkCreated,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: DraftOrderCreated,
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: DraftOrderUpdated,
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: DraftOrderDeleted,

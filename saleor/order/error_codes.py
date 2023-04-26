@@ -52,6 +52,7 @@ class OrderBulkCreateErrorCode(Enum):
     REQUIRED = "required"
     INVALID = "invalid"
     NOT_FOUND = "not_found"
+    UNIQUE = "unique"
     BULK_LIMIT = "bulk_limit"
     TOO_MANY_IDENTIFIERS = "too_many_identifiers"
     FUTURE_DATE = "future_date"
@@ -65,4 +66,3 @@ class OrderBulkCreateErrorCode(Enum):
     ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
     METADATA_KEY_REQUIRED = "metadata_key_required"
     INCORRECT_CURRENCY = "incorrect_currency"
-    INVALID_URL = "invalid_url"
