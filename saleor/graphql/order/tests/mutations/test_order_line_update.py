@@ -39,7 +39,7 @@ ORDER_LINE_UPDATE_MUTATION = """
 def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scenario(
     out_of_stock_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     Stock.objects.update(quantity=5)
@@ -53,7 +53,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
     first_line_id = graphene.Node.to_global_id("OrderLine", first_line.id)
     second_line_id = graphene.Node.to_global_id("OrderLine", second_line.id)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {"lineId": first_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
@@ -69,7 +69,7 @@ def test_order_line_update_with_out_of_stock_webhook_for_two_lines_success_scena
 def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     out_of_stock_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINE_UPDATE_MUTATION
@@ -80,7 +80,7 @@ def test_order_line_update_with_out_of_stock_webhook_success_scenario(
     new_quantity = 5
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {"lineId": line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
@@ -92,7 +92,7 @@ def test_order_line_update_with_out_of_stock_webhook_success_scenario(
 def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINE_UPDATE_MUTATION
@@ -103,7 +103,7 @@ def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
     new_quantity = 1
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {"lineId": line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
@@ -115,7 +115,7 @@ def test_order_line_update_with_back_in_stock_webhook_fail_scenario(
 def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenario(
     back_in_stock_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     first_allocated = Allocation.objects.first()
@@ -131,7 +131,7 @@ def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenar
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": new_quantity}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     staff_api_client.post_graphql(query, variables)
     back_in_stock_mock.assert_called_once_with(first_allocated.stock)
@@ -141,7 +141,7 @@ def test_order_line_update_with_back_in_stock_webhook_called_once_success_scenar
 def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scenario(
     product_variant_back_in_stock_webhook_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     first_allocation = Allocation.objects.first()
@@ -157,7 +157,7 @@ def test_order_line_update_with_back_in_stock_webhook_called_twice_success_scena
     first_line_id = graphene.Node.to_global_id("OrderLine", first_line.id)
     second_line_id = graphene.Node.to_global_id("OrderLine", second_line.id)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     variables = {"lineId": first_line_id, "quantity": new_quantity}
     staff_api_client.post_graphql(query, variables)
@@ -177,7 +177,7 @@ def test_order_line_update(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     staff_user,
 ):
@@ -204,7 +204,7 @@ def test_order_line_update(
     draft_order_updated_webhook_mock.assert_not_called()
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
@@ -230,11 +230,81 @@ def test_order_line_update(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_order_line_update_by_user_no_channel_access(
+    order_with_lines,
+    permission_group_all_perms_channel_USD_only,
+    staff_api_client,
+    staff_user,
+    channel_PLN,
+):
+    # given
+    query = ORDER_LINE_UPDATE_MUTATION
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.channel = channel_PLN
+    order.save(update_fields=["status", "channel"])
+
+    line = order.lines.first()
+    new_quantity = 1
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": new_quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_line_update_by_app(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    app_api_client,
+    channel_PLN,
+):
+    # given
+    query = ORDER_LINE_UPDATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.channel = channel_PLN
+    order.save(update_fields=["status", "channel"])
+
+    line = order.lines.first()
+    new_quantity = 1
+    line_id = graphene.Node.to_global_id("OrderLine", line.id)
+    variables = {"lineId": line_id, "quantity": new_quantity}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderLineUpdate"]
+    assert data["orderLine"]["quantity"] == new_quantity
+    assert_proper_webhook_called_once(
+        order,
+        order.status,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
+    removed_items_event = OrderEvent.objects.last()  # type: OrderEvent
+    assert removed_items_event.type == order_events.OrderEvents.REMOVED_PRODUCTS
+    assert removed_items_event.app == app_api_client.app
+    assert removed_items_event.user is None
+
+
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 def test_order_line_update_without_sku(
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     staff_user,
 ):
@@ -261,7 +331,7 @@ def test_order_line_update_without_sku(
     assert_no_permission(response)
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
@@ -296,16 +366,15 @@ def test_invalid_order_when_updating_lines(
     draft_order_update_webhook_mock,
     order_with_lines,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     query = ORDER_LINE_UPDATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     line = order.lines.first()
     line_id = graphene.Node.to_global_id("OrderLine", line.id)
     variables = {"lineId": line_id, "quantity": 1}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLineUpdate"]
     assert data["errors"]

@@ -1,16 +1,25 @@
+from typing import Iterable, Union
+from uuid import UUID
+
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....channel import models as channel_models
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.mutations import ModelBulkDeleteMutation
+from ...core.mutations import (
+    BaseBulkWithRestrictedChannelAccessMutation,
+    ModelBulkDeleteMutation,
+)
 from ...core.types import NonNullList, OrderError
 from ..types import Order, OrderLine
 
 
-class DraftOrderBulkDelete(ModelBulkDeleteMutation):
+class DraftOrderBulkDelete(
+    ModelBulkDeleteMutation, BaseBulkWithRestrictedChannelAccessMutation
+):
     class Arguments:
         ids = NonNullList(
             graphene.ID, required=True, description="List of draft order IDs to delete."
@@ -36,8 +45,15 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
                 }
             )
 
+    @classmethod
+    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+        """Get the instances channel ids for channel permission accessible check."""
+        return [order.channel_id for order in instances]
 
-class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
+
+class DraftOrderLinesBulkDelete(
+    ModelBulkDeleteMutation, BaseBulkWithRestrictedChannelAccessMutation
+):
     class Arguments:
         ids = NonNullList(
             graphene.ID, required=True, description="List of order lines IDs to delete."
@@ -62,3 +78,13 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
                     )
                 }
             )
+
+    @classmethod
+    def get_channel_ids(cls, instances) -> Iterable[Union[UUID, int]]:
+        """Get the instances channel ids for channel permission accessible check."""
+        orders = models.Order.objects.filter(
+            id__in=[line.order_id for line in instances]
+        )
+        return channel_models.Channel.objects.filter(
+            id__in=orders.values("channel_id")
+        ).values_list("id", flat=True)

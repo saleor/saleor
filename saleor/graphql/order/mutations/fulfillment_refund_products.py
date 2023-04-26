@@ -140,6 +140,7 @@ class FulfillmentRefundProducts(FulfillmentRefundAndReturnProductBase):
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         cleaned_input = cls.clean_input(info, data.get("order"), data.get("input"))
         order = cleaned_input["order"]
+        cls.check_channel_permissions(info, [order.channel_id])
         manager = get_plugin_manager_promise(info.context).get()
         try:
             app = get_app_promise(info.context).get()

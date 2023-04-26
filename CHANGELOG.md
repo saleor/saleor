@@ -20,8 +20,15 @@ All notable, unreleased changes to this project will be documented in this file.
     - `accountUpdate`
     - `customerBulkUpdate`
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
 
 ### Saleor Apps
+- Introduce channel permissions - #10423 by @IKarbowiak
+  - Extend the OpenID connect configuration with `Staff user domains` and `Default permission group name for new staff users`.
+  - When the OpenID plugin is active, the default staff permission group is created and all staff users are assigned to it.
+  - To ensure the proper functioning of OAuth permissions, ensure that the
+  `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
 
 ### Other changes
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ

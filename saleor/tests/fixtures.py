@@ -94,6 +94,7 @@ from ..payment.interface import AddressData, GatewayConfig, GatewayResponse, Pay
 from ..payment.models import Payment, TransactionEvent, TransactionItem
 from ..payment.transaction_item_calculations import recalculate_transaction_amounts
 from ..payment.utils import create_manual_adjustment_events
+from ..permission.enums import get_permissions
 from ..permission.models import Permission
 from ..plugins.manager import get_plugins_manager
 from ..plugins.webhook.tasks import WebhookResponse
@@ -1348,6 +1349,7 @@ def shipping_method_excluded_by_postal_code(shipping_method):
 
 @pytest.fixture
 def shipping_method_channel_PLN(shipping_zone, channel_PLN):
+    shipping_zone.channels.add(channel_PLN)
     method = ShippingMethod.objects.create(
         name="DHL",
         type=ShippingMethodType.PRICE_BASED,
@@ -3313,6 +3315,16 @@ def order_list(customer_user, channel_USD):
 
 
 @pytest.fixture
+def draft_order_list(order_list):
+    for order in order_list:
+        order.status = OrderStatus.DRAFT
+        order.origin = OrderOrigin.DRAFT
+
+    Order.objects.bulk_update(order_list, ["status", "origin"])
+    return order_list
+
+
+@pytest.fixture
 def product_with_image(product, image, media_root):
     ProductMedia.objects.create(product=product, image=image)
     return product
@@ -5009,8 +5021,32 @@ def permission_manage_payments():
 
 
 @pytest.fixture
+def permission_group_manage_orders(permission_manage_orders, staff_users):
+    group = Group.objects.create(
+        name="Manage orders group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_orders)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_shipping(permission_manage_shipping, staff_users):
+    group = Group.objects.create(
+        name="Manage shipping group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_shipping)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_users):
-    group = Group.objects.create(name="Manage user groups.")
+    group = Group.objects.create(
+        name="Manage user group.", restricted_access_to_channels=False
+    )
     group.permissions.add(permission_manage_users)
 
     group.user_set.add(staff_users[1])
@@ -5019,10 +5055,78 @@ def permission_group_manage_users(permission_manage_users, staff_users):
 
 @pytest.fixture
 def permission_group_manage_staff(permission_manage_staff, staff_users):
-    group = Group.objects.create(name="Manage staff groups.")
+    group = Group.objects.create(
+        name="Manage staff group.", restricted_access_to_channels=False
+    )
     group.permissions.add(permission_manage_staff)
 
     group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_manage_apps(permission_manage_apps, staff_users):
+    group = Group.objects.create(
+        name="Manage apps group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_apps)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_all_perms_all_channels(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions for all channels.",
+        restricted_access_to_channels=False,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_no_perms_all_channels(staff_users, channel_USD, channel_PLN):
+    group = Group.objects.create(
+        name="All permissions for all channels.",
+        restricted_access_to_channels=False,
+    )
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_all_perms_channel_USD_only(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions for USD channel only.",
+        restricted_access_to_channels=True,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
+
+    group.channels.add(channel_USD)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_all_perms_without_any_channel(
+    permission_manage_users, staff_users, channel_USD, channel_PLN
+):
+    group = Group.objects.create(
+        name="All permissions without any channel access.",
+        restricted_access_to_channels=True,
+    )
+    permissions = get_permissions()
+    group.permissions.add(*permissions)
     return group
 
 

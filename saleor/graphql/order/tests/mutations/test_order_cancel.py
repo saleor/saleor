@@ -4,7 +4,7 @@ import graphene
 
 from .....giftcard import GiftCardEvents
 from .....giftcard.events import gift_cards_bought_event
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 MUTATION_ORDER_CANCEL = """
 mutation cancelOrder($id: ID!) {
@@ -28,16 +28,15 @@ def test_order_cancel(
     mock_clean_order_cancel,
     mock_cancel_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     mock_clean_order_cancel.return_value = order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
     assert not data["errors"]
@@ -80,19 +79,18 @@ def test_order_cancel_with_bought_gift_cards(
     mock_clean_order_cancel,
     mock_cancel_order,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     gift_card,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     mock_clean_order_cancel.return_value = order
     gift_cards_bought_event([gift_card], order, staff_api_client.user, None)
     assert gift_card.is_active is True
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    response = staff_api_client.post_graphql(
-        MUTATION_ORDER_CANCEL, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderCancel"]
     assert not data["errors"]
@@ -105,3 +103,25 @@ def test_order_cancel_with_bought_gift_cards(
     gift_card.refresh_from_db()
     assert gift_card.is_active is False
     assert gift_card.events.filter(type=GiftCardEvents.DEACTIVATED)
+
+
+def test_order_cancel_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+
+    # when
+    response = staff_api_client.post_graphql(MUTATION_ORDER_CANCEL, variables)
+
+    # then
+    assert_no_permission(response)
