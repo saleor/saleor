@@ -306,11 +306,11 @@ class FulfillmentLineData:
 
 
 class StockUpdatePolicy:
-    """Determine how stocks should be updated, while processing fulfillment.
+    """Determine how stocks should be updated, while processing an order.
 
-    SKIP - Stocks are not checked and not updated.
-    UPDATE - Only do update, if there is enough stocks.
-    FORCE - Force update, if there is not enough stocks.
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
     """
 
     SKIP = "skip"

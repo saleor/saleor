@@ -41,8 +41,6 @@ from ....order.search import update_order_search_vector
 from ....order.utils import update_order_display_gross_prices, updates_amounts_for_order
 from ....payment import TransactionEventType
 from ....payment.models import TransactionEvent, TransactionItem
-from ....payment.transaction_item_calculations import recalculate_transaction_amounts
-from ....payment.utils import prepare_manual_event
 from ....permission.enums import OrderPermissions
 from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -150,10 +148,6 @@ class OrderBulkCreateData:
     def link_gift_cards(self):
         if self.order:
             self.order.gift_cards.add(*self.gift_cards)
-
-    def recalculate_transaction_amounts(self):
-        for transaction_data in self.transactions:
-            recalculate_transaction_amounts(transaction_data.transaction, save=False)
 
     def post_create_order_update(self):
         if self.order:
@@ -1451,10 +1445,10 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 "currency": order.currency,
                 "order_id": order.pk,
             }
-            money_data = TransactionCreate.get_money_data_from_input(transaction_data)
             new_transaction = TransactionCreate.create_transaction(
                 transaction_data, None, None, save=False
             )
+            money_data = TransactionCreate.get_money_data_from_input(transaction_data)
             events: List[TransactionEvent] = []
             if money_data:
                 amountfield_eventtype_map = {
@@ -1464,16 +1458,20 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     "canceled_value": TransactionEventType.CANCEL_SUCCESS,
                 }
                 for amount_field, amount in money_data.items():
+                    if amount is None:
+                        continue
                     transaction_data[amount_field] = amount
-                    prepare_manual_event(
-                        events_to_create=events,
-                        amount_field=amount_field,
-                        money_data=money_data,
-                        event_type=amountfield_eventtype_map[amount_field],
-                        transaction=new_transaction,
-                        user=None,
-                        app=None,
+                    events.append(
+                        TransactionEvent(
+                            type=amountfield_eventtype_map[amount_field],
+                            amount_value=amount,
+                            currency=order.currency,
+                            include_in_calculations=True,
+                            created_at=timezone.now(),
+                            message="Manual adjustment of the transaction.",
+                        )
                     )
+
             order_data.transactions.append(
                 OrderBulkTransaction(transaction=new_transaction, events=events)
             )
@@ -2172,23 +2170,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         for order_data in orders_data:
             order_data.link_gift_cards()
-            order_data.recalculate_transaction_amounts()
-        TransactionItem.objects.bulk_update(
-            transactions,
-            [
-                "authorized_value",
-                "charged_value",
-                "refunded_value",
-                "canceled_value",
-                "authorize_pending_value",
-                "charge_pending_value",
-                "refund_pending_value",
-                "cancel_pending_value",
-            ],
-        )
-
-        for order_data in orders_data:
             order_data.post_create_order_update()
+
         Order.objects.bulk_update(
             orders,
             [
