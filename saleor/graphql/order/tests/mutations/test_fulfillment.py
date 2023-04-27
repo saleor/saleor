@@ -253,10 +253,12 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
 
     errors = data["errors"]
     assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == f"Insufficient product stock: {order_line}"
+    assert errors[0]["message"] == "Insufficient product stock."
+    assert errors[1]["orderLines"] == [order_line2_id]
 
     assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == f"Insufficient product stock: {order_line2}"
+    assert errors[1]["message"] == "Insufficient product stock."
+    assert errors[1]["orderLines"] == [order_line2_id]
 
 
 def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
@@ -1794,6 +1796,7 @@ APPROVE_FULFILLMENT_MUTATION = """
                 field
                 code
                 message
+                orderLines
             }
         }
     }
@@ -1909,7 +1912,8 @@ def test_fulfillment_approve_delete_products_before_approval_allow_stock_exceede
     expected_errors = [
         {
             **error_field_and_code,
-            "message": f"Insufficient product stock: {line.order_line}",
+            "orderLines": [graphene.Node.to_global_id("OrderLine", line.order_line_id)],
+            "message": "Insufficient product stock.",
         }
         for line in fulfillment.lines.all()
     ]
@@ -2076,7 +2080,8 @@ def test_fulfillment_approve_when_stock_is_exceeded_and_flag_disabled(
     expected_errors = [
         {
             **error_field_and_code,
-            "message": f"Insufficient product stock: {line.order_line}",
+            "message": "Insufficient product stock.",
+            "orderLines": [graphene.Node.to_global_id("OrderLine", line.order_line_id)],
         }
         for line in fulfillment.lines.all()
     ]
