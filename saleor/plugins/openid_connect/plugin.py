@@ -278,9 +278,18 @@ class OpenIDConnectPlugin(BasePlugin):
                 {"code": ValidationError(msg, code=PluginErrorCode.INVALID.value)}
             )
 
-        token_data = self.oauth.fetch_token(
-            self.config.token_url, code=code, redirect_uri=redirect_uri
-        )
+        try:
+            token_data = self.oauth.fetch_token(
+                self.config.token_url, code=code, redirect_uri=redirect_uri
+            )
+        except AuthlibBaseError as error:
+            raise ValidationError(
+                {
+                    "code": ValidationError(
+                        error.description, code=PluginErrorCode.INVALID.value
+                    )
+                }
+            )
 
         parsed_id_token = get_parsed_id_token(
             token_data, self.config.json_web_key_set_url

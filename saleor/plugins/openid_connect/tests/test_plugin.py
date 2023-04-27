@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from authlib.integrations.base_client.errors import OAuthError
 from authlib.jose.errors import JoseError
 from django.core import signing
 from django.core.exceptions import ValidationError
@@ -656,6 +657,36 @@ def test_external_obtain_access_tokens_missing_redirect_uri_in_state(openid_plug
     plugin = openid_plugin()
     state = signing.dumps({})
     code = "oauth-code"
+    with pytest.raises(ValidationError):
+        plugin.external_obtain_access_tokens(
+            {"state": state, "code": code}, rf.request(), previous_value=None
+        )
+
+
+def test_external_obtain_access_tokens_fetch_token_raises_error(
+    openid_plugin, monkeypatch, rf, id_token, id_payload
+):
+    # given
+    mocked_jwt_validator = MagicMock()
+    mocked_jwt_validator.__getitem__.side_effect = id_payload.__getitem__
+    mocked_jwt_validator.get.side_effect = id_payload.get
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.utils.get_decoded_token",
+        Mock(return_value=mocked_jwt_validator),
+    )
+    plugin = openid_plugin(use_oauth_scope_permissions=True)
+
+    monkeypatch.setattr(
+        "saleor.plugins.openid_connect.plugin.OAuth2Session.fetch_token",
+        Mock(side_effect=OAuthError()),
+    )
+
+    redirect_uri = "http://localhost:3000/used-logged-in"
+    state = signing.dumps({"redirectUri": redirect_uri})
+    code = "oauth-code"
+
+    # when & then
     with pytest.raises(ValidationError):
         plugin.external_obtain_access_tokens(
             {"state": state, "code": code}, rf.request(), previous_value=None
