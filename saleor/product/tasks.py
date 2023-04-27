@@ -88,10 +88,10 @@ def update_product_discounted_price_task(product_pk: int):
 
 @app.task
 def update_products_discounted_prices_of_catalogues_task(
-    product_ids: Optional[List[int]] = None,
-    category_ids: Optional[List[int]] = None,
-    collection_ids: Optional[List[int]] = None,
-    variant_ids: Optional[List[int]] = None,
+    product_ids: Optional[Iterable[int]] = None,
+    category_ids: Optional[Iterable[int]] = None,
+    collection_ids: Optional[Iterable[int]] = None,
+    variant_ids: Optional[Iterable[int]] = None,
 ):
     update_products_discounted_prices_of_catalogues(
         product_ids, category_ids, collection_ids, variant_ids

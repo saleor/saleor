@@ -23,9 +23,13 @@ SALE_CATALOGUES_ADD_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_add_catalogues(
     updated_webhook_mock,
+    update_products_discounted_prices_of_catalogues_task_mock,
     staff_api_client,
     sale,
     category,
@@ -35,6 +39,7 @@ def test_sale_add_catalogues(
     product_variant_list,
     permission_manage_discounts,
 ):
+    # given
     query = SALE_CATALOGUES_ADD_MUTATION
     previous_catalogue = convert_catalogue_info_to_global_ids(
         fetch_catalogue_info(sale)
@@ -56,9 +61,12 @@ def test_sale_add_catalogues(
         },
     }
 
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
     )
+
+    # then
     current_catalogue = convert_catalogue_info_to_global_ids(fetch_catalogue_info(sale))
     content = get_graphql_content(response)
     data = content["data"]["saleCataloguesAdd"]
@@ -72,10 +80,23 @@ def test_sale_add_catalogues(
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue=previous_catalogue, current_catalogue=current_catalogue
     )
+    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
+    assert kwargs["category_ids"] == [category.id]
+    assert kwargs["collection_ids"] == [collection.id]
+    assert kwargs["product_ids"] == [product.id]
+    assert set(kwargs["variant_ids"]) == {
+        variant.id for variant in product_variant_list
+    }
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
 def test_sale_add_no_catalogues(
-    staff_api_client, new_sale, permission_manage_discounts
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    new_sale,
+    permission_manage_discounts,
 ):
     # given
     query = SALE_CATALOGUES_ADD_MUTATION
@@ -98,9 +119,14 @@ def test_sale_add_no_catalogues(
     assert not new_sale.categories.exists()
     assert not new_sale.collections.exists()
     assert not new_sale.variants.exists()
+    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
 def test_sale_remove_no_catalogues(
+    update_products_discounted_prices_of_catalogues_task_mock,
     staff_api_client,
     sale,
     category,
@@ -135,10 +161,20 @@ def test_sale_remove_no_catalogues(
     assert sale.categories.exists()
     assert sale.collections.exists()
     assert sale.variants.exists()
+    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
 def test_sale_add_catalogues_with_product_without_variants(
-    staff_api_client, sale, category, product, collection, permission_manage_discounts
+    update_products_discounted_prices_of_catalogues_task_mock,
+    staff_api_client,
+    sale,
+    category,
+    product,
+    collection,
+    permission_manage_discounts,
 ):
     query = SALE_CATALOGUES_ADD_MUTATION
     product.variants.all().delete()
@@ -163,3 +199,4 @@ def test_sale_add_catalogues_with_product_without_variants(
 
     assert error["code"] == DiscountErrorCode.CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT.name
     assert error["message"] == "Cannot manage products without variants."
+    update_products_discounted_prices_of_catalogues_task_mock.assert_not_called()
