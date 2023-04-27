@@ -24,17 +24,6 @@ from ..types import Sale
 from .utils import convert_catalogue_info_to_global_ids
 
 
-class SaleUpdateDiscountedPriceMixin:
-    @classmethod
-    def success_response(cls, instance):
-        # Update the "discounted_prices" of the associated, discounted
-        # products (including collections and categories).
-        update_products_discounted_prices_of_discount_task.delay(instance.pk)
-        return super().success_response(  # type: ignore[misc] # mixin
-            ChannelContext(node=instance, channel_slug=None)
-        )
-
-
 class SaleInput(BaseInputObjectType):
     name = graphene.String(description="Voucher name.")
     type = DiscountValueTypeEnum(description="Fixed or percentage.")
@@ -68,7 +57,7 @@ class SaleInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
+class SaleCreate(ModelMutation):
     class Arguments:
         input = SaleInput(
             required=True, description="Fields required to create a sale."
@@ -94,12 +83,19 @@ class SaleCreate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             raise ValidationError({"end_date": error})
 
     @classmethod
+    def success_response(cls, instance):
+        return super().success_response(
+            ChannelContext(node=instance, channel_slug=None)
+        )
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         with traced_atomic_transaction():
             response = super().perform_mutation(_root, info, **data)
             instance = getattr(response, cls._meta.return_field_name).node
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, instance)
+            update_products_discounted_prices_of_discount_task.delay(instance.pk)
         return response
 
     @classmethod
