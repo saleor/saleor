@@ -939,7 +939,7 @@ def test_calculate_order_shipping_order_not_valid(
     variant = order_line.variant
     product = variant.product
     product.metadata = {}
-    product.save(update_fields=["metadata", "charge_taxes"])
+    product.save(update_fields=["metadata"])
 
     order = order_line.order
 
@@ -4827,6 +4827,40 @@ def test_generate_request_data_from_checkout_lines_with_shipping_method(
     assert lines_data[-1]["itemCode"] == "Shipping"
 
 
+def test_generate_request_data_from_checkout_lines_adds_lines_with_taxes_disabled_for_line(  # noqa: E501
+    settings,
+    channel_USD,
+    plugin_configuration,
+    checkout_with_item,
+    avatax_config,
+    tax_class_zero_rates,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    line = checkout_with_item.lines.first()
+    line.variant.product.tax_class = tax_class_zero_rates
+    line.variant.product.charge_taxes = False
+    line.variant.product.save(update_fields=["tax_class", "charge_taxes"])
+
+    checkout_with_item.shipping_method = None
+    checkout_with_item.save(update_fields=["shipping_method"])
+
+    lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(
+        checkout_with_item, lines, [], get_plugins_manager()
+    )
+
+    # when
+    lines_data = generate_request_data_from_checkout_lines(
+        checkout_info, lines, avatax_config
+    )
+
+    # then
+    assert len(lines_data) == len(checkout_with_item.lines.all())
+
+
 def test_get_order_lines_data_gets_tax_code_from_product_tax_class(
     settings, channel_USD, plugin_configuration, order_with_lines, avatax_config
 ):
@@ -4970,6 +5004,33 @@ def test_get_order_lines_data_sets_different_tax_code_only_for_zero_amount(
     # then
     assert lines_data[0]["amount"] == "10.000"
     assert lines_data[0]["taxCode"] == "taxcode"
+
+
+def test_get_order_lines_data_adds_lines_with_taxes_disabled_for_line(
+    settings,
+    channel_USD,
+    plugin_configuration,
+    order_with_lines,
+    avatax_config,
+    tax_class_zero_rates,
+):
+    # given
+    settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration(channel=channel_USD)
+
+    order_with_lines.base_shipping_price_amount = Decimal("0")
+    order_with_lines.save(update_fields=["base_shipping_price_amount"])
+
+    line = order_with_lines.lines.first()
+    line.variant.product.tax_class = tax_class_zero_rates
+    line.variant.product.charge_taxes = False
+    line.variant.product.save(update_fields=["charge_taxes", "tax_class"])
+
+    # when
+    lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
+
+    # then
+    assert len(lines_data) == len(order_with_lines.lines.all())
 
 
 def test_assign_tax_code_to_object_meta(
