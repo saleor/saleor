@@ -294,10 +294,12 @@ def test_order_fulfill_with_stock_exceeded_with_flag_disabled(
 
     errors = data["errors"]
     assert errors[0]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[0]["message"] == f"Insufficient product stock: {order_line}"
+    assert errors[0]["message"] == "Insufficient product stock."
+    assert errors[1]["orderLines"] == [order_line2_id]
 
     assert errors[1]["code"] == "INSUFFICIENT_STOCK"
-    assert errors[1]["message"] == f"Insufficient product stock: {order_line2}"
+    assert errors[1]["message"] == "Insufficient product stock."
+    assert errors[1]["orderLines"] == [order_line2_id]
 
 
 def test_order_fulfill_with_stock_exceeded_with_flag_enabled(
