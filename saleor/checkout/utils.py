@@ -975,4 +975,4 @@ def get_checkout_metadata(checkout: "Checkout"):
     if hasattr(checkout, "metadata_storage"):
         return checkout.metadata_storage
     else:
-        return CheckoutMetadata(checkout)
+        return CheckoutMetadata(checkout=checkout)
