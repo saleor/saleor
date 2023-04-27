@@ -100,7 +100,7 @@ class OrderFulfill(BaseMutation):
 
             if line_total_quantity > line_quantity_unfulfilled:
                 msg = (
-                    "Only %(quantity)d item%(item_pluralize)s remaining " "to fulfill."
+                    "Only %(quantity)d item%(item_pluralize)s remaining to fulfill."
                 ) % {
                     "quantity": line_quantity_unfulfilled,
                     "item_pluralize": pluralize(line_quantity_unfulfilled),

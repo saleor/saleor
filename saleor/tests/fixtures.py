@@ -3936,7 +3936,7 @@ def order_with_lines(
     default_tax_class,
 ):
     product = Product.objects.create(
-        name="Test product 100%",  # "100%" added to test handling error messages with %
+        name="Test product",
         slug="test-product-8",
         product_type=product_type,
         category=category,
