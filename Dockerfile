@@ -8,12 +8,9 @@ RUN apt-get -y update \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY poetry-docker.toml /app/poetry.toml
-COPY pyproject.toml /app/
-COPY poetry.lock /app/
-RUN pip install poetry
+COPY requirements_dev.txt /app/
 WORKDIR /app
-RUN poetry install
+RUN pip install -r requirements_dev.txt
 
 ### Final image
 FROM python:3.9-slim
@@ -21,7 +18,6 @@ FROM python:3.9-slim
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
 RUN apt-get update \
-  && apt-get -y upgrade \
   && apt-get install -y \
   libcairo2 \
   libgdk-pixbuf2.0-0 \
