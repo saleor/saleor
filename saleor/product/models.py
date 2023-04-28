@@ -649,11 +649,12 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
             if price_override is None
             else Money(price_override, channel_listing.currency)
         )
+        collection_ids = {collection.id for collection in collections}
         return calculate_discounted_price(
             product=product,
             price=price,
             discounts=discounts,
-            collections=collections,
+            collection_ids=collection_ids,
             channel=channel,
             variant_id=self.id,
         )

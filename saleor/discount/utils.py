@@ -105,17 +105,16 @@ def get_product_discount_on_sale(
 def get_product_discounts(
     *,
     product: "Product",
-    collections: Iterable["Collection"],
+    collection_ids: Set[int],
     discounts: Iterable[DiscountInfo],
     channel: "Channel",
     variant_id: Optional[int] = None,
 ) -> Iterator[Tuple[int, Callable]]:
     """Return sale ids, discount values for all discounts applicable to a product."""
-    product_collections = set(pc.id for pc in collections)
     for discount in discounts:
         try:
             yield get_product_discount_on_sale(
-                product, product_collections, discount, channel, variant_id=variant_id
+                product, collection_ids, discount, channel, variant_id=variant_id
             )
         except NotApplicable:
             pass
@@ -125,7 +124,7 @@ def get_sale_id_with_min_price(
     *,
     product: "Product",
     price: Money,
-    collections: Iterable["Collection"],
+    collection_ids: Set[int],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
@@ -135,7 +134,7 @@ def get_sale_id_with_min_price(
         (sale_id, discount)
         for sale_id, discount in get_product_discounts(
             product=product,
-            collections=collections,
+            collection_ids=collection_ids,
             discounts=discounts or [],
             channel=channel,
             variant_id=variant_id,
@@ -155,7 +154,7 @@ def calculate_discounted_price(
     *,
     product: "Product",
     price: Money,
-    collections: Iterable["Collection"],
+    collection_ids: Set[int],
     discounts: Optional[Iterable[DiscountInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
@@ -165,7 +164,7 @@ def calculate_discounted_price(
         _, price = get_sale_id_with_min_price(
             product=product,
             price=price,
-            collections=collections,
+            collection_ids=collection_ids,
             discounts=discounts,
             channel=channel,
             variant_id=variant_id,
@@ -186,10 +185,11 @@ def get_sale_id_applied_as_a_discount(
     if not discounts:
         return None
 
+    collection_ids = {collection.id for collection in collections}
     sale_id, _ = get_sale_id_with_min_price(
         product=product,
         price=price,
-        collections=collections,
+        collection_ids=collection_ids,
         discounts=discounts,
         channel=channel,
         variant_id=variant_id,
