@@ -6,7 +6,7 @@ import pytz
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
-from ....discount.utils import fetch_catalogue_info
+from ....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from ....permission.enums import DiscountPermissions
 from ....product.tasks import update_products_discounted_prices_of_catalogues_task
 from ...channel import ChannelContext
@@ -127,7 +127,7 @@ class SaleUpdate(ModelMutation):
         cleaned_input, previous_catalogue, current_catalogue
     ):
         catalogues_to_recalculate = defaultdict(set)
-        for catalogue_field in ["products", "variants", "categories", "collections"]:
+        for catalogue_field in CATALOGUE_FIELDS:
             if any(
                 [
                     field in cleaned_input
