@@ -183,7 +183,3 @@ class EventDeliveryAttempt(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
-
-
-class CeleryTask(Job):
-    name = models.CharField(max_length=255, unique=True)
