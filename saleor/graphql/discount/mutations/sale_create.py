@@ -9,7 +9,7 @@ from ....discount import models
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.utils import fetch_catalogue_info
 from ....permission.enums import DiscountPermissions
-from ....product.tasks import update_products_discounted_prices_of_discount_task
+from ....product.tasks import update_products_discounted_prices_of_sale_task
 from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
@@ -95,7 +95,7 @@ class SaleCreate(ModelMutation):
             instance = getattr(response, cls._meta.return_field_name).node
             manager = get_plugin_manager_promise(info.context).get()
             cls.send_sale_notifications(manager, instance)
-            update_products_discounted_prices_of_discount_task.delay(instance.pk)
+            update_products_discounted_prices_of_sale_task.delay(instance.pk)
         return response
 
     @classmethod

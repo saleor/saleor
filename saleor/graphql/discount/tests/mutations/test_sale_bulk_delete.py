@@ -81,9 +81,9 @@ def test_delete_sales(
     assert content["data"]["saleBulkDelete"]["count"] == 3
     assert not Sale.objects.filter(id__in=[sale.id for sale in sale_list]).exists()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == set(category_pks)
-    assert kwargs["collection_ids"] == set(collection_pks)
-    assert kwargs["product_ids"] == set(product_pks)
+    assert set(kwargs["category_ids"]) == set(category_pks)
+    assert set(kwargs["collection_ids"]) == set(collection_pks)
+    assert set(kwargs["product_ids"]) == set(product_pks)
     assert set(kwargs["variant_ids"]) == set(variant_pks)
 
 

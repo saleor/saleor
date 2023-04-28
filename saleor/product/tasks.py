@@ -17,7 +17,7 @@ from .utils.variant_prices import (
     update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
-    update_products_discounted_prices_of_discount,
+    update_products_discounted_prices_of_sale,
 )
 from .utils.variants import generate_and_set_variant_name
 
@@ -88,10 +88,10 @@ def update_product_discounted_price_task(product_pk: int):
 
 @app.task
 def update_products_discounted_prices_of_catalogues_task(
-    product_ids: Optional[Iterable[int]] = None,
-    category_ids: Optional[Iterable[int]] = None,
-    collection_ids: Optional[Iterable[int]] = None,
-    variant_ids: Optional[Iterable[int]] = None,
+    product_ids: Optional[List[int]] = None,
+    category_ids: Optional[List[int]] = None,
+    collection_ids: Optional[List[int]] = None,
+    variant_ids: Optional[List[int]] = None,
 ):
     update_products_discounted_prices_of_catalogues(
         product_ids, category_ids, collection_ids, variant_ids
@@ -99,13 +99,13 @@ def update_products_discounted_prices_of_catalogues_task(
 
 
 @app.task
-def update_products_discounted_prices_of_discount_task(discount_pk: int):
+def update_products_discounted_prices_of_sale_task(discount_pk: int):
     try:
         discount = Sale.objects.get(pk=discount_pk)
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find discount with id: {discount_pk}.")
         return
-    update_products_discounted_prices_of_discount(discount)
+    update_products_discounted_prices_of_sale(discount)
 
 
 @app.task

@@ -60,7 +60,7 @@ def test_sale_delete_mutation(
         sale.refresh_from_db()
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_ids
-    assert kwargs["collection_ids"] == collection_ids
-    assert kwargs["product_ids"] == product_ids
-    assert kwargs["variant_ids"] == variant_ids
+    assert set(kwargs["category_ids"]) == category_ids
+    assert set(kwargs["collection_ids"]) == collection_ids
+    assert set(kwargs["product_ids"]) == product_ids
+    assert set(kwargs["variant_ids"]) == variant_ids

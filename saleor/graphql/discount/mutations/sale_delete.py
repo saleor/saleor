@@ -41,10 +41,10 @@ class SaleDelete(ModelDeleteMutation):
                 )
             )
             update_products_discounted_prices_of_catalogues_task.delay(
-                product_ids=previous_catalogue["products"],
-                category_ids=previous_catalogue["categories"],
-                collection_ids=previous_catalogue["collections"],
-                variant_ids=previous_catalogue["variants"],
+                product_ids=list(previous_catalogue["products"]),
+                category_ids=list(previous_catalogue["categories"]),
+                collection_ids=list(previous_catalogue["collections"]),
+                variant_ids=list(previous_catalogue["variants"]),
             )
         response.sale = ChannelContext(node=instance, channel_slug=None)
 

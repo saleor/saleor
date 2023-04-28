@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, Iterable, List, Set, Tuple, Union
+from typing import Dict, Iterable, List, Set, Tuple
 
 from django.db.models import Exists, OuterRef
 from django.db.models.query_utils import Q
@@ -7,7 +7,7 @@ from prices import Money
 
 from ...channel.models import Channel
 from ...discount import DiscountInfo
-from ...discount.models import Sale, Voucher
+from ...discount.models import Sale
 from ...discount.utils import calculate_discounted_price, fetch_active_discounts
 from ..models import (
     Category,
@@ -189,15 +189,16 @@ def update_products_discounted_prices_of_catalogues(
         update_products_discounted_prices(products)
 
 
-def update_products_discounted_prices_of_discount(discount: Union[Sale, Voucher]):
+def update_products_discounted_prices_of_sale(sale: Sale):
+    """Recalculate discounted prices of related sale products."""
     product_lookup = Q()
-    product_lookup |= Q(Exists(discount.variants.filter(product_id=OuterRef("id"))))
-    product_lookup |= Q(Exists(discount.categories.filter(id=OuterRef("category_id"))))
+    product_lookup |= Q(Exists(sale.variants.filter(product_id=OuterRef("id"))))
+    product_lookup |= Q(Exists(sale.categories.filter(id=OuterRef("category_id"))))
     collection_products = CollectionProduct.objects.filter(
-        Exists(discount.collections.filter(id=OuterRef("collection_id")))
+        Exists(sale.collections.filter(id=OuterRef("collection_id")))
     )
     product_lookup |= Q(Exists(collection_products.filter(product_id=OuterRef("id"))))
 
-    products = discount.products.all() | Product.objects.filter(product_lookup)
+    products = sale.products.all() | Product.objects.filter(product_lookup)
 
     update_products_discounted_prices(products)

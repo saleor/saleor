@@ -85,10 +85,10 @@ def test_update_sale(
     )
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks.union(new_product_pks)
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks.union(new_product_pks)
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @patch(
@@ -195,10 +195,10 @@ def test_update_sale_start_date_after_current_date_notification_not_sent(
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -262,10 +262,10 @@ def test_update_sale_start_date_before_current_date_notification_already_sent(
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -327,10 +327,10 @@ def test_update_sale_start_date_before_current_date_notification_sent(
     sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -390,10 +390,10 @@ def test_update_sale_end_date_after_current_date_notification_not_sent(
     sale_toggle_mock.assert_not_called()
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -459,10 +459,10 @@ def test_update_sale_end_date_before_current_date_notification_already_sent(
     sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @freeze_time("2020-03-18 12:00:00")
@@ -524,10 +524,10 @@ def test_update_sale_end_date_before_current_date_notification_sent(
     sale_toggle_mock.assert_called_once_with(sale, current_catalogue)
     update_products_discounted_prices_of_catalogues_task_mock.assert_called_once()
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == variant_pks
+    assert set(kwargs["category_ids"]) == category_pks
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert set(kwargs["product_ids"]) == product_pks
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @patch(
@@ -575,10 +575,10 @@ def test_update_sale_categories(
     )
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
     category_pks.add(non_default_category.id)
-    assert kwargs["category_ids"] == category_pks
-    assert kwargs["collection_ids"] == set()
-    assert kwargs["product_ids"] == set()
-    assert kwargs["variant_ids"] == set()
+    assert set(kwargs["category_ids"]) == category_pks
+    assert kwargs["collection_ids"] == []
+    assert kwargs["product_ids"] == []
+    assert kwargs["variant_ids"] == []
 
 
 @patch(
@@ -626,10 +626,10 @@ def test_update_sale_collections(
     )
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
     collection_pks.add(published_collection.id)
-    assert kwargs["category_ids"] == set()
-    assert kwargs["collection_ids"] == collection_pks
-    assert kwargs["product_ids"] == set()
-    assert kwargs["variant_ids"] == set()
+    assert kwargs["category_ids"] == []
+    assert set(kwargs["collection_ids"]) == collection_pks
+    assert kwargs["product_ids"] == []
+    assert kwargs["variant_ids"] == []
 
 
 @patch(
@@ -679,10 +679,10 @@ def test_update_sale_variants(
     )
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
     variant_pks.add(preorder_variant_global_threshold.id)
-    assert kwargs["category_ids"] == set()
-    assert kwargs["collection_ids"] == set()
-    assert kwargs["product_ids"] == set()
-    assert kwargs["variant_ids"] == variant_pks
+    assert kwargs["category_ids"] == []
+    assert kwargs["collection_ids"] == []
+    assert kwargs["product_ids"] == []
+    assert set(kwargs["variant_ids"]) == variant_pks
 
 
 @patch(
@@ -728,7 +728,7 @@ def test_update_sale_products(
     )
     args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
     product_pks.add(product_list[-1].id)
-    assert kwargs["category_ids"] == set()
-    assert kwargs["collection_ids"] == set()
-    assert kwargs["product_ids"] == product_pks
-    assert kwargs["variant_ids"] == set()
+    assert kwargs["category_ids"] == []
+    assert kwargs["collection_ids"] == []
+    assert set(kwargs["product_ids"]) == product_pks
+    assert kwargs["variant_ids"] == []

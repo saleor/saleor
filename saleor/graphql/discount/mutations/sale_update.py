@@ -146,8 +146,8 @@ class SaleUpdate(ModelMutation):
 
         if catalogues_to_recalculate:
             update_products_discounted_prices_of_catalogues_task.delay(
-                product_ids=catalogues_to_recalculate["products"],
-                category_ids=catalogues_to_recalculate["categories"],
-                collection_ids=catalogues_to_recalculate["collections"],
-                variant_ids=catalogues_to_recalculate["variants"],
+                product_ids=list(catalogues_to_recalculate["products"]),
+                category_ids=list(catalogues_to_recalculate["categories"]),
+                collection_ids=list(catalogues_to_recalculate["collections"]),
+                variant_ids=list(catalogues_to_recalculate["variants"]),
             )

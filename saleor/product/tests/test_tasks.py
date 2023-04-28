@@ -7,14 +7,14 @@ from django.utils import timezone
 from ..tasks import (
     _get_preorder_variants_to_clean,
     update_product_discounted_price_task,
-    update_products_discounted_prices_of_discount_task,
+    update_products_discounted_prices_of_sale_task,
     update_products_search_vector_task,
     update_variants_names,
 )
 
 
 @patch("saleor.product.utils.variant_prices." "update_products_discounted_prices")
-def test_update_products_discounted_prices_of_discount_task(
+def test_update_products_discounted_prices_of_sale_task(
     update_products_discounted_prices_mock,
     new_sale,
     product_list,
@@ -30,7 +30,7 @@ def test_update_products_discounted_prices_of_discount_task(
     new_sale.variants.add(product_list[2].variants.first())
 
     # when
-    update_products_discounted_prices_of_discount_task(new_sale.id)
+    update_products_discounted_prices_of_sale_task(new_sale.id)
 
     # then
     update_products_discounted_prices_mock.assert_called_once()
@@ -43,8 +43,8 @@ def test_update_products_discounted_prices_of_discount_task(
     }
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
-def test_update_products_discounted_prices_of_discount_task_discount_does_not_exist(
+@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
+def test_update_products_discounted_prices_of_sale_task_discount_does_not_exist(
     update_product_prices_mock, caplog
 ):
     # given
@@ -52,7 +52,7 @@ def test_update_products_discounted_prices_of_discount_task_discount_does_not_ex
     discount_id = -1
 
     # when
-    update_products_discounted_prices_of_discount_task(discount_id)
+    update_products_discounted_prices_of_sale_task(discount_id)
 
     # then
     update_product_prices_mock.assert_not_called()
@@ -97,7 +97,7 @@ def test_update_variants_names(
     assert {arg.pk for arg in args[1]} == {size_attribute.pk}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
 def test_update_variants_names_product_type_does_not_exist(
     update_variants_names_mock, caplog
 ):
