@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest.mock import patch
 
 import graphene
@@ -42,6 +43,7 @@ CHANNEL_UPDATE_MUTATION = """
                     expireOrdersAfter
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
+                    deleteExpiredOrdersAfter
                 }
             }
             errors{
@@ -1042,3 +1044,80 @@ def test_channel_update_default_transaction_flow_strategy(
         channel_USD.default_transaction_flow_strategy
         == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
+
+
+def test_channel_update_delete_expired_orders_after(
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_USD.delete_expired_orders_after = timedelta(days=1)
+    channel_USD.save()
+
+    delete_expired_after = 10
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "deleteExpiredOrdersAfter": delete_expired_after,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelUpdate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel_USD.refresh_from_db()
+    assert (
+        channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
+        == delete_expired_after
+    )
+    assert channel_USD.delete_expired_orders_after == timedelta(
+        days=delete_expired_after
+    )
+
+
+@pytest.mark.parametrize("delete_expired_after", [-1, 0, 121, 300])
+def test_channel_update_set_incorrect_delete_expired_orders_after(
+    delete_expired_after,
+    permission_manage_orders,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    channel_USD.delete_expired_orders_after = timedelta(days=1)
+    channel_USD.save()
+
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variables = {
+        "id": channel_id,
+        "input": {
+            "orderSettings": {
+                "deleteExpiredOrdersAfter": delete_expired_after,
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_UPDATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_orders,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelUpdate"]["errors"][0]
+    assert error["field"] == "deleteExpiredOrdersAfter"
+    assert error["code"] == ChannelErrorCode.INVALID.name

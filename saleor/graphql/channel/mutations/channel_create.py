@@ -1,9 +1,7 @@
 import graphene
-from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 
 from ....channel import models
-from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ChannelPermissions
 from ....tax.models import TaxConfiguration
@@ -15,6 +13,7 @@ from ...core.descriptions import (
     ADDED_IN_37,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -23,7 +22,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_PRODUCTS,
 )
 from ...core.mutations import ModelMutation
-from ...core.scalars import Minute
+from ...core.scalars import Day, Minute
 from ...core.types import BaseInputObjectType, ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import (
@@ -32,6 +31,7 @@ from ..enums import (
     TransactionFlowStrategyEnum,
 )
 from ..types import Channel
+from .utils import clean_delete_expired_orders_after, clean_expire_orders_after
 
 
 class StockSettingsInput(BaseInputObjectType):
@@ -65,6 +65,13 @@ class OrderSettingsInput(BaseInputObjectType):
             "Expiration time in minutes. "
             "Default null - means do not expire any orders. "
             "Enter 0 or null to disable." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    delete_expired_orders_after = Day(
+        required=False,
+        description=(
+            "The time in days after expired orders will be deleted."
+            "Allowed range is from 1 to 120." + ADDED_IN_314 + PREVIEW_FEATURE
         ),
     )
     mark_as_paid_strategy = MarkAsPaidStrategyEnum(
@@ -185,9 +192,18 @@ class ChannelCreate(ModelMutation):
 
             if "expire_orders_after" in order_settings:
                 expire_orders_after = order_settings["expire_orders_after"]
-                cleaned_input["expire_orders_after"] = cls.clean_expire_orders_after(
+                cleaned_input["expire_orders_after"] = clean_expire_orders_after(
                     expire_orders_after
                 )
+
+            if "delete_expired_orders_after" in order_settings:
+                delete_expired_orders_after = order_settings[
+                    "delete_expired_orders_after"
+                ]
+                cleaned_input[
+                    "delete_expired_orders_after"
+                ] = clean_delete_expired_orders_after(delete_expired_orders_after)
+
             if default_transaction_strategy := order_settings.get(
                 "default_transaction_flow_strategy"
             ):
@@ -196,21 +212,6 @@ class ChannelCreate(ModelMutation):
                 ] = default_transaction_strategy
 
         return cleaned_input
-
-    @classmethod
-    def clean_expire_orders_after(cls, expire_orders_after):
-        if expire_orders_after is None or expire_orders_after == 0:
-            return None
-        if expire_orders_after < 0:
-            raise ValidationError(
-                {
-                    "expire_orders_after": ValidationError(
-                        "Expiration time for orders cannot be lower than 0.",
-                        code=ChannelErrorCode.INVALID.value,
-                    )
-                }
-            )
-        return expire_orders_after
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

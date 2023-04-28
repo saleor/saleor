@@ -5099,6 +5099,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+
+  """
+  The time in days after expired orders will be deleted.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day!
 }
 
 """
@@ -5130,6 +5139,9 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   AUTHORIZATION
   CHARGE
 }
+
+"""The `Day` scalar type represents number of days by integer value."""
+scalar Day
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -24207,6 +24219,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   expireOrdersAfter: Minute
 
   """
+  The time in days after expired orders will be deleted.Allowed range is from 1 to 120.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day
+
+  """
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
   `PAYMENT_FLOW` - [default option] creates the `Payment` object.
   `TRANSACTION_FLOW` - creates the `TransactionItem` object.
@@ -29319,7 +29340,7 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType | Order
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
