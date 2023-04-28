@@ -300,9 +300,10 @@ def prepare_insufficient_stock_order_validation_errors(exc):
             if item.warehouse_pk
             else None
         )
+
         errors.append(
             ValidationError(
-                f"Insufficient product stock: {item.order_line or item.variant}",
+                "Insufficient product stock.",
                 code=OrderErrorCode.INSUFFICIENT_STOCK.value,
                 params={
                     "order_lines": [order_line_global_id]
