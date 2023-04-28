@@ -1355,3 +1355,47 @@ def test_complete_checkout_preorder(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+MUTATION_CHECKOUT_CREATE_FROM_ORDER = (
+    FRAGMENT_CHECKOUT
+    + """
+mutation CheckoutCreateFromOrder($id: ID!) {
+  checkoutCreateFromOrder(id:$id){
+    errors{
+      field
+      message
+      code
+    }
+    unavailableVariants{
+      message
+      code
+      variantId
+      lineId
+    }
+    checkout{
+      ...Checkout
+    }
+  }
+}
+"""
+)
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_create_from_order(user_api_client, order_with_lines):
+    # given
+    order_with_lines.user = user_api_client.user
+    order_with_lines.save()
+    Stock.objects.update(quantity=10)
+
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_FROM_ORDER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutCreateFromOrder"]["errors"]
