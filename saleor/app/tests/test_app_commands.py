@@ -19,6 +19,7 @@ def test_creates_app_from_manifest():
     tokens = app.tokens.all()
     assert len(tokens) == 1
     assert not app.is_active
+    assert app.uuid is not None
 
 
 @pytest.mark.vcr
@@ -78,6 +79,7 @@ def test_creates_app_from_manifest_installation_failed():
 
     app_job = AppInstallation.objects.get()
     assert app_job.status == JobStatus.FAILED
+    assert app_job.uuid is not None
 
 
 def test_creates_app_object():
@@ -91,6 +93,7 @@ def test_creates_app_object():
     app = apps[0]
     tokens = app.tokens.all()
     assert len(tokens) == 1
+    assert app.uuid is not None
 
 
 def test_app_has_all_required_permissions():
