@@ -40,7 +40,10 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             variants = cls.get_nodes_or_error(variants, "variants", ProductVariant)
             node.variants.add(*variants)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounted_prices(products, categories, collections, variants)
+        if products or categories or collections or variants:
+            cls.recalculate_discounted_prices(
+                products, categories, collections, variants
+            )
 
     @classmethod
     def clean_product(cls, products):

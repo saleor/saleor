@@ -9,7 +9,7 @@ from ....discount import DiscountValueType
 from ....discount.error_codes import DiscountErrorCode
 from ....discount.models import SaleChannelListing
 from ....permission.enums import DiscountPermissions
-from ....product.tasks import update_products_discounted_prices_of_discount_task
+from ....product.tasks import update_products_discounted_prices_of_sale_task
 from ...channel import ChannelContext
 from ...channel.mutations import BaseChannelListingMutation
 from ...core import ResolveInfo
@@ -137,7 +137,7 @@ class SaleChannelListingUpdate(BaseChannelListingMutation):
         with traced_atomic_transaction():
             cls.add_channels(sale, cleaned_input.get("add_channels", []))
             cls.remove_channels(sale, cleaned_input.get("remove_channels", []))
-            update_products_discounted_prices_of_discount_task.delay(sale.pk)
+            update_products_discounted_prices_of_sale_task.delay(sale.pk)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

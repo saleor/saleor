@@ -22,9 +22,13 @@ SALE_CATALOGUES_REMOVE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.sale_updated")
 def test_sale_remove_catalogues(
     updated_webhook_mock,
+    update_products_discounted_prices_of_catalogues_task_mock,
     staff_api_client,
     sale,
     category,
@@ -81,3 +85,10 @@ def test_sale_remove_catalogues(
     updated_webhook_mock.assert_called_once_with(
         sale, previous_catalogue=previous_catalogue, current_catalogue=current_catalogue
     )
+    args, kwargs = update_products_discounted_prices_of_catalogues_task_mock.call_args
+    assert kwargs["category_ids"] == [category.id]
+    assert kwargs["collection_ids"] == [collection.id]
+    assert kwargs["product_ids"] == [product.id]
+    assert set(kwargs["variant_ids"]) == {
+        variant.id for variant in product_variant_list
+    }

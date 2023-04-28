@@ -93,10 +93,11 @@ def get_variant_price(
     discounts: Iterable[DiscountInfo],
     channel: Channel
 ):
+    collection_ids = {collection.id for collection in collections}
     return calculate_discounted_price(
         product=product,
         price=variant_channel_listing.price,
-        collections=collections,
+        collection_ids=collection_ids,
         discounts=discounts,
         channel=channel,
         variant_id=variant.id,
