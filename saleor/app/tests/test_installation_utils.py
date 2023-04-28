@@ -74,6 +74,7 @@ def test_install_app_created_app(
     )
     assert App.objects.get().id == app.id
     assert list(app.permissions.all()) == [permission_manage_products]
+    assert app.uuid is not None
 
 
 def test_install_app_created_app_with_audience(

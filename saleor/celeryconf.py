@@ -30,6 +30,7 @@ app.autodiscover_tasks()
 app.autodiscover_tasks(
     packages=[
         "saleor.account.migrations.tasks",
+        "saleor.app.migrations.tasks",
         "saleor.order.migrations.tasks",
     ],
     related_name="saleor3_13",
