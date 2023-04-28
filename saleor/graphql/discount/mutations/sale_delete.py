@@ -5,15 +5,16 @@ from ....discount import models
 from ....discount.utils import fetch_catalogue_info
 from ....graphql.core.mutations import ModelDeleteMutation
 from ....permission.enums import DiscountPermissions
+from ....product.tasks import update_products_discounted_prices_of_catalogues_task
+from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale
-from .sale_create import SaleUpdateDiscountedPriceMixin
 from .utils import convert_catalogue_info_to_global_ids
 
 
-class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
+class SaleDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to delete.")
 
@@ -39,4 +40,12 @@ class SaleDelete(SaleUpdateDiscountedPriceMixin, ModelDeleteMutation):
                     instance, convert_catalogue_info_to_global_ids(previous_catalogue)
                 )
             )
+            update_products_discounted_prices_of_catalogues_task.delay(
+                product_ids=list(previous_catalogue["products"]),
+                category_ids=list(previous_catalogue["categories"]),
+                collection_ids=list(previous_catalogue["collections"]),
+                variant_ids=list(previous_catalogue["variants"]),
+            )
+        response.sale = ChannelContext(node=instance, channel_slug=None)
+
         return response
