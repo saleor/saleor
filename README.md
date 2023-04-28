@@ -1,7 +1,10 @@
-![Saleor Commerce - A GraphQL-first platform for perfectionists](https://user-images.githubusercontent.com/249912/71523206-4e45f800-28c8-11ea-84ba-345a9bfc998a.png)
+<div align="center" width="100px">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://user-images.githubusercontent.com/4006792/214640818-fd4de9e6-bdee-47f0-ae66-e69ee9ec84bb.png">
+   <source media="(prefers-color-scheme: light)" srcset="https://user-images.githubusercontent.com/4006792/214636328-8e4f83e8-66cb-4114-a3d8-473eb908b9c3.png">
+   <img width="200" alt="saleor-commerce-logo" src="https://user-images.githubusercontent.com/4006792/214636328-8e4f83e8-66cb-4114-a3d8-473eb908b9c3.png">
 
-<div align="center">
-  <h1>Saleor Commerce</h1>
+ </picture>
 </div>
 
 <div align="center">
@@ -9,7 +12,7 @@
 </div>
 
 <div align="center">
-  A headless, GraphQL commerce platform delivering ultra-fast, dynamic, personalized shopping experiences. Beautiful online stores, anywhere, on any device.
+  A headless, GraphQL commerce platform delivering ultra-fast, dynamic, personalized shopping experiences.<br/>Beautiful online stores, anywhere, on any device.
 </div>
 
 <br>
@@ -80,7 +83,6 @@ Learn more about [architecture](https://docs.saleor.io/docs/3.x/overview/archite
 Saleor is free and always will be.
 Help us out… If you love free stuff and great software, give us a star! 🌟
 
-![Saleor Storefront - React-based PWA e-commerce storefront](https://user-images.githubusercontent.com/249912/71527146-5b6be280-28da-11ea-901d-eb76161a6bfb.png)
 ![Saleor Dashboard - Modern UI for managing your e-commerce](https://user-images.githubusercontent.com/9268745/224249510-d3c7658e-6d5c-42c5-b4fb-93eaf65a5335.png)
 
 ## Installation

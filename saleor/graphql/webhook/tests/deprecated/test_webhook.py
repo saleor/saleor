@@ -176,18 +176,6 @@ WEBHOOK_UPDATE = """
 """
 
 
-def test_webhook_update_not_allowed_by_app(app_api_client, app, webhook):
-    query = WEBHOOK_UPDATE
-    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
-    variables = {
-        "id": webhook_id,
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "is_active": False,
-    }
-    response = app_api_client.post_graphql(query, variables=variables)
-    assert_no_permission(response)
-
-
 def test_webhook_update_by_staff(
     staff_api_client, app, webhook, permission_manage_apps
 ):

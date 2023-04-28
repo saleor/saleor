@@ -81,6 +81,7 @@ class OrderRefund(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         order = clean_order_refund(order)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
@@ -101,6 +102,7 @@ class OrderRefund(BaseMutation):
         # Confirm that we changed the status to refund. Some payment can receive
         # asynchronous webhook with update status
         if transaction.kind == TransactionKind.REFUND:
+            payment.refresh_from_db()
             order_refunded(
                 order,
                 info.context.user,

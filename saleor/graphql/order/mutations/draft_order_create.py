@@ -28,9 +28,10 @@ from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_36, ADDED_IN_310
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.mutations import ModelMutation
+from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...core.utils import from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -114,7 +115,7 @@ class DraftOrderCreateInput(DraftOrderInput):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class DraftOrderCreate(ModelMutation, I18nMixin):
+class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -127,6 +128,26 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance_channel_id(cls, instance, **data):
+        if channel_id := instance.channel_id:
+            return channel_id
+
+        channel_id = data["input"].get("channel_id")
+        if not channel_id:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Channel id is required.", code=OrderErrorCode.REQUIRED.value
+                    )
+                }
+            )
+        _, channel_id = from_global_id_or_error(
+            channel_id, "Channel", raise_error=False
+        )
+
+        return channel_id
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

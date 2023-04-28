@@ -434,6 +434,8 @@ class OrderSettingsUpdate(BaseMutation):
                 code=OrderSettingsErrorCode.INVALID.value,
             )
 
+        cls.check_channel_permissions(info, [channel.id])
+
         update_fields = {}
         for field in FIELDS:
             if field in data["input"]:

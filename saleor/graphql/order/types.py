@@ -1940,7 +1940,10 @@ class Order(ModelObjectType[models.Order]):
             # over payment's transactions
             total_refund_amount = Decimal(0)
             for transaction in transactions:
-                if transaction.kind == TransactionKind.REFUND:
+                if (
+                    transaction.kind == TransactionKind.REFUND
+                    and transaction.is_success
+                ):
                     total_refund_amount += transaction.amount
             return prices.Money(total_refund_amount, root.currency)
 

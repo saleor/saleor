@@ -29,7 +29,7 @@ from ...core.utils import get_client_ip
 from ...core.utils.url import validate_storefront_url
 from ...order import OrderStatus
 from ...order import models as order_models
-from ...order.actions import order_transaction_updated
+from ...order.actions import order_refunded, order_transaction_updated
 from ...order.events import transaction_event as order_transaction_event
 from ...order.fetch import fetch_order_info
 from ...order.models import Order
@@ -40,6 +40,7 @@ from ...payment import (
     StorePaymentMethod,
     TransactionAction,
     TransactionEventType,
+    TransactionKind,
     gateway,
 )
 from ...payment import models as payment_models
@@ -427,11 +428,9 @@ class PaymentCapture(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.capture(
@@ -458,17 +457,20 @@ class PaymentRefund(PaymentCapture):
     def perform_mutation(  # type: ignore[override]
         cls, _root, info: ResolveInfo, /, *, amount=None, payment_id
     ):
+        app = get_app_promise(info.context).get()
+        user = info.context.user
+        manager = get_plugin_manager_promise(info.context).get()
+
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
+        payment_transaction = None
         try:
-            gateway.refund(
+            payment_transaction = gateway.refund(
                 payment,
                 manager,
                 amount=amount,
@@ -477,6 +479,20 @@ class PaymentRefund(PaymentCapture):
             payment.refresh_from_db()
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR.value)
+        if (
+            payment.order_id
+            and payment_transaction
+            and payment_transaction.kind == TransactionKind.REFUND
+        ):
+            order = cast(order_models.Order, payment.order)
+            order_refunded(
+                order=order,
+                user=user,
+                app=app,
+                amount=amount,
+                payment=payment,
+                manager=manager,
+            )
         return PaymentRefund(payment=payment)
 
 
@@ -500,11 +516,9 @@ class PaymentVoid(BaseMutation):
         payment = cls.get_node_or_error(
             info, payment_id, field="payment_id", only_type=Payment
         )
-        channel_slug = (
-            payment.order.channel.slug
-            if payment.order
-            else payment.checkout.channel.slug
-        )
+        channel = payment.order.channel if payment.order else payment.checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         manager = get_plugin_manager_promise(info.context).get()
         try:
             gateway.void(payment, manager, channel_slug=channel_slug)
@@ -1088,6 +1102,7 @@ class TransactionCreate(BaseMutation):
                 app=app,
                 previous_authorized_value=Decimal(0),
                 previous_charged_value=Decimal(0),
+                previous_refunded_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
             discounts = load_discounts(info.context)
@@ -1261,6 +1276,7 @@ class TransactionUpdate(TransactionCreate):
         previous_transaction_psp_reference = instance.psp_reference
         previous_authorized_value = instance.authorized_value
         previous_charged_value = instance.charged_value
+        previous_refunded_value = instance.refunded_value
 
         if transaction:
             cls.validate_transaction_input(instance, transaction)
@@ -1300,6 +1316,7 @@ class TransactionUpdate(TransactionCreate):
                 app=app,
                 previous_authorized_value=previous_authorized_value,
                 previous_charged_value=previous_charged_value,
+                previous_refunded_value=previous_refunded_value,
             )
         if instance.checkout_id and money_data:
             discounts = load_discounts(info.context)
@@ -1415,10 +1432,12 @@ class TransactionRequestAction(BaseMutation):
         transaction = get_transaction_item(id)
         if transaction.order_id:
             order = cast(Order, transaction.order)
-            channel_slug = order.channel.slug
+            channel = order.channel
         else:
             checkout = cast(Checkout, transaction.checkout)
-            channel_slug = checkout.channel.slug
+            channel = checkout.channel
+        cls.check_channel_permissions(info, [channel.id])
+        channel_slug = channel.slug
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {
@@ -1604,6 +1623,7 @@ class TransactionEventReport(ModelMutation):
         if not already_processed:
             previous_authorized_value = transaction.authorized_value
             previous_charged_value = transaction.charged_value
+            previous_refunded_value = transaction.refunded_value
             if available_actions is not None:
                 transaction.available_actions = available_actions
                 transaction.save(update_fields=["available_actions"])
@@ -1631,6 +1651,7 @@ class TransactionEventReport(ModelMutation):
                     app=app,
                     previous_authorized_value=previous_authorized_value,
                     previous_charged_value=previous_charged_value,
+                    previous_refunded_value=previous_refunded_value,
                 )
             if transaction.checkout_id:
                 discounts = load_discounts(info.context)

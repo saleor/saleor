@@ -2,9 +2,34 @@ import json
 from decimal import Decimal
 
 import graphene
+import pytest
 
-from ....tests.utils import get_graphql_content, get_graphql_content_from_response
+from .....order.models import Order
+from .....payment.models import Payment
+from ....tests.utils import (
+    assert_no_permission,
+    get_graphql_content,
+    get_graphql_content_from_response,
+)
 from ...enums import PaymentChargeStatusEnum, TransactionActionEnum
+
+
+@pytest.fixture
+def payments_in_different_channels(
+    order_list, payments_dummy, channel_USD, channel_JPY, channel_PLN
+):
+    order_list[0].channel = channel_PLN
+    order_list[1].channel = channel_JPY
+    order_list[2].channel = channel_USD
+    Order.objects.bulk_update(order_list, ["channel"])
+
+    payments_dummy[0].order = order_list[0]
+    payments_dummy[1].order = order_list[1]
+    payments_dummy[2].order = order_list[2]
+    Payment.objects.bulk_update(payments_dummy, ["order"])
+
+    return payments_dummy
+
 
 PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
     payments(first: 20, filter: $filter) {
@@ -38,11 +63,10 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
 
 
 def test_payments_query(
-    payment_txn_captured, permission_manage_orders, staff_api_client
+    payment_txn_captured, permission_group_manage_orders, staff_api_client
 ):
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, permissions=[permission_manage_orders]
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(PAYMENT_QUERY)
     content = get_graphql_content(response)
     data = content["data"]["payments"]["edges"][0]["node"]
     pay = payment_txn_captured
@@ -65,12 +89,13 @@ def test_payments_query(
     ]
 
 
-def test_query_payments(payment_dummy, permission_manage_orders, staff_api_client):
+def test_query_payments(
+    payment_dummy, permission_group_manage_orders, staff_api_client
+):
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, {}, permissions=[permission_manage_orders]
-    )
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    response = staff_api_client.post_graphql(PAYMENT_QUERY, {})
     content = get_graphql_content(response)
     edges = content["data"]["payments"]["edges"]
     payment_ids = [edge["node"]["id"] for edge in edges]
@@ -78,15 +103,14 @@ def test_query_payments(payment_dummy, permission_manage_orders, staff_api_clien
 
 
 def test_query_payments_failed_payment(
-    payment_txn_capture_failed, permission_manage_orders, staff_api_client
+    payment_txn_capture_failed, permission_group_manage_orders, staff_api_client
 ):
     # given
     payment = payment_txn_capture_failed
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
-    response = staff_api_client.post_graphql(
-        PAYMENT_QUERY, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(PAYMENT_QUERY)
 
     # then
     content = get_graphql_content(response)
@@ -109,6 +133,83 @@ def test_query_payments_failed_payment(
             "gatewayResponse": json.dumps(txn.gateway_response),
         }
     ]
+
+
+def test_query_payments_by_user_with_access_to_all_channels(
+    payments_in_different_channels,
+    permission_group_all_perms_all_channels,
+    staff_api_client,
+):
+    # given
+    permission_group_all_perms_all_channels.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(PAYMENT_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["payments"]["edges"]
+    assert len(edges) == len(payments_in_different_channels)
+
+
+def test_query_payments_by_user_with_restricted_access_to_channels(
+    payments_in_different_channels,
+    permission_group_all_perms_channel_USD_only,
+    staff_api_client,
+    channel_USD,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(PAYMENT_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["payments"]["edges"]
+    assert len(edges) == 1
+    assert edges[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Payment", Payment.objects.get(order__channel=channel_USD).pk
+    )
+
+
+def test_query_payments_by_user_with_restricted_access_to_channels_no_acc_channels(
+    payments_in_different_channels,
+    permission_group_all_perms_without_any_channel,
+    staff_api_client,
+):
+    # given
+    permission_group_all_perms_without_any_channel.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(PAYMENT_QUERY)
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["payments"]["edges"]
+    assert len(edges) == 0
+
+
+def test_query_payments_by_app(
+    payments_in_different_channels, app_api_client, permission_manage_orders
+):
+    # when
+    response = app_api_client.post_graphql(
+        PAYMENT_QUERY, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    edges = content["data"]["payments"]["edges"]
+    assert len(edges) == len(payments_in_different_channels)
+
+
+def test_query_payments_by_customer(payments_in_different_channels, user_api_client):
+    # when
+    response = user_api_client.post_graphql(PAYMENT_QUERY)
+
+    # then
+    assert_no_permission(response)
 
 
 QUERY_PAYMENT_BY_ID = """

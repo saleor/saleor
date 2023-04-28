@@ -1769,11 +1769,13 @@ def test_transaction_create_creates_calculation_events(
     assert cancel_event.amount.amount == canceled_value
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
@@ -1807,13 +1809,16 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     assert order_with_lines.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order_with_lines)
     mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_paid.assert_called_once_with(order_with_lines)
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     order_with_lines,
     permission_manage_payments,
     staff_api_client,
@@ -1847,6 +1852,7 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_paid.assert_called_once_with(order_with_lines)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -1887,3 +1893,87 @@ def test_transaction_create_for_order_triggers_webhook_when_authorized(
     assert order_with_lines.authorize_status == OrderAuthorizeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_create_for_order_triggers_webhooks_when_fully_refunded(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+    refunded_value = order_with_lines.total.gross.amount
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountRefunded": {
+                "amount": refunded_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    get_graphql_content(response)
+
+    mock_order_fully_refunded.assert_called_once_with(order_with_lines)
+    mock_order_refunded.assert_called_once_with(order_with_lines)
+    mock_order_updated.assert_called_once_with(order_with_lines)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
+    mock_order_fully_refunded,
+    mock_order_refunded,
+    mock_order_updated,
+    order_with_lines,
+    permission_manage_payments,
+    staff_api_client,
+):
+    # given
+    refunded_value = Decimal("10")
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": "Charged 10$",
+            "type": "Credit Card",
+            "pspReference": "PSP reference - 123",
+            "availableActions": [],
+            "amountRefunded": {
+                "amount": refunded_value,
+                "currency": "USD",
+            },
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    order_with_lines.refresh_from_db()
+    get_graphql_content(response)
+
+    assert not mock_order_fully_refunded.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_refunded.assert_called_once_with(order_with_lines)

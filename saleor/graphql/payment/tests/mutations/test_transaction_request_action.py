@@ -280,6 +280,46 @@ def test_transaction_request_void_action_for_order(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
+def test_transaction_request_void_action_for_order_by_user_no_channel_access(
+    mocked_payment_action_request,
+    mocked_is_active,
+    order_with_lines,
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    mocked_is_active.return_value = True
+
+    order_with_lines.channel = channel_PLN
+    order_with_lines.save(update_fields=["channel"])
+
+    transaction = TransactionItem.objects.create(
+        status="Authorized",
+        psp_reference="PSP ref",
+        available_actions=["charge", "void"],
+        currency="USD",
+        order_id=order_with_lines.pk,
+        authorized_value=Decimal("10"),
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.VOID.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
 def test_transaction_request_void_action_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
@@ -568,9 +608,15 @@ def test_transaction_request_action_missing_permission(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 def test_transaction_request_action_missing_event(
-    mocked_is_active, staff_api_client, permission_manage_payments, order
+    mocked_is_active,
+    staff_api_client,
+    permission_group_manage_orders,
+    permission_manage_payments,
+    permission_group_no_perms_all_channels,
+    order,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     authorization_value = Decimal("10")
     transaction = TransactionItem.objects.create(
         status="Authorized",
@@ -587,14 +633,13 @@ def test_transaction_request_action_missing_event(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
+    permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(
         MUTATION_TRANSACTION_REQUEST_ACTION,
         variables,
-        permissions=[
-            permission_manage_payments,
-        ],
+        permissions=(permission_manage_payments,),
     )
 
     # then
@@ -1261,6 +1306,7 @@ def test_transaction_request_missing_event(
     mocked_get_webhooks,
     staff_api_client,
     permission_manage_payments,
+    permission_group_no_perms_all_channels,
     order,
     app,
 ):
@@ -1285,6 +1331,7 @@ def test_transaction_request_missing_event(
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "action_type": TransactionActionEnum.VOID.name,
     }
+    permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(

@@ -12,9 +12,11 @@ from ...order import events as order_events
 from ...permission.enums import OrderPermissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo
+from ..core.descriptions import ADDED_IN_314
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types import BaseInputObjectType, InvoiceError
+from ..core.types import BaseInputObjectType, InvoiceError, NonNullList
+from ..meta.mutations import MetadataInput
 from ..order.types import Order
 from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice
@@ -69,6 +71,7 @@ class InvoiceRequest(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, number=None, order_id
     ):
         order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_order(order)
         manager = get_plugin_manager_promise(info.context).get()
         if not is_event_active_for_any_plugin("invoice_request", manager.all_plugins):
@@ -114,6 +117,18 @@ class InvoiceRequest(ModelMutation):
 class InvoiceCreateInput(BaseInputObjectType):
     number = graphene.String(required=True, description="Invoice number.")
     url = graphene.String(required=True, description="URL of an invoice to download.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the invoice metadata." + ADDED_IN_314,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the invoice private metadata." + ADDED_IN_314
+        ),
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -135,6 +150,8 @@ class InvoiceCreate(ModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, _info: ResolveInfo, _instance, data):  # type: ignore[override]
@@ -177,12 +194,19 @@ class InvoiceCreate(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, input, order_id
     ):
         order = cls.get_node_or_error(info, order_id, only_type=Order, field="orderId")
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.clean_order(info, order)
         cleaned_input = cls.clean_input(info, order, input)
+
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+
         invoice = models.Invoice(**cleaned_input)
         invoice.order = order
         invoice.status = JobStatus.SUCCESS
+        cls.validate_and_update_metadata(invoice, metadata_list, private_metadata_list)
         invoice.save()
+
         app = get_app_promise(info.context).get()
         events.invoice_created_event(
             user=info.context.user,
@@ -219,6 +243,7 @@ class InvoiceRequestDelete(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, id
     ):
         invoice = cls.get_node_or_error(info, id, only_type=Invoice)
+        cls.check_channel_permissions(info, [invoice.order.channel_id])
         invoice.status = JobStatus.PENDING
         invoice.save(update_fields=["status", "updated_at"])
         manager = get_plugin_manager_promise(info.context).get()
@@ -245,6 +270,7 @@ class InvoiceDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         invoice = cls.get_instance(info, **data)
+        cls.check_channel_permissions(info, [invoice.order.channel_id])
         response = super().perform_mutation(_root, info, **data)
         app = get_app_promise(info.context).get()
         events.invoice_deleted_event(
@@ -256,6 +282,18 @@ class InvoiceDelete(ModelDeleteMutation):
 class UpdateInvoiceInput(BaseInputObjectType):
     number = graphene.String(description="Invoice number")
     url = graphene.String(description="URL of an invoice to download.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the invoice metadata." + ADDED_IN_314,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the invoice private metadata." + ADDED_IN_314
+        ),
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -275,6 +313,8 @@ class InvoiceUpdate(ModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, _info: ResolveInfo, instance, data):  # type: ignore[override]
@@ -303,12 +343,25 @@ class InvoiceUpdate(ModelMutation):
         cls, _root, info: ResolveInfo, /, *, id, input
     ):
         instance = cls.get_instance(info, id=id)
+        cls.check_channel_permissions(info, [instance.order.channel_id])
         cleaned_input = cls.clean_input(info, instance, input)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         instance.update_invoice(
             number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
         instance.status = JobStatus.SUCCESS
-        instance.save(update_fields=["external_url", "number", "updated_at", "status"])
+        instance.save(
+            update_fields=[
+                "external_url",
+                "number",
+                "updated_at",
+                "status",
+                "metadata",
+                "private_metadata",
+            ]
+        )
         app = get_app_promise(info.context).get()
         order_events.invoice_updated_event(
             order=instance.order,
@@ -367,6 +420,7 @@ class InvoiceSendNotification(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         instance = cls.get_instance(info, id=id)
+        cls.check_channel_permissions(info, [instance.order.channel_id])
         cls.clean_instance(info, instance)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()

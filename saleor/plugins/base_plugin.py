@@ -374,7 +374,7 @@ class BasePlugin:
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address", bool], "Address"
+        ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
@@ -698,6 +698,24 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic when an order is
     # fully paid.
     order_fully_paid: Callable[["Order", Any], Any]
+
+    # Trigger when order is paid.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # received the payment.
+    order_paid: Callable[["Order", Any], Any]
+
+    # Trigger when order is refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # refunded.
+    order_refunded: Callable[["Order", Any], Any]
+
+    # Trigger when order is fully refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fully refunded.
+    order_fully_refunded: Callable[["Order", Any], Any]
 
     # Trigger when order is updated.
     #

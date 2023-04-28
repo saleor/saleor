@@ -14,7 +14,7 @@ from ....tests.utils import get_graphql_content
 def test_fulfillment_refund_products_order_lines(
     mocked_refund,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
     count_queries,
@@ -48,6 +48,7 @@ def test_fulfillment_refund_products_order_lines(
             }
         }
     """
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -60,7 +61,6 @@ def test_fulfillment_refund_products_order_lines(
         "order": order_id,
         "input": {"orderLines": [{"orderLineId": line_id, "quantity": 2}]},
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
 
     response = staff_api_client.post_graphql(query, variables)
 
@@ -76,7 +76,7 @@ def test_fulfillment_return_products_order_lines(
     mocked_refund,
     back_in_stock_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     payment_dummy,
     count_queries,
@@ -129,6 +129,7 @@ def test_fulfillment_return_products_order_lines(
         }
     }
     """
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment_dummy.total = order_with_lines.total_gross_amount
     payment_dummy.captured_amount = payment_dummy.total
     payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
@@ -163,7 +164,6 @@ def test_fulfillment_return_products_order_lines(
             ],
         },
     }
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)

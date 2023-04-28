@@ -8,7 +8,7 @@ from .....payment.gateways.dummy_credit_card import (
     TOKEN_VALIDATION_MAPPING,
 )
 from .....payment.models import ChargeStatus
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 CAPTURE_QUERY = """
     mutation PaymentCapture($paymentId: ID!, $amount: PositiveDecimal) {
@@ -28,16 +28,67 @@ CAPTURE_QUERY = """
 
 
 def test_payment_capture_success(
-    staff_api_client, permission_manage_orders, payment_txn_preauth
+    staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert not data["errors"]
+    payment_txn_preauth.refresh_from_db()
+    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
+    assert payment.transactions.count() == 2
+    txn = payment.transactions.last()
+    assert txn.kind == TransactionKind.CAPTURE
+
+
+def test_payment_capture_success_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    payment_txn_preauth,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    order = payment_txn_preauth.order
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    payment = payment_txn_preauth
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
+
+    # when
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_payment_capture_success_by_app(
+    app_api_client, permission_manage_orders, payment_txn_preauth
+):
+    # given
+    payment = payment_txn_preauth
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
+
+    # when
+    response = app_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=(permission_manage_orders,)
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert not data["errors"]
@@ -49,16 +100,15 @@ def test_payment_capture_success(
 
 
 def test_payment_capture_with_invalid_argument(
-    staff_api_client, permission_manage_orders, payment_txn_preauth
+    staff_api_client, permission_group_manage_orders, payment_txn_preauth
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 0}
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert len(data["errors"]) == 1
@@ -66,19 +116,18 @@ def test_payment_capture_with_invalid_argument(
 
 
 def test_payment_capture_with_payment_non_authorized_yet(
-    staff_api_client, permission_manage_orders, payment_dummy
+    staff_api_client, permission_group_manage_orders, payment_dummy
 ):
     """Ensure capture a payment that is set as authorized is failing with
     the proper error message.
     """
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_dummy
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 1}
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
     assert data["errors"] == [
@@ -91,9 +140,10 @@ def test_payment_capture_with_payment_non_authorized_yet(
 
 
 def test_payment_capture_gateway_error(
-    staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
+    staff_api_client, permission_group_manage_orders, payment_txn_preauth, monkeypatch
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     payment = payment_txn_preauth
 
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -102,9 +152,7 @@ def test_payment_capture_gateway_error(
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
 
     # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
 
     # then
     content = get_graphql_content(response)
@@ -127,9 +175,10 @@ def test_payment_capture_gateway_error(
     True,
 )
 def test_payment_capture_gateway_dummy_credit_card_error(
-    staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
+    staff_api_client, permission_group_manage_orders, payment_txn_preauth, monkeypatch
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     token = TOKEN_EXPIRED
     error = TOKEN_VALIDATION_MAPPING[token]
 
@@ -149,9 +198,7 @@ def test_payment_capture_gateway_dummy_credit_card_error(
     )
 
     # when
-    response = staff_api_client.post_graphql(
-        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(CAPTURE_QUERY, variables)
 
     # then
     content = get_graphql_content(response)

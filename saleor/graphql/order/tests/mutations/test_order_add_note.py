@@ -7,7 +7,7 @@ from .....account.models import CustomerEvent
 from .....order import OrderStatus
 from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_ADD_NOTE_MUTATION = """
     mutation addNote($id: ID!, $message: String!) {
@@ -24,6 +24,9 @@ ORDER_ADD_NOTE_MUTATION = """
                 user {
                     email
                 }
+                app {
+                    name
+                }
                 message
             }
         }
@@ -35,20 +38,19 @@ ORDER_ADD_NOTE_MUTATION = """
 def test_order_add_note_as_staff_user(
     order_updated_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     staff_user,
 ):
     """We are testing that adding a note to an order as a staff user is doing the
     expected behaviors."""
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     assert not order.events.all()
     order_id = graphene.Node.to_global_id("Order", order.id)
     message = "nuclear note"
     variables = {"id": order_id, "message": message}
-    response = staff_api_client.post_graphql(
-        ORDER_ADD_NOTE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderAddNote"]
 
@@ -81,17 +83,70 @@ def test_order_add_note_as_staff_user(
 def test_order_add_note_fail_on_empty_message(
     order_updated_webhook_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     message,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
     variables = {"id": order_id, "message": message}
-    response = staff_api_client.post_graphql(
-        ORDER_ADD_NOTE_MUTATION, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderAddNote"]
     assert data["errors"][0]["field"] == "message"
     assert data["errors"][0]["code"] == OrderErrorCode.REQUIRED.name
     order_updated_webhook_mock.assert_not_called()
+
+
+def test_order_add_note_as_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    order = order_with_lines
+    order.channel = channel_PLN
+    order.save(update_fields=["channel"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    message = "nuclear note"
+    variables = {"id": order_id, "message": message}
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_ADD_NOTE_MUTATION, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_add_note_by_app(
+    order_updated_webhook_mock,
+    app_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    assert not order.events.all()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    message = "nuclear note"
+    variables = {"id": order_id, "message": message}
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_ADD_NOTE_MUTATION, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderAddNote"]
+
+    assert data["order"]["id"] == order_id
+    assert data["event"]["user"] is None
+    assert data["event"]["app"]["name"] == app_api_client.app.name
+    assert data["event"]["message"] == message
+    order_updated_webhook_mock.assert_called_once_with(order)

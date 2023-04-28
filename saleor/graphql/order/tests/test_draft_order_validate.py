@@ -122,7 +122,7 @@ def test_validate_draft_order_out_of_stock_variant(draft_order):
 
     with pytest.raises(ValidationError) as e:
         validate_draft_order(order, "US", get_plugins_manager())
-    msg = "Insufficient product stock: SKU_AA"
+    msg = "Insufficient product stock."
     assert e.value.error_dict["lines"][0].message == msg
 
 

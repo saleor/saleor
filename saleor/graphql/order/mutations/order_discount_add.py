@@ -60,6 +60,7 @@ class OrderDiscountAdd(OrderDiscountCommon):
     ):
         manager = get_plugin_manager_promise(info.context).get()
         order = cls.get_node_or_error(info, order_id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, input)
 
         reason = input.get("reason")

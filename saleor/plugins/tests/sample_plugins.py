@@ -336,6 +336,15 @@ class PluginSample(BasePlugin):
     def checkout_fully_paid(self, checkout):
         return None
 
+    def order_fully_refunded(self, order):
+        return None
+
+    def order_paid(self, order):
+        return None
+
+    def order_refunded(self, order):
+        return None
+
 
 class ChannelPluginSample(PluginSample):
     PLUGIN_ID = "channel.plugin.sample"

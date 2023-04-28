@@ -17,6 +17,10 @@ from ...permission.enums import AccountPermissions
 from ...permission.utils import has_one_of_permissions
 from ..app.dataloaders import get_app_promise
 from ..core import ResolveInfo, SaleorContext
+from .dataloaders import (
+    AccessibleChannelsByGroupIdLoader,
+    AccessibleChannelsByUserIdLoader,
+)
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -218,10 +222,28 @@ def get_out_of_scope_users(root_user: "User", users: List["User"]):
     return out_of_scope_users
 
 
-def can_user_manage_group(user: "User", group: Group) -> bool:
+def can_user_manage_group(info, user: "User", group: Group) -> bool:
+    """User can't manage a group with permission or channel that is out of his scope."""
+    return can_user_manage_group_permissions(
+        user, group
+    ) and can_user_manage_group_channels(info, user, group)
+
+
+def can_user_manage_group_permissions(user: "User", group: Group) -> bool:
     """User can't manage a group with permission that is out of the user's scope."""
     permissions = get_group_permission_codes(group)
     return user.has_perms(permissions)
+
+
+def can_user_manage_group_channels(info, user: "User", group: Group) -> bool:
+    """User can't manage a group with channel that is out of the user's scope."""
+    if user.is_superuser:
+        return True
+    accessible_channels = set(get_user_accessible_channels(info, user))
+    group_channels = set(
+        AccessibleChannelsByGroupIdLoader(info.context).load(group.id).get()
+    )
+    return not bool(group_channels - accessible_channels)
 
 
 def can_manage_app(requestor: Union["User", "App", None], app: "App") -> bool:
@@ -510,3 +532,11 @@ def check_is_owner_or_has_one_of_perms(
     """
     if not is_owner_or_has_one_of_perms(requestor, owner, *perms):
         raise PermissionDenied(permissions=list(perms) + [AuthorizationFilters.OWNER])
+
+
+def get_user_accessible_channels(info, user: Optional[User]):
+    return (
+        (AccessibleChannelsByUserIdLoader(info.context).load(user.id).get())
+        if user is not None
+        else []
+    )

@@ -499,12 +499,14 @@ def test_create_transaction_event_from_request_updates_order_charge(
     assert order.search_vector
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     transaction_item_generator,
     app,
     order_with_lines,
@@ -541,14 +543,17 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_fully_paid
     assert order.charge_status == OrderChargeStatus.FULL
     mock_order_fully_paid.assert_called_once_with(order)
     mock_order_updated.assert_called_once_with(order)
+    mock_order_paid.assert_called_once_with(order)
 
 
+@patch("saleor.plugins.manager.PluginsManager.order_paid")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_fully_paid")
 @freeze_time("2018-05-31 12:00:01")
 def test_create_transaction_event_from_request_triggers_webhooks_when_partially_paid(
     mock_order_fully_paid,
     mock_order_updated,
+    mock_order_paid,
     transaction_item_generator,
     app,
     order_with_lines,
@@ -585,6 +590,101 @@ def test_create_transaction_event_from_request_triggers_webhooks_when_partially_
     assert order_with_lines.charge_status == OrderChargeStatus.PARTIAL
     assert not mock_order_fully_paid.called
     mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_paid.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_triggers_webhooks_when_fully_refunded(
+    mock_order_fully_refunded,
+    mock_order_updated,
+    mock_order_refunded,
+    transaction_item_generator,
+    app,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction = transaction_item_generator(order_id=order.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=order.total.gross.amount,
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = order.total.gross.amount
+    event_type = TransactionEventType.REFUND_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    order.refresh_from_db()
+
+    mock_order_fully_refunded.assert_called_once_with(order)
+    mock_order_updated.assert_called_once_with(order)
+    mock_order_refunded.assert_called_once_with(order)
+
+
+@patch("saleor.plugins.manager.PluginsManager.order_refunded")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_fully_refunded")
+@freeze_time("2018-05-31 12:00:01")
+def test_create_transaction_event_from_request_triggers_webhooks_partially_refunded(
+    mock_order_fully_refunded,
+    mock_order_updated,
+    mock_order_refunded,
+    transaction_item_generator,
+    app,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    transaction = transaction_item_generator(order_id=order.pk)
+    request_event = TransactionEvent.objects.create(
+        type=TransactionEventType.REFUND_REQUEST,
+        amount_value=Decimal("12.00"),
+        currency="USD",
+        transaction_id=transaction.id,
+    )
+
+    event_amount = Decimal("12.00")
+    event_type = TransactionEventType.REFUND_SUCCESS
+
+    expected_psp_reference = "psp:122:222"
+
+    response_data = {
+        "pspReference": expected_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+    }
+
+    # when
+    create_transaction_event_from_request_and_webhook_response(
+        request_event, app, response_data
+    )
+
+    # then
+    flush_post_commit_hooks()
+    order.refresh_from_db()
+
+    assert not mock_order_fully_refunded.called
+    mock_order_updated.assert_called_once_with(order_with_lines)
+    mock_order_refunded.assert_called_once_with(order)
 
 
 @patch("saleor.plugins.manager.PluginsManager.order_updated")

@@ -357,6 +357,11 @@ class PermissionGroupError(Error):
         description="List of user IDs which causes the error.",
         required=False,
     )
+    channels = NonNullList(
+        graphene.ID,
+        description="List of chnnels IDs which causes the error.",
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS

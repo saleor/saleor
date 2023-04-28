@@ -5,6 +5,7 @@ from typing import List, Optional, cast
 import graphene
 from django.contrib.auth import get_user_model
 from graphene import relay
+from promise import Promise
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -20,11 +21,18 @@ from ...thumbnail.utils import (
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..app.dataloaders import AppByIdLoader, get_app_promise
 from ..app.types import App
+from ..channel.types import Channel
 from ..checkout.dataloaders import CheckoutByUserAndChannelLoader, CheckoutByUserLoader
 from ..checkout.types import Checkout, CheckoutCountableConnection
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection, create_connection_slice
-from ..core.descriptions import ADDED_IN_38, ADDED_IN_310, DEPRECATED_IN_3X_FIELD
+from ..core.descriptions import (
+    ADDED_IN_38,
+    ADDED_IN_310,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+)
 from ..core.doc_category import DOC_CATEGORY_USERS
 from ..core.enums import LanguageCodeEnum
 from ..core.federation import federated_entity, resolve_federation_references
@@ -48,7 +56,10 @@ from ..order.dataloaders import OrderLineByIdLoader, OrdersByUserLoader
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from .dataloaders import (
+    AccessibleChannelsByGroupIdLoader,
+    AccessibleChannelsByUserIdLoader,
     CustomerEventsByUserLoader,
+    RestrictedChannelAccessByUserIdLoader,
     ThumbnailByUserIdSizeAndFormatLoader,
 )
 from .enums import CountryCodeEnum, CustomerEventsEnum
@@ -321,6 +332,23 @@ class User(ModelObjectType[models.User]):
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
+    accessible_channels = NonNullList(
+        Channel,
+        description=(
+            "List of channels the user has access to. The sum of channels from all "
+            "user groups. If at least one group has `restrictedAccessToChannels` "
+            "set to False - all channels are returned." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if user have restricted access to channels. False if at least "
+            "one user group has `restrictedAccessToChannels` set to False."
+        )
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
     avatar = ThumbnailField()
     events = PermissionsField(
         NonNullList(CustomerEvent),
@@ -450,6 +478,18 @@ class User(ModelObjectType[models.User]):
         return get_groups_which_user_can_manage(root)
 
     @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        # Sum of channels from all user groups. If at least one group has
+        # `restrictedAccessToChannels` set to False - all channels are returned
+        return AccessibleChannelsByUserIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_restricted_access_to_channels(root: models.Group, info: ResolveInfo):
+        # Returns False if at least one user group has `restrictedAccessToChannels`
+        # set to False
+        return RestrictedChannelAccessByUserIdLoader(info.context).load(root.id)
+
+    @staticmethod
     def resolve_note(root: models.User, _info: ResolveInfo):
         return root.note
 
@@ -474,18 +514,34 @@ class User(ModelObjectType[models.User]):
             )
         requester = user_or_app
 
-        def _resolve_orders(orders):
+        def _resolve_orders(data):
+            orders = data[0]
+            accessible_channels = data[1] if len(data) == 2 else None
             if not requester.has_perm(OrderPermissions.MANAGE_ORDERS):
                 # allow fetch requestor orders (except drafts)
                 orders = [
                     order for order in orders if order.status != OrderStatus.DRAFT
                 ]
 
+            # Return only orders from channels that the user has access to.
+            # The app has access to all channels.
+            if root != user_or_app and accessible_channels is not None:
+                accessible_channels = [channel.id for channel in accessible_channels]
+                orders = [
+                    order for order in orders if order.channel_id in accessible_channels
+                ]
+
             return create_connection_slice(
                 orders, info, kwargs, OrderCountableConnection
             )
 
-        return OrdersByUserLoader(info.context).load(root.id).then(_resolve_orders)
+        to_fetch = [OrdersByUserLoader(info.context).load(root.id)]
+        if isinstance(requester, models.User):
+            to_fetch.append(
+                AccessibleChannelsByUserIdLoader(info.context).load(requester.id)
+            )
+
+        return Promise.all(to_fetch).then(_resolve_orders)
 
     @staticmethod
     def resolve_avatar(
@@ -657,6 +713,18 @@ class Group(ModelObjectType[models.Group]):
             "True, if the currently authenticated user has rights to manage a group."
         ),
     )
+    accessible_channels = NonNullList(
+        Channel,
+        description="List of channels the group has access to."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        required=True,
+        description="Determine if the group have restricted access to channels."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = "Represents permission group data."
@@ -680,7 +748,11 @@ class Group(ModelObjectType[models.Group]):
         user = info.context.user
         if not user:
             return False
-        return can_user_manage_group(user, root)
+        return can_user_manage_group(info, user, root)
+
+    @staticmethod
+    def resolve_accessible_channels(root: models.Group, info: ResolveInfo):
+        return AccessibleChannelsByGroupIdLoader(info.context).load(root.id)
 
     @staticmethod
     def __resolve_references(roots: List["Group"], info: ResolveInfo):

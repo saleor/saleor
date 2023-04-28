@@ -1,5 +1,3 @@
-from contextlib import contextmanager
-
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.core.files.storage import default_storage
@@ -7,30 +5,7 @@ from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 
 from ..celeryconf import app
-from .models import CeleryTask, EventDelivery, EventDeliveryAttempt, EventPayload
-
-
-@contextmanager
-def celery_task_lock(task_name: str):
-    """Celery task lock.
-
-    This contextmanager provides lock on database for executing celery task.
-
-    Parameters
-    ----------
-    task_name : str
-        Unique name of the celery task.
-
-    """
-
-    lock = None
-    created = False
-    try:
-        lock, created = CeleryTask.objects.get_or_create(name=task_name)
-        yield lock, created
-    finally:
-        if lock and created:
-            lock.delete()
+from .models import EventDelivery, EventDeliveryAttempt, EventPayload
 
 
 @app.task

@@ -242,6 +242,6 @@ def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
     assert address.phone
 
     new_address = anonymize_plugin.change_user_address(
-        address=address, address_type=None, user=None, previous_value=address
+        address=address, address_type=None, user=None, save=True, previous_value=address
     )
     assert not new_address.phone

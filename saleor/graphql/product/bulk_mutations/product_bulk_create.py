@@ -191,8 +191,8 @@ class ProductBulkCreate(BaseMutation):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
-            description="Policies of error handling.",
+            description="Policies of error handling. DEFAULT: "
+            + ErrorPolicyEnum.REJECT_EVERYTHING.name,
         )
 
     class Meta:
@@ -822,7 +822,7 @@ class ProductBulkCreate(BaseMutation):
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
         for product in products:
-            cls.call_event(manager.product_created, product)
+            cls.call_event(manager.product_created, product.node)
 
         for variant in variants:
             cls.call_event(manager.product_variant_created, variant)
@@ -834,7 +834,7 @@ class ProductBulkCreate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, root, info, **data):
         index_error_map: dict = defaultdict(list)
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
 
         # clean and validate inputs
         cleaned_inputs_map = cls.clean_products(info, data["products"], index_error_map)

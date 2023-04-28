@@ -61,7 +61,10 @@ class WebhookEventAsyncType:
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
+    ORDER_PAID = "order_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
+    ORDER_REFUNDED = "order_refunded"
+    ORDER_FULLY_REFUNDED = "order_fully_refunded"
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
     ORDER_EXPIRED = "order_expired"
@@ -202,7 +205,10 @@ class WebhookEventAsyncType:
         MENU_ITEM_DELETED: "Menu item deleted",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
-        ORDER_FULLY_PAID: "Order paid",
+        ORDER_PAID: "Order paid",
+        ORDER_FULLY_PAID: "Order fully paid",
+        ORDER_REFUNDED: "Order refunded",
+        ORDER_FULLY_REFUNDED: "Order fully refunded",
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
         ORDER_EXPIRED: "Order expired",
@@ -320,7 +326,10 @@ class WebhookEventAsyncType:
         (MENU_ITEM_DELETED, DISPLAY_LABELS[MENU_ITEM_DELETED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
+        (ORDER_PAID, DISPLAY_LABELS[ORDER_PAID]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
+        (ORDER_REFUNDED, DISPLAY_LABELS[ORDER_REFUNDED]),
+        (ORDER_FULLY_REFUNDED, DISPLAY_LABELS[ORDER_FULLY_REFUNDED]),
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
         (ORDER_EXPIRED, DISPLAY_LABELS[ORDER_EXPIRED]),
@@ -448,7 +457,10 @@ class WebhookEventAsyncType:
         MENU_ITEM_DELETED: MenuPermissions.MANAGE_MENUS,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_PAID: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
+        ORDER_REFUNDED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_FULLY_REFUNDED: OrderPermissions.MANAGE_ORDERS,
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_EXPIRED: OrderPermissions.MANAGE_ORDERS,

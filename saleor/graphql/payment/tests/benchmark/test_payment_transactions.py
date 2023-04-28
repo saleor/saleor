@@ -52,13 +52,16 @@ query {
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
 def test_payment_transactions(
-    staff_api_client, orders_for_benchmarks, permission_manage_orders, count_queries
+    staff_api_client,
+    orders_for_benchmarks,
+    permission_group_manage_orders,
+    count_queries,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     transactions_count = 0
     content = get_graphql_content(
         staff_api_client.post_graphql(
             PAYMENT_TRANSACTIONS_QUERY,
-            permissions=[permission_manage_orders],
             check_no_permissions=False,
         )
     )

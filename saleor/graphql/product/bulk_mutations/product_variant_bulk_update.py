@@ -139,7 +139,6 @@ class ProductVariantBulkUpdate(BaseMutation):
         )
         error_policy = ErrorPolicyEnum(
             required=False,
-            default_value=ErrorPolicyEnum.REJECT_EVERYTHING.value,
             description=(
                 "Policies of error handling. DEFAULT: "
                 + ErrorPolicyEnum.REJECT_EVERYTHING.name
@@ -657,7 +656,7 @@ class ProductVariantBulkUpdate(BaseMutation):
     @traced_atomic_transaction()
     def perform_mutation(cls, _root, info, **data):
         index_error_map: dict = defaultdict(list)
-        error_policy = data["error_policy"]
+        error_policy = data.get("error_policy", ErrorPolicyEnum.REJECT_EVERYTHING.value)
         product = cast(
             models.Product,
             cls.get_node_or_error(info, data["product_id"], only_type="Product"),

@@ -7,25 +7,30 @@ from django.core.exceptions import ValidationError
 from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....account.models import User
+from ....channel.models import Channel
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import AccountPermissions, get_permissions
 from ...account.utils import (
-    can_user_manage_group,
+    can_user_manage_group_channels,
+    can_user_manage_group_permissions,
     get_not_manageable_permissions_after_group_deleting,
     get_not_manageable_permissions_after_removing_perms_from_group,
     get_not_manageable_permissions_after_removing_users_from_group,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
+    get_user_accessible_channels,
 )
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, PermissionGroupError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
+from ..dataloaders import AccessibleChannelsByGroupIdLoader
 from ..types import Group
 
 
@@ -40,6 +45,12 @@ class PermissionGroupInput(BaseInputObjectType):
         description="List of users to assign to this group.",
         required=False,
     )
+    add_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to assign to this group."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -47,6 +58,15 @@ class PermissionGroupInput(BaseInputObjectType):
 
 class PermissionGroupCreateInput(PermissionGroupInput):
     name = graphene.String(description="Group name.", required=True)
+    restricted_access_to_channels = graphene.Boolean(
+        description=(
+            "Determine if the group has restricted access to channels.  DEFAULT: False"
+        )
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+        default_value=False,
+        required=False,
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_USERS
@@ -72,14 +92,18 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
-        add_permissions = cleaned_data.get("add_permissions")
         with traced_atomic_transaction():
-            if add_permissions:
+            if add_permissions := cleaned_data.get("add_permissions"):
                 instance.permissions.add(*add_permissions)
 
-            users = cleaned_data.get("add_users")
-            if users:
+            if users := cleaned_data.get("add_users"):
                 instance.user_set.add(*users)
+
+            if cleaned_data.get("restricted_access_to_channels") is False:
+                instance.channels.clear()
+
+            if channels := cleaned_data.get("add_channels"):
+                instance.channels.add(*channels)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
@@ -93,6 +117,10 @@ class PermissionGroupCreate(ModelMutation):
         user = info.context.user
         user = cast(User, user)
         errors: defaultdict[str, List[ValidationError]] = defaultdict(list)
+        user_accessible_channels = get_user_accessible_channels(info, info.context.user)
+        cls.clean_channels(
+            info, instance, user_accessible_channels, errors, cleaned_input
+        )
         cls.clean_permissions(user, instance, errors, cleaned_input)
         cls.clean_users(user, errors, cleaned_input, instance)
 
@@ -178,6 +206,67 @@ class PermissionGroupCreate(ModelMutation):
             cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
+    def clean_channels(
+        cls,
+        info: ResolveInfo,
+        group: models.Group,
+        user_accessible_channels: List["Channel"],
+        errors: dict,
+        cleaned_input: dict,
+    ):
+        """Clean adding channels when the group hasn't restricted access to channels."""
+        user = info.context.user
+        user = cast(User, user)
+        if cleaned_input.get("restricted_access_to_channels") is False:
+            if not user.is_superuser:
+                channel_ids = set(Channel.objects.values_list("id", flat=True))
+                accessible_channel_ids = {
+                    channel.id for channel in user_accessible_channels
+                }
+                not_accessible_channels = set(channel_ids - accessible_channel_ids)
+                error_code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
+                if not_accessible_channels:
+                    raise ValidationError(
+                        {
+                            "restricted_access_to_channels": ValidationError(
+                                "You can't manage group with channels out of "
+                                "your scope.",
+                                code=error_code,
+                            )
+                        }
+                    )
+            cleaned_input["add_channels"] = []
+        elif add_channels := cleaned_input.get("add_channels"):
+            cls.ensure_can_manage_channels(
+                user, user_accessible_channels, errors, add_channels
+            )
+
+    @classmethod
+    def ensure_can_manage_channels(
+        cls,
+        user: "User",
+        user_accessible_channels: List["Channel"],
+        errors: dict,
+        channels: List["Channel"],
+    ):
+        # user must have access to all channels from `add_channels` list
+        if user.is_superuser:
+            return
+        channel_ids = {str(channel.id) for channel in channels}
+        accessible_channel_ids = {
+            str(channel.id) for channel in user_accessible_channels
+        }
+        invalid_channel_ids = channel_ids - accessible_channel_ids
+        if invalid_channel_ids:
+            ids = [
+                graphene.Node.to_global_id("Channel", pk) for pk in invalid_channel_ids
+            ]
+            error_msg = "You can't add channel that you don't have access to."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
+            params = {"channels": ids}
+            cls.update_errors(errors, error_msg, "add_channels", code, params)
+
+    @classmethod
     def update_errors(
         cls,
         errors: Dict[str, List[ValidationError]],
@@ -201,6 +290,18 @@ class PermissionGroupUpdateInput(PermissionGroupInput):
     remove_users = NonNullList(
         graphene.ID,
         description="List of users to unassign from this group.",
+        required=False,
+    )
+    remove_channels = NonNullList(
+        graphene.ID,
+        description="List of channels to unassign from this group."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
+    restricted_access_to_channels = graphene.Boolean(
+        description="Determine if the group has restricted access to channels."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -230,13 +331,14 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
         with traced_atomic_transaction():
             super()._save_m2m(info, instance, cleaned_data)
-            remove_users = cleaned_data.get("remove_users")
-            with traced_atomic_transaction():
-                if remove_users:
-                    instance.user_set.remove(*remove_users)
-                remove_permissions = cleaned_data.get("remove_permissions")
-                if remove_permissions:
-                    instance.permissions.remove(*remove_permissions)
+            if remove_users := cleaned_data.get("remove_users"):
+                instance.user_set.remove(*remove_users)
+            if remove_permissions := cleaned_data.get("remove_permissions"):
+                instance.permissions.remove(*remove_permissions)
+            if remove_channels := cleaned_data.get("remove_channels"):
+                instance.channels.remove(*remove_channels)
+        # Invalidate dataloader for group channels
+        AccessibleChannelsByGroupIdLoader(info.context).clear(instance.id)
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
@@ -251,14 +353,16 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         data,
     ):
         requestor = info.context.user
-        cls.ensure_requestor_can_manage_group(requestor, instance)
+        cls.ensure_requestor_can_manage_group(info, requestor, instance)
 
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
+        channel_fields = ("add_channels", "remove_channels", "channels")
 
         cls.check_duplicates(errors, data, permission_fields)
         cls.check_duplicates(errors, data, user_fields)
+        cls.check_duplicates(errors, data, channel_fields)
 
         if errors:
             raise ValidationError(errors)
@@ -268,15 +372,50 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def ensure_requestor_can_manage_group(cls, requestor: "User", group: models.Group):
+    def ensure_requestor_can_manage_group(
+        cls, info: ResolveInfo, requestor: "User", group: models.Group
+    ):
         """Check if requestor can manage group.
 
-        Requestor cannot manage group with wider scope of permissions.
+        Requestor cannot manage group with wider scope of permissions or channels.
         """
-        if not requestor.is_superuser and not can_user_manage_group(requestor, group):
+        if requestor.is_superuser:
+            return
+        if not can_user_manage_group_permissions(requestor, group):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
+        if not can_user_manage_group_channels(info, requestor, group):
+            error_msg = "You can't manage group with channels out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
+            raise ValidationError(error_msg, code)
+
+    @classmethod
+    def clean_channels(
+        cls,
+        info: ResolveInfo,
+        group: models.Group,
+        user_accessible_channels: List["Channel"],
+        errors: dict,
+        cleaned_input: dict,
+    ):
+        """Clean channels when the group hasn't restricted access to channels."""
+        super().clean_channels(
+            info, group, user_accessible_channels, errors, cleaned_input
+        )
+        if remove_channels := cleaned_input.get("remove_channels"):
+            user = info.context.user
+            user = cast(User, user)
+            cls.ensure_can_manage_channels(
+                user, user_accessible_channels, errors, remove_channels
+            )
+
+        restricted_access = cleaned_input.get("restricted_access_to_channels")
+        if restricted_access is False or (
+            restricted_access is None and group.restricted_access_to_channels is False
+        ):
+            cleaned_input["add_channels"] = []
+            cleaned_input["remove_channels"] = []
 
     @classmethod
     def clean_permissions(
@@ -467,9 +606,13 @@ class PermissionGroupDelete(ModelDeleteMutation):
             raise PermissionDenied("You must be authenticated to perform this action.")
         if requestor.is_superuser:
             return
-        if not can_user_manage_group(requestor, instance):
+        if not can_user_manage_group_permissions(requestor, instance):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError(error_msg, code)
+        if not can_user_manage_group_channels(info, requestor, instance):
+            error_msg = "You can't manage group with channels out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_CHANNEL.value
             raise ValidationError(error_msg, code)
 
         cls.check_if_group_can_be_removed(requestor, instance)
