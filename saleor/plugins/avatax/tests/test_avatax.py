@@ -1992,12 +1992,13 @@ def test_calculate_checkout_subtotal_for_product_without_tax(
     shipping_zone,
     address,
     plugin_configuration,
+    tax_class_zero_rates,
 ):
     plugin_configuration()
     variant = stock.product_variant
     product = variant.product
-    product.charge_taxes = False
-    product.save(update_fields=["charge_taxes"])
+    product.tax_class = tax_class_zero_rates
+    product.save(update_fields=["tax_class"])
 
     monkeypatch.setattr(
         "saleor.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
@@ -5191,8 +5192,7 @@ def test_generate_request_data_from_checkout_lines_adds_lines_with_taxes_disable
 
     line = checkout_with_item.lines.first()
     line.variant.product.tax_class = tax_class_zero_rates
-    line.variant.product.charge_taxes = False
-    line.variant.product.save(update_fields=["tax_class", "charge_taxes"])
+    line.variant.product.save(update_fields=["tax_class"])
 
     checkout_with_item.shipping_method = None
     checkout_with_item.save(update_fields=["shipping_method"])
@@ -5373,8 +5373,7 @@ def test_get_order_lines_data_adds_lines_with_taxes_disabled_for_line(
 
     line = order_with_lines.lines.first()
     line.variant.product.tax_class = tax_class_zero_rates
-    line.variant.product.charge_taxes = False
-    line.variant.product.save(update_fields=["charge_taxes", "tax_class"])
+    line.variant.product.save(update_fields=["tax_class"])
 
     # when
     lines_data = get_order_lines_data(order_with_lines, avatax_config, discounted=False)
