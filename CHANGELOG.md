@@ -37,7 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
-
+- Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
 
 # 3.13.0
 
