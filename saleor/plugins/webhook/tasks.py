@@ -215,7 +215,7 @@ def group_webhooks_by_subscription(webhooks):
 
 def trigger_webhook_sync(
     event_type: str,
-    data: str,
+    payload: str,
     webhook: Optional["Webhook"],
     subscribable_object=None,
     timeout=None,
@@ -223,6 +223,7 @@ def trigger_webhook_sync(
     """Send a synchronous webhook request."""
     if not webhook:
         raise PaymentError(f"No payment webhook found for event: {event_type}.")
+
     if webhook.subscription_query:
         delivery = create_delivery_for_subscription_sync_event(
             event_type=event_type,
@@ -232,16 +233,18 @@ def trigger_webhook_sync(
         if not delivery:
             return None
     else:
-        event_payload = EventPayload.objects.create(payload=data)
+        event_payload = EventPayload.objects.create(payload=payload)
         delivery = EventDelivery.objects.create(
             status=EventDeliveryStatus.PENDING,
             event_type=event_type,
             payload=event_payload,
             webhook=webhook,
         )
+
     kwargs = {}
     if timeout:
         kwargs = {"timeout": timeout}
+
     return send_webhook_request_sync(webhook.app.name, delivery, **kwargs)
 
 

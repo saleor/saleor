@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import logging
 from collections import defaultdict
@@ -201,3 +202,18 @@ def parse_excluded_shipping_methods(
             )
         )
     return excluded_methods_map
+
+
+def generate_cache_key_for_shipping_list_methods_for_checkout(
+    payload: str, target_url: str
+) -> str:
+    key_data = json.loads(payload)
+
+    # drop fields that change between requests but are not relevant for cache key
+    key_data[0].pop("last_change")
+    key_data[0]["meta"].pop("issued_at")
+
+    # make cache key
+    key = json.dumps(key_data)
+    key = f"{target_url}-{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
+    return key
