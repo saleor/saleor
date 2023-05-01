@@ -1,0 +1,50 @@
+version: "0.1"
+
+subdomains:
+  api-saleor-nullst-one:
+    dns_name: api.saleor
+
+apps:
+  api:
+    module: aws-fargate-service
+    vars:
+      cpu: 512
+      memory: 1024
+      port: 8000
+    capabilities:
+      - module: python-cookies
+      - module: aws-load-balancer
+        vars:
+          health_check_interval: 10
+          health_check_timeout: 9
+          health_check_healthy_threshold: 2
+          health_check_unhealthy_threshold: 5
+          health_check_path: "/"
+        connections:
+          subdomain: api-saleor-nullst-one
+      - module: aws-postgres-access
+        vars:
+          database_name: "saleor"
+        connections:
+          postgres: db
+      - module: aws-redis-access
+        connections:
+          redis: redis
+  worker:
+    module: aws-fargate-service
+    vars:
+      cpu: 256
+      memory: 512
+      port: 0
+    capabilities:
+      - module: aws-postgres-access
+        vars:
+          database_name: "saleor"
+        connections:
+          postgres: db
+
+datastores:
+  db:
+    module: aws-rds-postgres
+  redis:
+    module: aws-elasticache
