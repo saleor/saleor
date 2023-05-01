@@ -30,6 +30,8 @@ RUN apt-get update \
   libwebp6 \
   libxml2 \
   libpq5 \
+  jq \
+  wget \
   shared-mime-info \
   mime-support \
   && apt-get clean \
