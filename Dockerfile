@@ -41,15 +41,15 @@ RUN echo 'image/avif avif' >> /etc/mime.types
 RUN mkdir -p /app/media /app/static \
   && chown -R saleor:saleor /app/
 
-COPY --from=build-python /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
-COPY --from=build-python /usr/local/bin/ /usr/local/bin/
-COPY . /app
-WORKDIR /app
-
 WORKDIR /
 COPY entrypoint.sh .
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+
+COPY --from=build-python /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
+COPY --from=build-python /usr/local/bin/ /usr/local/bin/
+COPY . /app
+WORKDIR /app
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
