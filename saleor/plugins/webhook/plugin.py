@@ -1,8 +1,9 @@
 import json
 import logging
-from typing import TYPE_CHECKING, Any, DefaultDict, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, DefaultDict, Final, List, Optional, Set, Union
 
 import graphene
+from django.core.cache import cache
 
 from ...app.models import App
 from ...core import EventDeliveryStatus
@@ -45,7 +46,11 @@ from ...webhook.payloads import (
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import BasePlugin, ExcludedShippingMethod
 from .const import CACHE_EXCLUDED_SHIPPING_KEY
-from .shipping import get_excluded_shipping_data, parse_list_shipping_methods_response
+from .shipping import (
+    generate_cache_key_for_shipping_list_methods_for_checkout,
+    get_excluded_shipping_data,
+    parse_list_shipping_methods_response,
+)
 from .tasks import (
     send_webhook_request_async,
     trigger_all_webhooks_sync,
@@ -95,6 +100,10 @@ if TYPE_CHECKING:
     from ...tax.models import TaxClass
     from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
+
+
+CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT: Final[int] = 5 * 60  # 5 minutes
+
 
 logger = logging.getLogger(__name__)
 
@@ -1440,7 +1449,7 @@ class WebhookPlugin(BasePlugin):
         for webhook in webhooks:
             response_data = trigger_webhook_sync(
                 event_type=event_type,
-                data=generate_list_gateways_payload(currency, checkout),
+                payload=generate_list_gateways_payload(currency, checkout),
                 webhook=webhook,
                 subscribable_object=checkout,
             )
@@ -1566,12 +1575,25 @@ class WebhookPlugin(BasePlugin):
         if webhooks:
             payload = generate_checkout_payload(checkout, self.requestor)
             for webhook in webhooks:
-                response_data = trigger_webhook_sync(
-                    event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                    data=payload,
-                    webhook=webhook,
-                    subscribable_object=checkout,
+                cache_key = generate_cache_key_for_shipping_list_methods_for_checkout(
+                    payload, webhook.target_url
                 )
+                response_data = cache.get(cache_key)
+
+                if response_data is None:
+                    response_data = trigger_webhook_sync(
+                        event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                        payload=payload,
+                        webhook=webhook,
+                        subscribable_object=checkout,
+                    )
+                    if response_data is not None:
+                        cache.set(
+                            cache_key,
+                            response_data,
+                            CACHE_TIME_SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                        )
+
                 if response_data:
                     shipping_methods = parse_list_shipping_methods_response(
                         response_data, webhook.app
