@@ -3,6 +3,8 @@ version: "0.1"
 subdomains:
   api-saleor-nullst-one:
     dns_name: api.saleor
+    connections:
+      domain: nullst-one-domain
 
 apps:
   api:
