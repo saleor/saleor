@@ -1464,7 +1464,7 @@ def test_complete_checkout_when_checkout_doesnt_exists(
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
 @mock.patch("saleor.checkout.complete_checkout._process_payment")
-def test_complete_checkout_checkout_was_deleted_before_compliting(
+def test_complete_checkout_checkout_was_deleted_before_completing(
     mocked_process_payment,
     mocked_create_order,
     customer_user,
