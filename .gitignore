@@ -31,3 +31,6 @@ venv.bak/
 
 # Exported results file
 django-queries-results.html
+/saleor/media/products/
+
+/saleor/media/thumbnails/
