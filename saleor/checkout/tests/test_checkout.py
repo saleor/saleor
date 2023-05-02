@@ -37,6 +37,7 @@ from ..utils import (
     change_shipping_address_in_checkout,
     clear_delivery_method,
     delete_external_shipping_id,
+    get_checkout_metadata,
     get_external_shipping_id,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout_info,
@@ -1758,3 +1759,25 @@ def test_checkout_has_currency(checkout):
 
 def test_checkout_line_has_currency(checkout_line):
     assert hasattr(checkout_line, "currency")
+
+
+def test_get_checkout_metadata_no_metadata_storage(checkout):
+    # given
+    checkout.metadata_storage.delete()
+
+    # when
+    metadata_container = get_checkout_metadata(checkout)
+
+    # then
+    assert metadata_container
+
+
+def test_get_checkout_metadata(checkout):
+    # given
+    assert checkout.metadata_storage.id
+
+    # when
+    metadata_container = get_checkout_metadata(checkout)
+
+    # then
+    assert metadata_container
