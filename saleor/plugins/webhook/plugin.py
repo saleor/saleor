@@ -1580,14 +1580,14 @@ class WebhookPlugin(BasePlugin):
                 )
                 response_data = cache.get(cache_key)
 
-                if not response_data:
+                if response_data is None:
                     response_data = trigger_webhook_sync(
                         event_type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
                         payload=payload,
                         webhook=webhook,
                         subscribable_object=checkout,
                     )
-                    if response_data:
+                    if response_data is not None:
                         cache.set(
                             cache_key,
                             response_data,

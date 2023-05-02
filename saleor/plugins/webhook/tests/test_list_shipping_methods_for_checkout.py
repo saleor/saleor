@@ -1,5 +1,6 @@
 import json
 from datetime import timedelta
+from decimal import Decimal
 from unittest import mock
 
 from django.utils import timezone
@@ -22,7 +23,7 @@ def test_get_shipping_methods_for_checkout_set_cache(
         {
             "id": "method-1",
             "name": "Standard Shipping",
-            "amount": 5.5,
+            "amount": Decimal("5.5"),
             "currency": "GBP",
         }
     ]
@@ -71,10 +72,31 @@ def test_get_shipping_methods_for_checkout_use_cache(
         {
             "id": "method-1",
             "name": "Standard Shipping",
-            "amount": 5.5,
+            "amount": Decimal("5.5"),
             "currency": "GBP",
         }
     ]
+    plugin = webhook_plugin()
+
+    # when
+    plugin.get_shipping_methods_for_checkout(checkout_with_item, None)
+
+    # then
+    assert not mocked_webhook.called
+    assert mocked_cache_get.called
+
+
+@mock.patch("saleor.plugins.webhook.plugin.cache.get")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_shipping_methods_for_checkout_use_cache_for_empty_list(
+    mocked_webhook,
+    mocked_cache_get,
+    webhook_plugin,
+    checkout_with_item,
+    shipping_app,
+):
+    # given
+    mocked_cache_get.return_value = []
     plugin = webhook_plugin()
 
     # when
