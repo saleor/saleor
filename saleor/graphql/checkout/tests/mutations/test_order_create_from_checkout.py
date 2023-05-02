@@ -337,7 +337,7 @@ def test_order_from_checkout_with_metadata_checkout_without_metadata(
     order_token = data["order"]["token"]
     assert Order.objects.count() == orders_count + 1
     order = Order.objects.first()
-    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.origin == OrderOrigin.CHECKOUT
     assert not order.original
     assert str(order.pk) == order_token
