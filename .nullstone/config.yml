@@ -13,6 +13,15 @@ apps:
       cpu: 512
       memory: 1024
       port: 8000
+    environment:
+      ALLOWED_HOSTS: "{{ NULLSTONE_PUBLIC_HOSTS }}"
+      BASE_DOMAIN: "dev.nullst.one"
+      DASHBOARD_URL: "http://dashboard.saleor.{{ BASE_DOMAIN }}/"
+      STOREFRONT_URL: "https://saleor.{{ BASE_DOMAIN }}/"
+      CELERY_BROKER_URL: "{{ REDIS_URL }}"
+      DATABASE_URL: "{{ POSTGRES_URL }}"
+      DEFAULT_CHANNEL_SLUG: "default-channel"
+      DEFAULT_FROM_EMAIL: "noreply@example.com"
     capabilities:
       - module: python-cookies
       - module: aws-load-balancer
@@ -38,6 +47,11 @@ apps:
       cpu: 256
       memory: 512
       port: 0
+    environment:
+      CELERY_BROKER_URL: "{{ REDIS_URL }}"
+      DATABASE_URL: "{{ POSTGRES_URL }}"
+      DEFAULT_CHANNEL_SLUG: "default-channel"
+      DEFAULT_FROM_EMAIL: "noreply@example.com"
     capabilities:
       - module: aws-postgres-access
         vars:
