@@ -865,11 +865,11 @@ def test_add_checkout_lines_with_external_shipping(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    # Three api calls:
+    # Two api calls :
     # - post-mutate() logic used to validate currently selected method
-    # - fetch_checkout_data - calculating all prices for checkout
-    # - in check_stock_quantity_bulk to check if the shipping method is set
-    assert mock_send_request.call_count == 3
+    # - fetch_checkout_prices_if_expired - calculating all prices for checkout
+    # - (cached) in check_stock_quantity_bulk to check if the shipping method is set
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
