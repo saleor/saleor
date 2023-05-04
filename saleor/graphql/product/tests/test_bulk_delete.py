@@ -967,6 +967,7 @@ def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_call
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
+    update_products_discounted_price_task_mock.assert_called_once()
     args = set(update_products_discounted_price_task_mock.call_args.args[0])
     assert args == {product.id for product in product_list}
 
@@ -1067,12 +1068,18 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
         == content["data"]["productVariantBulkDelete"]["count"]
     )
     mocked_recalculate_orders_task.assert_not_called()
+    update_products_discounted_price_task_mock.assert_called_once()
     args = set(update_products_discounted_price_task_mock.call_args.args[0])
     assert args == {product.id for product in product_list}
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 def test_delete_product_variants_invalid_object_typed_of_given_ids(
-    staff_api_client, product_variant_list, permission_manage_products, staff_user
+    update_products_discounted_price_task_mock,
+    staff_api_client,
+    product_variant_list,
+    permission_manage_products,
+    staff_user,
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
     staff_user.user_permissions.add(permission_manage_products)
@@ -1091,6 +1098,7 @@ def test_delete_product_variants_invalid_object_typed_of_given_ids(
     assert errors[0]["code"] == ProductErrorCode.GRAPHQL_ERROR.name
     assert errors[0]["field"] == "ids"
     assert data["count"] == 0
+    update_products_discounted_price_task_mock.assert_not_called()
 
 
 def test_delete_product_variants_removes_checkout_lines(
