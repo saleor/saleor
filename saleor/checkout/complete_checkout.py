@@ -80,7 +80,11 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_info
+from .utils import (
+    get_checkout_metadata,
+    get_or_create_checkout_metadata,
+    get_voucher_for_checkout_info,
+)
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -604,7 +608,7 @@ def _create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
-    checkout_metadata = get_or_create_checkout_metadata(checkout)
+    checkout_metadata = get_checkout_metadata(checkout)
 
     # store current tax configuration
     update_order_display_gross_prices(order)
