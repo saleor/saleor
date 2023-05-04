@@ -202,11 +202,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save(
-            update_fields=[
-                "private_metadata",
-            ]
-        )
+        get_checkout_metadata(checkout).save()
 
         cls.call_event(manager.checkout_updated, checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -243,7 +239,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_checkout_metadata(checkout).save(update_fields=["private_metadata"])
+        get_checkout_metadata(checkout).save()
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
