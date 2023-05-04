@@ -7,7 +7,7 @@ from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.utils import (
     delete_external_shipping_id,
-    get_or_create_checkout_metadata,
+    get_checkout_metadata,
     invalidate_checkout_prices,
     is_shipping_required,
     set_external_shipping_id,
@@ -200,11 +200,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_or_create_checkout_metadata(checkout).save(
-            update_fields=[
-                "private_metadata",
-            ]
-        )
+        get_checkout_metadata(checkout).save()
 
         cls.call_event(manager.checkout_updated, checkout)
         return CheckoutShippingMethodUpdate(checkout=checkout)
@@ -241,9 +237,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ]
             + invalidate_prices_updated_fields
         )
-        get_or_create_checkout_metadata(checkout).save(
-            update_fields=["private_metadata"]
-        )
+        get_checkout_metadata(checkout).save()
         cls.call_event(manager.checkout_updated, checkout)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
