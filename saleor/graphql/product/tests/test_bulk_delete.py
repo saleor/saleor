@@ -303,10 +303,19 @@ MUTATION_COLLECTION_BULK_DELETE = """
 """
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 def test_delete_collections(
-    staff_api_client, collection_list, permission_manage_products
+    update_products_discounted_price_task_mock,
+    staff_api_client,
+    collection_list,
+    product_list,
+    permission_manage_products,
 ):
+    # given
     query = MUTATION_COLLECTION_BULK_DELETE
+
+    for product, collection in zip(product_list, collection_list):
+        collection.products.add(product)
 
     variables = {
         "ids": [
@@ -314,15 +323,22 @@ def test_delete_collections(
             for collection in collection_list
         ]
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["collectionBulkDelete"]["count"] == 3
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
+    update_products_discounted_price_task_mock.assert_called_once()
+    args = set(update_products_discounted_price_task_mock.call_args.args[0])
+    assert args == {product.id for product in product_list}
 
 
 def test_delete_collections_with_images(
