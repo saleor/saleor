@@ -117,6 +117,40 @@ def test_update_checkout_shipping_method_if_invalid(
     assert checkout.shipping_method is None
 
 
+def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
+    checkout_with_single_item,
+    address,
+    shipping_method,
+    other_shipping_method,
+    shipping_zone_without_countries,
+):
+    # If the shipping method is invalid, it should be removed.
+
+    # given
+    checkout = checkout_with_single_item
+    checkout.metadata_storage.delete()
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+
+    shipping_method.shipping_zone = shipping_zone_without_countries
+    shipping_method.save(update_fields=["shipping_zone"])
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    update_checkout_shipping_method_if_invalid(checkout_info, lines)
+
+    # then
+    assert checkout.shipping_method is None
+    assert checkout_info.delivery_method_info.delivery_method is None
+
+    # Ensure the checkout's shipping method was saved
+    checkout.refresh_from_db(fields=["shipping_method"])
+    assert checkout.shipping_method is None
+
+
 @pytest.fixture
 def expected_dummy_gateway():
     return {
