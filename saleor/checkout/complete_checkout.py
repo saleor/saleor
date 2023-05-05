@@ -23,7 +23,7 @@ from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
-from ..account.utils import store_user_address
+from ..account.utils import store_user_address, retrieve_user_by_email
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
@@ -1321,6 +1321,12 @@ def complete_checkout(
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:
+    # Assign checkout user to an existing user if checkout email matches a valid customer account
+    if user is None and checkout_info.checkout.email:
+        existing_user = retrieve_user_by_email(checkout_info.checkout.email)
+        user = existing_user if existing_user else user
+        checkout_info.user = user
+
     transactions = checkout_info.checkout.payment_transactions.all()
     fetch_checkout_data(checkout_info, manager, lines, discounts=discounts)
 
