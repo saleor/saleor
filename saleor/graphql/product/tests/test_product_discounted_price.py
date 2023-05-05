@@ -93,10 +93,10 @@ def test_category_delete_updates_discounted_price(
 
 @patch(
     "saleor.graphql.product.mutations.collection.collection_add_products"
-    ".update_products_discounted_prices_of_catalogues_task"
+    ".update_products_discounted_prices_task.delay"
 )
 def test_collection_add_products_updates_discounted_price(
-    mock_update_products_discounted_prices_of_catalogues,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     collection,
@@ -130,17 +130,17 @@ def test_collection_add_products_updates_discounted_price(
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
-        product_ids=[p.pk for p in product_list]
-    )
+    mock_update_products_discounted_prices_task.assert_called_once()
+    args = set(mock_update_products_discounted_prices_task.call_args.args[0])
+    assert args == {product.id for product in product_list}
 
 
 @patch(
     "saleor.graphql.product.mutations.collection.collection_remove_products"
-    ".update_products_discounted_prices_of_catalogues_task"
+    ".update_products_discounted_prices_task.delay"
 )
 def test_collection_remove_products_updates_discounted_price(
-    mock_update_products_discounted_prices_of_catalogues,
+    mock_update_products_discounted_prices_task,
     staff_api_client,
     sale,
     collection,
@@ -174,9 +174,9 @@ def test_collection_remove_products_updates_discounted_price(
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_of_catalogues.delay.assert_called_once_with(
-        product_ids=[p.pk for p in product_list]
-    )
+    mock_update_products_discounted_prices_task.assert_called_once()
+    args = set(mock_update_products_discounted_prices_task.call_args.args[0])
+    assert args == {product.id for product in product_list}
 
 
 @freeze_time("2010-05-31 12:00:01")
