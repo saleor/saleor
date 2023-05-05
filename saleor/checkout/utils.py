@@ -838,11 +838,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    get_checkout_metadata(checkout).save(
-        update_fields=[
-            "private_metadata",
-        ]
-    )
+    get_checkout_metadata(checkout).save()
 
 
 def is_fully_paid(

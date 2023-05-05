@@ -389,6 +389,27 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
 
+def test_add_public_metadata_for_checkout_no_checkout_metadata_storage(
+    api_client, checkout
+):
+    # given
+    checkout.metadata_storage.delete()
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout"
+    )
+
+    # then
+    checkout.refresh_from_db()
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
+    )
+
+
 def test_add_public_metadata_for_checkout_line(api_client, checkout_line):
     # given
     checkout_line_id = graphene.Node.to_global_id("CheckoutLine", checkout_line.pk)
@@ -2508,6 +2529,28 @@ def test_add_private_metadata_for_checkout(
     )
 
     # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"],
+        checkout.metadata_storage,
+        checkout_id,
+    )
+
+
+def test_add_private_metadata_for_checkout_no_checkout_metadata_storage(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout.metadata_storage.delete()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout_id, "Checkout"
+    )
+
+    # then
+    checkout.refresh_from_db()
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"],
         checkout.metadata_storage,
