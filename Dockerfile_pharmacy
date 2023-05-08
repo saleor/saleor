@@ -61,5 +61,6 @@ ENV PYTHONUNBUFFERED 1
 ARG COMMIT_ID
 ARG PROJECT_VERSION
 ENV PROJECT_VERSION="${PROJECT_VERSION}"
+ENV DJANGO_SETTINGS_MODULE="saleor.pharmacy_settings"
 
 CMD ["gunicorn", "--bind", ":8000", "--workers", "4", "--worker-class", "saleor.asgi.gunicorn_worker.UvicornWorker", "saleor.asgi:application"]
