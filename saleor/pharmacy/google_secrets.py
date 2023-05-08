@@ -1,11 +1,11 @@
 import os
 import json
 
-from saleor.rx.base_secrets import SecretManager
+from saleor.pharmacy.base_secrets import SecretManager
 from google.cloud import secretmanager_v1
 
 from cachetools import cached
-from saleor.rx import cache
+from saleor.pharmacy import cache
 
 import logging
 

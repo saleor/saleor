@@ -6,7 +6,7 @@ from . import Gender
 
 
 class Patient(models.Model):
-    customer = models.ForeignKey(
+    customer = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         related_name="+",
         on_delete=models.CASCADE,
