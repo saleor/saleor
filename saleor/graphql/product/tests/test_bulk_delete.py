@@ -62,24 +62,44 @@ MUTATION_CATEGORY_BULK_DELETE = """
 """
 
 
-def test_delete_categories(staff_api_client, category_list, permission_manage_products):
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+def test_delete_categories(
+    update_products_discounted_price_task_mock,
+    staff_api_client,
+    category_list,
+    product_list,
+    permission_manage_products,
+):
+    # given
+    for product, category in zip(product_list, category_list):
+        product.category = category
+
+    Product.objects.bulk_update(product_list, ["category"])
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("Category", category.id)
             for category in category_list
         ]
     }
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CATEGORY_BULK_DELETE,
         variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["categoryBulkDelete"]["count"] == 3
     assert not Category.objects.filter(
         id__in=[category.id for category in category_list]
     ).exists()
+    update_products_discounted_price_task_mock.assert_called_once()
+    args, kwargs = update_products_discounted_price_task_mock.call_args
+    assert set(kwargs["product_ids"]) == {product.id for product in product_list}
 
 
 @patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
@@ -283,10 +303,19 @@ MUTATION_COLLECTION_BULK_DELETE = """
 """
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 def test_delete_collections(
-    staff_api_client, collection_list, permission_manage_products
+    update_products_discounted_price_task_mock,
+    staff_api_client,
+    collection_list,
+    product_list,
+    permission_manage_products,
 ):
+    # given
     query = MUTATION_COLLECTION_BULK_DELETE
+
+    for product, collection in zip(product_list, collection_list):
+        collection.products.add(product)
 
     variables = {
         "ids": [
@@ -294,15 +323,22 @@ def test_delete_collections(
             for collection in collection_list
         ]
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["collectionBulkDelete"]["count"] == 3
     assert not Collection.objects.filter(
         id__in=[collection.id for collection in collection_list]
     ).exists()
+    update_products_discounted_price_task_mock.assert_called_once()
+    args = set(update_products_discounted_price_task_mock.call_args.args[0])
+    assert args == {product.id for product in product_list}
 
 
 def test_delete_collections_with_images(
