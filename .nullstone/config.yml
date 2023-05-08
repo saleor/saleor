@@ -8,6 +8,9 @@ subdomains:
 
 apps:
   api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     module: aws-fargate-service
     vars:
       cpu: 512
@@ -42,6 +45,9 @@ apps:
         connections:
           redis: redis
   worker:
+    build:
+      context: .
+      dockerfile: worker.Dockerfile
     module: aws-fargate-service
     vars:
       cpu: 256
