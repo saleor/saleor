@@ -1,0 +1,6 @@
+version: "0.1"
+
+apps:
+  api:
+    environment:
+      BASE_DOMAIN: "{{ NULLSTONE_ENV }}.nullst.one"
