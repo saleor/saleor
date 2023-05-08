@@ -30,7 +30,7 @@ from saleor.core.schedules import initiated_sale_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
-from saleor.wellstand.google_secrets import GoogleSecretManager
+from saleor.pharmacy.google_secrets import GoogleSecretManager
 
 
 def get_list(text):
@@ -267,6 +267,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
+    "saleor.pharmacy",
     # External apps
     "django_measurement",
     "django_prices",
@@ -276,7 +277,6 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
-    "saleor.wellstand",
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)
