@@ -81,8 +81,8 @@ from .checkout_cleaner import (
 from .fetch import (
     CheckoutInfo,
     CheckoutLineInfo,
+    fetch_checkout_info,
     fetch_checkout_lines,
-    update_delivery_method_lists_for_checkout_info,
 )
 from .models import Checkout
 from .utils import get_or_create_checkout_metadata, get_voucher_for_checkout_info
@@ -1267,7 +1267,7 @@ def create_order_from_checkout(
 
 def complete_checkout(
     manager: "PluginsManager",
-    checkout_info: "CheckoutInfo",
+    checkout_info: "CheckoutInfo",  # TODO: to remove
     lines: Iterable["CheckoutLineInfo"],
     payment_data,
     store_source,
@@ -1296,10 +1296,10 @@ def complete_checkout(
             order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
             return order, False, {}
 
-        # We need to refetch the checkout lines to ensure that we process checkout
-        # for correct data.
-        # Lines are selected for update by checkout select for update in line 1421
-        _refetch_checkout_lines(checkout, checkout_info, discounts, manager)
+        # Fetching checkout info inside the transaction block with select_for_update
+        # enure that we are processing checkout on the current data.
+        lines, _ = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         payment, customer_id, order_data = complete_checkout_pre_payment_part(
             manager=manager,
@@ -1350,10 +1350,10 @@ def complete_checkout(
             order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
             return order, False, {}
 
-        # We need to refetch the checkout lines to ensure that we process checkout
-        # for correct data
-        # Lines are selected for update by checkout select for update in line 1475
-        _refetch_checkout_lines(checkout, checkout_info, discounts, manager)
+        # We need to refetch the checkout info to ensure that we process checkout
+        # for correct data.
+        lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
+        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
 
         # Run pre-payment checks to make sure, that nothing has changed to the
         # checkout, during processing payment.
@@ -1396,26 +1396,6 @@ def complete_checkout(
             raise ValidationError("Checkout has changed during payment processing")
 
     return order, action_required, action_data
-
-
-def _refetch_checkout_lines(
-    checkout: Checkout,
-    checkout_info: CheckoutInfo,
-    discounts: Iterable[DiscountInfo],
-    manager: "PluginsManager",
-):
-    lines, _ = fetch_checkout_lines(checkout)
-    update_delivery_method_lists_for_checkout_info(
-        checkout_info,
-        checkout.shipping_method,
-        checkout.collection_point,
-        checkout.shipping_address,
-        lines,
-        discounts,
-        manager,
-        checkout.channel.shipping_method_listings.all(),
-    )
-    return lines
 
 
 def _compare_order_data(order_data_1, order_data_2):
