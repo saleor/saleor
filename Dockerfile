@@ -1,10 +1,10 @@
 ### Build and install packages
 FROM python:3.9 as build-python
 
-RUN apt-get -y update \
-  && apt-get install -y gettext \
+RUN apt-get -y update --no-install-recommends \
+  && apt-get install -y gettext --no-install-recommends \
   # Cleanup apt cache
-  && apt-get clean \
+  && apt-get clean --no-install-recommends \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -20,9 +20,9 @@ FROM python:3.9-slim
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
-RUN apt-get update \
-  && apt-get -y upgrade \
-  && apt-get install -y \
+RUN apt-get update --no-install-recommends \
+  && apt-get -y upgrade --no-install-recommends \
+  && apt-get install -y --no-install-recommends \
   libcairo2 \
   libgdk-pixbuf2.0-0 \
   liblcms2-2 \
