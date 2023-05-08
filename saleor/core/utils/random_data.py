@@ -843,6 +843,7 @@ def create_fake_order(discounts, max_order_lines=5, create_preorder_lines=False)
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
     )
+    order.number_as_str = str(order.number)
     order.save()
 
     create_fake_payment(order=order)
