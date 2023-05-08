@@ -1239,6 +1239,7 @@ def _populate_replace_order_fields(original_order: "Order"):
         original_order.shipping_address.pk = None
         replace_order.shipping_address = original_order.shipping_address
         replace_order.shipping_address.save()
+    replace_order.number_as_str = str(replace_order.number)
     replace_order.save()
     original_order.refresh_from_db()
     return replace_order

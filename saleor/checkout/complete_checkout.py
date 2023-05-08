@@ -614,6 +614,7 @@ def _create_order(
     order.search_vector = FlatConcatSearchVector(
         *prepare_order_search_vector_value(order)
     )
+    order.number_as_str = str(order.number)
     order.save()
 
     order_info = OrderInfo(
@@ -1191,10 +1192,12 @@ def _create_order_from_checkout(
         + shipping_total
     )
     order.undiscounted_total = undiscounted_total
+    order.number_as_str = str(order.number)
     order.save(
         update_fields=[
             "undiscounted_total_net_amount",
             "undiscounted_total_gross_amount",
+            "number_as_str",
         ]
     )
 

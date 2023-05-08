@@ -476,6 +476,7 @@ class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
                 "search_vector",
                 "updated_at",
                 "display_gross_prices",
+                "number_as_str",
             ]
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
@@ -488,5 +489,7 @@ class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
 
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
+
+            instance.number_as_str = str(instance.number)
 
             instance.save(update_fields=updated_fields)
