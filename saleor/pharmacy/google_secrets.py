@@ -1,11 +1,11 @@
 import os
 import json
 
-from saleor.wellstand.base_secrets import SecretManager
+from saleor.rx.base_secrets import SecretManager
 from google.cloud import secretmanager_v1
 
 from cachetools import cached
-from saleor.wellstand import cache
+from saleor.rx import cache
 
 import logging
 

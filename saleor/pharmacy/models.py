@@ -2,28 +2,22 @@ from django.db import models
 from django.conf import settings
 from uuid import uuid4
 
-MALE = "M"
-FEMALE = "F"
-GENDER_CHOICES = ((MALE, "Male"), (FEMALE, "Female"))
+from . import Gender
 
 
-class CustomerHealthProfile(models.Model):
-    date_of_birth = models.DateField(
-        db_index=True, auto_now_add=False, null=False, blank=False
-    )
-    gender_assigned_at_birth = models.CharField(max_length=1, choices=GENDER_CHOICES)
+class Patient(models.Model):
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="+",
         on_delete=models.CASCADE,
     )
-    uuid = models.UUIDField(default=uuid4, unique=True)
+    date_of_birth = models.DateField(
+        db_index=True, auto_now_add=False, null=False, blank=False
+    )
+    gender_assigned_at_birth = models.CharField(max_length=1, choices=Gender.CHOICES)
 
-    class Meta:
-        ordering = ("date_of_birth",)
 
-
-class CustomerInsurance(models.Model):
+class PatientInsurance(models.Model):
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="+",
@@ -47,7 +41,7 @@ class CustomerInsurance(models.Model):
         ordering = ("effective_date",)
 
 
-class CustomerPrescription(models.Model):
+class PatientPrescription(models.Model):
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="+",
@@ -55,4 +49,6 @@ class CustomerPrescription(models.Model):
     )
     uuid = models.UUIDField(default=uuid4, unique=True)
     prescription_number = models.CharField(max_length=25, null=False, blank=False)
-    
+
+    class Meta:
+        ordering = ("-prescription_number",)
