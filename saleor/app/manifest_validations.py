@@ -1,10 +1,15 @@
+import json
 import logging
 from collections import defaultdict
+from decimal import Decimal
+from functools import partial
 from typing import Dict, Iterable, List, Optional
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from pydantic import BaseModel
+from pydantic import ValidationError as PydanticValidationError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
@@ -26,6 +31,88 @@ from .validators import AppURLValidator, brand_validator
 logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
+
+
+def to_camel(snake_str: str) -> str:
+    components = snake_str.split("_")
+    return components[0] + "".join(word.capitalize() for word in components[1:])
+
+
+def translate_validation_error(
+    validation_error: PydanticValidationError,
+) -> ValidationError:
+    errors: T_ERRORS = defaultdict(list)
+    if isinstance(validation_error.model, JsonBaseModel):
+        error_enum = validation_error.model.Config.error_enum
+        for error in validation_error.errors():
+            field_name = ".".join([str(x) for x in error["loc"]])
+            if error["type"] == "value_error.missing":
+                code = error_enum.REQUIRED.value
+            else:
+                code = error_enum.INVALID.value
+            errors[field_name].append(ValidationError(error["msg"], code=code))
+    return ValidationError(errors)
+
+
+class JsonBaseModel(BaseModel):
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True
+        error_enum = AppErrorCode
+        json_loads = partial(json.loads, parse_float=Decimal)
+
+    def __init__(self, *args, **kwargs):
+        try:
+            super().__init__(*args, **kwargs)
+        except PydanticValidationError as error:
+            raise translate_validation_error(error)
+
+
+# class ManifestWebhook(JsonBaseModel):
+#     name: str
+#     target_url: AnyHttpUrl
+#     query: str
+#     is_active: bool = True
+#     async_events: List[str] = []
+#     sync_events: List[str] = []
+#     custom_headers: Dict[str] = {}
+#
+#
+# class ManifestExtension(JsonBaseModel):
+#     target: str = AppExtensionTarget.POPUP
+#     mount: str
+#     label: Optional[str] = None
+#     permissions: List[str]
+#     url: AnyHttpUrl
+
+
+class Manifest(JsonBaseModel):
+    id: int
+    name: str
+    value: bool
+    # version: str
+    # token_target_url: AnyHttpUrl
+
+    # permissions: List[Permission] = []
+    # required_saleor_version: Optional[str] = None
+    # author: Optional[str] = None
+    # about: Optional[str] = None
+    #
+    # app_url: Optional[AnyHttpUrl] = None
+    # configuration_url: Optional[AnyHttpUrl] = None
+    #
+    # data_privacy: Optional[str] = None
+    # data_privacy_url: Optional[AnyHttpUrl] = None
+    # homepage_url: Optional[AnyHttpUrl] = None
+    # support_url: Optional[AnyHttpUrl] = None
+
+
+class DecimalTest(JsonBaseModel):
+    price: Decimal
+
+
+class FloatTest(JsonBaseModel):
+    price: float
 
 
 class RequiredSaleorVersionSpec(NpmSpec):
