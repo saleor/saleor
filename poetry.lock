@@ -1139,6 +1139,22 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
+name = "django-allow-cidr"
+version = "0.6.0"
+description = "A Django Middleware to enable use of CIDR IP ranges in ALLOWED_HOSTS."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-allow-cidr-0.6.0.tar.gz", hash = "sha256:24b71f70257e97bab9fdb5ad8342c96eeea1d45bc06a36332978574252219401"},
+    {file = "django_allow_cidr-0.6.0-py2.py3-none-any.whl", hash = "sha256:6709f4581dfd2a00476a134741a738a7f67714ec4f8596c55b22cf3b2ac5a12e"},
+]
+
+[package.dependencies]
+Django = ">=2.2"
+packaging = "*"
+
+[[package]]
 name = "django-appconf"
 version = "1.0.5"
 description = "A helper class for handling configuration defaults of packaged apps gracefully."
@@ -2998,7 +3014,7 @@ tests = ["Sphinx", "doubles", "flake8", "flake8-quotes", "gevent", "mock", "pyte
 name = "packaging"
 version = "23.0"
 description = "Core utilities for Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -5203,4 +5219,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "f3bae936f122ed323b218bf717be937224bcee33ed02e58f86c37aa5e795ab41"
+content-hash = "b14ede1c65ffcf304b242dc916a5fc3bce86fad3354217d40c3171dfd66c9261"

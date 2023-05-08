@@ -224,6 +224,7 @@ JWT_MANAGER_PATH = os.environ.get(
 )
 
 MIDDLEWARE = [
+    "allow_cidr.middleware.AllowCIDRMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.google_analytics",
@@ -451,6 +452,8 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_CIDR_NETS = get_list(os.environ.get("ALLOWED_CIDR_NETS"))
+
 ALLOWED_GRAPHQL_ORIGINS: List[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 )
