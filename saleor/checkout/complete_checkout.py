@@ -1324,8 +1324,7 @@ def complete_checkout(
     # Assign checkout user to an existing user if checkout email matches a valid customer account
     if user is None and checkout_info.checkout.email:
         existing_user = retrieve_user_by_email(checkout_info.checkout.email)
-        user = existing_user if existing_user else user
-        checkout_info.user = user
+        checkout_info.user = existing_user if existing_user else None
 
     transactions = checkout_info.checkout.payment_transactions.all()
     fetch_checkout_data(checkout_info, manager, lines, discounts=discounts)
