@@ -4,7 +4,7 @@ from ....celeryconf import app
 from ... import OrderStatus
 from ...models import Order
 
-# Batch size of size 5000 is about 3MB memory usage in task
+# Batch size of size 5000 is about 5MB memory usage in task
 BATCH_SIZE = 5000
 
 
