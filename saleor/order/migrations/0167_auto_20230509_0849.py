@@ -17,16 +17,6 @@ class Migration(migrations.Migration):
                     name="number",
                     field=models.IntegerField(blank=True, null=True, unique=True),
                 ),
-                migrations.AlterField(
-                    model_name="order",
-                    name="number_as_str",
-                    field=models.CharField(
-                        default=saleor.order.models.get_order_number,
-                        editable=False,
-                        max_length=64,
-                        unique=True,
-                    ),
-                ),
             ],
             state_operations=[
                 migrations.RemoveField(
@@ -34,5 +24,22 @@ class Migration(migrations.Migration):
                     name="number",
                 ),
             ],
-        )
+        ),
+        migrations.AlterField(
+            model_name="order",
+            name="number_as_str",
+            field=models.CharField(
+                default=saleor.order.models.get_order_number,
+                editable=False,
+                max_length=64,
+                unique=True,
+            ),
+        ),
+        migrations.AlterModelOptions(
+            name="order",
+            options={
+                "ordering": ("-number_as_str",),
+                "permissions": (("manage_orders", "Manage orders."),),
+            },
+        ),
     ]

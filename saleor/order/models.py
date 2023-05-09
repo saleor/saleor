@@ -106,7 +106,6 @@ def get_order_number():
 
 class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    number = models.IntegerField(unique=True, null=True, blank=True)
     number_as_str = models.CharField(
         unique=True, default=get_order_number, max_length=64, editable=False
     )
@@ -326,7 +325,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     objects = OrderManager()
 
     class Meta:
-        ordering = ("-number",)
+        ordering = ("-number_as_str",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
