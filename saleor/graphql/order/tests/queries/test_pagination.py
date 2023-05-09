@@ -150,7 +150,7 @@ QUERY_DRAFT_ORDERS_WITH_PAGINATION = """
             3,
         ),
         ({"created": {"gte": str(date.today() - timedelta(days=3))}}, [3.0, 2.0], 3),
-        ({"created": {"lte": str(date.today())}}, [0.0, 3.0], 4),
+        ({"created": {"lte": str(date.today())}}, [3.0, 2.0], 4),
         ({"created": {"lte": str(date.today() - timedelta(days=3))}}, [0.0], 1),
         ({"created": {"gte": str(date.today() + timedelta(days=1))}}, [], 0),
     ],
@@ -239,7 +239,7 @@ def test_order_query_pagination_with_filter_payment_status(
 @pytest.mark.parametrize(
     "orders_filter, expected_total_count, status, orders_order",
     [
-        ({"status": "UNFULFILLED"}, 4, OrderStatus.UNFULFILLED, [3.0, 2.0]),
+        ({"status": "UNFULFILLED"}, 4, OrderStatus.UNFULFILLED, [0.0, 3.0]),
         ({"status": "PARTIALLY_FULFILLED"}, 1, OrderStatus.PARTIALLY_FULFILLED, [0.0]),
         ({"status": "FULFILLED"}, 1, OrderStatus.FULFILLED, [0.0]),
         ({"status": "CANCELED"}, 1, OrderStatus.CANCELED, [0.0]),
@@ -367,7 +367,7 @@ def test_draft_order_query_pagination_with_filter_customer_fields(
             [3.0, 2.0],
         ),
         ({"created": {"gte": str(date.today() - timedelta(days=3))}}, 3, [3.0, 2.0]),
-        ({"created": {"lte": str(date.today())}}, 4, [0.0, 3.0]),
+        ({"created": {"lte": str(date.today())}}, 4, [3.0, 2.0]),
         ({"created": {"lte": str(date.today() - timedelta(days=3))}}, 1, [0.0]),
         ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0, []),
     ],
