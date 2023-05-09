@@ -140,7 +140,7 @@ def get_nodes(
 
     nodes_pk_list = [str(node.pk) for node in nodes]
     if is_object_type_with_double_id:
-        old_id_field = "number" if str(graphene_type) == "Order" else "old_id"
+        old_id_field = "number_as_str" if str(graphene_type) == "Order" else "old_id"
         nodes_pk_list.extend([str(getattr(node, old_id_field)) for node in nodes])
     for pk in pks:
         assert pk in nodes_pk_list, "There is no node of type {} with pk {}".format(
@@ -160,11 +160,13 @@ def _get_node_for_types_with_double_id(qs, pks, graphene_type):
         except ValueError:
             old_pks.append(pk)
     if is_order_type:
-        lookup = Q(id__in=uuid_pks) | (Q(use_old_id=True) & Q(number__in=old_pks))
+        lookup = Q(id__in=uuid_pks) | (
+            Q(use_old_id=True) & Q(number_as_str__in=old_pks)
+        )
     else:
         lookup = Q(id__in=uuid_pks) | (Q(old_id__isnull=False) & Q(old_id__in=old_pks))
     nodes = list(qs.filter(lookup))
-    old_id_field = "number" if is_order_type else "old_id"
+    old_id_field = "number_as_str" if is_order_type else "old_id"
     return sorted(
         nodes,
         key=lambda e: pks.index(

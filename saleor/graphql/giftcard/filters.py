@@ -157,7 +157,7 @@ def _get_order_pks(order_ids: List[str]):
             old_pks.append(pk)
 
     return order_models.Order.objects.filter(
-        Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks))
+        Q(id__in=pks) | (Q(use_old_id=True) & Q(number_as_str__in=old_pks))
     ).values_list("id", flat=True)
 
 

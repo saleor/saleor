@@ -24,7 +24,6 @@ def test_delete_draft_orders(
     order_2.save()
 
     query = DRAFT_ORDER_BULK_DELETE
-
     variables = {
         "ids": [graphene.Node.to_global_id("Order", order.id) for order in order_list]
     }

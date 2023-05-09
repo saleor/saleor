@@ -325,7 +325,7 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     objects = OrderManager()
 
     class Meta:
-        ordering = ("-number_as_str",)
+        ordering = ("-updated_at",)
         permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
         indexes = [
             *ModelWithMetadata.Meta.indexes,

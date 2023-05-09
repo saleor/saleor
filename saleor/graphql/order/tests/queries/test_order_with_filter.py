@@ -1249,7 +1249,7 @@ def test_order_query_with_filter_not_allow_numbers_and_ids_together(
     # given
     variables = {
         "filter": {
-            "numbers": [str(orders[0].number), str(orders[2].number)],
+            "numbers": [str(orders[0].number_as_str), str(orders[2].number_as_str)],
             "ids": [graphene.Node.to_global_id("Order", orders[1].id)],
         },
     }

@@ -240,7 +240,7 @@ class BaseMutation(graphene.Mutation):
                     UUID(str(pk))
                 except ValueError:
                     lookup = (
-                        Q(number=pk) & Q(use_old_id=True)
+                        Q(number_as_str=pk) & Q(use_old_id=True)
                         if str(graphene_type) == "Order"
                         else Q(old_id=pk) & Q(old_id__isnull=False)
                     )

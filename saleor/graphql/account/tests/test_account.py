@@ -515,7 +515,9 @@ def test_query_customer_user_with_orders_restricted_access_to_channel(
     content = get_graphql_content(response)
     user = content["data"]["user"]
     assert len(user["orders"]["edges"]) == 1
-    assert user["orders"]["edges"][0]["node"]["number"] == str(order_unconfirmed.number)
+    assert user["orders"]["edges"][0]["node"]["number"] == str(
+        order_unconfirmed.number_as_str
+    )
 
 
 def test_query_staff_user(

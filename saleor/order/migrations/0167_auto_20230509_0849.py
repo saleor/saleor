@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name="order",
             options={
-                "ordering": ("-number_as_str",),
+                "ordering": ("-updated_at",),
                 "permissions": (("manage_orders", "Manage orders."),),
             },
         ),

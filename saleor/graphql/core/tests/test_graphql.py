@@ -280,7 +280,7 @@ def test_get_nodes_for_order_with_int_id(order_list):
     global_ids = [to_global_id("Order", order.number_as_str) for order in order_list]
 
     # Make sure function works even if duplicated ids are provided
-    global_ids.append(to_global_id("Order", order_list[0].number))
+    global_ids.append(to_global_id("Order", order_list[0].number_as_str))
 
     # when
     orders = get_nodes(global_ids, Order)
@@ -325,7 +325,7 @@ def test_get_nodes_for_order_with_uuid_and_int_id(order_list):
     # given
     order_models.Order.objects.update(use_old_id=True)
     global_ids = [to_global_id("Order", order.pk) for order in order_list[:-1]]
-    global_ids.append(to_global_id("Order", order_list[-1].number))
+    global_ids.append(to_global_id("Order", order_list[-1].number_as_str))
 
     # when
     orders = get_nodes(global_ids, Order)

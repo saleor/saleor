@@ -103,7 +103,7 @@ class ModelObjectType(Generic[MT], BaseObjectType):
                 UUID(str(id))
             except ValueError:
                 lookup = (
-                    Q(number=id) & Q(use_old_id=True)
+                    Q(number_as_str=id) & Q(use_old_id=True)
                     if type_name == "Order"
                     else Q(old_id=id) & Q(old_id__isnull=False)
                 )
