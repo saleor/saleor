@@ -533,9 +533,8 @@ def test_checkout_complete_by_app(
     assert not data["errors"]
 
     mocked_complete_checkout.assert_called_once_with(
+        checkout_pk=ANY,
         manager=ANY,
-        checkout_info=ANY,
-        lines=ANY,
         payment_data=ANY,
         store_source=ANY,
         discounts=ANY,
@@ -598,9 +597,8 @@ def test_checkout_complete_by_app_with_missing_permission(
     assert not data["errors"]
 
     mocked_complete_checkout.assert_called_once_with(
+        checkout_pk=ANY,
         manager=ANY,
-        checkout_info=ANY,
-        lines=ANY,
         payment_data=ANY,
         store_source=ANY,
         discounts=ANY,
@@ -3916,10 +3914,8 @@ def test_checkout_complete_line_deleted_in_the_meantime(
 
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    errors = data["errors"]
 
-    # after removing the line, shipping method become inactive
-    assert len(errors) == 1
-    assert errors[0]["code"] == CheckoutErrorCode.INVALID_SHIPPING_METHOD.name
-    assert errors[0]["field"] == "shippingMethod"
-    assert Order.objects.count() == orders_count
+    assert data["order"]
+    assert not data["errors"]
+    assert Order.objects.count() == orders_count + 1
+    assert not Checkout.objects.filter(pk=checkout.pk).exists()

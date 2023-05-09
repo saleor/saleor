@@ -1215,12 +1215,9 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 
     # Place checkout
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order, action_required, action_data = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1330,14 +1327,11 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     voucher.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     order, action_required, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1385,14 +1379,11 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     order, _, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1437,8 +1428,6 @@ def test_complete_checkout_when_checkout_doesnt_exists(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     order.checkout_token = checkout.token
     order.save()
@@ -1446,9 +1435,8 @@ def test_complete_checkout_when_checkout_doesnt_exists(
 
     # when
     order_from_checkout, _, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1491,8 +1479,6 @@ def test_complete_checkout_checkout_was_deleted_before_completing(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     def convert_checkout_to_order(*args, **kwargs):
@@ -1504,9 +1490,8 @@ def test_complete_checkout_checkout_was_deleted_before_completing(
         "saleor.checkout.complete_checkout._process_payment", convert_checkout_to_order
     ):
         order_from_checkout, action_required, _ = complete_checkout(
-            checkout_info=checkout_info,
+            checkout_pk=checkout.pk,
             manager=manager,
-            lines=lines,
             payment_data={},
             store_source=False,
             discounts=None,
@@ -1761,15 +1746,12 @@ def test_complete_checkout_invalid_shipping_method(
     voucher.apply_once_per_customer = True
     voucher.save()
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     with pytest.raises(ValidationError):
         order, action_required, _ = complete_checkout(
-            checkout_info=checkout_info,
+            checkout_pk=checkout.pk,
             manager=manager,
-            lines=lines,
             payment_data={},
             store_source=False,
             discounts=None,
