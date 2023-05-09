@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
+- Replace `number` integer field with newly added `number_as_str` field to `Order` model - #12776 by @zedzior
 
 # 3.13.0
 
