@@ -79,7 +79,7 @@ class OrderMutation(BaseMutation):
         info.context.auth_token = None
 
         order = cls.get_node_or_error(info, id, only_type=order_types.Order)
-        return OrderMutation(number=order.number)
+        return OrderMutation(number=order.number_as_str)
 
 
 class Mutations(graphene.ObjectType):
@@ -173,7 +173,7 @@ def test_order_mutation_resolve_uuid_id(order, schema_context, channel_USD):
         TEST_ORDER_MUTATION, variables=variables, context_value=schema_context
     )
     assert not result.errors
-    assert result.data["testOrderMutation"]["number"] == str(order.number)
+    assert result.data["testOrderMutation"]["number"] == str(order.number_as_str)
 
 
 def test_order_mutation_for_old_int_id(order, schema_context, channel_USD):
@@ -182,13 +182,13 @@ def test_order_mutation_for_old_int_id(order, schema_context, channel_USD):
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    order_id = graphene.Node.to_global_id("Order", order.number)
+    order_id = graphene.Node.to_global_id("Order", order.number_as_str)
     variables = {"id": order_id, "channel": channel_USD.slug}
     result = schema.execute(
         TEST_ORDER_MUTATION, variables=variables, context_value=schema_context
     )
     assert not result.errors
-    assert result.data["testOrderMutation"]["number"] == str(order.number)
+    assert result.data["testOrderMutation"]["number"] == str(order.number_as_str)
 
 
 def test_mutation_custom_errors_default_value(product, schema_context, channel_USD):
@@ -381,7 +381,7 @@ def test_base_mutation_get_node_by_pk_with_order_qs_and_old_int_id(order):
 
     # when
     node = BaseMutation._get_node_by_pk(
-        None, order_types.Order, order.number, qs=Order.objects.all()
+        None, order_types.Order, order.number_as_str, qs=Order.objects.all()
     )
 
     # then
@@ -407,7 +407,7 @@ def test_base_mutation_get_node_by_pk_with_order_qs_and_int_id_use_old_id_set_to
 
     # when
     node = BaseMutation._get_node_by_pk(
-        None, order_types.Order, order.number, qs=Order.objects.all()
+        None, order_types.Order, order.number_as_str, qs=Order.objects.all()
     )
 
     # then

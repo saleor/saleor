@@ -101,12 +101,12 @@ def get_order_number():
     with connection.cursor() as cursor:
         cursor.execute("SELECT nextval('order_order_number_seq')")
         result = cursor.fetchone()
-        return result[0]
+        return str(result[0])
 
 
 class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    number = models.IntegerField(unique=True, null=True)
+    number = models.IntegerField(unique=True, null=True, blank=True)
     number_as_str = models.CharField(
         unique=True, default=get_order_number, max_length=64, editable=False
     )
@@ -744,7 +744,7 @@ class Fulfillment(ModelWithMetadata):
 
     @property
     def composed_id(self):
-        return f"{self.order.number}-{self.fulfillment_order}"
+        return f"{self.order.number_as_str}-{self.fulfillment_order}"
 
     def can_edit(self):
         return self.status != FulfillmentStatus.CANCELED

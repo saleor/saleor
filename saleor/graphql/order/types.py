@@ -431,7 +431,7 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     @staticmethod
     def resolve_order_number(root: models.OrderEvent, info):
         def _resolve_order_number(order: models.Order):
-            return order.number
+            return order.number_as_str
 
         return (
             OrderByIdLoader(info.context)
@@ -1626,7 +1626,7 @@ class Order(ModelObjectType[models.Order]):
 
     @staticmethod
     def resolve_number(root: models.Order, _info):
-        return str(root.number)
+        return str(root.number_as_str)
 
     @staticmethod
     @traced_resolver

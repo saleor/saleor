@@ -773,7 +773,7 @@ def test_orders_query_with_filter_search_by_number(
     permission_group_manage_orders,
 ):
     order = order_with_search_vector_value
-    variables = {"filter": {"search": order.number}}
+    variables = {"filter": {"search": order.number_as_str}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
@@ -787,7 +787,7 @@ def test_orders_query_with_filter_search_by_number_with_hash(
     permission_group_manage_orders,
 ):
     order = order_with_search_vector_value
-    variables = {"filter": {"search": f"#{order.number}"}}
+    variables = {"filter": {"search": f"#{order.number_as_str}"}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
@@ -904,7 +904,9 @@ def test_orders_query_with_filter_by_old_orders_id(
             ),
         ]
     )
-    orders_ids = [graphene.Node.to_global_id("Order", order.number) for order in orders]
+    orders_ids = [
+        graphene.Node.to_global_id("Order", order.number_as_str) for order in orders
+    ]
     variables = {"filter": {"ids": orders_ids}}
 
     # when
@@ -943,7 +945,7 @@ def test_orders_query_with_filter_by_old_and_new_orders_id(
         ]
     )
     orders_ids = [
-        graphene.Node.to_global_id("Order", orders[0].number),
+        graphene.Node.to_global_id("Order", orders[0].number_as_str),
         graphene.Node.to_global_id("Order", orders[1].pk),
     ]
     variables = {"filter": {"ids": orders_ids}}
@@ -1218,7 +1220,7 @@ def test_order_query_with_filter_numbers(
     # given
     variables = {
         "filter": {
-            "numbers": [str(orders[0].number), str(orders[2].number)],
+            "numbers": [str(orders[0].number_as_str), str(orders[2].number_as_str)],
         },
     }
     permission_group_manage_orders.user_set.add(staff_api_client.user)

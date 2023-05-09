@@ -574,7 +574,11 @@ def test_orders_query_pagination_with_filter_search_by_number(
 ):
     order = order_with_search_vector_value
     page_size = 2
-    variables = {"first": page_size, "after": None, "filter": {"search": order.number}}
+    variables = {
+        "first": page_size,
+        "after": None,
+        "filter": {"search": order.number_as_str},
+    }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
@@ -592,7 +596,7 @@ def test_draft_orders_query_pagination_with_filter_search_by_number(
     variables = {
         "first": page_size,
         "after": None,
-        "filter": {"search": draft_order.number},
+        "filter": {"search": draft_order.number_as_str},
     }
     permission_group_manage_orders.user_set.add(staff_api_client.user)
 
@@ -676,5 +680,5 @@ def test_query_orders_pagination_with_sort(
 
     for order, order_number in enumerate(result_order):
         assert orders[order]["node"]["number"] == str(
-            created_orders[order_number].number
+            created_orders[order_number].number_as_str
         )

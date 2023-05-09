@@ -136,7 +136,7 @@ def orders_for_benchmarks(
         transactions.extend(new_transactions)
         events.extend(new_events)
         lines.extend(new_lines)
-        fulfillment = Fulfillment(order=order, fulfillment_order=order.number)
+        fulfillment = Fulfillment(order=order, fulfillment_order=order.number_as_str)
         fulfillments.append(fulfillment)
 
         fulfillment_lines.append(

@@ -7,7 +7,7 @@ from ..core.types import BaseEnum, SortInputObjectType
 
 
 class OrderSortField(BaseEnum):
-    NUMBER = ["number"]
+    NUMBER = ["number_as_str"]
     RANK = ["search_rank", "id"]
     CREATION_DATE = ["created_at", "status", "pk"]
     CREATED_AT = ["created_at", "status", "pk"]

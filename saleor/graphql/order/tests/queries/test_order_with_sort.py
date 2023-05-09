@@ -89,7 +89,7 @@ def test_query_orders_with_sort(
 
     for order, order_number in enumerate(result_order):
         assert orders[order]["node"]["number"] == str(
-            created_orders[order_number].number
+            created_orders[order_number].number_as_str
         )
 
 

@@ -77,7 +77,7 @@ def test_query_draft_orders_by_user_with_restricted_access_to_channels(
 
     assert len(content["data"]["draftOrders"]["edges"]) == 1
     assert content["data"]["draftOrders"]["edges"][0]["node"]["number"] == str(
-        draft_orders_in_different_channels[0].number
+        draft_orders_in_different_channels[0].number_as_str
     )
 
 

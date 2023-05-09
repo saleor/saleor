@@ -474,7 +474,7 @@ def test_query_gift_card_events(
     assert events_data[1]["message"] == parameters["message"]
     assert events_data[1]["email"] == parameters["email"]
     assert events_data[1]["orderId"] == graphene.Node.to_global_id("Order", order.pk)
-    assert events_data[1]["orderNumber"] == str(order.number)
+    assert events_data[1]["orderNumber"] == str(order.number_as_str)
     assert events_data[1]["tags"] == parameters["tags"]
     assert events_data[1]["oldTags"] == parameters["old_tags"]
     assert (

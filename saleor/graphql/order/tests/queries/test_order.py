@@ -298,7 +298,7 @@ def test_order_query(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["number"] == str(order.number)
+    assert order_data["number"] == str(order.number_as_str)
     assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -450,7 +450,7 @@ def test_order_query_total_price_is_0(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["number"] == str(order.number)
+    assert order_data["number"] == str(order.number_as_str)
     assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -966,7 +966,7 @@ def test_order_query_in_pln_channel(
 
     # then
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert order_data["number"] == str(order.number)
+    assert order_data["number"] == str(order.number_as_str)
     assert order_data["channel"]["slug"] == order.channel.slug
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -1029,7 +1029,7 @@ def test_non_staff_user_can_see_his_order(user_api_client, order):
     # then
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
-    assert order_data["number"] == str(order.number)
+    assert order_data["number"] == str(order.number_as_str)
 
 
 def test_query_order_as_app(app_api_client, order):
@@ -1050,14 +1050,14 @@ def test_staff_query_order_by_old_id(staff_api_client, order):
     # given
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
     content = get_graphql_content_from_response(response)
 
     # then
-    assert content["data"]["order"]["number"] == str(order.number)
+    assert content["data"]["order"]["number"] == str(order.number_as_str)
 
 
 def test_staff_query_order_by_old_id_for_order_with_use_old_id_set_to_false(
@@ -1065,7 +1065,7 @@ def test_staff_query_order_by_old_id_for_order_with_use_old_id_set_to_false(
 ):
     # given
     assert not order.use_old_id
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = staff_api_client.post_graphql(QUERY_ORDER_BY_ID, variables)
@@ -1127,7 +1127,7 @@ def test_query_order_by_external_reference(user_api_client, order):
 
     # then
     data = content["data"]["order"]
-    assert data["number"] == str(order.number)
+    assert data["number"] == str(order.number_as_str)
     assert data["externalReference"] == ext_ref
     assert data["id"] == graphene.Node.to_global_id("Order", order.id)
 
@@ -1237,7 +1237,7 @@ def test_query_order_fields_by_old_id_staff_no_perms(order, staff_api_client):
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = staff_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
@@ -1253,7 +1253,7 @@ def test_query_order_fields_by_old_id_by_order_owner(order, user_api_client):
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = user_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
@@ -1281,7 +1281,7 @@ def test_query_order_fields_by_old_id_staff_with_perm(
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = staff_api_client.post_graphql(
@@ -1311,7 +1311,7 @@ def test_query_order_fields_by_old_id_app_with_perm(
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = app_api_client.post_graphql(
@@ -1369,7 +1369,7 @@ def test_query_order_fields_by_old_id_app_no_perm(order, app_api_client):
     order.use_old_id = True
     order.save(update_fields=["use_old_id"])
 
-    variables = {"id": graphene.Node.to_global_id("Order", order.number)}
+    variables = {"id": graphene.Node.to_global_id("Order", order.number_as_str)}
 
     # when
     response = app_api_client.post_graphql(QUERY_ORDER_FIELDS_BY_ID, variables)
@@ -1518,7 +1518,7 @@ def test_query_orders_by_user_with_restricted_access_to_channels(
     # then
     assert len(content["data"]["orders"]["edges"]) == 1
     assert content["data"]["orders"]["edges"][0]["node"]["number"] == str(
-        order_list[2].number
+        order_list[2].number_as_str
     )
 
 

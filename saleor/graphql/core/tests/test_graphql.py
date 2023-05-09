@@ -277,7 +277,7 @@ def test_get_nodes_for_order_with_int_id(order_list):
     order_models.Order.objects.update(use_old_id=True)
 
     # given
-    global_ids = [to_global_id("Order", order.number) for order in order_list]
+    global_ids = [to_global_id("Order", order.number_as_str) for order in order_list]
 
     # Make sure function works even if duplicated ids are provided
     global_ids.append(to_global_id("Order", order_list[0].number))
@@ -309,7 +309,7 @@ def test_get_nodes_for_order_with_int_id_and_use_old_id_set_to_false(order_list)
     """Ensure that `get_nodes` does not return nodes, when old id is used
     for orders with `use_old_id` flag set to False."""
     # given
-    global_ids = [to_global_id("Order", order.number) for order in order_list]
+    global_ids = [to_global_id("Order", order.number_as_str) for order in order_list]
 
     # Make sure function works even if duplicated ids are provided
     global_ids.append(to_global_id("Order", order_list[0].pk))

@@ -164,13 +164,15 @@ def filter_order_by_id(qs, _, value):
             pks.append(UUID(pk))
         except ValueError:
             old_pks.append(pk)
-    return qs.filter(Q(id__in=pks) | (Q(use_old_id=True) & Q(number__in=old_pks)))
+    return qs.filter(
+        Q(id__in=pks) | (Q(use_old_id=True) & Q(number_as_str__in=old_pks))
+    )
 
 
 def filter_by_order_number(qs, _, values):
     if not values:
         return qs
-    return qs.filter(number__in=values)
+    return qs.filter(number_as_str__in=values)
 
 
 class DraftOrderFilter(MetadataFilterBase):

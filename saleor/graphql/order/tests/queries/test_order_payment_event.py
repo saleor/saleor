@@ -67,7 +67,7 @@ def test_payment_information_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["app"] is None
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.number)
+    assert data["orderNumber"] == str(order.number_as_str)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway
 
@@ -102,6 +102,6 @@ def test_payment_information_order_events_query_for_app(
     assert data["lines"] is None
     assert data["app"]["name"] == app.name
     assert data["type"] == "PAYMENT_CAPTURED"
-    assert data["orderNumber"] == str(order.number)
+    assert data["orderNumber"] == str(order.number_as_str)
     assert data["paymentId"] == payment_dummy.token
     assert data["paymentGateway"] == payment_dummy.gateway

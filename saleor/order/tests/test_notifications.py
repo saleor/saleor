@@ -36,7 +36,7 @@ def test_get_custom_order_payload(order, site_settings):
     assert expected_payload == {
         "order": {
             "id": to_global_id_or_none(order),
-            "number": order.number,
+            "number": order.number_as_str,
             "private_metadata": {},
             "metadata": order.metadata,
             "status": "unfulfilled",
@@ -243,7 +243,7 @@ def test_get_default_order_payload(order_line):
         ],
         "channel_slug": order.channel.slug,
         "id": to_global_id_or_none(order),
-        "number": order.number,
+        "number": order.number_as_str,
         "token": order.id,
         "created": str(order.created_at),
         "display_gross_prices": order.display_gross_prices,

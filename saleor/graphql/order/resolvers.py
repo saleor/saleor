@@ -88,7 +88,7 @@ def resolve_order(info, id):
         id = UUID(id)
         lookup = Q(id=id)
     except ValueError:
-        lookup = Q(number=id) & Q(use_old_id=True)
+        lookup = Q(number_as_str=id) & Q(use_old_id=True)
     database_connection_name = get_database_connection_name(info.context)
     return models.Order.objects.using(database_connection_name).filter(lookup).first()
 

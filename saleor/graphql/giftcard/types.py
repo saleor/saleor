@@ -160,7 +160,7 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     @staticmethod
     def resolve_order_number(root: models.GiftCardEvent, info):
         def _resolve_order_number(order):
-            return order.number
+            return order.number_as_str
 
         if not root.order_id:
             return None

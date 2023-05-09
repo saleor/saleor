@@ -45,7 +45,7 @@ def test_staff_query_order_by_id_for_federation(
         {
             "__typename": "Order",
             "id": order_id,
-            "number": str(fulfilled_order.number),
+            "number": str(fulfilled_order.number_as_str),
         },
     ]
 
@@ -116,12 +116,12 @@ def test_customer_query_own_orders_for_federation(
         {
             "__typename": "Order",
             "id": order_unfulfilled_id,
-            "number": str(order_unfulfilled.number),
+            "number": str(order_unfulfilled.number_as_str),
         },
         {
             "__typename": "Order",
             "id": order_unconfirmed_id,
-            "number": str(order_unconfirmed.number),
+            "number": str(order_unconfirmed.number_as_str),
         },
         # Users without permission cannot see draft orders
         None,

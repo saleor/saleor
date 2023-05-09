@@ -91,7 +91,7 @@ def test_nested_order_events_query(
     assert data["user"]["email"] == staff_user.email
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.number)
+    assert data["orderNumber"] == str(fulfilled_order.number_as_str)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -150,7 +150,7 @@ def test_nested_order_events_query_for_app(
     assert data["app"]["name"] == app.name
     assert data["type"] == "FULFILLMENT_FULFILLED_ITEMS"
     assert data["date"] == event.date.isoformat()
-    assert data["orderNumber"] == str(fulfilled_order.number)
+    assert data["orderNumber"] == str(fulfilled_order.number_as_str)
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
@@ -192,7 +192,7 @@ def test_related_order_events_query(
 ):
     new_order = deepcopy(order)
     new_order.id = None
-    new_order.number = get_order_number()
+    new_order.number_as_str = get_order_number()
     new_order.save()
 
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
@@ -217,7 +217,7 @@ def test_related_order_events_query_for_app(
 ):
     new_order = deepcopy(order)
     new_order.id = None
-    new_order.number = get_order_number()
+    new_order.number_as_str = get_order_number()
     new_order.save()
 
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
@@ -243,12 +243,12 @@ def test_related_order_eventes_old_order_id(
     # given
     new_order = deepcopy(order)
     new_order.id = None
-    new_order.number = get_order_number()
+    new_order.number_as_str = get_order_number()
     new_order.save()
 
     related_order_id = graphene.Node.to_global_id("Order", new_order.id)
 
-    parameters = {"related_order_pk": new_order.number}
+    parameters = {"related_order_pk": new_order.number_as_str}
     OrderEvent.objects.create(
         order=order,
         type=OrderEvents.ORDER_REPLACEMENT_CREATED,

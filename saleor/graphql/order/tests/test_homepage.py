@@ -78,9 +78,9 @@ def test_homepage_events(
                 OrderEvents.PLACED_FROM_DRAFT,
                 OrderEvents.ORDER_FULLY_PAID,
             ]
-        ).values_list("order__number", flat=True)
+        ).values_list("order__number_as_str", flat=True)
     )
-    assert {int(edge["node"]["orderNumber"]) for edge in edges} == expected_numbers
+    assert {edge["node"]["orderNumber"] for edge in edges} == expected_numbers
 
 
 def test_query_homepage_events_by_user_with_restricted_access_to_channels(
@@ -108,7 +108,7 @@ def test_query_homepage_events_by_user_with_restricted_access_to_channels(
         order__channel=channel_USD,
     ).first()
     assert content["data"]["homepageEvents"]["edges"][0]["node"]["orderNumber"] == str(
-        event.order.number
+        event.order.number_as_str
     )
 
 

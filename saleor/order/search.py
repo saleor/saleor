@@ -37,7 +37,9 @@ def prepare_order_search_vector_value(
             "payment_transactions__events",
         )
     search_vectors = [
-        NoValidationSearchVector(Value(str(order.number)), config="simple", weight="A")
+        NoValidationSearchVector(
+            Value(order.number_as_str), config="simple", weight="A"
+        )
     ]
     if order.user_email:
         search_vectors.append(

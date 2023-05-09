@@ -40,7 +40,7 @@ def test_draft_orders_query_with_filter_search_by_number(
     permission_group_manage_orders,
 ):
     update_order_search_vector(draft_order)
-    variables = {"filter": {"search": draft_order.number}}
+    variables = {"filter": {"search": draft_order.number_as_str}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
@@ -54,7 +54,7 @@ def test_draft_orders_query_with_filter_search_by_number_with_hash(
     permission_group_manage_orders,
 ):
     update_order_search_vector(draft_order)
-    variables = {"filter": {"search": f"#{draft_order.number}"}}
+    variables = {"filter": {"search": f"#{draft_order.number_as_str}"}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)

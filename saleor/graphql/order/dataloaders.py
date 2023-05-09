@@ -56,8 +56,8 @@ class OrderByNumberLoader(DataLoader):
     def batch_load(self, keys):
         orders = (
             Order.objects.using(self.database_connection_name)
-            .filter(number__in=keys)
-            .in_bulk(field_name="number")
+            .filter(number_as_str__in=keys)
+            .in_bulk(field_name="number_as_str")
         )
         return [orders.get(number) for number in keys]
 

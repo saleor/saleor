@@ -246,7 +246,7 @@ def generate_invoice_payload(invoice):
         payload["invoice"]["order"] = {"id": order_id}
         payload["order"] = {
             "id": order_id,
-            "number": str(invoice.order.number),
+            "number": str(invoice.order.number_as_str),
             "userEmail": invoice.order.user_email,
             "isPaid": invoice.order.is_fully_paid(),
         }
