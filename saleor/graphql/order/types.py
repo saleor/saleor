@@ -15,7 +15,7 @@ from ...checkout.utils import get_external_shipping_id
 from ...core.anonymize import obfuscate_address, obfuscate_email
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...graphql.checkout.types import DeliveryMethod
 from ...graphql.core.federation.entities import federated_entity
 from ...graphql.core.federation.resolvers import resolve_federation_references
@@ -1331,7 +1331,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return Money(amount=discount.value, currency=discount.currency)
             return None
 
@@ -1348,7 +1348,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.name
             return None
 
@@ -1365,7 +1365,7 @@ class Order(ModelObjectType[models.Order]):
             if not discounts:
                 return None
             for discount in discounts:
-                if discount.type == OrderDiscountType.VOUCHER:
+                if discount.type == DiscountType.VOUCHER:
                     return discount.translated_name
             return None
 

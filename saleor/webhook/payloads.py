@@ -36,7 +36,6 @@ from ..core.utils.anonymization import (
 )
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..discount import VoucherType
-from ..discount.utils import fetch_active_discounts
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..order.utils import get_order_country
@@ -551,8 +550,7 @@ def generate_checkout_payload(
     quantize_price_fields(checkout, checkout_price_fields, checkout.currency)
     user_fields = ("email", "first_name", "last_name")
 
-    discounts = fetch_active_discounts()
-    lines_dict_data = serialize_checkout_lines(checkout, discounts)
+    lines_dict_data = serialize_checkout_lines(checkout)
 
     # todo use the most appropriate warehouse
     warehouse = None
@@ -1260,7 +1258,6 @@ def generate_checkout_payload_for_tax_calculation(
     checkout = checkout_info.checkout
     tax_configuration = checkout_info.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
-    discount_infos = fetch_active_discounts()
 
     serializer = PayloadSerializer()
 
@@ -1270,9 +1267,7 @@ def generate_checkout_payload_for_tax_calculation(
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     total_amount = quantize_price(
-        base_calculations.base_checkout_total(
-            checkout_info, discount_infos, lines
-        ).amount,
+        base_calculations.base_checkout_total(checkout_info, lines).amount,
         checkout.currency,
     )
 
@@ -1322,9 +1317,7 @@ def generate_checkout_payload_for_tax_calculation(
         )
 
     # Prepare line data
-    lines_dict_data = serialize_checkout_lines_for_tax_calculation(
-        checkout_info, lines, discount_infos
-    )
+    lines_dict_data = serialize_checkout_lines_for_tax_calculation(checkout_info, lines)
 
     checkout_data = serializer.serialize(
         [checkout],

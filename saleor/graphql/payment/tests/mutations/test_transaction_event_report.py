@@ -892,10 +892,8 @@ def test_transaction_event_updates_checkout_full_paid_with_charged_amount(
     checkout = checkout_with_items
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
         app=app_api_client.app, checkout_id=checkout.pk
@@ -958,10 +956,8 @@ def test_transaction_event_updates_checkout_full_paid_with_pending_charge_amount
     checkout = checkout_with_items
 
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     psp_reference = "111-abc"
     transaction = transaction_item_generator(
         app=app_api_client.app, checkout_id=checkout.pk

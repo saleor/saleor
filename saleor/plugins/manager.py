@@ -29,7 +29,6 @@ from ..core.models import EventDelivery
 from ..core.payments import PaymentInterface
 from ..core.prices import quantize_price
 from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
-from ..discount import DiscountInfo
 from ..graphql.core import ResolveInfo, SaleorContext
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
@@ -177,7 +176,7 @@ class PluginsManager(PaymentInterface):
         default_value: Any,
         *args,
         channel_slug: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ):
         """Try to run a method with the given name on each declared active plugin."""
         value = default_value
@@ -234,13 +233,11 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         currency = checkout_info.checkout.currency
 
         default_value = base_calculations.checkout_total(
             checkout_info,
-            discounts,
             lines,
         )
         taxed_default_value = TaxedMoney(net=default_value, gross=default_value)
@@ -258,7 +255,6 @@ class PluginsManager(PaymentInterface):
                 checkout_info,
                 lines,
                 address,
-                discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
             currency,
@@ -269,7 +265,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(
@@ -277,7 +272,6 @@ class PluginsManager(PaymentInterface):
                 lines,
                 line_info,
                 address,
-                discounts,
             )
             for line_info in lines
         ]
@@ -293,7 +287,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         price = base_calculations.base_checkout_delivery_price(checkout_info, lines)
         default_value = TaxedMoney(price, price)
@@ -304,7 +297,6 @@ class PluginsManager(PaymentInterface):
                 checkout_info,
                 lines,
                 address,
-                discounts,
                 channel_slug=checkout_info.channel.slug,
             ),
             checkout_info.checkout.currency,
@@ -356,7 +348,6 @@ class PluginsManager(PaymentInterface):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         shipping_price: TaxedMoney,
     ):
         default_value = calculate_tax_rate(shipping_price)
@@ -366,7 +357,6 @@ class PluginsManager(PaymentInterface):
             checkout_info,
             lines,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
@@ -385,19 +375,16 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
         default_value = base_calculations.calculate_base_line_total_price(
             checkout_line_info,
             checkout_info.channel,
-            discounts,
         )
         # apply entire order discount
         default_value = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
-            discounts,
             default_value,
         )
         default_value = quantize_price(default_value, checkout_info.checkout.currency)
@@ -409,7 +396,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
 
@@ -449,18 +435,16 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
     ) -> TaxedMoney:
         quantity = checkout_line_info.line.quantity
         default_value = base_calculations.calculate_base_line_unit_price(
-            checkout_line_info, checkout_info.channel, discounts
+            checkout_line_info, checkout_info.channel
         )
         # apply entire order discount
         total_value = base_calculations.apply_checkout_discount_on_checkout_line(
             checkout_info,
             lines,
             checkout_line_info,
-            discounts,
             default_value * quantity,
         )
         default_taxed_value = TaxedMoney(
@@ -473,7 +457,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         )
         return quantize_price(unit_price, checkout_info.checkout.currency)
@@ -519,7 +502,6 @@ class PluginsManager(PaymentInterface):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable[DiscountInfo],
         unit_price: TaxedMoney,
     ) -> Decimal:
         default_value = calculate_tax_rate(unit_price)
@@ -530,7 +512,6 @@ class PluginsManager(PaymentInterface):
             lines,
             checkout_line_info,
             address,
-            discounts,
             channel_slug=checkout_info.channel.slug,
         ).quantize(Decimal(".0001"))
 
@@ -577,7 +558,6 @@ class PluginsManager(PaymentInterface):
     def preprocess_order_creation(
         self,
         checkout_info: "CheckoutInfo",
-        discounts: Iterable[DiscountInfo],
         lines: Optional[Iterable["CheckoutLineInfo"]] = None,
     ):
         default_value = None
@@ -585,7 +565,6 @@ class PluginsManager(PaymentInterface):
             "preprocess_order_creation",
             default_value,
             checkout_info,
-            discounts,
             lines,
             channel_slug=checkout_info.channel.slug,
         )

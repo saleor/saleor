@@ -79,9 +79,7 @@ def test_create_payment_lines_information_order_with_voucher(payment_dummy):
     assert payment_lines_data.voucher_amount == -voucher_amount
 
 
-def get_expected_checkout_payment_lines(
-    manager, checkout_info, lines, address, discounts
-):
+def get_expected_checkout_payment_lines(manager, checkout_info, lines, address):
     expected_payment_lines = []
 
     for line_info in lines:
@@ -90,7 +88,6 @@ def get_expected_checkout_payment_lines(
             lines,
             line_info,
             address,
-            discounts,
         ).gross.amount
         quantity = line_info.line.quantity
         variant_id = line_info.variant.id
@@ -110,7 +107,6 @@ def get_expected_checkout_payment_lines(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     ).gross.amount
 
     return PaymentLinesData(
@@ -131,11 +127,10 @@ def test_create_payment_lines_information_checkout(payment_dummy, checkout_with_
 
     # then
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
     expected_payment_lines = get_expected_checkout_payment_lines(
-        manager, checkout_info, lines, address, discounts
+        manager, checkout_info, lines, address
     )
 
     assert payment_lines == expected_payment_lines
@@ -156,11 +151,10 @@ def test_create_payment_lines_information_checkout_with_voucher(
 
     # then
     lines, _ = fetch_checkout_lines(checkout_with_items)
-    discounts = []
-    checkout_info = fetch_checkout_info(checkout_with_items, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout_with_items, lines, manager)
     address = checkout_with_items.shipping_address
     expected_payment_lines_data = get_expected_checkout_payment_lines(
-        manager, checkout_info, lines, address, discounts
+        manager, checkout_info, lines, address
     )
 
     expected_payment_lines_data.voucher_amount = -voucher_amount
@@ -1177,7 +1171,6 @@ def test_create_transaction_event_for_transaction_session_success_response(
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1219,7 +1212,6 @@ def test_create_transaction_event_for_transaction_session_success_response_with_
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1265,7 +1257,6 @@ def test_create_transaction_event_for_transaction_session_not_success_events(
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1315,7 +1306,6 @@ def test_create_transaction_event_for_transaction_session_missing_psp_reference(
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1361,7 +1351,6 @@ def test_create_transaction_event_for_transaction_session_missing_reference_with
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1408,7 +1397,6 @@ def test_create_transaction_event_for_transaction_session_call_webhook_order_upd
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 
@@ -1444,7 +1432,6 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
         request_event,
         webhook_app,
         manager=plugins_manager,
-        discounts=[],
         transaction_webhook_response=response,
     )
 

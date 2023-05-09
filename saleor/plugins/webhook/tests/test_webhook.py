@@ -24,12 +24,16 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
+from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
-from ....discount.utils import fetch_catalogue_info
+from ....discount.utils import (
+    create_or_update_discount_objects_from_sale_for_checkout,
+    fetch_catalogue_info,
+)
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
 from ....payment import TransactionAction, TransactionEventType
 from ....payment.interface import TransactionActionData
@@ -931,7 +935,14 @@ def test_checkout_created(
 
 
 def test_checkout_payload_includes_sales(checkout_with_item, sale, discount_info):
-    data = json.loads(generate_checkout_payload(checkout_with_item))
+    # given
+    checkout = checkout_with_item
+    checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+    create_or_update_discount_objects_from_sale_for_checkout(
+        checkout_info, checkout_lines, [discount_info]
+    )
     variant = checkout_with_item.lines.first().variant
     channel_listing = variant.channel_listings.first()
     variant_price_with_sale = variant.get_price(
@@ -948,6 +959,11 @@ def test_checkout_payload_includes_sales(checkout_with_item, sale, discount_info
         channel_listing=channel_listing,
         discounts=[],
     )
+
+    # when
+    data = json.loads(generate_checkout_payload(checkout))
+
+    # then
     assert variant_price_without_sale > variant_price_with_sale
     assert Decimal(data[0]["lines"][0]["base_price"]) == variant_price_with_sale.amount
 

@@ -1,7 +1,6 @@
-from typing import Iterable, Optional, cast
+from typing import cast
 
 from ..core.utils.events import call_event
-from ..discount import DiscountInfo
 from ..payment.models import TransactionItem
 from ..plugins.manager import PluginsManager
 from . import CheckoutChargeStatus
@@ -12,19 +11,15 @@ from .models import Checkout
 
 def transaction_amounts_for_checkout_updated(
     transaction: TransactionItem,
-    discounts: Optional[Iterable["DiscountInfo"]],
     manager: "PluginsManager",
 ):
     if not transaction.checkout_id:
         return
     checkout = cast(Checkout, transaction.checkout)
     lines, _ = fetch_checkout_lines(checkout)
-    discounts = discounts or []
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     previous_charge_status = checkout_info.checkout.charge_status
-    fetch_checkout_data(
-        checkout_info, manager, lines, discounts=discounts, force_status_update=True
-    )
+    fetch_checkout_data(checkout_info, manager, lines, force_status_update=True)
     previous_charge_status_is_fully_paid = previous_charge_status in [
         CheckoutChargeStatus.FULL,
         CheckoutChargeStatus.OVERCHARGED,
