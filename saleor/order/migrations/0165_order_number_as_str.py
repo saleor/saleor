@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="order",
             name="number_as_str",
-            field=models.CharField(max_length=64, null=True, unique=True),
+            field=models.CharField(max_length=64, null=True, blank=True, unique=True),
         ),
     ]

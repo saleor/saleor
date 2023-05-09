@@ -107,7 +107,7 @@ def get_order_number():
 class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
-    number_as_str = models.CharField(unique=True, null=True, max_length=64)
+    number_as_str = models.CharField(unique=True, null=True, blank=True, max_length=64)
     use_old_id = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(default=now, editable=False)
