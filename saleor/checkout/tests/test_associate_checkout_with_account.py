@@ -85,3 +85,4 @@ def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
 
     # assert that the order is associated with the correct user
     assert order.user is None
+    
