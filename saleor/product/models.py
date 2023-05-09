@@ -635,6 +635,17 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     def get_global_id(self):
         return graphene.Node.to_global_id("ProductVariant", self.id)
 
+    def get_base_price(
+        self,
+        channel_listing: "ProductVariantChannelListing",
+        price_override: Optional["Decimal"] = None,
+    ):
+        return (
+            channel_listing.price
+            if price_override is None
+            else Money(price_override, channel_listing.currency)
+        )
+
     def get_price(
         self,
         product: Product,
@@ -644,11 +655,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         discounts: Optional[Iterable[DiscountInfo]] = None,
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
-        price = (
-            channel_listing.price
-            if price_override is None
-            else Money(price_override, channel_listing.currency)
-        )
+        price = self.get_base_price(channel_listing, price_override)
         return calculate_discounted_price(
             product=product,
             price=price,

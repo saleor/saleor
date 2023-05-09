@@ -12,7 +12,7 @@ from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.weight import zero_weight
-from ..discount import OrderDiscountType
+from ..discount import DiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
 from ..discount.utils import (
     apply_discount_to_value,
@@ -110,7 +110,7 @@ def update_voucher_discount(func):
 
 
 def get_voucher_discount_assigned_to_order(order: Order):
-    return order.discounts.filter(type=OrderDiscountType.VOUCHER).first()
+    return order.discounts.filter(type=DiscountType.VOUCHER).first()
 
 
 def invalidate_order_prices(order: Order, *, save: bool = False) -> None:
@@ -727,7 +727,7 @@ def get_total_order_discount_excluding_shipping(order: Order) -> Money:
     # The calculation is based on assumption that an order can have only one voucher.
     all_discounts = order.discounts.all()
     if order.voucher and order.voucher.type == VoucherType.SHIPPING:
-        all_discounts = all_discounts.exclude(type=OrderDiscountType.VOUCHER)
+        all_discounts = all_discounts.exclude(type=DiscountType.VOUCHER)
     total_order_discount = Money(
         sum([discount.amount_value for discount in all_discounts]),
         currency=order.currency,
@@ -738,7 +738,7 @@ def get_total_order_discount_excluding_shipping(order: Order) -> Money:
 
 def get_order_discounts(order: Order) -> List[OrderDiscount]:
     """Return all discounts applied to the order by staff user."""
-    return list(order.discounts.filter(type=OrderDiscountType.MANUAL))
+    return list(order.discounts.filter(type=DiscountType.MANUAL))
 
 
 def create_order_discount_for_order(

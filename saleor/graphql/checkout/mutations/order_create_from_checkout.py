@@ -14,7 +14,6 @@ from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
-from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -105,7 +104,7 @@ class OrderCreateFromCheckout(BaseMutation):
         id,
         metadata=None,
         private_metadata=None,
-        remove_checkout
+        remove_checkout,
     ):
         user = info.context.user
         checkout = cls.get_node_or_error(
@@ -126,17 +125,13 @@ class OrderCreateFromCheckout(BaseMutation):
         tracking_code = analytics.get_client_id(info.context)
 
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, discounts, manager
-        )
+        checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
         validate_checkout(
             checkout_info=checkout_info,
             lines=checkout_lines,
             unavailable_variant_pks=unavailable_variant_pks,
-            discounts=discounts,
             manager=manager,
         )
         app = get_app_promise(info.context).get()
@@ -144,7 +139,6 @@ class OrderCreateFromCheckout(BaseMutation):
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
                 checkout_lines=checkout_lines,
-                discounts=discounts,
                 manager=manager,
                 user=user,
                 app=app,

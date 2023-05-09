@@ -1016,7 +1016,7 @@ def test_delete_product_variants_removes_checkout_lines(
 ):
     query = PRODUCT_VARIANT_BULK_DELETE_MUTATION
 
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     variant_list = [product.variants.first() for product in product_list][:2]
     for variant in variant_list:
         add_variant_to_checkout(checkout_info, variant, 1)

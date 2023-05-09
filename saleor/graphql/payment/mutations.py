@@ -1,6 +1,6 @@
 import uuid
 from decimal import Decimal
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -101,7 +101,6 @@ from ..core.scalars import JSON, UUID, PositiveDecimal
 from ..core.types import BaseInputObjectType, BaseObjectType
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_or_error
-from ..discount.dataloaders import load_discounts
 from ..meta.mutations import MetadataInput
 from ..plugins.dataloaders import get_plugin_manager_promise
 from ..utils import get_user_or_app_from_context
@@ -116,7 +115,6 @@ from .utils import check_if_requestor_has_access, metadata_contains_empty_key
 
 if TYPE_CHECKING:
     from ...account.models import User
-    from ...discount import DiscountInfo
     from ...plugins.manager import PluginsManager
 
 
@@ -294,7 +292,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         checkout_id=None,
         id=None,
         input,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
@@ -330,8 +328,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_token(
             manager, gateway, input, channel_slug=checkout_info.channel.slug
@@ -345,7 +342,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             checkout_info=checkout_info,
             lines=lines,
             address=address,
-            discounts=discounts,
         )
         amount = input.get("amount", checkout_total.gross.amount)
         clean_checkout_shipping(checkout_info, lines, PaymentErrorCode)
@@ -1054,7 +1050,7 @@ class TransactionCreate(BaseMutation):
         *,
         id: str,
         transaction: Dict,
-        transaction_event=None
+        transaction_event=None,
     ):
         order_or_checkout_instance = cls.get_node_or_error(info, id)
 
@@ -1105,10 +1101,7 @@ class TransactionCreate(BaseMutation):
                 previous_refunded_value=Decimal(0),
             )
         if transaction_data.get("checkout_id") and money_data:
-            discounts = load_discounts(info.context)
-            transaction_amounts_for_checkout_updated(
-                new_transaction, discounts, manager
-            )
+            transaction_amounts_for_checkout_updated(new_transaction, manager)
 
         if transaction_event:
             cls.create_transaction_event(transaction_event, new_transaction, user, app)
@@ -1260,7 +1253,7 @@ class TransactionUpdate(TransactionCreate):
         *,
         id: str,
         transaction=None,
-        transaction_event=None
+        transaction_event=None,
     ):
         app = get_app_promise(info.context).get()
         user = info.context.user
@@ -1319,9 +1312,8 @@ class TransactionUpdate(TransactionCreate):
                 previous_refunded_value=previous_refunded_value,
             )
         if instance.checkout_id and money_data:
-            discounts = load_discounts(info.context)
             manager = get_plugin_manager_promise(info.context).get()
-            transaction_amounts_for_checkout_updated(instance, discounts, manager)
+            transaction_amounts_for_checkout_updated(instance, manager)
 
         return TransactionUpdate(transaction=instance)
 
@@ -1540,7 +1532,7 @@ class TransactionEventReport(ModelMutation):
         time=None,
         external_url=None,
         message=None,
-        available_actions=None
+        available_actions=None,
     ):
         user = info.context.user
         app = get_app_promise(info.context).get()
@@ -1654,11 +1646,8 @@ class TransactionEventReport(ModelMutation):
                     previous_refunded_value=previous_refunded_value,
                 )
             if transaction.checkout_id:
-                discounts = load_discounts(info.context)
                 manager = get_plugin_manager_promise(info.context).get()
-                transaction_amounts_for_checkout_updated(
-                    transaction, discounts, manager
-                )
+                transaction_amounts_for_checkout_updated(transaction, manager)
 
         return cls(
             already_processed=already_processed,
@@ -1704,7 +1693,6 @@ class TransactionSessionBase(BaseMutation):
         incorrect_type_error_code: str,
         not_found_error: str,
         manager: "PluginsManager",
-        discounts: Optional[Iterable["DiscountInfo"]],
     ) -> Union[checkout_models.Checkout, order_models.Order]:
         source_object_type, source_object_id = from_global_id_or_error(
             id, raise_error=False
@@ -1731,13 +1719,8 @@ class TransactionSessionBase(BaseMutation):
             )
             if source_object:
                 lines, _ = fetch_checkout_lines(source_object)
-                discounts = discounts or []
-                checkout_info = fetch_checkout_info(
-                    source_object, lines, discounts, manager
-                )
-                checkout_info, _ = fetch_checkout_data(
-                    checkout_info, manager, lines, discounts=discounts
-                )
+                checkout_info = fetch_checkout_info(source_object, lines, manager)
+                checkout_info, _ = fetch_checkout_data(checkout_info, manager, lines)
                 source_object = checkout_info.checkout
         else:
             source_object = (
@@ -1867,14 +1850,12 @@ class PaymentGatewayInitialize(TransactionSessionBase):
 
     @classmethod
     def perform_mutation(cls, root, info, *, id, amount=None, payment_gateways=None):
-        discounts = load_discounts(info.context)
         manager = get_plugin_manager_promise(info.context).get()
         source_object = cls.clean_source_object(
             info,
             id,
             PaymentGatewayInitializeErrorCode.INVALID.value,
             PaymentGatewayInitializeErrorCode.NOT_FOUND.value,
-            discounts=discounts,
             manager=manager,
         )
         payment_gateways_data = []
@@ -1971,7 +1952,6 @@ class TransactionInitialize(TransactionSessionBase):
     def perform_mutation(
         cls, root, info, *, id, payment_gateway, amount=None, action=None
     ):
-        discounts = load_discounts(info.context)
         manager = get_plugin_manager_promise(info.context).get()
         payment_gateway_data = PaymentGatewayData(
             app_identifier=payment_gateway["id"], data=payment_gateway.get("data")
@@ -1981,7 +1961,6 @@ class TransactionInitialize(TransactionSessionBase):
             id,
             TransactionInitializeErrorCode.INVALID.value,
             TransactionInitializeErrorCode.NOT_FOUND.value,
-            discounts=discounts,
             manager=manager,
         )
         action = cls.clean_action(info, action, source_object.channel)
@@ -1998,7 +1977,6 @@ class TransactionInitialize(TransactionSessionBase):
             action=action,
             app=app,
             manager=manager,
-            discounts=discounts,
         )
         return cls(transaction=transaction, transaction_event=event, data=data)
 
@@ -2143,7 +2121,6 @@ class TransactionProcess(BaseMutation):
         app_identifier = cast(str, app_identifier)
         action = cls.get_action(request_event, source_object.channel)
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         event, data = handle_transaction_process_session(
             transaction_item=transaction_item,
             source_object=source_object,
@@ -2154,7 +2131,6 @@ class TransactionProcess(BaseMutation):
             action=action,
             manager=manager,
             request_event=request_event,
-            discounts=discounts,
         )
 
         transaction_item.refresh_from_db()

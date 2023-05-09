@@ -950,7 +950,7 @@ def test_product_channel_listing_update_remove_channel_removes_checkout_lines(
     # given
     product = product_available_in_many_channels
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
 
     assert checkout.lines.all().exists()
@@ -1232,7 +1232,7 @@ def test_product_channel_listing_remove_variant_removes_checkout_lines(
 ):
     # given
     variant = product.variants.first()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
 
     assert checkout.lines.all().exists()

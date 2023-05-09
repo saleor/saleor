@@ -7,6 +7,15 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
+- The `discounts` field has been removed from the listed plugin manager methods. Instead of the `discounts` argument, an applied `discount` is now assigned to each line in the `CheckoutLineInfo` inside the `CheckoutInfo` object. - #11934 by @fowczarek
+  - `calculate_checkout_total`
+  - `calculate_checkout_subtotal`
+  - `calculate_checkout_shipping`
+  - `get_checkout_shipping_tax_rate`
+  - `calculate_checkout_line_total`
+  - `calculate_checkout_line_unit_price`
+  - `get_checkout_line_tax_rate`
+  - `preprocess_order_creation`
 
 ### GraphQL API
 

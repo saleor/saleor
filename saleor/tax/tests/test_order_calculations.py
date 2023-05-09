@@ -6,7 +6,7 @@ from saleor.tax.models import TaxClassCountryRate
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
-from ...discount import DiscountValueType, OrderDiscountType
+from ...discount import DiscountType, DiscountValueType
 from ...order.utils import get_order_country
 from .. import TaxCalculationStrategy
 from ..calculations.order import (
@@ -49,7 +49,7 @@ def test_calculations_calculate_order_undiscounted_total(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -58,7 +58,7 @@ def test_calculations_calculate_order_undiscounted_total(
         amount_value=10,
     )
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal(5.0),
         name=voucher_shipping_type.code,
@@ -146,7 +146,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines):
 
     discount_amount = 10
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
         name="Voucher",
@@ -172,7 +172,7 @@ def test_calculations_calculate_order_total_with_manual_discount(order_with_line
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -200,7 +200,7 @@ def test_calculations_calculate_order_total_with_discount_for_order_total(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=80,
         name="StaffDiscount",
@@ -226,7 +226,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=75,
         name="StaffDiscount",
@@ -254,7 +254,7 @@ def test_calculations_calculate_order_total_with_discount_for_more_than_order_to
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=100,
         name="StaffDiscount",
@@ -280,7 +280,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -289,7 +289,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
         amount_value=10,
     )
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="Voucher",
@@ -370,7 +370,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     order.save()
 
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
         name=voucher_shipping_type.code,
@@ -419,7 +419,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     shipping_price = shipping_channel_listings.price
 
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("100.0"),
         name=voucher_shipping_type.code,
@@ -494,7 +494,7 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
 
     order_discount_amount = Decimal("5.0")
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
         name=voucher.code,
@@ -566,7 +566,7 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
 
     order_discount_amount = Decimal("5.0")
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
         name=voucher_shipping_type.code,
