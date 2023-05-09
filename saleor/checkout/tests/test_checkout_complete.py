@@ -1469,7 +1469,7 @@ def test_complete_checkout_when_checkout_doesnt_exists(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     order.checkout_token = checkout.token
     order.save()
@@ -1522,7 +1522,7 @@ def test_complete_checkout_checkout_was_deleted_before_compliting(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     def convert_checkout_to_order(*args, **kwargs):

@@ -139,7 +139,7 @@ def test_update_checkout_shipping_method_if_invalid_no_checkout_metadata(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     update_checkout_shipping_method_if_invalid(checkout_info, lines)
@@ -657,7 +657,7 @@ def test_checkout_shipping_methods_with_price_based_method_and_product_voucher(
 
     checkout_with_item.save(update_fields=["shipping_address"])
 
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     add_voucher_to_checkout(manager, checkout_info, lines, voucher)
 
     subtotal = calculations.checkout_subtotal(

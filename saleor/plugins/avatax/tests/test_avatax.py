@@ -5185,7 +5185,7 @@ def test_generate_request_data_from_checkout_lines_adds_lines_with_taxes_disable
 
     lines, _ = fetch_checkout_lines(checkout_with_item)
     checkout_info = fetch_checkout_info(
-        checkout_with_item, lines, [], get_plugins_manager()
+        checkout_with_item, lines, get_plugins_manager()
     )
 
     # when

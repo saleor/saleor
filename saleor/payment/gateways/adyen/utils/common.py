@@ -18,10 +18,7 @@ from .....checkout.calculations import (
 )
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....checkout.models import Checkout
-from .....checkout.utils import (
-    get_checkout_metadata,
-    is_shipping_required,
-)
+from .....checkout.utils import get_checkout_metadata, is_shipping_required
 from .....payment.models import Payment
 from .....plugins.manager import get_plugins_manager
 from .... import PaymentError
