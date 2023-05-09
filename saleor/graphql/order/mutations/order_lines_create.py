@@ -201,7 +201,9 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             return
 
         line_info = list(
-            filter(lambda x: (x.variant.pk == int(variant_id)), lines_info)
+            filter(
+                lambda x: (x.variant and x.variant.pk == int(variant_id)), lines_info
+            )
         )
 
         if not line_info or len(line_info) > 1:

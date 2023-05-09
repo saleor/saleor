@@ -341,6 +341,38 @@ def test_order_lines_create_with_unavailable_variant(
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_when_some_line_has_deleted_product(
+    status,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    line = order.lines.first()
+    line2 = order.lines.last()
+    assert line.variant != line2.variant
+    line2.variant = None
+    line2.save(update_fields=["variant"])
+    order.status = status
+    order.save(update_fields=["status"])
+
+    variant = line.variant
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == line.quantity + quantity
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_existing_variant(

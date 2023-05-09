@@ -874,11 +874,7 @@ def clear_delivery_method(checkout_info: "CheckoutInfo"):
             "last_change",
         ]
     )
-    get_or_create_checkout_metadata(checkout).save(
-        update_fields=[
-            "private_metadata",
-        ]
-    )
+    get_checkout_metadata(checkout).save()
 
 
 def is_fully_paid(
@@ -953,7 +949,7 @@ def set_external_shipping_id(checkout: Checkout, app_shipping_id: str):
 
 def get_external_shipping_id(container: Union["Checkout", "Order"]):
     if type(container) == Checkout:
-        container = get_or_create_checkout_metadata(container)
+        container = get_checkout_metadata(container)
     return container.get_value_from_private_metadata(  # type:ignore
         PRIVATE_META_APP_SHIPPING_ID
     )
@@ -969,3 +965,10 @@ def get_or_create_checkout_metadata(checkout: "Checkout"):
         return checkout.metadata_storage
     else:
         return CheckoutMetadata.objects.create(checkout=checkout)
+
+
+def get_checkout_metadata(checkout: "Checkout"):
+    if hasattr(checkout, "metadata_storage"):
+        return checkout.metadata_storage
+    else:
+        return CheckoutMetadata(checkout=checkout)

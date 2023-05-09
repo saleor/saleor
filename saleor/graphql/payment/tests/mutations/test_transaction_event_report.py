@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest.mock import patch
+from uuid import uuid4
 
 import graphene
 from django.utils import timezone
@@ -259,6 +260,7 @@ def test_transaction_event_report_called_by_non_app_owner(
     second_app = app_api_client.app
     second_app.pk = None
     second_app.identifier = "different-identifier"
+    second_app.uuid = uuid4()
     second_app.save()
     transaction_item_created_by_app.app_identifier = second_app.identifier
     transaction_item_created_by_app.app = None
