@@ -57,7 +57,7 @@ def update_number_as_str(qs: QuerySet[Order]):
 
 @app.task
 def order_update_number_as_str_task():
-    orders = Order.objects.filter(number_as_str__isnull=True).order_by("-created_at")
+    orders = Order.objects.filter(number_as_str__isnull=True).order_by("-updated_at")
     ids = orders.values_list("pk", flat=True)[:BATCH_SIZE]
     qs = Order.objects.filter(pk__in=ids)
 
