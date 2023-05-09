@@ -2,12 +2,12 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
+from prices import Money
 
 from ..attribute import AttributeEntityType, AttributeInputType
 from ..checkout import base_calculations
 from ..checkout.fetch import fetch_checkout_lines
 from ..core.prices import quantize_price
-from ..discount import DiscountInfo
 from ..product.models import Product
 from ..tax.utils import get_charge_taxes_for_checkout
 
@@ -18,9 +18,7 @@ if TYPE_CHECKING:
     from ..product.models import ProductVariant
 
 
-def serialize_checkout_lines(
-    checkout: "Checkout", discounts: Optional[Iterable[DiscountInfo]] = None
-) -> List[dict]:
+def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     data = []
     channel = checkout.channel
     currency = channel.currency_code
@@ -31,14 +29,23 @@ def serialize_checkout_lines(
         collections = line_info.collections
         product = variant.product
         price_override = line_info.line.price_override
-        base_price = variant.get_price(
+        undiscounted_base_price = variant.get_price(
             product,
             collections,
             channel,
             channel_listing,
-            discounts or [],
+            [],
             price_override,
         )
+        base_price = undiscounted_base_price
+        if discount_object_from_sale := line_info.get_sale_discount():
+            total_discount_amount_for_line = discount_object_from_sale.amount_value
+            unit_discount_amount = (
+                total_discount_amount_for_line / line_info.line.quantity
+            )
+            unit_discount = Money(unit_discount_amount, currency)
+            unit_discount = quantize_price(unit_discount, currency)
+            base_price -= unit_discount
         data.append(
             {
                 "sku": variant.sku,
@@ -75,7 +82,6 @@ def _get_checkout_line_payload_data(line_info: "CheckoutLineInfo") -> Dict[str, 
 def serialize_checkout_lines_for_tax_calculation(
     checkout_info: "CheckoutInfo",
     lines: Iterable["CheckoutLineInfo"],
-    discounts: Optional[Iterable[DiscountInfo]] = None,
 ) -> List[dict]:
     channel = checkout_info.channel
     charge_taxes = get_charge_taxes_for_checkout(checkout_info, lines)
@@ -85,13 +91,13 @@ def serialize_checkout_lines_for_tax_calculation(
             "charge_taxes": charge_taxes,
             "unit_amount": quantize_price(
                 base_calculations.calculate_base_line_unit_price(
-                    line_info, channel, discounts
+                    line_info, channel
                 ).amount,
                 checkout_info.checkout.currency,
             ),
             "total_amount": quantize_price(
                 base_calculations.calculate_base_line_total_price(
-                    line_info, channel, discounts
+                    line_info, channel
                 ).amount,
                 checkout_info.checkout.currency,
             ),

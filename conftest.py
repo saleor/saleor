@@ -10,6 +10,7 @@ from django.test.testcases import TransactionTestCase
 
 pytest_plugins = [
     "saleor.tests.fixtures",
+    "saleor.discount.tests.test_utils.fixtures",
     "saleor.plugins.tests.fixtures",
     "saleor.graphql.tests.fixtures",
     "saleor.graphql.channel.tests.fixtures",

@@ -35,11 +35,6 @@ class Channel(models.Model):
         null=True,
     )
     expire_orders_after = models.IntegerField(default=None, null=True, blank=True)
-    order_mark_as_paid_strategy = models.CharField(
-        max_length=255,
-        choices=MarkAsPaidStrategy.CHOICES,
-        default=MarkAsPaidStrategy.PAYMENT_FLOW,
-    )
 
     class Meta:
         ordering = ("slug",)

@@ -24,8 +24,8 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
 from ..channel.types import Channel
+from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -45,7 +45,6 @@ from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
-from ..discount.dataloaders import DiscountsByDateTimeLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
@@ -82,7 +81,6 @@ from .utils import prevent_sync_event_circular_query
 if TYPE_CHECKING:
     from ...account.models import Address
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
-    from ...discount import DiscountInfo
     from ...plugins.manager import PluginsManager
 
 
@@ -92,16 +90,14 @@ def get_dataloaders_for_fetching_checkout_data(
     Optional[Promise["Address"]],
     Promise[list["CheckoutLineInfo"]],
     Promise["CheckoutInfo"],
-    Promise[list["DiscountInfo"]],
     Promise["PluginsManager"],
 ]:
     address_id = root.shipping_address_id or root.billing_address_id
     address = AddressByIdLoader(info.context).load(address_id) if address_id else None
     lines = CheckoutLinesInfoByCheckoutTokenLoader(info.context).load(root.token)
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
-    discounts = DiscountsByDateTimeLoader(info.context).load(info.context.request_time)
     manager = get_plugin_manager_promise(info.context)
-    return address, lines, checkout_info, discounts, manager
+    return address, lines, checkout_info, manager
 
 
 class GatewayConfigLine(BaseObjectType):
@@ -186,9 +182,6 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     def resolve_unit_price(root, info: ResolveInfo):
         def with_checkout(data):
             checkout, manager = data
-            discounts = DiscountsByDateTimeLoader(info.context).load(
-                info.context.request_time
-            )
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
@@ -198,7 +191,6 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
 
             def calculate_line_unit_price(data):
                 (
-                    discounts,
                     checkout_info,
                     lines,
                 ) = data
@@ -209,13 +201,11 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
-                            discounts=discounts,
                         )
                 return None
 
             return Promise.all(
                 [
-                    discounts,
                     checkout_info,
                     lines,
                 ]
@@ -270,9 +260,6 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     def resolve_total_price(root, info: ResolveInfo):
         def with_checkout(data):
             checkout, manager = data
-            discounts = DiscountsByDateTimeLoader(info.context).load(
-                info.context.request_time
-            )
             checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(
                 checkout.token
             )
@@ -281,7 +268,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             )
 
             def calculate_line_total_price(data):
-                (discounts, checkout_info, lines) = data
+                (checkout_info, lines) = data
                 for line_info in lines:
                     if line_info.line.pk == root.pk:
                         return calculations.checkout_line_total(
@@ -289,13 +276,10 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
                             checkout_info=checkout_info,
                             lines=lines,
                             checkout_line_info=line_info,
-                            discounts=discounts,
                         )
                 return None
 
-            return Promise.all([discounts, checkout_info, lines]).then(
-                calculate_line_total_price
-            )
+            return Promise.all([checkout_info, lines]).then(calculate_line_total_price)
 
         return Promise.all(
             [
@@ -611,13 +595,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_total_price(root: models.Checkout, info: ResolveInfo):
         def calculate_total_price(data):
-            address, lines, checkout_info, discounts, manager = data
+            address, lines, checkout_info, manager = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
             return max(taxed_total, zero_taxed_money(root.currency))
 
@@ -629,13 +612,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_subtotal_price(root: models.Checkout, info: ResolveInfo):
         def calculate_subtotal_price(data):
-            address, lines, checkout_info, discounts, manager = data
+            address, lines, checkout_info, manager = data
             return calculations.checkout_subtotal(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -646,13 +628,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @prevent_sync_event_circular_query
     def resolve_shipping_price(root: models.Checkout, info: ResolveInfo):
         def calculate_shipping_price(data):
-            address, lines, checkout_info, discounts, manager = data
+            address, lines, checkout_info, manager = data
             return calculations.checkout_shipping_price(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
 
         dataloaders = list(get_dataloaders_for_fetching_checkout_data(root, info))
@@ -881,13 +862,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @classmethod
     def resolve_authorize_status(cls, root: models.Checkout, info):
         def _resolve_authorize_status(data):
-            address, lines, checkout_info, discounts, manager, transactions = data
+            address, lines, checkout_info, manager, transactions = data
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
                 lines=lines,
                 address=address,
-                discounts=discounts,
                 checkout_transactions=transactions,
             )
             return checkout_info.checkout.authorize_status
@@ -901,13 +881,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @classmethod
     def resolve_charge_status(cls, root: models.Checkout, info):
         def _resolve_charge_status(data):
-            address, lines, checkout_info, discounts, manager, transactions = data
+            address, lines, checkout_info, manager, transactions = data
             fetch_checkout_data(
                 checkout_info=checkout_info,
                 manager=manager,
                 lines=lines,
                 address=address,
-                discounts=discounts,
                 checkout_transactions=transactions,
             )
             return checkout_info.checkout.charge_status
@@ -921,13 +900,12 @@ class Checkout(ModelObjectType[models.Checkout]):
     @classmethod
     def resolve_total_balance(cls, root: models.Checkout, info):
         def _calculate_total_balance_for_transactions(data):
-            address, lines, checkout_info, discounts, manager, transactions = data
+            address, lines, checkout_info, manager, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(
                 manager=manager,
                 checkout_info=checkout_info,
                 lines=lines,
                 address=address,
-                discounts=discounts,
             )
             checkout_total = max(taxed_total, zero_taxed_money(root.currency))
             total_charged = zero_money(root.currency)

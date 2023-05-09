@@ -28,14 +28,14 @@ def test_get_user_checkout(
 
 def test_adding_zero_quantity(checkout, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 0)
     assert checkout.lines.count() == 0
 
 
 def test_adding_same_variant(checkout, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1)
     add_variant_to_checkout(checkout_info, variant, 2)
     lines, _ = fetch_checkout_lines(checkout)
@@ -44,7 +44,7 @@ def test_adding_same_variant(checkout, product):
     assert checkout_quantity == 3
     subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     manager = get_plugins_manager()
     assert (
         calculations.checkout_subtotal(
@@ -59,7 +59,7 @@ def test_adding_same_variant(checkout, product):
 
 def test_replacing_same_variant(checkout, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, 1, replace=True)
     add_variant_to_checkout(checkout_info, variant, 2, replace=True)
     lines, _ = fetch_checkout_lines(checkout)
@@ -69,7 +69,7 @@ def test_replacing_same_variant(checkout, product):
 
 def test_adding_invalid_quantity(checkout, product):
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     with pytest.raises(ValueError):
         add_variant_to_checkout(checkout_info, variant, -1)
 
@@ -77,7 +77,7 @@ def test_adding_invalid_quantity(checkout, product):
 def test_getting_line(checkout, product):
     variant = product.variants.get()
     assert checkout.get_line(variant) is None
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant)
     assert checkout.lines.get() == checkout.get_line(variant)
 
@@ -85,7 +85,7 @@ def test_getting_line(checkout, product):
 def test_shipping_detection(checkout, product):
     assert not checkout.is_shipping_required()
     variant = product.variants.get()
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     add_variant_to_checkout(checkout_info, variant, replace=True)
     assert checkout.is_shipping_required()
 
@@ -110,7 +110,7 @@ def test_get_prices_of_discounted_specific_product(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
     )
@@ -139,7 +139,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
     variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.products.add(product)
     # assume that cache is correct
@@ -175,7 +175,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     product.collections.add(collection)
     voucher.collections.add(collection)
@@ -217,7 +217,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
     product2.category = category2
     product2.save()
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, [], [], manager)
+    checkout_info = fetch_checkout_info(checkout, [], manager)
     add_variant_to_checkout(checkout_info, product2.variants.get(), 1)
     voucher.categories.add(category)
     # assume that cache is correct
@@ -251,7 +251,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     prices = utils.get_prices_of_discounted_specific_product(
         manager, checkout_info, lines, voucher
     )

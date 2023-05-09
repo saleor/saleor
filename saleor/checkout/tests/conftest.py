@@ -14,7 +14,7 @@ def priced_checkout_factory():
     def factory(checkout):
         manager = get_plugins_manager()
         lines, _ = fetch_checkout_lines(checkout)
-        checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         tax = Decimal("1.23")
 
@@ -24,7 +24,7 @@ def priced_checkout_factory():
             lines_to_update.append(line)
 
             line.total_price = manager.calculate_checkout_line_total(
-                checkout_info, lines, line_info, None, []
+                checkout_info, lines, line_info, None
             )
             line.total_price_gross_amount *= tax
 
@@ -37,14 +37,12 @@ def priced_checkout_factory():
         )
 
         checkout.shipping_price = manager.calculate_checkout_shipping(
-            checkout_info, lines, None, []
+            checkout_info, lines, None
         )
         checkout.subtotal = manager.calculate_checkout_subtotal(
-            checkout_info, lines, None, []
+            checkout_info, lines, None
         )
-        checkout.total = manager.calculate_checkout_total(
-            checkout_info, lines, None, []
-        )
+        checkout.total = manager.calculate_checkout_total(checkout_info, lines, None)
 
         checkout.shipping_price_gross_amount *= tax
         checkout.subtotal_gross_amount *= tax

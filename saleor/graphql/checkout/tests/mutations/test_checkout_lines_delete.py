@@ -73,7 +73,7 @@ def test_checkout_lines_delete(
     lines_ids = [line["id"] for line in remaining_lines]
     assert lines_list not in lines_ids
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout_prices.call_count == 1

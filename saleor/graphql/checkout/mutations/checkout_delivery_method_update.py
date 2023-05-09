@@ -17,7 +17,6 @@ from ....checkout.utils import (
     is_shipping_required,
     set_external_shipping_id,
 )
-from ....discount import DiscountInfo
 from ....plugins.webhook.utils import APP_ID_PREFIX
 from ....shipping import interface as shipping_interface
 from ....shipping import models as shipping_models
@@ -30,7 +29,6 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ...warehouse.types import Warehouse
@@ -103,12 +101,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
-        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
             lines,
-            discounts,
             shipping_method=shipping_method,
             external_shipping_method=None,
             collection_point=None,
@@ -145,12 +141,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             checkout_info, lines, shipping_method=delivery_method, collection_point=None
         )
 
-        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
             lines,
-            discounts,
             shipping_method=None,
             external_shipping_method=delivery_method,
             collection_point=None,
@@ -180,12 +174,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             shipping_method=None,
             collection_point=collection_point,
         )
-        discounts = load_discounts(info.context)
         cls._update_delivery_method(
             manager,
             checkout_info,
             lines,
-            discounts,
             shipping_method=None,
             external_shipping_method=None,
             collection_point=collection_point,
@@ -198,7 +190,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         lines,
         *,
         shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse]
+        collection_point: Optional[Warehouse],
     ) -> None:
         delivery_method = shipping_method
         error_msg = "This shipping method is not applicable."
@@ -226,11 +218,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         manager,
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
-        discounts: Iterable["DiscountInfo"],
         *,
         shipping_method: Optional[ShippingMethod],
         external_shipping_method: Optional[shipping_interface.ShippingMethodData],
-        collection_point: Optional[Warehouse]
+        collection_point: Optional[Warehouse],
     ) -> None:
         checkout = checkout_info.checkout
         if external_shipping_method:
@@ -242,7 +233,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout_info, lines, manager, discounts or [], save=False
+            checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=[
@@ -315,8 +306,7 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
         type_name = cls._resolve_delivery_method_type(delivery_method_id)
 
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         if type_name == "Warehouse":
             return cls.perform_on_collection_point(
                 info, delivery_method_id, checkout_info, lines, checkout, manager

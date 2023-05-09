@@ -3,7 +3,7 @@ import json
 import logging
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, Iterable, Optional, Union, cast, overload
+from typing import Any, Dict, Optional, Union, cast, overload
 
 import graphene
 from babel.numbers import get_currency_precision
@@ -20,8 +20,6 @@ from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..checkout.models import Checkout
 from ..core.prices import quantize_price
 from ..core.tracing import traced_atomic_transaction
-from ..discount import DiscountInfo
-from ..discount.utils import fetch_active_discounts
 from ..graphql.core.utils import str_to_enum
 from ..order.fetch import fetch_order_info
 from ..order.models import Order
@@ -86,8 +84,7 @@ def create_checkout_payment_lines_information(
 ) -> PaymentLinesData:
     line_items = []
     lines, _ = fetch_checkout_lines(checkout)
-    discounts = fetch_active_discounts()
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     address = checkout_info.shipping_address or checkout_info.billing_address
 
     for line_info in lines:
@@ -96,7 +93,6 @@ def create_checkout_payment_lines_information(
             lines,
             line_info,
             address,
-            discounts,
         )
         unit_gross = unit_price.gross.amount
 
@@ -116,7 +112,6 @@ def create_checkout_payment_lines_information(
         checkout_info=checkout_info,
         lines=lines,
         address=address,
-        discounts=discounts,
     ).gross.amount
 
     voucher_amount = -checkout.discount_amount
@@ -1060,7 +1055,6 @@ def create_transaction_event_for_transaction_session(
     request_event: TransactionEvent,
     app: App,
     manager: "PluginsManager",
-    discounts: Optional[Iterable["DiscountInfo"]],
     transaction_webhook_response: Optional[Dict[str, Any]] = None,
 ):
     request_event_type = "session-request"
@@ -1165,9 +1159,7 @@ def create_transaction_event_for_transaction_session(
                 previous_refunded_value=previous_refunded_value,
             )
         elif transaction_item.checkout_id:
-            transaction_amounts_for_checkout_updated(
-                transaction_item, discounts, manager
-            )
+            transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 
@@ -1222,9 +1214,8 @@ def create_transaction_event_from_request_and_webhook_response(
             previous_refunded_value=previous_refunded_value,
         )
     elif transaction_item.checkout_id:
-        discounts = fetch_active_discounts()
         manager = get_plugins_manager()
-        transaction_amounts_for_checkout_updated(transaction_item, discounts, manager)
+        transaction_amounts_for_checkout_updated(transaction_item, manager)
     return event
 
 
@@ -1387,7 +1378,6 @@ def handle_transaction_initialize_session(
     action: str,
     app: App,
     manager: PluginsManager,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     transaction_item = create_transaction_item(
         source_object=source_object, user=None, app=app, psp_reference=None
@@ -1418,7 +1408,6 @@ def handle_transaction_initialize_session(
         app,
         transaction_webhook_response=response_data,
         manager=manager,
-        discounts=discounts,
     )
     data_to_return = response_data.get("data") if response_data else None
     return created_event.transaction, created_event, data_to_return
@@ -1432,7 +1421,6 @@ def handle_transaction_process_session(
     app: App,
     manager: PluginsManager,
     request_event: TransactionEvent,
-    discounts: Optional[Iterable["DiscountInfo"]],
 ):
     session_data = TransactionSessionData(
         transaction=transaction_item,
@@ -1454,7 +1442,6 @@ def handle_transaction_process_session(
         app,
         transaction_webhook_response=response_data,
         manager=manager,
-        discounts=discounts,
     )
     data_to_return = response_data.get("data") if response_data else None
     return created_event, data_to_return

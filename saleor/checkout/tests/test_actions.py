@@ -14,18 +14,14 @@ def test_transaction_amounts_for_checkout_updated_fully_paid(
     # given
     checkout = checkout_with_items
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     transaction = transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
 
     # when
-    transaction_amounts_for_checkout_updated(
-        transaction, discounts=[], manager=plugins_manager
-    )
+    transaction_amounts_for_checkout_updated(transaction, manager=plugins_manager)
 
     # then
     flush_post_commit_hooks()
@@ -42,24 +38,20 @@ def test_transaction_amounts_for_checkout_updated_with_already_fully_paid(
     # given
     checkout = checkout_with_items
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugins_manager)
-    checkout_info, _ = fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[]
-    )
+    checkout_info = fetch_checkout_info(checkout, lines, plugins_manager)
+    checkout_info, _ = fetch_checkout_data(checkout_info, plugins_manager, lines)
     transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
 
-    fetch_checkout_data(
-        checkout_info, plugins_manager, lines, discounts=[], force_status_update=True
-    )
+    fetch_checkout_data(checkout_info, plugins_manager, lines, force_status_update=True)
 
     second_transaction = transaction_item_generator(
         checkout_id=checkout.pk, charged_value=checkout_info.checkout.total.gross.amount
     )
     # when
     transaction_amounts_for_checkout_updated(
-        second_transaction, discounts=[], manager=plugins_manager
+        second_transaction, manager=plugins_manager
     )
 
     # then
