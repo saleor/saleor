@@ -411,7 +411,6 @@ class Product(SeoModel, ModelWithMetadata):
     )
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
-    charge_taxes = models.BooleanField(default=True)
     weight = MeasurementField(
         measurement=Weight,
         unit_choices=WeightUnits.CHOICES,  # type: ignore
@@ -433,6 +432,9 @@ class Product(SeoModel, ModelWithMetadata):
         null=True,
         on_delete=models.SET_NULL,
     )
+
+    # deprecated
+    charge_taxes = models.BooleanField(default=True)
 
     objects = models.Manager.from_queryset(ProductsQueryset)()
     translated = TranslationProxy()
