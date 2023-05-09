@@ -18,6 +18,12 @@ task_logger = get_task_logger(__name__)
 
 
 @app.task
+def send_sale_toggle_notifications():
+    # The task is DEPRECATED, should be dropped in version 3.15
+    handle_sale_toggle()
+
+
+@app.task
 def handle_sale_toggle():
     """Send the notification about sales toggle and recalculate discounted prcies.
 
