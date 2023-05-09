@@ -47,11 +47,10 @@ def test_fetch_catalogue_infos(sale, new_sale):
 
 @freeze_time("2020-03-18 12:00:00")
 @patch(
-    "saleor.graphql.product.mutations.collection.collection_add_products"
-    ".update_products_discounted_prices_of_catalogues_task.delay"
+    "saleor.product.tasks.update_products_discounted_prices_of_catalogues_task.delay"
 )
 @patch("saleor.plugins.manager.PluginsManager.sale_toggle")
-def test_send_sale_toggle_notifications(
+def test_handle_sale_toggle(
     sale_toggle_mock,
     mock_update_products_discounted_prices_of_catalogues,
     collection_list,
