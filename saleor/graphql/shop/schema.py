@@ -16,7 +16,7 @@ from .mutations import (
     StaffNotificationRecipientDelete,
     StaffNotificationRecipientUpdate,
 )
-from .types import GiftCardSettings, OrderSettings, Shop
+from .types import GiftCardSettings, OrderSettings, Shop, Statistics
 
 
 class ShopQueries(graphene.ObjectType):
@@ -24,6 +24,13 @@ class ShopQueries(graphene.ObjectType):
         Shop,
         description="Return information about the shop.",
         required=True,
+    )
+    statistics = graphene.Field(
+        Statistics,
+        channel=graphene.String(
+            description="Slug of a channel for which the data should be returned."
+        ),
+        description="Statistics about the shop.",
     )
     order_settings = PermissionsField(
         OrderSettings,
@@ -39,6 +46,9 @@ class ShopQueries(graphene.ObjectType):
 
     def resolve_shop(self, _info):
         return Shop()
+
+    def resolve_statistics(self, _info, channel=None):
+        return Statistics(channel=channel)
 
     @load_site_callback
     def resolve_order_settings(self, _info, site):

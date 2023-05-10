@@ -13,6 +13,7 @@ from ...core.permissions import AuthorizationFilters, SitePermissions, get_permi
 from ...core.tracing import traced_resolver
 from ...core.utils import build_absolute_uri
 from ...site import models as site_models
+from ...site.models import Statistics as StatisticsModel
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
 from ..core.descriptions import (
@@ -114,6 +115,66 @@ class LimitInfo(graphene.ObjectType):
         required=True,
         description="Defines the allowed maximum resource usage, null means unlimited.",
     )
+
+
+class Statistics(graphene.ObjectType):
+    def __init__(self, *args, **kwargs):
+        self.channel = kwargs.pop("channel")
+        super().__init__(*args, **kwargs)
+
+    orders_today = PermissionsField(
+        graphene.Int,
+        description="Return the total orders placed today.",
+        permissions=[],
+    )
+    sales_today = PermissionsField(
+        graphene.Int,
+        description="Return the total sales for orders placed today.",
+        permissions=[],
+    )
+    orders_to_fulfill = PermissionsField(
+        graphene.Int,
+        description="Return the total amount of fulfillable orders.",
+        permissions=[],
+    )
+    orders_to_capture = PermissionsField(
+        graphene.Int,
+        description="Return the total amount of capturable orders.",
+        permissions=[],
+    )
+    products_out_of_stock = PermissionsField(
+        graphene.Int,
+        description="Return the total amount of products out of stock.",
+        permissions=[],
+    )
+
+    # products_top_today
+    # activities
+
+    def resolve_orders_today(self, info, *args, **kwargs):
+        if stats := StatisticsModel.objects.filter(channel__slug=self.channel).first():
+            return stats.orders_today
+        return 0
+
+    def resolve_sales_today(self, info, *args, **kwargs):
+        if stats := StatisticsModel.objects.filter(channel__slug=self.channel).first():
+            return stats.sales_today
+        return 0
+
+    def resolve_orders_to_fulfill(self, info, *args, **kwargs):
+        if stats := StatisticsModel.objects.filter(channel__slug=self.channel).first():
+            return stats.orders_to_fulfill
+        return 0
+
+    def resolve_orders_to_capture(self, info, *args, **kwargs):
+        if stats := StatisticsModel.objects.filter(channel__slug=self.channel).first():
+            return stats.orders_to_capture
+        return 0
+
+    def resolve_products_out_of_stock(self, info, *args, **kwargs):
+        if stats := StatisticsModel.objects.filter(channel__slug=self.channel).first():
+            return stats.products_out_of_stock
+        return 0
 
 
 class Shop(graphene.ObjectType):

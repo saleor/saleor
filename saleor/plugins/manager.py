@@ -32,6 +32,7 @@ from ..core.taxes import TaxData, TaxType, zero_money, zero_taxed_money
 from ..discount import DiscountInfo
 from ..order import base_calculations as base_order_calculations
 from ..order.interface import OrderTaxedPricesData
+from ..site.models import Statistics
 from ..tax.utils import calculate_tax_rate
 from .base_plugin import ExcludedShippingMethod, ExternalAccessTokens
 from .models import PluginConfiguration
@@ -662,6 +663,11 @@ class PluginsManager(PaymentInterface):
         )
 
     def order_created(self, order: "Order"):
+        stat, _ = Statistics.objects.get_or_create(channel=order.channel)
+        stat.orders_today = stat.orders_today + 1
+        stat.sales_today = stat.sales_today + order.total.gross.amount
+        stat.save(update_fields=["orders_today", "sales_today"])
+
         default_value = None
         return self.__run_method_on_plugins(
             "order_created", default_value, order, channel_slug=order.channel.slug

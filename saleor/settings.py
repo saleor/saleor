@@ -559,6 +559,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "nullify-todays-stats": {
+        "task": "saleor.site.tasks.nullify_todays_stats",
+        "schedule": crontab(hour=0, minute=0),
+    },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from email.headerregistry import Address
 from email.utils import parseaddr
 from typing import Final, Optional
@@ -8,6 +9,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import MaxLengthValidator, MinValueValidator, RegexValidator
 from django.db import models
 
+from ..channel.models import Channel
 from ..core import TimePeriodType
 from ..core.permissions import SitePermissions
 from ..core.units import WeightUnits
@@ -161,3 +163,16 @@ class SiteSettingsTranslation(Translation):
             "header_text": self.header_text,
             "description": self.description,
         }
+
+
+class Statistics(models.Model):
+    channel = models.OneToOneField(Channel, primary_key=True, on_delete=models.CASCADE)
+    orders_today = models.IntegerField(default=0)
+    sales_today = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal(0),
+    )
+    orders_to_fulfill = models.IntegerField(default=0)
+    orders_to_capture = models.IntegerField(default=0)
+    products_out_of_stock = models.IntegerField(default=0)

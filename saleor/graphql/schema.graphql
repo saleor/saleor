@@ -225,6 +225,12 @@ type Query {
   """Return information about the shop."""
   shop: Shop!
 
+  """Statistics about the shop."""
+  statistics(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): Statistics
+
   """
   Order related settings from site settings.
   
@@ -10502,6 +10508,23 @@ type Limits {
   productVariants: Int
   staffUsers: Int
   warehouses: Int
+}
+
+type Statistics {
+  """Return the total orders placed today."""
+  ordersToday: Int
+
+  """Return the total sales for orders placed today."""
+  salesToday: Int
+
+  """Return the total amount of fulfillable orders."""
+  ordersToFulfill: Int
+
+  """Return the total amount of capturable orders."""
+  ordersToCapture: Int
+
+  """Return the total amount of products out of stock."""
+  productsOutOfStock: Int
 }
 
 """Order related settings from site settings."""
