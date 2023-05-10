@@ -3237,10 +3237,41 @@ def test_order_bulk_create_optional_fields_set_to_none(
     order["transactions"] = None
     order["invoices"] = None
     order["discounts"] = None
-    order["deliveryMethod"] = None
     order["customerNote"] = None
+    order["trackingClientId"] = None
     order["weight"] = None
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+
+def test_order_bulk_create_optional_fields_set_to_none_nested_fields(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["notes"] = [{"message": "yo", "date": None}]
+    order["fulfillments"][0]["trackingCode"] = None
+    order["fulfillments"][0]["lines"] = None
     order["lines"][0]["isShippingRequired"] = False
+    order["deliveryMethod"] = None
     order["lines"][0]["productName"] = None
     order["lines"][0]["variantName"] = None
     order["lines"][0]["translatedProductName"] = None

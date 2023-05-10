@@ -654,7 +654,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 identifiers.tax_class_ids.keys.append(order_line.get("tax_class_id"))
             fulfillments = order.get("fulfillments") or []
             for fulfillment in fulfillments:
-                for line in fulfillment["lines"]:
+                for line in fulfillment.get("lines") or []:
                     identifiers.variant_ids.keys.append(line.get("variant_id"))
                     identifiers.variant_skus.keys.append(line.get("variant_sku"))
                     identifiers.variant_external_references.keys.append(
@@ -1313,7 +1313,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
         event = OrderEvent(
-            date=date,
+            date=date or timezone.now(),
             type=OrderEvents.NOTE_ADDED,
             order=order_data.order,
             parameters={"message": note_input["message"]},
@@ -1606,7 +1606,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             fulfillment_order=1,
         )
 
-        lines_input = fulfillment_input["lines"]
+        lines_input = fulfillment_input.get("lines") or []
         lines: List[OrderBulkFulfillmentLine] = []
         line_index = 0
         for line_input in lines_input:
@@ -1898,7 +1898,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.redirect_url = order_input.get("redirect_url")
         order_data.order.origin = OrderOrigin.BULK_CREATE
         order_data.order.weight = order_input.get("weight") or zero_weight()
-        order_data.order.tracking_client_id = order_input.get("tracking_client_id")
+        order_data.order.tracking_client_id = (
+            order_input.get("tracking_client_id") or ""
+        )
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
         order_data.order.voucher = order_data.voucher
