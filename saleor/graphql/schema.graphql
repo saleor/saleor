@@ -8942,6 +8942,15 @@ type Shop {
   staffNotificationRecipients: [StaffNotificationRecipient!]
 
   """
+  Determines if email should be sent after account registration.
+  
+  Added in Saleor 3.14.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  enableAccountConfirmationByEmail: Boolean
+
+  """
   Resource limitations and current usage if any set for a shop
   
   Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
@@ -17921,6 +17930,13 @@ input ShopSettingsInput {
   Added in Saleor 3.1.
   """
   limitQuantityPerCheckout: Int
+
+  """
+  Enable automatic account confirmation by email.
+  
+  Added in Saleor 3.14.
+  """
+  enableAccountConfirmationByEmail: Boolean
 
   """
   Include taxes in prices. 
