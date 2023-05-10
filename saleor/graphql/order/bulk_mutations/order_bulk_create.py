@@ -813,6 +813,18 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
                 order_data.is_critical_error = True
 
+        channel = object_storage.get(f"Channel.slug.{order_input['channel']}")
+        if channel:
+            if channel.currency_code.lower() != order_input["currency"].lower():
+                order_data.errors.append(
+                    OrderBulkError(
+                        message="Currency from input doesn't match channel's currency.",
+                        path="currency",
+                        code=OrderBulkCreateErrorCode.INCORRECT_CURRENCY,
+                    )
+                )
+                order_data.is_critical_error = True
+
     @classmethod
     def validate_order_status(cls, status: str, order_data: OrderBulkCreateData):
         total_order_quantity = order_data.total_order_quantity

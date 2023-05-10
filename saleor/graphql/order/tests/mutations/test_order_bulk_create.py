@@ -3331,3 +3331,39 @@ def test_order_bulk_create_error_external_reference_already_exist(
     )
     assert error["path"] == "external_reference"
     assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
+
+
+def test_order_bulk_create_error_currency_mismatch_between_channel_and_order(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["currency"] = "USD"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Currency from input doesn't match channel's currency."
+    assert error["path"] == "currency"
+    assert error["code"] == OrderBulkCreateErrorCode.INCORRECT_CURRENCY.name
+
+    assert Order.objects.count() == orders_count
