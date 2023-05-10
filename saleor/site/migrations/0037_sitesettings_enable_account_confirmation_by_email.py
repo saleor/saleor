@@ -3,8 +3,6 @@
 from django.db import migrations, models
 from ...settings import get_bool_from_env
 
-qwe = get_bool_from_env("ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True)
-
 
 def set_enable_account_confirmation_by_email_flag(apps, schema_editor):
     confirmation_flag = get_bool_from_env("ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True)
