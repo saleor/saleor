@@ -59,15 +59,21 @@ def _recalculate_order_prices(
                 line.tax_rate = manager.get_order_line_tax_rate(
                     order, product, variant, None, line_unit.undiscounted_price
                 )
-                line.undiscounted_unit_price = calculate_flat_rate_tax(
-                    money=line.undiscounted_base_unit_price,
-                    tax_rate=line.tax_rate * 100,
-                    prices_entered_with_tax=prices_entered_with_tax,
+                line.undiscounted_unit_price = quantize_price(
+                    calculate_flat_rate_tax(
+                        money=line.undiscounted_base_unit_price,
+                        tax_rate=line.tax_rate * 100,
+                        prices_entered_with_tax=prices_entered_with_tax,
+                    ),
+                    line.currency,
                 )
-                line.undiscounted_total_price = calculate_flat_rate_tax(
-                    money=line_total.undiscounted_price.net,
-                    tax_rate=line.tax_rate * 100,
-                    prices_entered_with_tax=prices_entered_with_tax,
+                line.undiscounted_total_price = quantize_price(
+                    calculate_flat_rate_tax(
+                        money=line_total.undiscounted_price.net,
+                        tax_rate=line.tax_rate * 100,
+                        prices_entered_with_tax=prices_entered_with_tax,
+                    ),
+                    line.currency,
                 )
             except TaxError:
                 pass

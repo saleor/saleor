@@ -27,6 +27,7 @@ from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
+from ..core.prices import quantize_price
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
@@ -245,16 +246,22 @@ def _create_line_for_order(
         discounts=discounts,
     )
 
-    undiscounted_unit_price = calculate_flat_rate_tax(
-        money=undiscounted_base_unit_price,
-        tax_rate=tax_rate * 100,
-        prices_entered_with_tax=prices_entered_with_tax,
+    undiscounted_unit_price = quantize_price(
+        calculate_flat_rate_tax(
+            money=undiscounted_base_unit_price,
+            tax_rate=tax_rate * 100,
+            prices_entered_with_tax=prices_entered_with_tax,
+        ),
+        undiscounted_base_total_price.currency,
     )
 
-    undiscounted_total_price = calculate_flat_rate_tax(
-        money=undiscounted_base_total_price,
-        tax_rate=tax_rate * 100,
-        prices_entered_with_tax=prices_entered_with_tax,
+    undiscounted_total_price = quantize_price(
+        calculate_flat_rate_tax(
+            money=undiscounted_base_total_price,
+            tax_rate=tax_rate * 100,
+            prices_entered_with_tax=prices_entered_with_tax,
+        ),
+        undiscounted_base_total_price.currency,
     )
 
     price_override = checkout_line_info.line.price_override
