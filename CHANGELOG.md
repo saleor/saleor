@@ -28,6 +28,7 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffUpdate`
     - `accountUpdate`
     - `customerBulkUpdate`
+- Add mutation to create checkout from order - #12628 by @korycins
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
