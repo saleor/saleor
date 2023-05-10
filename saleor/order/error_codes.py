@@ -58,7 +58,7 @@ class OrderBulkCreateErrorCode(Enum):
     FUTURE_DATE = "future_date"
     INVALID_QUANTITY = "invalid_quantity"
     PRICE_ERROR = "price_error"
-    NOTE_LENGTH = "note_length"
+    LENGTH_EXCEEDED = "length_exceeded"
     INSUFFICIENT_STOCK = "insufficient_stock"
     NON_EXISTING_STOCK = "non_existing_stock"
     NO_RELATED_ORDER_LINE = "no_related_order_line"

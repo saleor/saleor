@@ -275,9 +275,11 @@ def order_bulk_input(
         "shippingMethodId": graphene.Node.to_global_id(
             "ShippingMethod", shipping_method.id
         ),
+        "shippingMethodName": "Denormalized name",
         "shippingTaxClassId": graphene.Node.to_global_id(
             "TaxClass", default_tax_class.id
         ),
+        "shippingTaxClassName": "Denormalized name",
         "shippingPrice": {
             "gross": 120,
             "net": 100,
@@ -516,9 +518,6 @@ def test_order_bulk_create(
     assert order["status"] == OrderStatus.DRAFT.upper()
     assert order["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert order["languageCode"] == "pl"
-    assert not order["collectionPointName"]
-    assert order["shippingMethodName"] == shipping_method_channel_PLN.name
-    assert order["shippingTaxClassName"] == default_tax_class.name
     assert order["shippingTaxClassMetadata"][0]["key"] == "md key"
     assert order["shippingTaxClassMetadata"][0]["value"] == "md value"
     assert order["shippingTaxClassPrivateMetadata"][0]["key"] == "pmd key"
@@ -548,9 +547,9 @@ def test_order_bulk_create(
     assert not db_order.collection_point
     assert not db_order.collection_point_name
     assert db_order.shipping_method == shipping_method_channel_PLN
-    assert db_order.shipping_method_name == shipping_method_channel_PLN.name
+    assert db_order.shipping_method_name == "Denormalized name"
     assert db_order.shipping_tax_class == default_tax_class
-    assert db_order.shipping_tax_class_name == default_tax_class.name
+    assert db_order.shipping_tax_class_name == "Denormalized name"
     assert db_order.shipping_tax_rate == Decimal("0.2")
     assert db_order.shipping_tax_class_metadata["md key"] == "md value"
     assert db_order.shipping_tax_class_private_metadata["pmd key"] == "pmd value"
@@ -2106,6 +2105,7 @@ def test_order_bulk_create_warehouse_delivery_method(
     order["deliveryMethod"]["warehouseId"] = graphene.Node.to_global_id(
         "Warehouse", warehouse.id
     )
+    order["deliveryMethod"]["warehouseName"] = "Denormalized name"
     order["deliveryMethod"]["shippingMethodId"] = None
 
     staff_api_client.user.user_permissions.add(
@@ -2125,14 +2125,12 @@ def test_order_bulk_create_warehouse_delivery_method(
     assert content["data"]["orderBulkCreate"]["count"] == 1
     assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
     order = content["data"]["orderBulkCreate"]["results"][0]["order"]
-    assert order["collectionPointName"] == warehouse.name
-    assert not order["shippingMethodName"]
+    assert order["collectionPointName"] == "Denormalized name"
 
     db_order = Order.objects.get()
     assert db_order.collection_point == warehouse
-    assert db_order.collection_point_name == warehouse.name
+    assert db_order.collection_point_name == "Denormalized name"
     assert not db_order.shipping_method
-    assert not db_order.shipping_method_name
 
     assert Order.objects.count() == orders_count + 1
 
@@ -2244,7 +2242,7 @@ def test_order_bulk_create_error_note_exceeds_character_limit(
         error["message"] == f"Note message exceeds character limit: {MAX_NOTE_LENGTH}."
     )
     assert error["path"] == "notes.0.message"
-    assert error["code"] == OrderBulkCreateErrorCode.NOTE_LENGTH.name
+    assert error["code"] == OrderBulkCreateErrorCode.LENGTH_EXCEEDED.name
 
     assert Order.objects.count() == orders_count + 1
     assert OrderEvent.objects.count() == events_count
@@ -3367,3 +3365,68 @@ def test_order_bulk_create_error_currency_mismatch_between_channel_and_order(
     assert error["code"] == OrderBulkCreateErrorCode.INCORRECT_CURRENCY.name
 
     assert Order.objects.count() == orders_count
+
+
+def test_order_bulk_create_error_length_exceeded(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    orders_count = Order.objects.count()
+
+    order = order_bulk_input
+    order["lines"][0]["productName"] = "x" * 500
+    order["lines"][0]["variantName"] = "x" * 500
+    order["lines"][0]["translatedProductName"] = "x" * 500
+    order["lines"][0]["translatedVariantName"] = "x" * 500
+    order["lines"][0]["taxClassName"] = "x" * 500
+    order["trackingClientId"] = "x" * 500
+    order["deliveryMethod"]["shippingMethodName"] = "x" * 500
+    order["deliveryMethod"]["shippingTaxClassName"] = "x" * 500
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 1
+    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    paths = [error["path"] for error in errors]
+    messages = [error["message"] for error in errors]
+    codes = [error["code"] for error in errors]
+
+    assert "lines.0.product_name" in paths
+    assert "lines.0.variant_name" in paths
+    assert "lines.0.translated_product_name" in paths
+    assert "lines.0.translated_variant_name" in paths
+    assert "lines.0.tax_class_name" in paths
+    assert "tracking_client_id" in paths
+    assert "delivery_method.shipping_method_name" in paths
+    assert "delivery_method.shipping_tax_class_name" in paths
+
+    assert all(["Max character number exceeded:" in message for message in messages])
+    assert all(code == OrderBulkCreateErrorCode.LENGTH_EXCEEDED.name for code in codes)
+
+    assert order["lines"][0]["productName"] == "x" * 386
+    assert order["lines"][0]["variantName"] == "x" * 255
+    assert order["lines"][0]["translatedProductName"] == "x" * 386
+    assert order["lines"][0]["translatedVariantName"] == "x" * 255
+    assert order["lines"][0]["taxClassName"] == "x" * 255
+    assert order["trackingClientId"] == "x" * 36
+    assert order["shippingMethodName"] == "x" * 255
+    assert order["shippingTaxClassName"] == "x" * 255
+
+    assert Order.objects.count() == orders_count + 1

@@ -22454,7 +22454,7 @@ enum OrderBulkCreateErrorCode {
   FUTURE_DATE
   INVALID_QUANTITY
   PRICE_ERROR
-  NOTE_LENGTH
+  LENGTH_EXCEEDED
   INSUFFICIENT_STOCK
   NON_EXISTING_STOCK
   NO_RELATED_ORDER_LINE
@@ -22557,7 +22557,7 @@ input OrderBulkCreateUserInput @doc(category: "Orders") {
 }
 
 input OrderBulkCreateNoteInput @doc(category: "Orders") {
-  """Note message. Max characters: 200."""
+  """Note message. Max characters: 255."""
   message: String!
 
   """The date associated with the message."""
