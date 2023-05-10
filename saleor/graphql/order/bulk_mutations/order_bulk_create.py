@@ -11,7 +11,6 @@ from uuid import UUID
 import graphene
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.db import connection
 from django.db.models import Q
 from django.utils import timezone
 from graphql import GraphQLError
@@ -303,7 +302,7 @@ class ModelIdentifiers:
     warehouse_ids: ModelIdentifier = ModelIdentifier(model="Warehouse")
     shipping_method_ids: ModelIdentifier = ModelIdentifier(model="ShippingMethod")
     tax_class_ids: ModelIdentifier = ModelIdentifier(model="TaxClass")
-    order_numbers: ModelIdentifier = ModelIdentifier(model="Order")
+    order_external_references: ModelIdentifier = ModelIdentifier(model="Order")
     variant_ids: ModelIdentifier = ModelIdentifier(model="ProductVariant")
     variant_skus: ModelIdentifier = ModelIdentifier(model="ProductVariant")
     variant_external_references: ModelIdentifier = ModelIdentifier(
@@ -479,7 +478,6 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
 
 
 class OrderBulkCreateInput(BaseInputObjectType):
-    number = graphene.String(description="Unique string identifier of the order.")
     external_reference = graphene.String(description="External ID of the order.")
     channel = graphene.String(
         required=True, description="Slug of the channel associated with the order."
@@ -624,7 +622,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
             identifiers.channel_slugs.keys.append(order.get("channel"))
             identifiers.voucher_codes.keys.append(order.get("voucher"))
-            identifiers.order_numbers.keys.append(order.get("number"))
+            identifiers.order_external_references.keys.append(
+                order.get("external_reference")
+            )
             if delivery_method := order.get("delivery_method"):
                 identifiers.warehouse_ids.keys.append(
                     delivery_method.get("warehouse_id")
@@ -703,7 +703,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         tax_classes = TaxClass.objects.filter(pk__in=identifiers.tax_class_ids.keys)
         apps = App.objects.filter(pk__in=identifiers.app_ids.keys)
         gift_cards = GiftCard.objects.filter(code__in=identifiers.gift_card_codes.keys)
-        orders = Order.objects.filter(number__in=identifiers.order_numbers.keys)
+        orders = Order.objects.filter(
+            external_reference__in=identifiers.order_external_references.keys
+        )
 
         # Create dictionary
         object_storage: Dict[str, Any] = {}
@@ -734,7 +736,9 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             object_storage[f"GiftCard.code.{gift_card.code}"] = gift_card
 
         for order in orders:
-            object_storage[f"Order.number.{order.number}"] = order
+            object_storage[
+                f"Order.external_reference.{order.external_reference}"
+            ] = order
 
         for object in [*warehouses, *shipping_methods, *tax_classes, *apps]:
             object_storage[f"{object.__class__.__name__}.id.{object.pk}"] = object
@@ -796,13 +800,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        if number := order_input.get("number"):
-            lookup_key = f"Order.number.{number}"
+        if external_reference := order_input.get("external_reference"):
+            lookup_key = f"Order.external_reference.{external_reference}"
             if object_storage.get(lookup_key):
                 order_data.errors.append(
                     OrderBulkError(
-                        message=f"Order with number: {number} already exists.",
-                        path="number",
+                        message=f"Order with external_reference: {external_reference} "
+                        f"already exists.",
+                        path="external_reference",
                         code=OrderBulkCreateErrorCode.UNIQUE,
                     )
                 )
@@ -839,32 +844,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID,
                 )
             )
-
-    @classmethod
-    def validate_order_numbers(cls, orders_data: List[OrderBulkCreateData]):
-        numbers = []
-        for order_data in orders_data:
-            if order_data.order and order_data.order.number in numbers:
-                order_data.errors.append(
-                    OrderBulkError(
-                        message=f"Input contains multiple orders with number:"
-                        f" {order_data.order.number}.",
-                        path="number",
-                        code=OrderBulkCreateErrorCode.UNIQUE,
-                    )
-                )
-                order_data.order = None
-            elif order_data.order:
-                numbers.append(order_data.order.number)
-
-        int_numbers = [int(number) for number in numbers if number and number.isdigit()]
-        if int_numbers:
-            with connection.cursor() as cursor:
-                cursor.execute("SELECT currval('order_order_number_seq')")
-                curr_number = cursor.fetchone()[0]
-                int_numbers.append(curr_number)
-                max_number = max(int_numbers)
-                cursor.execute(f"SELECT setval('order_order_number_seq', {max_number})")
 
     @classmethod
     def process_metadata(
@@ -2212,7 +2191,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
             stocks: List[Stock] = []
 
-            cls.validate_order_numbers(orders_data)
             cls.handle_error_policy(orders_data, error_policy)
             if stock_update_policy != StockUpdatePolicy.SKIP:
                 stocks = cls.handle_stocks(orders_data, stock_update_policy)

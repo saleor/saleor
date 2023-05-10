@@ -22465,9 +22465,6 @@ enum OrderBulkCreateErrorCode {
 }
 
 input OrderBulkCreateInput @doc(category: "Orders") {
-  """Unique string identifier of the order."""
-  number: String
-
   """External ID of the order."""
   externalReference: String
 

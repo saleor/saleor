@@ -101,16 +101,13 @@ def get_order_number():
     with connection.cursor() as cursor:
         cursor.execute("SELECT nextval('order_order_number_seq')")
         result = cursor.fetchone()
-        return str(result[0])
+        return result[0]
 
 
 class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    number = models.CharField(
-        unique=True, default=get_order_number, editable=False, max_length=64
-    )
+    number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
     expired_at = models.DateTimeField(blank=True, null=True)

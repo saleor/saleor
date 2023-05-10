@@ -26,7 +26,6 @@ from .....order.models import (
     Order,
     OrderEvent,
     OrderLine,
-    get_order_number,
 )
 from .....payment import TransactionEventType
 from .....payment.models import TransactionEvent, TransactionItem
@@ -53,7 +52,6 @@ ORDER_BULK_CREATE = """
             results {
                 order {
                     id
-                    number
                     user {
                         id
                         email
@@ -369,7 +367,6 @@ def order_bulk_input(
     }
 
     return {
-        "number": "order-1",
         "channel": channel_PLN.slug,
         "createdAt": timezone.now(),
         "status": OrderStatusEnum.DRAFT.name,
@@ -516,7 +513,6 @@ def test_order_bulk_create(
     assert order["externalReference"] == "ext-ref-1"
     assert order["channel"]["slug"] == channel_PLN.slug
     assert order["created"]
-    assert order["number"] == "order-1"
     assert order["status"] == OrderStatus.DRAFT.upper()
     assert order["user"]["id"] == graphene.Node.to_global_id("User", customer_user.id)
     assert order["languageCode"] == "pl"
@@ -572,7 +568,6 @@ def test_order_bulk_create(
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
     assert db_order.voucher.code == "mirumee"
-    assert db_order.number == "order-1"
     assert db_order.metadata["md key"] == "md value"
     assert db_order.private_metadata["pmd key"] == "pmd value"
     assert db_order.total_authorized_amount == Decimal("10")
@@ -743,7 +738,6 @@ def test_order_bulk_create_multiple_orders(
 
     order_1 = order_bulk_input
     order_2 = order_bulk_input
-    order_2["number"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -1799,7 +1793,6 @@ def test_order_bulk_create_error_policy(
     order_1 = order_bulk_input
     order_2 = copy.deepcopy(order_bulk_input)
     order_2["notes"][0]["appId"] = graphene.Node.to_global_id("App", app.id)
-    order_2["number"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3053,119 +3046,6 @@ def test_order_bulk_create_validate_order_status(
         assert order["status"] == status.name.upper()
 
 
-def test_order_bulk_create_error_duplicate_order_number(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order_1 = order_bulk_input
-    order_2 = copy.deepcopy(order_1)
-    order_3 = copy.deepcopy(order_1)
-
-    order_1["number"] = "order-1"
-    order_2["number"] = "order-2"
-    order_3["number"] = "order-2"
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order_1, order_2, order_3],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 2
-    data = content["data"]["orderBulkCreate"]["results"]
-    order_1 = data[0]["order"]
-    order_2 = data[1]["order"]
-    assert order_1["number"] == "order-1"
-    assert order_2["number"] == "order-2"
-    error = data[2]["errors"][0]
-    assert error["message"] == "Input contains multiple orders with number: order-2."
-    assert error["path"] == "number"
-    assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
-
-
-def test_order_bulk_create_update_order_number_sequence(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order = order_bulk_input
-    new_number = int(get_order_number()) + 2
-    order["number"] = new_number
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert data[0]["order"]["number"] == str(new_number)
-    assert not data[0]["errors"]
-    assert get_order_number() == str(new_number + 1)
-
-
-def test_order_bulk_create_error_order_number_already_exist(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-    order_with_number,
-):
-    # given
-    order = order_bulk_input
-    order["number"] = order_with_number.number
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    data = content["data"]["orderBulkCreate"]["results"]
-    assert not data[0]["order"]
-    error = data[0]["errors"][0]
-    assert (
-        error["message"]
-        == f"Order with number: {order_with_number.number} already exists."
-    )
-    assert error["path"] == "number"
-    assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
-
-
 @patch("saleor.plugins.manager.PluginsManager.order_bulk_created")
 def test_order_bulk_create_webhook(
     mocked_order_bulk_created,
@@ -3382,3 +3262,41 @@ def test_order_bulk_create_optional_fields_set_to_none(
     # then
     assert content["data"]["orderBulkCreate"]["count"] == 1
     assert not content["data"]["orderBulkCreate"]["results"][0]["errors"]
+
+
+def test_order_bulk_create_error_external_reference_already_exist(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+    order,
+):
+    # given
+    order.external_reference = "order-123"
+    order.save(update_fields=["external_reference"])
+    order_bulk_input["externalReference"] = "order-123"
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order_bulk_input],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    data = content["data"]["orderBulkCreate"]["results"]
+    assert not data[0]["order"]
+    error = data[0]["errors"][0]
+    assert (
+        error["message"] == "Order with external_reference: order-123 already exists."
+    )
+    assert error["path"] == "external_reference"
+    assert error["code"] == OrderBulkCreateErrorCode.UNIQUE.name
