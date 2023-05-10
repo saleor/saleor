@@ -84,4 +84,8 @@ def get_instance(
                 )
             return instance
 
-    raise ValidationError(f"Can't return {model_name} instance.")
+    raise ValidationError(
+        message=f"Can't return {model_name} instance.",
+        code=error_enum.NOT_FOUND.value,
+        params={"path": path},
+    )
