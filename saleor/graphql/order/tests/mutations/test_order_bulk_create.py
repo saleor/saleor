@@ -1371,7 +1371,7 @@ def test_order_bulk_create_stock_update_insufficient_stock(
         product_variant=variant_2, warehouse=warehouse_1, quantity=100
     )
     stock_variant_2_warehouse_2 = Stock(
-        product_variant=variant_2, warehouse=warehouse_2, quantity=1
+        product_variant=variant_2, warehouse=warehouse_2, quantity=5
     )
     Stock.objects.bulk_create(
         [
@@ -1412,7 +1412,7 @@ def test_order_bulk_create_stock_update_insufficient_stock(
 
     assert stock_variant_1_warehouse_1.quantity == 100
     assert stock_variant_2_warehouse_1.quantity == 100
-    assert stock_variant_2_warehouse_2.quantity == 1
+    assert stock_variant_2_warehouse_2.quantity == 5
 
 
 def test_order_bulk_create_stock_update_insufficient_stock_with_force_update_policy(

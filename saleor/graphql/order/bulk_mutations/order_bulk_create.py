@@ -1987,7 +1987,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             for line in order_data.lines:
                 order_line = line.line
                 variant_id = order_line.variant_id
-                warehouse = line.warehouse.id
+                warehouse_id = line.warehouse.id
                 quantity_to_fulfill = order_line.quantity
                 quantity_fulfilled = (
                     order_data.orderline_quantityfulfilled_map.get(order_line.id) or 0
@@ -1999,7 +1999,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                         OrderBulkError(
                             message=f"There is more fulfillments, than ordered quantity"
                             f" for order line with variant: {variant_id} and warehouse:"
-                            f" {warehouse}",
+                            f" {warehouse_id}",
                             path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                         )
@@ -2007,13 +2007,13 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     order_data.is_critical_error = True
                     break
 
-                stock = stocks_map_copy.get(f"{variant_id}_{warehouse}")
+                stock = stocks_map_copy.get(f"{variant_id}_{warehouse_id}")
                 if not stock:
                     order_data.errors.append(
                         OrderBulkError(
                             message=f"There is no stock for given product variant:"
                             f" {variant_id} and warehouse: "
-                            f"{warehouse}.",
+                            f"{warehouse_id}.",
                             path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.NON_EXISTING_STOCK,
                         )
@@ -2023,14 +2023,14 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
                 available_quantity = stock.quantity - stock.quantity_allocated
                 if (
-                    quantity_to_allocate > available_quantity
+                    quantity_to_fulfill > available_quantity
                     and stock_update_policy != StockUpdatePolicy.FORCE
                 ):
                     order_data.errors.append(
                         OrderBulkError(
                             message=f"Insufficient stock for product variant: "
                             f"{variant_id} and warehouse: "
-                            f"{warehouse}.",
+                            f"{warehouse_id}.",
                             path=f"lines.{line_index}",
                             code=OrderBulkCreateErrorCode.INSUFFICIENT_STOCK,
                         )
