@@ -29340,7 +29340,7 @@ type TransactionProcessSession implements Event @doc(category: "Payments") {
 scalar _Any
 
 """_Entity union as defined by Federation spec."""
-union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | PageType | Order
+union _Entity = App | Address | User | Group | ProductVariant | Product | ProductType | ProductMedia | Category | Collection | Order | PageType
 
 """_Service manifest as defined by Federation spec."""
 type _Service {
