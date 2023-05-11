@@ -75,6 +75,7 @@ def stripe_plugin(settings, monkeypatch, channel_USD):
         webhook_secret_key="ABCD",
         active=True,
         auto_capture=True,
+        include_receipt_email=None,
     ):
         public_api_key = public_api_key or "test_key"
         secret_api_key = secret_api_key or "secret_key"
@@ -94,6 +95,10 @@ def stripe_plugin(settings, monkeypatch, channel_USD):
         if webhook_secret_key:
             configuration.append(
                 {"name": "webhook_secret_key", "value": webhook_secret_key}
+            )
+        if include_receipt_email is not None:
+            configuration.append(
+                {"name": "include_receipt_email", "value": include_receipt_email}
             )
         PluginConfiguration.objects.create(
             identifier=StripeGatewayPlugin.PLUGIN_ID,
