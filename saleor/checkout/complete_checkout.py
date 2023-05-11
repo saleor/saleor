@@ -1275,7 +1275,8 @@ def complete_checkout(
     metadata_list: Optional[List] = None,
     private_metadata_list: Optional[List] = None,
 ) -> Tuple[Optional[Order], bool, dict]:
-    # Assign checkout user to an existing user if checkout email matches a valid customer account
+    # Assign checkout user to an existing user if checkout email matches a valid
+    #  customer account
     if user is None and checkout_info.checkout.email:
         existing_user = retrieve_user_by_email(checkout_info.checkout.email)
         checkout_info.user = (
