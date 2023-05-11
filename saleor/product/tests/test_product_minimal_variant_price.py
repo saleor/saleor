@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from prices import Money
 
+from ...discount.models import Sale, SaleChannelListing
 from ..tasks import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_task,
@@ -28,12 +29,18 @@ def test_update_product_discounted_price(product, channel_USD):
     assert variant_channel_listing.discounted_price == variant_channel_listing.price
 
 
-def test_update_product_discounted_price_discount_on_variant(
-    product, discount_info, channel_USD
-):
+def test_update_product_discounted_price_discount_on_variant(product, channel_USD):
     # given
     variant = product.variants.first()
-    discount_info.variants_ids.add(variant.id)
+    sale = Sale.objects.create(name="Test sale")
+    discount_value = 5
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel_USD,
+        discount_value=discount_value,
+        currency=channel_USD.currency_code,
+    )
+    sale.variants.add(variant)
 
     variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
     product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
@@ -48,10 +55,7 @@ def test_update_product_discounted_price_discount_on_variant(
     update_products_discounted_price([product])
 
     # then
-    expected_price_amount = (
-        variant_channel_listing.price.amount
-        - discount_info.channel_listings[channel_USD.slug].discount_value
-    )
+    expected_price_amount = variant_channel_listing.price.amount - discount_value
     product_channel_listing.refresh_from_db()
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price_amount == expected_price_amount

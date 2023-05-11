@@ -131,6 +131,7 @@ def _get_discounted_variants_prices(
             collection_ids=collection_ids,
             discounts=discounts,
             channel=channel,
+            variant_id=variant_listing.variant_id,
         )
         if variant_listing.discounted_price != discounted_variant_price:
             variant_listing.discounted_price_amount = discounted_variant_price.amount
