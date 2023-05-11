@@ -8942,7 +8942,7 @@ type Shop {
   staffNotificationRecipients: [StaffNotificationRecipient!]
 
   """
-  Determines if email should be sent after account registration.
+  Determines if account confirmation by email is enabled.
   
   Added in Saleor 3.14.
   

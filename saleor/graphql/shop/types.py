@@ -294,8 +294,7 @@ class Shop(graphene.ObjectType):
     enable_account_confirmation_by_email = PermissionsField(
         graphene.Boolean,
         description=(
-            "Determines if email should be sent after account registration."
-            + ADDED_IN_314
+            "Determines if account confirmation by email is enabled." + ADDED_IN_314
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
