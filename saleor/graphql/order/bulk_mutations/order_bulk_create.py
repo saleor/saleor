@@ -52,7 +52,7 @@ from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.enums import ErrorPolicy, ErrorPolicyEnum, LanguageCodeEnum
 from ...core.mutations import BaseMutation
-from ...core.scalars import PositiveDecimal, WeightScalar
+from ...core.scalars import WeightScalar
 from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
@@ -152,15 +152,6 @@ class OrderBulkCreateData:
         if self.order:
             updates_amounts_for_order(self.order, save=False)
             update_order_search_vector(self.order, save=False)
-
-    @property
-    def order_lines_duplicates(self) -> bool:
-        keys = [
-            f"{order_line.line.variant.id}_{order_line.warehouse.id}"
-            for order_line in self.lines
-            if order_line.line.variant
-        ]
-        return len(keys) != len(list(set(keys)))
 
     @property
     def all_order_lines(self) -> List[OrderLine]:
@@ -316,8 +307,8 @@ class ModelIdentifiers:
 
 
 class TaxedMoneyInput(BaseInputObjectType):
-    gross = PositiveDecimal(required=True, description="Gross value of an item.")
-    net = PositiveDecimal(required=True, description="Net value of an item.")
+    gross = graphene.Float(required=True, description="Gross value of an item.")
+    net = graphene.Float(required=True, description="Net value of an item.")
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -359,7 +350,7 @@ class OrderBulkCreateDeliveryMethodInput(BaseInputObjectType):
     shipping_price = graphene.Field(
         TaxedMoneyInput, description="The price of the shipping."
     )
-    shipping_tax_rate = PositiveDecimal(description="Tax rate of the shipping.")
+    shipping_tax_rate = graphene.Float(description="Tax rate of the shipping.")
     shipping_tax_class_id = graphene.ID(description="The ID of the tax class.")
     shipping_tax_class_name = graphene.String(description="The name of the tax class.")
     shipping_tax_class_metadata = NonNullList(
@@ -466,7 +457,7 @@ class OrderBulkCreateOrderLineInput(BaseInputObjectType):
     private_metadata = NonNullList(
         MetadataInput, description="Private metadata of the order line."
     )
-    tax_rate = PositiveDecimal(description="Tax rate of the order line.")
+    tax_rate = graphene.Float(description="Tax rate of the order line.")
     tax_class_id = graphene.ID(description="The ID of the tax class.")
     tax_class_name = graphene.String(description="The name of the tax class.")
     tax_class_metadata = NonNullList(
@@ -861,7 +852,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
 
     @classmethod
-    def validate_length(
+    def validate_string(
         cls,
         value: str,
         model: Any,
@@ -880,6 +871,42 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             )
             return value[:max_length]
         return value
+
+    @classmethod
+    def validate_number(
+        cls,
+        value: Decimal,
+        model: Any,
+        field_name: str,
+        path: str,
+        order_data: OrderBulkCreateData,
+    ):
+        if value < 0:
+            order_data.errors.append(
+                OrderBulkError(
+                    message="The value can't be negative.",
+                    path=path,
+                    code=OrderBulkCreateErrorCode.NEGATIVE_NUMBER,
+                )
+            )
+            order_data.is_critical_error = True
+            return
+
+        max_digits = model._meta.get_field(field_name).max_digits
+        decimal_places = model._meta.get_field(field_name).decimal_places
+        value_limit = 10 ** (max_digits - decimal_places)
+        if value >= value_limit:
+            order_data.errors.append(
+                OrderBulkError(
+                    message=f"The field with precision {max_digits}, scale "
+                    f"{decimal_places} must round to an absolute value less "
+                    f"than {value_limit}.",
+                    path=path,
+                    code=OrderBulkCreateErrorCode.NUMBER_OVERFLOW,
+                )
+            )
+            order_data.is_critical_error = True
+        return
 
     @classmethod
     def process_metadata(
@@ -1047,7 +1074,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def make_order_line_calculations(
         cls,
         line_input: Dict[str, Any],
-        errors: List[OrderBulkError],
+        order_data: OrderBulkCreateData,
         currency: str,
         index: int,
     ) -> Optional[LineAmounts]:
@@ -1058,9 +1085,8 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         quantity = line_input["quantity"]
         tax_rate = line_input.get("tax_rate", None)
 
-        is_exit_error = False
         if quantity < 1 or int(quantity) != quantity:
-            errors.append(
+            order_data.errors.append(
                 OrderBulkError(
                     message="Invalid quantity. "
                     "Must be integer greater then or equal to 1.",
@@ -1068,30 +1094,30 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.INVALID_QUANTITY,
                 )
             )
-            is_exit_error = True
+            order_data.is_critical_error = True
         if gross_amount < net_amount:
-            errors.append(
+            order_data.errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
                     path=f"lines.{index}.total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
-            is_exit_error = True
+            order_data.is_critical_error = True
         if undiscounted_gross_amount < undiscounted_net_amount:
-            errors.append(
+            order_data.errors.append(
                 OrderBulkError(
                     message="Net price can't be greater then gross price.",
                     path=f"lines.{index}.undiscounted_total_price",
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
-            is_exit_error = True
+            order_data.is_critical_error = True
         if (
             undiscounted_gross_amount < gross_amount
             or undiscounted_net_amount < net_amount
         ):
-            errors.append(
+            order_data.errors.append(
                 OrderBulkError(
                     message=(
                         "Total price can't be greater then undiscounted total price."
@@ -1100,9 +1126,28 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     code=OrderBulkCreateErrorCode.PRICE_ERROR,
                 )
             )
-            is_exit_error = True
+            order_data.is_critical_error = True
 
-        if is_exit_error:
+        cls.validate_number(
+            value=undiscounted_gross_amount,
+            model=OrderLine,
+            field_name="undiscounted_total_price_gross_amount",
+            path=f"lines.{index}.undiscounted_total_price",
+            order_data=order_data,
+        )
+
+        if tax_rate is None and net_amount > 0:
+            tax_rate = Decimal(gross_amount / net_amount - 1)
+
+        cls.validate_number(
+            value=tax_rate,
+            model=OrderLine,
+            field_name="tax_rate",
+            path=f"lines.{index}.tax_rate",
+            order_data=order_data,
+        )
+
+        if order_data.is_critical_error:
             return None
 
         unit_price_net_amount = quantize_price(Decimal(net_amount / quantity), currency)
@@ -1118,9 +1163,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         unit_discount_amount = (
             undiscounted_unit_price_net_amount - unit_price_net_amount
         )
-
-        if tax_rate is None and net_amount > 0:
-            tax_rate = Decimal(gross_amount / net_amount - 1)
 
         return LineAmounts(
             total_gross=gross_amount,
@@ -1140,8 +1182,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
     def make_order_calculations(
         cls,
         delivery_method: DeliveryMethod,
-        order_lines: List[OrderLine],
-        channel: Channel,
+        order_data: OrderBulkCreateData,
         delivery_input: Dict[str, Any],
         object_storage: Dict[str, Any],
     ) -> OrderAmounts:
@@ -1150,16 +1191,26 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         # Calculate shipping amounts
         shipping_price_net_amount = Decimal(0)
         shipping_price_gross_amount = Decimal(0)
-        shipping_price_tax_rate = Decimal(delivery_input.get("shipping_tax_rate") or 0)
+        shipping_tax_rate = Decimal(delivery_input.get("shipping_tax_rate") or 0)
 
         if delivery_method.shipping_method:
             if shipping_price := delivery_input.get("shipping_price"):
                 shipping_price_net_amount = Decimal(shipping_price.net)
                 shipping_price_gross_amount = Decimal(shipping_price.gross)
-                shipping_price_tax_rate = (
+                if shipping_price_gross_amount < shipping_price_net_amount:
+                    order_data.errors.append(
+                        OrderBulkError(
+                            message="Net price can't be greater then gross price.",
+                            path="delivery_method.shipping_price",
+                            code=OrderBulkCreateErrorCode.PRICE_ERROR,
+                        )
+                    )
+                    order_data.is_critical_error = True
+                shipping_tax_rate = (
                     shipping_price_gross_amount / shipping_price_net_amount - 1
                 )
             else:
+                assert order_data.channel
                 lookup_key = f"shipping_price.{delivery_method.shipping_method.id}"
                 db_price_amount = object_storage.get(lookup_key) or (
                     ShippingMethodChannelListing.objects.values_list(
@@ -1167,18 +1218,19 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     )
                     .filter(
                         shipping_method_id=delivery_method.shipping_method.id,
-                        channel_id=channel.id,
+                        channel_id=order_data.channel.id,
                     )
                     .first()
                 )
                 if db_price_amount:
                     shipping_price_net_amount = Decimal(db_price_amount)
                     shipping_price_gross_amount = Decimal(
-                        shipping_price_net_amount * (1 + shipping_price_tax_rate)
+                        shipping_price_net_amount * (1 + shipping_tax_rate)
                     )
                     object_storage[lookup_key] = db_price_amount
 
         # Calculate lines
+        order_lines = order_data.all_order_lines
         order_total_gross_amount = Decimal(
             sum((line.total_price_gross_amount for line in order_lines))
         )
@@ -1192,10 +1244,25 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             sum((line.undiscounted_total_price_net_amount for line in order_lines))
         )
 
+        cls.validate_number(
+            value=shipping_tax_rate,
+            model=Order,
+            field_name="shipping_tax_rate",
+            path="delivery_method.shipping_tax_rate",
+            order_data=order_data,
+        )
+        cls.validate_number(
+            value=shipping_price_gross_amount,
+            model=Order,
+            field_name="shipping_price_gross_amount",
+            path="delivery_method.shipping_price",
+            order_data=order_data,
+        )
+
         return OrderAmounts(
             shipping_price_gross=shipping_price_gross_amount,
             shipping_price_net=shipping_price_net_amount,
-            shipping_tax_rate=shipping_price_tax_rate,
+            shipping_tax_rate=shipping_tax_rate,
             total_gross=order_total_gross_amount,
             total_net=order_total_net_amount,
             undiscounted_total_gross=order_undiscounted_total_gross_amount,
@@ -1273,7 +1340,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order_data.is_critical_error = True
         else:
             if warehouse_name := delivery_input.get("warehouse_name"):
-                warehouse_name = cls.validate_length(
+                warehouse_name = cls.validate_string(
                     value=warehouse_name,
                     model=Order,
                     field_name="collection_point_name",
@@ -1281,7 +1348,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     errors=order_data.errors,
                 )
             if shipping_method_name := delivery_input.get("shipping_method_name"):
-                shipping_method_name = cls.validate_length(
+                shipping_method_name = cls.validate_string(
                     value=shipping_method_name,
                     model=Order,
                     field_name="shipping_method_name",
@@ -1289,7 +1356,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     errors=order_data.errors,
                 )
             if shipping_tax_class_name := delivery_input.get("shipping_tax_class_name"):
-                shipping_tax_class_name = cls.validate_length(
+                shipping_tax_class_name = cls.validate_string(
                     value=shipping_tax_class_name,
                     model=Order,
                     field_name="shipping_tax_class_name",
@@ -1574,7 +1641,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             path=f"lines.{index}",
         )
         line_amounts = cls.make_order_line_calculations(
-            order_line_input, order_data.errors, order_input["currency"], index
+            order_line_input, order_data, order_input["currency"], index
         )
         if not line_amounts:
             return None
@@ -1588,35 +1655,35 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                 )
             )
 
-        product_name = cls.validate_length(
+        product_name = cls.validate_string(
             value=order_line_input.get("product_name") or "",
             model=OrderLine,
             field_name="product_name",
             path=f"lines.{index}.product_name",
             errors=order_data.errors,
         )
-        variant_name = cls.validate_length(
+        variant_name = cls.validate_string(
             value=order_line_input.get("variant_name") or "",
             model=OrderLine,
             field_name="variant_name",
             path=f"lines.{index}.variant_name",
             errors=order_data.errors,
         )
-        translated_product_name = cls.validate_length(
+        translated_product_name = cls.validate_string(
             value=order_line_input.get("translated_product_name") or "",
             model=OrderLine,
             field_name="translated_product_name",
             path=f"lines.{index}.translated_product_name",
             errors=order_data.errors,
         )
-        translated_variant_name = cls.validate_length(
+        translated_variant_name = cls.validate_string(
             value=order_line_input.get("translated_variant_name") or "",
             model=OrderLine,
             field_name="translated_variant_name",
             path=f"lines.{index}.translated_variant_name",
             errors=order_data.errors,
         )
-        tax_class_name = cls.validate_length(
+        tax_class_name = cls.validate_string(
             value=order_line_input.get("tax_class_name") or "",
             model=OrderLine,
             field_name="tax_class_name",
@@ -1737,7 +1804,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
                     OrderBulkError(
                         message="Order line index can't be negative.",
                         path=f"{path}.order_line_index",
-                        code=OrderBulkCreateErrorCode.NEGATIVE_INDEX,
+                        code=OrderBulkCreateErrorCode.NEGATIVE_NUMBER,
                     )
                 )
                 return None
@@ -1937,18 +2004,21 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
 
         order_amounts = cls.make_order_calculations(
             delivery_method,
-            order_data.all_order_lines,
-            order_data.channel,
+            order_data,
             delivery_input,
             object_storage,
         )
+        if order_data.is_critical_error:
+            order_data.order = None
+            return order_data
+
         cls.create_notes(order_input, order_data, object_storage)
         cls.create_transactions(order_input, order_data)
         cls.create_invoices(order_input, order_data)
         cls.create_discounts(order_input, order_data, order_amounts)
         cls.validate_order_status(order_input["status"], order_data)
 
-        tracking_client_id = cls.validate_length(
+        tracking_client_id = cls.validate_string(
             value=order_input.get("tracking_client_id") or "",
             model=Order,
             field_name="tracking_client_id",

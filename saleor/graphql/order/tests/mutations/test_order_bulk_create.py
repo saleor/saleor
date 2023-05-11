@@ -3367,7 +3367,7 @@ def test_order_bulk_create_error_currency_mismatch_between_channel_and_order(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_error_length_exceeded(
+def test_order_bulk_create_error_string_length_exceeded(
     staff_api_client,
     permission_manage_orders,
     permission_manage_orders_import,
@@ -3430,3 +3430,165 @@ def test_order_bulk_create_error_length_exceeded(
     assert order["shippingTaxClassName"] == "x" * 255
 
     assert Order.objects.count() == orders_count + 1
+
+
+def test_order_bulk_create_error_negative_numbers_in_delivery_method(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["deliveryMethod"]["shippingTaxRate"] = -0.2
+    order["deliveryMethod"]["shippingPrice"]["gross"] = -100
+    order["deliveryMethod"]["shippingPrice"]["net"] = -120
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    paths = [error["path"] for error in errors]
+    messages = [error["message"] for error in errors]
+    codes = [error["code"] for error in errors]
+
+    assert "delivery_method.shipping_tax_rate" in paths
+    assert "delivery_method.shipping_price" in paths
+
+    assert all(["The value can't be negative." == message for message in messages])
+    assert all(code == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name for code in codes)
+
+
+def test_order_bulk_create_error_negative_numbers_in_order_line(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["lines"][0]["undiscountedTotalPrice"]["gross"] = -100
+    order["lines"][0]["undiscountedTotalPrice"]["net"] = -120
+    order["lines"][0]["totalPrice"]["gross"] = -100
+    order["lines"][0]["totalPrice"]["net"] = -120
+    order["lines"][0]["taxRate"] = -0.2
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    paths = [error["path"] for error in errors]
+    messages = [error["message"] for error in errors]
+    codes = [error["code"] for error in errors]
+
+    assert "lines.0.undiscounted_total_price" in paths
+    assert "lines.0.tax_rate" in paths
+
+    assert all(["The value can't be negative." == message for message in messages])
+    assert all(code == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name for code in codes)
+
+
+def test_order_bulk_create_error_numbers_overflow_in_delivery_method(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["deliveryMethod"]["shippingTaxRate"] = 10000000000000
+    order["deliveryMethod"]["shippingPrice"]["gross"] = 10000000000000000
+    order["deliveryMethod"]["shippingPrice"]["net"] = 10000000000000
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    paths = [error["path"] for error in errors]
+    messages = [error["message"] for error in errors]
+    codes = [error["code"] for error in errors]
+
+    assert "delivery_method.shipping_tax_rate" in paths
+    assert "delivery_method.shipping_price" in paths
+
+    assert all(["The field with precision" in message for message in messages])
+    assert all(code == OrderBulkCreateErrorCode.NUMBER_OVERFLOW.name for code in codes)
+
+
+def test_order_bulk_create_error_numbers_overflow_in_order_line(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["lines"][0]["undiscountedTotalPrice"]["gross"] = 10000000000000000
+    order["lines"][0]["undiscountedTotalPrice"]["net"] = 10000000000000
+    order["lines"][0]["taxRate"] = 10000000000000
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
+    paths = [error["path"] for error in errors]
+    messages = [error["message"] for error in errors]
+    codes = [error["code"] for error in errors]
+
+    assert "lines.0.undiscounted_total_price" in paths
+    assert "lines.0.tax_rate" in paths
+
+    assert all(["The field with precision" in message for message in messages])
+    assert all(code == OrderBulkCreateErrorCode.NUMBER_OVERFLOW.name for code in codes)
