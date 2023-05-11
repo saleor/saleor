@@ -62,6 +62,7 @@ class StripeGatewayPlugin(BasePlugin):
         {"name": "supported_currencies", "value": ""},
         {"name": "webhook_endpoint_id", "value": None},
         {"name": "webhook_secret_key", "value": None},
+        {"name": "include_receipt_email", "value": True},
     ]
 
     CONFIG_STRUCTURE = {
@@ -85,6 +86,16 @@ class StripeGatewayPlugin(BasePlugin):
             "help_text": "Determines currencies supported by gateway."
             " Please enter currency codes separated by a comma.",
             "label": "Supported currencies",
+        },
+        "include_receipt_email": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Determine whether the `receipt_email` should be included in "
+            "the payment request sent to Stripe. If `receipt_email` is specified for a "
+            "payment in live mode, a receipt will be sent by Stripe, regardless of "
+            "your email settings. More info: "
+            "https://stripe.com/docs/api/payment_intents/create#"
+            "create_payment_intent-receipt_email",
+            "label": "Include receipt email",
         },
         "webhook_endpoint_id": {
             "type": ConfigurationTypeField.OUTPUT,
@@ -110,6 +121,7 @@ class StripeGatewayPlugin(BasePlugin):
                 "secret_api_key": configuration["secret_api_key"],
                 "webhook_id": configuration["webhook_endpoint_id"],
                 "webhook_secret": webhook_secret,
+                "include_receipt_email": configuration["include_receipt_email"],
             },
             store_customer=True,
         )
@@ -179,6 +191,7 @@ class StripeGatewayPlugin(BasePlugin):
             return previous_value
 
         api_key = self.config.connection_params["secret_api_key"]
+        include_receipt_email = self.config.connection_params["include_receipt_email"]
 
         auto_capture = self.config.auto_capture
         if self.order_auto_confirmation is False:
@@ -227,7 +240,9 @@ class StripeGatewayPlugin(BasePlugin):
             setup_future_usage=setup_future_usage,
             off_session=off_session,
             payment_method_types=payment_method_types,
-            customer_email=payment_information.customer_email,
+            customer_email=payment_information.customer_email
+            if include_receipt_email
+            else None,
         )
 
         raw_response = None
