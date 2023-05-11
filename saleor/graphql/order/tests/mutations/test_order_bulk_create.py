@@ -555,6 +555,7 @@ def test_order_bulk_create(
     assert db_order.shipping_tax_class_private_metadata["pmd key"] == "pmd value"
     assert db_order.shipping_price_gross_amount == 120
     assert db_order.shipping_price_net_amount == 100
+    assert db_order.base_shipping_price_amount == 100
     assert db_order.total_gross_amount == 120
     assert db_order.total_net_amount == 100
     assert db_order.undiscounted_total_gross_amount == 120
@@ -3592,3 +3593,115 @@ def test_order_bulk_create_error_numbers_overflow_in_order_line(
 
     assert all(["The field with precision" in message for message in messages])
     assert all(code == OrderBulkCreateErrorCode.NUMBER_OVERFLOW.name for code in codes)
+
+
+def test_order_bulk_create_error_non_existing_gift_card_code(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["giftCards"] = ["non-existing-code"]
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Gift card with code non-existing-code doesn't exist."
+    assert error["path"] == "gift_cards.0"
+    assert error["code"] == OrderBulkCreateErrorCode.NOT_FOUND.name
+
+
+def test_order_bulk_create_error_negative_order_line_index(
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["fulfillments"][0]["lines"][0]["orderLineIndex"] = -1
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Order line index can't be negative."
+    assert error["path"] == "fulfillments.0.lines.0.order_line_index"
+    assert error["code"] == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name
+
+
+@pytest.mark.parametrize(
+    "status,order_quantity,fulfillment_quantity",
+    [
+        (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 0),
+        (OrderStatusEnum.PARTIALLY_FULFILLED.name, 5, 5),
+        (OrderStatusEnum.UNFULFILLED.name, 5, 4),
+        (OrderStatusEnum.UNFULFILLED.name, 5, 5),
+        (OrderStatusEnum.FULFILLED.name, 5, 0),
+        (OrderStatusEnum.FULFILLED.name, 5, 4),
+    ],
+)
+def test_order_bulk_create_error_invalid_status(
+    status,
+    order_quantity,
+    fulfillment_quantity,
+    staff_api_client,
+    permission_manage_orders,
+    permission_manage_orders_import,
+    order_bulk_input,
+):
+    # given
+    order = order_bulk_input
+    order["status"] = status
+    order["lines"][0]["quantity"] = order_quantity
+    order["fulfillments"][0]["lines"][0]["quantity"] = fulfillment_quantity
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders_import,
+        permission_manage_orders,
+    )
+    variables = {
+        "orders": [order],
+        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert content["data"]["orderBulkCreate"]["count"] == 0
+    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
+    error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
+    assert error["message"] == "Invalid order status."
+    assert error["path"] == "status"
+    assert error["code"] == OrderBulkCreateErrorCode.INVALID.name

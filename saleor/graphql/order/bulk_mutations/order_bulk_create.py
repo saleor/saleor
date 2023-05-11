@@ -2052,6 +2052,7 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
             order_amounts.shipping_price_gross
         )
         order_data.order.shipping_price_net_amount = order_amounts.shipping_price_net
+        order_data.order.base_shipping_price_amount = order_amounts.shipping_price_net
         order_data.order.total_gross_amount = order_amounts.total_gross
         order_data.order.undiscounted_total_gross_amount = (
             order_amounts.undiscounted_total_gross
