@@ -23,7 +23,7 @@ from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
-from ..account.utils import store_user_address, retrieve_user_by_email
+from ..account.utils import retrieve_user_by_email, store_user_address
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
