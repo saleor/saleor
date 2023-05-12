@@ -1,20 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...channel.models import Channel
 from ...core.utils import to_local_currency
-from ...discount import DiscountInfo
-from ...discount.utils import calculate_discounted_price
-from ...product.models import (
-    Collection,
-    Product,
-    ProductChannelListing,
-    ProductVariant,
-    ProductVariantChannelListing,
-)
+from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations import calculate_flat_rate_tax
 
@@ -82,26 +73,6 @@ def _get_product_price_range(
             discount_local_currency = undiscounted_local.start - price_range_local.start
 
     return price_range_local, discount_local_currency
-
-
-def get_variant_price(
-    *,
-    variant: ProductVariant,
-    variant_channel_listing: ProductVariantChannelListing,
-    product: Product,
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel
-):
-    collection_ids = {collection.id for collection in collections}
-    return calculate_discounted_price(
-        product=product,
-        price=variant_channel_listing.price,
-        collection_ids=collection_ids,
-        discounts=discounts,
-        channel=channel,
-        variant_id=variant.id,
-    )
 
 
 def get_product_price_range(
