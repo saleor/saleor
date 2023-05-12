@@ -792,7 +792,7 @@ if REDIS_URL:
         from redis import ConnectionPool, Redis
 
         rs = Redis.from_url(CACHE_URL)
-        rs.get(None)
+        rs.get("MARKLAR-MARKLAR")
     except Exception as e:
         raise ImproperlyConfigured(
             "Cannot connect to Redis using the URL in the REDIS_URL environment "
