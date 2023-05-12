@@ -44,7 +44,6 @@ from .. import (
     generate_request_data_from_checkout,
     generate_request_data_from_checkout_lines,
     get_cached_tax_codes_or_fetch,
-    get_checkout_tax_data,
     get_order_lines_data,
     get_order_request_data,
     get_order_tax_data,
@@ -3251,24 +3250,34 @@ def test_generate_request_data_from_checkout_for_cc_and_single_location(
     }
 
 
-@pytest.mark.vcr
-@patch("saleor.plugins.avatax.cache.set")
 def test_get_checkout_tax_data_with_single_point(
-    mock_cache_set,
     checkout_with_item,
     warehouse,
     avatax_config,
 ):
     # given
+    expected_address = {
+        "line1": "4371 Lucas Knoll Apt. 791",
+        "line2": "",
+        "city": "BENNETTMOUTH",
+        "region": "",
+        "country": "PL",
+        "postalCode": "53-601",
+    }
     address = Address.objects.create(
-        street_address_1="4371 Lucas Knoll Apt. 791",
-        city="BENNETTMOUTH",
-        postal_code="53-601",
-        country="PL",
+        street_address_1=expected_address["line1"],
+        city=expected_address["city"],
+        postal_code=expected_address["postalCode"],
+        country=expected_address["country"],
     )
     warehouse.address = address
     warehouse.is_private = False
     warehouse.save()
+
+    avatax_config.from_street_address = expected_address["line1"]
+    avatax_config.from_city = expected_address["city"]
+    avatax_config.from_postal_code = expected_address["postalCode"]
+    avatax_config.from_country = expected_address["country"]
 
     checkout_with_item.collection_point = warehouse
     checkout_with_item.save()
@@ -3278,10 +3287,15 @@ def test_get_checkout_tax_data_with_single_point(
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
 
     # when
-    response = get_checkout_tax_data(checkout_info, lines, config=avatax_config)
+    request_data = generate_request_data_from_checkout(
+        checkout_info, lines, config=avatax_config
+    )
 
     # then
-    assert len(response.get("addresses", [])) == 1
+    addresses = request_data["createTransactionModel"]["addresses"]
+    assert addresses["singleLocation"] == expected_address
+    assert "shipFrom" not in addresses.keys()
+    assert "shipTo" not in addresses.keys()
 
 
 def test_taxes_need_new_fetch_uses_cached_data(checkout_with_item, address):
