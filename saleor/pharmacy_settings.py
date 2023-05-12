@@ -452,7 +452,7 @@ TEST_RUNNER = "saleor.tests.runner.PytestTestRunner"
 PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
-ALLOWED_CIDR_NETS = get_list(os.environ.get("ALLOWED_CIDR_NETS"))
+ALLOWED_CIDR_NETS = get_list(os.environ.get("ALLOWED_CIDR_NETS", "127.0.0.1/32"))
 
 ALLOWED_GRAPHQL_ORIGINS: List[str] = get_list(
     os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
@@ -788,6 +788,16 @@ if "JAEGER_AGENT_HOST" in os.environ:
 REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
+    try:
+        import django_redis
+
+        rs = django_redis.get_redis_connection()
+        rs.get(None)
+    except:
+        raise ImproperlyConfigured(
+            "Cannot connect to Redis using the URL in the REDIS_URL environment"
+            "if REDIS_URL is enabled."
+        )
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
 
