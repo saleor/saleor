@@ -14,7 +14,7 @@ def calculate_variants_discounted_price(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("product", "0181_merge_20230417_1323"),
+        ("product", "0182_productvariantchannellisting_discounted_price_amount"),
     ]
 
     operations = [
