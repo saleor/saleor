@@ -356,7 +356,7 @@ class ProductVariantChannelListing(
     )
 
     class Meta:
-        description = "Represents product varaint channel listing."
+        description = "Represents product variant channel listing."
         model = models.ProductVariantChannelListing
         interfaces = [graphene.relay.Node]
 

@@ -242,40 +242,22 @@ def get_product_availability(
 
 def get_variant_availability(
     *,
-    variant: ProductVariant,
     variant_channel_listing: ProductVariantChannelListing,
-    product: Product,
     product_channel_listing: Optional[ProductChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
     local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal
-) -> VariantAvailability:
-    discounted_price = get_variant_price(
-        variant=variant,
-        variant_channel_listing=variant_channel_listing,
-        product=product,
-        collections=collections,
-        discounts=discounts,
-        channel=channel,
-    )
+) -> Optional[VariantAvailability]:
+    if variant_channel_listing.price is None:
+        return None
     discounted_price_taxed = _calculate_product_price_with_taxes(
-        discounted_price,
+        variant_channel_listing.discounted_price,
         tax_rate,
         tax_calculation_strategy,
         prices_entered_with_tax,
     )
-    undiscounted_price = get_variant_price(
-        variant=variant,
-        variant_channel_listing=variant_channel_listing,
-        product=product,
-        collections=collections,
-        discounts=[],
-        channel=channel,
-    )
+    undiscounted_price = variant_channel_listing.price
     undiscounted_price_taxed = _calculate_product_price_with_taxes(
         undiscounted_price,
         tax_rate,
