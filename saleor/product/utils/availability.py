@@ -106,34 +106,24 @@ def get_variant_price(
 
 def get_product_price_range(
     *,
-    product: Product,
-    variants: Iterable[ProductVariant],
     variants_channel_listing: List[ProductVariantChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
+    discounted: bool,
 ) -> Optional[MoneyRange]:
-    if variants:
-        variants_channel_listing_dict = {
-            channel_listing.variant_id: channel_listing
-            for channel_listing in variants_channel_listing
-            if channel_listing
-        }
-        prices = []
-        for variant in variants:
-            variant_channel_listing = variants_channel_listing_dict.get(variant.id)
-            if variant_channel_listing:
-                price = get_variant_price(
-                    variant=variant,
-                    variant_channel_listing=variant_channel_listing,
-                    product=product,
-                    collections=collections,
-                    discounts=discounts,
-                    channel=channel,
-                )
-                prices.append(price)
-        if prices:
-            return MoneyRange(min(prices), max(prices))
+    """Return the range of product prices based on product variants prices.
+
+    When discounted parameter is True, the range of discounted prices is provided.
+    """
+    prices = []
+    for channel_listing in variants_channel_listing:
+        if channel_listing.price:
+            price = (
+                channel_listing.discounted_price
+                if discounted
+                else channel_listing.price
+            )
+            prices.append(price)
+    if prices:
+        return MoneyRange(min(prices), max(prices))
 
     return None
 
@@ -154,13 +144,8 @@ def _calculate_product_price_with_taxes(
 
 def get_product_availability(
     *,
-    product: Product,
     product_channel_listing: Optional[ProductChannelListing],
-    variants: Iterable[ProductVariant],
     variants_channel_listing: List[ProductVariantChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
     local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
@@ -168,12 +153,7 @@ def get_product_availability(
 ) -> ProductAvailability:
     discounted: Optional[TaxedMoneyRange] = None
     discounted_net_range = get_product_price_range(
-        product=product,
-        variants=variants,
-        variants_channel_listing=variants_channel_listing,
-        collections=collections,
-        discounts=discounts,
-        channel=channel,
+        variants_channel_listing=variants_channel_listing, discounted=True
     )
     if discounted_net_range is not None:
         discounted = TaxedMoneyRange(
@@ -193,12 +173,8 @@ def get_product_availability(
 
     undiscounted: Optional[TaxedMoneyRange] = None
     undiscounted_net_range = get_product_price_range(
-        product=product,
-        variants=variants,
         variants_channel_listing=variants_channel_listing,
-        collections=collections,
-        discounts=[],
-        channel=channel,
+        discounted=False,
     )
     if undiscounted_net_range is not None:
         undiscounted = TaxedMoneyRange(

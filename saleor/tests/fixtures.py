@@ -3138,6 +3138,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -3145,6 +3146,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(20),
+                discounted_price_amount=Decimal(20),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -3152,6 +3154,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(30),
+                discounted_price_amount=Decimal(30),
                 currency=channel_USD.currency_code,
             ),
         ]

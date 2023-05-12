@@ -85,7 +85,6 @@ from ...core.types import (
 )
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_query
-from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -1066,24 +1065,18 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
-        variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
         variants_channel_listing = (
             VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
                 (root.node.id, channel_slug)
             )
         )
-        collections = CollectionsByProductIdLoader(context).load(root.node.id)
-        discounts = DiscountsByDateTimeLoader(context).load(context.request_time)
         tax_class = TaxClassByProductIdLoader(context).load(root.node.id)
 
         def load_tax_configuration(data):
             (
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ) = data
 
@@ -1123,13 +1116,8 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                         )
 
                         availability = get_product_availability(
-                            product=root.node,
                             product_channel_listing=product_channel_listing,
-                            variants=variants,
                             variants_channel_listing=variants_channel_listing,
-                            collections=collections,
-                            discounts=discounts,
-                            channel=channel,
                             local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
@@ -1170,10 +1158,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             [
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ]
         ).then(load_tax_configuration)
