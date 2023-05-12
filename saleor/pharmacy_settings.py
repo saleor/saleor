@@ -789,14 +789,14 @@ REDIS_URL = os.environ.get("REDIS_URL")
 if REDIS_URL:
     CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
     try:
-        import django_redis
+        from redis import ConnectionPool, Redis
 
-        rs = django_redis.get_redis_connection()
+        rs = Redis.from_url(CACHE_URL)
         rs.get(None)
-    except:
+    except Exception as e:
         raise ImproperlyConfigured(
-            "Cannot connect to Redis using the URL in the REDIS_URL environment"
-            "if REDIS_URL is enabled."
+            "Cannot connect to Redis using the URL in the REDIS_URL environment "
+            f"if REDIS_URL is enabled. {e.message if hasattr(e, 'message') else e}"
         )
 CACHES = {"default": django_cache_url.config()}
 CACHES["default"]["TIMEOUT"] = parse(os.environ.get("CACHE_TIMEOUT", "7 days"))
