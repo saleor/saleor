@@ -10,7 +10,11 @@ from freezegun import freeze_time
 
 from .....attribute import AttributeInputType
 from .....product.error_codes import ProductVariantBulkErrorCode
-from .....product.models import ProductChannelListing, ProductVariant
+from .....product.models import (
+    ProductChannelListing,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
@@ -1185,6 +1189,15 @@ def test_product_variant_bulk_create_channel_listings_input(
                 for channelListing in variant_data["channelListings"]
             ]
         )
+
+    # ensure all variants channel listings has discounted_price_amount set
+    assert all(
+        list(
+            ProductVariantChannelListing.objects.values_list(
+                "discounted_price_amount", flat=True
+            )
+        )
+    )
 
 
 def test_product_variant_bulk_create_preorder_channel_listings_input(

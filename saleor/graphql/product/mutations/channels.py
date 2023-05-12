@@ -519,6 +519,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 defaults = {"currency": channel.currency_code}
                 if "price" in channel_listing_data.keys():
                     defaults["price_amount"] = channel_listing_data.get("price", None)
+                    # set the discounted price the same as price for now, the discounted
+                    # value will be calculated asynchronously in the celery task
+                    defaults["discounted_price_amount"] = defaults["price_amount"]
                 if "cost_price" in channel_listing_data.keys():
                     defaults["cost_price_amount"] = channel_listing_data.get(
                         "cost_price", None
