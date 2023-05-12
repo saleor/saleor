@@ -792,7 +792,11 @@ if REDIS_URL:
         from redis import ConnectionPool, Redis
 
         rs = Redis.from_url(CACHE_URL)
-        rs.get("MARKLAR-MARKLAR")
+        rs.set("MARKLAR", "MARKLAR-MARKLAR")
+        marklar = rs.get("MARKLAR")
+        if marklar != "MARKLAR-MARKLAR":
+            warnings.warn("Could not set/get value to redis")
+
     except Exception as e:
         raise ImproperlyConfigured(
             "Cannot connect to Redis using the URL in the REDIS_URL environment "
