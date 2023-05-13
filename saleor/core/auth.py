@@ -1,13 +1,14 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from django.http import HttpRequest
+if TYPE_CHECKING:
+    from django.http import HttpRequest
 
 SALEOR_AUTH_HEADER = "HTTP_AUTHORIZATION_BEARER"
 DEFAULT_AUTH_HEADER = "HTTP_AUTHORIZATION"
 AUTH_HEADER_PREFIXES = ["JWT", "BEARER"]
 
 
-def get_token_from_request(request: HttpRequest) -> Optional[str]:
+def get_token_from_request(request: "HttpRequest") -> Optional[str]:
     auth_token: Optional[str] = request.META.get(SALEOR_AUTH_HEADER)
 
     if not auth_token:
