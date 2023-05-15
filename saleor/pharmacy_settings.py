@@ -129,14 +129,13 @@ USE_TZ = True
 
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
-EMAIL_URL = os.environ.get("EMAIL_URL")
-SENDGRID_USERNAME = os.environ.get("SENDGRID_USERNAME")
-SENDGRID_PASSWORD = os.environ.get("SENDGRID_PASSWORD")
-if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
-    EMAIL_URL = (
-        f"smtp://{SENDGRID_USERNAME}"
-        f":{SENDGRID_PASSWORD}@smtp.sendgrid.net:587/?tls=True"
-    )
+google_secret_manager = GoogleSecretManager()
+sendgrid_config = google_secret_manager.get_secret("sendgrid")
+
+
+SENDGRID_USERNAME = sendgrid_config["username"]
+SENDGRID_PASSWORD = sendgrid_config["password"]
+EMAIL_URL = f"smtp://apikey:{SENDGRID_PASSWORD}@smtp.sendgrid.com:465/?ssl=True"
 
 email_config = dj_email_url.parse(
     EMAIL_URL or "console://demo@example.com:console@example/"
@@ -161,7 +160,7 @@ ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
-DEFAULT_FROM_EMAIL: str = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = sendgrid_config["from"]
 
 MEDIA_ROOT: str = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL: str = os.environ.get("MEDIA_URL", "/media/")
