@@ -64,6 +64,7 @@ class SiteSettings(models.Model):
         validators=email_sender_name_validators(),
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
+    enable_account_confirmation_by_email = models.BooleanField(default=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
     fulfillment_auto_approve = models.BooleanField(default=True)
     fulfillment_allow_unpaid = models.BooleanField(default=True)

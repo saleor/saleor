@@ -1616,14 +1616,22 @@ def test_customer_register(
     assert customer_creation_event.user == new_user
 
 
-@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_customer_register_disabled_email_confirmation(mocked_notify, api_client):
+def test_customer_register_disabled_email_confirmation(
+    mocked_notify, api_client, site_settings
+):
+    # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
+
+    #   when
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
 
+    # then
     assert errors == []
     created_user = User.objects.get()
     expected_payload = get_default_user_payload(created_user)
@@ -1632,19 +1640,29 @@ def test_customer_register_disabled_email_confirmation(mocked_notify, api_client
     mocked_notify.assert_not_called()
 
 
-@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
 @patch("saleor.plugins.manager.PluginsManager.notify")
-def test_customer_register_no_redirect_url(mocked_notify, api_client):
+def test_customer_register_no_redirect_url(mocked_notify, api_client, site_settings):
+    # given
+    site_settings.enable_account_confirmation_by_email = True
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
     variables = {"email": "customer@example.com", "password": "Password"}
+
+    #   when
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
+
+    # then
     assert "redirectUrl" in map(lambda error: error["field"], errors)
     mocked_notify.assert_not_called()
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
-def test_customer_register_upper_case_email(api_client):
+def test_customer_register_upper_case_email(api_client, site_settings):
     # given
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save(update_fields=["enable_account_confirmation_by_email"])
+
     email = "CUSTOMER@example.com"
     variables = {"email": email, "password": "Password"}
 

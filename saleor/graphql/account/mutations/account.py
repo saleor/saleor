@@ -27,6 +27,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, BaseInputObjectType, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -99,13 +100,18 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
+        site = get_site_promise(info.context).get()
         response = super().mutate(root, info, **data)
-        response.requires_confirmation = settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+        response.requires_confirmation = (
+            site.settings.enable_account_confirmation_by_email
+        )
         return response
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+        site = get_site_promise(info.context).get()
+
+        if not site.settings.enable_account_confirmation_by_email:
             return super().clean_input(info, instance, data, **kwargs)
         elif not data.get("redirect_url"):
             raise ValidationError(
@@ -150,8 +156,10 @@ class AccountRegister(ModelMutation):
             user, attach_addresses_data=False
         )
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
+
         with traced_atomic_transaction():
-            if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+            if site.settings.enable_account_confirmation_by_email:
                 user.is_active = False
                 user.save()
                 notifications.send_account_confirmation(

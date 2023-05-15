@@ -18,6 +18,7 @@ from ..checkout.types import PaymentGateway
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
 )
@@ -290,6 +291,13 @@ class Shop(graphene.ObjectType):
         required=False,
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
+    enable_account_confirmation_by_email = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "Determines if account confirmation by email is enabled." + ADDED_IN_314
+        ),
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+    )
     limits = PermissionsField(
         LimitInfo,
         required=True,
@@ -513,6 +521,11 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_staff_notification_recipients(_, _info):
         return account_models.StaffNotificationRecipient.objects.all()
+
+    @staticmethod
+    @load_site_callback
+    def resolve_enable_account_confirmation_by_email(_, _info, site):
+        return site.settings.enable_account_confirmation_by_email
 
     @staticmethod
     def resolve_limits(_, _info):
