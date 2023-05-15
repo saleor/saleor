@@ -49,6 +49,21 @@ SHIPPING_ZONE_QUERY = """
     }
 """
 
+SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION = """
+    mutation ShippingZoneUpdate($id: ID!, $input: ShippingZoneUpdateInput!) {
+        shippingZoneUpdate(id: $id, input: $input) {
+            errors {
+                code
+                field
+                message
+            }
+            shippingZone {
+                id
+            }
+        }
+    }
+"""
+
 
 def test_shipping_zone_query(
     staff_api_client, shipping_zone, permission_manage_shipping, channel_USD
@@ -390,3 +405,26 @@ def test_shipping_method_tax_class_query_by_staff(
     content = get_graphql_content(response)
     data = content["data"]
     assert data["shippingZone"]["shippingMethods"][0]["taxClass"]["id"]
+
+
+def test_shipping_method_update_no_countries_in_data(
+    staff_api_client, shipping_zone, permission_manage_shipping
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id(
+            "ShippingMethod", shipping_zone.shipping_methods.first().id
+        ),
+        "input": {"default": True},
+    }
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_shipping)
+    response = staff_api_client.post_graphql(
+        SHIPPING_ZONE_UPDATE_DEFAULT_TRUE_MUTATION, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]
+    assert "errors" not in data
