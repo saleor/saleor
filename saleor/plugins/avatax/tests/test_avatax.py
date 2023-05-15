@@ -4166,7 +4166,7 @@ def test_plugin_uses_configuration_from_db(
     settings,
 ):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
-    configuration = plugin_configuration(username="test", password="test", sandbox=True)
+    configuration = plugin_configuration()
     manager = get_plugins_manager()
 
     monkeypatch.setattr(
