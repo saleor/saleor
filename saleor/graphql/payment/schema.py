@@ -73,6 +73,8 @@ class PaymentQueries(graphene.ObjectType):
     @staticmethod
     def resolve_transaction(_root, info: ResolveInfo, **kwargs):
         _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
+        if not id:
+            return None
         return resolve_transaction(id)
 
 
