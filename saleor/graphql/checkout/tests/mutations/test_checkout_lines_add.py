@@ -94,7 +94,7 @@ def test_checkout_lines_add(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
     assert mocked_invalidate_checkout_prices.call_count == 1
@@ -238,7 +238,7 @@ def test_checkout_lines_add_only_stock_in_cc_warehouse(
     assert not Reservation.objects.exists()
 
     manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     mocked_update_shipping_method.assert_called_once_with(checkout_info, lines)
     assert checkout.last_change != previous_last_change
 

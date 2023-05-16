@@ -81,7 +81,7 @@ def test_checkout_delivery_method_update(
     checkout = checkout_with_item_for_cc
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
@@ -153,7 +153,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
     checkout.metadata_storage.delete()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
@@ -477,7 +477,7 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
     checkout.save()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":
@@ -552,7 +552,7 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
     checkout.save()
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     shipping_method_data = delivery_method
     if attribute_name == "shipping_method":

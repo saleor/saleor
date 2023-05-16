@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount import DiscountInfo
     from ...discount.models import Sale
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
@@ -105,14 +104,12 @@ class PluginSample(BasePlugin):
             return JsonResponse(data={"received": True, "paid": False})
         return HttpResponseNotFound()
 
-    def calculate_checkout_total(
-        self, checkout_info, lines, address, discounts, previous_value
-    ):
+    def calculate_checkout_total(self, checkout_info, lines, address, previous_value):
         total = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(total, total)
 
     def calculate_checkout_shipping(
-        self, checkout_info, lines, address, discounts, previous_value
+        self, checkout_info, lines, address, previous_value
     ):
         price = Money("1.0", currency=checkout_info.checkout.currency)
         return TaxedMoney(price, price)
@@ -127,7 +124,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
         # See if delivery method doesn't trigger infinite recursion
@@ -156,7 +152,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: TaxedMoney,
     ):
         currency = checkout_info.checkout.currency
@@ -256,7 +251,6 @@ class PluginSample(BasePlugin):
         lines: Iterable["CheckoutLineInfo"],
         checkout_line_info: "CheckoutLineInfo",
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ) -> Decimal:
         return Decimal("0.080").quantize(Decimal(".01"))
@@ -276,7 +270,6 @@ class PluginSample(BasePlugin):
         checkout_info: "CheckoutInfo",
         lines: Iterable["CheckoutLineInfo"],
         address: Optional["Address"],
-        discounts: Iterable["DiscountInfo"],
         previous_value: Decimal,
     ):
         return Decimal("0.080").quantize(Decimal(".01"))

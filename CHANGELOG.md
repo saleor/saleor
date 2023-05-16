@@ -7,6 +7,15 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Breaking changes
 
 - `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
+- The `discounts` field has been removed from the listed plugin manager methods. Instead of the `discounts` argument, an applied `discount` is now assigned to each line in the `CheckoutLineInfo` inside the `CheckoutInfo` object. - #11934 by @fowczarek
+  - `calculate_checkout_total`
+  - `calculate_checkout_subtotal`
+  - `calculate_checkout_shipping`
+  - `get_checkout_shipping_tax_rate`
+  - `calculate_checkout_line_total`
+  - `calculate_checkout_line_unit_price`
+  - `get_checkout_line_tax_rate`
+  - `preprocess_order_creation`
 
 ### GraphQL API
 
@@ -19,9 +28,11 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffUpdate`
     - `accountUpdate`
     - `customerBulkUpdate`
+- Add mutation to create checkout from order - #12628 by @korycins
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
+- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 
 ### Saleor Apps
 - Introduce channel permissions - #10423 by @IKarbowiak
@@ -32,13 +43,13 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ
-
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 - Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
 - Add functionality to automatically delete expired orders - #12710 by @korycins
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
+- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
 
 # 3.13.0
 

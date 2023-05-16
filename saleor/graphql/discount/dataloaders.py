@@ -6,6 +6,7 @@ from django.db.models import F
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
+    CheckoutLineDiscount,
     OrderDiscount,
     Sale,
     SaleChannelListing,
@@ -35,13 +36,21 @@ class DiscountsByDateTimeLoader(DataLoader):
             for datetime in keys
         }
         pks = {s.pk for d, ss in sales_map.items() for s in ss}
-        collections = fetch_collections(pks, self.database_connection_name)
+        collections = fetch_collections(
+            pks, database_connection_name=self.database_connection_name
+        )
         channel_listings = fetch_sale_channel_listings(
             pks, self.database_connection_name
         )
-        products = fetch_products(pks, self.database_connection_name)
-        categories = fetch_categories(pks, self.database_connection_name)
-        variants = fetch_variants(pks, self.database_connection_name)
+        products = fetch_products(
+            pks, database_connection_name=self.database_connection_name
+        )
+        categories = fetch_categories(
+            pks, database_connection_name=self.database_connection_name
+        )
+        variants = fetch_variants(
+            pks, database_connection_name=self.database_connection_name
+        )
 
         return [
             [
@@ -234,3 +243,16 @@ class OrderDiscountsByOrderIDLoader(DataLoader):
 
 def load_discounts(request):
     return DiscountsByDateTimeLoader(request).load(request.request_time).get()
+
+
+class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
+    context_key = "checkout_line_discounts_by_checkout_line_id"
+
+    def batch_load(self, keys):
+        discounts = CheckoutLineDiscount.objects.using(
+            self.database_connection_name
+        ).filter(line_id__in=keys)
+        discount_map = defaultdict(list)
+        for discount in discounts:
+            discount_map[discount.line_id].append(discount)
+        return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]

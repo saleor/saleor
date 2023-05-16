@@ -45,7 +45,7 @@ def test_calculate_checkout_total_use_cache(
 
     # then
     result = manager.calculate_checkout_total(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     # when
@@ -83,10 +83,10 @@ def test_calculate_checkout_total_save_avatax_response_in_cache(
 
     # then
     result = manager.calculate_checkout_total(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     manager.calculate_checkout_total(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     # Second Avatax call to make sure that we use cached response
 
@@ -134,7 +134,7 @@ def test_calculate_checkout_subtotal_use_cache(
 
     # then
     result = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     # when
@@ -172,10 +172,10 @@ def test_calculate_checkout_subtotal_save_avatax_response_in_cache(
 
     # then
     result = manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     manager.calculate_checkout_subtotal(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     # Second Avatax call to make sure that we use cached response
 
@@ -223,7 +223,7 @@ def test_calculate_checkout_shipping_use_cache(
 
     # then
     result = manager.calculate_checkout_shipping(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
 
     # when
@@ -261,10 +261,10 @@ def test_calculate_checkout_shipping_save_avatax_response_in_cache(
 
     # then
     result = manager.calculate_checkout_shipping(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     manager.calculate_checkout_shipping(
-        checkout_info, lines, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_info.shipping_address
     )
     # Second Avatax call to make sure that we use cached response
 
@@ -313,7 +313,10 @@ def test_calculate_checkout_line_total_use_cache(
 
     # then
     result = manager.calculate_checkout_line_total(
-        checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
+        checkout_info,
+        lines,
+        checkout_line_info,
+        checkout_info.shipping_address,
     )
 
     # when
@@ -352,10 +355,10 @@ def test_calculate_checkout_line_save_avatax_response_in_cache(
 
     # then
     result = manager.calculate_checkout_line_total(
-        checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_line_info, checkout_info.shipping_address
     )
     manager.calculate_checkout_line_total(
-        checkout_info, lines, checkout_line_info, checkout_info.shipping_address, []
+        checkout_info, lines, checkout_line_info, checkout_info.shipping_address
     )
     # Second Avatax call to make sure that we use cached response
 
@@ -408,7 +411,6 @@ def test_calculate_checkout_line_unit_price_use_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
 
     # when
@@ -451,14 +453,12 @@ def test_calculate_checkout_line_unit_price_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
     manager.calculate_checkout_line_unit_price(
         checkout_info,
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
     )
     # Second Avatax call to make sure that we use cached response
 
@@ -512,7 +512,6 @@ def test_get_checkout_line_tax_rate_use_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
 
@@ -557,7 +556,6 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
     manager.get_checkout_line_tax_rate(
@@ -565,7 +563,6 @@ def test_get_checkout_line_tax_rate_save_avatax_response_in_cache(
         lines,
         checkout_line_info,
         checkout_info.shipping_address,
-        [],
         fake_unit_price,
     )
     # Second Avatax call to make sure that we use cached response
@@ -615,7 +612,7 @@ def test_get_checkout_shipping_tax_rate_use_cache(
 
     # then
     result = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
 
     # when
@@ -654,10 +651,10 @@ def test_get_checkout_shipping_tax_rate_save_avatax_response_in_cache(
 
     # then
     result = manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
     manager.get_checkout_shipping_tax_rate(
-        checkout_info, lines, checkout_info.shipping_address, [], fake_shipping_price
+        checkout_info, lines, checkout_info.shipping_address, fake_shipping_price
     )
     # Second Avatax call to make sure that we use cached response
 

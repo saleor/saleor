@@ -24,7 +24,6 @@ from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
 from ..types import Checkout
@@ -151,10 +150,9 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ),
         )
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, lines, discounts, manager, shipping_channel_listings
+            checkout, lines, manager, shipping_channel_listings
         )
 
         country = shipping_address_instance.country.code
@@ -179,12 +177,11 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 checkout_info,
                 shipping_address_instance,
                 lines,
-                discounts,
                 manager,
                 shipping_channel_listings,
             )
         invalidate_prices_updated_fields = invalidate_checkout_prices(
-            checkout_info, lines, manager, discounts, save=False
+            checkout_info, lines, manager, save=False
         )
         checkout.save(
             update_fields=shipping_address_updated_fields
