@@ -208,7 +208,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         variant_db_ids = {variant.id for variant in variants}
         validate_variants_available_for_purchase(variant_db_ids, channel.id)
         validate_variants_available_in_channel(
-            variant_db_ids, channel.id, CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL
+            variant_db_ids,
+            channel.id,
+            CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
         )
         validate_variants_are_published(variant_db_ids, channel.id)
 

@@ -26,6 +26,12 @@ class ReadOnlyMiddleware:
         "tokenCreate",
         "tokenVerify",
         "tokenRefresh",
+        "paymentGatewayInitialize",
+        "transactionInitialize",
+        "transactionProcess",
+        "transactionRequestAction",
+        "orderGrantRefundCreate",
+        "orderGrantRefundUpdate",
     ]
 
     @staticmethod

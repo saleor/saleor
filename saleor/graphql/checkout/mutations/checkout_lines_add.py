@@ -135,7 +135,7 @@ class CheckoutLinesAdd(BaseMutation):
             validate_variants_available_in_channel(
                 variants_ids_to_validate,
                 checkout.channel_id,
-                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL,
+                CheckoutErrorCode.UNAVAILABLE_VARIANT_IN_CHANNEL.value,
             )
             validate_variants_are_published(
                 variants_ids_to_validate, checkout.channel_id
