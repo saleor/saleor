@@ -146,7 +146,7 @@ def delete_expired_orders_task():
         expired_at__lte=now - F("delete_expired_orders_after"),  # type:ignore
     )
     ids_batch = qs.values_list("pk", flat=True)[:DELETE_EXPIRED_ORDER_BATCH_SIZE]
-
+    if not ids_batch:
+        return
     Order.objects.filter(id__in=ids_batch).delete()
-    if qs.exists():
-        delete_expired_orders_task.delay()
+    delete_expired_orders_task.delay()
