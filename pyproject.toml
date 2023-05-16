@@ -74,7 +74,7 @@ documentation = "https://docs.saleor.io/"
   django-allow-cidr = "0.6.0"
 
     [tool.poetry.dependencies.django]
-    version = "^3.2.16"
+    version = "^3.2.19"
     extras = [ "bcrypt" ]
 
     [tool.poetry.dependencies.uvicorn]
