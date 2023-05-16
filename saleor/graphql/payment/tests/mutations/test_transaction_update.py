@@ -1043,7 +1043,7 @@ def test_creates_transaction_event_by_reinstalled_app(
     assert event.user is None
 
 
-def test_only_owner_can_update_its_transaction_by_staff(
+def test_only_app_owner_can_update_its_transaction_by_staff(
     transaction_item_created_by_app,
     permission_manage_payments,
     staff_api_client,
@@ -1093,6 +1093,43 @@ def test_transaction_update_status_by_staff(
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["status"] == status
     assert transaction_item_created_by_user.status == status
+
+
+def test_transaction_update_by_another_staff(
+    transaction_item_created_by_user,
+    permission_manage_payments,
+    staff_api_client,
+    admin_user,
+):
+    # given
+    transaction = transaction_item_created_by_user
+    transaction.user = admin_user
+    transaction.save()
+
+    status = "Captured for 10$"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "status": status,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data
+    assert transaction_item_created_by_user.user != staff_api_client.user
+    assert len(data["events"]) == 1
+    assert data["events"][0]["createdBy"]["id"] == graphene.Node.to_global_id(
+        "User", staff_api_client.user.pk
+    )
 
 
 def test_transaction_update_metadata_by_staff(

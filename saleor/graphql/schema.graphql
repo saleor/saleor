@@ -14234,13 +14234,13 @@ type Mutation {
   ): TransactionCreate @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order.
+  Update transaction.
   
   Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -14282,7 +14282,7 @@ type Mutation {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionEventReport(
     """The amount of the event to report."""
@@ -20915,13 +20915,13 @@ input TransactionEventInput @doc(category: "Payments") {
 }
 
 """
-Create transaction for checkout or order.
+Update transaction.
 
 Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
-Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 """
 type TransactionUpdate @doc(category: "Payments") {
   transaction: TransactionItem
@@ -21076,7 +21076,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
-Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 """
 type TransactionEventReport @doc(category: "Payments") {
   """Defines if the reported event hasn't been processed earlier."""
