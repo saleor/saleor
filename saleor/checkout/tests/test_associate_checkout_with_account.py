@@ -85,17 +85,17 @@ def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "email, paid_strategy",
+    "paid_strategy",
     [
-        ("test@example.com", MarkAsPaidStrategy.TRANSACTION_FLOW),
-        ("test@example.com", MarkAsPaidStrategy.PAYMENT_FLOW),
+        MarkAsPaidStrategy.TRANSACTION_FLOW,
+        MarkAsPaidStrategy.PAYMENT_FLOW,
     ],
 )
 def test_associate_guest_checkout_with_account_if_exists_with_inactive_user(
-    email, paid_strategy, app, address, checkout, customer_user
+   paid_strategy, app, address, checkout, customer_user
 ):
     # set the checkout email
-    checkout.email = email
+    checkout.email = "test@example.com"
     checkout.save()
     # deactivate the customer user
     customer_user.is_active = False
