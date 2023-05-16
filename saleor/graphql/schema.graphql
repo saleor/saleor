@@ -448,6 +448,15 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
     """Sort products."""
     sortBy: ProductOrder
 
@@ -11939,6 +11948,18 @@ enum CollectionSortField @doc(category: "Products") {
   This option requires a channel filter to work as the values can vary between channels.
   """
   PUBLISHED_AT
+}
+
+input ProductWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  name: StringFilterInput
+
+  """List of conditions that must be met."""
+  AND: [ProductWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductWhereInput!]
 }
 
 input ProductTypeFilterInput @doc(category: "Products") {

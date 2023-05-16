@@ -44,6 +44,7 @@ from ..core.filters import (
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    OperationObjectTypeFilter,
     filter_slug_list,
 )
 from ..core.types import (
@@ -54,9 +55,11 @@ from ..core.types import (
     IntRangeInput,
     NonNullList,
     PriceRangeInput,
+    StringFilterInput,
 )
+from ..core.types.filter_input import WhereInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_id, filter_range_field
+from ..utils.filters import filter_by_id, filter_by_string_field, filter_range_field
 from ..warehouse import types as warehouse_types
 from . import types as product_types
 from .enums import (
@@ -797,6 +800,21 @@ class ProductFilter(MetadataFilterBase):
         return _filter_stock_availability(queryset, name, value, channel_slug)
 
 
+def filter_product_name(qs, _, value):
+    return filter_by_string_field(qs, "name", value)
+
+
+class ProductWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
+    name = OperationObjectTypeFilter(
+        input_class=StringFilterInput, method=filter_product_name
+    )
+
+    class Meta:
+        model = Product
+        fields = []
+
+
 class ProductVariantFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="product_variant_filter_search")
     sku = ListObjectTypeFilter(input_class=graphene.String, method=filter_sku_list)
@@ -895,6 +913,12 @@ class ProductFilterInput(ChannelFilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductFilter
+
+
+class ProductWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = ProductWhere
 
 
 class ProductVariantFilterInput(FilterInputObjectType):
