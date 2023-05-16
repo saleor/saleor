@@ -1451,7 +1451,7 @@ def test_calculate_checkout_total_for_JPY(
 @pytest.mark.parametrize(
     ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
     [
-        ("3485", "4285", "0.0", True),
+        ("3484", "4285", "0.0", True),
         ("4280", "5264", "5.0", False),
     ],
 )
