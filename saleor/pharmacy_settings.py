@@ -212,11 +212,12 @@ PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.BCryptPasswordHasher",
 ]
 
-if not SECRET_KEY and DEBUG:
-    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
-    SECRET_KEY = get_random_secret_key()
+jwt_secret_key = google_secret_manager.get_secret_single_value("jwt_secret_key")
+SECRET_KEY = jwt_secret_key
 
-RSA_PRIVATE_KEY = os.environ.get("RSA_PRIVATE_KEY", None)
+jwt_private_key = google_secret_manager.get_secret_single_value("jwt_private_key")
+
+RSA_PRIVATE_KEY = jwt_private_key
 RSA_PRIVATE_PASSWORD = os.environ.get("RSA_PRIVATE_PASSWORD", None)
 JWT_MANAGER_PATH = os.environ.get(
     "JWT_MANAGER_PATH", "saleor.core.jwt_manager.JWTManager"

@@ -42,3 +42,19 @@ class GoogleSecretManager(SecretManager):
         )
         response = client.access_secret_version(name=name)
         return json.loads(response.payload.data)
+
+    @staticmethod
+    @cached(cache)
+    def get_secret_single_value(secret_key: str) -> str:
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Getting configuration for {secret_key}")
+        env_name = os.environ["ENVIRONMENT_NAME"]
+        google_project = os.environ["GOOGLE_PROJECT_NAME"]
+
+        client = secretmanager_v1.SecretManagerServiceClient()
+
+        name = client.secret_version_path(
+            google_project, f"{env_name}-{secret_key}", "latest"
+        )
+        response = client.access_secret_version(name=name)
+        return response.payload.data.decode("UTF-8")
