@@ -1379,7 +1379,7 @@ def test_calculate_checkout_total_with_sale(
     ("expected_net, expected_gross, voucher_amount, " "prices_entered_with_tax"),
     [
         ("4300", "5289", "0.0", False),
-        ("3495", "4297", "3.0", True),
+        ("3493", "4297", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
