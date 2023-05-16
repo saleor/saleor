@@ -383,9 +383,17 @@ def test_product_variant_bulk_update_channel_listings_input(
     assert (
         new_variant_channel_listing.price_amount == not_existing_variant_listing_price
     )
+    assert (
+        new_variant_channel_listing.discounted_price_amount
+        == not_existing_variant_listing_price
+    )
     assert new_variant_channel_listing.channel == channel_PLN
     assert (
         existing_variant_listing.price_amount == new_price_for_existing_variant_listing
+    )
+    assert (
+        existing_variant_listing.discounted_price_amount
+        == new_price_for_existing_variant_listing
     )
 
 

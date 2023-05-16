@@ -361,6 +361,7 @@ def test_create_checkout_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )
@@ -627,6 +628,7 @@ def test_update_checkout_lines_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )
@@ -897,6 +899,7 @@ def test_add_checkout_lines_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )

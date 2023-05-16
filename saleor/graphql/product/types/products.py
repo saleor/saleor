@@ -85,7 +85,6 @@ from ...core.types import (
 )
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_query
-from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -567,31 +566,23 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         channel_slug = str(root.channel_slug)
         context = info.context
 
-        product = ProductByIdLoader(context).load(root.node.product_id)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.product_id, channel_slug))
         variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
-        collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
-        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
-        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
 
         def load_tax_configuration(data):
             (
-                product,
                 product_channel_listing,
                 variant_channel_listing,
-                collections,
                 channel,
                 tax_class,
-                discounts,
-                manager,
             ) = data
 
             if not variant_channel_listing or not product_channel_listing:
@@ -627,19 +618,18 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
                         )
 
                         availability = get_variant_availability(
-                            variant=root.node,
                             variant_channel_listing=variant_channel_listing,
-                            product=product,
                             product_channel_listing=product_channel_listing,
-                            collections=collections,
-                            discounts=discounts,
-                            channel=channel,
                             local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
                         )
-                        return VariantPricingInfo(**asdict(availability))
+                        return (
+                            VariantPricingInfo(**asdict(availability))
+                            if availability
+                            else None
+                        )
 
                     country_rates = (
                         TaxClassCountryRateByTaxClassIDLoader(context).load(
@@ -669,14 +659,10 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
         return Promise.all(
             [
-                product,
                 product_channel_listing,
                 variant_channel_listing,
-                collections,
                 channel,
                 tax_class,
-                discounts,
-                manager,
             ]
         ).then(load_tax_configuration)
 
@@ -1079,24 +1065,18 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
-        variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
         variants_channel_listing = (
             VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
                 (root.node.id, channel_slug)
             )
         )
-        collections = CollectionsByProductIdLoader(context).load(root.node.id)
-        discounts = DiscountsByDateTimeLoader(context).load(context.request_time)
         tax_class = TaxClassByProductIdLoader(context).load(root.node.id)
 
         def load_tax_configuration(data):
             (
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ) = data
 
@@ -1136,13 +1116,8 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                         )
 
                         availability = get_product_availability(
-                            product=root.node,
                             product_channel_listing=product_channel_listing,
-                            variants=variants,
                             variants_channel_listing=variants_channel_listing,
-                            collections=collections,
-                            discounts=discounts,
-                            channel=channel,
                             local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
@@ -1183,10 +1158,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             [
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ]
         ).then(load_tax_configuration)
