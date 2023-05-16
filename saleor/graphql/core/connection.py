@@ -546,7 +546,7 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
         queryset = iterable
 
     if and_filter_input:
-        queryset = _handle_add_filter_input(
+        queryset = _handle_and_filter_input(
             and_filter_input, queryset, args, filterset_class, request
         )
 
@@ -562,7 +562,14 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
     #     )
 
     if filter_input:
-        queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
+        qs_to_combine = filter_qs(
+            iterable, args, filterset_class, filter_input, request
+        )
+        if isinstance(qs_to_combine, ChannelQsContext):
+            queryset &= qs_to_combine.qs
+            return ChannelQsContext(queryset, iterable.channel_slug)
+        else:
+            queryset &= qs_to_combine
 
     return queryset
 
@@ -571,7 +578,7 @@ def contains_filter_operator(input: Dict[str, Union[dict, str]]):
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
-def _handle_add_filter_input(filter_input, queryset, args, filterset_class, request):
+def _handle_and_filter_input(filter_input, queryset, args, filterset_class, request):
     for input in filter_input:
         if contains_filter_operator(input):
             # when the input contains the operator run the where_filter_qs method again

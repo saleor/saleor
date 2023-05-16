@@ -10,7 +10,7 @@ from ..channel import ChannelContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310
+from ..core.descriptions import ADDED_IN_310, ADDED_IN_314, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -50,6 +50,7 @@ from .filters import (
     ProductFilterInput,
     ProductTypeFilterInput,
     ProductVariantFilterInput,
+    ProductWhereInput,
 )
 from .mutations import (
     CategoryCreate,
@@ -240,6 +241,9 @@ class ProductQueries(graphene.ObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
+        where=ProductWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=ProductOrder(description="Sort products."),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
