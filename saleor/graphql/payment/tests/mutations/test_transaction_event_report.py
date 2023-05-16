@@ -208,6 +208,79 @@ def test_transaction_event_report_by_user(
     assert transaction.available_actions == [TransactionActionEnum.CANCEL.value]
 
 
+def test_transaction_event_report_by_another_user(
+    staff_api_client, permission_manage_payments, admin_user, transaction_item_generator
+):
+    # given
+    transaction = transaction_item_generator(user=admin_user)
+    event_time = timezone.now()
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+    message = "Sucesfull charge"
+    psp_reference = "111-abc"
+    amount = Decimal("11.00")
+    transaction_id = graphene.Node.to_global_id("TransactionItem", transaction.token)
+    variables = {
+        "id": transaction_id,
+        "type": TransactionEventTypeEnum.CHARGE_SUCCESS.name,
+        "amount": amount,
+        "pspReference": psp_reference,
+        "time": event_time.isoformat(),
+        "externalUrl": external_url,
+        "message": message,
+        "availableActions": [TransactionActionEnum.CANCEL.name],
+    }
+    query = (
+        MUTATION_DATA_FRAGMENT
+        + """
+       mutation TransactionEventReport(
+           $id: ID!
+           $type: TransactionEventTypeEnum!
+           $amount: PositiveDecimal!
+           $pspReference: String!
+           $time: DateTime
+           $externalUrl: String
+           $message: String
+           $availableActions: [TransactionActionEnum!]!
+       ) {
+           transactionEventReport(
+               id: $id
+               type: $type
+               amount: $amount
+               pspReference: $pspReference
+               time: $time
+               externalUrl: $externalUrl
+               message: $message
+               availableActions: $availableActions
+           ) {
+               ...TransactionEventData
+           }
+       }
+       """
+    )
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    get_graphql_content(response)
+    event = TransactionEvent.objects.get()
+    assert event.psp_reference == psp_reference
+    assert event.type == TransactionEventTypeEnum.CHARGE_SUCCESS.value
+    assert event.amount_value == amount
+    assert event.currency == transaction.currency
+    assert event.created_at == event_time
+    assert event.external_url == external_url
+    assert event.transaction == transaction
+    assert event.app_identifier is None
+    assert event.app is None
+    assert transaction.user != staff_api_client.user
+    assert event.user == staff_api_client.user
+
+    transaction.refresh_from_db()
+    assert transaction.available_actions == [TransactionActionEnum.CANCEL.value]
+
+
 def test_transaction_event_report_no_permission(
     transaction_item_created_by_app,
     app_api_client,

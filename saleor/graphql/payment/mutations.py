@@ -1145,12 +1145,14 @@ class TransactionUpdate(TransactionCreate):
     class Meta:
         auto_permission_message = False
         description = (
-            "Create transaction for checkout or order."
+            "Update transaction."
             + ADDED_IN_34
             + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
-            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name} for apps, "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name} for staff users. "
+            f"Staff user cannot update a transaction that is owned by the app."
         )
         doc_category = DOC_CATEGORY_PAYMENTS
         error_type_class = common_types.TransactionUpdateError
@@ -1494,7 +1496,9 @@ class TransactionEventReport(ModelMutation):
             + PREVIEW_FEATURE
             + "\n\nRequires the following permissions: "
             + f"{AuthorizationFilters.OWNER.name} "
-            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name}."
+            + f"and {PaymentPermissions.HANDLE_PAYMENTS.name} for apps, "
+            f"{PaymentPermissions.HANDLE_PAYMENTS.name} for staff users. "
+            f"Staff user cannot update a transaction that is owned by the app."
         )
         error_type_class = common_types.TransactionEventReportError
         permissions = (PaymentPermissions.HANDLE_PAYMENTS,)
