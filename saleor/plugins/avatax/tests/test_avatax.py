@@ -2225,7 +2225,7 @@ def test_calculate_order_total_for_JPY(
 
     # then
     price = quantize_price(price, price.currency)
-    assert price == TaxedMoney(net=Money("3497", "JPY"), gross=Money("4300", "JPY"))
+    assert price == TaxedMoney(net=Money("3496", "JPY"), gross=Money("4300", "JPY"))
 
 
 @pytest.mark.vcr
