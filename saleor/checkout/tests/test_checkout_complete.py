@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 from unittest import mock
 
@@ -5,6 +6,7 @@ import before_after
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
+from django.utils import timezone
 from prices import TaxedMoney
 
 from ...account import CustomerEvents
@@ -20,6 +22,7 @@ from ...order import OrderEvents
 from ...order.models import OrderEvent
 from ...order.notifications import get_default_order_payload
 from ...payment import TransactionKind
+from ...payment.interface import GatewayResponse
 from ...payment.models import Payment
 from ...plugins.manager import get_plugins_manager
 from ...product.models import ProductTranslation, ProductVariantTranslation
@@ -1215,12 +1218,9 @@ def test_complete_checkout_0_total_captured_payment_creates_expected_events(
 
     # Place checkout
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
     order, action_required, action_data = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1330,14 +1330,11 @@ def test_complete_checkout_action_required_voucher_once_per_customer(
     voucher.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     order, action_required, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1385,14 +1382,11 @@ def test_complete_checkout_order_not_created_when_the_refund_is_ongoing(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     order, _, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1437,8 +1431,6 @@ def test_complete_checkout_when_checkout_doesnt_exists(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     order.checkout_token = checkout.token
     order.save()
@@ -1446,9 +1438,8 @@ def test_complete_checkout_when_checkout_doesnt_exists(
 
     # when
     order_from_checkout, _, _ = complete_checkout(
-        checkout_info=checkout_info,
+        checkout_pk=checkout.pk,
         manager=manager,
-        lines=lines,
         payment_data={},
         store_source=False,
         discounts=None,
@@ -1464,7 +1455,7 @@ def test_complete_checkout_when_checkout_doesnt_exists(
 
 @mock.patch("saleor.checkout.complete_checkout._create_order")
 @mock.patch("saleor.checkout.complete_checkout._process_payment")
-def test_complete_checkout_checkout_was_deleted_before_compliting(
+def test_complete_checkout_checkout_was_deleted_before_completing(
     mocked_process_payment,
     mocked_create_order,
     customer_user,
@@ -1491,8 +1482,6 @@ def test_complete_checkout_checkout_was_deleted_before_compliting(
     checkout.save()
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     def convert_checkout_to_order(*args, **kwargs):
@@ -1504,9 +1493,8 @@ def test_complete_checkout_checkout_was_deleted_before_compliting(
         "saleor.checkout.complete_checkout._process_payment", convert_checkout_to_order
     ):
         order_from_checkout, action_required, _ = complete_checkout(
-            checkout_info=checkout_info,
+            checkout_pk=checkout.pk,
             manager=manager,
-            lines=lines,
             payment_data={},
             store_source=False,
             discounts=None,
@@ -1761,15 +1749,12 @@ def test_complete_checkout_invalid_shipping_method(
     voucher.apply_once_per_customer = True
     voucher.save()
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
 
     # when
     with pytest.raises(ValidationError):
         order, action_required, _ = complete_checkout(
-            checkout_info=checkout_info,
+            checkout_pk=checkout.pk,
             manager=manager,
-            lines=lines,
             payment_data={},
             store_source=False,
             discounts=None,
@@ -1787,4 +1772,87 @@ def test_complete_checkout_invalid_shipping_method(
 
     mocked_payment_refund_or_void.called_once_with(
         payment, manager, channel_slug=checkout.channel.slug
+    )
+
+
+@mock.patch("saleor.checkout.calculations.get_tax_calculation_strategy_for_checkout")
+@mock.patch("saleor.checkout.complete_checkout._create_order")
+@mock.patch("saleor.checkout.complete_checkout._process_payment")
+def test_complete_checkout_ensure_prices_are_not_recalculated_in_post_payment_part(
+    mocked_process_payment,
+    mocked_create_order,
+    mocked_get_tax_calculation_strategy_for_checkout,
+    customer_user,
+    checkout_with_item,
+    shipping_method,
+    app,
+    address,
+    payment_dummy,
+):
+    # given
+    checkout = checkout_with_item
+    mocked_process_payment.return_value = GatewayResponse(
+        is_success=True,
+        action_required=False,
+        action_required_data={},
+        kind=TransactionKind.CAPTURE,
+        amount=Decimal(3.0),
+        currency="usd",
+        transaction_id="1234",
+        error=None,
+    )
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    calculation_call_count = mocked_get_tax_calculation_strategy_for_checkout.call_count
+
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    checkout.user = customer_user
+    checkout.billing_address = customer_user.default_billing_address
+    checkout.shipping_address = customer_user.default_billing_address
+    checkout.shipping_method = shipping_method
+    checkout.tracking_code = ""
+    checkout.redirect_url = "https://www.example.com"
+    checkout.price_expiration = timezone.now() + timedelta(hours=2)
+    checkout.save()
+
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    def update_price_expiration(*args, **kwargs):
+        # Invalidate checkout prices just after processing payment
+        checkout.price_expiration = timezone.now() - timedelta(hours=2)
+        checkout.save(update_fields=["price_expiration"])
+
+    # when
+    with before_after.after(
+        "saleor.checkout.complete_checkout._process_payment", update_price_expiration
+    ):
+        order, action_required, _ = complete_checkout(
+            checkout_pk=checkout.pk,
+            manager=manager,
+            payment_data={},
+            store_source=False,
+            discounts=None,
+            user=customer_user,
+            app=app,
+        )
+
+    # then
+    assert order
+
+    assert (
+        mocked_get_tax_calculation_strategy_for_checkout.call_count
+        == calculation_call_count
     )

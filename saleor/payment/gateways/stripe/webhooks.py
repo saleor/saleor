@@ -200,9 +200,8 @@ def _finalize_checkout(
             )
 
         order, _, _ = complete_checkout(
+            checkout_pk=checkout.pk,
             manager=manager,
-            checkout_info=checkout_info,
-            lines=lines,
             payment_data={},
             store_source=False,
             discounts=discounts,

@@ -245,7 +245,6 @@ def fetch_checkout_prices_if_expired(
     Prices can be updated only if force_update == True, or if time elapsed from the
     last price update is greater than settings.CHECKOUT_PRICES_TTL.
     """
-
     checkout = checkout_info.checkout
 
     if not force_update and checkout.price_expiration > timezone.now():
