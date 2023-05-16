@@ -45,21 +45,20 @@ def test_associate_guest_checkout_with_account_if_exists(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    "email, paid_strategy",
+    "paid_strategy",
     [
-        ("guest@email.com", MarkAsPaidStrategy.TRANSACTION_FLOW),
-        ("guest@email.com", MarkAsPaidStrategy.PAYMENT_FLOW),
+        MarkAsPaidStrategy.TRANSACTION_FLOW,
+        MarkAsPaidStrategy.PAYMENT_FLOW,
     ],
 )
 def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
-    email,
     paid_strategy,
     app,
     address,
     checkout,
 ):
     # set the checkout email
-    checkout.email = email
+    checkout.email = "guest@email.com"
     checkout.save()
     user = None
     manager = get_plugins_manager()
