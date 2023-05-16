@@ -2243,7 +2243,7 @@ def test_order_bulk_create_error_note_exceeds_character_limit(
         error["message"] == f"Note message exceeds character limit: {MAX_NOTE_LENGTH}."
     )
     assert error["path"] == "notes.0.message"
-    assert error["code"] == OrderBulkCreateErrorCode.LENGTH_EXCEEDED.name
+    assert error["code"] == OrderBulkCreateErrorCode.NOTE_LENGTH.name
 
     assert Order.objects.count() == orders_count + 1
     assert OrderEvent.objects.count() == events_count
@@ -3239,6 +3239,8 @@ def test_order_bulk_create_optional_fields_set_to_none(
     order["customerNote"] = None
     order["trackingClientId"] = None
     order["weight"] = None
+    order["lines"][0]["isShippingRequired"] = False
+    order["deliveryMethod"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3269,12 +3271,13 @@ def test_order_bulk_create_optional_fields_set_to_none_nested_fields(
     order["notes"] = [{"message": "yo", "date": None}]
     order["fulfillments"][0]["trackingCode"] = None
     order["fulfillments"][0]["lines"] = None
-    order["lines"][0]["isShippingRequired"] = False
-    order["deliveryMethod"] = None
+    order["deliveryMethod"]["shippingTaxClassName"] = None
+    order["deliveryMethod"]["shippingMethodName"] = None
     order["lines"][0]["productName"] = None
     order["lines"][0]["variantName"] = None
     order["lines"][0]["translatedProductName"] = None
     order["lines"][0]["translatedVariantName"] = None
+    order["lines"][0]["taxClassName"] = None
 
     staff_api_client.user.user_permissions.add(
         permission_manage_orders_import,
@@ -3368,233 +3371,6 @@ def test_order_bulk_create_error_currency_mismatch_between_channel_and_order(
     assert Order.objects.count() == orders_count
 
 
-def test_order_bulk_create_error_string_length_exceeded(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    orders_count = Order.objects.count()
-
-    order = order_bulk_input
-    order["lines"][0]["productName"] = "x" * 500
-    order["lines"][0]["variantName"] = "x" * 500
-    order["lines"][0]["translatedProductName"] = "x" * 500
-    order["lines"][0]["translatedVariantName"] = "x" * 500
-    order["lines"][0]["taxClassName"] = "x" * 500
-    order["trackingClientId"] = "x" * 500
-    order["deliveryMethod"]["shippingMethodName"] = "x" * 500
-    order["deliveryMethod"]["shippingTaxClassName"] = "x" * 500
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-        "errorPolicy": ErrorPolicyEnum.IGNORE_FAILED.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 1
-    order = content["data"]["orderBulkCreate"]["results"][0]["order"]
-    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    paths = [error["path"] for error in errors]
-    messages = [error["message"] for error in errors]
-    codes = [error["code"] for error in errors]
-
-    assert "lines.0.product_name" in paths
-    assert "lines.0.variant_name" in paths
-    assert "lines.0.translated_product_name" in paths
-    assert "lines.0.translated_variant_name" in paths
-    assert "lines.0.tax_class_name" in paths
-    assert "tracking_client_id" in paths
-    assert "delivery_method.shipping_method_name" in paths
-    assert "delivery_method.shipping_tax_class_name" in paths
-
-    assert all(["Max character number exceeded:" in message for message in messages])
-    assert all(code == OrderBulkCreateErrorCode.LENGTH_EXCEEDED.name for code in codes)
-
-    assert order["lines"][0]["productName"] == "x" * 386
-    assert order["lines"][0]["variantName"] == "x" * 255
-    assert order["lines"][0]["translatedProductName"] == "x" * 386
-    assert order["lines"][0]["translatedVariantName"] == "x" * 255
-    assert order["lines"][0]["taxClassName"] == "x" * 255
-    assert order["trackingClientId"] == "x" * 36
-    assert order["shippingMethodName"] == "x" * 255
-    assert order["shippingTaxClassName"] == "x" * 255
-
-    assert Order.objects.count() == orders_count + 1
-
-
-def test_order_bulk_create_error_negative_numbers_in_delivery_method(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order = order_bulk_input
-    order["deliveryMethod"]["shippingTaxRate"] = -0.2
-    order["deliveryMethod"]["shippingPrice"]["gross"] = -100
-    order["deliveryMethod"]["shippingPrice"]["net"] = -120
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    paths = [error["path"] for error in errors]
-    messages = [error["message"] for error in errors]
-    codes = [error["code"] for error in errors]
-
-    assert "delivery_method.shipping_tax_rate" in paths
-    assert "delivery_method.shipping_price" in paths
-
-    assert all(["The value can't be negative." == message for message in messages])
-    assert all(code == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name for code in codes)
-
-
-def test_order_bulk_create_error_negative_numbers_in_order_line(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order = order_bulk_input
-    order["lines"][0]["undiscountedTotalPrice"]["gross"] = -100
-    order["lines"][0]["undiscountedTotalPrice"]["net"] = -120
-    order["lines"][0]["totalPrice"]["gross"] = -100
-    order["lines"][0]["totalPrice"]["net"] = -120
-    order["lines"][0]["taxRate"] = -0.2
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    paths = [error["path"] for error in errors]
-    messages = [error["message"] for error in errors]
-    codes = [error["code"] for error in errors]
-
-    assert "lines.0.undiscounted_total_price" in paths
-    assert "lines.0.tax_rate" in paths
-
-    assert all(["The value can't be negative." == message for message in messages])
-    assert all(code == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name for code in codes)
-
-
-def test_order_bulk_create_error_numbers_overflow_in_delivery_method(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order = order_bulk_input
-    order["deliveryMethod"]["shippingTaxRate"] = 10000000000000
-    order["deliveryMethod"]["shippingPrice"]["gross"] = 10000000000000000
-    order["deliveryMethod"]["shippingPrice"]["net"] = 10000000000000
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    paths = [error["path"] for error in errors]
-    messages = [error["message"] for error in errors]
-    codes = [error["code"] for error in errors]
-
-    assert "delivery_method.shipping_tax_rate" in paths
-    assert "delivery_method.shipping_price" in paths
-
-    assert all(["The field with precision" in message for message in messages])
-    assert all(code == OrderBulkCreateErrorCode.NUMBER_OVERFLOW.name for code in codes)
-
-
-def test_order_bulk_create_error_numbers_overflow_in_order_line(
-    staff_api_client,
-    permission_manage_orders,
-    permission_manage_orders_import,
-    order_bulk_input,
-):
-    # given
-    order = order_bulk_input
-    order["lines"][0]["undiscountedTotalPrice"]["gross"] = 10000000000000000
-    order["lines"][0]["undiscountedTotalPrice"]["net"] = 10000000000000
-    order["lines"][0]["taxRate"] = 10000000000000
-
-    staff_api_client.user.user_permissions.add(
-        permission_manage_orders_import,
-        permission_manage_orders,
-    )
-    variables = {
-        "orders": [order],
-        "stockUpdatePolicy": StockUpdatePolicyEnum.SKIP.name,
-    }
-
-    # when
-    response = staff_api_client.post_graphql(ORDER_BULK_CREATE, variables)
-    content = get_graphql_content(response)
-
-    # then
-    assert content["data"]["orderBulkCreate"]["count"] == 0
-    assert not content["data"]["orderBulkCreate"]["results"][0]["order"]
-    errors = content["data"]["orderBulkCreate"]["results"][0]["errors"]
-    paths = [error["path"] for error in errors]
-    messages = [error["message"] for error in errors]
-    codes = [error["code"] for error in errors]
-
-    assert "lines.0.undiscounted_total_price" in paths
-    assert "lines.0.tax_rate" in paths
-
-    assert all(["The field with precision" in message for message in messages])
-    assert all(code == OrderBulkCreateErrorCode.NUMBER_OVERFLOW.name for code in codes)
-
-
 def test_order_bulk_create_error_non_existing_gift_card_code(
     staff_api_client,
     permission_manage_orders,
@@ -3656,7 +3432,7 @@ def test_order_bulk_create_error_negative_order_line_index(
     error = content["data"]["orderBulkCreate"]["results"][0]["errors"][0]
     assert error["message"] == "Order line index can't be negative."
     assert error["path"] == "fulfillments.0.lines.0.order_line_index"
-    assert error["code"] == OrderBulkCreateErrorCode.NEGATIVE_NUMBER.name
+    assert error["code"] == OrderBulkCreateErrorCode.NEGATIVE_INDEX.name
 
 
 @pytest.mark.parametrize(

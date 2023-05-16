@@ -22454,12 +22454,11 @@ enum OrderBulkCreateErrorCode {
   FUTURE_DATE
   INVALID_QUANTITY
   PRICE_ERROR
-  LENGTH_EXCEEDED
+  NOTE_LENGTH
   INSUFFICIENT_STOCK
   NON_EXISTING_STOCK
   NO_RELATED_ORDER_LINE
-  NEGATIVE_NUMBER
-  NUMBER_OVERFLOW
+  NEGATIVE_INDEX
   ORDER_LINE_FULFILLMENT_LINE_MISMATCH
   METADATA_KEY_REQUIRED
   INCORRECT_CURRENCY
@@ -22627,7 +22626,7 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
   privateMetadata: [MetadataInput!]
 
   """Tax rate of the order line."""
-  taxRate: Float
+  taxRate: PositiveDecimal
 
   """The ID of the tax class."""
   taxClassId: ID
@@ -22644,10 +22643,10 @@ input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
 
 input TaxedMoneyInput @doc(category: "Orders") {
   """Gross value of an item."""
-  gross: Float!
+  gross: PositiveDecimal!
 
   """Net value of an item."""
-  net: Float!
+  net: PositiveDecimal!
 }
 
 input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
@@ -22667,7 +22666,7 @@ input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
   shippingPrice: TaxedMoneyInput
 
   """Tax rate of the shipping."""
-  shippingTaxRate: Float
+  shippingTaxRate: PositiveDecimal
 
   """The ID of the tax class."""
   shippingTaxClassId: ID
