@@ -76,7 +76,7 @@ def test_apps_for_federation_query_count(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_apps_with_tokens(
+def test_apps_with_tokens_and_webhooks(
     staff_api_client,
     permission_manage_apps,
     django_assert_num_queries,
@@ -90,12 +90,24 @@ def test_apps_with_tokens(
         ]
     )
 
+    webhooks = []
+    app_tokens = []
     for app in apps:
         for i in range(3):
-            Webhook.objects.create(
-                app=app, target_url=f"http://www.example.com/{i}", name=f"webhook{i}"
+            webhooks.append(
+                Webhook(
+                    app=app,
+                    target_url=f"http://www.example.com/{i}",
+                    name=f"webhook{i}",
+                )
             )
-            AppToken.objects.create(app=app, name=f"token{i}")
+            app_tokens.append(
+                AppToken(
+                    app=app, name=f"token{i}", auth_token=f"auth_token-{app.name}-{i}"
+                )
+            )
+    Webhook.objects.bulk_create(webhooks)
+    AppToken.objects.bulk_create(app_tokens)
 
     query = """
         query apps {
