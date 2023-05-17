@@ -11910,14 +11910,32 @@ enum CollectionSortField @doc(category: "Products") {
 
 input ProductWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
-  ids: [ID!]
+  id: [ID!]
   name: StringFilterInput
+  slug: StringFilterInput
+  productType: GlobalIDFilterInput
+  category: GlobalIDFilterInput
 
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [ProductWhereInput!]
+}
+
+"""
+Define the filtering options for foreign key fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input GlobalIDFilterInput {
+  """The value equal to."""
+  eq: ID
+
+  """The value included in."""
+  oneOf: [ID!]
 }
 
 input ProductTypeFilterInput @doc(category: "Products") {
