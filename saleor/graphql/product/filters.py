@@ -57,9 +57,14 @@ from ..core.types import (
     PriceRangeInput,
     StringFilterInput,
 )
-from ..core.types.filter_input import WhereInputObjectType
+from ..core.types.filter_input import GlobalIDFilterInput, WhereInputObjectType
 from ..utils import resolve_global_ids_to_primary_keys
-from ..utils.filters import filter_by_id, filter_by_string_field, filter_range_field
+from ..utils.filters import (
+    filter_by_id,
+    filter_by_string_field,
+    filter_range_field,
+    filter_where_by_id_field,
+)
 from ..warehouse import types as warehouse_types
 from . import types as product_types
 from .enums import (
@@ -800,19 +805,40 @@ class ProductFilter(MetadataFilterBase):
         return _filter_stock_availability(queryset, name, value, channel_slug)
 
 
-def filter_product_name(qs, _, value):
-    return filter_by_string_field(qs, "name", value)
-
-
 class ProductWhere(MetadataFilterBase):
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
+    id = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     name = OperationObjectTypeFilter(
-        input_class=StringFilterInput, method=filter_product_name
+        input_class=StringFilterInput, method="filter_product_name"
+    )
+    slug = OperationObjectTypeFilter(
+        input_class=StringFilterInput, method="filter_product_slug"
+    )
+    product_type = OperationObjectTypeFilter(
+        input_class=GlobalIDFilterInput, method="filter_product_type"
+    )
+    category = OperationObjectTypeFilter(
+        input_class=GlobalIDFilterInput, method="filter_category"
     )
 
     class Meta:
         model = Product
         fields = []
+
+    @staticmethod
+    def filter_product_name(qs, _, value):
+        return filter_by_string_field(qs, "name", value)
+
+    @staticmethod
+    def filter_product_slug(qs, _, value):
+        return filter_by_string_field(qs, "slug", value)
+
+    @staticmethod
+    def filter_product_type(qs, _, value):
+        return filter_where_by_id_field(qs, "product_type", value, "ProductType")
+
+    @staticmethod
+    def filter_category(qs, _, value):
+        return filter_where_by_id_field(qs, "category", value, "Category")
 
 
 class ProductVariantFilter(MetadataFilterBase):

@@ -7,7 +7,12 @@ from graphene import Argument, InputField, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
-from ..descriptions import ADDED_IN_311, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..descriptions import (
+    ADDED_IN_311,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_INPUT,
+    PREVIEW_FEATURE,
+)
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
 from . import NonNullList
@@ -213,5 +218,21 @@ class DateTimeFilterInput(graphene.InputObjectType):
         description = (
             "Define the filtering options for date time fields."
             + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class GlobalIDFilterInput(graphene.InputObjectType):
+    eq = graphene.ID(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.ID,
+        description=FilterInputDescriptions.ONE_OF,
+        required=False,
+    )
+
+    class Meta:
+        description = (
+            "Define the filtering options for foreign key fields."
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )

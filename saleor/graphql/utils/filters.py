@@ -57,3 +57,19 @@ def filter_by_string_field(
     if one_of:
         qs = qs.filter(**{f"{field}__in": one_of})
     return qs
+
+
+def filter_where_by_id_field(
+    qs: "QuerySet", field: str, value: Dict[str, Union[str, List[str]]], type: str
+):
+    from . import resolve_global_ids_to_primary_keys
+
+    eq = value.get("eq")
+    one_of = value.get("one_of")
+    if eq and isinstance(eq, str):
+        _, pks = resolve_global_ids_to_primary_keys([eq], type, True)
+        qs = qs.filter(**{field: pks[0]})
+    if one_of:
+        _, pks = resolve_global_ids_to_primary_keys(one_of, type, True)
+        qs = qs.filter(**{f"{field}__in": pks})
+    return qs
