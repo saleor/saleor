@@ -1209,7 +1209,6 @@ def _create_order_from_checkout(
 
 def create_order_from_checkout(
     checkout_info: CheckoutInfo,
-    checkout_lines: Iterable["CheckoutLineInfo"],
     discounts: List["DiscountInfo"],
     manager: "PluginsManager",
     user: User,
@@ -1242,6 +1241,19 @@ def create_order_from_checkout(
             _increase_voucher_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
+        checkout_pk = checkout_info.checkout.pk
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        if not checkout:
+            order = Order.objects.get_by_checkout_token(checkout_pk)
+            return order
+
+        # Fetching checkout info inside the transaction block with select_for_update
+        # enure that we are processing checkout on the current data.
+        checkout_lines, _ = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(
+            checkout, checkout_lines, discounts, manager
+        )
+
         try:
             order = _create_order_from_checkout(
                 checkout_info=checkout_info,
