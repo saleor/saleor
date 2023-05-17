@@ -14,9 +14,7 @@ I want to merge this change because...
 
 <!-- Please keep this section. It will make the maintainer's life easier. -->
 
-* [ ] Privileged queries and mutations are guarded by proper permission checks
+* [ ] Privileged queries and mutations are either absent or guarded by proper permission checks
 * [ ] Database queries are optimized and the number of queries is constant
-* [ ] Database migration files are up to date
-* [ ] The changes are tested
-* [ ] GraphQL schema and type definitions are up to date
-* [ ] Changes are mentioned in the changelog
+* [ ] Database migrations are either absent or optimized for zero downtime
+* [ ] The changes are covered by test cases
