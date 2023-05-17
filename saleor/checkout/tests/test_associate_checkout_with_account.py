@@ -16,7 +16,7 @@ from ..fetch import fetch_checkout_info, fetch_checkout_lines
     ],
 )
 def test_associate_guest_checkout_with_account_if_exists(
-   paid_strategy, app, address, checkout, customer_user
+    paid_strategy, app, address, checkout, customer_user
 ):
     # set the checkout email
     checkout.email = "test@example.com"
@@ -91,7 +91,7 @@ def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
     ],
 )
 def test_associate_guest_checkout_with_account_if_exists_with_inactive_user(
-   paid_strategy, app, address, checkout, customer_user
+    paid_strategy, app, address, checkout, customer_user
 ):
     # set the checkout email
     checkout.email = "test@example.com"
