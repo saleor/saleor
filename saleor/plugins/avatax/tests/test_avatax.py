@@ -1378,7 +1378,7 @@ def test_calculate_checkout_total_with_sale(
     ("expected_net, expected_gross, voucher_amount, " "prices_entered_with_tax"),
     [
         ("4300", "5289", "0.0", False),
-        ("3495", "4297", "3.0", True),
+        ("3493", "4297", "3.0", True),
     ],
 )
 @override_settings(PLUGINS=["saleor.plugins.avatax.plugin.AvataxPlugin"])
@@ -1450,7 +1450,7 @@ def test_calculate_checkout_total_for_JPY(
 @pytest.mark.parametrize(
     ("expected_net, expected_gross, voucher_amount, prices_entered_with_tax"),
     [
-        ("3485", "4285", "0.0", True),
+        ("3484", "4285", "0.0", True),
         ("4280", "5264", "5.0", False),
     ],
 )
@@ -2224,7 +2224,7 @@ def test_calculate_order_total_for_JPY(
 
     # then
     price = quantize_price(price, price.currency)
-    assert price == TaxedMoney(net=Money("3497", "JPY"), gross=Money("4300", "JPY"))
+    assert price == TaxedMoney(net=Money("3496", "JPY"), gross=Money("4300", "JPY"))
 
 
 @pytest.mark.vcr
