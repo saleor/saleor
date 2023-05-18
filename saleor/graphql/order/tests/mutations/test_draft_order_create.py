@@ -1418,6 +1418,7 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["code"] == OrderErrorCode.UNIQUE.name
     assert error["message"] == "Order with this External reference already exists."
 
+
 def test_draft_order_create_with_custom_price_in_order_line(
     staff_api_client,
     permission_group_manage_orders,

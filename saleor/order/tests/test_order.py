@@ -1340,6 +1340,7 @@ def test_order_update_charge_data_with_transaction_item_and_payment(
         first_charged_amount + second_charged_amount, order_with_lines.currency
     )
 
+
 def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_price(
     order_with_lines,
     product,
@@ -1383,9 +1384,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     assert line.product_sku == variant.sku
     assert line.quantity == 1
     assert variant_channel_listing.price_amount != price_override
-    unit_amount = (
-        price_override - sale_channel_listing.discount_value
-    )
+    unit_amount = price_override - sale_channel_listing.discount_value
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
@@ -1396,6 +1395,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     assert line.unit_discount_amount == sale_channel_listing.discount_value
     assert line.unit_discount_value == sale_channel_listing.discount_value
     assert line.unit_discount_reason
+
 
 def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     order_with_lines,
@@ -1414,7 +1414,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
         variant_id=str(variant.id),
         variant=variant,
         quantity=1,
-        price_override=price_override
+        price_override=price_override,
     )
 
     # when
@@ -1436,8 +1436,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(
-        net=Money(price_override, "USD"),
-        gross=Money(price_override, "USD")
+        net=Money(price_override, "USD"), gross=Money(price_override, "USD")
     )
     assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
