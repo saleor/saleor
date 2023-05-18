@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
 from ....app.installation_utils import fetch_brand_data, fetch_manifest
+from ....app.manifest_schema import clean_manifest_data
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
@@ -82,7 +83,7 @@ class AppFetchManifest(BaseMutation):
 
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
-        clean_manifest_data(manifest_data)
+        manifest_data = clean_manifest_data(manifest_data)
         manifest_data["brand"] = fetch_brand_data(
             manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
         )
@@ -101,13 +102,14 @@ class AppFetchManifest(BaseMutation):
                 )
                 for p in extension["permissions"]
             ]
+        return manifest_data
 
     @classmethod
     def perform_mutation(cls, _root, info, /, **data):
         manifest_url = data.get("manifest_url")
         clean_manifest_url(manifest_url)
         manifest_data = cls.fetch_manifest(manifest_url)
-        cls.clean_manifest_data(info, manifest_data)
+        manifest_data = cls.clean_manifest_data(info, manifest_data)
 
         instance = cls.construct_instance(instance=None, cleaned_data=manifest_data)
         return cls.success_response(instance)
