@@ -26,9 +26,15 @@ from ..core.types import BaseObjectType, Job, ModelObjectType, NonNullList, Perm
 from ..core.utils import from_global_id_or_error
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
+from ..webhook.dataloaders import WebhooksByAppIdLoader
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
-from .dataloaders import AppByIdLoader, AppExtensionByAppIdLoader, app_promise_callback
+from .dataloaders import (
+    AppByIdLoader,
+    AppExtensionByAppIdLoader,
+    AppTokensByAppIdLoader,
+    app_promise_callback,
+)
 from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
@@ -380,12 +386,12 @@ class App(ModelObjectType[models.App]):
     @staticmethod
     def resolve_tokens(root: models.App, info: ResolveInfo):
         has_required_permission(root, info.context)
-        return root.tokens.all()
+        return AppTokensByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_webhooks(root: models.App, info: ResolveInfo):
         has_required_permission(root, info.context)
-        return root.webhooks.all()
+        return WebhooksByAppIdLoader(info.context).load(root.id)
 
     @staticmethod
     def resolve_access_token(root: models.App, info: ResolveInfo):
