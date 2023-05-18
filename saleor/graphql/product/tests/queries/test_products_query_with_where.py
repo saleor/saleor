@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 import graphene
 import pytest
+from django.utils import timezone
 
-from saleor.product.models import Product
+from saleor.product.models import Product, ProductChannelListing
 
 from ....tests.utils import get_graphql_content
 
@@ -202,3 +205,66 @@ def test_product_filter_by_category(
     products = data["data"]["products"]["edges"]
     assert len(products) == 1
     assert product_list[1].slug == products[0]["node"]["slug"]
+
+
+def test_product_filter_by_is_available(api_client, product_list, channel_USD):
+    # given
+    ProductChannelListing.objects.filter(
+        product=product_list[1], channel=channel_USD
+    ).update(available_for_purchase_at=timezone.now() + timedelta(days=1))
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"isAvailable": True},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[0].slug == products[0]["node"]["slug"]
+    assert product_list[2].slug == products[1]["node"]["slug"]
+
+
+def test_product_filter_by_is_published(api_client, product_list, channel_USD):
+    # given
+    ProductChannelListing.objects.filter(
+        product=product_list[1], channel=channel_USD
+    ).update(is_published=False)
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"isPublished": True},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[0].slug == products[0]["node"]["slug"]
+    assert product_list[2].slug == products[1]["node"]["slug"]
+
+
+def test_product_filter_by_is_visible_in_listing(api_client, product_list, channel_USD):
+    # given
+    ProductChannelListing.objects.filter(
+        product=product_list[1], channel=channel_USD
+    ).update(visible_in_listings=False)
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"isVisibleInListing": True},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[0].slug == products[0]["node"]["slug"]
+    assert product_list[2].slug == products[1]["node"]["slug"]
