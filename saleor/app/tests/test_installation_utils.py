@@ -453,6 +453,47 @@ def test_install_app_webhook_incorrect_url(
     assert error_dict["webhooks"][0].message == "Invalid target url."
 
 
+@pytest.mark.parametrize("is_active", (True, False))
+def test_install_app_with_webhook_is_active(
+    is_active, app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook["isActive"] = is_active
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
+
+    # when
+    app, _ = install_app(app_installation, activate=True)
+
+    # then
+    webhook = app.webhooks.get()
+    assert webhook.is_active == is_active
+
+
+def test_install_app_with_webhook_incorrect_is_active_value(
+    app_manifest, app_manifest_webhook, app_installation, monkeypatch
+):
+    # given
+    app_manifest_webhook["isActive"] = "incorrect value"
+    app_manifest["webhooks"] = [app_manifest_webhook]
+
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when & then
+    with pytest.raises(ValidationError) as excinfo:
+        install_app(app_installation, activate=True)
+
+    error_dict = excinfo.value.error_dict
+    assert "webhooks" in error_dict
+    assert error_dict["webhooks"][0].message == "Incorrect value for field: isActive."
+
+
 def test_install_app_webhook_incorrect_query(
     app_manifest, app_manifest_webhook, app_installation, monkeypatch
 ):
