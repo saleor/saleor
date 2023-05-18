@@ -4,7 +4,14 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Union
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
-from pydantic import AnyHttpUrl, AnyUrl, ConstrainedStr, ValidationError, validator
+from pydantic import (
+    AnyHttpUrl,
+    AnyUrl,
+    ConstrainedStr,
+    Field,
+    ValidationError,
+    validator,
+)
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
@@ -179,25 +186,67 @@ class AuthorStr(ConstrainedStr):
 
 
 class Manifest(Schema):
-    id: str
-    version: str
-    name: str
-    about: str
-    token_target_url: AnyHttpUrl
-    required_saleor_version: Optional[RequiredSaleorVersion] = None
-    author: Optional[AuthorStr] = None
-    permissions: list[PermissionType] = []
-
-    app_url: Optional[AnyHttpUrl] = None
-    configuration_url: Optional[AnyHttpUrl] = None
-    data_privacy: str
-    data_privacy_url: Optional[AnyHttpUrl] = None
-    homepage_url: Optional[AnyHttpUrl] = None
-    support_url: Optional[AnyHttpUrl] = None
+    id: str = Field(
+        ...,
+        description="Id of application used internally by Saleor",
+    )
+    version: str = Field(
+        ...,
+        description="App version",
+    )
+    name: str = Field(..., description="App name displayed in the dashboard")
+    about: str = Field(
+        ..., description="Description of the app displayed in the dashboard"
+    )
+    token_target_url: AnyHttpUrl = Field(
+        ..., description="Endpoint used during process of app installation"
+    )
+    required_saleor_version: Optional[RequiredSaleorVersion] = Field(
+        None,
+        description="Version range, in the semver format, which specifies Saleor "
+        "version required by the app. The field will be respected "
+        "starting from Saleor 3.13",
+    )
+    author: Optional[AuthorStr] = Field(
+        None,
+        description="App author name displayed in the "
+        "dashboard (starting from Saleor 3.13)",
+    )
+    permissions: list[PermissionType] = Field(
+        [], description="Array of permissions requested by the app"
+    )
+    app_url: Optional[AnyHttpUrl] = Field(
+        None, description="App website rendered in the dashboard"
+    )
+    configuration_url: Optional[AnyHttpUrl] = Field(
+        None,
+        description="Address to the app configuration page, which is rendered in "
+        "the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
+    )
+    data_privacy: Optional[str] = Field(
+        None,
+        description="Short description of privacy policy displayed in the dashboard "
+        "(deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
+    )
+    data_privacy_url: Optional[AnyHttpUrl] = Field(
+        None, description="URL to the full privacy policy"
+    )
+    homepage_url: Optional[AnyHttpUrl] = Field(
+        None, description="External URL to the app homepage"
+    )
+    support_url: Optional[AnyHttpUrl] = Field(
+        None, description="External URL to the page where app users can find support"
+    )
     audience: Optional[str] = None
 
-    webhooks: list[Webhook] = []
-    extensions: list[Extension] = []
+    webhooks: list[Webhook] = Field(
+        [],
+        description="List of webhooks that will be set",
+    )
+    extensions: list[Extension] = Field(
+        [],
+        description="List of extensions that will be mounted in Saleor's dashboard",
+    )
 
     class Config(ValidationErrorConfig):
         default_error = Error(code=AppErrorCode.INVALID)
