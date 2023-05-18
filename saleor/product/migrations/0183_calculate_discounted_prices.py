@@ -8,6 +8,9 @@ from collections import namedtuple
 from prices import Money, fixed_discount, percentage_discount
 from functools import partial
 from decimal import ROUND_HALF_UP
+import mptt
+import mptt.managers
+
 
 BATCH_SIZE = 500
 
@@ -33,7 +36,11 @@ def calculate_variants_discounted_price(apps, schema_editor):
         "product", "ProductVariantChannelListing"
     )
     SaleChannelListing = apps.get_model("discount", "SaleChannelListing")
+    manager = mptt.managers.TreeManager()
     Category = apps.get_model("product", "Category")
+    manager.model = Category
+    mptt.register(Category, order_insertion_by=["id"])
+    Category.tree = manager
     Sale = apps.get_model("discount", "Sale")
     discounts = fetch_discounts(Sale, SaleChannelListing, Category)
     update_discounted_prices_task(
