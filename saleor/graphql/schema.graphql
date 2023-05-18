@@ -10611,6 +10611,9 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Added in Saleor 3.9.
   """
   taxClassPrivateMetadata: [MetadataItem!]!
+
+  """Custom price of the order line."""
+  priceOverride: PositiveDecimal
 }
 
 """
@@ -21638,6 +21641,11 @@ input OrderLineCreateInput @doc(category: "Orders") {
   Added in Saleor 3.6.
   """
   forceNewLine: Boolean = false
+
+  """
+  Custom price of the item.When the line with the same variant will be provided multiple times, the last price will be used.
+  """
+  price: PositiveDecimal
 }
 
 """

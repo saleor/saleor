@@ -15,6 +15,7 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
+from prices import Money
 
 from ..app.models import App
 from ..channel.models import Channel
@@ -665,6 +666,13 @@ class OrderLine(ModelWithMetadata):
 
     # Fulfilled when sale was applied to product in the line
     sale_id = models.CharField(max_length=255, null=True, blank=True)
+
+    price_override = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
 
     objects = OrderLineManager()
 

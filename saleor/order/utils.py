@@ -57,8 +57,10 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
+    from ..discount import DiscountInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
+    from ..graphql.order.utils import OrderLineData
 
 
 def get_order_country(order: Order) -> str:
@@ -206,15 +208,16 @@ def update_order_status(order: Order):
 
 @traced_atomic_transaction()
 def create_order_line(
-    order,
-    line_data,
-    manager,
-    discounts=None,
-    allocate_stock=False,
-):
+    order: Order,
+    line_data: "OrderLineData",
+    manager: "PluginsManager",
+    discounts: Optional[Iterable["DiscountInfo"]] = None,
+    allocate_stock: Optional[bool] = False,
+) -> OrderLine:
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
+    price_override = line_data.price_override
 
     product = variant.product
     collections = product.collections.all()
@@ -222,13 +225,23 @@ def create_order_line(
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
-        product, collections, channel, channel_listing, discounts
+        product,
+        collections,
+        channel,
+        channel_listing,
+        discounts,
+        price_override=price_override,
     )
     if not discounts:
         untaxed_undiscounted_price = untaxed_unit_price
     else:
         untaxed_undiscounted_price = variant.get_price(
-            product, collections, channel, channel_listing, []
+            product,
+            collections,
+            channel,
+            channel_listing,
+            [],
+            price_override=price_override,
         )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
@@ -268,6 +281,7 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
+        price_override=price_override,
         **get_tax_class_kwargs_for_order_line(tax_class),
     )
 

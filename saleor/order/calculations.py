@@ -88,7 +88,7 @@ def _update_order_discounts_and_base_undiscounted_total(
     )
 
 
-def _get_order_base_prices(order, lines):
+def _get_order_base_prices(order: Order, lines: Iterable[OrderLine]):
     currency = order.currency
     undiscounted_subtotal = zero_taxed_money(currency)
 

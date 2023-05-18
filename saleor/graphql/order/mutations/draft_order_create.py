@@ -65,6 +65,14 @@ class OrderLineCreateInput(OrderLineInput):
             "by skipping the matching logic. " + ADDED_IN_36
         ),
     )
+    price = PositiveDecimal(
+        required=False,
+        description=(
+            "Custom price of the item."
+            "When the line with the same variant "
+            "will be provided multiple times, the last price will be used."
+        ),
+    )
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -254,14 +262,20 @@ class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
                 variant = list(
                     filter(lambda x: (x.pk == int(variant_db_id)), variants)
                 )[0]
+                custom_price = line.get("price", None)
 
                 if line.get("force_new_line"):
-                    line_data = OrderLineData(variant_id=variant_db_id, variant=variant)
+                    line_data = OrderLineData(
+                        variant_id=variant_db_id,
+                        variant=variant,
+                        price_override=custom_price,
+                    )
                     grouped_lines_data.append(line_data)
                 else:
                     line_data = lines_data_map[variant_db_id]
                     line_data.variant_id = variant_db_id
                     line_data.variant = variant
+                    line_data.price_override = custom_price
 
                 if (quantity := line.get("quantity")) is not None:
                     line_data.quantity += quantity
