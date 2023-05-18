@@ -1344,8 +1344,11 @@ def create_transaction_item(
     user: Optional[User],
     app: Optional[App],
     psp_reference: Optional[str],
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ):
     return TransactionItem.objects.create(
+        name=name,
         checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
         order_id=source_object.pk if isinstance(source_object, Order) else None,
         currency=source_object.currency,
@@ -1353,6 +1356,7 @@ def create_transaction_item(
         app_identifier=app.identifier if app else None,
         user=user,
         psp_reference=psp_reference,
+        available_actions=available_actions if available_actions else [],
     )
 
 
@@ -1362,9 +1366,16 @@ def create_transaction_for_order(
     app: Optional["App"],
     psp_reference: Optional[str],
     charged_value: Decimal,
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ) -> TransactionItem:
     transaction = create_transaction_item(
-        source_object=order, user=user, app=app, psp_reference=psp_reference
+        source_object=order,
+        user=user,
+        app=app,
+        psp_reference=psp_reference,
+        available_actions=available_actions,
+        name=name,
     )
     create_manual_adjustment_events(
         transaction=transaction,
