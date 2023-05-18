@@ -195,6 +195,7 @@ ORDER_BULK_CREATE = """
                     origin
                     fulfillments {
                         lines {
+                            id
                             quantity
                             orderLine {
                                 id
