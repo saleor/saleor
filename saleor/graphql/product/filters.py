@@ -819,6 +819,9 @@ class ProductWhere(MetadataFilterBase):
     category = OperationObjectTypeFilter(
         input_class=GlobalIDFilterInput, method="filter_category"
     )
+    is_available = django_filters.BooleanFilter(method="filter_is_available")
+    is_published = django_filters.BooleanFilter(method="filter_is_published")
+    is_visible_in_listing = django_filters.BooleanFilter(method="filter_is_listed")
 
     class Meta:
         model = Product
@@ -839,6 +842,33 @@ class ProductWhere(MetadataFilterBase):
     @staticmethod
     def filter_category(qs, _, value):
         return filter_where_by_id_field(qs, "category", value, "Category")
+
+    def filter_is_available(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_is_available(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
+
+    def filter_is_published(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_is_published(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
+
+    def filter_is_listed(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_visible_in_listing(
+            queryset,
+            name,
+            value,
+            channel_slug,
+        )
 
 
 class ProductVariantFilter(MetadataFilterBase):

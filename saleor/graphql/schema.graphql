@@ -11915,6 +11915,9 @@ input ProductWhereInput @doc(category: "Products") {
   slug: StringFilterInput
   productType: GlobalIDFilterInput
   category: GlobalIDFilterInput
+  isAvailable: Boolean
+  isPublished: Boolean
+  isVisibleInListing: Boolean
 
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]
