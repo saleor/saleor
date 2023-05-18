@@ -27,6 +27,7 @@ from ..account.utils import retrieve_user_by_email, store_user_address
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
+from ..checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
 from ..core.taxes import TaxError, zero_taxed_money
@@ -1203,7 +1204,6 @@ def _create_order_from_checkout(
 
 def create_order_from_checkout(
     checkout_info: CheckoutInfo,
-    checkout_lines: Iterable["CheckoutLineInfo"],
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
@@ -1230,11 +1230,25 @@ def create_order_from_checkout(
     :raises: InsufficientStock, GiftCardNotApplicable
     """
 
-    if checkout_info.voucher:
+    voucher = None
+    if voucher := checkout_info.voucher:
         with transaction.atomic():
             _increase_voucher_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
+        checkout_pk = checkout_info.checkout.pk
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        if not checkout:
+            order = Order.objects.get_by_checkout_token(checkout_pk)
+            return order
+
+        # Fetching checkout info inside the transaction block with select_for_update
+        # enure that we are processing checkout on the current data.
+        checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
+        checkout_info = fetch_checkout_info(
+            checkout, checkout_lines, manager, voucher=voucher
+        )
+
         try:
             order = _create_order_from_checkout(
                 checkout_info=checkout_info,
@@ -1346,7 +1360,6 @@ def complete_checkout_with_transaction(
 
     return create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=user,
         app=app,
