@@ -1,6 +1,6 @@
 from decimal import Decimal
 from celery.utils.log import get_task_logger
-from django.db.models import Q, F, Exists, OuterRef
+from django.db.models import Q, F
 
 from ....core.prices import quantize_price
 from ....tax.models import TaxConfiguration
