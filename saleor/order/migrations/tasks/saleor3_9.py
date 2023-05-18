@@ -58,14 +58,10 @@ def recalculate_tax_for_prices(
 def get_order_prices_entered_with_tax_mapping(
     order_lines, order_model, channel_model, tax_configuration
 ):
-    orders = order_model.objects.filter(
-        Exists(order_lines.filter(order_id=OuterRef("id")))
-    )
-    channels = channel_model.objects.filter(
-        Exists(orders.filter(channel_id=OuterRef("id")))
-    )
+    orders = order_model.objects.filter(id__in=order_lines.values("order_id"))
+    channels = channel_model.objects.filter(id__in=orders.values("channel_id"))
     tax_configurations = tax_configuration.objects.filter(
-        Exists(channels.filter(tax_configuration__id="id"))
+        id__in=channels.values("tax_configuration__id")
     )
     tax_conf_to_prices_entered_with_taxes = {
         tc_id: price_entered_with_taxes
