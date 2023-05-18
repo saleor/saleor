@@ -378,42 +378,9 @@ def recalculate_transaction_amounts(transaction: TransactionItem, save: bool = T
     """
     calculate_transaction_amount_based_on_events(transaction)
 
-    events: Iterable[TransactionEvent] = transaction.events.order_by(
-        "created_at"
-    ).exclude(include_in_calculations=False)
-
-    action_map = _initilize_action_map(events)
-    _set_transaction_amounts_to_zero(transaction)
-
-    _handle_events_without_psp_reference(transaction, action_map.without_psp_reference)
-
-    for authorize_events in action_map.authorization.values():
-        _recalculate_authorization_amounts(transaction, authorize_events)
-
-    for charge_events in action_map.charge.values():
-        _recalculate_charge_amounts(transaction, charge_events)
-
-    for refund_events in action_map.refund.values():
-        _recalculate_refund_amounts(transaction, refund_events)
-
-    for cancel_events in action_map.cancel.values():
-        _recalculate_cancel_amounts(transaction, cancel_events)
-
     transaction.authorized_value = max(transaction.authorized_value, Decimal("0"))
-    transaction.charged_value = max(transaction.charged_value, Decimal("0"))
-    transaction.refunded_value = max(transaction.refunded_value, Decimal("0"))
-    transaction.canceled_value = max(transaction.canceled_value, Decimal("0"))
     transaction.authorize_pending_value = max(
         transaction.authorize_pending_value, Decimal("0")
-    )
-    transaction.charge_pending_value = max(
-        transaction.charge_pending_value, Decimal("0")
-    )
-    transaction.refund_pending_value = max(
-        transaction.refund_pending_value, Decimal("0")
-    )
-    transaction.cancel_pending_value = max(
-        transaction.cancel_pending_value, Decimal("0")
     )
 
     if save:
