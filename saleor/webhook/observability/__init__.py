@@ -4,6 +4,7 @@ from .payloads import dump_payload
 from .tracing import opentracing_trace
 from .utils import (
     WebhookData,
+    async_report_view,
     get_buffer_name,
     get_webhooks,
     pop_events_with_remaining_size,
@@ -15,6 +16,7 @@ from .utils import (
 )
 
 __all__ = [
+    "async_report_view",
     "get_buffer",
     "pop_events_with_remaining_size",
     "ObservabilityError",

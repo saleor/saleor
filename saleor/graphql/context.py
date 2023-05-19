@@ -9,7 +9,7 @@ from ..account.models import User
 from ..app.models import App
 from ..core.auth import get_token_from_request
 from ..core.jwt import jwt_decode_with_exception_handler
-from .api import API_PATH
+from .api import API_PATH, ASYNC_API_PATH
 from .app.dataloaders import get_app_promise
 from .core import SaleorContext
 
@@ -39,7 +39,7 @@ def set_decoded_auth_token(request: SaleorContext):
 
 
 def set_app_on_context(request: SaleorContext):
-    if request.path == API_PATH and not hasattr(request, "app"):
+    if request.path in [API_PATH, ASYNC_API_PATH] and not hasattr(request, "app"):
         request.app = get_app_promise(request).get()
 
 

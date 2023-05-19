@@ -186,6 +186,16 @@ def report_view(method):
     return wrapper
 
 
+def async_report_view(func):
+    async def wrapper(self, request, *args, **kwargs):
+        with report_api_call(request) as api_call:
+            response = await func(self, request, *args, **kwargs)
+            api_call.response = response
+            return response
+
+    return wrapper
+
+
 def report_event_delivery_attempt(
     attempt: "EventDeliveryAttempt", next_retry: Optional["datetime"] = None
 ):
