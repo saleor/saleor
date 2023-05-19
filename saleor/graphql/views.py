@@ -107,24 +107,25 @@ class AsyncGraphQLView(View):
             },
         )
 
-    # TODO Make ASYNC
-    def _handle_query(self, request: HttpRequest) -> JsonResponse:
+    async def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
-            data = self.parse_body(request)
+            async_parse_body = sync_to_async(self.parse_body, thread_sensitive=False)
+            data = await async_parse_body(request)
         except ValueError:
             return JsonResponse(
                 data={"errors": [self.format_error("Unable to parse query.")]},
                 status=400,
             )
 
+        async_get_response = sync_to_async(self.get_response, thread_sensitive=False)
         if isinstance(data, list):
-            responses = [self.get_response(request, entry) for entry in data]
+            responses = [await async_get_response(request, entry) for entry in data]
             result: Union[list, Optional[dict]] = [
                 response for response, code in responses
             ]
             status_code = max((code for response, code in responses), default=200)
         else:
-            result, status_code = self.get_response(request, data)
+            result, status_code = await async_get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
     async def handle_query(self, request: HttpRequest) -> JsonResponse:
@@ -166,10 +167,7 @@ class AsyncGraphQLView(View):
                 if request_ips := request.META.get(additional_ip_header):
                     span.set_tag(f"ip_{additional_ip_header}", request_ips[:100])
 
-            async_handle_query = sync_to_async(
-                self._handle_query, thread_sensitive=False
-            )
-            response = await async_handle_query(request)
+            response = await self._handle_query(request)
 
             span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
 
