@@ -5075,6 +5075,17 @@ def permission_group_manage_apps(permission_manage_apps, staff_users):
 
 
 @pytest.fixture
+def permission_group_handle_payments(permission_manage_payments, staff_users):
+    group = Group.objects.create(
+        name="Manage apps group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_payments)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
 def permission_group_all_perms_all_channels(
     permission_manage_users, staff_users, channel_USD, channel_PLN
 ):
