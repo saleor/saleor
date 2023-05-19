@@ -30,6 +30,7 @@ from ...graphql.account.mutations.authentication import (
     _does_token_match,
     _get_new_csrf_token,
 )
+from ...order.utils import match_orders_with_new_user
 from ...permission.enums import get_permission_names, get_permissions_from_codenames
 from ...permission.models import Permission
 from ..error_codes import PluginErrorCode
@@ -403,6 +404,7 @@ def get_or_create_user_from_payload(
             email=user_email,
             defaults=defaults_create,
         )
+        match_orders_with_new_user(user)
     except User.MultipleObjectsReturned:
         logger.warning("Multiple users returned for single OIDC sub ID")
         user, _ = User.objects.get_or_create(
@@ -451,6 +453,7 @@ def _update_user_details(
             )
             return
         user.email = user_email
+        match_orders_with_new_user(user)
         fields_to_save.append("email")
     if last_login:
         if not user.last_login or user.last_login.timestamp() < last_login:
