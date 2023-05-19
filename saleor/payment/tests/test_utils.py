@@ -1470,6 +1470,7 @@ def test_create_transaction_event_for_transaction_session_success_sets_actions(
     request_event = TransactionEvent.objects.create(
         transaction=transaction, include_in_calculations=False
     )
+
     # when
     create_transaction_event_for_transaction_session(
         request_event,
@@ -1514,6 +1515,7 @@ def test_create_transaction_event_for_transaction_session_failure_doesnt_set_act
         amount_value=expected_amount,
         type=TransactionEventType.CHARGE_REQUEST,
     )
+
     # when
     create_transaction_event_for_transaction_session(
         request_event,
