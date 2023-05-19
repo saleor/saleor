@@ -378,13 +378,6 @@ def _get_shipping_voucher_discount_for_checkout(
     address: Optional["Address"],
 ):
     """Calculate discount value for a voucher of shipping type."""
-    if not is_shipping_required(lines):
-        msg = "Your order does not require shipping."
-        raise NotApplicable(msg)
-    shipping_method = checkout_info.delivery_method_info.delivery_method
-    if not shipping_method:
-        msg = "Please select a delivery method first."
-        raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
     if address:

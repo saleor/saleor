@@ -9,6 +9,7 @@ from ....checkout.fetch import (
     CheckoutLineInfo,
     fetch_checkout_info,
     fetch_checkout_lines,
+    update_delivery_method_lists_for_checkout_info,
 )
 from ....checkout.utils import (
     delete_external_shipping_id,
@@ -230,11 +231,25 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
             )
         else:
             delete_external_shipping_id(checkout=checkout)
+
         checkout.shipping_method = shipping_method
         checkout.collection_point = collection_point
+
+        shipping_channel_listings = checkout.channel.shipping_method_listings.all()
+        update_delivery_method_lists_for_checkout_info(
+            checkout_info,
+            shipping_method,
+            collection_point,
+            checkout_info.shipping_address,
+            lines,
+            manager,
+            shipping_channel_listings,
+        )
+
         invalidate_prices_updated_fields = invalidate_checkout_prices(
             checkout_info, lines, manager, save=False
         )
+
         checkout.save(
             update_fields=[
                 "shipping_method",
