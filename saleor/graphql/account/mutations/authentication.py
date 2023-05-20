@@ -6,10 +6,10 @@ from django.core.exceptions import ValidationError
 from django.middleware.csrf import (  # type: ignore
     _get_new_csrf_string,
     _mask_cipher_secret,
-    _unmask_cipher_token,
+    _compare_masked_tokens,
 )
 from django.utils import timezone
-from django.utils.crypto import constant_time_compare, get_random_string
+from django.utils.crypto import get_random_string
 from graphene.types.generic import GenericScalar
 
 from ....account import models
@@ -67,13 +67,6 @@ def get_user(payload):
     if permissions is not None:
         user.effective_permissions = get_permissions_from_names(permissions)
     return user
-
-
-def _does_token_match(token: str, csrf_token: str) -> bool:
-    return constant_time_compare(
-        _unmask_cipher_token(token),
-        _unmask_cipher_token(csrf_token),
-    )
 
 
 def _get_new_csrf_token() -> str:
@@ -263,7 +256,7 @@ class RefreshToken(BaseMutation):
                     )
                 }
             )
-        is_valid = _does_token_match(csrf_token, payload["csrfToken"])
+        is_valid = _compare_masked_tokens(csrf_token, payload["csrfToken"])
         if not is_valid:
             raise ValidationError(
                 {
