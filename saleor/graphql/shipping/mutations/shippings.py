@@ -279,8 +279,7 @@ class ShippingZoneMixin:
                     }
                 )
             else:
-                countries = get_countries_without_shipping_zone()
-                data["countries"].extend([country for country in countries])
+                cls._extend_shipping_zone_countries(data)
         else:
             data["default"] = False
         return data
@@ -371,6 +370,14 @@ class ShippingZoneMixin:
         WarehouseShippingZone.objects.filter(
             id__in=shipping_zone_warehouses_to_delete
         ).delete()
+
+    @classmethod
+    def _extend_shipping_zone_countries(cls, data):
+        countries = get_countries_without_shipping_zone()
+        try:
+            data["countries"].extend([country for country in countries])
+        except (KeyError, AttributeError):
+            data["countries"] = [country for country in countries]
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
