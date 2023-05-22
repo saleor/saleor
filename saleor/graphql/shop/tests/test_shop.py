@@ -274,6 +274,7 @@ def test_query_default_mail_sender_settings_not_set(
 def test_shop_digital_content_settings_mutation(
     staff_api_client, site_settings, permission_manage_settings
 ):
+    # given
     query = """
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
@@ -301,11 +302,14 @@ def test_shop_digital_content_settings_mutation(
     }
 
     assert not site_settings.automatic_fulfillment_digital_products
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings]
     )
     content = get_graphql_content(response)
 
+    # then
     data = content["data"]["shopSettingsUpdate"]["shop"]
     assert data["automaticFulfillmentDigitalProducts"]
     assert data["defaultDigitalMaxDownloads"]
@@ -319,6 +323,7 @@ def test_shop_digital_content_settings_mutation(
 def test_shop_settings_mutation(
     staff_api_client, site_settings, permission_manage_settings
 ):
+    # given
     query = """
         mutation updateSettings($input: ShopSettingsInput!) {
             shopSettingsUpdate(input: $input) {
@@ -328,6 +333,8 @@ def test_shop_settings_mutation(
                     chargeTaxesOnShipping,
                     fulfillmentAutoApprove,
                     fulfillmentAllowUnpaid
+                    enableAccountConfirmationByEmail
+
                 }
                 errors {
                     field,
@@ -336,6 +343,7 @@ def test_shop_settings_mutation(
             }
         }
     """
+    assert site_settings.enable_account_confirmation_by_email
     charge_taxes_on_shipping = site_settings.charge_taxes_on_shipping
     new_charge_taxes_on_shipping = not charge_taxes_on_shipping
     variables = {
@@ -344,21 +352,29 @@ def test_shop_settings_mutation(
             "headerText": "Lorem ipsum",
             "chargeTaxesOnShipping": new_charge_taxes_on_shipping,
             "fulfillmentAllowUnpaid": False,
+            "enableAccountConfirmationByEmail": False,
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_settings]
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]["shop"]
+
+    # then
     assert data["headerText"] == "Lorem ipsum"
     assert data["includeTaxesInPrices"] is False
     assert data["chargeTaxesOnShipping"] == new_charge_taxes_on_shipping
     assert data["fulfillmentAutoApprove"] is True
     assert data["fulfillmentAllowUnpaid"] is False
+    assert data["enableAccountConfirmationByEmail"] is False
+
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
+    assert site_settings.enable_account_confirmation_by_email is False
 
 
 def test_shop_reservation_settings_mutation(

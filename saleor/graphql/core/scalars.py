@@ -169,3 +169,7 @@ class Date(graphene.Date):
 
 class Minute(graphene.Int):
     """The `Minute` scalar type represents number of minutes by integer value."""
+
+
+class Day(graphene.Int):
+    """The `Day` scalar type represents number of days by integer value."""

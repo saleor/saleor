@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
+- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 
 ### Saleor Apps
 - Introduce channel permissions - #10423 by @IKarbowiak
@@ -42,13 +43,15 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ
-
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 - Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
+- Add functionality to automatically delete expired orders - #12710 by @korycins
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
 - Add `price_override` to `OrderLine` for set custom price in mutation `OrderLineCreateInput` - #12855 by @KirillPlaksin
+- Upgrade checkout `complete_checkout` to assign guest checkout to account if exists - #12758 by @FremahA
+- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
 
 # 3.13.0
 

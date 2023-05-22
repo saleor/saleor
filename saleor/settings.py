@@ -136,11 +136,6 @@ EMAIL_BACKEND: str = email_config.get("EMAIL_BACKEND", "")
 EMAIL_USE_TLS: bool = email_config.get("EMAIL_USE_TLS", False)
 EMAIL_USE_SSL: bool = email_config.get("EMAIL_USE_SSL", False)
 
-# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
-    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
-)
-
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 
 if ENABLE_SSL:
@@ -581,6 +576,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "saleor.checkout.tasks.delete_expired_checkouts",
         "schedule": crontab(hour=0, minute=0),
     },
+    "delete_expired_orders": {
+        "task": "saleor.order.tasks.delete_expired_orders_task",
+        "schedule": crontab(hour=2, minute=0),
+    },
     "delete-outdated-event-data": {
         "task": "saleor.core.tasks.delete_event_payloads_task",
         "schedule": timedelta(days=1),
@@ -731,16 +730,6 @@ for entry_point in installed_plugins:
         EXTERNAL_PLUGINS.append(plugin_path)
 
 PLUGINS = BUILTIN_PLUGINS + EXTERNAL_PLUGINS
-
-if (
-    not DEBUG
-    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
-    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
-):
-    raise ImproperlyConfigured(
-        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
-        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
-    )
 
 # Timeouts for webhook requests. Sync webhooks (eg. payment webhook) need more time
 # for getting response from the server.

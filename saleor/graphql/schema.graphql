@@ -5099,6 +5099,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+
+  """
+  The time in days after expired orders will be deleted.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day!
 }
 
 """
@@ -5130,6 +5139,9 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   AUTHORIZATION
   CHARGE
 }
+
+"""The `Day` scalar type represents number of days by integer value."""
+scalar Day
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -8940,6 +8952,15 @@ type Shop {
   Requires one of the following permissions: MANAGE_SETTINGS.
   """
   staffNotificationRecipients: [StaffNotificationRecipient!]
+
+  """
+  Determines if account confirmation by email is enabled.
+  
+  Added in Saleor 3.14.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  enableAccountConfirmationByEmail: Boolean
 
   """
   Resource limitations and current usage if any set for a shop
@@ -14228,13 +14249,13 @@ type Mutation {
   ): TransactionCreate @doc(category: "Payments")
 
   """
-  Create transaction for checkout or order.
+  Update transaction.
   
   Added in Saleor 3.4.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionUpdate(
     """The ID of the transaction."""
@@ -14276,7 +14297,7 @@ type Mutation {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+  Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
   """
   transactionEventReport(
     """The amount of the event to report."""
@@ -17926,6 +17947,13 @@ input ShopSettingsInput {
   limitQuantityPerCheckout: Int
 
   """
+  Enable automatic account confirmation by email.
+  
+  Added in Saleor 3.14.
+  """
+  enableAccountConfirmationByEmail: Boolean
+
+  """
   Include taxes in prices. 
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
@@ -20902,13 +20930,13 @@ input TransactionEventInput @doc(category: "Payments") {
 }
 
 """
-Create transaction for checkout or order.
+Update transaction.
 
 Added in Saleor 3.4.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
-Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 """
 type TransactionUpdate @doc(category: "Payments") {
   transaction: TransactionItem
@@ -21063,7 +21091,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 
-Requires the following permissions: OWNER and HANDLE_PAYMENTS.
+Requires the following permissions: OWNER and HANDLE_PAYMENTS for apps, HANDLE_PAYMENTS for staff users. Staff user cannot update a transaction that is owned by the app.
 """
 type TransactionEventReport @doc(category: "Payments") {
   """Defines if the reported event hasn't been processed earlier."""
@@ -24288,6 +24316,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expireOrdersAfter: Minute
+
+  """
+  The time in days after expired orders will be deleted.Allowed range is from 1 to 120.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day
 
   """
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.

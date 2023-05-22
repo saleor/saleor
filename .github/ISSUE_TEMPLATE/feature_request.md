@@ -36,13 +36,13 @@ assignees: ""
 
 ### Mutations
 
-```
+```graphql
 
 ```
 
 ### Types
 
-```
+```graphql
 
 ```
 
