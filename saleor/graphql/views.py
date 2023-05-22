@@ -116,15 +116,14 @@ class AsyncGraphQLView(View):
                 status=400,
             )
 
-        async_get_response = sync_to_async(self.get_response, thread_sensitive=False)
         if isinstance(data, list):
-            responses = [await async_get_response(request, entry) for entry in data]
+            responses = [await self.get_response(request, entry) for entry in data]
             result: Union[list, Optional[dict]] = [
-                response for response, code in responses
+                response for response, _code in responses
             ]
-            status_code = max((code for response, code in responses), default=200)
+            status_code = max((code for _response, code in responses), default=200)
         else:
-            result, status_code = await async_get_response(request, data)
+            result, status_code = await self.get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
     async def handle_query(self, request: HttpRequest) -> JsonResponse:
@@ -176,15 +175,18 @@ class AsyncGraphQLView(View):
             span.set_tag("http.content_length", len(response.content))
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
-                # TODO Owczar: Covert to ASYNC
+                # TODO Owczar: to ASYNC
                 await sync_to_async(api_call.report, thread_sensitive=False)()
             return response
 
-    def get_response(
+    async def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         with observability.report_gql_operation() as operation:
-            execution_result = self.execute_graphql_request(request, data)
+            async_execute_graphql_request = sync_to_async(
+                self.execute_graphql_request, thread_sensitive=False
+            )
+            execution_result = await async_execute_graphql_request(request, data)
             status_code = 200
             if execution_result:
                 response = {}
