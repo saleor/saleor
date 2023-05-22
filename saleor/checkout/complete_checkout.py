@@ -1235,8 +1235,7 @@ def create_order_from_checkout(
 
     :raises: InsufficientStock, GiftCardNotApplicable
     """
-
-    if checkout_info.voucher:
+    if voucher := checkout_info.voucher:
         with transaction.atomic():
             _increase_voucher_usage(checkout_info=checkout_info)
 
@@ -1249,9 +1248,9 @@ def create_order_from_checkout(
 
         # Fetching checkout info inside the transaction block with select_for_update
         # enure that we are processing checkout on the current data.
-        checkout_lines, _ = fetch_checkout_lines(checkout)
+        checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
         checkout_info = fetch_checkout_info(
-            checkout, checkout_lines, discounts, manager
+            checkout, checkout_lines, discounts, manager, voucher=voucher
         )
 
         try:
