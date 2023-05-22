@@ -60,6 +60,7 @@ from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
+    resolve_app_extension_url,
 )
 
 # Maximal thumbnail size for manifest preview
@@ -129,6 +130,11 @@ class AppManifestExtension(BaseObjectType):
             )
             for p in root.permissions
         ]
+
+    @staticmethod
+    def resolve_url(root, _info: ResolveInfo):
+        """Return an extension URL."""
+        return resolve_app_extension_url(root)
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):

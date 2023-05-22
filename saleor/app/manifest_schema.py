@@ -203,8 +203,8 @@ class Manifest(Schema, PermissionBase):
     id: str
     version: str
     name: str
-    about: str
     token_target_url: AnyHttpUrl
+    about: Optional[str] = None
     required_saleor_version: Optional[RequiredSaleorVersionSpec] = None
     author: Optional[AuthorStr] = None
     app_url: Optional[AnyHttpUrl] = None
