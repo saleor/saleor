@@ -669,13 +669,6 @@ class OrderLine(ModelWithMetadata):
     # Fulfilled when sale was applied to product in the line
     sale_id = models.CharField(max_length=255, null=True, blank=True)
 
-    price_override = models.DecimalField(
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
-    )
-
     objects = OrderLineManager()
 
     class Meta(ModelWithMetadata.Meta):

@@ -1380,7 +1380,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     variant_channel_listing = variant.channel_listings.get(channel=order.channel)
     sale_channel_listing = sale.channel_listings.first()
     assert order.lines.count() == lines_before + 1
-    assert line.price_override == price_override
     assert line.product_sku == variant.sku
     assert line.quantity == 1
     assert variant_channel_listing.price_amount != price_override
@@ -1430,7 +1429,6 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     variant_channel_listing = variant.channel_listings.get(channel=order.channel)
     line = order.lines.last()
     assert order.lines.count() == lines_before + 1
-    assert line.price_override == price_override
     assert variant_channel_listing.price_amount != price_override
     assert line.product_sku == variant.sku
     assert line.product_variant_id == variant.get_global_id()
@@ -1442,7 +1440,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
     assert line.base_unit_price_amount == price_override
-    assert line.undiscounted_base_unit_price == price_override
+    assert line.undiscounted_base_unit_price_amount == price_override
     assert not line.unit_discount_amount
     assert not line.unit_discount_value
     assert not line.unit_discount_reason

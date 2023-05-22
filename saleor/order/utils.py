@@ -281,7 +281,6 @@ def create_order_line(
         total_price=total_price,
         undiscounted_total_price=undiscounted_total_price,
         variant=variant,
-        price_override=price_override,
         **get_tax_class_kwargs_for_order_line(tax_class),
     )
 

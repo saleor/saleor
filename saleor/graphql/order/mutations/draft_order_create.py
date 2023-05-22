@@ -26,7 +26,12 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_36, ADDED_IN_310
+from ...core.descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_310,
+    ADDED_IN_314,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
@@ -71,6 +76,8 @@ class OrderLineCreateInput(OrderLineInput):
             "Custom price of the item."
             "When the line with the same variant "
             "will be provided multiple times, the last price will be used."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
     )
 

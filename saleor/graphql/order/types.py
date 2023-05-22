@@ -715,11 +715,6 @@ class OrderLine(ModelObjectType[models.OrderLine]):
             "permissions to access." + ADDED_IN_39
         ),
     )
-    price_override = graphene.Field(
-        PositiveDecimal,
-        description="Custom price of the order line.",
-        required=False,
-    )
 
     class Meta:
         description = "Represents order line of particular order."

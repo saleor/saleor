@@ -1471,11 +1471,9 @@ def test_draft_order_create_with_custom_price_in_order_line(
     order = Order.objects.first()
 
     order_line_0 = order.lines.get(variant=variant_0)
-    assert order_line_0.price_override == expected_price_variant_0
     assert order_line_0.base_unit_price_amount == expected_price_variant_0
     assert order_line_0.undiscounted_base_unit_price_amount == expected_price_variant_0
 
     order_line_1 = order.lines.get(variant=variant_1)
-    assert order_line_1.price_override == expected_price_variant_1
     assert order_line_1.base_unit_price_amount == expected_price_variant_1
     assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1
