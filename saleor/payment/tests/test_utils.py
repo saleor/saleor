@@ -1443,17 +1443,16 @@ def test_create_transaction_event_for_transaction_session_call_webhook_for_fully
 
 
 @pytest.mark.parametrize(
-    "response_result, transaction_amount_field_name",
+    "response_result,",
     [
-        (TransactionEventType.AUTHORIZATION_REQUEST, "authorize_pending_value"),
-        (TransactionEventType.AUTHORIZATION_SUCCESS, "authorized_value"),
-        (TransactionEventType.CHARGE_REQUEST, "charge_pending_value"),
-        (TransactionEventType.CHARGE_SUCCESS, "charged_value"),
+        (TransactionEventType.AUTHORIZATION_REQUEST),
+        (TransactionEventType.AUTHORIZATION_SUCCESS),
+        (TransactionEventType.CHARGE_REQUEST),
+        (TransactionEventType.CHARGE_SUCCESS),
     ],
 )
 def test_create_transaction_event_for_transaction_session_success_sets_actions(
     response_result,
-    transaction_amount_field_name,
     transaction_item_generator,
     transaction_session_response,
     webhook_app,
