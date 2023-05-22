@@ -3,19 +3,7 @@ from collections import defaultdict
 from decimal import Decimal
 from enum import Enum
 from functools import partial
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import BaseConfig, BaseModel
@@ -25,7 +13,9 @@ from pydantic import validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.validators import str_validator
 
-T_ERRORS = Dict[str, List[DjangoValidationError]]
+T_ERRORS = dict[str, list[DjangoValidationError]]
+Loc = Tuple[Union[int, str], ...]
+Model = TypeVar("Model", bound="BaseModel")
 
 
 def to_camel(snake_str: str) -> str:
@@ -43,7 +33,7 @@ class SaleorValidationError(ValueError):
         self,
         msg: Optional[str] = None,
         code: Optional[Enum] = None,
-        params: Optional[Dict[str, Any]] = None,
+        params: Optional[dict[str, Any]] = None,
     ) -> None:
         self.mapping: ErrorMapping = {}
         if msg:
@@ -58,7 +48,7 @@ class SaleorValidationError(ValueError):
 
 class StringFieldBase:
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update(type="string")
 
     @classmethod
@@ -72,7 +62,7 @@ class StringFieldBase:
 
 
 class BaseChoice(BaseModel):
-    _CHOICES: ClassVar[Dict[str, str]] = {}
+    _CHOICES: ClassVar[dict[str, str]] = {}
     _error_mapping: ClassVar[ErrorMapping] = {}
     __root__: str
 
@@ -91,7 +81,7 @@ class BaseChoice(BaseModel):
 
 class ValidationErrorConfig(BaseConfig):
     default_error: Optional[ErrorMapping] = None
-    errors_map: Dict[Type[Exception], ErrorMapping] = {}
+    errors_map: dict[Type[Exception], ErrorMapping] = {}
 
     @classmethod
     def get_error_mapping(cls, type_: Type[Exception]) -> Optional[ErrorMapping]:
@@ -101,15 +91,7 @@ class ValidationErrorConfig(BaseConfig):
         return None
 
 
-Model = TypeVar("Model", bound="BaseModel")
-
-
-class ValidationErrorMixin(BaseModel):
-    class Config(ValidationErrorConfig):
-        pass
-
-    __config__: ClassVar[Type[ValidationErrorConfig]]
-
+class Schema(BaseModel):
     @classmethod
     def parse_obj(cls: Type[Model], *args, **kwargs) -> Model:
         try:
@@ -124,8 +106,6 @@ class ValidationErrorMixin(BaseModel):
         except PydanticValidationError as error:
             raise translate_validation_error(error)
 
-
-class Schema(ValidationErrorMixin):
     class Config(ValidationErrorConfig):
         alias_generator = to_camel
         allow_population_by_field_name = True
@@ -133,9 +113,6 @@ class Schema(ValidationErrorMixin):
         use_enum_values = True
 
     __config__: ClassVar[Type[ValidationErrorConfig]]
-
-
-Loc = Tuple[Union[int, str], ...]
 
 
 def get_error_mapping(
