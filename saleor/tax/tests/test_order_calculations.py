@@ -7,7 +7,10 @@ from saleor.tax.models import TaxClassCountryRate
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
 from ...discount import DiscountValueType, OrderDiscountType
+from ...order import OrderStatus
+from ...order.calculations import fetch_order_prices_if_expired
 from ...order.utils import get_order_country
+from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
 from ..calculations.order import (
     update_order_prices_with_flat_rates,
@@ -627,3 +630,59 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     assert order.total == TaxedMoney(
         net=Money("65.04", "USD"), gross=Money("80.00", "USD")
     )
+
+
+def test_use_default_country_rate_when_no_tax_class_was_set_before(
+    order_with_lines,
+):
+    # given
+    manager = get_plugins_manager()
+    order = order_with_lines
+    country = get_order_country(order)
+    TaxClassCountryRate.objects.create(country=country, rate=20)
+
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    lines = order.lines.all()
+
+    # drop tax classes from lines and shipping, so that default country rate is used
+    for line in lines:
+        line.tax_class = None
+        line.tax_rate = Decimal("0")
+        line.tax_class_name = None
+        line.save(
+            update_fields=[
+                "tax_rate",
+                "tax_class",
+                "tax_class_name",
+            ]
+        )
+
+    order.shipping_method.tax_class.delete()
+    order.shipping_tax_class = None
+    order.shipping_tax_class_name = None
+    order.shipping_tax_rate = Decimal("0")
+    order.status = OrderStatus.DRAFT
+    order.save(
+        update_fields=[
+            "status",
+            "shipping_tax_class_name",
+            "shipping_tax_class",
+            "shipping_tax_rate",
+        ]
+    )
+    order.refresh_from_db()
+
+    # when
+    fetch_order_prices_if_expired(order, manager, force_update=True)
+    order.refresh_from_db()
+
+    # then
+    line = order.lines.first()
+    assert line.tax_rate == Decimal("0.20")
+    assert not line.tax_class
+    assert not line.tax_class_name
+
+    assert order.shipping_tax_rate == Decimal("0.20")
+    assert not order.shipping_tax_class
+    assert not order.shipping_tax_class_name
