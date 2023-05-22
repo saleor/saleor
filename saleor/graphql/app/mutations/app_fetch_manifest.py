@@ -3,13 +3,11 @@ import requests
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
-from ....app.installation_utils import fetch_brand_data, fetch_manifest
-from ....app.manifest_schema import clean_manifest_data
-from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
+from ....app.installation_utils import fetch_manifest
+from ....app.manifest_schema import Manifest as ManifestSchema
+from ....app.manifest_validations import clean_manifest_url
 from ....permission.enums import AppPermission
-from ...core import types as grapqhl_types
 from ...core.doc_category import DOC_CATEGORY_APPS
-from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
@@ -59,50 +57,30 @@ class AppFetchManifest(BaseMutation):
             raise ValidationError({"manifest_url": ValidationError(msg, code=code)})
 
     @classmethod
-    def construct_instance(cls, instance, cleaned_data):
+    def construct_instance(cls, instance, cleaned_data: ManifestSchema):
         return Manifest(
-            identifier=cleaned_data.get("id"),
-            name=cleaned_data.get("name"),
-            about=cleaned_data.get("about"),
-            data_privacy=cleaned_data.get("dataPrivacy"),
-            data_privacy_url=cleaned_data.get("dataPrivacyUrl"),
-            homepage_url=cleaned_data.get("homepageUrl"),
-            support_url=cleaned_data.get("supportUrl"),
-            configuration_url=cleaned_data.get("configurationUrl"),
-            app_url=cleaned_data.get("appUrl"),
-            version=cleaned_data.get("version"),
-            token_target_url=cleaned_data.get("tokenTargetUrl"),
-            permissions=cleaned_data.get("permissions"),
-            extensions=cleaned_data.get("extensions", []),
-            webhooks=cleaned_data.get("webhooks", []),
-            audience=cleaned_data.get("audience"),
-            required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
-            author=cleaned_data.get("author"),
-            brand=cleaned_data.get("brand"),
+            identifier=cleaned_data.id,
+            name=cleaned_data.name,
+            about=cleaned_data.about,
+            data_privacy=cleaned_data.data_privacy,
+            data_privacy_url=cleaned_data.data_privacy_url,
+            homepage_url=cleaned_data.homepage_url,
+            support_url=cleaned_data.support_url,
+            configuration_url=cleaned_data.configuration_url,
+            app_url=cleaned_data.app_url,
+            version=cleaned_data.version,
+            token_target_url=cleaned_data.token_target_url,
+            permissions=cleaned_data.permissions,
+            extensions=cleaned_data.extensions,
+            webhooks=cleaned_data.webhooks,
+            audience=cleaned_data.audience,
+            required_saleor_version=cleaned_data.required_saleor_version,
+            author=cleaned_data.author,
         )
 
     @classmethod
-    def clean_manifest_data(cls, info, manifest_data):
-        manifest_data = clean_manifest_data(manifest_data)
-        manifest_data["brand"] = fetch_brand_data(
-            manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
-        )
-
-        manifest_data["permissions"] = [
-            grapqhl_types.Permission(
-                code=PermissionEnum.get(p.formated_codename), name=p.name
-            )
-            for p in manifest_data["permissions"]
-        ]
-        for extension in manifest_data.get("extensions", []):
-            extension["permissions"] = [
-                grapqhl_types.Permission(
-                    code=PermissionEnum.get(p.formated_codename),
-                    name=p.name,
-                )
-                for p in extension["permissions"]
-            ]
-        return manifest_data
+    def clean_manifest_data(cls, info, manifest_data) -> ManifestSchema:
+        return ManifestSchema.parse_obj(manifest_data)
 
     @classmethod
     def perform_mutation(cls, _root, info, /, **data):

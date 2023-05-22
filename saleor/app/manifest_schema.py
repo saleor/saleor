@@ -1,30 +1,25 @@
-from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+import re
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
-from pydantic import (
-    AnyHttpUrl,
-    AnyUrl,
-    ConstrainedStr,
-    Field,
-    ValidationError,
-    validator,
-)
+from pydantic import AnyUrl, BaseModel, ConstrainedStr, validator
+from pydantic.errors import MissingError, UrlError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..core.schema import (
     BaseChoice,
-    Error,
-    SaleorValueError,
+    SaleorValidationError,
     Schema,
+    StringFieldBase,
     ValidationErrorConfig,
-    translate_validation_error,
 )
-from ..graphql.webhook.subscription_query import SubscriptionQuery
+from ..graphql.webhook.subscription_query import (
+    SubscriptionQuery as SubscriptionQueryBase,
+)
 from ..permission.enums import get_permissions_enum_list, get_permissions_from_names
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -32,47 +27,113 @@ from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
 
+SALEOR_VERSION = Version(__version__)
 
-class RequiredSaleorVersionSpec(NpmSpec):
+
+class RequiredSaleorVersionSpec(NpmSpec, StringFieldBase):
+    raise_for_version = False
+
     class Parser(NpmSpec.Parser):
         @classmethod
         def range(cls, operator, target):
             # change prerelease policy from `same-patch` to `natural`
             return Range(operator, target, prerelease_policy=Range.PRERELEASE_NATURAL)
 
+    @classmethod
+    def validate(cls, value: str):
+        try:
+            spec = cls(value)
+        except Exception:
+            raise SaleorValidationError(
+                msg="Invalid value. Version range required in the semver format."
+            )
+        if cls.raise_for_version:
+            if not spec.satisfied:
+                raise SaleorValidationError(
+                    msg=f"Saleor version {SALEOR_VERSION} is not supported by the app.",
+                    code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION,
+                )
+        return spec
+
+    @property
+    def constraint(self) -> str:
+        return str(self)
+
+    @property
+    def satisfied(self) -> bool:
+        return self.match(SALEOR_VERSION)
+
+
+class SubscriptionQuery(SubscriptionQueryBase, StringFieldBase):
+    @classmethod
+    def validate(cls, value: str):
+        query = SubscriptionQuery(value)
+        if not query.is_valid:
+            raise SaleorValidationError(msg=query.error_msg)
+        return query
+
+
+class PermissionChoice(BaseChoice):
+    _CHOICES = {name: name for name, _ in get_permissions_enum_list()}
+    _error_mapping = {
+        "code": AppErrorCode.INVALID_PERMISSION,
+        "msg": "Given permission don't exist.",
+    }
+
 
 if TYPE_CHECKING:
-    PermissionType = Permission
-    SubscriptionQueryStr = SubscriptionQuery
+    PermissionsList = list[Permission]
     AppExtensionTargets = str
+    AppExtensionMountChoice = str
+    AsyncEventTypes = str
+    SyncEventTypes = str
+    AppExtensionMounts = str
 else:
-    PermissionType = Enum(
-        value="PermissionType",
-        names=[(name, name) for name, _ in get_permissions_enum_list()],
-    )
-    SubscriptionQueryStr = str
+    PermissionsList = list[PermissionChoice]
 
     class AppExtensionTargets(BaseChoice):
         _CHOICES = {target.upper(): target for target, _ in AppExtensionTarget.CHOICES}
 
+    class AppExtensionMountChoice(BaseChoice):
+        _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
 
-class AppExtensionMountChoice(BaseChoice):
-    _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
+    class AsyncEventTypes(BaseChoice):
+        _CHOICES = {event.upper(): event for event, _ in WebhookEventAsyncType.CHOICES}
+        _error_mapping = {"msg": "Invalid asynchronous event."}
 
+    class SyncEventTypes(BaseChoice):
+        _CHOICES = {event.upper(): event for event, _ in WebhookEventSyncType.CHOICES}
+        _error_mapping = {"msg": "Invalid synchronous event."}
 
-class AsyncEventTypes(BaseChoice):
-    _CHOICES = {event.upper(): event for event, _ in WebhookEventAsyncType.CHOICES}
-
-
-class SyncEventTypes(BaseChoice):
-    _CHOICES = {event.upper(): event for event, _ in WebhookEventSyncType.CHOICES}
-
-
-class AppExtensionMounts(BaseChoice):
-    _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
+    class AppExtensionMounts(BaseChoice):
+        _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
 
 
-class WebhookTargetUrl(AnyUrl):
+class AnyHttpUrl(AnyUrl):
+    allowed_schemes = {"http", "https"}
+
+    @classmethod
+    def validate(cls, value, field, config):
+        try:
+            return super().validate(value, field, config)
+        except (ValueError, TypeError) as error:
+            raise SaleorValidationError(
+                str(error), code=AppErrorCode.INVALID_URL_FORMAT
+            )
+
+
+class PermissionBase(BaseModel):
+    permissions: PermissionsList = []
+
+    @validator("permissions")
+    def validate_permissions(cls, value: list[str]) -> List[Permission]:
+        qs = get_permissions_from_names(value).annotate(
+            formated_codename=Concat("content_type__app_label", Value("."), "codename")
+        )
+        return list(qs)
+
+
+class WebhookTargetUrl(AnyHttpUrl):
     allowed_schemes = {"http", "https", "awssqs", "gcpubsub"}
     tld_required = False
 
@@ -81,103 +142,56 @@ class Webhook(Schema):
     name: str
     is_active: bool = True
     target_url: WebhookTargetUrl
-    query: SubscriptionQueryStr
+    query: SubscriptionQuery
     async_events: list[AsyncEventTypes] = []
     sync_events: list[SyncEventTypes] = []
-    custom_headers: Optional[Dict[str, str]] = None
-    events: list[str] = []
+    custom_headers: Dict[str, str] = {}
 
-    class Config(ValidationErrorConfig):
-        errors_map = {
-            "async_events": Error(msg_tmp="Invalid asynchronous event."),
-            "sync_events": Error(msg_tmp="Invalid synchronous event."),
-            "target_url": Error(msg_tmp="Invalid target url."),
-            "custom_headers": Error(code=AppErrorCode.INVALID_CUSTOM_HEADERS),
-        }
-
-    @validator("query")
-    def validate_query(cls, v: str):
-        subscription_query = SubscriptionQuery(v)
-        if not subscription_query.is_valid:
-            raise SaleorValueError(
-                "Subscription query is not valid: " + subscription_query.error_msg,
-                code=AppErrorCode.INVALID.value,
-            )
-        return subscription_query
-
-    @validator("async_events", "sync_events", each_item=True)
-    def lower_events(cls, v: str):
-        return v.lower()
-
-    @validator("events", always=True)
-    def gather_events(cls, _, values, **kwargs):
-        events = values["async_events"] + values["sync_events"]
-        if not events:
-            events = values["query"].events
-        return events
+    @property
+    def events(self) -> list[str]:
+        events_list = self.async_events + self.sync_events
+        return events_list or self.query.events
 
     @validator("custom_headers")
     def validate_headers(cls, v):
-        if v is not None:
-            try:
-                return custom_headers_validator(v)
-            except DjangoValidationError as err:
-                raise SaleorValueError(
-                    f"Invalid custom headers: {err.message}",
-                    code=AppErrorCode.INVALID_CUSTOM_HEADERS.value,
-                )
-
-
-def validate_permissions(value: list[str]) -> List[Permission]:
-    return list(
-        get_permissions_from_names(value).annotate(
-            formated_codename=Concat("content_type__app_label", Value("."), "codename")
-        )
-    )
+        try:
+            return custom_headers_validator(v)
+        except DjangoValidationError as err:
+            code = AppErrorCode.INVALID_CUSTOM_HEADERS
+            raise SaleorValidationError(msg=cast(str, err.message), code=code)
 
 
 class UrlPathStr(ConstrainedStr):
     regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
 
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
 
-class Extension(Schema):
+    @classmethod
+    def validate(cls, value: Any) -> str:
+        if isinstance(value, str):
+            if cls.max_length is None or len(value) <= cls.max_length:
+                if re.match(cls.regex, value):
+                    return value
+        raise SaleorValidationError(
+            msg="Invalid URL path.", code=AppErrorCode.INVALID_URL_FORMAT
+        )
+
+
+class Extension(Schema, PermissionBase):
     label: str
     target: AppExtensionTargets = AppExtensionTarget.POPUP
     mount: AppExtensionMounts
     url: Union[AnyHttpUrl, UrlPathStr]
-    permissions: List[PermissionType] = []
-
-    class Config:
-        errors_map = {
-            "permissions": Error(
-                code=AppErrorCode.INVALID_PERMISSION,
-                msg_tmp="Given permissions don't exist.",
-            ),
-            "url": Error(code=AppErrorCode.INVALID_URL_FORMAT),
-        }
-
-    @validator("target", "mount")
-    def lower(cls, v: str):
-        return v.lower()
 
     @validator("url")
-    def validate_url(cls, v, values, **kwargs):
-        if isinstance(v, AnyHttpUrl):
-            if values.get("target") == AppExtensionTarget.APP_PAGE:
-                msg = "Url cannot start with protocol when target == APP_PAGE"
-                raise SaleorValueError(msg, code=AppErrorCode.INVALID_URL_FORMAT.value)
+    def validate_url(cls, v: str, values, **kwargs):
+        target = values.get("target")
+        if not v.startswith("/") and target == AppExtensionTarget.APP_PAGE:
+            msg = "Url cannot start with protocol when target == APP_PAGE"
+            raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
         return v
-
-    _val_permissions = validator("permissions", allow_reuse=True)(validate_permissions)
-
-
-class RequiredSaleorVersion(Schema):
-    constraint: str
-    satisfied: bool
-
-
-def parse_version(version_str: str) -> Version:
-    return Version(version_str)
 
 
 class AuthorStr(ConstrainedStr):
@@ -185,141 +199,58 @@ class AuthorStr(ConstrainedStr):
     min_length = 1
 
 
-class Manifest(Schema):
-    id: str = Field(
-        ...,
-        description="Id of application used internally by Saleor",
-    )
-    version: str = Field(
-        ...,
-        description="App version",
-    )
-    name: str = Field(..., description="App name displayed in the dashboard")
-    about: str = Field(
-        ..., description="Description of the app displayed in the dashboard"
-    )
-    token_target_url: AnyHttpUrl = Field(
-        ..., description="Endpoint used during process of app installation"
-    )
-    required_saleor_version: Optional[RequiredSaleorVersion] = Field(
-        None,
-        description="Version range, in the semver format, which specifies Saleor "
-        "version required by the app. The field will be respected "
-        "starting from Saleor 3.13",
-    )
-    author: Optional[AuthorStr] = Field(
-        None,
-        description="App author name displayed in the "
-        "dashboard (starting from Saleor 3.13)",
-    )
-    permissions: list[PermissionType] = Field(
-        [], description="Array of permissions requested by the app"
-    )
-    app_url: Optional[AnyHttpUrl] = Field(
-        None, description="App website rendered in the dashboard"
-    )
-    configuration_url: Optional[AnyHttpUrl] = Field(
-        None,
-        description="Address to the app configuration page, which is rendered in "
-        "the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
-    )
-    data_privacy: Optional[str] = Field(
-        None,
-        description="Short description of privacy policy displayed in the dashboard "
-        "(deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
-    )
-    data_privacy_url: Optional[AnyHttpUrl] = Field(
-        None, description="URL to the full privacy policy"
-    )
-    homepage_url: Optional[AnyHttpUrl] = Field(
-        None, description="External URL to the app homepage"
-    )
-    support_url: Optional[AnyHttpUrl] = Field(
-        None, description="External URL to the page where app users can find support"
-    )
+class Manifest(Schema, PermissionBase):
+    id: str
+    version: str
+    name: str
+    about: str
+    token_target_url: AnyHttpUrl
+    required_saleor_version: Optional[RequiredSaleorVersionSpec] = None
+    author: Optional[AuthorStr] = None
+    app_url: Optional[AnyHttpUrl] = None
+    configuration_url: Optional[AnyHttpUrl] = None
+    data_privacy: Optional[str] = None
+    data_privacy_url: Optional[AnyHttpUrl] = None
+    homepage_url: Optional[AnyHttpUrl] = None
+    support_url: Optional[AnyHttpUrl] = None
     audience: Optional[str] = None
-
-    webhooks: list[Webhook] = Field(
-        [],
-        description="List of webhooks that will be set",
-    )
-    extensions: list[Extension] = Field(
-        [],
-        description="List of extensions that will be mounted in Saleor's dashboard",
-    )
+    webhooks: list[Webhook] = []
+    extensions: list[Extension] = []
 
     class Config(ValidationErrorConfig):
-        default_error = Error(code=AppErrorCode.INVALID)
-        errors_types_map = {
-            "value_error.missing": Error(
-                code=AppErrorCode.REQUIRED, msg_tmp="Field required."
-            ),
-            "value_error.url": Error(
-                code=AppErrorCode.INVALID_URL_FORMAT, msg_tmp="Incorrect format."
-            ),
-        }
-        errors_map = {
-            "permissions": Error(
-                code=AppErrorCode.INVALID_PERMISSION,
-                msg_tmp="Given permissions don't exist.",
-            )
-        }
+        default_error = {"code": AppErrorCode.INVALID}
 
-    # validators
-    _val_permissions = validator("permissions", allow_reuse=True)(validate_permissions)
+        errors_map = {
+            MissingError: {"code": AppErrorCode.REQUIRED, "msg": "Field required."},
+            UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
+        }
 
     @validator("extensions", each_item=True)
     def validate_extension(cls, v: Extension, values, **kwargs):
-        if isinstance(v.url, UrlPathStr):
-            if v.target == AppExtensionTarget.APP_PAGE:
-                return v
-            elif values["app_url"] is None:
-                raise ValueError("Incorrect value for field: url.")
+        app_permissions = values.get("permissions", [])
+        for permission in v.permissions:
+            if permission not in app_permissions:
+                raise SaleorValidationError(
+                    msg="Extension permission must be listed in App's permissions.",
+                    code=AppErrorCode.OUT_OF_SCOPE_PERMISSION,
+                )
+        app_url = values.get("app_url", [])
+        if (
+            v.url.startswith("/")
+            and v.target != AppExtensionTarget.APP_PAGE
+            and not app_url
+        ):
             msg = (
                 "Incorrect relation between extension's target and URL fields. "
                 "APP_PAGE can be used only with relative URL path."
             )
-            raise ValueError(msg)
+            raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
         return v
 
-    @validator("extensions")
-    def validate_extension_permission(cls, v: List[Extension], values, **kwargs):
-        app_permissions = values.get("permissions", [])
-        for extension in v:
-            for permission in extension.permissions:
-                if permission not in app_permissions:
-                    raise SaleorValueError(
-                        "Extension permission must be listed in App's permissions.",
-                        code=AppErrorCode.OUT_OF_SCOPE_PERMISSION.value,
-                    )
-        return v
 
-    @validator("required_saleor_version", pre=True)
-    def validate_required_version(cls, v):
-        if v is None:
-            return v
-        try:
-            spec = RequiredSaleorVersionSpec(v)
-        except Exception:
-            msg = "Incorrect value for required Saleor version."
-            raise ValueError(msg)
-        version = parse_version(__version__)
-        return RequiredSaleorVersion(constraint=v, satisfied=spec.match(version))
+class RequiredSaleorVersionStrictSpec(RequiredSaleorVersionSpec):
+    raise_for_version = True
 
 
-def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
-    try:
-        m = Manifest.parse_obj(manifest_data)
-        if raise_for_saleor_version and m.required_saleor_version:
-            if not m.required_saleor_version.satisfied:
-                msg = f"Saleor version {__version__} is not supported by the app."
-                raise DjangoValidationError(
-                    {
-                        "requiredSaleorVersion": DjangoValidationError(
-                            msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value
-                        )
-                    }
-                )
-        return m.dict(by_alias=True)
-    except ValidationError as error:
-        raise translate_validation_error(error)
+class ManifestStrict(Manifest):
+    required_saleor_version: Optional[RequiredSaleorVersionStrictSpec] = None

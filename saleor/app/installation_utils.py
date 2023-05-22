@@ -26,10 +26,9 @@ from ..thumbnail.utils import get_filename_from_url
 from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
-from .manifest_schema import clean_manifest_data
-from .manifest_validations import clean_manifest_data
+from .manifest_schema import ManifestStrict
 from .models import App, AppExtension, AppInstallation
-from .types import AppExtensionTarget, AppType
+from .types import AppType
 
 REQUEST_TIMEOUT = 20
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
@@ -203,55 +202,53 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
-    manifest_data = clean_manifest_data(manifest_data, raise_for_saleor_version=True)
+    manifest = ManifestStrict.parse_obj(manifest_data)
 
     app = App.objects.create(
         name=app_installation.app_name,
         is_active=activate,
-        identifier=manifest_data.get("id"),
-        about_app=manifest_data.get("about"),
-        data_privacy=manifest_data.get("dataPrivacy"),
-        data_privacy_url=manifest_data.get("dataPrivacyUrl"),
-        homepage_url=manifest_data.get("homepageUrl"),
-        support_url=manifest_data.get("supportUrl"),
-        configuration_url=manifest_data.get("configurationUrl"),
-        app_url=manifest_data.get("appUrl"),
-        version=manifest_data.get("version"),
+        identifier=manifest.id,
+        about_app=manifest.about,
+        data_privacy=manifest.data_privacy,
+        data_privacy_url=manifest.data_privacy_url,
+        homepage_url=manifest.homepage_url,
+        support_url=manifest.support_url,
+        configuration_url=manifest.configuration_url,
+        app_url=manifest.app_url,
+        version=manifest.version,
         manifest_url=app_installation.manifest_url,
         type=AppType.THIRDPARTY,
-        audience=manifest_data.get("audience"),
+        audience=manifest.audience,
         is_installed=False,
-        author=manifest_data.get("author"),
+        author=manifest.author,
     )
 
     app.permissions.set(app_installation.permissions.all())
-    for extension_data in manifest_data.get("extensions", []):
+    for extension_data in manifest.extensions:
         extension = AppExtension.objects.create(
             app=app,
-            label=extension_data.get("label"),
-            url=extension_data.get("url"),
-            mount=extension_data.get("mount"),
-            target=extension_data.get("target", AppExtensionTarget.POPUP),
+            label=extension_data.label,
+            url=extension_data.url,
+            mount=extension_data.mount,
+            target=extension_data.target,
         )
-        extension.permissions.set(extension_data.get("permissions", []))
+        extension.permissions.set(extension_data.permissions)
 
     webhooks = Webhook.objects.bulk_create(
         Webhook(
             app=app,
-            name=webhook["name"],
-            is_active=webhook["isActive"],
-            target_url=webhook["targetUrl"],
-            subscription_query=webhook["query"].query,
-            custom_headers=webhook.get("customHeaders", None),
+            name=webhook.name,
+            is_active=webhook.is_active,
+            target_url=webhook.target_url,
+            subscription_query=webhook.query.query,
+            custom_headers=webhook.custom_headers,
         )
-        for webhook in manifest_data.get("webhooks", [])
+        for webhook in manifest.webhooks
     )
 
     webhook_events = []
-    for db_webhook, manifest_webhook in zip(
-        webhooks, manifest_data.get("webhooks", [])
-    ):
-        for event_type in manifest_webhook["events"]:
+    for db_webhook, manifest_webhook in zip(webhooks, manifest.webhooks):
+        for event_type in manifest_webhook.events:
             webhook_events.append(
                 WebhookEvent(webhook=db_webhook, event_type=event_type)
             )
@@ -260,7 +257,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     _, token = app.tokens.create(name="Default token")  # type: ignore[call-arg] # calling create on a related manager # noqa: E501
 
     try:
-        send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
+        send_app_token(target_url=manifest.token_target_url, token=token)
     except requests.RequestException as e:
         fetch_brand_data_async(manifest_data, app_installation=app_installation)
         app.delete()
