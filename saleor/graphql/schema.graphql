@@ -5099,6 +5099,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
+
+  """
+  The time in days after expired orders will be deleted.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day!
 }
 
 """
@@ -5130,6 +5139,9 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
   AUTHORIZATION
   CHARGE
 }
+
+"""The `Day` scalar type represents number of days by integer value."""
+scalar Day
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -24296,6 +24308,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   expireOrdersAfter: Minute
+
+  """
+  The time in days after expired orders will be deleted.Allowed range is from 1 to 120.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  deleteExpiredOrdersAfter: Day
 
   """
   Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.

@@ -22,11 +22,12 @@ from ..core.descriptions import (
     ADDED_IN_37,
     ADDED_IN_312,
     ADDED_IN_313,
+    ADDED_IN_314,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
 from ..core.fields import PermissionsField
-from ..core.scalars import Minute
+from ..core.scalars import Day, Minute
 from ..core.types import BaseObjectType, CountryDisplay, ModelObjectType, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..translations.resolvers import resolve_translation
@@ -210,6 +211,14 @@ class OrderSettings(ObjectType):
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
             "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    delete_expired_orders_after = Day(
+        required=True,
+        description=(
+            "The time in days after expired orders will be deleted."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -457,4 +466,5 @@ class Channel(ModelObjectType):
             expire_orders_after=root.expire_orders_after,
             mark_as_paid_strategy=root.order_mark_as_paid_strategy,
             default_transaction_flow_strategy=root.default_transaction_flow_strategy,
+            delete_expired_orders_after=root.delete_expired_orders_after.days,
         )
