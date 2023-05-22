@@ -1,8 +1,11 @@
+import json
 from dataclasses import dataclass
 from decimal import Decimal
+from functools import partial
 from typing import List
 
 from prices import Money, TaxedMoney
+from pydantic import BaseModel
 
 
 class TaxError(Exception):
@@ -30,15 +33,19 @@ class TaxType:
     description: str
 
 
-@dataclass(frozen=True)
-class TaxLineData:
+class WebhookResponseBase(BaseModel):
+    class Config:
+        allow_mutation = False
+        json_loads = partial(json.loads, parse_float=Decimal)
+
+
+class TaxLineData(WebhookResponseBase):
     tax_rate: Decimal
     total_gross_amount: Decimal
     total_net_amount: Decimal
 
 
-@dataclass(frozen=True)
-class TaxData:
+class TaxData(WebhookResponseBase):
     shipping_price_gross_amount: Decimal
     shipping_price_net_amount: Decimal
     shipping_tax_rate: Decimal

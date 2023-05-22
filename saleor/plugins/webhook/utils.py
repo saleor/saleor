@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from time import time
 from typing import TYPE_CHECKING, Any, List, Optional, Sequence
 
+from pydantic import ValidationError
+
 from ...app.models import App
 from ...core.models import (
     EventDelivery,
@@ -13,7 +15,7 @@ from ...core.models import (
     EventDeliveryStatus,
     EventPayload,
 )
-from ...core.taxes import TaxData, TaxLineData
+from ...core.taxes import TaxData
 from ...payment.interface import GatewayResponse, PaymentGateway, PaymentMethodInfo
 from ...webhook.event_types import WebhookEventSyncType
 from ..const import APP_ID_PREFIX
@@ -126,54 +128,12 @@ def parse_payment_action_response(
     )
 
 
-def _unsafe_parse_tax_line_data(
-    tax_line_data_response: Any,
-) -> TaxLineData:
-    """Unsafe TaxLineData parser.
-
-    Raises KeyError or DecimalException on invalid data.
-    """
-    total_gross_amount = decimal.Decimal(tax_line_data_response["total_gross_amount"])
-    total_net_amount = decimal.Decimal(tax_line_data_response["total_net_amount"])
-    tax_rate = decimal.Decimal(tax_line_data_response["tax_rate"])
-
-    return TaxLineData(
-        total_gross_amount=total_gross_amount,
-        total_net_amount=total_net_amount,
-        tax_rate=tax_rate,
-    )
-
-
-def _unsafe_parse_tax_data(
-    tax_data_response: Any,
-) -> TaxData:
-    """Unsafe TaxData parser.
-
-    Raises KeyError or DecimalException on invalid data.
-    """
-    shipping_price_gross_amount = decimal.Decimal(
-        tax_data_response["shipping_price_gross_amount"]
-    )
-    shipping_price_net_amount = decimal.Decimal(
-        tax_data_response["shipping_price_net_amount"]
-    )
-    shipping_tax_rate = decimal.Decimal(tax_data_response["shipping_tax_rate"])
-    lines = [_unsafe_parse_tax_line_data(line) for line in tax_data_response["lines"]]
-
-    return TaxData(
-        shipping_price_gross_amount=shipping_price_gross_amount,
-        shipping_price_net_amount=shipping_price_net_amount,
-        shipping_tax_rate=shipping_tax_rate,
-        lines=lines,
-    )
-
-
 def parse_tax_data(
     response_data: Any,
 ) -> Optional[TaxData]:
     try:
-        return _unsafe_parse_tax_data(response_data)
-    except (TypeError, KeyError, decimal.DecimalException):
+        return TaxData.parse_obj(response_data)
+    except ValidationError:
         return None
 
 
