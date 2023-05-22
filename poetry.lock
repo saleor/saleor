@@ -4083,14 +4083,14 @@ starkbank-ecdsa = ">=2.0.1"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.22.2"
+version = "1.23.1"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "sentry-sdk-1.22.2.tar.gz", hash = "sha256:5932c092c6e6035584eb74d77064e4bce3b7935dfc4a331349719a40db265840"},
-    {file = "sentry_sdk-1.22.2-py2.py3-none-any.whl", hash = "sha256:cf89a5063ef84278d186aceaed6fb595bfe67d099298e537634a323664265669"},
+    {file = "sentry-sdk-1.23.1.tar.gz", hash = "sha256:0300fbe7a07b3865b3885929fb863a68ff01f59e3bcfb4e7953d0bf7fd19c67f"},
+    {file = "sentry_sdk-1.23.1-py2.py3-none-any.whl", hash = "sha256:a884e2478e0b055776ea2b9234d5de9339b4bae0b3a5e74ae43d131db8ded27e"},
 ]
 
 [package.dependencies]
@@ -4107,10 +4107,11 @@ chalice = ["chalice (>=1.16.0)"]
 django = ["django (>=1.8)"]
 falcon = ["falcon (>=1.4)"]
 fastapi = ["fastapi (>=0.79.0)"]
-flask = ["blinker (>=1.1)", "flask (>=0.11)"]
+flask = ["blinker (>=1.1)", "flask (>=0.11)", "markupsafe"]
 grpcio = ["grpcio (>=1.21.1)"]
 httpx = ["httpx (>=0.16.0)"]
 huey = ["huey (>=2)"]
+loguru = ["loguru (>=0.5)"]
 opentelemetry = ["opentelemetry-distro (>=0.35b0)"]
 pure-eval = ["asttokens", "executing", "pure-eval"]
 pymongo = ["pymongo (>=3.1)"]
@@ -5133,4 +5134,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "389f8514ccb9ec391d719cd1dfe15d76e2139a3c70c5ed33daaa7217a515a242"
+content-hash = "a311e3087c273a4029fc5b7559d1be8704d3fad7ee2b6eae7c5d3fddcc8c1939"
