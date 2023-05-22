@@ -109,10 +109,10 @@ class AsyncGraphQLView(View):
 
     async def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
-            data = await self.parse_body(request)
+            data = self.parse_body(request)
         except ValueError:
             return JsonResponse(
-                data={"errors": [await self.format_error("Unable to parse query.")]},
+                data={"errors": [self.format_error("Unable to parse query.")]},
                 status=400,
             )
 
@@ -337,7 +337,7 @@ class AsyncGraphQLView(View):
                 return ExecutionResult(errors=[e], invalid=True)
 
     @staticmethod
-    async def parse_body(request: HttpRequest):
+    def parse_body(request: HttpRequest):
         content_type = request.content_type
         if content_type == "application/graphql":
             return {"query": request.body.decode("utf-8")}
@@ -369,9 +369,8 @@ class AsyncGraphQLView(View):
         return query, variables, operation_name
 
     @classmethod
-    async def format_error(cls, error):
-        async_format_error = sync_to_async(format_error, thread_sensitive=False)
-        return await async_format_error(error, cls.HANDLED_EXCEPTIONS)
+    def format_error(cls, error):
+        return format_error(error, cls.HANDLED_EXCEPTIONS)
 
 
 class GraphQLView(View):
