@@ -4,9 +4,9 @@ import graphene
 import jwt
 from django.core.exceptions import ValidationError
 from django.middleware.csrf import (  # type: ignore
+    _compare_masked_tokens,
     _get_new_csrf_string,
     _mask_cipher_secret,
-    _compare_masked_tokens,
 )
 from django.utils import timezone
 from django.utils.crypto import get_random_string
