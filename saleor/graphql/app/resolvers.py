@@ -1,6 +1,7 @@
 from urllib.parse import urljoin, urlparse
 
 from ...app import models
+from ...app.manifest_schema import Extension
 from ...app.types import AppExtensionTarget
 from ...core.jwt import (
     create_access_token_for_app,
@@ -60,6 +61,8 @@ def resolve_app_extension_url(root):
         - target == "POPUP"
         - appUrl is defined
     """
+    if isinstance(root, Extension):
+        return root.url
     target = root.get("target", AppExtensionTarget.POPUP)
     app_url = root["app_url"]
     url = root["url"]
