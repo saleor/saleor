@@ -112,7 +112,7 @@ class AsyncGraphQLView(View):
             data = await self.parse_body(request)
         except ValueError:
             return JsonResponse(
-                data={"errors": [self.format_error("Unable to parse query.")]},
+                data={"errors": [await self.format_error("Unable to parse query.")]},
                 status=400,
             )
 
@@ -309,7 +309,7 @@ class AsyncGraphQLView(View):
                         response = cache.get(key)
 
                     if not response:
-                        # TO opakować w sync -> async
+                        # TODO Owczar: sync -> async in final solution
                         response = document.execute(
                             root=self.get_root_value(),
                             variables=variables,
@@ -369,8 +369,9 @@ class AsyncGraphQLView(View):
         return query, variables, operation_name
 
     @classmethod
-    def format_error(cls, error):
-        return format_error(error, cls.HANDLED_EXCEPTIONS)
+    async def format_error(cls, error):
+        async_format_error = sync_to_async(format_error, thread_sensitive=False)
+        return await async_format_error(error, cls.HANDLED_EXCEPTIONS)
 
 
 class GraphQLView(View):
