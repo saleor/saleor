@@ -15,7 +15,6 @@ from django.utils.timezone import now
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
-from prices import Money
 
 from ..app.models import App
 from ..channel.models import Channel
