@@ -19,6 +19,7 @@ from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
     PaymentError,
+    TransactionAction,
     TransactionKind,
     gateway,
 )
@@ -78,6 +79,7 @@ logger = logging.getLogger(__name__)
 
 OrderLineIDType = UUID
 QuantityType = int
+MARK_AS_PAID_TRANSACTION_NAME = "Mark-as-paid transaction"
 
 
 class OrderFulfillmentLineInfo(TypedDict):
@@ -603,6 +605,8 @@ def mark_order_as_paid_with_transaction(
             app=app,
             psp_reference=external_reference,
             charged_value=order.total.gross.amount,
+            available_actions=[TransactionAction.REFUND],
+            name=MARK_AS_PAID_TRANSACTION_NAME,
         )
         updates_amounts_for_order(order)
         events.order_manually_marked_as_paid_event(
