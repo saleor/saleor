@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
 - Upgrade checkout `complete_checkout` to assign guest checkout to account if exists - #12758 by @FremahA
 - Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
+- Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
 
 # 3.13.0
 
