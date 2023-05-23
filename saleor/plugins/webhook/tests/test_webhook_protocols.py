@@ -259,6 +259,7 @@ def test_trigger_webhooks_with_http(
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
         timeout=10,
+        allow_redirects=False,
     )
 
 
@@ -303,6 +304,7 @@ def test_trigger_webhooks_with_http_and_secret_key(
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
         timeout=10,
+        allow_redirects=False,
     )
 
 
@@ -351,6 +353,7 @@ def test_trigger_webhooks_with_http_and_secret_key_as_empty_string(
         data=bytes(expected_data, "utf-8"),
         headers=expected_headers,
         timeout=10,
+        allow_redirects=False,
     )
 
 
