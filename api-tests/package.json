@@ -1,24 +1,24 @@
 {
   "name": "api-tests",
   "version": "1.0.0",
-  "description": "Saleor API tests",
-  "main": "N/A",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "test": "vitest",
-    "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
+    "tests": "vitest --config vitest.config.ts $VERSION",
+    "lint": "eslint tests/**/*.ts",
     "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck"
   },
-  "author": "Saleor Commerce",
-  "license": "BSD",
-  "dependencies": {
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
     "date-fns": "2.30.0",
     "eslint": "8.41.0",
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-import": "2.27.5",
     "eslint-plugin-no-only-tests": "3.1.0",
-    "eslint-plugin-vitest": "0.2.3"
-  },
-  "devDependencies": {
+    "eslint-plugin-vitest": "0.2.3",
+    "@graphql-codegen/cli": "3.3.1",
+    "@graphql-codegen/typescript": "3.0.4",
     "@typescript-eslint/eslint-plugin": "5.59.6",
     "@vitest/ui": "0.31.1",
     "eslint-plugin-chai-friendly": "0.7.2",
@@ -29,9 +29,6 @@
     "prettier": "2.8.8",
     "typescript": "5.0.4",
     "vite": "4.3.8",
-    "vitest": "0.31.1",
-    "@graphql-codegen/cli": "4.0.0",
-    "@graphql-codegen/typescript": "4.0.0",
-    "@graphql-codegen/client-preset": "4.0.0"
+    "vitest": "0.31.1"
   }
 }
