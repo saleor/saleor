@@ -9,7 +9,7 @@ from ..core.utils import build_absolute_uri
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
 from ..webhook.models import Webhook, WebhookEvent
-from .manifest_validations import REQUEST_TIMEOUT, clean_manifest_data
+from .manifest_validations import REQUEST_TIMEOUT, clean_manifest_data, fetch_brand_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
@@ -60,6 +60,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
     clean_manifest_data(manifest_data, raise_for_saleor_version=True)
+    fetch_brand_data(manifest_data)
 
     brand_logo_default = None
     if manifest_data["brand"]:

@@ -374,13 +374,13 @@ def clean_author(author) -> Optional[str]:
 
 
 def fetch_icon_image(
-    url: str, field_name: str, max_file_size=MAX_ICON_FILE_SIZE
+    url: str, field_name: str, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
 ) -> File:
     filename = get_filename_from_url(url)
     size_error_msg = f"File too big. Max icon image file size is {MAX_ICON_FILE_SIZE}"
     code = AppErrorCode.INVALID.value
     try:
-        with requests.get(url, stream=True, timeout=REQUEST_TIMEOUT) as res:
+        with requests.get(url, stream=True, timeout=timeout) as res:
             res.raise_for_status()
             content_type = res.headers.get("content-type")
             if content_type not in ICON_MIME_TYPES:
@@ -414,5 +414,15 @@ def clean_brand(manifest_data) -> Optional[Dict]:
     if not brand_data:
         return None
     brand_validator(brand_data)
-    logo_file = fetch_icon_image(brand_data["logo"]["default"], "logo.default")
-    return {"logo": {"default": logo_file}}
+    return {"logo": {"default": brand_data["logo"]["default"]}}
+
+
+def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
+    if brand_data := manifest_data.get("brand"):
+        logo_url = brand_data["logo"]["default"]
+        try:
+            logo_file = fetch_icon_image(logo_url, "logo.default", timeout=timeout)
+            brand_data["logo"]["default"] = logo_file
+        except ValidationError:
+            brand_data = None
+        manifest_data["brand"] = brand_data
