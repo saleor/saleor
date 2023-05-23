@@ -22082,20 +22082,69 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
+
+  """List of lines which cause the error."""
+  lines: [OrderGrantRefundCreateLineError!]
 }
 
 """An enumeration."""
 enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  SHIPPING_COSTS_ALREADY_GRANTED
+  REQUIRED
+  INVALID
+}
+
+type OrderGrantRefundCreateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  orderLineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
-  amount: Decimal!
+  """
+  Amount of the granted refund. If not provided, the amount will be calculated automatically based on provided `lines` and `grantRefundForShipping`.
+  """
+  amount: Decimal
 
   """Reason of the granted refund."""
   reason: String
+
+  """
+  Lines to assing to granted refund.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantRefundOrderLineInput!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantRefundForShipping: Boolean
 }
 
 """
@@ -22105,6 +22154,14 @@ Returns Decimal as a float in the API,
 parses float to the Decimal on the way back.
 """
 scalar Decimal
+
+input OrderGrantRefundOrderLineInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  orderLineId: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+}
 
 """
 Updates granted refund.
