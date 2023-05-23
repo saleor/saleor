@@ -101,7 +101,13 @@ def make_request_to_initialize_apple_pay(
     with NamedTemporaryFile() as f:
         f.write(certificate.encode())
         f.flush()  # ensure all data written
-        return requests.post(validation_url, json=request_data, cert=f.name)
+        return requests.post(
+            validation_url,
+            json=request_data,
+            cert=f.name,
+            timeout=30,
+            allow_redirects=False,
+        )
 
 
 def initialize_apple_pay(payment_data: dict, certificate: str) -> dict:
