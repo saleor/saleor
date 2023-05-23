@@ -33,7 +33,7 @@ class Command(BaseCommand):
             raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
     def fetch_manifest_data(self, manifest_url: str) -> dict:
-        response = requests.get(manifest_url)
+        response = requests.get(manifest_url, timeout=30, allow_redirects=False)
         response.raise_for_status()
         return response.json()
 

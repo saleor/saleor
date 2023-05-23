@@ -35,7 +35,9 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def fetch_manifest(cls, manifest_url):
         try:
-            response = requests.get(manifest_url, timeout=REQUEST_TIMEOUT)
+            response = requests.get(
+                manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+            )
             response.raise_for_status()
             return response.json()
         except requests.Timeout:
