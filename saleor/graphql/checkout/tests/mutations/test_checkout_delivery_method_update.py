@@ -99,6 +99,7 @@ def test_checkout_delivery_method_update(
     )
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     mock_clean_delivery.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
@@ -174,6 +175,7 @@ def test_checkout_delivery_method_update_no_checkout_metadata(
     # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     mock_clean_delivery.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
@@ -498,6 +500,7 @@ def test_checkout_delivery_method_update_with_not_all_required_shipping_address_
     # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     mock_clean_delivery.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data
@@ -573,6 +576,7 @@ def test_checkout_delivery_method_update_with_not_valid_address_data(
     # then
     data = get_graphql_content(response)["data"]["checkoutDeliveryMethodUpdate"]
     checkout.refresh_from_db()
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     mock_clean_delivery.assert_called_once_with(
         checkout_info=checkout_info, lines=lines, method=shipping_method_data

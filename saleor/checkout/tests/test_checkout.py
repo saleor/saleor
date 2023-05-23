@@ -965,7 +965,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
             voucher,
             checkout_info,
             [],
-            None,
+            checkout_info.shipping_address,
         )
 
 
@@ -985,30 +985,6 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(
             Money(10, "USD"),
             10,
             "This offer is not valid in your country.",
-        ),
-        (
-            True,
-            None,
-            10,
-            DiscountValueType.FIXED,
-            [],
-            None,
-            None,
-            Money(10, "USD"),
-            10,
-            "Please select a delivery method first.",
-        ),
-        (
-            False,
-            None,
-            10,
-            DiscountValueType.FIXED,
-            [],
-            None,
-            None,
-            Money(10, "USD"),
-            10,
-            "Your order does not require shipping.",
         ),
         (
             True,
@@ -1113,6 +1089,54 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
             checkout.shipping_address,
         )
     assert str(e.value) == error_msg
+
+
+def test_get_discount_for_checkout_shipping_voucher_required_shipping_and_no_method(
+    checkout_with_items,
+    voucher_free_shipping,
+):
+    # given
+    checkout = checkout_with_items
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    discount = get_voucher_discount_for_checkout(
+        manager,
+        voucher_free_shipping,
+        checkout_info,
+        lines,
+        checkout.shipping_address,
+    )
+
+    # then
+    assert discount == Money(0, "USD")
+
+
+def test_get_discount_for_checkout_shipping_voucher_not_required_shipping(
+    checkout,
+    address,
+    voucher_free_shipping,
+):
+    # given
+    checkout.shipping_address = address
+    checkout.billing_address = address
+    checkout.save(update_fields=["shipping_address", "billing_address"])
+    manager = get_plugins_manager()
+    checkout_info = fetch_checkout_info(checkout, [], manager)
+
+    # when
+    discount = get_voucher_discount_for_checkout(
+        manager,
+        voucher_free_shipping,
+        checkout_info,
+        [],
+        checkout.shipping_address,
+    )
+
+    # then
+    assert discount == Money(0, "USD")
 
 
 def test_get_voucher_for_checkout_info(checkout_with_voucher, voucher):
@@ -1325,16 +1349,21 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
 
 
 def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
-    checkout_with_voucher_percentage, voucher_free_shipping
+    checkout_with_items, voucher_free_shipping
 ):
-    checkout = checkout_with_voucher_percentage
+    # given
+    checkout = checkout_with_items
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
+
+    # when
+    add_voucher_to_checkout(manager, checkout_info, lines, voucher_free_shipping)
     recalculate_checkout_discount(manager, checkout_info, lines)
 
-    assert not checkout.discount_name
-    assert not checkout.voucher_code
+    # then
+    assert checkout.voucher_code
+    assert checkout.discount_name
     assert checkout.discount == zero_money(checkout.channel.currency_code)
 
 

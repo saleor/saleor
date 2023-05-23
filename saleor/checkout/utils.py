@@ -378,7 +378,6 @@ def _get_shipping_voucher_discount_for_checkout(
     address: Optional["Address"],
 ):
     """Calculate discount value for a voucher of shipping type."""
-
     # check if voucher is limited to specified countries
     if address:
         if voucher.countries and address.country.code not in voucher.countries:
