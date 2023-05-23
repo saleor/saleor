@@ -755,6 +755,7 @@ def test_order_from_checkout_with_voucher(
     assert str(order.pk) == order_token
     assert order.metadata == checkout.metadata_storage.metadata
     assert order.private_metadata == checkout.metadata_storage.private_metadata
+    assert order.total_gross_amount < order.undiscounted_total_gross_amount
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity

@@ -216,8 +216,10 @@ def get_delivery_method_info(
 
 def fetch_checkout_lines(
     checkout: "Checkout",
-    prefetch_variant_attributes=False,
-    skip_lines_with_unavailable_variants=True,
+    prefetch_variant_attributes: bool = False,
+    skip_lines_with_unavailable_variants: bool = True,
+    skip_recalculation: bool = False,
+    voucher: Optional["Voucher"] = None,
 ) -> Tuple[Iterable[CheckoutLineInfo], Iterable[int]]:
     """Fetch checkout lines as CheckoutLineInfo objects."""
     from .utils import get_voucher_for_checkout
@@ -254,7 +256,7 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
 
-        if not _is_variant_valid(
+        if not skip_recalculation and not _is_variant_valid(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
             unavailable_variant_pks.append(variant.pk)
@@ -284,11 +286,12 @@ def fetch_checkout_lines(
             )
         )
 
-    if checkout.voucher_code and lines_info:
+    if not skip_recalculation and checkout.voucher_code and lines_info:
         channel_slug = checkout.channel.slug
-        voucher = get_voucher_for_checkout(
-            checkout, channel_slug=channel_slug, with_prefetch=True
-        )
+        if not voucher:
+            voucher = get_voucher_for_checkout(
+                checkout, channel_slug=channel_slug, with_prefetch=True
+            )
         if not voucher:
             # in case when voucher is expired, it will be null so no need to apply any
             # discount from voucher
@@ -406,6 +409,7 @@ def fetch_checkout_info(
         Iterable["ShippingMethodChannelListing"]
     ] = None,
     fetch_delivery_methods=True,
+    voucher: Optional["Voucher"] = None,
 ) -> CheckoutInfo:
     """Fetch checkout as CheckoutInfo object."""
     from .utils import get_voucher_for_checkout
@@ -415,7 +419,8 @@ def fetch_checkout_info(
     shipping_address = checkout.shipping_address
     if shipping_channel_listings is None:
         shipping_channel_listings = channel.shipping_method_listings.all()
-    voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
+    if not voucher:
+        voucher = get_voucher_for_checkout(checkout, channel_slug=channel.slug)
 
     delivery_method_info = get_delivery_method_info(None, shipping_address)
     checkout_info = CheckoutInfo(
