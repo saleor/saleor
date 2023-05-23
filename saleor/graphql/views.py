@@ -187,8 +187,7 @@ class AsyncGraphQLView(View):
             span.set_tag("http.content_length", len(response.content))
             with observability.report_api_call(request) as api_call:
                 api_call.response = response
-                # TODO Owczar: to ASYNC
-                await sync_to_async(api_call.report, thread_sensitive=False)()
+                await api_call.areport()
             return response
 
     async def get_response(

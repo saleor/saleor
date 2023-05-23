@@ -8,6 +8,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Tuple
 
 from asgiref.local import Local
+from asgiref.sync import sync_to_async
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.cache import cache
@@ -128,6 +129,9 @@ class ApiCall:
         self.response: Optional["HttpResponse"] = None
         self._reported = False
         self.request = request
+
+    async def areport(self):
+        return await sync_to_async(self.report, thread_sensitive=False)()
 
     def report(self):
         if self._reported or not settings.OBSERVABILITY_ACTIVE:
