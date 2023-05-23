@@ -22137,7 +22137,7 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   
   Added in Saleor 3.14.
   """
-  lines: [OrderGrantRefundOrderLineInput!]
+  lines: [OrderGrantRefundCreateLineInput!]
 
   """
   Determine if granted refund should include shipping costs.
@@ -22155,7 +22155,7 @@ parses float to the Decimal on the way back.
 """
 scalar Decimal
 
-input OrderGrantRefundOrderLineInput @doc(category: "Orders") {
+input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
   """The ID of the order line."""
   orderLineId: ID!
 

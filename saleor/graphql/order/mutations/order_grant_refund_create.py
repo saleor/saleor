@@ -43,7 +43,7 @@ class OrderGrantRefundCreateError(Error):
         doc_category = DOC_CATEGORY_ORDERS
 
 
-class OrderGrantRefundOrderLineInput(BaseInputObjectType):
+class OrderGrantRefundCreateLineInput(BaseInputObjectType):
     order_line_id = graphene.ID(description="The ID of the order line.", required=True)
     quantity = graphene.Int(
         description="The quantity of line items to be marked to refund.", required=True
@@ -63,7 +63,7 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     )
     reason = graphene.String(description="Reason of the granted refund.")
     lines = NonNullList(
-        OrderGrantRefundOrderLineInput,
+        OrderGrantRefundCreateLineInput,
         description="Lines to assign to granted refund." + ADDED_IN_314,
         required=False,
     )
