@@ -150,6 +150,8 @@ def api_post_request(
             headers=headers,
             auth=auth,
             data=formatted_data,
+            timeout=30,
+            allow_redirects=False,
         )
         logger.debug("Hit to Avatax Excise API with URL: %s", url)
         if response.status_code == 401:
