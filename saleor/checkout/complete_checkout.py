@@ -1286,7 +1286,7 @@ def assign_checkout_user(
 ):
     # Assign checkout user to an existing user if checkout email matches a valid
     #  customer account
-    if user is None and checkout_info.checkout.email:
+    if user is None and not checkout_info.user and checkout_info.checkout.email:
         existing_user = retrieve_user_by_email(checkout_info.checkout.email)
         checkout_info.user = (
             existing_user if existing_user and existing_user.is_active else None
