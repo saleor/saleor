@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test-3.13": "vitest --config v3.13/vitest.config.ts"
+    "test": "vitest --config vitest.config.ts $VERSION"
   },
   "author": "",
   "license": "ISC",
