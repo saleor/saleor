@@ -22083,7 +22083,11 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
 
-  """List of lines which cause the error."""
+  """
+  List of lines which cause the error.
+  
+  Added in Saleor 3.14.
+  """
   lines: [OrderGrantRefundCreateLineError!]
 }
 
@@ -22129,11 +22133,9 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   reason: String
 
   """
-  Lines to assing to granted refund.
+  Lines to assign to granted refund.
   
   Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   lines: [OrderGrantRefundOrderLineInput!]
 
@@ -22141,8 +22143,6 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   Determine if granted refund should include shipping costs.
   
   Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
 }
