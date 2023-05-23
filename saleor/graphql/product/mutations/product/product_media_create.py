@@ -104,7 +104,12 @@ class ProductMediaCreate(BaseMutation):
             if is_image_url(media_url):
                 validate_image_url(media_url, "media_url", ProductErrorCode.INVALID)
                 filename = get_filename_from_url(media_url)
-                image_data = requests.get(media_url, stream=True)
+                image_data = requests.get(
+                    media_url,
+                    stream=True,
+                    timeout=30,
+                    allow_redirects=False,
+                )
                 image_file = File(image_data.raw, filename)
                 media = product.media.create(
                     image=image_file,
