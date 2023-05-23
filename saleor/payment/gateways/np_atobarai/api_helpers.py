@@ -57,6 +57,7 @@ def _request(
             json=json or {},
             auth=HTTPBasicAuth(config.merchant_code, config.sp_code),
             headers={"X-NP-Terminal-Id": config.terminal_id},
+            allow_redirects=False,
         )
         # NP Atobarai returns error codes with http status code 400
         # Because we want to pass those errors to the end user,
