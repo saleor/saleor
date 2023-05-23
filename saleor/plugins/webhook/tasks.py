@@ -323,7 +323,11 @@ def send_webhook_using_http(
     }
     try:
         response = requests.post(
-            target_url, data=message, headers=headers, timeout=timeout
+            target_url,
+            data=message,
+            headers=headers,
+            timeout=timeout,
+            allow_redirects=False,
         )
     except (RequestException,) as e:
         response = WebhookResponse(
