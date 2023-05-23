@@ -1,10 +1,11 @@
 import logging
 from collections import defaultdict
+from io import BytesIO
 from typing import Dict, Iterable, List, Optional
 
 import requests
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
+from django.core.files import File
 from django.db.models import Value
 from django.db.models.functions import Concat
 from semantic_version import NpmSpec, Version
@@ -32,6 +33,7 @@ logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
 REQUEST_TIMEOUT = 25
+MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 
 class RequiredSaleorVersionSpec(NpmSpec):
@@ -371,21 +373,39 @@ def clean_author(author) -> Optional[str]:
     )
 
 
-def fetch_icon_image(url: str, field_name: str) -> ContentFile:
+def fetch_icon_image(
+    url: str, field_name: str, max_file_size=MAX_ICON_FILE_SIZE
+) -> File:
     filename = get_filename_from_url(url)
+    size_error_msg = f"File too big. Max icon image file size is {MAX_ICON_FILE_SIZE}"
+    code = AppErrorCode.INVALID.value
     try:
         with requests.get(url, stream=True, timeout=REQUEST_TIMEOUT) as res:
             res.raise_for_status()
             content_type = res.headers.get("content-type")
             if content_type not in ICON_MIME_TYPES:
                 msg = f"Invalid file type for: {field_name}."
-                raise ValidationError(msg, code=AppErrorCode.INVALID.value)
-            image_file = ContentFile(res.content, filename)
+                raise ValidationError(msg, code=code)
+            try:
+                content_length = int(res.headers.get("content-length", ""))
+                assert content_length > 0
+            except (ValueError, TypeError, AssertionError):
+                msg = "HTTP header content-length not provided or invalid"
+                raise ValidationError(msg, code=code)
+            if content_length > max_file_size:
+                raise ValidationError(size_error_msg, code=code)
+            content = BytesIO()
+            for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
+                content.write(chunk)
+                if content.tell() > max_file_size:
+                    raise ValidationError(size_error_msg, code=code)
+            content.seek(0)
+            image_file = File(content, filename)
     except requests.RequestException:
         code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
         raise ValidationError(f"Unable to fetch image from: {field_name}.", code=code)
 
-    validate_icon_image(image_file, AppErrorCode.INVALID.value)
+    validate_icon_image(image_file, code)
     return image_file
 
 

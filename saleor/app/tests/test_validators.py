@@ -3,12 +3,13 @@ from unittest import mock
 import pytest
 import requests
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
+from django.core.files import File
 
 from ... import __version__
 from ...app.validators import AppURLValidator
 from ..error_codes import AppErrorCode
 from ..manifest_validations import (
+    MAX_ICON_FILE_SIZE,
     clean_author,
     clean_required_saleor_version,
     fetch_icon_image,
@@ -76,10 +77,15 @@ def test_clean_author(author, cleaned):
 
 @pytest.fixture
 def image_response_mock():
+    content_chunks = [b"fake ", b"image ", b"content"]
     mock_response = mock.Mock()
     mock_response.status_code = 200
-    mock_response.headers = {"content-type": "image/png"}
-    mock_response.content = b"fake image content"
+    mock_response.content = b"".join(content_chunks)
+    mock_response.headers = {
+        "content-type": "image/png",
+        "content-length": str(len(mock_response.content)),
+    }
+    mock_response.iter_content.return_value = iter(content_chunks)
     return mock_response
 
 
@@ -99,19 +105,55 @@ def test_fetch_icon_image(
     # then
     mock_get_request.assert_called_once_with(image_url, stream=True, timeout=mock.ANY)
     mock_validate_icon_image.assert_called_once_with(image_file, mock.ANY)
-    assert isinstance(image_file, ContentFile)
+    assert isinstance(image_file, File)
     assert image_file.read() == image_response_mock.content
     assert image_file.name.endswith(image_file_format)
 
 
+@mock.patch("saleor.app.manifest_validations.validate_icon_image")
 @mock.patch("saleor.app.manifest_validations.requests.get")
-def test_fetch_icon_image_invalid_type(mock_get_request, image_response_mock):
+def test_fetch_icon_image_invalid_type(
+    mock_get_request, mock_validate_icon_image, image_response_mock
+):
     mock_get_request.return_value.__enter__.return_value = image_response_mock
-    image_response_mock.headers = {"content-type": "text/html"}
+    image_response_mock.headers["content-type"] = "text/html"
 
     with pytest.raises(ValidationError) as error:
         fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
     assert error.value.code == AppErrorCode.INVALID.value
+    mock_validate_icon_image.assert_not_called()
+
+
+@pytest.mark.parametrize("content_length", [0, -1, "invalid", MAX_ICON_FILE_SIZE + 1])
+@mock.patch("saleor.app.manifest_validations.validate_icon_image")
+@mock.patch("saleor.app.manifest_validations.requests.get")
+def test_fetch_icon_image_invalid_content_length(
+    mock_get_request, mock_validate_icon_image, image_response_mock, content_length
+):
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+    image_response_mock.headers["content-length"] = content_length
+
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+    assert error.value.code == AppErrorCode.INVALID.value
+    mock_validate_icon_image.assert_not_called()
+
+
+@mock.patch("saleor.app.manifest_validations.requests.get")
+def test_fetch_icon_image_too_much_data_downloaded(
+    mock_get_request, image_response_mock
+):
+    def content_chunks():
+        while True:
+            yield b"0" * 1024
+
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+    image_response_mock.iter_content.return_value = content_chunks()
+
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+    assert error.value.code == AppErrorCode.INVALID.value
+    assert "File too big. Max icon image file size is" in error.value.message
 
 
 @mock.patch("saleor.app.manifest_validations.requests.get")
