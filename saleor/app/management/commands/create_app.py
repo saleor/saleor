@@ -50,7 +50,13 @@ class Command(BaseCommand):
             AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
         }
         try:
-            response = requests.post(target_url, json=data, headers=headers, timeout=15)
+            response = requests.post(
+                target_url,
+                json=data,
+                headers=headers,
+                timeout=15,
+                allow_redirects=False,
+            )
         except RequestException as e:
             raise CommandError(f"Request failed. Exception: {e}")
         response.raise_for_status()

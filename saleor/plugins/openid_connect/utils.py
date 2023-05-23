@@ -64,7 +64,9 @@ def fetch_jwks(jwks_url) -> Optional[dict]:
     """
     response = None
     try:
-        response = requests.get(jwks_url, timeout=REQUEST_TIMEOUT)
+        response = requests.get(
+            jwks_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+        )
         response.raise_for_status()
         jwks = response.json()
     except requests.exceptions.RequestException:
@@ -120,6 +122,7 @@ def get_user_info(user_info_url, access_token) -> Optional[dict]:
             user_info_url,
             headers={"Authorization": f"Bearer {access_token}"},
             timeout=REQUEST_TIMEOUT,
+            allow_redirects=False,
         )
         response.raise_for_status()
         return response.json()
