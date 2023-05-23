@@ -20,6 +20,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, event_type: str, **kwargs):
         if model := SCHEMA_MAP.get(event_type.lower()):
-            self.stdout.write(schema_json_of(model, indent=2))
+            self.stdout.write(schema_json_of(model, title=event_type.upper(), indent=2))
         else:
             self.stderr.write(f"Error: Can't find schema for event: {event_type}")
