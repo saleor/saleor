@@ -73,6 +73,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                 info, variant_id, field="variant_id", only_type=ProductVariant
             )
             quantity = input_line["quantity"]
+
             custom_price = input_line.get("price")
             if quantity > 0:
                 if force_new_line or variants_from_existing_lines.count(variant.pk) > 1:
