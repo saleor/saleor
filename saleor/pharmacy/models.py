@@ -5,16 +5,30 @@ from uuid import uuid4
 from . import Gender
 
 
+class PatientManager(models.Manager):
+    def for_customer_uuid(self, customer_uuid):
+        try:
+            return self.get(customer__uuid=customer_uuid)
+        except self.model.DoesNotExist:
+            return None
+
+
 class Patient(models.Model):
+    # this is a substitute for HealthProfile...adding in gender_assigned_at_birth
     customer = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         related_name="+",
         on_delete=models.CASCADE,
     )
+    # customer_uuid can be found from customer.uuid
+    # first_name can be found from customer.first_name
+    # last_name can be found from customer.last_name
     date_of_birth = models.DateField(
         db_index=True, auto_now_add=False, null=False, blank=False
     )
     gender_assigned_at_birth = models.CharField(max_length=1, choices=Gender.CHOICES)
+
+    objects = PatientManager()
 
 
 class PatientInsurance(models.Model):

@@ -236,13 +236,14 @@ INSTALLED_APPS = [
     "storages",
     # Django modules
     "django.contrib.contenttypes",
+    "django.contrib.auth",
     "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
     "saleor.permission",
-    "saleor.auth",
+    # "saleor.auth",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -278,6 +279,7 @@ INSTALLED_APPS = [
     "django_countries",
     "django_filters",
     "phonenumber_field",
+    "rest_framework",
 ]
 
 ENABLE_DJANGO_EXTENSIONS = get_bool_from_env("ENABLE_DJANGO_EXTENSIONS", False)

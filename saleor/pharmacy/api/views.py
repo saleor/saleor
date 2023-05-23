@@ -3,20 +3,24 @@ from django.views import generic
 from django.http import HttpResponse
 from django.template import loader
 
-from ..pharmacy.models import Patient
+from ..models import Patient
 from .serializers import HealthProfileSerializer
 
 
-class HealthProfilesDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Patient.objects.all()
+class HealthProfileList(generics.ListCreateAPIView):
     serializer_class = HealthProfileSerializer
-    lookup_field = "uuid"
+
+    def get_queryset(self):
+        customer_uuid = self.kwargs["uuid"]
+        queryset = Patient.objects.for_customer_uuid(customer_uuid)
+        if isinstance(queryset, list):
+            return queryset
+        else:
+            items = [queryset]
+            return items
 
     def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+        return self.list(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return self.destroy(request, *args, **kwargs)
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
