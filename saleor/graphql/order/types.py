@@ -209,6 +209,10 @@ class OrderGrantedRefundLine(ModelObjectType[models.OrderGrantedRefundLine]):
         description = "Represents granted refund line." + ADDED_IN_314 + PREVIEW_FEATURE
         model = models.OrderGrantedRefundLine
 
+    @staticmethod
+    def resolve_order_line(root: models.OrderGrantedRefundLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
+
 
 class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
     id = graphene.GlobalID(required=True)
