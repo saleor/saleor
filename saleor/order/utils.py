@@ -57,10 +57,8 @@ if TYPE_CHECKING:
     from ..app.models import App
     from ..channel.models import Channel
     from ..checkout.fetch import CheckoutInfo
-    from ..discount import DiscountInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
-    from ..graphql.order.utils import OrderLineData
 
 
 def get_order_country(order: Order) -> str:
@@ -208,12 +206,12 @@ def update_order_status(order: Order):
 
 @traced_atomic_transaction()
 def create_order_line(
-    order: Order,
-    line_data: "OrderLineData",
-    manager: "PluginsManager",
-    discounts: Optional[Iterable["DiscountInfo"]] = None,
-    allocate_stock: Optional[bool] = False,
-) -> OrderLine:
+    order,
+    line_data,
+    manager,
+    discounts=None,
+    allocate_stock=False,
+):
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity

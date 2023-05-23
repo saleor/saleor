@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, patch
 
 import graphene
+import pytest
 import pytz
 from prices import Money
 
@@ -1419,7 +1420,9 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["message"] == "Order with this External reference already exists."
 
 
+@pytest.mark.parametrize("force_new_line", (True, False))
 def test_draft_order_create_with_custom_price_in_order_line(
+    force_new_line,
     staff_api_client,
     permission_group_manage_orders,
     customer_user,
@@ -1444,8 +1447,18 @@ def test_draft_order_create_with_custom_price_in_order_line(
     expected_price_variant_0 = 10
     expected_price_variant_1 = 20
     variant_list = [
-        {"variantId": variant_0_id, "quantity": 2, "price": expected_price_variant_0},
-        {"variantId": variant_1_id, "quantity": 1, "price": expected_price_variant_1},
+        {
+            "variantId": variant_0_id,
+            "quantity": 2,
+            "price": expected_price_variant_0,
+            "forceNewLine": force_new_line,
+        },
+        {
+            "variantId": variant_1_id,
+            "quantity": 1,
+            "price": expected_price_variant_1,
+            "forceNewLine": force_new_line,
+        },
     ]
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
