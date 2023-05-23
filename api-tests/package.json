@@ -1,0 +1,16 @@
+{
+  "name": "api-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test-3.13": "vitest --config v3.13/vitest.config.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "5.0.4",
+    "vite": "4.3.8",
+    "vitest": "0.31.1"
+  }
+}
