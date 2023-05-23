@@ -183,10 +183,7 @@ class AsyncGraphQLView(View):
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         with observability.report_gql_operation() as operation:
-            async_execute_graphql_request = sync_to_async(
-                self.execute_graphql_request, thread_sensitive=False
-            )
-            execution_result = await async_execute_graphql_request(request, data)
+            execution_result = await self.execute_graphql_request(request, data)
             status_code = 200
             if execution_result:
                 response = {}
@@ -250,7 +247,7 @@ class AsyncGraphQLView(View):
                         raise GraphQLError(msg)
         return query_with_schema
 
-    def execute_graphql_request(self, request: HttpRequest, data: dict):
+    async def execute_graphql_request(self, request: HttpRequest, data: dict):
         with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
             span.set_tag(opentracing.tags.COMPONENT, "graphql")
@@ -306,20 +303,31 @@ class AsyncGraphQLView(View):
                     )
                     if should_use_cache_for_scheme:
                         key = generate_cache_key(raw_query_string)
-                        response = cache.get(key)
+                        async_cache_get = sync_to_async(
+                            cache.get, thread_sensitive=False
+                        )
+                        response = await async_cache_get(key)
 
                     if not response:
-                        # TODO Owczar: sync -> async in final solution
-                        response = document.execute(
+                        async_get_context_value = sync_to_async(
+                            get_context_value, thread_sensitive=False
+                        )
+                        async_document_execute = sync_to_async(
+                            document.execute, thread_sensitive=False
+                        )
+                        response = await async_document_execute(
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,
-                            context=get_context_value(request),
+                            context=await async_get_context_value(request),
                             middleware=self.middleware,
                             **extra_options,
                         )
                         if should_use_cache_for_scheme:
-                            cache.set(key, response)
+                            async_cache_set = sync_to_async(
+                                cache.set, thread_sensitive=False
+                            )
+                            await async_cache_set(key, response)
 
                     if app := getattr(request, "app", None):
                         span.set_tag("app.name", app.name)
