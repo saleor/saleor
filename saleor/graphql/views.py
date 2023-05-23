@@ -31,6 +31,9 @@ from .utils import format_error, query_fingerprint, query_identifier
 
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
+arender = sync_to_async(render, thread_sensitive=False)
+aget_context_value = sync_to_async(get_context_value, thread_sensitive=False)
+
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
@@ -73,19 +76,29 @@ class AsyncGraphQLView(View):
         super().__init__()
         if backend is None:
             backend = get_default_backend()
-        # if middleware is None:
-        #     middleware = settings.GRAPHQL_MIDDLEWARE
-        #     if middleware:
-        #         middleware = [
-        #             self.import_middleware(middleware_name)
-        #             for middleware_name in middleware
-        #         ]
+        if middleware is None:
+            middleware = settings.GRAPHQL_MIDDLEWARE
+            if middleware:
+                middleware = [
+                    self.import_middleware(middleware_name)
+                    for middleware_name in middleware
+                ]
         self.schema = self.schema or schema
-        # if middleware is not None:
-        #     self.middleware = list(instantiate_middleware(middleware))
+        if middleware is not None:
+            self.middleware = list(instantiate_middleware(middleware))
         self.executor = executor
         self.root_value = root_value
         self.backend = backend
+
+    @staticmethod
+    def import_middleware(middleware_name):
+        try:
+            parts = middleware_name.split(".")
+            module_path, class_name = ".".join(parts[:-1]), parts[-1]
+            module = importlib.import_module(module_path)
+            return getattr(module, class_name)
+        except (ImportError, AttributeError):
+            raise ImportError(f"Cannot import '{middleware_name}' graphene middleware!")
 
     async def get(self, request, *args, **kwargs):
         if settings.PLAYGROUND_ENABLED:
@@ -97,8 +110,7 @@ class AsyncGraphQLView(View):
         return await self.handle_query(request)
 
     async def render_playground(self, request):
-        async_render = sync_to_async(render, thread_sensitive=False)
-        return await async_render(
+        return await arender(
             request,
             "graphql/playground.html",
             {
@@ -303,15 +315,10 @@ class AsyncGraphQLView(View):
                     )
                     if should_use_cache_for_scheme:
                         key = generate_cache_key(raw_query_string)
-                        async_cache_get = sync_to_async(
-                            cache.get, thread_sensitive=False
-                        )
-                        response = await async_cache_get(key)
+                        response = await cache.aget(key)
 
                     if not response:
-                        async_get_context_value = sync_to_async(
-                            get_context_value, thread_sensitive=False
-                        )
+                        # TODO Owczar: Should be optimized?
                         async_document_execute = sync_to_async(
                             document.execute, thread_sensitive=False
                         )
@@ -319,15 +326,12 @@ class AsyncGraphQLView(View):
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,
-                            context=await async_get_context_value(request),
+                            context=await aget_context_value(request),
                             middleware=self.middleware,
                             **extra_options,
                         )
                         if should_use_cache_for_scheme:
-                            async_cache_set = sync_to_async(
-                                cache.set, thread_sensitive=False
-                            )
-                            await async_cache_set(key, response)
+                            await cache.aset(key, response)
 
                     if app := getattr(request, "app", None):
                         span.set_tag("app.name", app.name)
@@ -659,7 +663,6 @@ class GraphQLView(View):
                         response = cache.get(key)
 
                     if not response:
-                        # TO opakować w sync -> async
                         response = document.execute(
                             root=self.get_root_value(),
                             variables=variables,
