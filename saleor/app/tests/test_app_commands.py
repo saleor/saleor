@@ -66,6 +66,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch):
         },
         json={"auth_token": ANY},
         timeout=ANY,
+        allow_redirects=False,
     )
 
 
@@ -129,4 +130,5 @@ def test_sends_data_to_target_url(monkeypatch):
         },
         json={"auth_token": ANY},
         timeout=ANY,
+        allow_redirects=False,
     )
