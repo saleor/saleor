@@ -104,7 +104,13 @@ def api_post_request(
     response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
-        response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
+        response = requests.post(
+            url,
+            auth=auth,
+            data=json.dumps(data),
+            timeout=TIMEOUT,
+            allow_redirects=False,
+        )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
         json_response = response.json()
         if "error" in response:  # type: ignore
@@ -130,7 +136,7 @@ def api_get_request(
     response = None
     try:
         auth = HTTPBasicAuth(username_or_account, password_or_license)
-        response = requests.get(url, auth=auth, timeout=TIMEOUT)
+        response = requests.get(url, auth=auth, timeout=TIMEOUT, allow_redirects=False)
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
         if "error" in json_response:  # type: ignore

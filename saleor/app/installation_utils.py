@@ -26,13 +26,19 @@ def send_app_token(target_url: str, token: str):
     }
     json_data = {"auth_token": token}
     response = requests.post(
-        target_url, json=json_data, headers=headers, timeout=REQUEST_TIMEOUT
+        target_url,
+        json=json_data,
+        headers=headers,
+        timeout=REQUEST_TIMEOUT,
+        allow_redirects=False,
     )
     response.raise_for_status()
 
 
 def install_app(app_installation: AppInstallation, activate: bool = False):
-    response = requests.get(app_installation.manifest_url, timeout=REQUEST_TIMEOUT)
+    response = requests.get(
+        app_installation.manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+    )
     response.raise_for_status()
     assigned_permissions = app_installation.permissions.all()
     manifest_data = response.json()
