@@ -52,7 +52,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
 - Upgrade checkout `complete_checkout` to assign guest checkout to account if exists - #12758 by @FremahA
-- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
 - Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
 - Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
