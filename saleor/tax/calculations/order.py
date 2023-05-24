@@ -41,7 +41,7 @@ def update_order_prices_with_flat_rates(
         order, lines, country_code, default_tax_rate, prices_entered_with_tax
     )
 
-    # Calculate order shipping.
+    # Calculate order shipping
     shipping_method = order.shipping_method
     shipping_tax_class = getattr(shipping_method, "tax_class", None)
     if shipping_tax_class:
@@ -139,10 +139,9 @@ def update_taxes_for_order_lines(
                 country_code,
             )
         elif line.tax_class_name is not None and line.tax_rate is not None:
-            # If tax_class is None but tax_class_name is set, the tax class was set
-            # for this line before, but is now removed from the system. In this case
-            # try to use line.tax_rate which stores the denormalized tax rate value
-            # that was originally provided by the tax class.
+            # line.tax_class can be None when the tax class was removed from DB. In
+            # this case try to use line.tax_rate which stores the denormalized tax rate
+            # value that was originally used.
             tax_rate = denormalize_tax_rate_from_db(line.tax_rate)
         else:
             tax_rate = default_tax_rate

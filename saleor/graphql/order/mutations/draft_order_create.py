@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from graphene.types import InputObjectType
 
+from .utils import ShippingMethodUpdateMixin, SHIPPING_METHOD_UPDATE_FIELDS
 from ....account.models import User
 from ....checkout import AddressType
 from ....core.permissions import OrderPermissions
@@ -35,7 +36,7 @@ from ..types import Order
 from ..utils import (
     OrderLineData,
     validate_product_is_published_in_channel,
-    validate_variant_channel_listings,
+    validate_variant_channel_listings, validate_shipping_method
 )
 
 
@@ -95,7 +96,7 @@ class DraftOrderCreateInput(DraftOrderInput):
     )
 
 
-class DraftOrderCreate(ModelMutation, I18nMixin):
+class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -345,9 +346,23 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def _save_draft_order(
         cls, info, instance, cleaned_input, *, is_new_instance, app, manager
     ):
+        updated_fields = []
         with traced_atomic_transaction():
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
+
+            # Process shipping method
+            method = cleaned_input["shipping_method"]
+            if method:
+                shipping_channel_listing = cls.validate_shipping_channel_listing(
+                    method, instance
+                )
+                cls.update_shipping_method(
+                        instance, method, shipping_channel_listing
+                )
+                updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
+            else:
+                cls.clean_shipping_method_from_order(instance)
 
             # Parse shipping name
             cls._parse_shipping_method_name(instance, cleaned_input)
@@ -375,12 +390,12 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cls.call_event(manager.draft_order_updated, instance)
 
             # Post-process the results
-            updated_fields = [
+            updated_fields.extend([
                 "weight",
                 "search_vector",
                 "updated_at",
                 "display_gross_prices",
-            ]
+            ])
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.append("should_refresh_prices")
