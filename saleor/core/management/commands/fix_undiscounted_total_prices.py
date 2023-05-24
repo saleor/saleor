@@ -138,18 +138,13 @@ def fix_undiscounted_prices():
     with connection.cursor() as cursor:
         cursor.execute(RAW_0139_UPDATE_SQL)
         records = cursor.fetchall()
-    updated_orders_pks_from_lines = set(
-        [record[0] for record in records] if records else []
-    )
+    order_pks = set([record[0] for record in records] if records else [])
 
     # 0140_fix_order_undiscounted_total
-    updated_orders_pks_from_orders = update_order_undiscounted_price()
+    order_pks |= update_order_undiscounted_price()
 
     # send webhooks for unique order ids
-    if all_order_pks := updated_orders_pks_from_lines | updated_orders_pks_from_orders:
-        del updated_orders_pks_from_lines
-        del updated_orders_pks_from_orders
-        send_order_updated_events(all_order_pks)
+    send_order_updated_events(order_pks)
 
 
 class Command(BaseCommand):
