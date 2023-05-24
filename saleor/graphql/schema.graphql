@@ -21666,6 +21666,15 @@ input OrderLineCreateInput @doc(category: "Orders") {
   Added in Saleor 3.6.
   """
   forceNewLine: Boolean = false
+
+  """
+  Custom price of the item.When the line with the same variant will be provided multiple times, the last price will be used.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  price: PositiveDecimal
 }
 
 """

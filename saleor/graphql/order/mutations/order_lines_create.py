@@ -74,6 +74,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
             )
             quantity = input_line["quantity"]
 
+            custom_price = input_line.get("price")
             if quantity > 0:
                 if force_new_line or variants_from_existing_lines.count(variant.pk) > 1:
                     grouped_lines_data.append(
@@ -81,6 +82,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
                             variant_id=str(variant.id),
                             variant=variant,
                             quantity=quantity,
+                            price_override=custom_price,
                         )
                     )
                 else:
@@ -97,6 +99,7 @@ class OrderLinesCreate(EditableOrderValidationMixin, BaseMutation):
 
                     line_data.variant = variant
                     line_data.quantity += quantity
+                    line_data.price_override = custom_price
             else:
                 invalid_ids.append(variant_id)
         if invalid_ids:
