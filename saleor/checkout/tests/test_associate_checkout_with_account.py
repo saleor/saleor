@@ -20,12 +20,12 @@ def test_associate_guest_checkout_with_account_if_exists(
 ):
     # set the checkout email
     checkout.email = "test@example.com"
+    checkout.billing_address = address
     checkout.save()
     user = None
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.billing_address = address
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object
@@ -59,12 +59,12 @@ def test_associate_guest_checkout_with_account_if_exists_with_guest_user(
 ):
     # set the checkout email
     checkout.email = "guest@email.com"
+    checkout.billing_address = address
     checkout.save()
     user = None
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.billing_address = address
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object
@@ -95,6 +95,7 @@ def test_associate_guest_checkout_with_account_if_exists_with_inactive_user(
 ):
     # set the checkout email
     checkout.email = "test@example.com"
+    checkout.billing_address = address
     checkout.save()
     # deactivate the customer user
     customer_user.is_active = False
@@ -102,8 +103,7 @@ def test_associate_guest_checkout_with_account_if_exists_with_inactive_user(
     user = None
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
-    checkout_info.billing_address = address
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_info.channel.order_mark_as_paid_strategy == paid_strategy
 
     # call the complete_checkout function with the checkout object

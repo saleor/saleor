@@ -796,7 +796,9 @@ class ProductBulkCreate(BaseMutation):
                         media_url, "media_url", ProductBulkCreateErrorCode.INVALID.value
                     )
                     filename = get_filename_from_url(media_url)
-                    image_data = requests.get(media_url, stream=True)
+                    image_data = requests.get(
+                        media_url, stream=True, timeout=30, allow_redirects=False
+                    )
                     image_data = File(image_data.raw, filename)
                     media_to_create.append(
                         models.ProductMedia(

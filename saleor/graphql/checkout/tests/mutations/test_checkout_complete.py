@@ -16,7 +16,7 @@ from .....account.models import Address
 from .....checkout import calculations
 from .....checkout.error_codes import CheckoutErrorCode
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from .....checkout.models import Checkout
+from .....checkout.models import Checkout, CheckoutLine
 from .....core.exceptions import InsufficientStock, InsufficientStockData
 from .....core.taxes import TaxError, zero_money, zero_taxed_money
 from .....discount import DiscountType, DiscountValueType
@@ -612,9 +612,9 @@ def test_checkout_complete_by_app(
     assert not data["errors"]
 
     mocked_complete_checkout.assert_called_once_with(
-        manager=ANY,
         checkout_info=ANY,
         lines=ANY,
+        manager=ANY,
         payment_data=ANY,
         store_source=ANY,
         user=checkout.user,
@@ -676,9 +676,9 @@ def test_checkout_complete_by_app_with_missing_permission(
     assert not data["errors"]
 
     mocked_complete_checkout.assert_called_once_with(
-        manager=ANY,
         checkout_info=ANY,
         lines=ANY,
+        manager=ANY,
         payment_data=ANY,
         store_source=ANY,
         user=None,
@@ -4152,3 +4152,68 @@ def test_checkout_complete_payment_create_create_run_in_meantime(
     errors = data["errors"]
     assert len(errors) == 1
     assert errors[0]["code"] == CheckoutErrorCode.INACTIVE_PAYMENT.name
+
+
+@pytest.mark.integration
+def test_checkout_complete_line_deleted_in_the_meantime(
+    user_api_client,
+    checkout_with_gift_card,
+    gift_card,
+    payment_dummy,
+    address,
+    shipping_method,
+):
+    # given
+    assert not gift_card.last_used_on
+
+    checkout = checkout_with_gift_card
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.metadata_storage.store_value_in_metadata(items={"accepted": "true"})
+    checkout.metadata_storage.store_value_in_private_metadata(
+        items={"accepted": "false"}
+    )
+    checkout.tax_exemption = True
+    checkout.save()
+    checkout.metadata_storage.save()
+
+    manager = get_plugins_manager()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    total = calculations.calculate_checkout_total_with_gift_cards(
+        manager, checkout_info, lines, address
+    )
+    channel = checkout.channel
+    channel.automatically_confirm_all_new_orders = True
+    channel.save()
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+    assert not payment.transactions.exists()
+
+    orders_count = Order.objects.count()
+    redirect_url = "https://www.example.com"
+    variables = {"id": to_global_id_or_none(checkout), "redirectUrl": redirect_url}
+
+    def delete_order_line(*args, **kwargs):
+        CheckoutLine.objects.get(id=checkout.lines.first().id).delete()
+
+    # when
+    with before_after.before(
+        "saleor.graphql.checkout.mutations.checkout_complete.complete_checkout",
+        delete_order_line,
+    ):
+        response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert data["order"]
+    assert not data["errors"]
+    assert Order.objects.count() == orders_count + 1
+    assert not Checkout.objects.filter(pk=checkout.pk).exists()
