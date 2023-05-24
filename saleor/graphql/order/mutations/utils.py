@@ -8,7 +8,6 @@ from ....payment import PaymentError
 from ....plugins.manager import PluginsManager
 from ....shipping.interface import ShippingMethodData
 from ....shipping.models import ShippingMethodChannelListing
-from ....shipping.utils import convert_to_shipping_method_data
 from ..utils import get_shipping_method_availability_error
 
 SHIPPING_METHOD_UPDATE_FIELDS = [

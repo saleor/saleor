@@ -1,5 +1,4 @@
 import graphene
-from prices import Money
 
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode

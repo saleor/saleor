@@ -35,7 +35,6 @@ from ..types import Order
 from ..utils import (
     OrderLineData,
     validate_product_is_published_in_channel,
-    validate_shipping_method,
     validate_variant_channel_listings,
 )
 from .utils import SHIPPING_METHOD_UPDATE_FIELDS, ShippingMethodUpdateMixin
