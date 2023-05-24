@@ -29,6 +29,8 @@ image_url_validator = AppURLValidator(
 
 
 def brand_validator(brand):
+    if brand is None:
+        return
     try:
         logo_url = brand["logo"]["default"]
     except (TypeError, KeyError):

@@ -1,3 +1,5 @@
+import logging
+
 import graphene
 import requests
 from django.core.exceptions import ValidationError
@@ -16,6 +18,8 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
+
+logger = logging.getLogger(__name__)
 
 
 class AppFetchManifest(BaseMutation):
@@ -87,7 +91,7 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
         clean_manifest_data(manifest_data)
-        fetch_brand_data(manifest_data)
+        manifest_data["brand"] = fetch_brand_data(manifest_data, timeout=5)
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(

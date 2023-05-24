@@ -57,7 +57,12 @@ def validate_icon_image(image_file, error_code: str):
         with Image.open(image_file) as image:
             validate_image_format(image, error_code, ICON_MIME_TYPES)
             validate_image_size(image, error_code, MIN_ICON_SIZE, square_required=True)
-    except (SyntaxError, TypeError, UnidentifiedImageError) as e:
+    except (
+        SyntaxError,
+        TypeError,
+        UnidentifiedImageError,
+        Image.DecompressionBombError,
+    ) as e:
         raise ValidationError(
             "Invalid file. The following error was raised during the attempt "
             f"of opening the file: {str(e)}",

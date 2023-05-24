@@ -1,4 +1,5 @@
 import logging
+import time
 from collections import defaultdict
 from io import BytesIO
 from typing import Dict, Iterable, List, Optional
@@ -32,7 +33,7 @@ from .validators import AppURLValidator, brand_validator
 logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
-REQUEST_TIMEOUT = 25
+REQUEST_TIMEOUT = 20
 MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 
@@ -142,7 +143,7 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         errors["author"].append(e)
 
     try:
-        manifest_data["brand"] = clean_brand(manifest_data)
+        brand_validator(manifest_data.get("brand"))
     except ValidationError as e:
         errors["brand"].append(e)
 
@@ -374,55 +375,55 @@ def clean_author(author) -> Optional[str]:
 
 
 def fetch_icon_image(
-    url: str, field_name: str, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
+    url: str, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
 ) -> File:
     filename = get_filename_from_url(url)
-    size_error_msg = f"File too big. Max icon image file size is {MAX_ICON_FILE_SIZE}"
+    size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
     code = AppErrorCode.INVALID.value
+    fetch_start = time.monotonic()
     try:
-        with requests.get(url, stream=True, timeout=timeout) as res:
+        with requests.get(
+            url, stream=True, timeout=timeout, allow_redirects=False
+        ) as res:
             res.raise_for_status()
             content_type = res.headers.get("content-type")
             if content_type not in ICON_MIME_TYPES:
-                msg = f"Invalid file type for: {field_name}."
-                raise ValidationError(msg, code=code)
+                raise ValidationError("Invalid file type.", code=code)
             try:
-                content_length = int(res.headers.get("content-length", ""))
-                assert content_length > 0
-            except (ValueError, TypeError, AssertionError):
-                msg = "HTTP header content-length not provided or invalid"
-                raise ValidationError(msg, code=code)
-            if content_length > max_file_size:
-                raise ValidationError(size_error_msg, code=code)
+                if int(res.headers.get("content-length", 0)) > max_file_size:
+                    raise ValidationError(size_error_msg, code=code)
+            except (ValueError, TypeError):
+                pass
             content = BytesIO()
             for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
                 content.write(chunk)
                 if content.tell() > max_file_size:
                     raise ValidationError(size_error_msg, code=code)
+                if (time.monotonic() - fetch_start) > timeout:
+                    raise ValidationError(
+                        "Timeout occurred while reading image file.",
+                        code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
+                    )
             content.seek(0)
             image_file = File(content, filename)
     except requests.RequestException:
         code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
-        raise ValidationError(f"Unable to fetch image from: {field_name}.", code=code)
+        raise ValidationError("Unable to fetch image.", code=code)
 
     validate_icon_image(image_file, code)
     return image_file
 
 
-def clean_brand(manifest_data) -> Optional[Dict]:
+def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
     brand_data = manifest_data.get("brand")
     if not brand_data:
         return None
-    brand_validator(brand_data)
-    return {"logo": {"default": brand_data["logo"]["default"]}}
-
-
-def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
-    if brand_data := manifest_data.get("brand"):
+    try:
         logo_url = brand_data["logo"]["default"]
-        try:
-            logo_file = fetch_icon_image(logo_url, "logo.default", timeout=timeout)
-            brand_data["logo"]["default"] = logo_file
-        except ValidationError:
-            brand_data = None
-        manifest_data["brand"] = brand_data
+        logo_file = fetch_icon_image(logo_url, "logo.default", timeout=timeout)
+        brand_data["logo"]["default"] = logo_file
+    except ValidationError as error:
+        msg = "Failed fetching brand data for app:%r error:%r"
+        logger.info(msg, manifest_data["id"], error, extra={"brand": brand_data})
+        brand_data = None
+    return brand_data

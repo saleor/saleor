@@ -100,10 +100,12 @@ def test_fetch_icon_image(
     mock_get_request.return_value.__enter__.return_value = image_response_mock
 
     # when
-    image_file = fetch_icon_image(image_url, "brand.logo.default")
+    image_file = fetch_icon_image(image_url)
 
     # then
-    mock_get_request.assert_called_once_with(image_url, stream=True, timeout=mock.ANY)
+    mock_get_request.assert_called_once_with(
+        image_url, stream=True, timeout=mock.ANY, allow_redirects=False
+    )
     mock_validate_icon_image.assert_called_once_with(image_file, mock.ANY)
     assert isinstance(image_file, File)
     assert image_file.read() == image_response_mock.content
@@ -119,30 +121,27 @@ def test_fetch_icon_image_invalid_type(
     image_response_mock.headers["content-type"] = "text/html"
 
     with pytest.raises(ValidationError) as error:
-        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+        fetch_icon_image("https://example.com/logo.png")
     assert error.value.code == AppErrorCode.INVALID.value
     mock_validate_icon_image.assert_not_called()
 
 
-@pytest.mark.parametrize("content_length", [0, -1, "invalid", MAX_ICON_FILE_SIZE + 1])
 @mock.patch("saleor.app.manifest_validations.validate_icon_image")
 @mock.patch("saleor.app.manifest_validations.requests.get")
-def test_fetch_icon_image_invalid_content_length(
-    mock_get_request, mock_validate_icon_image, image_response_mock, content_length
+def test_fetch_icon_image_content_length(
+    mock_get_request, mock_validate_icon_image, image_response_mock
 ):
     mock_get_request.return_value.__enter__.return_value = image_response_mock
-    image_response_mock.headers["content-length"] = content_length
+    image_response_mock.headers["content-length"] = MAX_ICON_FILE_SIZE + 1
 
     with pytest.raises(ValidationError) as error:
-        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+        fetch_icon_image("https://example.com/logo.png")
     assert error.value.code == AppErrorCode.INVALID.value
     mock_validate_icon_image.assert_not_called()
 
 
 @mock.patch("saleor.app.manifest_validations.requests.get")
-def test_fetch_icon_image_too_much_data_downloaded(
-    mock_get_request, image_response_mock
-):
+def test_fetch_icon_image_file_too_big(mock_get_request, image_response_mock):
     def content_chunks():
         while True:
             yield b"0" * 1024
@@ -151,16 +150,16 @@ def test_fetch_icon_image_too_much_data_downloaded(
     image_response_mock.iter_content.return_value = content_chunks()
 
     with pytest.raises(ValidationError) as error:
-        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+        fetch_icon_image("https://example.com/logo.png")
     assert error.value.code == AppErrorCode.INVALID.value
-    assert "File too big. Max icon image file size is" in error.value.message
+    assert "File too big. Maximal icon image file size is" in error.value.message
 
 
 @mock.patch("saleor.app.manifest_validations.requests.get")
 def test_fetch_icon_image_network_error(mock_get_request):
     mock_get_request.side_effect = requests.RequestException
     with pytest.raises(ValidationError) as error:
-        fetch_icon_image("https://example.com/logo.png", "brand.logo.default")
+        fetch_icon_image("https://example.com/logo.png")
     assert error.value.code == AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
 
 
