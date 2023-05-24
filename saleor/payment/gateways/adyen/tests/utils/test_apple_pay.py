@@ -111,7 +111,11 @@ def test_initialize_payment_for_apple_pay(mocked_request, mocked_tmp_file):
     }
 
     mocked_request.assert_called_with(
-        validation_url, json=expected_data, cert=mocked_cert_file_name
+        validation_url,
+        json=expected_data,
+        cert=mocked_cert_file_name,
+        timeout=30,
+        allow_redirects=False,
     )
 
 

@@ -17,14 +17,19 @@ from ..utils import assert_proper_webhook_called_once
 
 ORDER_LINES_CREATE_MUTATION = """
     mutation OrderLinesCreate(
-            $orderId: ID!, $variantId: ID!, $quantity: Int!, $forceNewLine: Boolean
+            $orderId: ID!,
+            $variantId: ID!,
+            $quantity: Int!,
+            $forceNewLine: Boolean,
+            $price: PositiveDecimal,
         ) {
         orderLinesCreate(id: $orderId,
                 input: [
                     {
                         variantId: $variantId,
                         quantity: $quantity,
-                        forceNewLine: $forceNewLine
+                        forceNewLine: $forceNewLine,
+                        price: $price
                     }
                 ]) {
 
@@ -735,3 +740,65 @@ def test_invalid_order_when_creating_lines(
     assert data["errors"]
     order_updated_webhook_mock.assert_not_called()
     draft_order_updated_webhook_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "status,force_new_line",
+    [(OrderStatus.DRAFT, False), (OrderStatus.UNCONFIRMED, True)],
+)
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_with_custom_price(
+    product_variant_out_of_stock_webhook_mock,
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    force_new_line,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = 18
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+        "forceNewLine": force_new_line,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    line = OrderLine.objects.last()
+    assert line.undiscounted_base_unit_price_amount == custom_price
+    assert line.base_unit_price_amount == custom_price
+    assert event.parameters["lines"] == [
+        {"item": str(line), "line_pk": str(line.pk), "quantity": quantity}
+    ]
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity

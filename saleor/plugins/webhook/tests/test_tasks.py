@@ -217,7 +217,11 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     event.refresh_from_db()
     assert event.psp_reference == expected_psp_reference
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -349,7 +353,11 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -428,7 +436,11 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -522,7 +534,11 @@ def test_handle_transaction_request_task_with_result_event(
     assert success_event.message == event_cause
 
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -610,7 +626,11 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     assert success_event.message == ""
 
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 

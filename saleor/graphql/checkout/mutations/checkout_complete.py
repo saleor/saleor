@@ -265,9 +265,9 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         site = get_site_promise(info.context).get()
 
         order, action_required, action_data = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data=payment_data or {},
             store_source=store_source,
             user=customer,

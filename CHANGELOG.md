@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 
 ### Saleor Apps
+
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Extend the OpenID connect configuration with `Staff user domains` and `Default permission group name for new staff users`.
   - When the OpenID plugin is active, the default staff permission group is created and all staff users are assigned to it.
@@ -42,6 +43,7 @@ All notable, unreleased changes to this project will be documented in this file.
   `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
 
 ### Other changes
+
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ
 - Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 - Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
@@ -50,7 +52,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
 - Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
 - Upgrade checkout `complete_checkout` to assign guest checkout to account if exists - #12758 by @FremahA
-- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
+- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
+- Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
+- Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
 - Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
 
 # 3.13.0

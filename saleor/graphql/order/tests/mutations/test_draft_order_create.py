@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, patch
 
 import graphene
+import pytest
 import pytz
 from prices import Money
 
@@ -1417,3 +1418,75 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == OrderErrorCode.UNIQUE.name
     assert error["message"] == "Order with this External reference already exists."
+
+
+@pytest.mark.parametrize("force_new_line", (True, False))
+def test_draft_order_create_with_custom_price_in_order_line(
+    force_new_line,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    expected_price_variant_0 = 10
+    expected_price_variant_1 = 20
+    variant_list = [
+        {
+            "variantId": variant_0_id,
+            "quantity": 2,
+            "price": expected_price_variant_0,
+            "forceNewLine": force_new_line,
+        },
+        {
+            "variantId": variant_1_id,
+            "quantity": 1,
+            "price": expected_price_variant_1,
+            "forceNewLine": force_new_line,
+        },
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+
+    order = Order.objects.first()
+
+    order_line_0 = order.lines.get(variant=variant_0)
+    assert order_line_0.base_unit_price_amount == expected_price_variant_0
+    assert order_line_0.undiscounted_base_unit_price_amount == expected_price_variant_0
+
+    order_line_1 = order.lines.get(variant=variant_1)
+    assert order_line_1.base_unit_price_amount == expected_price_variant_1
+    assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1

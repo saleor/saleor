@@ -1,4 +1,5 @@
 from collections import defaultdict
+from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, Iterable, List, Optional
 
 import graphene
@@ -27,6 +28,7 @@ class OrderLineData:
     variant_id: Optional[str] = None
     variant: Optional[ProductVariant] = None
     line_id: Optional[str] = None
+    price_override: Optional[Decimal] = None
     quantity: int = 0
 
 

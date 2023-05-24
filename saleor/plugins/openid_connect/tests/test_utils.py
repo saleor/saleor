@@ -280,6 +280,54 @@ def test_get_or_create_user_from_payload_creates_user_with_sub():
     assert not user_from_payload.has_usable_password()
 
 
+def test_get_or_create_user_from_payload_match_orders_for_new_user(order):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    customer_email = "email.customer@example.com"
+
+    order.user = None
+    order.user_email = customer_email
+    order.save()
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": customer_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    order.refresh_from_db()
+    assert order.user == user_from_payload
+
+
+def test_get_or_create_user_from_payload_match_orders_when_changing_email(
+    customer_user, order
+):
+    # given
+    oauth_url = "https://saleor.io/oauth"
+    sub_id = "oauth|1234"
+    new_customer_email = "new.customer@example.com"
+
+    customer_user.private_metadata = {f"oidc-{oauth_url}": sub_id}
+    customer_user.save()
+
+    order.user_email = new_customer_email
+    order.user = None
+    order.save()
+
+    # when
+    user_from_payload = get_or_create_user_from_payload(
+        payload={"sub": sub_id, "email": new_customer_email},
+        oauth_url=oauth_url,
+    )
+
+    # then
+    customer_user.refresh_from_db()
+    order.refresh_from_db()
+    assert order.user == user_from_payload
+
+
 def test_get_or_create_user_from_payload_multiple_subs(customer_user, admin_user):
     # given
     oauth_url = "https://saleor.io/oauth"

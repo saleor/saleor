@@ -1,10 +1,12 @@
 from decimal import Decimal
 from unittest import mock
 
+import before_after
 import pytest
 from django.test import override_settings
 from prices import TaxedMoney
 
+from ...checkout.models import Checkout, CheckoutLine
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import zero_money, zero_taxed_money
 from ...giftcard import GiftCardEvents
@@ -38,7 +40,6 @@ def test_create_order_insufficient_stock(
     with pytest.raises(InsufficientStock):
         create_order_from_checkout(
             checkout_info=checkout_info,
-            checkout_lines=checkout_lines,
             manager=manager,
             user=None,
             app=app,
@@ -83,7 +84,6 @@ def test_create_order_with_gift_card(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -131,7 +131,6 @@ def test_create_order_with_gift_card_partial_use(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -193,7 +192,6 @@ def test_create_order_with_many_gift_cards(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -267,7 +265,6 @@ def test_create_order_gift_card_bought(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -343,7 +340,6 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -399,7 +395,6 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -427,7 +422,6 @@ def test_note_in_created_order(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -472,7 +466,6 @@ def test_create_order_use_translations(
 
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -507,7 +500,6 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -545,7 +537,6 @@ def test_create_order_from_checkout_updates_total_charged_amount(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -575,7 +566,6 @@ def test_create_order_from_checkout_update_display_gross_prices(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=checkout_lines,
         manager=manager,
         user=None,
         app=app,
@@ -615,7 +605,6 @@ def test_create_order_from_checkout_store_shipping_prices(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -626,11 +615,11 @@ def test_create_order_from_checkout_store_shipping_prices(
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address
+        mock.ANY, lines, checkout.shipping_address
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, expected_shipping_price
+        mock.ANY, lines, checkout.shipping_address, expected_shipping_price
     )
 
 
@@ -662,7 +651,6 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     # when
     order = create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=None,
         app=app,
@@ -673,9 +661,81 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     assert order.base_shipping_price == expected_base_shipping_price
     assert order.shipping_price == expected_shipping_price
     manager.calculate_checkout_shipping.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address
+        mock.ANY, lines, checkout.shipping_address
     )
     assert order.shipping_tax_rate == expected_shipping_tax_rate
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
-        checkout_info, lines, checkout.shipping_address, expected_shipping_price
+        mock.ANY, lines, checkout.shipping_address, expected_shipping_price
     )
+
+
+def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
+    checkout_with_item, address, shipping_method, app, voucher_percentage
+):
+    # given
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.tracking_code = "tracking_code"
+    checkout_with_item.redirect_url = "https://www.example.com"
+    checkout_with_item.save()
+    manager = get_plugins_manager()
+
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
+
+    def delete_checkout_line(*args, **kwargs):
+        CheckoutLine.objects.get(id=checkout_with_item.lines.first().id).delete()
+
+    # when
+    with before_after.after(
+        "saleor.checkout.complete_checkout._increase_voucher_usage",
+        delete_checkout_line,
+    ):
+        order = create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+            tracking_code="tracking_code",
+        )
+
+    # then
+    assert order
+
+
+def test_note_in_created_order_checkout_deleted_in_the_meantime(
+    checkout_with_item, address, shipping_method, app, voucher_percentage
+):
+    # given
+    checkout_with_item.voucher_code = voucher_percentage.code
+    checkout_with_item.shipping_address = address
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_method = shipping_method
+    checkout_with_item.tracking_code = "tracking_code"
+    checkout_with_item.redirect_url = "https://www.example.com"
+    checkout_with_item.save()
+    manager = get_plugins_manager()
+
+    checkout_lines, _ = fetch_checkout_lines(checkout_with_item)
+    checkout_info = fetch_checkout_info(checkout_with_item, checkout_lines, manager)
+
+    def delete_checkout(*args, **kwargs):
+        Checkout.objects.get(pk=checkout_with_item.pk).delete()
+
+    # when
+    with before_after.after(
+        "saleor.checkout.complete_checkout._increase_voucher_usage",
+        delete_checkout,
+    ):
+        order = create_order_from_checkout(
+            checkout_info=checkout_info,
+            manager=manager,
+            user=None,
+            app=app,
+            tracking_code="tracking_code",
+        )
+
+    # then
+    assert order is None

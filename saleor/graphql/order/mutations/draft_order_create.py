@@ -26,7 +26,12 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_36, ADDED_IN_310
+from ...core.descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_310,
+    ADDED_IN_314,
+    PREVIEW_FEATURE,
+)
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
@@ -63,6 +68,16 @@ class OrderLineCreateInput(OrderLineInput):
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
             "by skipping the matching logic. " + ADDED_IN_36
+        ),
+    )
+    price = PositiveDecimal(
+        required=False,
+        description=(
+            "Custom price of the item."
+            "When the line with the same variant "
+            "will be provided multiple times, the last price will be used."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
     )
 
@@ -254,14 +269,20 @@ class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
                 variant = list(
                     filter(lambda x: (x.pk == int(variant_db_id)), variants)
                 )[0]
+                custom_price = line.get("price", None)
 
                 if line.get("force_new_line"):
-                    line_data = OrderLineData(variant_id=variant_db_id, variant=variant)
+                    line_data = OrderLineData(
+                        variant_id=variant_db_id,
+                        variant=variant,
+                        price_override=custom_price,
+                    )
                     grouped_lines_data.append(line_data)
                 else:
                     line_data = lines_data_map[variant_db_id]
                     line_data.variant_id = variant_db_id
                     line_data.variant = variant
+                    line_data.price_override = custom_price
 
                 if (quantity := line.get("quantity")) is not None:
                     line_data.quantity += quantity

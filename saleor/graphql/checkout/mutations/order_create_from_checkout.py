@@ -138,7 +138,6 @@ class OrderCreateFromCheckout(BaseMutation):
         try:
             order = create_order_from_checkout(
                 checkout_info=checkout_info,
-                checkout_lines=checkout_lines,
                 manager=manager,
                 user=user,
                 app=app,

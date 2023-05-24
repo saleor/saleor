@@ -215,6 +215,7 @@ def create_order_line(
     channel = order.channel
     variant = line_data.variant
     quantity = line_data.quantity
+    price_override = line_data.price_override
 
     product = variant.product
     collections = product.collections.all()
@@ -222,13 +223,23 @@ def create_order_line(
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
-        product, collections, channel, channel_listing, discounts
+        product,
+        collections,
+        channel,
+        channel_listing,
+        discounts,
+        price_override=price_override,
     )
     if not discounts:
         untaxed_undiscounted_price = untaxed_unit_price
     else:
         untaxed_undiscounted_price = variant.get_price(
-            product, collections, channel, channel_listing, []
+            product,
+            collections,
+            channel,
+            channel_listing,
+            [],
+            price_override=price_override,
         )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
     undiscounted_unit_price = TaxedMoney(
