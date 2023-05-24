@@ -69,7 +69,7 @@ mutation OrderGrantRefundCreate(
       lines{
         field
         code
-        orderLineId
+        lineId
         message
       }
     }
@@ -248,6 +248,10 @@ def test_grant_refund_with_only_include_grant_refund_for_shipping(
         is True
     )
     assert data["grantedRefund"]["shippingCostsIncluded"] is True
+    assert (
+        granted_refund_from_db.amount_value
+        == order_with_lines.shipping_price_gross_amount
+    )
 
 
 def test_grant_refund_with_only_lines(
@@ -260,9 +264,7 @@ def test_grant_refund_with_only_lines(
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     variables = {
         "id": order_id,
-        "input": {
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}]
-        },
+        "input": {"lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}]},
     }
 
     # when
@@ -291,6 +293,9 @@ def test_grant_refund_with_only_lines(
     ) == quantize_price(
         Decimal(order_granted_refund["amount"]["amount"]), order.currency
     )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
 
 
 def test_grant_refund_with_include_grant_refund_for_shipping_and_lines(
@@ -305,7 +310,7 @@ def test_grant_refund_with_include_grant_refund_for_shipping_and_lines(
         "id": order_id,
         "input": {
             "grantRefundForShipping": True,
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
         },
     }
 
@@ -341,6 +346,9 @@ def test_grant_refund_with_include_grant_refund_for_shipping_and_lines(
     ) == quantize_price(
         Decimal(order_granted_refund["amount"]["amount"]), order.currency
     )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
 
 
 def test_grant_refund_with_provided_lines_shipping_and_amount(
@@ -356,7 +364,7 @@ def test_grant_refund_with_provided_lines_shipping_and_amount(
         "id": order_id,
         "input": {
             "grantRefundForShipping": True,
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
             "amount": expected_amount,
         },
     }
@@ -391,6 +399,9 @@ def test_grant_refund_with_provided_lines_shipping_and_amount(
     ) == quantize_price(
         Decimal(order_granted_refund["amount"]["amount"]), order.currency
     )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
 
 
 def test_grant_refund_without_lines_and_amount_and_grant_for_shipping(
@@ -433,7 +444,7 @@ def test_grant_refund_with_incorrect_line_id(
     variables = {
         "id": order_id,
         "input": {
-            "lines": [{"orderLineId": "incorrect_id", "quantity": 1}],
+            "lines": [{"id": "incorrect_id", "quantity": 1}],
         },
     }
 
@@ -450,8 +461,8 @@ def test_grant_refund_with_incorrect_line_id(
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    assert line["orderLineId"] == "incorrect_id"
-    assert line["field"] == "orderLineId"
+    assert line["lineId"] == "incorrect_id"
+    assert line["field"] == "id"
     assert line["code"] == OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.name
 
 
@@ -470,7 +481,7 @@ def test_grant_refund_with_line_that_belongs_to_another_order(
     variables = {
         "id": another_order_id,
         "input": {
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
         },
     }
 
@@ -487,8 +498,8 @@ def test_grant_refund_with_line_that_belongs_to_another_order(
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    assert line["orderLineId"] == to_global_id_or_none(first_line)
-    assert line["field"] == "orderLineId"
+    assert line["lineId"] == to_global_id_or_none(first_line)
+    assert line["field"] == "id"
     assert line["code"] == OrderGrantRefundCreateLineErrorCode.NOT_FOUND.name
 
 
@@ -505,9 +516,7 @@ def test_grant_refund_with_bigger_quantity_than_available(
     variables = {
         "id": order_id,
         "input": {
-            "lines": [
-                {"orderLineId": to_global_id_or_none(first_line), "quantity": 100}
-            ],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 100}],
         },
     }
 
@@ -524,7 +533,7 @@ def test_grant_refund_with_bigger_quantity_than_available(
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    assert line["orderLineId"] == to_global_id_or_none(first_line)
+    assert line["lineId"] == to_global_id_or_none(first_line)
     assert line["field"] == "quantity"
     assert (
         line["code"]
@@ -581,7 +590,7 @@ def test_grant_refund_with_lines_and_existing_other_grant_refund(
     variables = {
         "id": order_id,
         "input": {
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
         },
     }
     granted_refund = order.granted_refunds.create(shipping_costs_included=False)
@@ -631,7 +640,7 @@ def test_grant_refund_with_lines_and_existing_other_grant_and_refund_exceeding_q
     variables = {
         "id": order_id,
         "input": {
-            "lines": [{"orderLineId": to_global_id_or_none(first_line), "quantity": 1}],
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
         },
     }
     granted_refund = order.granted_refunds.create(shipping_costs_included=False)
@@ -650,7 +659,7 @@ def test_grant_refund_with_lines_and_existing_other_grant_and_refund_exceeding_q
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    assert line["orderLineId"] == to_global_id_or_none(first_line)
+    assert line["lineId"] == to_global_id_or_none(first_line)
     assert line["field"] == "quantity"
     assert (
         line["code"]

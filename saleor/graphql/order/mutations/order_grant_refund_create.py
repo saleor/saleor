@@ -1,12 +1,9 @@
 import decimal
-import uuid
-from collections import defaultdict
 from typing import Any, Optional, Union, cast
 
 import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from graphql import GraphQLError
 
 from ....order import models
 from ....permission.enums import OrderPermissions
@@ -17,16 +14,21 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types import BaseInputObjectType
 from ...core.types.common import Error, NonNullList
-from ...core.utils import from_global_id_or_error
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
+from .order_grant_refund_utils import (
+    get_input_lines_data,
+    get_lines_map,
+    handle_lines_with_quantity_already_refunded,
+    shipping_costs_already_granted,
+)
 
 
 class OrderGrantRefundCreateLineError(Error):
     code = OrderGrantRefundCreateLineErrorCode(
         description="The error code.", required=True
     )
-    order_line_id = graphene.ID(
+    line_id = graphene.ID(
         description="The ID of the line related to the error.", required=True
     )
 
@@ -44,7 +46,7 @@ class OrderGrantRefundCreateError(Error):
 
 
 class OrderGrantRefundCreateLineInput(BaseInputObjectType):
-    order_line_id = graphene.ID(description="The ID of the order line.", required=True)
+    id = graphene.ID(description="The ID of the order line.", required=True)
     quantity = graphene.Int(
         description="The quantity of line items to be marked to refund.", required=True
     )
@@ -102,74 +104,29 @@ class OrderGrantRefundCreate(BaseMutation):
 
     @classmethod
     def clean_input_lines(
-        cls, order: models.Order, lines: list[dict[str, Union[str, int]]]
+        cls,
+        order: models.Order,
+        lines: list[dict[str, Union[str, int]]],
     ) -> tuple[
         Optional[list[tuple[models.OrderLine, int]]], Optional[list[dict[str, str]]]
     ]:
-        errors = []
-        input_lines_data = {}
-        for line in lines:
-            order_line_id = cast(str, line["order_line_id"])
-            try:
-                _, pk = from_global_id_or_error(order_line_id, only_type="OrderLine")
-                input_lines_data[pk] = int(line["quantity"])
-            except GraphQLError as e:
-                errors.append(
-                    {
-                        "order_line_id": line["order_line_id"],
-                        "field": "orderLineId",
-                        "code": OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value,
-                        "message": str(e),
-                    }
-                )
-
-        input_line_ids = list(input_lines_data.keys())
-        lines = order.lines.filter(id__in=input_line_ids)
-        lines_dict = {line.pk: line for line in lines}
-        if len(lines_dict.keys()) != len(input_line_ids):
-            invalid_ids = set(input_line_ids).difference(set(lines_dict.keys()))
-            for invalid_id in invalid_ids:
-                errors.append(
-                    {
-                        "order_line_id": graphene.Node.to_global_id(
-                            "OrderLine", invalid_id
-                        ),
-                        "field": "orderLineId",
-                        "message": "Could not resolve to a line.",
-                        "code": OrderGrantRefundCreateLineErrorCode.NOT_FOUND.value,
-                    }
-                )
-        all_granted_refund_ids = order.granted_refunds.all().values_list(
-            "id", flat=True
+        errors: list[dict[str, str]] = []
+        input_lines_data = get_input_lines_data(
+            lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
         )
-        all_granted_refund_lines = models.OrderGrantedRefundLine.objects.filter(
-            granted_refund_id__in=all_granted_refund_ids
+        lines_dict = get_lines_map(
+            order,
+            input_lines_data,
+            errors,
+            OrderGrantRefundCreateLineErrorCode.NOT_FOUND.value,
         )
-        lines_with_quantity_already_refunded: dict[uuid.UUID, int] = defaultdict(int)
-        for line in all_granted_refund_lines:
-            lines_with_quantity_already_refunded[line.order_line_id] += line.quantity
-
-        for line in lines_dict.values():
-            quantity_already_refunded = lines_with_quantity_already_refunded[line.pk]
-            if (
-                input_lines_data[str(line.pk)] + quantity_already_refunded
-                > line.quantity
-            ):
-                error_code_class = OrderGrantRefundCreateLineErrorCode
-
-                errors.append(
-                    {
-                        "order_line_id": graphene.Node.to_global_id(
-                            "OrderLine", line.pk
-                        ),
-                        "field": "quantity",
-                        "message": (
-                            "Cannot grant refund for more than the available quantity "
-                            f"of the line ({line.quantity-quantity_already_refunded})."
-                        ),
-                        "code": error_code_class.QUANTITY_GREATER_THAN_AVAILABLE.value,
-                    }
-                )
+        handle_lines_with_quantity_already_refunded(
+            order,
+            lines_dict,
+            input_lines_data,
+            errors,
+            OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
+        )
 
         if errors:
             return None, errors
@@ -177,12 +134,6 @@ class OrderGrantRefundCreate(BaseMutation):
         return [
             (line, input_lines_data[str(line.pk)]) for line in lines_dict.values()
         ], None
-
-    @classmethod
-    def shipping_costs_already_granted(cls, order: models.Order):
-        if order.granted_refunds.filter(shipping_costs_included=True):
-            return True
-        return False
 
     @classmethod
     def calculate_amount(
@@ -199,9 +150,8 @@ class OrderGrantRefundCreate(BaseMutation):
         return amount
 
     @classmethod
-    def clean_input(cls, order: models.Order, input: dict[str, Any]):
+    def validate_input(cls, input: dict[str, Any]):
         amount = input.get("amount")
-        reason = input.get("reason", "")
         input_lines = input.get("lines", [])
         grant_refund_for_shipping = input.get("grant_refund_for_shipping", False)
 
@@ -213,19 +163,30 @@ class OrderGrantRefundCreate(BaseMutation):
             raise ValidationError(
                 {
                     "amount": ValidationError(
-                        error_msg,
-                        code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
+                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
                     ),
                     "lines": ValidationError(
-                        error_msg,
-                        code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
+                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
                     ),
                     "grant_refund_for_shipping": ValidationError(
-                        error_msg,
-                        code=OrderGrantRefundCreateErrorCode.REQUIRED.value,
+                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
                     ),
                 }
             )
+
+    @classmethod
+    def clean_input(
+        cls,
+        order: models.Order,
+        input: dict[str, Any],
+    ):
+        amount = input.get("amount")
+        reason = input.get("reason", "")
+        input_lines = input.get("lines", [])
+        grant_refund_for_shipping = input.get("grant_refund_for_shipping", None)
+
+        cls.validate_input(input)
+
         cleaned_input_lines: Optional[list[tuple[models.OrderLine, int]]] = []
         if input_lines:
             cleaned_input_lines, errors = cls.clean_input_lines(order, input_lines)
@@ -239,7 +200,7 @@ class OrderGrantRefundCreate(BaseMutation):
                         ),
                     }
                 )
-        if grant_refund_for_shipping and cls.shipping_costs_already_granted(order):
+        if grant_refund_for_shipping and shipping_costs_already_granted(order):
             error_code = OrderGrantRefundCreateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED
             raise ValidationError(
                 {
@@ -283,7 +244,7 @@ class OrderGrantRefundCreate(BaseMutation):
                 reason=reason,
                 user=info.context.user,
                 app=info.context.app,
-                shipping_costs_included=grant_refund_for_shipping,
+                shipping_costs_included=grant_refund_for_shipping or False,
             )
             if cleaned_input_lines:
                 models.OrderGrantedRefundLine.objects.bulk_create(

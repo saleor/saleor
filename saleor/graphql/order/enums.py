@@ -64,6 +64,10 @@ OrderGrantRefundCreateLineErrorCode = graphene.Enum.from_enum(
     error_codes.OrderGrantRefundCreateLineErrorCode
 )
 
+OrderGrantRefundUpdateLineErrorCode = graphene.Enum.from_enum(
+    error_codes.OrderGrantRefundUpdateLineErrorCode
+)
+
 OrderGrantRefundCreateErrorCode.doc_category = DOC_CATEGORY_ORDERS
 
 OrderGrantRefundUpdateErrorCode = graphene.Enum.from_enum(
