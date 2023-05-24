@@ -1,8 +1,10 @@
 import graphene
+from prices import Money
 
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
+from ....account.tests.utils import convert_dict_keys_to_camel_case
 from ....tests.utils import get_graphql_content
 
 DRAFT_UPDATE_QUERY = """
@@ -335,3 +337,179 @@ def test_draft_order_update_assign_user_when_existing_customer_email_provided(
     assert not data["errors"]
     assert order.user == user
     assert order.user_email == user_email
+
+
+DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
+    mutation draftUpdate(
+        $id: ID!, $shippingMethod: ID
+    ) {
+        draftOrderUpdate(id: $id,
+                            input: {
+                                shippingMethod: $shippingMethod
+                            }) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                shippingMethodName
+                shippingPrice {
+                tax {
+                    amount
+                    }
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+                }
+            shippingTaxRate
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_update_shipping_method_from_different_channel(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    address_usa,
+    shipping_method_channel_PLN,
+):
+    # given
+    order = draft_order
+    order.shipping_address = address_usa
+    order.save(update_fields=["shipping_address"])
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_channel_PLN.id
+    )
+    variables = {"id": order_id, "shippingMethod": shipping_method_id}
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+
+    # then
+    assert len(data["errors"]) == 1
+    assert not data["order"]
+    error = data["errors"][0]
+    assert error["code"] == OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE.name
+    assert error["field"] == "shippingMethod"
+
+
+def test_draft_order_update_shipping_method_prices_updates(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    address_usa,
+    shipping_method,
+    shipping_method_weight_based,
+):
+    # given
+    order = draft_order
+    order.shipping_address = address_usa
+    order.shipping_method = shipping_method
+    order.save(update_fields=["shipping_address", "shipping_method"])
+    assert shipping_method.channel_listings.first().price_amount == 10
+    method_2 = shipping_method_weight_based
+    m2_channel_listing = method_2.channel_listings.first()
+    m2_channel_listing.price_amount = 15
+    m2_channel_listing.save(update_fields=["price_amount"])
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    shipping_method_id = graphene.Node.to_global_id("ShippingMethod", method_2.id)
+    variables = {"id": order_id, "shippingMethod": shipping_method_id}
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    order.refresh_from_db()
+
+    # then
+    assert not data["errors"]
+    assert data["order"]["shippingMethodName"] == method_2.name
+    assert data["order"]["shippingPrice"]["net"]["amount"] == 15.0
+
+
+DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION = """
+    mutation draftUpdate(
+        $id: ID!, $shippingAddress: AddressInput
+    ) {
+        draftOrderUpdate(id: $id,
+                            input: {
+                                shippingAddress: $shippingAddress
+                            }) {
+            errors {
+                field
+                message
+                code
+            }
+            order {
+                shippingMethodName
+                shippingPrice {
+                tax {
+                    amount
+                    }
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
+                }
+            shippingTaxRate
+            }
+        }
+    }
+"""
+
+
+def test_draft_order_update_address_clear_invalid_shipping_method(
+    staff_api_client,
+    permission_manage_orders,
+    draft_order,
+    address_usa,
+    shipping_method,
+    address,
+):
+    # given
+    order = draft_order
+    order.shipping_address = address_usa
+    order.shipping_method = shipping_method
+    order.save(update_fields=["shipping_address", "shipping_method"])
+    query = DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    address_data = convert_dict_keys_to_camel_case(address.as_data())
+
+    variables = {"id": order_id, "shippingAddress": address_data}
+    zero_shipping_price_data = {
+        "tax": {"amount": 0.0},
+        "net": {"amount": 0.0},
+        "gross": {"amount": 0.0},
+    }
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+
+    content = get_graphql_content(response)
+    data = content["data"]["draftOrderUpdate"]
+    order.refresh_from_db()
+
+    # then
+    assert not data["errors"]
+    assert data["order"]["shippingMethodName"] is None
+    assert data["order"]["shippingPrice"] == zero_shipping_price_data
+    assert data["order"]["shippingTaxRate"] == 0.0
+    assert order.shipping_method is None

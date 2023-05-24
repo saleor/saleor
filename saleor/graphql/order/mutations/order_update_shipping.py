@@ -11,8 +11,12 @@ from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...shipping.types import ShippingMethod
 from ..types import Order
-from .utils import EditableOrderValidationMixin, clean_order_update_shipping, \
-    ShippingMethodUpdateMixin, SHIPPING_METHOD_UPDATE_FIELDS
+from .utils import (
+    SHIPPING_METHOD_UPDATE_FIELDS,
+    EditableOrderValidationMixin,
+    ShippingMethodUpdateMixin,
+    clean_order_update_shipping,
+)
 
 
 class OrderUpdateShippingInput(graphene.InputObjectType):
@@ -24,9 +28,7 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
 
 
 class OrderUpdateShipping(
-    EditableOrderValidationMixin,
-    ShippingMethodUpdateMixin,
-    BaseMutation
+    EditableOrderValidationMixin, ShippingMethodUpdateMixin, BaseMutation
 ):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
@@ -118,9 +120,7 @@ class OrderUpdateShipping(
         manager = get_plugin_manager_promise(info.context).get()
         clean_order_update_shipping(order, shipping_method_data, manager)
 
-        cls.update_shipping_method(
-            order, method, shipping_channel_listing
-        )
+        cls.update_shipping_method(order, method, shipping_channel_listing)
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
         # Post-process the results

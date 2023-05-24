@@ -7,10 +7,9 @@ from ....order.utils import invalidate_order_prices
 from ....payment import PaymentError
 from ....plugins.manager import PluginsManager
 from ....shipping.interface import ShippingMethodData
-from ..utils import get_shipping_method_availability_error
 from ....shipping.models import ShippingMethodChannelListing
 from ....shipping.utils import convert_to_shipping_method_data
-
+from ..utils import get_shipping_method_availability_error
 
 SHIPPING_METHOD_UPDATE_FIELDS = [
     "currency",
@@ -62,9 +61,7 @@ class ShippingMethodUpdateMixin:
         order.shipping_tax_class_private_metadata = {}
         order.shipping_tax_class_metadata = {}
         invalidate_order_prices(order)
-        order.save(
-            update_fields=SHIPPING_METHOD_UPDATE_FIELDS
-        )
+        order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
 
     @classmethod
     def update_shipping_method(cls, order, method, shipping_method_data):
@@ -83,11 +80,9 @@ class ShippingMethodUpdateMixin:
 
     @classmethod
     def validate_shipping_channel_listing(cls, method, order):
-        shipping_channel_listing = (
-            ShippingMethodChannelListing.objects.filter(
-                shipping_method=method, channel=order.channel
-            ).first()
-        )
+        shipping_channel_listing = ShippingMethodChannelListing.objects.filter(
+            shipping_method=method, channel=order.channel
+        ).first()
         if not shipping_channel_listing:
             raise ValidationError(
                 {
