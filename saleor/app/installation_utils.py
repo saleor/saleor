@@ -78,10 +78,10 @@ def fetch_brand_data_task(
     """Task to fetch app's brand data. Last retry delayed 24H."""
     app = App.objects.filter(id=app_id).first()
     app_inst = AppInstallation.objects.filter(id=app_installation_id).first()
-    if app is None and app_inst is None:
-        return
-    if app and app.brand_logo_default and app_inst and app_inst.brand_logo_default:
-        return
+    if not app_inst or (app_inst and app_inst.brand_logo_default):
+        if not app or (app and app.brand_logo_default):
+            # App and AppInstall deleted or brand data already fetched
+            return
     try:
         logo_img = fetch_icon_image(brand_data["logo"]["default"], "")
         _set_brand_data(app, logo_img)
@@ -90,7 +90,7 @@ def fetch_brand_data_task(
         extra = {
             "app_id": app_id,
             "app_installation_id": app_installation_id,
-            brand_data: "brand_data",
+            "brand_data": brand_data,
         }
         task_logger.info("Fetching brand data failed. Error: %r", error, extra=extra)
         try:
