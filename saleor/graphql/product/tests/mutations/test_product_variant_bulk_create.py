@@ -38,6 +38,9 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
                         name
                         sku
                         attributes{
+                            attribute {
+                                slug
+                            }
                             values {
                                 name
                                 slug
@@ -202,6 +205,168 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
     update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+
+
+def test_product_variant_bulk_create_by_attribute_external_ref(
+    staff_api_client,
+    product,
+    color_attribute,
+    permission_manage_products,
+):
+    # given
+    product_variant_count = ProductVariant.objects.count()
+    product.product_type.variant_attributes.add(color_attribute)
+
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_value = color_attribute.values.last()
+    attribute_external_ref = color_attribute.external_reference
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": attribute_value.external_reference
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert product_variant_count + 1 == ProductVariant.objects.count()
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["attribute"]["slug"]
+        == color_attribute.slug
+    )
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["values"][0]["slug"]
+        == attribute_value.slug
+    )
+
+
+def test_product_variant_bulk_create_return_error_when_attribute_external_ref_and_id(
+    staff_api_client,
+    product,
+    color_attribute,
+    permission_manage_products,
+):
+    # given
+    product.product_type.variant_attributes.add(color_attribute)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_value = color_attribute.values.last()
+    attribute_external_ref = color_attribute.external_reference
+    sku = str(uuid4())[:12]
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {
+                    "id": graphene.Node.to_global_id("Attribute", color_attribute.pk),
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": attribute_value.external_reference
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert data["results"][0]["errors"]
+    error = data["results"][0]["errors"][0]
+    assert error["path"] == "attributes"
+    assert error["message"] == (
+        "Argument 'id' cannot be combined with 'externalReference'"
+    )
+
+
+def test_product_variant_bulk_create_will_create_new_attr_value_and_external_reference(
+    staff_api_client,
+    product,
+    color_attribute,
+    permission_manage_products,
+):
+    # given
+    product.product_type.variant_attributes.add(color_attribute)
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute_value = color_attribute.values.last()
+    attribute_external_ref = color_attribute.external_reference
+    sku = str(uuid4())[:12]
+    color_attr_values_count = color_attribute.values.count()
+    new_value = "NewColorValue"
+    new_value_external_ref = attribute_value.external_reference + "New"
+
+    variants = [
+        {
+            "sku": sku,
+            "weight": 2.5,
+            "trackInventory": True,
+            "attributes": [
+                {
+                    "externalReference": attribute_external_ref,
+                    "dropdown": {
+                        "externalReference": new_value_external_ref,
+                        "value": new_value,
+                    },
+                }
+            ],
+        }
+    ]
+
+    variables = {"productId": product_id, "variants": variants}
+
+    # when
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    flush_post_commit_hooks()
+    data = content["data"]["productVariantBulkCreate"]
+
+    # then
+    assert not data["results"][0]["errors"]
+    assert data["count"] == 1
+    assert color_attribute.values.count() == color_attr_values_count + 1
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["attribute"]["slug"]
+        == color_attribute.slug
+    )
+    assert (
+        data["results"][0]["productVariant"]["attributes"][1]["values"][0]["name"]
+        == new_value
+    )
 
 
 def test_product_variant_bulk_create_with_swatch_attribute(

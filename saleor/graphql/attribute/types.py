@@ -20,6 +20,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_39,
     ADDED_IN_310,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -400,6 +401,10 @@ class AttributeInput(BaseInputObjectType):
 
 class AttributeValueSelectableTypeInput(BaseInputObjectType):
     id = graphene.ID(required=False, description="ID of an attribute value.")
+    external_reference = graphene.String(
+        required=False,
+        description="External reference of an attribute value." + ADDED_IN_314,
+    )
     value = graphene.String(
         required=False,
         description=(
@@ -410,14 +415,18 @@ class AttributeValueSelectableTypeInput(BaseInputObjectType):
 
     class Meta:
         description = (
-            "Represents attribute value. If no ID provided, value will be resolved. "
-            + ADDED_IN_39
+            "Represents attribute value. If no ID or external reference provided, "
+            "value will be resolved. If externalReference and value is provided then "
+            "new attribute value will be created." + ADDED_IN_39
         )
         doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 class AttributeValueInput(BaseInputObjectType):
-    id = graphene.ID(description="ID of the selected attribute.")
+    id = graphene.ID(description="ID of the selected attribute.", required=False)
+    external_reference = graphene.String(
+        description="External ID of this attribute." + ADDED_IN_314, required=False
+    )
     values = NonNullList(
         graphene.String,
         required=False,
@@ -429,16 +438,16 @@ class AttributeValueInput(BaseInputObjectType):
     )
     dropdown = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID." + ADDED_IN_39,
+        description="Attribute value ID or external reference." + ADDED_IN_39,
     )
     swatch = AttributeValueSelectableTypeInput(
         required=False,
-        description="Attribute value ID." + ADDED_IN_39,
+        description="Attribute value ID or external reference." + ADDED_IN_39,
     )
     multiselect = NonNullList(
         AttributeValueSelectableTypeInput,
         required=False,
-        description="List of attribute value IDs." + ADDED_IN_39,
+        description="List of attribute value IDs or external references." + ADDED_IN_39,
     )
     numeric = graphene.String(
         required=False,

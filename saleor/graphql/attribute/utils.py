@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Type, U
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db.utils import IntegrityError
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from django.utils.text import slugify
@@ -24,6 +25,7 @@ from ...page.error_codes import PageErrorCode
 from ...product import models as product_models
 from ...product.error_codes import ProductErrorCode
 from ..core.utils import from_global_id_or_error, get_duplicated_values
+from ..core.validators import validate_one_of_args_is_in_mutation
 from ..utils import get_nodes
 
 if TYPE_CHECKING:
@@ -35,12 +37,14 @@ if TYPE_CHECKING:
 @dataclass
 class AttrValuesForSelectableFieldInput:
     id: Optional[str] = None
+    external_reference: Optional[str] = None
     value: Optional[str] = None
 
 
 @dataclass
 class AttrValuesInput:
-    global_id: str
+    global_id: Optional[str] = None
+    external_reference: Optional[str] = None
     values: Optional[List[str]] = None
     dropdown: Optional[AttrValuesForSelectableFieldInput] = None
     swatch: Optional[AttrValuesForSelectableFieldInput] = None
@@ -60,7 +64,7 @@ T_INSTANCE = Union[
     product_models.Product, product_models.ProductVariant, page_models.Page
 ]
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
-T_ERROR_DICT = Dict[Tuple[str, str], List[str]]
+T_ERROR_DICT = Dict[Tuple[str, str], List]
 
 EntityTypeData = namedtuple("EntityTypeData", ["model", "name_field", "value_field"])
 
@@ -103,26 +107,41 @@ class AttributeAssignmentMixin:
         error_class,
         *,
         global_ids: List[str],
+        external_references: Iterable[str],
         pks: Iterable[int],
     ):
-        """Retrieve attributes nodes from given global IDs."""
-        qs = qs.filter(pk__in=pks)
+        """Retrieve attributes nodes from given global IDs or external reference."""
+
+        qs = qs.filter(Q(pk__in=pks) | Q(external_reference__in=external_references))
         nodes: List[attribute_models.Attribute] = list(qs)
 
         if not nodes:
             raise ValidationError(
-                (f"Could not resolve to a node: ids={global_ids}."),
+                (
+                    f"Could not resolve to a node: ids={global_ids}, "
+                    f"external_references={external_references}."
+                ),
                 code=error_class.NOT_FOUND.value,
             )
 
         nodes_pk_list = set()
+        nodes_external_reference_list = set()
+
         for node in nodes:
             nodes_pk_list.add(node.pk)
+            nodes_external_reference_list.add(node.external_reference)
 
         for pk, global_id in zip(pks, global_ids):
             if pk not in nodes_pk_list:
                 raise ValidationError(
                     f"Could not resolve {global_id!r} to Attribute",
+                    code=error_class.NOT_FOUND.value,
+                )
+
+        for external_ref in external_references:
+            if external_ref not in nodes_external_reference_list:
+                raise ValidationError(
+                    f"Could not resolve {external_ref} to Attribute",
                     code=error_class.NOT_FOUND.value,
                 )
 
@@ -162,6 +181,24 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
+    def _create_value_instance(cls, attribute, attr_value, external_ref):
+        existing_slugs = get_existing_slugs(attribute, [attr_value])
+        slug = prepare_unique_slug(slugify(unidecode(attr_value)), existing_slugs)
+
+        try:
+            value = attribute_models.AttributeValue.objects.create(
+                external_reference=external_ref,
+                attribute=attribute,
+                name=attr_value,
+                slug=slug,
+            )
+        except IntegrityError:
+            raise ValidationError(
+                "Attribute value with given externalReference already exists."
+            )
+        return (value,)
+
+    @classmethod
     def clean_input(
         cls,
         raw_input: dict,
@@ -187,18 +224,32 @@ class AttributeAssignmentMixin:
 
         # Mapping to associate the input values back to the resolved attribute nodes
         pks = {}
+        external_references_values_map = {}
 
         # Temporary storage of the passed ID for error reporting
         global_ids = []
+
         for attribute_input in raw_input:
             global_id = attribute_input.pop("id", None)
-            if global_id is None:
-                raise ValidationError(
-                    "The attribute ID is required.",
-                    code=error_class.REQUIRED.value,
+            external_reference = attribute_input.pop("external_reference", None)
+
+            try:
+                validate_one_of_args_is_in_mutation(
+                    "id",
+                    global_id,
+                    "external_reference",
+                    external_reference,
+                    use_camel_case=True,
                 )
+            except ValidationError as error:
+                raise ValidationError(
+                    error.message,
+                    code=error_class.INVALID.value,
+                )
+
             values = AttrValuesInput(
                 global_id=global_id,
+                external_reference=external_reference,
                 values=attribute_input.pop("values", []),
                 file_url=cls._clean_file_url(
                     attribute_input.pop("file", None), error_class
@@ -206,26 +257,35 @@ class AttributeAssignmentMixin:
                 **attribute_input,
             )
 
-            internal_id = cls._resolve_attribute_global_id(error_class, global_id)
-            global_ids.append(global_id)
-            pks[internal_id] = values
+            if global_id:
+                internal_id = cls._resolve_attribute_global_id(error_class, global_id)
+                global_ids.append(global_id)
+                pks[internal_id] = values
+
+            if external_reference:
+                external_references_values_map[external_reference] = values
 
         attributes = cls._resolve_attribute_nodes(
             attributes_qs,
             error_class,
             global_ids=global_ids,
+            external_references=external_references_values_map.keys(),
             pks=pks.keys(),
         )
+
         attr_with_invalid_references = []
         cleaned_input = []
+
         for attribute in attributes:
-            key = pks[attribute.pk]
+            key = pks.get(attribute.pk)
+            if not key:
+                key = external_references_values_map[attribute.external_reference]
+
             if attribute.input_type == AttributeInputType.REFERENCE:
                 try:
                     key = cls._validate_references(error_class, attribute, key)
                 except GraphQLError:
                     attr_with_invalid_references.append(attribute)
-
             cleaned_input.append((attribute, key))
 
         if attr_with_invalid_references:
@@ -370,16 +430,33 @@ class AttributeAssignmentMixin:
         if not attr_values.dropdown:
             return tuple()
 
+        attr_value = attr_values.dropdown.value
+        external_ref = attr_values.dropdown.external_reference
+
+        if external_ref and attr_value:
+            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            return value
+
+        if external_ref:
+            value = attribute_models.AttributeValue.objects.get(
+                external_reference=external_ref
+            )
+            if not value:
+                raise ValidationError(
+                    "Attribute value with given externalReference can't be found"
+                )
+            return (value,)
+
         if id := attr_values.dropdown.id:
             _, attr_value_id = from_global_id_or_error(id)
-            model = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
-            if not model:
+            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+            if not value:
                 raise ValidationError("Attribute value with given ID can't be found")
-            return (model,)
+            return (value,)
 
-        if attr_value := attr_values.dropdown.value:
-            model = prepare_attribute_values(attribute, [attr_value])
-            return model
+        if attr_value:
+            value = prepare_attribute_values(attribute, [attr_value])
+            return value
 
         return tuple()
 
@@ -392,6 +469,23 @@ class AttributeAssignmentMixin:
     ):
         if not attr_values.swatch:
             return tuple()
+
+        attr_value = attr_values.swatch.value
+        external_ref = attr_values.swatch.external_reference
+
+        if external_ref and attr_value:
+            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            return value
+
+        if external_ref:
+            value = attribute_models.AttributeValue.objects.get(
+                external_reference=external_ref
+            )
+            if not value:
+                raise ValidationError(
+                    "Attribute value with given externalReference can't be found"
+                )
+            return (value,)
 
         if id := attr_values.swatch.id:
             _, attr_value_id = from_global_id_or_error(id)
@@ -418,6 +512,21 @@ class AttributeAssignmentMixin:
 
         attribute_values: List[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
+            external_ref = attr_value.external_reference
+            if external_ref and attr_value:
+                value = cls._create_value_instance(attribute, attr_value, external_ref)
+                return value
+
+            if external_ref:
+                value = attribute_models.AttributeValue.objects.get(
+                    external_reference=external_ref
+                )
+                if not value:
+                    raise ValidationError(
+                        "Attribute value with given externalReference can't be found"
+                    )
+                return (value,)
+
             if attr_value.id:
                 _, attr_value_id = from_global_id_or_error(attr_value.id)
                 attr_value_model = attribute_models.AttributeValue.objects.get(
@@ -515,9 +624,9 @@ class AttributeAssignmentMixin:
     ):
         if attr_values.boolean is None:
             return tuple()
-        get_or_create = attribute.values.get_or_create
+
         boolean = bool(attr_values.boolean)
-        value, _ = get_or_create(
+        value, _ = attribute.values.get_or_create(
             attribute=attribute,
             slug=slugify(unidecode(f"{attribute.id}_{boolean}")),
             defaults={
@@ -715,6 +824,14 @@ class AttributeInputErrors:
         "Attribute values cannot be assigned by both id and value.",
         "INVALID",
     )
+    ERROR_ID_AND_EXTERNAL_REFERENCE = (
+        "Attribute values cannot be assigned by both id and external reference.",
+        "INVALID",
+    )
+    ERROR_NO_ID_OR_EXTERNAL_REFERENCE = (
+        "Attribute id or external reference has to be provided.",
+        "REQUIRED",
+    )
     # file errors
     ERROR_NO_FILE_GIVEN = (
         "Attribute file url cannot be blank.",
@@ -810,16 +927,22 @@ def validate_file_attributes_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     value = attr_values.file_url
     if not value:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_FILE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
     elif not value.strip():
         attribute_errors[AttributeInputErrors.ERROR_BLANK_FILE_VALUE].append(
-            attribute_id
+            attr_identifier
         )
 
 
@@ -828,12 +951,18 @@ def validate_reference_attributes_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     references = attr_values.references
     if not references:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_REFERENCE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
 
 
@@ -842,11 +971,17 @@ def validate_boolean_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     value = attr_values.boolean
 
     if attribute.value_required and value is None:
-        attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(attr_identifier)
 
 
 def validate_rich_text_attributes_input(
@@ -854,11 +989,19 @@ def validate_rich_text_attributes_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     text = clean_editor_js(attr_values.rich_text or {}, to_string=True)
 
     if not text.strip() and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+            attr_identifier
+        )
 
 
 def validate_plain_text_attributes_input(
@@ -866,12 +1009,20 @@ def validate_plain_text_attributes_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
 
     if (
         not attr_values.plain_text or not attr_values.plain_text.strip()
     ) and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+            attr_identifier
+        )
 
 
 def validate_standard_attributes_input(
@@ -880,24 +1031,30 @@ def validate_standard_attributes_input(
     attribute_errors: T_ERROR_DICT,
 ):
     """To be deprecated together with `AttributeValueInput.values` field."""
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
 
     if not attr_values.values:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
     elif (
         attribute.input_type != AttributeInputType.MULTISELECT
         and len(attr_values.values) != 1
     ):
         attribute_errors[AttributeInputErrors.ERROR_MORE_THAN_ONE_VALUE_GIVEN].append(
-            attribute_id
+            attr_identifier
         )
 
     if attr_values.values is not None:
         validate_values(
-            attribute_id,
+            attr_identifier,
             attribute,
             attr_values.values,
             attribute_errors,
@@ -908,32 +1065,46 @@ def validate_single_selectable_field(
     attribute: "Attribute",
     attr_value: AttrValuesForSelectableFieldInput,
     attribute_errors: T_ERROR_DICT,
-    attribute_id: str,
+    attr_identifier: str,
 ):
     id = attr_value.id
     value = attr_value.value
+    external_reference = attr_value.external_reference
+
+    if id and external_reference:
+        attribute_errors[AttributeInputErrors.ERROR_ID_AND_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
 
     if id and value:
-        attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(
+            attr_identifier
+        )
         return
 
     if not id and not value and attribute.value_required:
-        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(attribute_id)
+        attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
+            attr_identifier
+        )
         return
 
     if value:
         max_length = attribute.values.model.name.field.max_length  # type: ignore
         if not value.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attribute_id
+                attr_identifier
             )
         elif len(value) > max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
+                attr_identifier
+            )
 
-    if id:
-        if not id.strip():
+    value_identifier = id or external_reference
+    if value_identifier:
+        if not value_identifier.strip():
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attribute_id
+                attr_identifier
             )
 
 
@@ -942,18 +1113,24 @@ def validate_dropdown_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     if not attr_values.dropdown:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
     else:
         validate_single_selectable_field(
             attribute,
             attr_values.dropdown,
             attribute_errors,
-            attribute_id,
+            attr_identifier,
         )
 
 
@@ -962,18 +1139,24 @@ def validate_swatch_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     if not attr_values.swatch:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
     else:
         validate_single_selectable_field(
             attribute,
             attr_values.swatch,
             attribute_errors,
-            attribute_id,
+            attr_identifier,
         )
 
 
@@ -982,32 +1165,45 @@ def validate_multiselect_input(
     attr_values: "AttrValuesInput",
     attribute_errors: T_ERROR_DICT,
 ):
-    attribute_id = attr_values.global_id
+    attr_identifier = attr_values.global_id or attr_values.external_reference
+    if not attr_identifier:
+        attribute_errors[AttributeInputErrors.ERROR_NO_ID_OR_EXTERNAL_REFERENCE].append(
+            attr_identifier
+        )
+        return
+
     multi_values = attr_values.multiselect
     if not multi_values:
         if attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
     else:
         ids = [value.id for value in multi_values if value.id is not None]
         values = [value.value for value in multi_values if value.value is not None]
-
+        external_refs = [
+            value.external_reference
+            for value in multi_values
+            if value.external_reference is not None
+        ]
         if ids and values:
             attribute_errors[AttributeInputErrors.ERROR_ID_AND_VALUE].append(
-                attribute_id
+                attr_identifier
             )
             return
-
-        if not ids and not values and attribute.value_required:
+        if not ids and not external_refs and not values and attribute.value_required:
             attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
-                attribute_id
+                attr_identifier
             )
             return
 
-        if len(ids) > len(set(ids)) or len(values) > len(set(values)):
+        if (
+            len(ids) > len(set(ids))
+            or len(values) > len(set(values))
+            or len(external_refs) > len(set(external_refs))
+        ):
             attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
-                attribute_id
+                attr_identifier
             )
             return
 
@@ -1016,7 +1212,7 @@ def validate_multiselect_input(
                 attribute,
                 attr_value,
                 attribute_errors,
-                attribute_id,
+                attr_identifier,
             )
 
 
@@ -1067,7 +1263,7 @@ def validate_date_time_input(
 
 
 def validate_values(
-    attribute_id: str,
+    attr_identifier: str,
     attribute: "Attribute",
     values: list,
     attribute_errors: T_ERROR_DICT,
@@ -1077,12 +1273,12 @@ def validate_values(
     is_numeric = attribute.input_type == AttributeInputType.NUMERIC
     if get_duplicated_values(values):
         attribute_errors[AttributeInputErrors.ERROR_DUPLICATED_VALUES].append(
-            attribute_id
+            attr_identifier
         )
     for value in values:
         if value is None or (not is_numeric and not value.strip()):
             attribute_errors[AttributeInputErrors.ERROR_BLANK_VALUE].append(
-                attribute_id
+                attr_identifier
             )
         elif is_numeric:
             try:
@@ -1090,9 +1286,11 @@ def validate_values(
             except ValueError:
                 attribute_errors[
                     AttributeInputErrors.ERROR_NUMERIC_VALUE_REQUIRED
-                ].append(attribute_id)
+                ].append(attr_identifier)
         elif len(value) > name_field.max_length:
-            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(attribute_id)
+            attribute_errors[AttributeInputErrors.ERROR_MAX_LENGTH].append(
+                attr_identifier
+            )
 
 
 def validate_required_attributes(

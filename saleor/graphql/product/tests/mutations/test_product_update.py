@@ -1512,7 +1512,7 @@ def test_update_product_with_variant_reference_attribute_value(
     assert product_type_variant_reference_attribute.values.count() == values_count + 1
 
 
-def test_update_product_with_no_id(
+def test_update_product_with_attribute_without_id_or_external_ref(
     staff_api_client, product, permission_manage_products, color_attribute
 ):
     """Ensure only supplying values triggers a validation error."""
@@ -1534,7 +1534,7 @@ def test_update_product_with_no_id(
     assert data["errors"] == [
         {
             "field": "attributes",
-            "code": ProductErrorCode.REQUIRED.name,
+            "code": ProductErrorCode.INVALID.name,
             "message": ANY,
             "attributes": None,
         }

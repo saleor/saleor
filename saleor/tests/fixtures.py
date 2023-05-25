@@ -1360,6 +1360,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 @pytest.fixture
 def color_attribute(db):
     attribute = Attribute.objects.create(
+        external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
@@ -1367,8 +1368,18 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
-    AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue1ExternalReference",
+        attribute=attribute,
+        name="Red",
+        slug="red",
+    )
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue2ExternalReference",
+        attribute=attribute,
+        name="Blue",
+        slug="blue",
+    )
     return attribute
 
 
@@ -1684,6 +1695,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
+        external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
