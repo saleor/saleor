@@ -1,0 +1,53 @@
+module.exports = {
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    project: 'tsconfig.json',
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint/eslint-plugin', 'prettier', 'no-only-tests'],
+  extends: [
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'prettier',
+  ],
+  root: true,
+  env: {
+    node: true,
+    jest: true,
+    es6: true,
+  },
+  rules: {
+    '@typescript-eslint/interface-name-prefix': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        vars: 'local',
+        varsIgnorePattern: '[iI]gnored$',
+        args: 'after-used',
+        argsIgnorePattern: '[iI]gnored$',
+      },
+    ],
+    'no-only-tests/no-only-tests': 'error',
+    curly: ['warn', 'all'],
+    'no-multi-spaces': ['warn', { ignoreEOLComments: false }],
+    'prettier/prettier': ['error'],
+    'linebreak-style': ['error', 'unix'],
+    'newline-after-var': ['warn', 'always'],
+    'global-require': 'off',
+    '@typescript-eslint/ban-ts-comment': 0,
+    'no-unreachable': ['warn'],
+    'eol-last': ['warn', 'always'],
+    'arrow-body-style': ['error', 'as-needed'],
+    'no-debugger': 'warn',
+    'no-multiple-empty-lines': ['warn', { max: 2, maxBOF: 0, maxEOF: 1 }],
+    quotes: ['warn', 'single', { avoidEscape: true }],
+    'no-console': 0,
+    'no-undef': 2,
+    'object-shorthand': 'error',
+    'prefer-const': 2,
+  },
+}
