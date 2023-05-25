@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0166_order_bulk_permission"),
+        ("order", "0168_order_bulk_permission"),
     ]
 
     operations = [
