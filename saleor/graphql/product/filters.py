@@ -819,9 +819,51 @@ class ProductWhere(MetadataFilterBase):
     category = OperationObjectTypeFilter(
         input_class=GlobalIDFilterInput, method="filter_category"
     )
+    collection = OperationObjectTypeFilter(
+        input_class=GlobalIDFilterInput, method="filter_collection"
+    )
     is_available = django_filters.BooleanFilter(method="filter_is_available")
     is_published = django_filters.BooleanFilter(method="filter_is_published")
     is_visible_in_listing = django_filters.BooleanFilter(method="filter_is_listed")
+    published_from = ObjectTypeFilter(
+        input_class=graphene.DateTime, method="filter_published_from"
+    )
+    available_from = ObjectTypeFilter(
+        input_class=graphene.DateTime,
+        method="filter_available_from",
+    )
+    has_category = django_filters.BooleanFilter(method=filter_has_category)
+
+    price = ObjectTypeFilter(input_class=PriceRangeInput, method="filter_variant_price")
+    minimal_price = ObjectTypeFilter(
+        input_class=PriceRangeInput,
+        method="filter_minimal_price",
+        field_name="minimal_price_amount",
+        help_text="Filter by the lowest variant price after discounts.",
+    )
+    attributes = ListObjectTypeFilter(
+        input_class="saleor.graphql.attribute.types.AttributeInput",
+        method="filter_attributes",
+    )
+    stock_availability = EnumFilter(
+        input_class=StockAvailability,
+        method="filter_stock_availability",
+        help_text="Filter by variants having specific stock status.",
+    )
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text="Filter by when was the most recent update.",
+    )
+    stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
+    gift_card = django_filters.BooleanFilter(
+        method=filter_gift_card,
+        help_text="Filter on whether product is a gift card or not.",
+    )
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
+    has_preordered_variants = django_filters.BooleanFilter(
+        method=filter_has_preordered_variants
+    )
 
     class Meta:
         model = Product
@@ -842,6 +884,10 @@ class ProductWhere(MetadataFilterBase):
     @staticmethod
     def filter_category(qs, _, value):
         return filter_where_by_id_field(qs, "category", value, "Category")
+
+    @staticmethod
+    def filter_collection(qs, _, value):
+        return filter_where_by_id_field(qs, "collection", value, "Collection")
 
     def filter_is_available(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
@@ -869,6 +915,30 @@ class ProductWhere(MetadataFilterBase):
             value,
             channel_slug,
         )
+
+    def filter_published_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "published_at",
+        )
+
+    def filter_available_from(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_products_channel_field_from_date(
+            queryset,
+            name,
+            value,
+            channel_slug,
+            "available_for_purchase_at",
+        )
+
+    @staticmethod
+    def filter_has_category(qs, _, value):
+        return qs.filter(category__isnull=not value)
 
 
 class ProductVariantFilter(MetadataFilterBase):

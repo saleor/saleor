@@ -11957,9 +11957,30 @@ input ProductWhereInput @doc(category: "Products") {
   slug: StringFilterInput
   productType: GlobalIDFilterInput
   category: GlobalIDFilterInput
+  collection: GlobalIDFilterInput
   isAvailable: Boolean
   isPublished: Boolean
   isVisibleInListing: Boolean
+  publishedFrom: DateTime
+  availableFrom: DateTime
+  hasCategory: Boolean
+  price: PriceRangeInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: PriceRangeInput
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+  stocks: ProductStockFilterInput
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+  ids: [ID!]
+  hasPreorderedVariants: Boolean
 
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]

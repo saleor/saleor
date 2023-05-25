@@ -207,6 +207,62 @@ def test_product_filter_by_category(
     assert product_list[1].slug == products[0]["node"]["slug"]
 
 
+def test_product_filter_by_collections(
+    api_client, product_list, channel_USD, collection_list
+):
+    # given
+    product_list[0].collection = collection_list[0]
+    product_list[1].collection = collection_list[1]
+    product_list[2].collection = collection_list[2]
+    Product.objects.bulk_update(product_list, ["Collection"])
+
+    collection_ids = [
+        graphene.Node.to_global_id("Collection", collection.pk)
+        for collection in collection_list[:2]
+    ]
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"collection": {"oneOf": collection_ids}},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    returned_slugs = {node["node"]["slug"] for node in products}
+    assert returned_slugs == {
+        product_list[0].slug,
+        product_list[1].slug,
+    }
+
+
+def test_product_filter_by_collection(
+    api_client, product_list, channel_USD, collection_list
+):
+    # given
+    product_list[1].collection = collection_list[1]
+    Product.objects.bulk_update(product_list, ["collection"])
+
+    collection_id = graphene.Node.to_global_id("Collection", collection_list[1].pk)
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"collection": {"eq": collection_id}},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert product_list[1].slug == products[0]["node"]["slug"]
+
+
 def test_product_filter_by_is_available(api_client, product_list, channel_USD):
     # given
     ProductChannelListing.objects.filter(
@@ -257,6 +313,75 @@ def test_product_filter_by_is_visible_in_listing(api_client, product_list, chann
     variables = {
         "channel": channel_USD.slug,
         "where": {"isVisibleInListing": True},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[0].slug == products[0]["node"]["slug"]
+    assert product_list[2].slug == products[1]["node"]["slug"]
+
+
+def test_product_filter_by_published_from(api_client, product_list, channel_USD):
+    # given
+    timestamp = timezone.now()
+    ProductChannelListing.objects.filter(
+        product__in=product_list, channel=channel_USD
+    ).update(published_at=timestamp + timedelta(days=1))
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).update(published_at=timestamp - timedelta(days=1))
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"publishedFrom": timestamp},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert product_list[0].slug == products[0]["node"]["slug"]
+
+
+def test_product_filter_by_available_from(api_client, product_list, channel_USD):
+    # given
+    timestamp = timezone.now()
+    ProductChannelListing.objects.filter(
+        product__in=product_list, channel=channel_USD
+    ).update(available_for_purchase_at=timestamp - timedelta(days=1))
+    ProductChannelListing.objects.filter(
+        product=product_list[0], channel=channel_USD
+    ).update(available_for_purchase_at=timestamp + timedelta(days=1))
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"availableFrom": timestamp},
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[1].slug == products[0]["node"]["slug"]
+    assert product_list[2].slug == products[1]["node"]["slug"]
+
+
+def test_product_filter_by_has_category(api_client, product_list, channel_USD):
+    # given
+    product_list[1].category = None
+    product_list[1].save(update_fields=["category"])
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"hasCategory": True},
     }
 
     # when
