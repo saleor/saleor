@@ -11306,6 +11306,41 @@ type OrderGrantedRefund @doc(category: "Orders") {
 
   """App that performed the action."""
   app: App
+
+  """
+  If true, the refunded amount includes the shipping price.If false, the refunded amount does not include the shipping price.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingCostsIncluded: Boolean!
+
+  """
+  Lines assigned to the granted refund.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantedRefundLine!]
+}
+
+"""
+Represents granted refund line.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderGrantedRefundLine {
+  id: ID!
+
+  """Number of items to refund."""
+  quantity: Int!
+
+  """Line of the order associated with this granted refund."""
+  orderLine: OrderLine!
 }
 
 """Represents transaction's event."""
