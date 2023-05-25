@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
 - Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
+- Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
 
 # 3.13.0
 

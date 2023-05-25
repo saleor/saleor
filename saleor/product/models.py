@@ -656,11 +656,12 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
         price = self.get_base_price(channel_listing, price_override)
+        collection_ids = {collection.id for collection in collections}
         return calculate_discounted_price(
             product=product,
             price=price,
             discounts=discounts,
-            collections=collections,
+            collection_ids=collection_ids,
             channel=channel,
             variant_id=self.id,
         )
@@ -776,6 +777,16 @@ class ProductVariantChannelListing(models.Model):
         null=True,
     )
     cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
+
+    discounted_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        blank=True,
+        null=True,
+    )
+    discounted_price = MoneyField(
+        amount_field="discounted_price_amount", currency_field="currency"
+    )
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
 

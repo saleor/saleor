@@ -805,6 +805,9 @@ class ProductVariantBulkCreate(BaseMutation):
                 channel=listing_data["channel"],
                 variant=variant,
                 price_amount=listing_data["price"],
+                # set the discounted price the same as price for now, the discounted
+                # value will be calculated asynchronously in the celery task
+                discounted_price_amount=listing_data["price"],
                 cost_price_amount=listing_data.get("cost_price"),
                 currency=listing_data["channel"].currency_code,
                 preorder_quantity_threshold=listing_data.get("preorder_threshold"),

@@ -2216,6 +2216,7 @@ def product(product_type, category, warehouse, channel_USD, default_tax_class):
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2255,6 +2256,7 @@ def shippable_gift_card_product(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(100),
+        discounted_price_amount=Decimal(100),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2289,6 +2291,7 @@ def product_price_0(category, warehouse, channel_USD):
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(0),
+        discounted_price_amount=Decimal(0),
         cost_price_amount=Decimal(0),
         currency=channel_USD.currency_code,
     )
@@ -2312,6 +2315,7 @@ def product_in_channel_JPY(product, channel_JPY, warehouse_JPY):
         variant=variant,
         channel=channel_JPY,
         price_amount=Decimal(1200),
+        discounted_price_amount=Decimal(1200),
         cost_price_amount=Decimal(300),
         currency=channel_JPY.currency_code,
     )
@@ -2348,6 +2352,7 @@ def non_shippable_gift_card_product(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(250),
+        discounted_price_amount=Decimal(250),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2389,6 +2394,7 @@ def product_with_rich_text_attribute(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2418,6 +2424,7 @@ def product_available_in_many_channels(product, channel_PLN, channel_USD):
         variant=variant,
         channel=channel_PLN,
         price_amount=Decimal(50),
+        discounted_price_amount=Decimal(50),
         cost_price_amount=Decimal(1),
         currency=channel_PLN.currency_code,
     )
@@ -2444,6 +2451,7 @@ def product_with_single_variant(product_type, category, warehouse, channel_USD):
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(1.99),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2481,6 +2489,7 @@ def product_with_two_variants(product_type, category, warehouse, channel_USD):
             variant=variant,
             channel=channel_USD,
             price_amount=Decimal(10),
+            discounted_price_amount=Decimal(10),
             cost_price_amount=Decimal(1),
             currency=channel_USD.currency_code,
         )
@@ -2539,6 +2548,7 @@ def product_with_variant_with_two_attributes(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2601,6 +2611,7 @@ def product_with_variant_with_external_media(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2651,6 +2662,7 @@ def product_with_variant_with_file_attribute(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2709,6 +2721,7 @@ def product_with_default_variant(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2748,6 +2761,7 @@ def variant_without_inventory_tracking(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2764,6 +2778,7 @@ def variant(product, channel_USD) -> ProductVariant:
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2798,6 +2813,7 @@ def preorder_variant_global_threshold(product, channel_USD):
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2813,6 +2829,7 @@ def preorder_variant_channel_threshold(product, channel_USD):
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
         preorder_quantity_threshold=10,
@@ -2861,6 +2878,7 @@ def preorder_variant_with_end_date(product, channel_USD):
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2891,6 +2909,7 @@ def gift_card_shippable_variant(shippable_gift_card_product, channel_USD, wareho
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2912,6 +2931,7 @@ def gift_card_non_shippable_variant(
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -2940,6 +2960,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -2947,6 +2968,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -2954,6 +2976,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 channel=channel_PLN,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_PLN.currency_code,
             ),
             ProductVariantChannelListing(
@@ -2961,6 +2984,7 @@ def product_variant_list(product, channel_USD, channel_PLN):
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
         ]
@@ -2995,6 +3019,7 @@ def product_without_shipping(category, warehouse, channel_USD):
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -3112,6 +3137,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -3119,6 +3145,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(20),
+                discounted_price_amount=Decimal(20),
                 currency=channel_USD.currency_code,
             ),
             ProductVariantChannelListing(
@@ -3126,6 +3153,7 @@ def product_list(
                 channel=channel_USD,
                 cost_price_amount=Decimal(1),
                 price_amount=Decimal(30),
+                discounted_price_amount=Decimal(30),
                 currency=channel_USD.currency_code,
             ),
         ]
@@ -3411,6 +3439,7 @@ def unavailable_product_with_variant(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -4043,6 +4072,7 @@ def order_with_lines(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )
@@ -4095,6 +4125,7 @@ def order_with_lines(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(20),
+        discounted_price_amount=Decimal(20),
         cost_price_amount=Decimal(2),
         currency=channel_USD.currency_code,
     )
@@ -4328,6 +4359,7 @@ def order_with_lines_channel_PLN(
         variant=variant,
         channel=channel_PLN,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_PLN.currency_code,
     )
@@ -4379,6 +4411,7 @@ def order_with_lines_channel_PLN(
         variant=variant,
         channel=channel_PLN,
         price_amount=Decimal(20),
+        discounted_price_amount=Decimal(20),
         cost_price_amount=Decimal(2),
         currency=channel_PLN.currency_code,
     )
@@ -4497,6 +4530,7 @@ def order_with_preorder_lines(
         variant=variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
         preorder_quantity_threshold=10,
@@ -5827,6 +5861,7 @@ def digital_content(category, media_root, warehouse, channel_USD) -> DigitalCont
         variant=product_variant,
         channel=channel_USD,
         price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
         cost_price_amount=Decimal(1),
         currency=channel_USD.currency_code,
     )

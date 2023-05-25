@@ -350,6 +350,7 @@ class ProductChannelListingUpdate(BaseChannelListingMutation):
             cls.update_channels(product, cleaned_input.get("update_channels", []))
             cls.remove_channels(product, cleaned_input.get("remove_channels", []))
             product = ProductModel.objects.prefetched_for_webhook().get(pk=product.pk)
+            update_product_discounted_price_task.delay(product.id)
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.product_updated, product)
 
@@ -518,6 +519,9 @@ class ProductVariantChannelListingUpdate(BaseMutation):
                 defaults = {"currency": channel.currency_code}
                 if "price" in channel_listing_data.keys():
                     defaults["price_amount"] = channel_listing_data.get("price", None)
+                    # set the discounted price the same as price for now, the discounted
+                    # value will be calculated asynchronously in the celery task
+                    defaults["discounted_price_amount"] = defaults["price_amount"]
                 if "cost_price" in channel_listing_data.keys():
                     defaults["cost_price_amount"] = channel_listing_data.get(
                         "cost_price", None

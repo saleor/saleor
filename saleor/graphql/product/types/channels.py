@@ -28,7 +28,6 @@ from ...core.fields import PermissionsField
 from ...core.scalars import Date
 from ...core.tracing import traced_resolver
 from ...core.types import BaseObjectType, ModelObjectType
-from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...tax.dataloaders import (
     TaxClassByProductIdLoader,
     TaxClassCountryRateByTaxClassIDLoader,
@@ -37,7 +36,6 @@ from ...tax.dataloaders import (
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from ..dataloaders import (
-    CollectionsByProductIdLoader,
     ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
@@ -216,12 +214,9 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
 
         channel = ChannelByIdLoader(context).load(root.channel_id)
         product = ProductByIdLoader(context).load(root.product_id)
-        variants = ProductVariantsByProductIdLoader(context).load(root.product_id)
-        collections = CollectionsByProductIdLoader(context).load(root.product_id)
-        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
 
         def load_tax_configuration(data):
-            channel, product, variants, collections, discounts = data
+            channel, product = data
             country_code = address_country or channel.default_country.code
 
             def load_tax_country_exceptions(tax_config):
@@ -269,13 +264,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                             prices_entered_with_tax = tax_config.prices_entered_with_tax
 
                             availability = get_product_availability(
-                                product=product,
                                 product_channel_listing=root,
-                                variants=variants,
                                 variants_channel_listing=variants_channel_listing,
-                                collections=collections,
-                                discounts=discounts,
-                                channel=channel,
                                 local_currency=local_currency,
                                 prices_entered_with_tax=prices_entered_with_tax,
                                 tax_calculation_strategy=tax_calculation_strategy,
@@ -317,9 +307,7 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                 .then(load_tax_country_exceptions)
             )
 
-        return Promise.all([channel, product, variants, collections, discounts]).then(
-            load_tax_configuration
-        )
+        return Promise.all([channel, product]).then(load_tax_configuration)
 
 
 class PreorderThreshold(BaseObjectType):
@@ -356,7 +344,7 @@ class ProductVariantChannelListing(
     )
 
     class Meta:
-        description = "Represents product varaint channel listing."
+        description = "Represents product variant channel listing."
         model = models.ProductVariantChannelListing
         interfaces = [graphene.relay.Node]
 

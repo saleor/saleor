@@ -1,20 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Iterable, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ...channel.models import Channel
 from ...core.utils import to_local_currency
-from ...discount import DiscountInfo
-from ...discount.utils import calculate_discounted_price
-from ...product.models import (
-    Collection,
-    Product,
-    ProductChannelListing,
-    ProductVariant,
-    ProductVariantChannelListing,
-)
+from ...product.models import ProductChannelListing, ProductVariantChannelListing
 from ...tax import TaxCalculationStrategy
 from ...tax.calculations import calculate_flat_rate_tax
 
@@ -84,55 +75,26 @@ def _get_product_price_range(
     return price_range_local, discount_local_currency
 
 
-def get_variant_price(
-    *,
-    variant: ProductVariant,
-    variant_channel_listing: ProductVariantChannelListing,
-    product: Product,
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel
-):
-    return calculate_discounted_price(
-        product=product,
-        price=variant_channel_listing.price,
-        collections=collections,
-        discounts=discounts,
-        channel=channel,
-        variant_id=variant.id,
-    )
-
-
 def get_product_price_range(
     *,
-    product: Product,
-    variants: Iterable[ProductVariant],
     variants_channel_listing: List[ProductVariantChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
+    discounted: bool,
 ) -> Optional[MoneyRange]:
-    if variants:
-        variants_channel_listing_dict = {
-            channel_listing.variant_id: channel_listing
-            for channel_listing in variants_channel_listing
-            if channel_listing
-        }
-        prices = []
-        for variant in variants:
-            variant_channel_listing = variants_channel_listing_dict.get(variant.id)
-            if variant_channel_listing:
-                price = get_variant_price(
-                    variant=variant,
-                    variant_channel_listing=variant_channel_listing,
-                    product=product,
-                    collections=collections,
-                    discounts=discounts,
-                    channel=channel,
-                )
-                prices.append(price)
-        if prices:
-            return MoneyRange(min(prices), max(prices))
+    """Return the range of product prices based on product variants prices.
+
+    When discounted parameter is True, the range of discounted prices is provided.
+    """
+    prices = []
+    for channel_listing in variants_channel_listing:
+        if channel_listing.price:
+            price = (
+                channel_listing.discounted_price
+                if discounted
+                else channel_listing.price
+            )
+            prices.append(price)
+    if prices:
+        return MoneyRange(min(prices), max(prices))
 
     return None
 
@@ -153,13 +115,8 @@ def _calculate_product_price_with_taxes(
 
 def get_product_availability(
     *,
-    product: Product,
     product_channel_listing: Optional[ProductChannelListing],
-    variants: Iterable[ProductVariant],
     variants_channel_listing: List[ProductVariantChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
     local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
@@ -167,12 +124,7 @@ def get_product_availability(
 ) -> ProductAvailability:
     discounted: Optional[TaxedMoneyRange] = None
     discounted_net_range = get_product_price_range(
-        product=product,
-        variants=variants,
-        variants_channel_listing=variants_channel_listing,
-        collections=collections,
-        discounts=discounts,
-        channel=channel,
+        variants_channel_listing=variants_channel_listing, discounted=True
     )
     if discounted_net_range is not None:
         discounted = TaxedMoneyRange(
@@ -192,12 +144,8 @@ def get_product_availability(
 
     undiscounted: Optional[TaxedMoneyRange] = None
     undiscounted_net_range = get_product_price_range(
-        product=product,
-        variants=variants,
         variants_channel_listing=variants_channel_listing,
-        collections=collections,
-        discounts=[],
-        channel=channel,
+        discounted=False,
     )
     if undiscounted_net_range is not None:
         undiscounted = TaxedMoneyRange(
@@ -241,40 +189,22 @@ def get_product_availability(
 
 def get_variant_availability(
     *,
-    variant: ProductVariant,
     variant_channel_listing: ProductVariantChannelListing,
-    product: Product,
     product_channel_listing: Optional[ProductChannelListing],
-    collections: Iterable[Collection],
-    discounts: Iterable[DiscountInfo],
-    channel: Channel,
     local_currency: Optional[str] = None,
     prices_entered_with_tax: bool,
     tax_calculation_strategy: str,
     tax_rate: Decimal
-) -> VariantAvailability:
-    discounted_price = get_variant_price(
-        variant=variant,
-        variant_channel_listing=variant_channel_listing,
-        product=product,
-        collections=collections,
-        discounts=discounts,
-        channel=channel,
-    )
+) -> Optional[VariantAvailability]:
+    if variant_channel_listing.price is None:
+        return None
     discounted_price_taxed = _calculate_product_price_with_taxes(
-        discounted_price,
+        variant_channel_listing.discounted_price,
         tax_rate,
         tax_calculation_strategy,
         prices_entered_with_tax,
     )
-    undiscounted_price = get_variant_price(
-        variant=variant,
-        variant_channel_listing=variant_channel_listing,
-        product=product,
-        collections=collections,
-        discounts=[],
-        channel=channel,
-    )
+    undiscounted_price = variant_channel_listing.price
     undiscounted_price_taxed = _calculate_product_price_with_taxes(
         undiscounted_price,
         tax_rate,

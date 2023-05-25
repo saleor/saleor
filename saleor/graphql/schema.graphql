@@ -6785,7 +6785,7 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   externalReference: String
 }
 
-"""Represents product varaint channel listing."""
+"""Represents product variant channel listing."""
 type ProductVariantChannelListing implements Node @doc(category: "Products") {
   id: ID!
   channel: Channel!

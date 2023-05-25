@@ -1,3 +1,4 @@
+from collections import defaultdict
 from datetime import datetime
 
 import graphene
@@ -5,18 +6,20 @@ import pytz
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
-from ....discount.utils import fetch_catalogue_info
+from ....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from ....permission.enums import DiscountPermissions
+from ....product.tasks import update_products_discounted_prices_of_catalogues_task
+from ...channel import ChannelContext
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import DiscountError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale
-from .sale_create import SaleInput, SaleUpdateDiscountedPriceMixin
+from .sale_create import SaleInput
 from .utils import convert_catalogue_info_to_global_ids
 
 
-class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
+class SaleUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a sale to update.")
         input = SaleInput(
@@ -44,18 +47,32 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             cls.clean_instance(info, instance)
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
+            current_catalogue = fetch_catalogue_info(instance)
             cls.send_sale_notifications(
-                manager, instance, cleaned_input, previous_catalogue, previous_end_date
+                manager,
+                instance,
+                cleaned_input,
+                previous_catalogue,
+                current_catalogue,
+                previous_end_date,
             )
-        return cls.success_response(instance)
+
+            cls.update_products_discounted_prices(
+                cleaned_input, previous_catalogue, current_catalogue
+            )
+        return cls.success_response(ChannelContext(node=instance, channel_slug=None))
 
     @classmethod
     def send_sale_notifications(
-        cls, manager, instance, cleaned_input, previous_catalogue, previous_end_date
+        cls,
+        manager,
+        instance,
+        cleaned_input,
+        previous_catalogue,
+        current_catalogue,
+        previous_end_date,
     ):
-        current_catalogue = convert_catalogue_info_to_global_ids(
-            fetch_catalogue_info(instance)
-        )
+        current_catalogue = convert_catalogue_info_to_global_ids(current_catalogue)
         cls.call_event(
             manager.sale_updated,
             instance,
@@ -104,3 +121,33 @@ class SaleUpdate(SaleUpdateDiscountedPriceMixin, ModelMutation):
             manager.sale_toggle(instance, catalogue)
             instance.notification_sent_datetime = now
             instance.save(update_fields=["notification_sent_datetime"])
+
+    @staticmethod
+    def update_products_discounted_prices(
+        cleaned_input, previous_catalogue, current_catalogue
+    ):
+        catalogues_to_recalculate = defaultdict(set)
+        for catalogue_field in CATALOGUE_FIELDS:
+            if any(
+                [
+                    field in cleaned_input
+                    for field in [
+                        catalogue_field,
+                        "start_date",
+                        "end_date",
+                        "type",
+                        "value",
+                    ]
+                ]
+            ):
+                catalogues_to_recalculate[catalogue_field] = previous_catalogue[
+                    catalogue_field
+                ].union(current_catalogue[catalogue_field])
+
+        if catalogues_to_recalculate:
+            update_products_discounted_prices_of_catalogues_task.delay(
+                product_ids=list(catalogues_to_recalculate["products"]),
+                category_ids=list(catalogues_to_recalculate["categories"]),
+                collection_ids=list(catalogues_to_recalculate["collections"]),
+                variant_ids=list(catalogues_to_recalculate["variants"]),
+            )
