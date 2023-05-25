@@ -1,5 +1,6 @@
 *.py[cod]
 .*
+!api-tests/.*
 !.devcontainer
 !.dockerignore
 !.github

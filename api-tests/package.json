@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "vitest --config vitest.config.ts $VERSION"
+    "test": "vitest --config vitest.config.ts $VERSION",
+    "lint": "eslint tests/**/*.ts"
   },
   "author": "",
   "license": "ISC",
@@ -14,16 +15,19 @@
     "eslint-config-prettier": "8.8.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-no-only-tests": "3.1.0",
-    "eslint-plugin-prettier": "4.2.1",
-    "eslint-plugin-vitest": "0.2.3",
-    "prettier": "2.8.8"
+    "eslint-plugin-vitest": "0.2.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "3.3.1",
     "@graphql-codegen/typescript": "3.0.4",
     "@typescript-eslint/eslint-plugin": "5.59.6",
     "@vitest/ui": "^0.31.1",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-formatjs": "^4.10.1",
     "eslint-plugin-no-skip-tests": "1.1.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "prettier": "^2.8.8",
     "typescript": "5.0.4",
     "vite": "4.3.8",
     "vitest": "0.31.1"
