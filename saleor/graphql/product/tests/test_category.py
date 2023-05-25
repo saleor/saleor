@@ -1120,11 +1120,14 @@ MUTATION_CATEGORY_DELETE = """
 """
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 @patch("saleor.core.tasks.delete_from_storage_task.delay")
 def test_category_delete_mutation(
     delete_from_storage_task_mock,
+    update_products_discounted_price_task_mock,
     staff_api_client,
     category,
+    product_list,
     media_root,
     permission_manage_products,
 ):
@@ -1133,6 +1136,8 @@ def test_category_delete_mutation(
     thumbnail_mock.name = "thumbnail_image.jpg"
     Thumbnail.objects.create(category=category, size=128, image=thumbnail_mock)
     Thumbnail.objects.create(category=category, size=200, image=thumbnail_mock)
+
+    category.products.add(*product_list)
 
     category_id = category.id
 
@@ -1152,6 +1157,10 @@ def test_category_delete_mutation(
     # ensure all related thumbnails has been deleted
     assert not Thumbnail.objects.filter(category_id=category_id)
     assert delete_from_storage_task_mock.call_count == 2
+
+    update_products_discounted_price_task_mock.assert_called_once()
+    args, kwargs = update_products_discounted_price_task_mock.call_args
+    assert set(kwargs["product_ids"]) == {product.id for product in product_list}
 
 
 @freeze_time("2022-05-12 12:00:00")

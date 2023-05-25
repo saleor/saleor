@@ -18,6 +18,7 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
+from ....product.tasks import update_products_discounted_prices_task
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
@@ -826,14 +827,18 @@ class ProductBulkCreate(BaseMutation):
     @classmethod
     def post_save_actions(cls, info, products, variants, channels):
         manager = get_plugin_manager_promise(info.context).get()
+        product_ids = []
         for product in products:
             cls.call_event(manager.product_created, product.node)
+            product_ids.append(product.node.id)
 
         for variant in variants:
             cls.call_event(manager.product_variant_created, variant)
 
         for channel in channels:
             cls.call_event(manager.channel_updated, channel)
+
+        update_products_discounted_prices_task.delay(product_ids)
 
     @classmethod
     @traced_atomic_transaction()

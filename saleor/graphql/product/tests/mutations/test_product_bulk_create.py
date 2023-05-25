@@ -74,7 +74,9 @@ PRODUCT_BULK_CREATE_MUTATION = """
 """
 
 
+@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
 def test_product_bulk_create_with_base_data(
+    update_products_discounted_price_task_mock,
     staff_api_client,
     product_type,
     category,
@@ -140,6 +142,10 @@ def test_product_bulk_create_with_base_data(
         assert product.description == description_json
         assert product.category == category
         assert product.product_type == product_type
+
+    update_products_discounted_price_task_mock.assert_called_once()
+    args = set(update_products_discounted_price_task_mock.call_args.args[0])
+    assert args == {product.id for product in products}
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_created")

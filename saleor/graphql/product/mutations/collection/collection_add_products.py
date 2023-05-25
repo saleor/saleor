@@ -5,7 +5,7 @@ from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import CollectionErrorCode
-from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....product.tasks import update_products_discounted_prices_task
 from .....product.utils import get_products_ids_without_variants
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -55,9 +55,7 @@ class CollectionAddProducts(BaseMutation):
             collection.products.add(*products)
             if collection.sale_set.exists():
                 # Updated the db entries, recalculating discounts of affected products
-                update_products_discounted_prices_of_catalogues_task.delay(
-                    product_ids=[pq.pk for pq in products]
-                )
+                update_products_discounted_prices_task.delay([pq.pk for pq in products])
             for product in products:
                 cls.call_event(manager.product_updated, product)
 

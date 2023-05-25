@@ -22,11 +22,13 @@ DELETE_VARIANT_BY_SKU_MUTATION = """
 """
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant_by_sku(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -52,6 +54,7 @@ def test_delete_variant_by_sku(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
 DELETE_VARIANT_MUTATION = """
@@ -66,11 +69,13 @@ DELETE_VARIANT_MUTATION = """
 """
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_variant(
     mocked_recalculate_orders_task,
     product_variant_deleted_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -92,6 +97,7 @@ def test_delete_variant(
     with pytest.raises(variant._meta.model.DoesNotExist):
         variant.refresh_from_db()
     mocked_recalculate_orders_task.assert_not_called()
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
 def test_delete_variant_remove_checkout_lines(

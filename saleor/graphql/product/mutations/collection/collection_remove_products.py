@@ -2,7 +2,7 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....product.tasks import update_products_discounted_prices_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -51,9 +51,7 @@ class CollectionRemoveProducts(BaseMutation):
             cls.call_event(manager.product_updated, product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
-            update_products_discounted_prices_of_catalogues_task.delay(
-                product_ids=[p.pk for p in products]
-            )
+            update_products_discounted_prices_task.delay([p.pk for p in products])
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )

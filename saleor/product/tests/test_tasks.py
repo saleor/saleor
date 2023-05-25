@@ -7,25 +7,44 @@ from django.utils import timezone
 from ..tasks import (
     _get_preorder_variants_to_clean,
     update_product_discounted_price_task,
-    update_products_discounted_prices_of_discount_task,
+    update_products_discounted_prices_of_sale_task,
     update_products_search_vector_task,
     update_variants_names,
 )
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
-def test_update_products_discounted_prices_of_discount_task(
-    update_product_prices_mock, sale
+@patch("saleor.product.utils.variant_prices." "update_products_discounted_prices")
+def test_update_products_discounted_prices_of_sale_task(
+    update_products_discounted_prices_mock,
+    new_sale,
+    product_list,
+    product,
+    category,
+    collection,
 ):
+    # given
+    new_sale.products.add(product)
+    category.products.add(product_list[0])
+    new_sale.categories.add(category)
+    collection.products.add(product_list[1])
+    new_sale.variants.add(product_list[2].variants.first())
+
     # when
-    update_products_discounted_prices_of_discount_task(sale.id)
+    update_products_discounted_prices_of_sale_task(new_sale.id)
 
     # then
-    update_product_prices_mock.assert_called_once_with(sale)
+    update_products_discounted_prices_mock.assert_called_once()
+    args, kwargs = update_products_discounted_prices_mock.call_args
+
+    expected_products = [product] + product_list
+    assert len(args[0]) == len(expected_products)
+    assert {product.id for product in args[0]} == {
+        instance.id for instance in expected_products
+    }
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
-def test_update_products_discounted_prices_of_discount_task_discount_does_not_exist(
+@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
+def test_update_products_discounted_prices_of_sale_task_discount_does_not_exist(
     update_product_prices_mock, caplog
 ):
     # given
@@ -33,23 +52,23 @@ def test_update_products_discounted_prices_of_discount_task_discount_does_not_ex
     discount_id = -1
 
     # when
-    update_products_discounted_prices_of_discount_task(discount_id)
+    update_products_discounted_prices_of_sale_task(discount_id)
 
     # then
     update_product_prices_mock.assert_not_called()
     assert f"Cannot find discount with id: {discount_id}" in caplog.text
 
 
-@patch("saleor.product.tasks.update_product_discounted_price")
+@patch("saleor.product.tasks.update_products_discounted_price")
 def test_update_product_discounted_price_task(update_product_price_mock, product):
     # when
     update_product_discounted_price_task(product.id)
 
     # then
-    update_product_price_mock.assert_called_once_with(product)
+    update_product_price_mock.assert_called_once_with([product])
 
 
-@patch("saleor.product.tasks.update_product_discounted_price")
+@patch("saleor.product.tasks.update_products_discounted_price")
 def test_update_product_discounted_price_task_product_does_not_exist(
     update_product_price_mock, caplog
 ):
@@ -78,7 +97,7 @@ def test_update_variants_names(
     assert {arg.pk for arg in args[1]} == {size_attribute.pk}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_of_discount")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_sale")
 def test_update_variants_names_product_type_does_not_exist(
     update_variants_names_mock, caplog
 ):

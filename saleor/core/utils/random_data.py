@@ -82,7 +82,7 @@ from ...product.models import (
     VariantMedia,
 )
 from ...product.search import update_products_search_vector
-from ...product.tasks import update_products_discounted_prices_of_discount_task
+from ...product.tasks import update_products_discounted_prices_of_sale_task
 from ...product.utils.variant_prices import update_products_discounted_prices
 from ...shipping.models import (
     ShippingMethod,
@@ -979,7 +979,7 @@ def create_orders(how_many=10):
 def create_product_sales(how_many=5):
     for _ in range(how_many):
         sale = create_fake_sale()
-        update_products_discounted_prices_of_discount_task.delay(sale.pk)
+        update_products_discounted_prices_of_sale_task.delay(sale.pk)
         yield f"Sale: {sale}"
 
 
