@@ -4,12 +4,18 @@ from graphene import relay
 from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
+from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import JSONString, PermissionsField
 from ...core.scalars import PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
+from ..dataloaders import (
+    ChannelsByPromotionRuleIdLoader,
+    PromotionByIdLoader,
+    PromotionRulesByPromotionIdLoader,
+)
 from ..enums import RewardValueTypeEnum
 from .predicates import CataloguePredicate
 
@@ -42,6 +48,10 @@ class Promotion(ModelObjectType[models.Promotion]):
         interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Promotion
         doc_category = DOC_CATEGORY_DISCOUNTS
+
+    @staticmethod
+    def resolve_rules(root: models.Promotion, info: ResolveInfo):
+        return PromotionRulesByPromotionIdLoader(info.context).load(root.id)
 
 
 class PromotionRule(ModelObjectType[models.PromotionRule]):
@@ -81,8 +91,15 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "be met to apply the promotion discount." + ADDED_IN_315 + PREVIEW_FEATURE
         )
         interfaces = [relay.Node]
-        model = models.Promotion
+        model = models.PromotionRule
         doc_category = DOC_CATEGORY_DISCOUNTS
 
-    # TODO: add resolvers with dataloaders for channels, promotion
     # TODO: add resolver for predicate
+
+    @staticmethod
+    def resolve_promotion(root: models.PromotionRule, info: ResolveInfo):
+        return PromotionByIdLoader(info.context).load(root.promotion_id)
+
+    @staticmethod
+    def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
+        return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)

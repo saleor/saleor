@@ -1,13 +1,16 @@
 from collections import defaultdict
 from typing import List, Optional
 
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef
 
+from ...channel.models import Channel
 from ...discount import DiscountInfo
 from ...discount.interface import VoucherInfo
 from ...discount.models import (
     CheckoutLineDiscount,
     OrderDiscount,
+    Promotion,
+    PromotionRule,
     Sale,
     SaleChannelListing,
     Voucher,
@@ -256,3 +259,50 @@ class CheckoutLineDiscountsByCheckoutLineIdLoader(DataLoader):
         for discount in discounts:
             discount_map[discount.line_id].append(discount)
         return [discount_map.get(checkout_line_id, []) for checkout_line_id in keys]
+
+
+class PromotionRulesByPromotionIdLoader(DataLoader):
+    context_key = "promotion_rules_by_promotion_id"
+
+    def batch_load(self, keys):
+        promotions = Promotion.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        rules = PromotionRule.objects.using(self.database_connection_name).filter(
+            Exists(promotions.filter(id=OuterRef("promotion_id")))
+        )
+        rules_map = defaultdict(list)
+        for rule in rules:
+            rules_map[rule.promotion_id].append(rule)
+        return [rules_map.get(promotion_id, []) for promotion_id in keys]
+
+
+class PromotionByIdLoader(DataLoader):
+    context_key = "promotion_by_id"
+
+    def batch_load(self, keys):
+        promotions = Promotion.objects.using(self.database_connection_name).in_bulk(
+            keys
+        )
+        return [promotions.get(id) for id in keys]
+
+
+class ChannelsByPromotionRuleIdLoader(DataLoader):
+    context_key = "channels_by_promotion_rule_id"
+
+    def batch_load(self, keys):
+        PromotionRuleChannel = PromotionRule.channels.through
+        rule_channels = PromotionRuleChannel.objects.using(
+            self.database_connection_name
+        ).filter(promotionrule_id__in=keys)
+        channels = (
+            Channel.objects.using(self.database_connection_name)
+            .filter(id__in=rule_channels.values("channel_id"))
+            .in_bulk()
+        )
+        rule_to_channels_map = defaultdict(list)
+        for rule_id, channel_id in rule_channels.values_list(
+            "promotionrule_id", "channel_id"
+        ):
+            rule_to_channels_map[rule_id].append(channels.get(channel_id))
+        return [rule_to_channels_map.get(rule_id, []) for rule_id in keys]

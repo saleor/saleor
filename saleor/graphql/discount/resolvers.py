@@ -38,4 +38,4 @@ def resolve_sales(info, channel_slug, **kwargs) -> ChannelQsContext:
 
 
 def resolve_promotion(id):
-    return models.Sale.objects.filter(id=id).first()
+    return models.Promotion.objects.filter(id=id).first()
