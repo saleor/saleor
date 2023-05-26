@@ -847,11 +847,11 @@ class ProductWhere(MetadataFilterBase):
         field_name="minimal_price_amount",
         help_text="Filter by the lowest variant price after discounts.",
     )
-
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
         method="filter_attributes",
     )
+
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
@@ -867,7 +867,6 @@ class ProductWhere(MetadataFilterBase):
         method=filter_gift_card,
         help_text="Filter on whether product is a gift card or not.",
     )
-    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
     )
@@ -978,6 +977,10 @@ class ProductWhere(MetadataFilterBase):
         )
         product_listing = product_listing.values("product_id")
         return qs.filter(Exists(product_listing.filter(product_id=OuterRef("pk"))))
+
+    @staticmethod
+    def filter_attributes(queryset, name, value):
+        return _filter_attributes(queryset, name, value)
 
 
 class ProductVariantFilter(MetadataFilterBase):

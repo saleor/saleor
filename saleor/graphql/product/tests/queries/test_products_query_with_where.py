@@ -4,7 +4,10 @@ import graphene
 import pytest
 from django.utils import timezone
 
-from saleor.product.models import Product, ProductChannelListing
+from saleor.attribute.models import Attribute, AttributeValue
+from saleor.attribute.utils import associate_attribute_values_to_instance
+from saleor.product import ProductTypeKind
+from saleor.product.models import Product, ProductChannelListing, ProductType
 
 from ....tests.utils import get_graphql_content
 
@@ -232,10 +235,7 @@ def test_product_filter_by_collections(
     products = data["data"]["products"]["edges"]
     assert len(products) == 2
     returned_slugs = {node["node"]["slug"] for node in products}
-    assert returned_slugs == {
-        product_list[0].slug,
-        product_list[1].slug,
-    }
+    assert returned_slugs == {product_list[0].slug, product_list[1].slug}
 
 
 def test_product_filter_by_collection(
@@ -478,3 +478,601 @@ def test_product_filter_by_minimal_price(
     assert len(nodes) == len(indexes)
     returned_slugs = {node["node"]["slug"] for node in nodes}
     assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+def test_products_filter_by_attributes(
+    api_client,
+    product_list,
+    channel_USD,
+):
+    # given
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+        kind=ProductTypeKind.NORMAL,
+    )
+    attribute = Attribute.objects.create(slug="new_attr", name="Attr")
+    attribute.product_types.add(product_type)
+    attr_value = AttributeValue.objects.create(
+        attribute=attribute, name="First", slug="first"
+    )
+    product = product_list[0]
+    product.product_type = product_type
+    product.save()
+    associate_attribute_values_to_instance(product, attribute, attr_value)
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [{"slug": attribute.slug, "values": [attr_value.slug]}],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
+
+
+@pytest.mark.parametrize(
+    "values_range, indexes",
+    [
+        ({"lte": 8}, [1, 2]),
+        ({"gte": 0, "lte": 8}, [1, 2]),
+        ({"gte": 7, "lte": 8}, []),
+        ({"gte": 5}, [0, 1, 2]),
+        ({"gte": 8, "lte": 10}, [0]),
+        ({"gte": 12}, [0]),
+        ({"gte": 20}, []),
+        ({"gte": 20, "lte": 8}, []),
+        ({"gte": 5, "lte": 5}, [1, 2]),
+    ],
+)
+def test_products_filter_by_numeric_attributes(
+    values_range,
+    indexes,
+    api_client,
+    product_list,
+    numeric_attribute,
+    channel_USD,
+):
+    # given
+    product_list[0].product_type.product_attributes.add(numeric_attribute)
+    associate_attribute_values_to_instance(
+        product_list[0], numeric_attribute, *numeric_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    numeric_attribute.product_types.add(product_type)
+
+    product_list[1].product_type = product_type
+    attr_value = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="5", slug="5"
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], numeric_attribute, attr_value
+    )
+
+    attr_value = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="5", slug="5_X"
+    )
+    product_list[2].product_type = product_type
+    associate_attribute_values_to_instance(
+        product_list[2], numeric_attribute, attr_value
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {"slug": numeric_attribute.slug, "valuesRange": values_range}
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize("filter_value, indexes", [(False, [0, 1]), (True, [0])])
+def test_products_filter_by_boolean_attributes(
+    filter_value,
+    indexes,
+    api_client,
+    product_list,
+    boolean_attribute,
+    channel_USD,
+):
+    # given
+    product_list[0].product_type.product_attributes.add(boolean_attribute)
+    associate_attribute_values_to_instance(
+        product_list[0],
+        boolean_attribute,
+        boolean_attribute.values.get(boolean=filter_value),
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    boolean_attribute.product_types.add(product_type)
+
+    product_list[1].product_type = product_type
+    associate_attribute_values_to_instance(
+        product_list[1], boolean_attribute, boolean_attribute.values.get(boolean=False)
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [{"slug": boolean_attribute.slug, "boolean": filter_value}]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+def test_products_filter_by_attributes_values_and_range(
+    api_client,
+    product_list,
+    category,
+    numeric_attribute,
+    channel_USD,
+):
+    # given
+    product_attr = product_list[0].attributes.first()
+    attr_value_1 = product_attr.values.first()
+    product_list[0].product_type.product_attributes.add(numeric_attribute)
+    associate_attribute_values_to_instance(
+        product_list[0], numeric_attribute, *numeric_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    numeric_attribute.product_types.add(product_type)
+
+    product_list[1].product_type = product_type
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=numeric_attribute, name="1.2", slug="1_2"
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], numeric_attribute, attr_value_2
+    )
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {"slug": numeric_attribute.slug, "valuesRange": {"gte": 2}},
+                {"slug": attr_value_1.attribute.slug, "values": [attr_value_1.slug]},
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_list[0].pk
+    )
+    assert products[0]["node"]["slug"] == product_list[0].slug
+
+
+def test_products_filter_by_swatch_attributes(
+    api_client,
+    product_list,
+    swatch_attribute,
+    channel_USD,
+):
+    # given
+    product_list[0].product_type.product_attributes.add(swatch_attribute)
+    associate_attribute_values_to_instance(
+        product_list[0], swatch_attribute, *swatch_attribute.values.all()
+    )
+
+    product_type = ProductType.objects.create(
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    swatch_attribute.product_types.add(product_type)
+
+    product_list[1].product_type = product_type
+    attr_value = AttributeValue.objects.create(
+        attribute=swatch_attribute, name="Dark", slug="dark"
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], swatch_attribute, attr_value
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [{"slug": swatch_attribute.slug, "values": [attr_value.slug]}]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert products[0]["node"]["slug"] == product_list[1].slug
+
+
+def test_products_filter_by_date_range_date_attributes(
+    api_client,
+    product_list,
+    date_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date range,
+    products with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_attribute, name="First", slug="first", date_time=date_value
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Second", slug="second", date_time=date_value
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(days=1),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], date_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2], date_attribute, attr_value_3
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {
+                    "slug": date_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
+def test_products_filter_by_date_range_date_variant_attributes(
+    api_client,
+    product_list,
+    date_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date range,
+    variants with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.variant_attributes.add(date_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(days=1),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Second", slug="second", date_time=date_value
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_attribute, name="Third", slug="third", date_time=date_value
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0].variants.first(), date_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_attribute, attr_value_3
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {
+                    "slug": date_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[1:]
+    }
+
+
+def test_products_filter_by_date_range_date_time_attributes(
+    api_client,
+    product_list,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date time
+    range, products with the same date time attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute, name="First", slug="first", date_time=date_value
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value,
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(days=1),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1], date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2], date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
+def test_products_filter_by_date_range_date_time_variant_attributes(
+    api_client,
+    product_list,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering attributes by date time
+    range, variant and product with the same date time attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.variant_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(days=1),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value,
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute, name="Third", slug="third", date_time=date_value
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0].variants.first(), date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "date": {"gte": date_value.date(), "lte": date_value.date()},
+                }
+            ],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[1:]
+    }
+
+
+def test_products_filter_by_date_time_range_date_time_attributes(
+    api_client,
+    product_list,
+    date_time_attribute,
+    channel_USD,
+):
+    """Ensure both products will be returned when filtering by attributes by date range
+    variants with the same date attribute value."""
+
+    # given
+    product_type = product_list[0].product_type
+    date_value = timezone.now()
+    product_type.product_attributes.add(date_time_attribute)
+    product_type.variant_attributes.add(date_time_attribute)
+    attr_value_1 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="First",
+        slug="first",
+        date_time=date_value - timedelta(hours=2),
+    )
+    attr_value_2 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Second",
+        slug="second",
+        date_time=date_value + timedelta(hours=3),
+    )
+    attr_value_3 = AttributeValue.objects.create(
+        attribute=date_time_attribute,
+        name="Third",
+        slug="third",
+        date_time=date_value - timedelta(hours=6),
+    )
+
+    associate_attribute_values_to_instance(
+        product_list[0], date_time_attribute, attr_value_1
+    )
+    associate_attribute_values_to_instance(
+        product_list[1].variants.first(), date_time_attribute, attr_value_2
+    )
+    associate_attribute_values_to_instance(
+        product_list[2].variants.first(), date_time_attribute, attr_value_3
+    )
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "attributes": [
+                {
+                    "slug": date_time_attribute.slug,
+                    "dateTime": {
+                        "gte": date_value - timedelta(hours=4),
+                        "lte": date_value + timedelta(hours=4),
+                    },
+                }
+            ],
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert {node["node"]["id"] for node in products} == {
+        graphene.Node.to_global_id("Product", instance.id)
+        for instance in product_list[:2]
+    }
+
+
+def test_products_filter_by_non_existing_attribute(
+    api_client, product_list, channel_USD
+):
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"attributes": [{"slug": "i-do-not-exist", "values": ["red"]}]},
+    }
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 0
