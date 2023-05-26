@@ -11964,10 +11964,10 @@ input ProductWhereInput @doc(category: "Products") {
   publishedFrom: DateTime
   availableFrom: DateTime
   hasCategory: Boolean
-  price: PriceRangeInput
+  price: FloatFilterInput
 
   """Filter by the lowest variant price after discounts."""
-  minimalPrice: PriceRangeInput
+  minimalPrice: FloatFilterInput
   attributes: [AttributeInput!]
 
   """Filter by variants having specific stock status."""
@@ -12002,6 +12002,24 @@ input GlobalIDFilterInput {
 
   """The value included in."""
   oneOf: [ID!]
+}
+
+"""
+Define the filtering options for integer fields.
+
+Added in Saleor 3.11.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input FloatFilterInput {
+  """The value equal to."""
+  eq: Float
+
+  """The value included in."""
+  oneOf: [Float!]
+
+  """The value in range."""
+  range: PriceRangeInput
 }
 
 input ProductTypeFilterInput @doc(category: "Products") {

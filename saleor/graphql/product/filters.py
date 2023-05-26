@@ -57,13 +57,18 @@ from ..core.types import (
     PriceRangeInput,
     StringFilterInput,
 )
-from ..core.types.filter_input import GlobalIDFilterInput, WhereInputObjectType
+from ..core.types.filter_input import (
+    FloatFilterInput,
+    GlobalIDFilterInput,
+    WhereInputObjectType,
+)
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import (
     filter_by_id,
     filter_by_string_field,
     filter_range_field,
     filter_where_by_id_field,
+    filter_where_by_numeric_field,
 )
 from ..warehouse import types as warehouse_types
 from . import types as product_types
@@ -833,14 +838,16 @@ class ProductWhere(MetadataFilterBase):
         method="filter_available_from",
     )
     has_category = django_filters.BooleanFilter(method=filter_has_category)
-
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method="filter_variant_price")
-    minimal_price = ObjectTypeFilter(
-        input_class=PriceRangeInput,
+    price = OperationObjectTypeFilter(
+        input_class=FloatFilterInput, method="filter_variant_price"
+    )
+    minimal_price = OperationObjectTypeFilter(
+        input_class=FloatFilterInput,
         method="filter_minimal_price",
         field_name="minimal_price_amount",
         help_text="Filter by the lowest variant price after discounts.",
     )
+
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
         method="filter_attributes",
@@ -939,6 +946,33 @@ class ProductWhere(MetadataFilterBase):
     @staticmethod
     def filter_has_category(qs, _, value):
         return qs.filter(category__isnull=not value)
+
+    def filter_variant_price(self, qs, _, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        channel_id = Channel.objects.filter(slug=channel_slug).values("pk")
+        variant_listing = ProductVariantChannelListing.objects.filter(
+            Exists(channel_id.filter(pk=OuterRef("channel_id")))
+        )
+        variant_listing = filter_where_by_numeric_field(
+            variant_listing, "price_amount", value
+        )
+        variant_listing = variant_listing.values("variant_id")
+        variants = ProductVariant.objects.filter(
+            Exists(variant_listing.filter(variant_id=OuterRef("pk")))
+        ).values("product_id")
+        return qs.filter(Exists(variants.filter(product_id=OuterRef("pk"))))
+
+    def filter_minimal_price(self, qs, _, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        channel = Channel.objects.filter(slug=channel_slug).first()
+        if not channel:
+            return qs
+        product_listing = ProductChannelListing.objects.filter(channel_id=channel.id)
+        product_listing = filter_where_by_numeric_field(
+            product_listing, "discounted_price_amount", value
+        )
+        product_listing = product_listing.values("product_id")
+        return qs.filter(Exists(product_listing.filter(product_id=OuterRef("pk"))))
 
 
 class ProductVariantFilter(MetadataFilterBase):
