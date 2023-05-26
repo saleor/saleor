@@ -894,7 +894,12 @@ class ProductWhere(MetadataFilterBase):
 
     @staticmethod
     def filter_collection(qs, _, value):
-        return filter_where_by_id_field(qs, "collection", value, "Collection")
+        collection_products_qs = CollectionProduct.objects
+        collection_products_qs = filter_where_by_id_field(
+            collection_products_qs, "collection_id", value, "Collection"
+        )
+        collection_products = collection_products_qs.values("product_id")
+        return qs.filter(Exists(collection_products.filter(product_id=OuterRef("pk"))))
 
     def filter_is_available(self, queryset, name, value):
         channel_slug = get_channel_slug_from_filter_data(self.data)
