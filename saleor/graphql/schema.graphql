@@ -11937,7 +11937,6 @@ input ProductWhereInput @doc(category: "Products") {
 
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
-  ids: [ID!]
   hasPreorderedVariants: Boolean
 
   """List of conditions that must be met."""
