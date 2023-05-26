@@ -919,9 +919,8 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def validate_input(
-        cls, instance: Model, *, id, transaction
+        cls, instance: Union[checkout_models.Checkout, order_models.Order], transaction
     ) -> Union[checkout_models.Checkout, order_models.Order]:
-        instance = cls.validate_instance(instance, id)
         currency = instance.currency
 
         cls.validate_money_input(
@@ -947,7 +946,7 @@ class TransactionCreate(BaseMutation):
 
     @classmethod
     def create_transaction(
-        cls, transaction_input: dict, user, app
+        cls, transaction_input: dict, user, app, save: bool = True
     ) -> payment_models.TransactionItem:
         cls.cleanup_metadata_data(transaction_input)
 
@@ -960,7 +959,7 @@ class TransactionCreate(BaseMutation):
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
-        return payment_models.TransactionItem.objects.create(
+        transaction = payment_models.TransactionItem(
             token=uuid.uuid4(),
             use_old_id=True,
             **transaction_input,
@@ -968,6 +967,9 @@ class TransactionCreate(BaseMutation):
             app_identifier=app_identifier,
             app=app,
         )
+        if save:
+            transaction.save()
+        return transaction
 
     @classmethod
     def create_transaction_event(
@@ -1053,9 +1055,11 @@ class TransactionCreate(BaseMutation):
         transaction_event=None,
     ):
         order_or_checkout_instance = cls.get_node_or_error(info, id)
-
+        order_or_checkout_instance = cls.validate_instance(
+            order_or_checkout_instance, id
+        )
         order_or_checkout_instance = cls.validate_input(
-            order_or_checkout_instance, id=id, transaction=transaction
+            order_or_checkout_instance, transaction=transaction
         )
         transaction_data = {**transaction}
         transaction_data["currency"] = order_or_checkout_instance.currency

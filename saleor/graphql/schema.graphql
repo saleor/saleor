@@ -1810,6 +1810,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2432,6 +2441,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2923,6 +2941,7 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
+  MANAGE_ORDERS_IMPORT
   MANAGE_PAGES
   MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   HANDLE_PAYMENTS
@@ -3228,6 +3247,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
+  ORDER_BULK_CREATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -10771,6 +10791,7 @@ enum OrderOriginEnum @doc(category: "Orders") {
   CHECKOUT
   DRAFT
   REISSUE
+  BULK_CREATE
 }
 
 """An enumeration."""
@@ -14967,6 +14988,28 @@ type Mutation {
     """List of orders IDs to cancel."""
     ids: [ID!]!
   ): OrderBulkCancel @doc(category: "Orders")
+
+  """
+  Creates multiple orders.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
+  """
+  orderBulkCreate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """Input list of orders to create. Orders limit: 50."""
+    orders: [OrderBulkCreateInput!]!
+
+    """
+    Determine how stock should be updated, while processing the order. DEFAULT: UPDATE - Only do update, if there is enough stocks.
+    """
+    stockUpdatePolicy: StockUpdatePolicyEnum
+  ): OrderBulkCreate @doc(category: "Orders")
 
   """
   Delete metadata of an object. To use it, you need to have access to the modified object.
@@ -22361,6 +22404,342 @@ type OrderBulkCancel @doc(category: "Orders") {
 }
 
 """
+Creates multiple orders.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
+"""
+type OrderBulkCreate @doc(category: "Orders") {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created orders."""
+  results: [OrderBulkCreateResult!]!
+  errors: [OrderBulkCreateError!]!
+}
+
+type OrderBulkCreateResult @doc(category: "Orders") {
+  """Order data."""
+  order: Order
+
+  """List of errors occurred on create attempt."""
+  errors: [OrderBulkCreateError!]
+}
+
+type OrderBulkCreateError @doc(category: "Orders") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderBulkCreateErrorCode
+}
+
+"""An enumeration."""
+enum OrderBulkCreateErrorCode {
+  GRAPHQL_ERROR
+  REQUIRED
+  INVALID
+  NOT_FOUND
+  UNIQUE
+  BULK_LIMIT
+  TOO_MANY_IDENTIFIERS
+  FUTURE_DATE
+  INVALID_QUANTITY
+  PRICE_ERROR
+  NOTE_LENGTH
+  INSUFFICIENT_STOCK
+  NON_EXISTING_STOCK
+  NO_RELATED_ORDER_LINE
+  NEGATIVE_INDEX
+  ORDER_LINE_FULFILLMENT_LINE_MISMATCH
+  METADATA_KEY_REQUIRED
+  INCORRECT_CURRENCY
+}
+
+input OrderBulkCreateInput @doc(category: "Orders") {
+  """External ID of the order."""
+  externalReference: String
+
+  """Slug of the channel associated with the order."""
+  channel: String!
+
+  """The date, when the order was inserted to Saleor database."""
+  createdAt: DateTime!
+
+  """Status of the order."""
+  status: OrderStatus
+
+  """Customer associated with the order."""
+  user: OrderBulkCreateUserInput!
+
+  """Tracking ID of the customer."""
+  trackingClientId: String
+
+  """Billing address of the customer."""
+  billingAddress: AddressInput!
+
+  """Shipping address of the customer."""
+  shippingAddress: AddressInput
+
+  """Currency code."""
+  currency: String!
+
+  """Metadata of the order."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order."""
+  privateMetadata: [MetadataInput!]
+
+  """Note about customer."""
+  customerNote: String
+
+  """Notes related to the order."""
+  notes: [OrderBulkCreateNoteInput!]
+
+  """Order language code."""
+  languageCode: LanguageCodeEnum!
+
+  """
+  Determines whether checkout prices should include taxes, when displayed in a storefront.
+  """
+  displayGrossPrices: Boolean
+
+  """Weight of the order in kg."""
+  weight: WeightScalar
+
+  """
+  URL of a view, where users should be redirected to see the order details.
+  """
+  redirectUrl: String
+
+  """List of order lines."""
+  lines: [OrderBulkCreateOrderLineInput!]!
+
+  """The delivery method selected for this order."""
+  deliveryMethod: OrderBulkCreateDeliveryMethodInput
+
+  """List of gift card codes associated with the order."""
+  giftCards: [String!]
+
+  """Code of a voucher associated with the order."""
+  voucher: String
+
+  """List of discounts."""
+  discounts: [OrderDiscountCommonInput!]
+
+  """Fulfillments of the order."""
+  fulfillments: [OrderBulkCreateFulfillmentInput!]
+
+  """Transactions related to the order."""
+  transactions: [TransactionCreateInput!]
+
+  """Invoices related to the order."""
+  invoices: [OrderBulkCreateInvoiceInput!]
+}
+
+input OrderBulkCreateUserInput @doc(category: "Orders") {
+  """Customer ID associated with the order."""
+  id: ID
+
+  """Customer email associated with the order."""
+  email: String
+
+  """Customer external ID associated with the order."""
+  externalReference: String
+}
+
+input OrderBulkCreateNoteInput @doc(category: "Orders") {
+  """Note message. Max characters: 255."""
+  message: String!
+
+  """The date associated with the message."""
+  date: DateTime
+
+  """The user ID associated with the message."""
+  userId: ID
+
+  """The user email associated with the message."""
+  userEmail: ID
+
+  """The user external ID associated with the message."""
+  userExternalReference: ID
+
+  """The app ID associated with the message."""
+  appId: ID
+}
+
+input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The SKU of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """The name of the product variant."""
+  variantName: String
+
+  """The name of the product."""
+  productName: String
+
+  """Translation of the product variant name."""
+  translatedVariantName: String
+
+  """Translation of the product name."""
+  translatedProductName: String
+
+  """The date, when the order line was created."""
+  createdAt: DateTime!
+
+  """Determines whether shipping of the order line items is required."""
+  isShippingRequired: Boolean!
+
+  """Gift card flag."""
+  isGiftCard: Boolean!
+
+  """Number of items in the order line"""
+  quantity: Int!
+
+  """Price of the order line."""
+  totalPrice: TaxedMoneyInput!
+
+  """Price of the order line excluding applied discount."""
+  undiscountedTotalPrice: TaxedMoneyInput!
+
+  """The ID of the warehouse, where the line will be allocated."""
+  warehouse: ID!
+
+  """Metadata of the order line."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order line."""
+  privateMetadata: [MetadataInput!]
+
+  """Tax rate of the order line."""
+  taxRate: PositiveDecimal
+
+  """The ID of the tax class."""
+  taxClassId: ID
+
+  """The name of the tax class."""
+  taxClassName: String
+
+  """Metadata of the tax class."""
+  taxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  taxClassPrivateMetadata: [MetadataInput!]
+}
+
+input TaxedMoneyInput @doc(category: "Orders") {
+  """Gross value of an item."""
+  gross: PositiveDecimal!
+
+  """Net value of an item."""
+  net: PositiveDecimal!
+}
+
+input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
+  """The ID of the warehouse."""
+  warehouseId: ID
+
+  """The name of the warehouse."""
+  warehouseName: String
+
+  """The ID of the shipping method."""
+  shippingMethodId: ID
+
+  """The name of the shipping method."""
+  shippingMethodName: String
+
+  """The price of the shipping."""
+  shippingPrice: TaxedMoneyInput
+
+  """Tax rate of the shipping."""
+  shippingTaxRate: PositiveDecimal
+
+  """The ID of the tax class."""
+  shippingTaxClassId: ID
+
+  """The name of the tax class."""
+  shippingTaxClassName: String
+
+  """Metadata of the tax class."""
+  shippingTaxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  shippingTaxClassPrivateMetadata: [MetadataInput!]
+}
+
+input OrderBulkCreateFulfillmentInput @doc(category: "Orders") {
+  """Fulfillment's tracking code."""
+  trackingCode: String
+
+  """List of items informing how to fulfill the order."""
+  lines: [OrderBulkCreateFulfillmentLineInput!]
+}
+
+input OrderBulkCreateFulfillmentLineInput @doc(category: "Orders") {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The SKU of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """The number of line items to be fulfilled from given warehouse."""
+  quantity: Int!
+
+  """ID of the warehouse from which the item will be fulfilled."""
+  warehouse: ID!
+
+  """0-based index of order line, which the fulfillment line refers to."""
+  orderLineIndex: Int!
+}
+
+input OrderBulkCreateInvoiceInput @doc(category: "Orders") {
+  """The date, when the invoice was created."""
+  createdAt: DateTime!
+
+  """Invoice number."""
+  number: String
+
+  """URL of the invoice to download."""
+  url: String
+
+  """Metadata of the invoice."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the invoice."""
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Determine how stocks should be updated, while processing an order.
+
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
+"""
+enum StockUpdatePolicyEnum {
+  SKIP
+  UPDATE
+  FORCE
+}
+
+"""
 Delete metadata of an object. To use it, you need to have access to the modified object.
 """
 type DeleteMetadata {
@@ -27145,6 +27524,30 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 
   """The order the event relates to."""
   order: Order
+}
+
+"""
+Event sent when orders are imported.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderBulkCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The orders the event relates to."""
+  orders: [Order!]
 }
 
 """

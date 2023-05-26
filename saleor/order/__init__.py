@@ -43,11 +43,13 @@ class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
     REISSUE = "reissue"  # order created from reissue existing one
+    BULK_CREATE = "bulk_create"  # order created from bulk upload
 
     CHOICES = [
         (CHECKOUT, "Checkout"),
         (DRAFT, "Draft"),
         (REISSUE, "Reissue"),
+        (BULK_CREATE, "Bulk create"),
     ]
 
 
@@ -301,3 +303,22 @@ class FulfillmentLineData:
     line: "FulfillmentLine"
     quantity: int
     replace: bool = False
+
+
+class StockUpdatePolicy:
+    """Determine how stocks should be updated, while processing an order.
+
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
+    """
+
+    SKIP = "skip"
+    UPDATE = "update"
+    FORCE = "force"
+
+    CHOICES = [
+        (SKIP, "Stocks are not checked and not updated."),
+        (UPDATE, "Only do update, if there is enough stocks."),
+        (FORCE, "Force update, if there is not enough stocks."),
+    ]

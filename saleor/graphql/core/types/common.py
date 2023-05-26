@@ -49,6 +49,7 @@ from ..enums import (
     LanguageCodeEnum,
     MenuErrorCode,
     MetadataErrorCode,
+    OrderBulkCreateErrorCode,
     OrderErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
@@ -333,6 +334,13 @@ class OrderError(Error):
     address_type = AddressTypeEnum(  # type: ignore[has-type]
         description="A type of address that causes the error.", required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
+
+class OrderBulkCreateError(BulkError):
+    code = OrderBulkCreateErrorCode(description="The error code.", required=False)
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS

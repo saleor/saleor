@@ -8,6 +8,7 @@ from ...order import (
     OrderEventsEmails,
     OrderOrigin,
     OrderStatus,
+    StockUpdatePolicy,
     error_codes,
 )
 from ..core.descriptions import PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
@@ -54,6 +55,9 @@ OrderAuthorizeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 
 OrderChargeStatusEnum = to_enum(
     OrderChargeStatus, description=OrderChargeStatus.__doc__
+)
+StockUpdatePolicyEnum = to_enum(
+    StockUpdatePolicy, description=StockUpdatePolicy.__doc__
 )
 OrderChargeStatusEnum.doc_category = DOC_CATEGORY_ORDERS
 

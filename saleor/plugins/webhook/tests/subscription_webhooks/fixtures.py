@@ -484,6 +484,13 @@ def subscription_order_metadata_updated_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_order_bulk_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_BULK_CREATED, WebhookEventAsyncType.ORDER_BULK_CREATED
+    )
+
+
+@pytest.fixture
 def subscription_draft_order_created_webhook(subscription_webhook):
     return subscription_webhook(
         queries.DRAFT_ORDER_CREATED,
