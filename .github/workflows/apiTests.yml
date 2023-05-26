@@ -16,3 +16,5 @@ jobs:
         working-directory: ./api-tests
       - run: npm run api-tests
         working-directory: ./api-tests
+      - run: npm run compile
+        working-directory: ./api-tests
