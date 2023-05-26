@@ -15,7 +15,7 @@ from ..descriptions import (
 )
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
-from . import NonNullList
+from . import NonNullList, PriceRangeInput
 from .base import BaseInputObjectType
 from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
 from .converter import convert_form_field
@@ -179,6 +179,21 @@ class IntFilterInput(graphene.InputObjectType):
         graphene.Int, description=FilterInputDescriptions.ONE_OF, required=False
     )
     range = IntRangeInput(description=FilterInputDescriptions.RANGE, required=False)
+
+    class Meta:
+        description = (
+            "Define the filtering options for integer fields."
+            + ADDED_IN_311
+            + PREVIEW_FEATURE
+        )
+
+
+class FloatFilterInput(graphene.InputObjectType):
+    eq = graphene.Float(description=FilterInputDescriptions.EQ, required=False)
+    one_of = NonNullList(
+        graphene.Float, description=FilterInputDescriptions.ONE_OF, required=False
+    )
+    range = PriceRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
         description = (

@@ -243,9 +243,7 @@ def test_product_filter_by_collection(
     api_client, product_list, channel_USD, collection_list
 ):
     # given
-    product_list[1].collection = collection_list[1]
-    Product.objects.bulk_update(product_list, ["collection"])
-
+    collection_list[1].products.add(product_list[1])
     collection_id = graphene.Node.to_global_id("Collection", collection_list[1].pk)
 
     variables = {
@@ -263,14 +261,20 @@ def test_product_filter_by_collection(
     assert product_list[1].slug == products[0]["node"]["slug"]
 
 
-def test_product_filter_by_is_available(api_client, product_list, channel_USD):
+@pytest.mark.parametrize(
+    "where, indexes",
+    [({"isAvailable": True}, [0, 2]), ({"isAvailable": False}, [1])],
+)
+def test_product_filter_by_is_available(
+    where, indexes, api_client, product_list, channel_USD
+):
     # given
     ProductChannelListing.objects.filter(
         product=product_list[1], channel=channel_USD
     ).update(available_for_purchase_at=timezone.now() + timedelta(days=1))
     variables = {
         "channel": channel_USD.slug,
-        "where": {"isAvailable": True},
+        "where": where,
     }
 
     # when
@@ -278,20 +282,26 @@ def test_product_filter_by_is_available(api_client, product_list, channel_USD):
 
     # then
     data = get_graphql_content(response)
-    products = data["data"]["products"]["edges"]
-    assert len(products) == 2
-    assert product_list[0].slug == products[0]["node"]["slug"]
-    assert product_list[2].slug == products[1]["node"]["slug"]
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
-def test_product_filter_by_is_published(api_client, product_list, channel_USD):
+@pytest.mark.parametrize(
+    "where, indexes",
+    [({"isPublished": True}, [0, 2]), ({"isPublished": False}, [])],
+)
+def test_product_filter_by_is_published(
+    where, indexes, api_client, product_list, channel_USD
+):
     # given
     ProductChannelListing.objects.filter(
         product=product_list[1], channel=channel_USD
     ).update(is_published=False)
     variables = {
         "channel": channel_USD.slug,
-        "where": {"isPublished": True},
+        "where": where,
     }
 
     # when
@@ -299,20 +309,26 @@ def test_product_filter_by_is_published(api_client, product_list, channel_USD):
 
     # then
     data = get_graphql_content(response)
-    products = data["data"]["products"]["edges"]
-    assert len(products) == 2
-    assert product_list[0].slug == products[0]["node"]["slug"]
-    assert product_list[2].slug == products[1]["node"]["slug"]
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
-def test_product_filter_by_is_visible_in_listing(api_client, product_list, channel_USD):
+@pytest.mark.parametrize(
+    "where, indexes",
+    [({"isVisibleInListing": True}, [0, 2]), ({"isVisibleInListing": False}, [])],
+)
+def test_product_filter_by_is_visible_in_listing(
+    where, indexes, api_client, product_list, channel_USD
+):
     # given
     ProductChannelListing.objects.filter(
         product=product_list[1], channel=channel_USD
     ).update(visible_in_listings=False)
     variables = {
         "channel": channel_USD.slug,
-        "where": {"isVisibleInListing": True},
+        "where": where,
     }
 
     # when
@@ -320,10 +336,36 @@ def test_product_filter_by_is_visible_in_listing(api_client, product_list, chann
 
     # then
     data = get_graphql_content(response)
-    products = data["data"]["products"]["edges"]
-    assert len(products) == 2
-    assert product_list[0].slug == products[0]["node"]["slug"]
-    assert product_list[2].slug == products[1]["node"]["slug"]
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [({"hasCategory": True}, [0, 2]), ({"hasCategory": False}, [1])],
+)
+def test_product_filter_by_has_category(
+    where, indexes, api_client, product_list, channel_USD
+):
+    # given
+    product_list[1].category = None
+    product_list[1].save(update_fields=["category"])
+    variables = {
+        "channel": channel_USD.slug,
+        "where": where,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
 
 
 def test_product_filter_by_published_from(api_client, product_list, channel_USD):
@@ -375,13 +417,25 @@ def test_product_filter_by_available_from(api_client, product_list, channel_USD)
     assert product_list[2].slug == products[1]["node"]["slug"]
 
 
-def test_product_filter_by_has_category(api_client, product_list, channel_USD):
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"price": {"range": {"gte": 0, "lte": 50}}}, [0, 1, 2]),
+        ({"price": {"range": {"gte": 10, "lte": 20}}}, [0, 1]),
+        ({"price": {"range": {"gte": 15}}}, [1, 2]),
+        ({"price": {"range": {"lte": 15}}}, [0]),
+        ({"price": {"range": {"gte": 9.9999, "lte": 19.9999}}}, [0]),
+        ({"price": {"eq": 20}}, [1]),
+        ({"price": {"oneOf": [20, 30, 50]}}, [1, 2]),
+    ],
+)
+def test_product_filter_by_variant_price(
+    where, indexes, api_client, product_list, channel_USD
+):
     # given
-    product_list[1].category = None
-    product_list[1].save(update_fields=["category"])
     variables = {
         "channel": channel_USD.slug,
-        "where": {"hasCategory": True},
+        "where": where,
     }
 
     # when
@@ -389,7 +443,39 @@ def test_product_filter_by_has_category(api_client, product_list, channel_USD):
 
     # then
     data = get_graphql_content(response)
-    products = data["data"]["products"]["edges"]
-    assert len(products) == 2
-    assert product_list[0].slug == products[0]["node"]["slug"]
-    assert product_list[2].slug == products[1]["node"]["slug"]
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"minimalPrice": {"range": {"gte": 0, "lte": 50}}}, [0, 1, 2]),
+        ({"minimalPrice": {"range": {"gte": 10, "lte": 20}}}, [0, 1]),
+        ({"minimalPrice": {"range": {"gte": 15}}}, [1, 2]),
+        ({"minimalPrice": {"range": {"lte": 15}}}, [0]),
+        ({"minimalPrice": {"range": {"gte": 9.9999, "lte": 19.9999}}}, [0]),
+        ({"minimalPrice": {"eq": 20}}, [1]),
+        ({"minimalPrice": {"oneOf": [20, 30, 50]}}, [1, 2]),
+    ],
+)
+def test_product_filter_by_minimal_price(
+    where, indexes, api_client, product_list, channel_USD
+):
+    # given
+    variables = {
+        "channel": channel_USD.slug,
+        "where": where,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}

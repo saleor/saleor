@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Dict, List, Union
 
 from django.utils import timezone
@@ -6,6 +7,8 @@ from ..core.enums import ReportingPeriod
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+
+Number = Union[float, int, Decimal]
 
 
 def reporting_period_to_date(period):
@@ -72,4 +75,27 @@ def filter_where_by_id_field(
     if one_of:
         _, pks = resolve_global_ids_to_primary_keys(one_of, type, True)
         qs = qs.filter(**{f"{field}__in": pks})
+    return qs
+
+
+def filter_where_by_numeric_field(
+    qs: "QuerySet",
+    field: str,
+    value: Dict[str, Union[Number, List[Number], Dict[str, Number]]],
+):
+    eq = value.get("eq")
+    one_of = value.get("one_of")
+    range = value.get("range")
+
+    if eq:
+        qs = qs.filter(**{field: eq})
+    if one_of:
+        qs = qs.filter(**{f"{field}__in": one_of})
+    if range and isinstance(range, dict):
+        lte = range.get("lte")
+        gte = range.get("gte")
+        if lte is not None:
+            qs = qs.filter(**{f"{field}__lte": lte})
+        if gte is not None:
+            qs = qs.filter(**{f"{field}__gte": gte})
     return qs
