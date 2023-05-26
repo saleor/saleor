@@ -4956,6 +4956,7 @@ def promotion(channel_USD, product, collection):
     promotion = Promotion.objects.create(
         name="Promotion",
         description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
     )
     rules = PromotionRule.objects.bulk_create(
         [
