@@ -1,0 +1,16 @@
+name: API-tests
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - run: npm i
+        working-directory: ./api-tests
+      - run: npm run lint
+        working-directory: ./api-tests
