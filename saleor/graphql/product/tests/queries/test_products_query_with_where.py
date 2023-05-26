@@ -211,10 +211,9 @@ def test_product_filter_by_collections(
     api_client, product_list, channel_USD, collection_list
 ):
     # given
-    product_list[0].collection = collection_list[0]
-    product_list[1].collection = collection_list[1]
-    product_list[2].collection = collection_list[2]
-    Product.objects.bulk_update(product_list, ["Collection"])
+    collection_list[0].products.add(product_list[0])
+    collection_list[1].products.add(product_list[1])
+    collection_list[2].products.add(product_list[2])
 
     collection_ids = [
         graphene.Node.to_global_id("Collection", collection.pk)
