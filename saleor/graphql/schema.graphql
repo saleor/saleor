@@ -11972,14 +11972,14 @@ input ProductWhereInput @doc(category: "Products") {
 
   """Filter by variants having specific stock status."""
   stockAvailability: StockAvailability
-
-  """Filter by when was the most recent update."""
-  updatedAt: DateTimeRangeInput
   stocks: ProductStockFilterInput
 
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
   hasPreorderedVariants: Boolean
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
 
   """List of conditions that must be met."""
   AND: [ProductWhereInput!]

@@ -851,16 +851,10 @@ class ProductWhere(MetadataFilterBase):
         input_class="saleor.graphql.attribute.types.AttributeInput",
         method="filter_attributes",
     )
-
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
         help_text="Filter by variants having specific stock status.",
-    )
-    updated_at = ObjectTypeFilter(
-        input_class=DateTimeRangeInput,
-        method=filter_updated_at_range,
-        help_text="Filter by when was the most recent update.",
     )
     stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
     gift_card = django_filters.BooleanFilter(
@@ -869,6 +863,11 @@ class ProductWhere(MetadataFilterBase):
     )
     has_preordered_variants = django_filters.BooleanFilter(
         method=filter_has_preordered_variants
+    )
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method=filter_updated_at_range,
+        help_text="Filter by when was the most recent update.",
     )
 
     class Meta:
@@ -893,7 +892,7 @@ class ProductWhere(MetadataFilterBase):
 
     @staticmethod
     def filter_collection(qs, _, value):
-        collection_products_qs = CollectionProduct.objects
+        collection_products_qs = CollectionProduct.objects.filter()
         collection_products_qs = filter_where_by_id_field(
             collection_products_qs, "collection_id", value, "Collection"
         )
@@ -981,6 +980,10 @@ class ProductWhere(MetadataFilterBase):
     @staticmethod
     def filter_attributes(queryset, name, value):
         return _filter_attributes(queryset, name, value)
+
+    def filter_stock_availability(self, queryset, name, value):
+        channel_slug = get_channel_slug_from_filter_data(self.data)
+        return _filter_stock_availability(queryset, name, value, channel_slug)
 
 
 class ProductVariantFilter(MetadataFilterBase):

@@ -8,6 +8,7 @@ from saleor.attribute.models import Attribute, AttributeValue
 from saleor.attribute.utils import associate_attribute_values_to_instance
 from saleor.product import ProductTypeKind
 from saleor.product.models import Product, ProductChannelListing, ProductType
+from saleor.warehouse.models import Allocation, Reservation, Stock, Warehouse
 
 from ....tests.utils import get_graphql_content
 
@@ -1076,3 +1077,404 @@ def test_products_filter_by_non_existing_attribute(
     content = get_graphql_content(response)
     products = content["data"]["products"]["edges"]
     assert len(products) == 0
+
+
+@pytest.mark.parametrize(
+    "where, indexes",
+    [
+        ({"stockAvailability": "OUT_OF_STOCK"}, [0, 1, 2]),
+        ({"stockAvailability": "IN_STOCK"}, [3]),
+    ],
+)
+def test_products_filter_by_stock_availability(
+    where, indexes, api_client, product_list, order_line, channel_USD, product
+):
+    # given
+    for prod in product_list:
+        stock = prod.variants.first().stocks.first()
+        Allocation.objects.create(
+            order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+        )
+    product_list.append(product)
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": where,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    data = get_graphql_content(response)
+
+    # then
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_slugs = {node["node"]["slug"] for node in nodes}
+    assert returned_slugs == {product_list[index].slug for index in indexes}
+
+
+def test_products_filter_by_stock_availability_including_reservations(
+    api_client,
+    product_list,
+    order_line,
+    checkout_line,
+    channel_USD,
+    warehouse_JPY,
+    stock,
+):
+    # given
+    stocks = [product.variants.first().stocks.first() for product in product_list]
+    stock.quantity = 50
+    stock.product_variant = stocks[2].product_variant
+    stock.warehouse_id = warehouse_JPY.id
+    stocks[2].quantity = 50
+
+    Allocation.objects.create(
+        order_line=order_line, stock=stocks[0], quantity_allocated=50
+    )
+    Reservation.objects.bulk_create(
+        [
+            Reservation(
+                checkout_line=checkout_line,
+                stock=stocks[0],
+                quantity_reserved=50,
+                reserved_until=timezone.now() + timedelta(minutes=5),
+            ),
+            Reservation(
+                checkout_line=checkout_line,
+                stock=stocks[1],
+                quantity_reserved=100,
+                reserved_until=timezone.now() - timedelta(minutes=5),
+            ),
+            Reservation(
+                checkout_line=checkout_line,
+                stock=stocks[2],
+                quantity_reserved=50,
+                reserved_until=timezone.now() + timedelta(minutes=5),
+            ),
+        ]
+    )
+    variables = {
+        "where": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_list[0].id
+    )
+
+
+def test_products_filter_by_stock_availability_as_user(
+    user_api_client,
+    product_list,
+    order_line,
+    channel_USD,
+):
+    # given
+    for product in product_list:
+        stock = product.variants.first().stocks.first()
+        Allocation.objects.create(
+            order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+        )
+    product = product_list[0]
+    product.variants.first().channel_listings.filter(channel=channel_USD).update(
+        price_amount=None
+    )
+    variables = {
+        "where": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_id = graphene.Node.to_global_id("Product", product_list[1].id)
+    second_product_id = graphene.Node.to_global_id("Product", product_list[2].id)
+
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 2
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product_list[1].name
+    assert products[1]["node"]["id"] == second_product_id
+    assert products[1]["node"]["name"] == product_list[2].name
+
+
+def test_products_filter_by_stock_availability_channel_without_shipping_zones(
+    api_client,
+    product,
+    channel_USD,
+):
+    # given
+    channel_USD.shipping_zones.clear()
+    variables = {
+        "where": {"stockAvailability": "OUT_OF_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+    product_id = graphene.Node.to_global_id("Product", product.id)
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+
+
+def test_products_filter_by_stock_availability_only_stock_in_cc_warehouse(
+    api_client,
+    product,
+    order_line,
+    channel_USD,
+    warehouse_for_cc,
+):
+    # given
+    variant = product.variants.first()
+    variant.stocks.all().delete()
+
+    Stock.objects.create(
+        warehouse=warehouse_for_cc, product_variant=variant, quantity=10
+    )
+
+    variables = {
+        "where": {"stockAvailability": "IN_STOCK"},
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product.id
+    )
+
+
+@pytest.mark.parametrize(
+    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    [
+        ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
+        ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),
+        ({"gte": "10"}, [1], 1, [1]),
+        ({"gte": "110"}, [2], 0, []),
+        (None, [1], 1, [1]),
+        (None, [2], 2, [0, 1]),
+        ({"lte": "210", "gte": "70"}, [], 1, [0]),
+        ({"lte": "90"}, [], 1, [1]),
+        ({"lte": "90", "gte": "75"}, [], 0, []),
+    ],
+)
+def test_products_filter_by_stocks(
+    quantity_input,
+    warehouse_indexes,
+    count,
+    indexes_of_products_in_result,
+    api_client,
+    product_with_single_variant,
+    product_with_two_variants,
+    warehouse,
+    channel_USD,
+):
+    # given
+    product1 = product_with_single_variant
+    product2 = product_with_two_variants
+    products = [product1, product2]
+
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    third_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    third_warehouse.slug = "third warehouse"
+    third_warehouse.pk = None
+    third_warehouse.save()
+
+    warehouses = [warehouse, second_warehouse, third_warehouse]
+    warehouse_pks = [
+        graphene.Node.to_global_id("Warehouse", warehouses[index].pk)
+        for index in warehouse_indexes
+    ]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product1.variants.first(),
+                quantity=100,
+            ),
+            Stock(
+                warehouse=second_warehouse,
+                product_variant=product2.variants.first(),
+                quantity=10,
+            ),
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product2.variants.first(),
+                quantity=25,
+            ),
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product2.variants.last(),
+                quantity=30,
+            ),
+        ]
+    )
+
+    variables = {
+        "where": {
+            "stocks": {"quantity": quantity_input, "warehouseIds": warehouse_pks}
+        },
+        "channel": channel_USD.slug,
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products_data = content["data"]["products"]["edges"]
+    product_ids = {
+        graphene.Node.to_global_id("Product", products[index].pk)
+        for index in indexes_of_products_in_result
+    }
+
+    assert len(products_data) == count
+    assert {node["node"]["id"] for node in products_data} == product_ids
+
+
+@pytest.mark.parametrize("filter,index", [(False, 0), (True, 1)])
+def test_products_filter_by_gift_card(
+    filter,
+    index,
+    api_client,
+    product,
+    shippable_gift_card_product,
+):
+    # given
+    variables = {"where": {"giftCard": filter}}
+    product_list = [product, shippable_gift_card_product]
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_list[index].pk
+    )
+
+
+@pytest.mark.parametrize("filter,index", [(False, 0), (True, 1)])
+def test_products_query_with_filter_has_preordered_variants_false(
+    filter,
+    index,
+    api_client,
+    preorder_variant_global_threshold,
+    product_without_shipping,
+    permission_manage_products,
+):
+    # given
+    product_list = [product_without_shipping, preorder_variant_global_threshold.product]
+    variables = {"where": {"hasPreorderedVariants": filter}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_id = graphene.Node.to_global_id("Product", product_list[index].id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+
+
+def test_products_filter_by_has_preordered_variants_before_end_date(
+    api_client,
+    preorder_variant_global_threshold,
+):
+    # given
+    variant = preorder_variant_global_threshold
+    variant.preorder_end_date = timezone.now() + timedelta(days=3)
+    variant.save(update_fields=["preorder_end_date"])
+
+    product = preorder_variant_global_threshold.product
+    variables = {"where": {"hasPreorderedVariants": True}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+
+
+def test_products_filter_by_has_preordered_variants_after_end_date(
+    api_client,
+    preorder_variant_global_threshold,
+):
+    # given
+    variant = preorder_variant_global_threshold
+    variant.preorder_end_date = timezone.now() - timedelta(days=3)
+    variant.save(update_fields=["preorder_end_date"])
+
+    variables = {"where": {"hasPreorderedVariants": True}}
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    content = get_graphql_content(response)
+
+    # then
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 0
+
+
+def test_product_filter_by_updated_at(api_client, product_list, channel_USD):
+    # given
+    timestamp = timezone.now()
+    product_list[0].save()
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "updatedAt": {
+                "gte": timestamp,
+                "lte": timezone.now() + timedelta(days=1),
+            }
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 1
+    assert product_list[0].slug == products[0]["node"]["slug"]
