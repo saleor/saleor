@@ -99,7 +99,8 @@ class OrderUpdateShipping(
                     }
                 )
 
-            cls.clean_shipping_method_from_order(order)
+            cls.clear_shipping_method_from_order(order)
+            order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
             return OrderUpdateShipping(order=order)
 
         method = cls.get_node_or_error(
@@ -119,7 +120,6 @@ class OrderUpdateShipping(
         )
         manager = get_plugin_manager_promise(info.context).get()
         clean_order_update_shipping(order, shipping_method_data, manager)
-
         cls.update_shipping_method(order, method, shipping_channel_listing)
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)

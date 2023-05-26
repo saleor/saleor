@@ -49,8 +49,7 @@ class ShippingMethodUpdateMixin:
         abstract = True
 
     @classmethod
-    def clean_shipping_method_from_order(cls, order):
-
+    def clear_shipping_method_from_order(cls, order):
         order.shipping_method = None
         order.base_shipping_price = zero_money(order.currency)
         order.shipping_price = zero_taxed_money(order.currency)
@@ -60,7 +59,6 @@ class ShippingMethodUpdateMixin:
         order.shipping_tax_class_private_metadata = {}
         order.shipping_tax_class_metadata = {}
         invalidate_order_prices(order)
-        order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
 
     @classmethod
     def update_shipping_method(cls, order, method, shipping_method_data):

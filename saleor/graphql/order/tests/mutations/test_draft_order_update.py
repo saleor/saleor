@@ -441,67 +441,31 @@ def test_draft_order_update_shipping_method_prices_updates(
     assert data["order"]["shippingPrice"]["net"]["amount"] == 15.0
 
 
-DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION = """
-    mutation draftUpdate(
-        $id: ID!, $shippingAddress: AddressInput
-    ) {
-        draftOrderUpdate(id: $id,
-                            input: {
-                                shippingAddress: $shippingAddress
-                            }) {
-            errors {
-                field
-                message
-                code
-            }
-            order {
-                shippingMethodName
-                shippingPrice {
-                tax {
-                    amount
-                    }
-                    net {
-                        amount
-                    }
-                    gross {
-                        amount
-                    }
-                }
-            shippingTaxRate
-            }
-        }
-    }
-"""
-
-
-def test_draft_order_update_address_clear_invalid_shipping_method(
+def test_draft_order_update_shipping_method_clear_with_none(
     staff_api_client,
     permission_manage_orders,
     draft_order,
     address_usa,
     shipping_method,
-    address,
 ):
     # given
     order = draft_order
     order.shipping_address = address_usa
     order.shipping_method = shipping_method
     order.save(update_fields=["shipping_address", "shipping_method"])
-    query = DRAFT_ORDER_UPDATE_SHIPPING_ADDRESS_MUTATION
+    query = DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION
     order_id = graphene.Node.to_global_id("Order", order.id)
-    address_data = convert_dict_keys_to_camel_case(address.as_data())
-
-    variables = {"id": order_id, "shippingAddress": address_data}
+    variables = {"id": order_id, "shippingMethod": None}
     zero_shipping_price_data = {
         "tax": {"amount": 0.0},
         "net": {"amount": 0.0},
         "gross": {"amount": 0.0},
     }
+
     # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     order.refresh_from_db()
