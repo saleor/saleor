@@ -5,5 +5,8 @@ export default defineConfig({
     include: [__dirname + '*/tests/**/*.test.ts'],
     reporters: ['default', 'html'],
     outputFile: '*/tests/reports',
+    env: {
+      apiEndpoint: 'https://master.staging.saleor.cloud/graphql/',
+    },
   },
 })
