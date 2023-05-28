@@ -1,4 +1,5 @@
 import { GraphQLClient, gql } from 'graphql-request'
+import { TokenCreateMutation } from '../generated/graphql'
 
 // todo - przesunac do envow
 const endpoint = 'https://master.staging.saleor.cloud/graphql/'
@@ -28,7 +29,7 @@ export const makeAuthorizedClient = async (): Promise<GraphQLClient> => {
       message
     }
   `
-  const result = await client.request(mutation, {
+  const result = await client.request<TokenCreateMutation>(mutation, {
     email: 'testers+dashboard@saleor.io',
     password: 'test1234',
   })

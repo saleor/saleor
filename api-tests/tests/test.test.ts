@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { makeClient } from './utils'
 import { gql } from 'graphql-request'
+import { TokenCreateMutation } from '../generated/graphql'
 
 describe('1st test', () => {
   it('tests something', () => {
@@ -30,11 +31,10 @@ describe('1st test', () => {
         message
       }
     `
-    const result = await client.request(mutation, {
+    const result = await client.request<TokenCreateMutation>(mutation, {
       email: 'testers+dashboard@saleor.io',
       password: 'test1234',
     })
-    console.log(result)
     expect(result.tokenCreate.csrfToken).toBeDefined()
     expect(result.tokenCreate.token).toBeDefined()
     expect(result.tokenCreate.refreshToken).toBeDefined()
