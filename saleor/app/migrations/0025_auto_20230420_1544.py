@@ -12,13 +12,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="app",
             name="brand_logo_default",
-            field=models.ImageField(blank=True, null=True, upload_to="app-logos"),
+            field=models.ImageField(blank=True, null=True, upload_to="app-brand-data"),
         ),
         migrations.AddField(
             model_name="appinstallation",
             name="brand_logo_default",
             field=models.ImageField(
-                blank=True, null=True, upload_to="app-installation-logos"
+                blank=True, null=True, upload_to="app-installation-brand-data"
             ),
         ),
     ]
