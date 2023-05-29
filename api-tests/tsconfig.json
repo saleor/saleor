@@ -2,6 +2,7 @@
   "$schema": "https://json.schemastore.org/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
+    "strict": true,
     "esModuleInterop": true,
     "lib": [
       "es2020",
@@ -21,14 +22,15 @@
     "strictBindCallApply": true,
     "useUnknownInCatchVariables": true,
     "paths": {
-      "~/*": ["./src/*"]
-    }
-      "@test/*": [
-        "api-tests/*"
+      "~/*": [
+        "./src/*"
       ]
     },
-    "resolveJsonModule": true
+    "@test/*": [
+      "api-tests/*"
+    ]
   },
+  "resolveJsonModule": true,
   "exclude": [
     "node_modules"
   ]
