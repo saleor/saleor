@@ -2,7 +2,6 @@
   "$schema": "https://json.schemastore.org/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "strictNullChecks": false,
     "esModuleInterop": true,
     "jsx": "react",
     "lib": [
