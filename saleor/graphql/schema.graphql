@@ -14311,6 +14311,23 @@ type Mutation {
   ): TransactionRequestAction @doc(category: "Payments")
 
   """
+  Request a refund for payment transaction based on granted refund.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  transactionRequestRefundForGrantedRefund(
+    """The ID of the granted refund."""
+    grantedRefundId: ID!
+
+    """The ID of the transaction."""
+    id: ID!
+  ): TransactionRequestRefundForGrantedRefund @doc(category: "Payments")
+
+  """
   Report the event for the transaction.
   
   Added in Saleor 3.13.
@@ -21098,6 +21115,41 @@ type TransactionRequestActionError @doc(category: "Payments") {
 
 """An enumeration."""
 enum TransactionRequestActionErrorCode @doc(category: "Payments") {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
+Request a refund for payment transaction based on granted refund.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type TransactionRequestRefundForGrantedRefund @doc(category: "Payments") {
+  transaction: TransactionItem
+  errors: [TransactionRequestRefundForGrantedRefundError!]!
+}
+
+type TransactionRequestRefundForGrantedRefundError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestRefundForGrantedRefundErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments") {
   INVALID
   GRAPHQL_ERROR
   NOT_FOUND
