@@ -35,8 +35,10 @@ the [Releases](https://github.com/mirumee/saleor/releases) page.
 - Add mutation to create checkout from order - #12628 by @korycins
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 - Introduce channel permissions - #10423 by @IKarbowiak
-  - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
-- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
+    - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has
+      already been given access to.
+- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate`
+  mutation - #12781 by @SzymJ
 - [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
 - [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
     - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has
@@ -68,9 +70,10 @@ the [Releases](https://github.com/mirumee/saleor/releases) page.
 - Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
 - Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
-- Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
+- Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel
+  listings to return the pricing - #12713 by @IKarbowiak
 - Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
-- Add Vitest package for API tests - #12944 by @yellowee
+- Add Vitest package for API tests - #12963 by @yellowee
 
 # 3.13.0
 

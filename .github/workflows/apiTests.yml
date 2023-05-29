@@ -14,7 +14,7 @@ jobs:
         working-directory: ./api-tests
       - run: npm run lint
         working-directory: ./api-tests
-      - run: npm run api-tests
+      - run: npm run check-types
         working-directory: ./api-tests
-      - run: npm run compile
+      - run: npm run test
         working-directory: ./api-tests
