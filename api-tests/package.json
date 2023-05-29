@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Saleor API tests",
   "main": "N/A",
+  "private": true,
   "scripts": {
     "test": "vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
