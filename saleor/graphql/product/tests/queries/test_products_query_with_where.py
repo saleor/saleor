@@ -1367,9 +1367,10 @@ def test_products_filter_by_gift_card(
     api_client,
     product,
     shippable_gift_card_product,
+    channel_USD,
 ):
     # given
-    variables = {"where": {"giftCard": filter}}
+    variables = {"channel": channel_USD.slug, "where": {"giftCard": filter}}
     product_list = [product, shippable_gift_card_product]
 
     # when
@@ -1386,17 +1387,20 @@ def test_products_filter_by_gift_card(
 
 
 @pytest.mark.parametrize("filter,index", [(False, 0), (True, 1)])
-def test_products_query_with_filter_has_preordered_variants_false(
+def test_products_query_with_filter_has_preordered_variants(
     filter,
     index,
     api_client,
     preorder_variant_global_threshold,
     product_without_shipping,
-    permission_manage_products,
+    channel_USD,
 ):
     # given
     product_list = [product_without_shipping, preorder_variant_global_threshold.product]
-    variables = {"where": {"hasPreorderedVariants": filter}}
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {"hasPreorderedVariants": filter},
+    }
 
     # when
     response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
@@ -1413,6 +1417,7 @@ def test_products_query_with_filter_has_preordered_variants_false(
 def test_products_filter_by_has_preordered_variants_before_end_date(
     api_client,
     preorder_variant_global_threshold,
+    channel_USD,
 ):
     # given
     variant = preorder_variant_global_threshold
@@ -1420,7 +1425,7 @@ def test_products_filter_by_has_preordered_variants_before_end_date(
     variant.save(update_fields=["preorder_end_date"])
 
     product = preorder_variant_global_threshold.product
-    variables = {"where": {"hasPreorderedVariants": True}}
+    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
 
     # when
     response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
@@ -1437,13 +1442,14 @@ def test_products_filter_by_has_preordered_variants_before_end_date(
 def test_products_filter_by_has_preordered_variants_after_end_date(
     api_client,
     preorder_variant_global_threshold,
+    channel_USD,
 ):
     # given
     variant = preorder_variant_global_threshold
     variant.preorder_end_date = timezone.now() - timedelta(days=3)
     variant.save(update_fields=["preorder_end_date"])
 
-    variables = {"where": {"hasPreorderedVariants": True}}
+    variables = {"channel": channel_USD.slug, "where": {"hasPreorderedVariants": True}}
 
     # when
     response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)

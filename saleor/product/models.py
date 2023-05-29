@@ -463,6 +463,11 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
                 name="product_tsearch",
                 fields=["search_vector"],
             ),
+            GinIndex(
+                name="product_gin",
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
+            ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)
 
