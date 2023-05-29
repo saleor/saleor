@@ -5,7 +5,7 @@
   "main": "N/A",
   "scripts": {
     "test": "vitest",
-    "lint": "eslint tests/**/*.ts",
+    "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck"
   },
   "author": "",
