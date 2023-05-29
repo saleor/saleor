@@ -110,7 +110,11 @@ PermissionEnum.doc_category = DOC_CATEGORY_USERS
 
 TimePeriodTypeEnum = to_enum(TimePeriodType)
 ThumbnailFormatEnum = to_enum(ThumbnailFormat)
-IconThumbnailFormatEnum = to_enum(IconThumbnailFormat)
+IconThumbnailFormatEnum = to_enum(
+    IconThumbnailFormat,
+    type_name="IconThumbnailFormatEnum",
+    description=IconThumbnailFormat.__doc__,
+)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)

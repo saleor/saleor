@@ -51,6 +51,8 @@ MIN_ICON_SIZE = 256
 
 
 class IconThumbnailFormat:
+    """Thumbnail formats for icon images."""
+
     ORIGINAL = "original"
     WEBP = "webp"
 

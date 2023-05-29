@@ -3097,7 +3097,7 @@ type AppBrandLogo @doc(category: "Apps") {
   ): String!
 }
 
-"""An enumeration."""
+"""Thumbnail formats for icon images."""
 enum IconThumbnailFormatEnum {
   ORIGINAL
   WEBP
