@@ -10,7 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - run: npm i
+      - run: npm ci
+        with:
+          node-version-file: '.nvmrc'
         working-directory: ./api-tests
       - run: npm run lint
         working-directory: ./api-tests
