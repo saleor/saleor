@@ -1,3 +1,6 @@
+import logging
+import time
+from io import BytesIO
 from typing import Optional, Union
 
 import requests
@@ -16,12 +19,18 @@ from ..celeryconf import app
 from ..core.utils import build_absolute_uri
 from ..permission.enums import get_permission_names
 from ..plugins.manager import PluginsManager
+from ..thumbnail import ICON_MIME_TYPES
+from ..thumbnail.utils import get_filename_from_url
+from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
-from .manifest_validations import REQUEST_TIMEOUT, clean_manifest_data, fetch_icon_image
+from .error_codes import AppErrorCode
+from .manifest_validations import REQUEST_TIMEOUT, clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
+logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
+MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 
 class AppInstallationError(HTTPError):
@@ -59,6 +68,61 @@ def send_app_token(target_url: str, token: str):
     validate_app_install_response(response)
 
 
+def fetch_icon_image(
+    url: str, *, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
+) -> File:
+    filename = get_filename_from_url(url)
+    size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
+    code = AppErrorCode.INVALID.value
+    fetch_start = time.monotonic()
+    try:
+        with requests.get(
+            url, stream=True, timeout=timeout, allow_redirects=False
+        ) as res:
+            res.raise_for_status()
+            content_type = res.headers.get("content-type")
+            if content_type not in ICON_MIME_TYPES:
+                raise ValidationError("Invalid file type.", code=code)
+            try:
+                if int(res.headers.get("content-length", 0)) > max_file_size:
+                    raise ValidationError(size_error_msg, code=code)
+            except (ValueError, TypeError):
+                pass
+            content = BytesIO()
+            for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
+                content.write(chunk)
+                if content.tell() > max_file_size:
+                    raise ValidationError(size_error_msg, code=code)
+                if (time.monotonic() - fetch_start) > timeout:
+                    raise ValidationError(
+                        "Timeout occurred while reading image file.",
+                        code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
+                    )
+            content.seek(0)
+            image_file = File(content, filename)
+    except requests.RequestException:
+        code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
+        raise ValidationError("Unable to fetch image.", code=code)
+
+    validate_icon_image(image_file, code)
+    return image_file
+
+
+def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
+    brand_data = manifest_data.get("brand")
+    if not brand_data:
+        return None
+    try:
+        logo_url = brand_data["logo"]["default"]
+        logo_file = fetch_icon_image(logo_url, timeout=timeout)
+        brand_data["logo"]["default"] = logo_file
+    except ValidationError as error:
+        msg = "Failed fetching brand data for app:%r error:%r"
+        logger.info(msg, manifest_data["id"], error, extra={"brand": brand_data})
+        brand_data = None
+    return brand_data
+
+
 def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File):
     if brand_obj:
         try:
@@ -83,7 +147,7 @@ def fetch_brand_data_task(
             # App and AppInstall deleted or brand data already fetched
             return
     try:
-        logo_img = fetch_icon_image(brand_data["logo"]["default"], "")
+        logo_img = fetch_icon_image(brand_data["logo"]["default"])
         _set_brand_data(app, logo_img)
         _set_brand_data(app_inst, logo_img)
     except ValidationError as error:

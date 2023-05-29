@@ -6,6 +6,7 @@ import pytest
 import requests
 from celery.exceptions import Retry
 from django.core.exceptions import ValidationError
+from django.core.files import File
 from django.core.files.base import ContentFile
 from freezegun import freeze_time
 
@@ -15,8 +16,10 @@ from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
 from ..error_codes import AppErrorCode
 from ..installation_utils import (
+    MAX_ICON_FILE_SIZE,
     AppInstallationError,
     fetch_brand_data_task,
+    fetch_icon_image,
     install_app,
     validate_app_install_response,
 )
@@ -601,6 +604,94 @@ def test_install_app_lack_of_token_target_url_in_manifest_data(
     error_dict = excinfo.value.error_dict
     assert "tokenTargetUrl" in error_dict
     assert error_dict["tokenTargetUrl"][0].message == "Field required."
+
+
+@pytest.fixture
+def image_response_mock():
+    content_chunks = [b"fake ", b"image ", b"content"]
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.content = b"".join(content_chunks)
+    mock_response.headers = {
+        "content-type": "image/png",
+        "content-length": str(len(mock_response.content)),
+    }
+    mock_response.iter_content.return_value = iter(content_chunks)
+    return mock_response
+
+
+@patch("saleor.app.installation_utils.validate_icon_image")
+@patch("saleor.app.installation_utils.requests.get")
+def test_fetch_icon_image(
+    mock_get_request, mock_validate_icon_image, image_response_mock
+):
+    # given
+    image_file_format = "png"
+    image_url = f"https://example.com/logo.{image_file_format}"
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+
+    # when
+    image_file = fetch_icon_image(image_url)
+
+    # then
+    mock_get_request.assert_called_once_with(
+        image_url, stream=True, timeout=ANY, allow_redirects=False
+    )
+    mock_validate_icon_image.assert_called_once_with(image_file, ANY)
+    assert isinstance(image_file, File)
+    assert image_file.read() == image_response_mock.content
+    assert image_file.name.endswith(image_file_format)
+
+
+@patch("saleor.app.installation_utils.validate_icon_image")
+@patch("saleor.app.installation_utils.requests.get")
+def test_fetch_icon_image_invalid_type(
+    mock_get_request, mock_validate_icon_image, image_response_mock
+):
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+    image_response_mock.headers["content-type"] = "text/html"
+
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png")
+    assert error.value.code == AppErrorCode.INVALID.value
+    mock_validate_icon_image.assert_not_called()
+
+
+@patch("saleor.app.installation_utils.validate_icon_image")
+@patch("saleor.app.installation_utils.requests.get")
+def test_fetch_icon_image_content_length(
+    mock_get_request, mock_validate_icon_image, image_response_mock
+):
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+    image_response_mock.headers["content-length"] = MAX_ICON_FILE_SIZE + 1
+
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png")
+    assert error.value.code == AppErrorCode.INVALID.value
+    mock_validate_icon_image.assert_not_called()
+
+
+@patch("saleor.app.installation_utils.requests.get")
+def test_fetch_icon_image_file_too_big(mock_get_request, image_response_mock):
+    def content_chunks():
+        while True:
+            yield b"0" * 1024
+
+    mock_get_request.return_value.__enter__.return_value = image_response_mock
+    image_response_mock.iter_content.return_value = content_chunks()
+
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png")
+    assert error.value.code == AppErrorCode.INVALID.value
+    assert "File too big. Maximal icon image file size is" in error.value.message
+
+
+@patch("saleor.app.installation_utils.requests.get")
+def test_fetch_icon_image_network_error(mock_get_request):
+    mock_get_request.side_effect = requests.RequestException
+    with pytest.raises(ValidationError) as error:
+        fetch_icon_image("https://example.com/logo.png")
+    assert error.value.code == AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")

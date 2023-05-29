@@ -1,12 +1,8 @@
 import logging
-import time
 from collections import defaultdict
-from io import BytesIO
 from typing import Dict, Iterable, List, Optional
 
-import requests
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.db.models import Value
 from django.db.models.functions import Concat
 from semantic_version import NpmSpec, Version
@@ -21,9 +17,6 @@ from ..permission.enums import (
     split_permission_codename,
 )
 from ..permission.models import Permission
-from ..thumbnail import ICON_MIME_TYPES
-from ..thumbnail.utils import get_filename_from_url
-from ..thumbnail.validators import validate_icon_image
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
@@ -34,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
 REQUEST_TIMEOUT = 20
-MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 
 class RequiredSaleorVersionSpec(NpmSpec):
@@ -372,58 +364,3 @@ def clean_author(author) -> Optional[str]:
     raise ValidationError(
         "Incorrect value for field: author", code=AppErrorCode.INVALID.value
     )
-
-
-def fetch_icon_image(
-    url: str, max_file_size=MAX_ICON_FILE_SIZE, timeout=REQUEST_TIMEOUT
-) -> File:
-    filename = get_filename_from_url(url)
-    size_error_msg = f"File too big. Maximal icon image file size is {max_file_size}."
-    code = AppErrorCode.INVALID.value
-    fetch_start = time.monotonic()
-    try:
-        with requests.get(
-            url, stream=True, timeout=timeout, allow_redirects=False
-        ) as res:
-            res.raise_for_status()
-            content_type = res.headers.get("content-type")
-            if content_type not in ICON_MIME_TYPES:
-                raise ValidationError("Invalid file type.", code=code)
-            try:
-                if int(res.headers.get("content-length", 0)) > max_file_size:
-                    raise ValidationError(size_error_msg, code=code)
-            except (ValueError, TypeError):
-                pass
-            content = BytesIO()
-            for chunk in res.iter_content(chunk_size=File.DEFAULT_CHUNK_SIZE):
-                content.write(chunk)
-                if content.tell() > max_file_size:
-                    raise ValidationError(size_error_msg, code=code)
-                if (time.monotonic() - fetch_start) > timeout:
-                    raise ValidationError(
-                        "Timeout occurred while reading image file.",
-                        code=AppErrorCode.MANIFEST_URL_CANT_CONNECT.value,
-                    )
-            content.seek(0)
-            image_file = File(content, filename)
-    except requests.RequestException:
-        code = AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
-        raise ValidationError("Unable to fetch image.", code=code)
-
-    validate_icon_image(image_file, code)
-    return image_file
-
-
-def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
-    brand_data = manifest_data.get("brand")
-    if not brand_data:
-        return None
-    try:
-        logo_url = brand_data["logo"]["default"]
-        logo_file = fetch_icon_image(logo_url, "logo.default", timeout=timeout)
-        brand_data["logo"]["default"] = logo_file
-    except ValidationError as error:
-        msg = "Failed fetching brand data for app:%r error:%r"
-        logger.info(msg, manifest_data["id"], error, extra={"brand": brand_data})
-        brand_data = None
-    return brand_data
