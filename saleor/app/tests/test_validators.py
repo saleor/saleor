@@ -83,7 +83,7 @@ def test_brand_validator_required_fields():
         "https://exmple.com/logo.jpg",
     ],
 )
-def test_brand_validator_with_invalid_image_url(url):
+def test_brand_validator_with_invalid_logo_url(url):
     with pytest.raises(ValidationError) as error:
         brand_validator({"logo": {"default": url}})
     assert error.value.code == AppErrorCode.INVALID_URL_FORMAT.value

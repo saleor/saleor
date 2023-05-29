@@ -657,18 +657,15 @@ def test_fetch_icon_image_invalid_type(
     mock_validate_icon_image.assert_not_called()
 
 
-@patch("saleor.app.installation_utils.validate_icon_image")
 @patch("saleor.app.installation_utils.requests.get")
-def test_fetch_icon_image_content_length(
-    mock_get_request, mock_validate_icon_image, image_response_mock
-):
+def test_fetch_icon_image_content_length(mock_get_request, image_response_mock):
     mock_get_request.return_value.__enter__.return_value = image_response_mock
     image_response_mock.headers["content-length"] = MAX_ICON_FILE_SIZE + 1
 
     with pytest.raises(ValidationError) as error:
         fetch_icon_image("https://example.com/logo.png")
     assert error.value.code == AppErrorCode.INVALID.value
-    mock_validate_icon_image.assert_not_called()
+    assert "File too big. Maximal icon image file size is" in error.value.message
 
 
 @patch("saleor.app.installation_utils.requests.get")
@@ -710,7 +707,7 @@ def test_fetch_brand_data_task(
     # then
     app_installation.refresh_from_db()
     app.refresh_from_db()
-    mock_fetch_icon_image.assert_called_once_with(logo_url, ANY)
+    mock_fetch_icon_image.assert_called_once_with(logo_url)
     assert app_installation.brand_logo_default.read() == fake_img_content
     assert app.brand_logo_default.read() == fake_img_content
 
@@ -725,7 +722,7 @@ def test_fetch_brand_data_task_terminated(
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")
-def test_fetch_brand_data_task_terminated_when_brand_data_fetched(
+def test_fetch_brand_data_task_terminated_after_brand_data_fetched(
     mock_fetch_icon_image, app_installation, app, media_root
 ):
     app_installation.delete()

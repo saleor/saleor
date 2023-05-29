@@ -10,6 +10,7 @@ from .....app.error_codes import AppErrorCode
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
+from ...mutations.app_fetch_manifest import FETCH_BRAND_DATA_TIMEOUT
 
 APP_FETCH_MANIFEST_MUTATION = """
 mutation AppFetchManifest(
@@ -768,13 +769,14 @@ def test_app_fetch_manifest_with_brand_data(
     monkeypatch,
 ):
     # given
-    app_manifest["brand"] = {"logo": {"default": "http://localhost:3000/logo.png"}}
+    logo_url = "http://localhost:3000/logo.png"
+    app_manifest["brand"] = {"logo": {"default": logo_url}}
     mocked_get_response = Mock()
     mocked_get_response.json.return_value = app_manifest
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    mock_fetch_icon_image = Mock(return_value=icon_image)
     monkeypatch.setattr(
-        "saleor.app.manifest_validations.fetch_icon_image",
-        Mock(return_value=icon_image),
+        "saleor.app.installation_utils.fetch_icon_image", mock_fetch_icon_image
     )
 
     # when
@@ -789,6 +791,9 @@ def test_app_fetch_manifest_with_brand_data(
     )
 
     # then
+    mock_fetch_icon_image.assert_called_once_with(
+        logo_url, timeout=FETCH_BRAND_DATA_TIMEOUT
+    )
     content = get_graphql_content(response)
     manifest = content["data"]["appFetchManifest"]["manifest"]
     assert len(content["data"]["appFetchManifest"]["errors"]) == 0

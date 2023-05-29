@@ -1,5 +1,3 @@
-import logging
-
 import graphene
 import requests
 from django.core.exceptions import ValidationError
@@ -15,7 +13,7 @@ from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
 
-logger = logging.getLogger(__name__)
+FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 class AppFetchManifest(BaseMutation):
@@ -87,7 +85,9 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
         clean_manifest_data(manifest_data)
-        manifest_data["brand"] = fetch_brand_data(manifest_data, timeout=5)
+        manifest_data["brand"] = fetch_brand_data(
+            manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
+        )
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(

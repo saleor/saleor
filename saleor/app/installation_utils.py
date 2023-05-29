@@ -24,13 +24,15 @@ from ..thumbnail.utils import get_filename_from_url
 from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
-from .manifest_validations import REQUEST_TIMEOUT, clean_manifest_data
+from .manifest_validations import clean_manifest_data
 from .models import App, AppExtension, AppInstallation
 from .types import AppExtensionTarget, AppType
 
+REQUEST_TIMEOUT = 20
+MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
+
 logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
-MAX_ICON_FILE_SIZE = 1024 * 1024 * 10  # 10MB
 
 
 class AppInstallationError(HTTPError):
@@ -118,7 +120,7 @@ def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
         brand_data["logo"]["default"] = logo_file
     except ValidationError as error:
         msg = "Failed fetching brand data for app:%r error:%r"
-        logger.info(msg, manifest_data["id"], error, extra={"brand": brand_data})
+        logger.info(msg, manifest_data["id"], error, extra={"brand_data": brand_data})
         brand_data = None
     return brand_data
 

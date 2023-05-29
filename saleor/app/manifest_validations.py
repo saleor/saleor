@@ -26,7 +26,6 @@ from .validators import AppURLValidator, brand_validator
 logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
-REQUEST_TIMEOUT = 20
 
 
 class RequiredSaleorVersionSpec(NpmSpec):
