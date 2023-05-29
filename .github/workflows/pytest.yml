@@ -2,7 +2,7 @@ name: Pytest
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
     paths:
       - "**.py"
       - Dockerfile
@@ -60,7 +60,7 @@ jobs:
           python -m pip install wheel
           python -m pip install -r requirements_dev.txt
 
-      - name: Run tests
+      - name: Run src
         run: |
           pytest \
             --cov \

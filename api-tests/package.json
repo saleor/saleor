@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "api-tests": "vitest --config vitest.config.ts $VERSION",
-    "lint": "eslint tests/**/*.ts",
+    "lint": "eslint src/**/*.ts",
     "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck",
     "generate": "graphql-codegen"
   },
