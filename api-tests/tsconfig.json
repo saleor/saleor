@@ -2,16 +2,15 @@
   "$schema": "https://json.schemastore.org/tsconfig.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "strictNullChecks": false,
+    "strict": true,
     "esModuleInterop": true,
-    "jsx": "react",
     "lib": [
       "es2020",
       "dom",
       "esnext"
     ],
     "skipLibCheck": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "target": "ES2020",
     "module": "es2020",
     "moduleResolution": "node",
@@ -23,8 +22,8 @@
     "strictBindCallApply": true,
     "useUnknownInCatchVariables": true,
     "paths": {
-      "@test/*": [
-        "api-tests/*"
+      "~/*": [
+        "./src/*"
       ]
     },
     "resolveJsonModule": true
