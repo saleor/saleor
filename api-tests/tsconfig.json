@@ -21,6 +21,8 @@
     "strictBindCallApply": true,
     "useUnknownInCatchVariables": true,
     "paths": {
+      "~/*": ["./src/*"]
+    }
       "@test/*": [
         "api-tests/*"
       ]
