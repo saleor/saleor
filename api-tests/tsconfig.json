@@ -9,7 +9,7 @@
       "esnext"
     ],
     "skipLibCheck": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "target": "ES2020",
     "module": "es2020",
     "moduleResolution": "node",
