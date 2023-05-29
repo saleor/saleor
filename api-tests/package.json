@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
-    "check-types": "tsc",
+    "check-types": "tsc --noEmit",
     "generate": "graphql-codegen"
   },
   "author": "Saleor Commerce",
