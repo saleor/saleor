@@ -1,7 +1,7 @@
 {
   "name": "api-tests",
   "version": "1.0.0",
-  "description": "",
+  "description": "Saleor API tests",
   "main": "index.js",
   "scripts": {
     "api-tests": "vitest --config vitest.config.ts $VERSION",
