@@ -6,8 +6,7 @@
   "scripts": {
     "api-tests": "vitest --config vitest.config.ts $VERSION",
     "lint": "eslint tests/**/*.ts",
-    "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck",
-    "gen": "graphql-codegen"
+    "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck"
   },
   "author": "",
   "license": "ISC",
