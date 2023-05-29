@@ -7,7 +7,7 @@
   "scripts": {
     "test": "vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
-    "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck",
+    "check-types": "tsc",
     "generate": "graphql-codegen"
   },
   "author": "Saleor Commerce",

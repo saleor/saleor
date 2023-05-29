@@ -25,10 +25,7 @@
       "~/*": [
         "./src/*"
       ]
-    },
-    "@test/*": [
-      "api-tests/*"
-    ]
+    }
   },
   "resolveJsonModule": true,
   "exclude": [
