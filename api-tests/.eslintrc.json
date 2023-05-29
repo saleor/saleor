@@ -223,6 +223,7 @@
   "ignorePatterns": [
     "node_modules/",
     "**/types/**/*",
-    "type-policies.ts"
+    "type-policies.ts",
+    "generated/"
   ]
 }
