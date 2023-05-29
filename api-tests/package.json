@@ -4,7 +4,7 @@
   "description": "Saleor API tests",
   "main": "N/A",
   "scripts": {
-    "api-tests": "vitest --config vitest.config.ts $VERSION",
+    "test": "vitest",
     "lint": "eslint tests/**/*.ts",
     "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck"
   },
