@@ -9,7 +9,7 @@
     "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck"
   },
   "author": "Saleor Commerce",
-  "license": "ISC",
+  "license": "BSD",
   "dependencies": {
     "date-fns": "2.30.0",
     "eslint": "8.41.0",
