@@ -54,6 +54,7 @@ class ShippingMethodUpdateMixin:
         order.base_shipping_price = zero_money(order.currency)
         order.shipping_price = zero_taxed_money(order.currency)
         order.shipping_method_name = None
+        order.shipping_tax_rate = None
         order.shipping_tax_class = None
         order.shipping_tax_class_name = None
         order.shipping_tax_class_private_metadata = {}
