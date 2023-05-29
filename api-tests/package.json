@@ -1,16 +1,17 @@
 {
   "name": "api-tests",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "Saleor API tests",
+  "main": "N/A",
   "scripts": {
-    "api-tests": "vitest --config vitest.config.ts $VERSION",
-    "lint": "eslint tests/**/*.ts",
-    "compile": "tsc -p ./tsconfig.json --noEmit --skipLibCheck",
-    "gen": "graphql-codegen"
+    "test": "vitest",
+    "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
+    "check-types": "tsc --noEmit",
+    "generate": "graphql-codegen"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Saleor Commerce",
+  "license": "BSD",
   "dependencies": {
     "date-fns": "2.30.0",
     "eslint": "8.41.0",
