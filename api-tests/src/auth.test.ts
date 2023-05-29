@@ -3,7 +3,7 @@ import { makeClient } from './utils'
 import { gql } from 'graphql-request'
 import { TokenCreateMutation } from '../generated/graphql'
 
-describe('dummy test', () => {
+describe('testing authorization', () => {
   it('checks creating access tokens', async () => {
     const client = makeClient()
     const mutation = gql`
