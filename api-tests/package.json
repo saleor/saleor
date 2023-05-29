@@ -2,7 +2,7 @@
   "name": "api-tests",
   "version": "1.0.0",
   "description": "Saleor API tests",
-  "main": "index.js",
+  "main": "N/A",
   "scripts": {
     "api-tests": "vitest --config vitest.config.ts $VERSION",
     "lint": "eslint tests/**/*.ts",
