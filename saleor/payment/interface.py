@@ -40,6 +40,7 @@ class TransactionRequestEventResponse:
 @dataclass
 class TransactionRequestResponse:
     psp_reference: Optional[str]
+    available_actions: Optional[List[str]] = None
     event: Optional["TransactionRequestEventResponse"] = None
 
 
