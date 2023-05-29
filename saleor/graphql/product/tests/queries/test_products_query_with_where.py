@@ -1415,9 +1415,7 @@ def test_products_query_with_filter_has_preordered_variants(
 
 
 def test_products_filter_by_has_preordered_variants_before_end_date(
-    api_client,
-    preorder_variant_global_threshold,
-    channel_USD,
+    api_client, preorder_variant_global_threshold, channel_USD
 ):
     # given
     variant = preorder_variant_global_threshold
@@ -1440,9 +1438,7 @@ def test_products_filter_by_has_preordered_variants_before_end_date(
 
 
 def test_products_filter_by_has_preordered_variants_after_end_date(
-    api_client,
-    preorder_variant_global_threshold,
-    channel_USD,
+    api_client, preorder_variant_global_threshold, channel_USD
 ):
     # given
     variant = preorder_variant_global_threshold
@@ -1484,3 +1480,39 @@ def test_product_filter_by_updated_at(api_client, product_list, channel_USD):
     products = data["data"]["products"]["edges"]
     assert len(products) == 1
     assert product_list[0].slug == products[0]["node"]["slug"]
+
+
+def test_product_filter_with_operators(
+    api_client, product_list, channel_USD, product_type_list
+):
+    # given
+    product_list[1].product_type = product_type_list[1]
+    Product.objects.bulk_update(product_list, ["product_type"])
+    type_ids = [
+        graphene.Node.to_global_id("ProductType", type.pk) for type in product_type_list
+    ]
+
+    variables = {
+        "channel": channel_USD.slug,
+        "where": {
+            "OR": [
+                {"name": {"eq": "Test product 1"}},
+                {
+                    "AND": [
+                        {"productType": {"oneOf": type_ids}},
+                        {"slug": {"eq": "test-product-b"}},
+                    ]
+                },
+            ]
+        },
+    }
+
+    # when
+    response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
+    data = get_graphql_content(response)
+
+    # then
+    products = data["data"]["products"]["edges"]
+    assert len(products) == 2
+    assert product_list[0].slug == products[0]["node"]["slug"]
+    assert product_list[1].slug == products[1]["node"]["slug"]
