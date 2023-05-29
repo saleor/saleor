@@ -7,4 +7,10 @@ export default defineConfig({
       apiEndpoint: 'https://master.staging.saleor.cloud/graphql/',
     },
   },
+  define: {
+    admin: {
+      email: 'testers+dashboard@saleor.io',
+      password: 'test1234',
+    },
+  },
 })
