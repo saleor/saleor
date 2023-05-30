@@ -22,6 +22,7 @@ from ...core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
     RICH_CONTENT,
 )
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
@@ -68,7 +69,9 @@ class Category(ModelObjectType[models.Category]):
             description="Filtering options for products." + ADDED_IN_310
         ),
         where=ProductWhereInput(
-            description="Filtering options for products." + ADDED_IN_314
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
         sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
         channel=graphene.String(
