@@ -12,5 +12,6 @@ export default defineConfig({
     env: {
       apiEndpoint,
     },
+    setupFiles: ['dotenv/config'],
   },
 })

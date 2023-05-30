@@ -2,6 +2,8 @@ import { GraphQLClient, gql } from 'graphql-request'
 import { TokenCreateMutation } from '../generated/graphql'
 
 export const baseUrl = import.meta.env.apiEndpoint
+const email = process.env.EMAIL || ''
+const password = process.env.PASSWORD || ''
 
 export const makeClient = (): GraphQLClient => new GraphQLClient(baseUrl)
 
@@ -29,8 +31,8 @@ export const makeAuthorizedClient = async (): Promise<GraphQLClient> => {
     }
   `
   const result = await client.request<TokenCreateMutation>(mutation, {
-    email: 'testers+dashboard@saleor.io',
-    password: 'test1234',
+    email,
+    password,
   })
   return new GraphQLClient(baseUrl, {
     headers: {
