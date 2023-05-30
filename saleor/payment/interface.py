@@ -12,7 +12,7 @@ from ..payment.models import TransactionEvent, TransactionItem
 if TYPE_CHECKING:
     from ..app.models import App
     from ..checkout.models import Checkout
-    from ..order.models import Order
+    from ..order.models import Order, OrderGrantedRefund
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -25,6 +25,7 @@ class TransactionActionData:
     event: "TransactionEvent"
     transaction_app_owner: Optional["App"]
     action_value: Optional[Decimal] = None
+    granted_refund: Optional["OrderGrantedRefund"] = None
 
 
 @dataclass

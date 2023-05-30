@@ -1527,6 +1527,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
                 channel_slug=channel_slug,
                 user=info.context.user,
                 app=app,
+                granted_refund=granted_refund,
             )
         except PaymentError as e:
             error_enum = TransactionRequestActionErrorCode
