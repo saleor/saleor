@@ -50,9 +50,11 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, VoucherType
+from ..discount import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
 from ..discount.models import (
     NotApplicable,
+    Promotion,
+    PromotionRule,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -5311,6 +5313,42 @@ def discount_info_JPY(sale, product_in_channel_JPY, channel_JPY):
 
 
 @pytest.fixture
+def promotion(channel_USD, product, collection):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Percentage promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for percentage promotion rule."
+                ),
+                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Fixed promotion rule",
+                promotion=promotion,
+                description=dummy_editorjs(
+                    "Test description for fixes promotion rule."
+                ),
+                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotion
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
@@ -5378,6 +5416,17 @@ def permission_manage_channels():
 @pytest.fixture
 def permission_manage_payments():
     return Permission.objects.get(codename="handle_payments")
+
+
+@pytest.fixture
+def permission_group_manage_discounts(permission_manage_discounts, staff_users):
+    group = Group.objects.create(
+        name="Manage discounts group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_discounts)
+
+    group.user_set.add(staff_users[1])
+    return group
 
 
 @pytest.fixture
