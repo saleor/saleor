@@ -96,6 +96,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         Webhook(
             app=app,
             name=webhook["name"],
+            is_active=webhook["isActive"],
             target_url=webhook["targetUrl"],
             subscription_query=webhook["query"],
             custom_headers=webhook.get("customHeaders", None),
