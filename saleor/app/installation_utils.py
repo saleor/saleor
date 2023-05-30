@@ -135,7 +135,7 @@ def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File
         return
     try:
         if not brand_obj.brand_logo_default:
-            brand_obj.brand_logo_default = logo
+            brand_obj.brand_logo_default.save(logo.name, logo, save=False)
             brand_obj.save(update_fields=["brand_logo_default"])
     except DatabaseError:
         # If object was already deleted from DB, remove created image

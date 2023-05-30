@@ -8,6 +8,7 @@ from celery.exceptions import Retry
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db import DatabaseError
 from freezegun import freeze_time
 
 from ... import __version__
@@ -691,9 +692,10 @@ def test_fetch_icon_image_network_error(mock_get_request):
     assert error.value.code == AppErrorCode.MANIFEST_URL_CANT_CONNECT.value
 
 
+@pytest.mark.parametrize("app_object", ["app", "app_installation"])
 @patch("saleor.app.installation_utils.fetch_icon_image")
 def test_fetch_brand_data_task(
-    mock_fetch_icon_image, app_installation, app, media_root
+    mock_fetch_icon_image, app_object, app_installation, app, media_root
 ):
     # given
     logo_url = "https://example.com/logo.png"
@@ -704,16 +706,20 @@ def test_fetch_brand_data_task(
     # when
     fetch_brand_data_task(
         {"logo": {"default": logo_url}},
-        app_installation_id=app_installation.id,
-        app_id=app.id,
+        app_installation_id=None if app_object == "app" else app_installation.id,
+        app_id=None if app_object != "app" else app.id,
     )
 
     # then
-    app_installation.refresh_from_db()
     app.refresh_from_db()
+    app_installation.refresh_from_db()
     mock_fetch_icon_image.assert_called_once_with(logo_url)
-    assert app_installation.brand_logo_default.read() == fake_img_content
-    assert app.brand_logo_default.read() == fake_img_content
+    if app_object == "app":
+        assert app.brand_logo_default.read() == fake_img_content
+        assert bool(app_installation.brand_logo_default) is False
+    else:
+        assert app_installation.brand_logo_default.read() == fake_img_content
+        assert bool(app.brand_logo_default) is False
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")
@@ -757,7 +763,7 @@ def test_fetch_brand_data_task_saving_brand_data(
     # given
     brand_data = {"logo": {"default": "https://example.com/logo.png"}}
     fake_img_content = b"these are bytes"
-    logo_img = ContentFile(b"these are bytes", "logo.png")
+    logo_img = ContentFile(fake_img_content, "logo.png")
 
     def fake_fetch_icon_image(*args, **kwargs):
         # AppInstallation deleted during brand data fetching
@@ -774,3 +780,27 @@ def test_fetch_brand_data_task_saving_brand_data(
     # then
     app.refresh_from_db()
     assert app.brand_logo_default.read() == fake_img_content
+
+
+@patch("saleor.app.installation_utils.AppInstallation.save", side_effect=DatabaseError)
+@patch("saleor.app.installation_utils.default_storage.delete")
+@patch("saleor.app.installation_utils.fetch_icon_image")
+def test_fetch_brand_data_task_saving_deleted_object(
+    mock_fetch_icon_image,
+    mock_storage_delete,
+    _mock_app_installation_save,
+    app_installation,
+    media_root,
+):
+    # given
+    brand_data = {"logo": {"default": "https://example.com/logo.png"}}
+    file_name = "logo.png"
+    mock_fetch_icon_image.return_value = ContentFile(b"these are bytes", file_name)
+
+    # when
+    fetch_brand_data_task(brand_data, app_installation_id=app_installation.id)
+
+    # then
+    mock_storage_delete.assert_called_once_with(
+        f"app-installation-brand-data/{file_name}"
+    )
