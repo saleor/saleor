@@ -11911,29 +11911,59 @@ enum CollectionSortField @doc(category: "Products") {
 input ProductWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   id: [ID!]
+
+  """Filter by product name."""
   name: StringFilterInput
+
+  """Filter by product slug."""
   slug: StringFilterInput
+
+  """Filter by product type."""
   productType: GlobalIDFilterInput
+
+  """Filter by product category."""
   category: GlobalIDFilterInput
+
+  """Filter by collection."""
   collection: GlobalIDFilterInput
+
+  """Filter by availability for purchase."""
   isAvailable: Boolean
+
+  """Filter by public visibility."""
   isPublished: Boolean
+
+  """Filter by visibility on the channel."""
   isVisibleInListing: Boolean
+
+  """Filter by the publication date."""
   publishedFrom: DateTime
+
+  """Filter by the date of availability for purchase."""
   availableFrom: DateTime
+
+  """Filter by product with category assigned."""
   hasCategory: Boolean
-  price: FloatFilterInput
+
+  """Filter by product variant price."""
+  price: DecimalFilterInput
 
   """Filter by the lowest variant price after discounts."""
-  minimalPrice: FloatFilterInput
+  minimalPrice: DecimalFilterInput
+
+  """Filter by attributes associated with the product."""
   attributes: [AttributeInput!]
 
   """Filter by variants having specific stock status."""
   stockAvailability: StockAvailability
+
+  """Filter by stock of the product variant."""
   stocks: ProductStockFilterInput
 
   """Filter on whether product is a gift card or not."""
   giftCard: Boolean
+
+  """Filter by product with preordered variants."""
   hasPreorderedVariants: Boolean
 
   """Filter by when was the most recent update."""
@@ -11962,21 +11992,37 @@ input GlobalIDFilterInput {
 }
 
 """
-Define the filtering options for integer fields.
+Define the filtering options for decimal fields.
 
-Added in Saleor 3.11.
+Added in Saleor 3.14.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-input FloatFilterInput {
+input DecimalFilterInput {
   """The value equal to."""
-  eq: Float
+  eq: Decimal
 
   """The value included in."""
-  oneOf: [Float!]
+  oneOf: [Decimal!]
 
   """The value in range."""
-  range: PriceRangeInput
+  range: DecimalRangeInput
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+input DecimalRangeInput {
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
 }
 
 input ProductTypeFilterInput @doc(category: "Products") {
@@ -22314,14 +22360,6 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """Reason of the granted refund."""
   reason: String
 }
-
-"""
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
 
 """
 Updates granted refund.

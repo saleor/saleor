@@ -7,6 +7,7 @@ from graphene import Argument, InputField, String
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 
+from ...core.scalars import Decimal
 from ..descriptions import (
     ADDED_IN_311,
     ADDED_IN_314,
@@ -15,9 +16,9 @@ from ..descriptions import (
 )
 from ..filters import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ..scalars import Date
-from . import NonNullList, PriceRangeInput
+from . import NonNullList
 from .base import BaseInputObjectType
-from .common import DateRangeInput, DateTimeRangeInput, IntRangeInput
+from .common import DateRangeInput, DateTimeRangeInput, DecimalRangeInput, IntRangeInput
 from .converter import convert_form_field
 
 GLOBAL_ID_FILTERS = {
@@ -188,17 +189,17 @@ class IntFilterInput(graphene.InputObjectType):
         )
 
 
-class FloatFilterInput(graphene.InputObjectType):
-    eq = graphene.Float(description=FilterInputDescriptions.EQ, required=False)
+class DecimalFilterInput(graphene.InputObjectType):
+    eq = Decimal(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
-        graphene.Float, description=FilterInputDescriptions.ONE_OF, required=False
+        Decimal, description=FilterInputDescriptions.ONE_OF, required=False
     )
-    range = PriceRangeInput(description=FilterInputDescriptions.RANGE, required=False)
+    range = DecimalRangeInput(description=FilterInputDescriptions.RANGE, required=False)
 
     class Meta:
         description = (
-            "Define the filtering options for integer fields."
-            + ADDED_IN_311
+            "Define the filtering options for decimal fields."
+            + ADDED_IN_314
             + PREVIEW_FEATURE
         )
 

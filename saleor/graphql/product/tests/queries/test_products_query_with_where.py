@@ -4,12 +4,11 @@ import graphene
 import pytest
 from django.utils import timezone
 
-from saleor.attribute.models import Attribute, AttributeValue
-from saleor.attribute.utils import associate_attribute_values_to_instance
-from saleor.product import ProductTypeKind
-from saleor.product.models import Product, ProductChannelListing, ProductType
-from saleor.warehouse.models import Allocation, Reservation, Stock, Warehouse
-
+from .....attribute.models import Attribute, AttributeValue
+from .....attribute.utils import associate_attribute_values_to_instance
+from .....product import ProductTypeKind
+from .....product.models import Product, ProductChannelListing, ProductType
+from .....warehouse.models import Allocation, Reservation, Stock, Warehouse
 from ....tests.utils import get_graphql_content
 
 PRODUCTS_WHERE_QUERY = """
