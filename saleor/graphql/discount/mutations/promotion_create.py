@@ -33,7 +33,7 @@ class PromotionCreateError(Error):
 
 class PromotionRuleInput(BaseInputObjectType):
     name = graphene.String(description="Promotion rule name.")
-    description = JSON(description="Promotion rule description.", required=False)
+    description = JSON(description="Promotion rule description.")
     channels = NonNullList(
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
@@ -43,20 +43,17 @@ class PromotionRuleInput(BaseInputObjectType):
             "Defines the conditions on the catalogue level that must be met "
             "for the reward to be applied."
         ),
-        required=False,
     )
     reward_value_type = RewardValueTypeEnum(
         description=(
             "Defines the promotion rule reward value type. "
             "Must be provided together with reward value."
         ),
-        required=False,
     )
     reward_value = PositiveDecimal(
         description=(
             "Defines the discount value. Required when catalogue predicate is provided."
         ),
-        required=False,
     )
 
     class Meta:
