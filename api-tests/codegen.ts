@@ -1,7 +1,8 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
+import { baseUrl } from '~/utils'
 
 const config: CodegenConfig = {
-  schema: 'https://master.staging.saleor.cloud/graphql/',
+  schema: baseUrl,
   documents: ['src/**/*.ts'],
   config: { addExplicitOverride: true },
   generates: {

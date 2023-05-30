@@ -1,9 +1,9 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { TokenCreateMutation } from '../generated/graphql'
 
-const endpoint = import.meta.env.apiEndpoint
+export const baseUrl = import.meta.env.apiEndpoint
 
-export const makeClient = (): GraphQLClient => new GraphQLClient(endpoint)
+export const makeClient = (): GraphQLClient => new GraphQLClient(baseUrl)
 
 export const makeAuthorizedClient = async (): Promise<GraphQLClient> => {
   const client = makeClient()
@@ -32,7 +32,7 @@ export const makeAuthorizedClient = async (): Promise<GraphQLClient> => {
     email: 'testers+dashboard@saleor.io',
     password: 'test1234',
   })
-  return new GraphQLClient(endpoint, {
+  return new GraphQLClient(baseUrl, {
     headers: {
       Authorization: `bearer ${result.tokenCreate?.token}`,
     },
