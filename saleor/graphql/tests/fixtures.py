@@ -18,6 +18,7 @@ from ..utils import handled_errors_logger, unhandled_errors_logger
 from .utils import assert_no_permission
 
 API_PATH = reverse("api")
+ASYNC_API_PATH = reverse("async_api")
 
 
 class BaseApiClient(Client):
@@ -37,7 +38,7 @@ class BaseApiClient(Client):
         elif app:
             _, auth_token = app.tokens.create(name="Default")
             self.app_token = auth_token
-        self.api_path = API_PATH
+        self.api_path = ASYNC_API_PATH
         if api_path:
             self.api_path = api_path
         super().__init__(*args, **kwargs)

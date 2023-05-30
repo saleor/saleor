@@ -32,7 +32,7 @@ from .utils import format_error, query_fingerprint, query_identifier
 INT_ERROR_MSG = "Int cannot represent non 32-bit signed integer value"
 
 arender = sync_to_async(render, thread_sensitive=False)
-aget_context_value = sync_to_async(get_context_value, thread_sensitive=False)
+aget_context_value = sync_to_async(get_context_value, thread_sensitive=True)
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -306,6 +306,12 @@ class AsyncGraphQLView(View):
                 # We only include it optionally since
                 # executor is not a valid argument in all backends
                 extra_options["executor"] = self.executor
+
+            context = await aget_context_value(request)
+            if app := getattr(request, "app", None):
+                span.set_tag("app.id", app.id)
+                span.set_tag("app.name", app.name)
+
             try:
                 with connection.execute_wrapper(tracing_wrapper):
                     response = None
@@ -317,29 +323,23 @@ class AsyncGraphQLView(View):
                         response = await cache.aget(key)
 
                     if not response:
-                        # TODO Owczar: Should be optimized?
                         async_document_execute = sync_to_async(
-                            document.execute, thread_sensitive=False
+                            document.execute, thread_sensitive=True
                         )
                         response = await async_document_execute(
                             root=self.get_root_value(),
                             variables=variables,
                             operation_name=operation_name,
-                            context=await aget_context_value(request),
+                            context=context,
                             middleware=self.middleware,
                             **extra_options,
                         )
                         if should_use_cache_for_scheme:
                             await cache.aset(key, response)
 
-                    if app := getattr(request, "app", None):
-                        span.set_tag("app.name", app.name)
-
                     return set_query_cost_on_result(response, query_cost)
             except Exception as e:
                 span.set_tag(opentracing.tags.ERROR, True)
-                if app := getattr(request, "app", None):
-                    span.set_tag("app.name", app.name)
                 # In the graphql-core version that we are using,
                 # the Exception is raised for too big integers value.
                 # As it's a validation error we want to raise GraphQLError instead.

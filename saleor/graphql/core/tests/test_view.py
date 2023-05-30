@@ -286,8 +286,8 @@ query IntrospectionQuery {
 INTROSPECTION_RESULT = {"__schema": {"queryType": {"name": "Query"}}}
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache.aset")
+@mock.patch("saleor.graphql.views.cache.aget")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
 def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_client):
     cache_get_mock.return_value = None
@@ -301,8 +301,8 @@ def test_introspection_query_is_cached(cache_get_mock, cache_set_mock, api_clien
     )
 
 
-@mock.patch("saleor.graphql.views.cache.set")
-@mock.patch("saleor.graphql.views.cache.get")
+@mock.patch("saleor.graphql.views.cache.aset")
+@mock.patch("saleor.graphql.views.cache.aget")
 @override_settings(DEBUG=False, OBSERVABILITY_REPORT_ALL_API_CALLS=False)
 def test_introspection_query_is_cached_only_once(
     cache_get_mock, cache_set_mock, api_client
