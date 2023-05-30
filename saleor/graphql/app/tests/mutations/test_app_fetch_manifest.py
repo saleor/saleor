@@ -73,7 +73,7 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
     assert manifest["about"] == "Lorem ipsum"
     assert manifest["name"] == "app"
     assert manifest["appUrl"] == "http://localhost:8888/app"
-    assert manifest["configurationUrl"] == "htpp://localhost:8888/configuration"
+    assert manifest["configurationUrl"] == "http://localhost:8888/configuration"
     assert manifest["tokenTargetUrl"] == "http://localhost:3000/register"
     assert manifest["dataPrivacy"] == "Lorem ipsum"
     assert manifest["dataPrivacyUrl"] == "http://localhost:8888/app-data-privacy"
