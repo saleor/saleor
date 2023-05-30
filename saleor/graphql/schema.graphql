@@ -15545,6 +15545,16 @@ type Mutation {
   ): PromotionUpdate @doc(category: "Discounts")
 
   """
+  Deletes a promotion. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionDelete(
+    """The ID of the promotion to remove."""
+    id: ID!
+  ): PromotionDelete @doc(category: "Discounts")
+
+  """
   Creates a new sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -23538,6 +23548,35 @@ input PromotionUpdateInput {
 
   """Promotion name."""
   name: String
+}
+
+"""
+Deletes a promotion. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionDelete @doc(category: "Discounts") {
+  errors: [PromotionDeleteError!]!
+  promotion: Promotion
+}
+
+type PromotionDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionDeleteErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
 }
 
 """

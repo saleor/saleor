@@ -24,3 +24,8 @@ class PromotionUpdateErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     INVALID = "invalid"
+
+
+class PromotionDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
