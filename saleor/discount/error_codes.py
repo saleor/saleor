@@ -15,3 +15,5 @@ class DiscountErrorCode(Enum):
 class PromotionCreateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    INVALID = "invalid"

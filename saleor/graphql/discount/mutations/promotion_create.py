@@ -3,10 +3,12 @@ from typing import DefaultDict, List
 
 import graphene
 from django.core.exceptions import ValidationError
+from graphql.error import GraphQLError
 
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....permission.enums import DiscountPermissions
+from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -15,6 +17,7 @@ from ...core.scalars import JSON, PositiveDecimal
 from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.validators import validate_end_is_after_start
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...utils import get_nodes
 from ..enums import PromotionCreateErrorCode, RewardValueTypeEnum
 from ..inputs import CataloguePredicateInput
 from ..types import Promotion
@@ -89,7 +92,9 @@ class PromotionCreate(ModelMutation):
         error_type_class = PromotionCreateError
 
     @classmethod
-    def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
+    def clean_input(
+        cls, info: ResolveInfo, instance: models.Promotion, data: dict, **kwargs
+    ):
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
 
         errors: DefaultDict[str, List[ValidationError]] = defaultdict(list)
@@ -111,11 +116,16 @@ class PromotionCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_rules(cls, info: ResolveInfo, rules_data, errors):
+    def clean_rules(
+        cls,
+        info: ResolveInfo,
+        rules_data: dict,
+        errors: DefaultDict[str, List[ValidationError]],
+    ):
         cleaned_rules = []
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
-                channels = cls.clean_channels(info, channel_ids, errors)
+                channels = cls.clean_channels(info, channel_ids, index, errors)
                 rule_data["channels"] = channels
 
             if "catalogue_predicate" not in rule_data:
@@ -137,7 +147,7 @@ class PromotionCreate(ModelMutation):
                         )
                     )
                 if "reward_value" not in rule_data:
-                    errors["reward_value_type"].append(
+                    errors["reward_value"].append(
                         ValidationError(
                             "The rewardValue is required for when cataloguePredicate "
                             "is provided.",
@@ -153,20 +163,30 @@ class PromotionCreate(ModelMutation):
         return cleaned_rules, errors
 
     @classmethod
-    def clean_channels(cls, info: ResolveInfo, channel_ids, errors):
+    def clean_channels(
+        cls,
+        info: ResolveInfo,
+        channel_ids: List[str],
+        index: int,
+        errors: DefaultDict[str, List[ValidationError]],
+    ):
         try:
-            channels = cls.get_nodes_or_error(
-                channel_ids, "Channel", schema=info.schema
+            channels = get_nodes(channel_ids, Channel, schema=info.schema)
+        except GraphQLError as e:
+            errors["channels"].append(
+                ValidationError(
+                    str(e),
+                    code=PromotionCreateErrorCode.GRAPHQL_ERROR.value,
+                    params={"index": index},
+                )
             )
-        except ValidationError as error:
-            errors["channels"].append(error)
             return []
         return channels
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         instance = cls.get_instance(info, **data)
-        data = data.get("input")
+        data = data["input"]
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
         manager = get_plugin_manager_promise(info.context).get()
@@ -179,7 +199,9 @@ class PromotionCreate(ModelMutation):
         return cls.success_response(instance)
 
     @classmethod
-    def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
+    def _save_m2m(
+        cls, info: ResolveInfo, instance: models.Promotion, cleaned_data: dict
+    ):
         super()._save_m2m(info, instance, cleaned_data)
         rules_with_channels_to_add = []
         if rules_data := cleaned_data.get("rules"):

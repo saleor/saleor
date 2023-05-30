@@ -23387,6 +23387,8 @@ type PromotionCreateError {
 enum PromotionCreateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+  REQUIRED
+  INVALID
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
