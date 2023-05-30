@@ -32,7 +32,7 @@ def test_product_filter_by_ids(api_client, product_list, channel_USD):
         graphene.Node.to_global_id("Product", product.pk)
         for product in product_list[:2]
     ]
-    variables = {"channel": channel_USD.slug, "where": {"id": ids}}
+    variables = {"channel": channel_USD.slug, "where": {"ids": ids}}
 
     # when
     response = api_client.post_graphql(PRODUCTS_WHERE_QUERY, variables)
