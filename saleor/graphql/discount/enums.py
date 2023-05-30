@@ -1,10 +1,12 @@
-from ...discount import DiscountType, DiscountValueType, VoucherType
+from ...discount import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.enums import to_enum
 from ..core.types import BaseEnum
 
 OrderDiscountTypeEnum = to_enum(DiscountType, type_name="OrderDiscountType")
 OrderDiscountTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
+RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
+RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class SaleType(BaseEnum):

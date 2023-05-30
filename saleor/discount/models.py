@@ -16,10 +16,12 @@ from django_prices.templatetags.prices import amount
 from prices import Money, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
+from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
-from . import DiscountType, DiscountValueType, VoucherType
+from . import DiscountType, DiscountValueType, RewardValueType, VoucherType
 
 if TYPE_CHECKING:
     from ..account.models import User
@@ -354,6 +356,41 @@ class SaleTranslation(Translation):
 
     def get_translated_keys(self):
         return {"name": self.name}
+
+
+class Promotion(ModelWithMetadata):
+    name = models.CharField(max_length=255)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    old_sale = models.BooleanField(default=False)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ("name", "pk")
+
+
+class PromotionRule(models.Model):
+    name = models.CharField(max_length=255)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    promotion = models.ForeignKey(
+        Promotion, on_delete=models.CASCADE, related_name="rules"
+    )
+    channels = models.ManyToManyField(Channel)
+    catalogue_predicate = models.JSONField()
+    reward_value_type = models.CharField(
+        max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
+    )
+    reward_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        null=True,
+    )
+
+    class Meta:
+        ordering = ("name", "pk")
 
 
 class BaseDiscount(models.Model):
