@@ -2,6 +2,7 @@
 
 import django.contrib.postgres.indexes
 from django.db import migrations
+from django.contrib.postgres.operations import AddIndexConcurrently
 
 
 class Migration(migrations.Migration):
@@ -9,8 +10,10 @@ class Migration(migrations.Migration):
         ("product", "0183_calculate_discounted_prices"),
     ]
 
+    atomic = False
+
     operations = [
-        migrations.AddIndex(
+        AddIndexConcurrently(
             model_name="product",
             index=django.contrib.postgres.indexes.GinIndex(
                 fields=["name", "slug"],
