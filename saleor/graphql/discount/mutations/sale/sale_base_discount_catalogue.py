@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
 
-from ....discount.error_codes import DiscountErrorCode
-from ....product.tasks import update_products_discounted_prices_of_catalogues_task
-from ....product.utils import get_products_ids_without_variants
-from ...core.mutations import BaseMutation
-from ...product.types import Category, Collection, Product, ProductVariant
+from .....discount.error_codes import DiscountErrorCode
+from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....product.utils import get_products_ids_without_variants
+from ....core.mutations import BaseMutation
+from ....product.types import Category, Collection, Product, ProductVariant
 
 
 class BaseDiscountCatalogueMutation(BaseMutation):

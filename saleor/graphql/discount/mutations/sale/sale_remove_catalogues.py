@@ -1,17 +1,17 @@
 from typing import cast
 
-from ....core.tracing import traced_atomic_transaction
-from ....discount import models
-from ....discount.utils import fetch_catalogue_info
-from ....graphql.channel import ChannelContext
-from ....permission.enums import DiscountPermissions
-from ...core import ResolveInfo
-from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ...core.types import DiscountError
-from ...plugins.dataloaders import get_plugin_manager_promise
-from ..types import Sale
+from .....core.tracing import traced_atomic_transaction
+from .....discount import models
+from .....discount.utils import fetch_catalogue_info
+from .....graphql.channel import ChannelContext
+from .....permission.enums import DiscountPermissions
+from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ....core.types import DiscountError
+from ....plugins.dataloaders import get_plugin_manager_promise
+from ...types import Sale
+from ..utils import convert_catalogue_info_to_global_ids
 from .sale_base_catalogue import SaleBaseCatalogueMutation
-from .utils import convert_catalogue_info_to_global_ids
 
 
 class SaleRemoveCatalogues(SaleBaseCatalogueMutation):
