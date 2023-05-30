@@ -160,16 +160,13 @@ class OrderGrantRefundCreate(BaseMutation):
                 "You must provide at least one of `amount`, `lines`, "
                 "`grantRefundForShipping`."
             )
+            error_code = OrderGrantRefundCreateErrorCode.REQUIRED.value
             raise ValidationError(
                 {
-                    "amount": ValidationError(
-                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
-                    ),
-                    "lines": ValidationError(
-                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
-                    ),
+                    "amount": ValidationError(error_msg, code=error_code),
+                    "lines": ValidationError(error_msg, code=error_code),
                     "grant_refund_for_shipping": ValidationError(
-                        error_msg, code=OrderGrantRefundCreateErrorCode.REQUIRED.value
+                        error_msg, code=error_code
                     ),
                 }
             )

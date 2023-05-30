@@ -2,6 +2,7 @@ from typing import Any, Union
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphql import GraphQLError
 
 from ....order import models
@@ -272,52 +273,54 @@ class OrderGrantRefundUpdate(BaseMutation):
     ):
         lines_to_remove = cleaned_input.get("remove_lines")
         lines_to_add = cleaned_input.get("add_lines")
-        if lines_to_remove:
-            granted_refund.lines.filter(id__in=lines_to_remove).delete()
-        if lines_to_add:
-            granted_refund.lines.bulk_create(
-                [
-                    models.OrderGrantedRefundLine(
-                        order_line=line,
-                        quantity=quantity,
-                        granted_refund=granted_refund,
-                    )
-                    for line, quantity in lines_to_add
-                ]
-            )
         grant_refund_for_shipping = cleaned_input.get("grant_refund_for_shipping")
         if grant_refund_for_shipping is not None:
             granted_refund.shipping_costs_included = grant_refund_for_shipping
 
-        amount = cleaned_input.get("amount")
-        if amount is not None:
-            granted_refund.amount_value = amount
-        elif amount is None and (
-            lines_to_add or lines_to_remove or grant_refund_for_shipping is not None
-        ):
-            lines = granted_refund.lines.select_related("order_line")
-            amount = sum(
-                [
-                    line.order_line.unit_price_gross_amount * line.quantity
-                    for line in lines
+        with transaction.atomic():
+            if lines_to_remove:
+                granted_refund.lines.filter(id__in=lines_to_remove).delete()
+            if lines_to_add:
+                granted_refund.lines.bulk_create(
+                    [
+                        models.OrderGrantedRefundLine(
+                            order_line=line,
+                            quantity=quantity,
+                            granted_refund=granted_refund,
+                        )
+                        for line, quantity in lines_to_add
+                    ]
+                )
+
+            amount = cleaned_input.get("amount")
+            if amount is not None:
+                granted_refund.amount_value = amount
+            elif amount is None and (
+                lines_to_add or lines_to_remove or grant_refund_for_shipping is not None
+            ):
+                lines = granted_refund.lines.select_related("order_line")
+                amount = sum(
+                    [
+                        line.order_line.unit_price_gross_amount * line.quantity
+                        for line in lines
+                    ]
+                )
+                if granted_refund.shipping_costs_included:
+                    amount += order.shipping_price_gross_amount
+                granted_refund.amount_value = amount
+
+            reason = cleaned_input.get("reason")
+            if reason is not None:
+                granted_refund.reason = reason
+
+            granted_refund.save(
+                update_fields=[
+                    "amount_value",
+                    "reason",
+                    "shipping_costs_included",
+                    "updated_at",
                 ]
             )
-            if granted_refund.shipping_costs_included:
-                amount += order.shipping_price_gross_amount
-            granted_refund.amount_value = amount
-
-        reason = cleaned_input.get("reason")
-        if reason is not None:
-            granted_refund.reason = reason
-
-        granted_refund.save(
-            update_fields=[
-                "amount_value",
-                "reason",
-                "shipping_costs_included",
-                "updated_at",
-            ]
-        )
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
