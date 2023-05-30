@@ -462,7 +462,7 @@ def test_install_app_with_webhook(
     webhook = app.webhooks.get()
     assert webhook.name == app_manifest_webhook["name"]
     assert sorted(webhook.events.values_list("event_type", flat=True)) == sorted(
-        app_manifest_webhook["events"]
+        [event.lower() for event in app_manifest_webhook["asyncEvents"]]
     )
     assert webhook.subscription_query == app_manifest_webhook["query"]
     assert webhook.target_url == app_manifest_webhook["targetUrl"]

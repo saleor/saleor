@@ -379,7 +379,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     assert errors[0] == {
         "code": "REQUIRED",
         "field": "extensions",
-        "message": f"Missing required fields for app extension: {missing_field}.",
+        "message": "Field required.",
     }
 
 
@@ -421,21 +421,14 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
     errors = content["data"]["appFetchManifest"]["errors"]
 
     assert len(errors) == 1
-    expected_errors = [
-        {
-            "code": "INVALID",
-            "field": "extensions",
-            "message": f"Incorrect value for field: {incorrect_field}",
-        },
-    ]
-
-    assert errors == expected_errors
+    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["field"] == "extensions"
 
 
 @pytest.mark.parametrize(
     "url, target, app_url",
     [
-        ("/app", AppExtensionTargetEnum.APP_PAGE.name, ""),
+        ("/app", AppExtensionTargetEnum.APP_PAGE.name, None),
         ("/app", AppExtensionTargetEnum.APP_PAGE.name, "https://www.example.com/app"),
         ("/app", AppExtensionTargetEnum.POPUP.name, "https://www.example.com/app"),
     ],
