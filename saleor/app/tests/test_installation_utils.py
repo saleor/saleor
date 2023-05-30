@@ -486,8 +486,8 @@ def test_install_app_webhook_incorrect_url(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "webhooks" in error_dict
-    assert error_dict["webhooks"][0].message == "Invalid target url."
+    assert "webhooks.0.targetUrl" in error_dict
+    assert error_dict["webhooks.0.targetUrl"][0].message == "URL scheme not permitted."
 
 
 @pytest.mark.parametrize("is_active", (True, False))
@@ -561,8 +561,8 @@ def test_install_app_webhook_incorrect_query(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "webhooks" in error_dict
-    assert "Subscription query is not valid:" in error_dict["webhooks"][0].message
+    assert "webhooks.0.query" in error_dict
+    assert "Syntax Error GraphQL" in error_dict["webhooks.0.query"][0].message
 
 
 def test_install_app_webhook_incorrect_custom_headers(
@@ -582,10 +582,9 @@ def test_install_app_webhook_incorrect_custom_headers(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "webhooks" in error_dict
-    assert error_dict["webhooks"][0].message == (
-        'Invalid custom headers: "InvalidKey" '
-        'does not match allowed key pattern: "X-*" or "Authorization*".'
+    assert "webhooks.0.customHeaders" in error_dict
+    assert error_dict["webhooks.0.customHeaders"][0].message == (
+        '"InvalidKey" does not match allowed key pattern: "X-*" or "Authorization*".'
     )
 
 

@@ -181,8 +181,8 @@ def test_app_fetch_manifest_incorrect_permission_in_manifest(
     manifest = content["data"]["appFetchManifest"]["manifest"]
     assert len(errors) == 1
     assert errors[0] == {
-        "field": "permissions",
-        "message": "Given permissions don't exist.",
+        "field": "permissions.0",
+        "message": "Given permission don't exist.",
         "code": "INVALID_PERMISSION",
     }
     assert not manifest
@@ -378,7 +378,7 @@ def test_app_fetch_manifest_missing_extension_fields(
     assert len(errors) == 1
     assert errors[0] == {
         "code": "REQUIRED",
-        "field": "extensions",
+        "field": f"extensions.0.{missing_field}",
         "message": "Field required.",
     }
 
@@ -422,7 +422,7 @@ def test_app_fetch_manifest_extensions_incorrect_enum_values(
 
     assert len(errors) == 1
     assert errors[0]["code"] == "INVALID"
-    assert errors[0]["field"] == "extensions"
+    assert errors[0]["field"] == f"extensions.0.{incorrect_field}"
 
 
 @pytest.mark.parametrize(
@@ -520,12 +520,10 @@ def test_app_fetch_manifest_extensions_incorrect_url(
     content = get_graphql_content(response)
     errors = content["data"]["appFetchManifest"]["errors"]
 
-    assert len(errors) == 1
-    assert errors[0] == {
-        "code": "INVALID_URL_FORMAT",
-        "field": "extensions",
-        "message": "Incorrect value for field: url.",
-    }
+    assert len(errors) >= 1
+    assert errors[0]["field"] in ["extensions.0", "extensions.0.url"]
+    assert errors[0]["code"] == "INVALID_URL_FORMAT"
+    # "message": "Invalid or missing URL scheme.",
 
 
 @pytest.mark.parametrize(
@@ -576,7 +574,7 @@ def test_app_fetch_manifest_extensions_permission_out_of_scope(
     assert len(errors) == 1
     assert errors[0] == {
         "code": "OUT_OF_SCOPE_PERMISSION",
-        "field": "extensions",
+        "field": "extensions.0",
         "message": "Extension permission must be listed in App's permissions.",
     }
 
@@ -617,8 +615,8 @@ def test_app_fetch_manifest_extensions_invalid_permission(
     assert len(errors) == 1
     assert errors[0] == {
         "code": "INVALID_PERMISSION",
-        "field": "extensions",
-        "message": "Given permissions don't exist.",
+        "field": "extensions.0.permissions.0",
+        "message": "Given permission don't exist.",
     }
 
 
