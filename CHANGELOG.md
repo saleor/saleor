@@ -41,10 +41,6 @@ the [Releases](https://github.com/mirumee/saleor/releases) page.
   mutation - #12781 by @SzymJ
 - [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
 - [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
-    - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has
-      already been given access to.
-- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate`
-  mutation - #12781 by @SzymJ
 
 ### Saleor Apps
 
@@ -72,7 +68,6 @@ the [Releases](https://github.com/mirumee/saleor/releases) page.
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
 - Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel
   listings to return the pricing - #12713 by @IKarbowiak
-- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
 - Add Vitest package for API tests - #12963 by @yellowee
 
 # 3.13.0
