@@ -35,3 +35,7 @@ def resolve_sales(info, channel_slug, **kwargs) -> ChannelQsContext:
         qs = filter_sale_search(qs, None, query)
 
     return ChannelQsContext(qs=qs, channel_slug=channel_slug)
+
+
+def resolve_promotion(id):
+    return models.Promotion.objects.filter(id=id).first()

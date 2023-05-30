@@ -34,6 +34,16 @@ class VoucherType:
     ]
 
 
+class RewardValueType:
+    FIXED = "fixed"
+    PERCENTAGE = "percentage"
+
+    CHOICES = [
+        (FIXED, "fixed"),
+        (PERCENTAGE, "%"),
+    ]
+
+
 @dataclass
 class DiscountInfo:
     sale: "Sale"

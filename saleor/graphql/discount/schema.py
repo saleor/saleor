@@ -3,7 +3,7 @@ import graphene
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_315, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
@@ -25,9 +25,21 @@ from .mutations import (
     VoucherUpdate,
 )
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
-from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
+from .resolvers import (
+    resolve_promotion,
+    resolve_sale,
+    resolve_sales,
+    resolve_voucher,
+    resolve_vouchers,
+)
 from .sorters import SaleSortingInput, VoucherSortingInput
-from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection
+from .types import (
+    Promotion,
+    Sale,
+    SaleCountableConnection,
+    Voucher,
+    VoucherCountableConnection,
+)
 
 
 class VoucherFilterInput(FilterInputObjectType):
@@ -107,6 +119,17 @@ class DiscountQueries(graphene.ObjectType):
         ],
         doc_category=DOC_CATEGORY_DISCOUNTS,
     )
+    promotion = PermissionsField(
+        Promotion,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the promotion.", required=True
+        ),
+        description="Look up a promotion by ID." + ADDED_IN_315 + PREVIEW_FEATURE,
+        permissions=[
+            DiscountPermissions.MANAGE_DISCOUNTS,
+        ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
+    )
 
     @staticmethod
     def resolve_sale(_root, _info, *, id, channel=None):
@@ -131,6 +154,11 @@ class DiscountQueries(graphene.ObjectType):
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, VoucherCountableConnection)
+
+    @staticmethod
+    def resolve_promotion(_root, _info, *, id, channel=None):
+        _, id = from_global_id_or_error(id, Promotion)
+        return resolve_promotion(id)
 
 
 class DiscountMutations(graphene.ObjectType):
