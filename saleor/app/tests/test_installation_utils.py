@@ -527,8 +527,12 @@ def test_install_app_with_webhook_incorrect_is_active_value(
         install_app(app_installation, activate=True)
 
     error_dict = excinfo.value.error_dict
-    assert "webhooks" in error_dict
-    assert error_dict["webhooks"][0].message == "Incorrect value for field: isActive."
+    assert "webhooks.0.isActive" in error_dict
+    assert error_dict["webhooks.0.isActive"][0].code == AppErrorCode.INVALID.value
+    assert (
+        error_dict["webhooks.0.isActive"][0].message
+        == "Value could not be parsed to a boolean."
+    )
 
 
 def test_install_app_webhook_incorrect_query(
