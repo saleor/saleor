@@ -811,7 +811,7 @@ class ProductFilter(MetadataFilterBase):
 
 
 class ProductWhere(MetadataFilterBase):
-    id = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     name = OperationObjectTypeFilter(
         input_class=StringFilterInput,
         method="filter_product_name",
