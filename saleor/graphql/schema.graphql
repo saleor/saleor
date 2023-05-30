@@ -6407,6 +6407,8 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     Filtering options for products.
     
     Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     where: ProductWhereInput
 
@@ -7605,6 +7607,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   products(
     """Filtering options for products."""
     filter: ProductFilterInput
+
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
