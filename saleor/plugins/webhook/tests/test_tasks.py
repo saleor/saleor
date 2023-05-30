@@ -795,5 +795,9 @@ def test_handle_transaction_request_task_with_available_actions(
     )
 
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        allow_redirects=False,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
     )
