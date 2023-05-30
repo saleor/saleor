@@ -1,7 +1,7 @@
 import { GraphQLClient, gql } from 'graphql-request'
 import { TokenCreateMutation } from '../generated/graphql'
 
-export const baseUrl = import.meta.env.apiEndpoint
+export const baseUrl: string = import.meta.env.apiEndpoint
 
 export const makeClient = (): GraphQLClient => new GraphQLClient(baseUrl)
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { makeClient } from './utils'
 import { gql } from 'graphql-request'
-import { TokenCreateMutation } from '../generated/graphql'
+import { TokenCreateMutation, TokenCreateMutationVariables } from '../generated/graphql'
 
 describe('testing authorization', () => {
   it('checks creating access tokens', async () => {
@@ -27,13 +27,17 @@ describe('testing authorization', () => {
         message
       }
     `
-    const result = await client.request<TokenCreateMutation>(mutation, {
-      email: 'testers+dashboard@saleor.io',
-      password: 'test1234',
-    })
-    expect(result.tokenCreate?.csrfToken).toBeDefined()
-    expect(result.tokenCreate?.token).toBeDefined()
-    expect(result.tokenCreate?.refreshToken).toBeDefined()
+    const result = await client.request<TokenCreateMutation, TokenCreateMutationVariables>(
+      mutation,
+      {
+        email: 'testers+dashboard@saleor.io',
+        password: 'test1234',
+      },
+    )
+
+    expect(result.tokenCreate?.csrfToken).toBeTypeOf('string')
+    expect(result.tokenCreate?.token).toBeTypeOf('string')
+    expect(result.tokenCreate?.refreshToken).toBeTypeOf('string')
     expect(result.tokenCreate?.errors).toHaveLength(0)
   })
 })

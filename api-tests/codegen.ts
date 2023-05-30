@@ -1,8 +1,13 @@
 import type { CodegenConfig } from '@graphql-codegen/cli'
-import { baseUrl } from '~/utils'
+
+const schemaUrl = process.env.SCHEMA_URL
+
+if (!schemaUrl) {
+  throw new Error('Missing SCHEMA_URL environment variable')
+}
 
 const config: CodegenConfig = {
-  schema: baseUrl,
+  schema: schemaUrl,
   documents: ['src/**/*.ts'],
   config: { addExplicitOverride: true },
   generates: {
