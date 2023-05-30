@@ -3,7 +3,7 @@ import graphene
 from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import ADDED_IN_315, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
@@ -122,7 +122,7 @@ class DiscountQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the promotion.", required=True
         ),
-        description="Look up a promotion by ID.",
+        description="Look up a promotion by ID." + ADDED_IN_315 + PREVIEW_FEATURE,
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],

@@ -368,7 +368,7 @@ class Promotion(ModelWithMetadata):
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
-    notification_sent_datetime = models.DateTimeField(null=True, blank=True)
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ("name", "pk")

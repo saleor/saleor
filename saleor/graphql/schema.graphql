@@ -1130,6 +1130,10 @@ type Query {
   """
   Look up a promotion by ID.
   
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
   promotion(

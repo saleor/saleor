@@ -58,7 +58,7 @@ class Migration(migrations.Migration):
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
                 (
-                    "notification_sent_datetime",
+                    "notification_sent_at",
                     models.DateTimeField(blank=True, null=True),
                 ),
             ],
