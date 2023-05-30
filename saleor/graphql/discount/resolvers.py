@@ -49,7 +49,3 @@ def resolve_sales(_info, channel_slug, **kwargs) -> ChannelQsContext:
 
 def resolve_promotion(id):
     return models.Promotion.objects.filter(id=id).first()
-
-
-def resolve_promotions() -> QuerySet:
-    return models.Promotion.objects.all()

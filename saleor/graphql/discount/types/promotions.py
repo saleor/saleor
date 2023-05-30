@@ -5,15 +5,12 @@ from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
-from ...core.connection import CountableConnection
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
-from ...translations.fields import TranslationField
-from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
     PromotionByIdLoader,
@@ -39,7 +36,6 @@ class Promotion(ModelObjectType[models.Promotion]):
     rules = NonNullList(
         lambda: PromotionRule, description="The list of promotion rules."
     )
-    translation = TranslationField(PromotionTranslation, type_name="promotion")
 
     class Meta:
         description = (
@@ -59,7 +55,7 @@ class Promotion(ModelObjectType[models.Promotion]):
 
 class PromotionRule(ModelObjectType[models.PromotionRule]):
     id = graphene.GlobalID(required=True)
-    name = graphene.String(description="Name of the promotion rule.")
+    name = graphene.String(required=True, description="Name of the promotion rule.")
     description = JSON(description="Description of the promotion rule.")
     promotion = graphene.Field(
         Promotion, description="Promotion to which the rule belongs."
@@ -86,7 +82,6 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "applied when the rule conditions are met."
         )
     )
-    translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
 
     class Meta:
         description = (
@@ -104,9 +99,3 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
-
-
-class PromotionCountableConnection(CountableConnection):
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-        node = Promotion

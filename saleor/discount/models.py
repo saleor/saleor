@@ -17,10 +17,13 @@ from prices import Money, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.db.fields import SanitizedJSONField
+from ..core.db.fields import SanitizedJSONField
 from ..core.models import ModelWithMetadata
+from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation
 from ..permission.enums import DiscountPermissions
+from . import DiscountType, DiscountValueType, RewardValueType, VoucherType
 from . import DiscountType, DiscountValueType, RewardValueType, VoucherType
 
 if TYPE_CHECKING:
@@ -358,77 +361,28 @@ class SaleTranslation(Translation):
         return {"name": self.name}
 
 
-class PromotionQueryset(models.QuerySet["Promotion"]):
-    def active(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=date), start_date__lte=date
-        )
-
-    def expired(self, date=None):
-        if date is None:
-            date = timezone.now()
-        return self.filter(end_date__lt=date, start_date__lt=date)
-
-
-PromotionManager = models.Manager.from_queryset(PromotionQueryset)
-
-
 class Promotion(ModelWithMetadata):
-    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    old_sale_id = models.IntegerField(blank=True, null=True, unique=True)
+    old_sale = models.BooleanField(default=False)
     start_date = models.DateTimeField(default=timezone.now)
     end_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True, db_index=True)
-    last_notification_scheduled_at = models.DateTimeField(null=True, blank=True)
-    objects = PromotionManager()
+    notification_sent_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ("name", "pk")
 
-    def is_active(self, date=None):
-        if date is None:
-            date = datetime.now(pytz.utc)
-        return (not self.end_date or self.end_date >= date) and self.start_date <= date
-
-    def assign_old_sale_id(self):
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT nextval('discount_promotion_old_sale_id_seq')")
-            result = cursor.fetchone()
-            self.old_sale_id = result[0]
-            self.save(update_fields=["old_sale_id"])
-
-
-class PromotionTranslation(Translation):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    promotion = models.ForeignKey(
-        Promotion, related_name="translations", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = (("language_code", "promotion"),)
-
-    def get_translated_object_id(self):
-        return "Promotion", self.promotion_id
-
-    def get_translated_keys(self):
-        return {"name": self.name, "description": self.description}
-
 
 class PromotionRule(models.Model):
-    id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
     promotion = models.ForeignKey(
         Promotion, on_delete=models.CASCADE, related_name="rules"
     )
     channels = models.ManyToManyField(Channel)
-    catalogue_predicate = models.JSONField(blank=True, default=dict)
+    catalogue_predicate = models.JSONField()
     reward_value_type = models.CharField(
         max_length=255, choices=RewardValueType.CHOICES, blank=True, null=True
     )
@@ -436,52 +390,10 @@ class PromotionRule(models.Model):
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         null=True,
-        blank=True,
     )
-    old_channel_listing_id = models.IntegerField(blank=True, null=True, unique=True)
 
     class Meta:
         ordering = ("name", "pk")
-
-    def get_discount(self, currency):
-        if self.reward_value_type == RewardValueType.FIXED:
-            discount_amount = Money(self.reward_value, currency)
-            return partial(fixed_discount, discount=discount_amount)
-        if self.reward_value_type == RewardValueType.PERCENTAGE:
-            return partial(
-                percentage_discount,
-                percentage=self.reward_value,
-                rounding=ROUND_HALF_UP,
-            )
-        raise NotImplementedError("Unknown discount type")
-
-    @staticmethod
-    def get_old_channel_listing_ids(qunatity):
-        with connection.cursor() as cursor:
-            cursor.execute(
-                f"""
-                SELECT nextval('discount_promotionrule_old_channel_listing_id_seq')
-                FROM generate_series(1, {qunatity})
-                """
-            )
-            return cursor.fetchall()
-
-
-class PromotionRuleTranslation(Translation):
-    name = models.CharField(max_length=255, null=True, blank=True)
-    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
-    promotion_rule = models.ForeignKey(
-        PromotionRule, related_name="translations", on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = (("language_code", "promotion_rule"),)
-
-    def get_translated_object_id(self):
-        return "PromotionRule", self.promotion_rule_id
-
-    def get_translated_keys(self):
-        return {"name": self.name, "description": self.description}
 
 
 class BaseDiscount(models.Model):

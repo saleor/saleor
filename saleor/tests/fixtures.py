@@ -50,21 +50,12 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import (
-    DiscountInfo,
-    DiscountType,
-    DiscountValueType,
-    RewardValueType,
-    VoucherType,
-)
-from ..discount.interface import VariantPromotionRuleInfo
+from ..discount import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
 from ..discount.models import (
     CheckoutLineDiscount,
     NotApplicable,
     Promotion,
     PromotionRule,
-    PromotionRuleTranslation,
-    PromotionTranslation,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -5455,11 +5446,7 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for percentage promotion rule."
                 ),
-                catalogue_predicate={
-                    "productPredicate": {
-                        "ids": [graphene.Node.to_global_id("Product", product.id)]
-                    }
-                },
+                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=Decimal("10"),
             ),
@@ -5469,11 +5456,7 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for fixes promotion rule."
                 ),
-                catalogue_predicate={
-                    "collectionPredicate": {
-                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
-                    }
-                },
+                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=Decimal("5"),
             ),
@@ -5482,159 +5465,6 @@ def promotion(channel_USD, product, collection):
     for rule in rules:
         rule.channels.add(channel_USD)
     return promotion
-
-
-@pytest.fixture
-def promotion_without_rules(db):
-    promotion = Promotion.objects.create(
-        name="Promotion",
-        description=dummy_editorjs("Test description."),
-        end_date=timezone.now() + timedelta(days=30),
-    )
-    return promotion
-
-
-@pytest.fixture
-def promotion_list(channel_USD, product, collection):
-    promotions = Promotion.objects.bulk_create(
-        [
-            Promotion(
-                name="Promotion 1",
-                description=dummy_editorjs("Promotion 1 description."),
-                start_date=timezone.now() + timedelta(days=1),
-                end_date=timezone.now() + timedelta(days=10),
-            ),
-            Promotion(
-                name="Promotion 2",
-                description=dummy_editorjs("Promotion 2 description."),
-                start_date=timezone.now() + timedelta(days=5),
-                end_date=timezone.now() + timedelta(days=20),
-            ),
-            Promotion(
-                name="Promotion 3",
-                description=dummy_editorjs("TePromotion 3 description."),
-                start_date=timezone.now() + timedelta(days=15),
-                end_date=timezone.now() + timedelta(days=30),
-            ),
-        ]
-    )
-    rules = PromotionRule.objects.bulk_create(
-        [
-            PromotionRule(
-                name="Promotion 1 percentage rule",
-                promotion=promotions[0],
-                description=dummy_editorjs(
-                    "Test description for promotion 1 percentage rule."
-                ),
-                catalogue_predicate={
-                    "productPredicate": {
-                        "ids": [graphene.Node.to_global_id("Product", product.id)]
-                    }
-                },
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
-            ),
-            PromotionRule(
-                name="Promotion 1 fixed rule",
-                promotion=promotions[0],
-                description=dummy_editorjs(
-                    "Test description for promotion 1 fixed rule."
-                ),
-                catalogue_predicate={
-                    "collectionPredicate": {
-                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
-                    }
-                },
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
-            ),
-            PromotionRule(
-                name="Promotion 2 percentage rule",
-                promotion=promotions[1],
-                description=dummy_editorjs(
-                    "Test description for promotion 2 percentage rule."
-                ),
-                catalogue_predicate={
-                    "productPredicate": {
-                        "ids": [graphene.Node.to_global_id("Product", product.id)]
-                    }
-                },
-                reward_value_type=RewardValueType.PERCENTAGE,
-                reward_value=Decimal("10"),
-            ),
-            PromotionRule(
-                name="Promotion 3 fixed rule",
-                promotion=promotions[2],
-                description=dummy_editorjs(
-                    "Test description for promotion 3 fixed rule."
-                ),
-                catalogue_predicate={
-                    "collectionPredicate": {
-                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
-                    }
-                },
-                reward_value_type=RewardValueType.FIXED,
-                reward_value=Decimal("5"),
-            ),
-        ]
-    )
-    for rule in rules:
-        rule.channels.add(channel_USD)
-    return promotions
-
-
-@pytest.fixture
-def promotion_rule(channel_USD, promotion, product):
-    rule = PromotionRule.objects.create(
-        name="Promotion rule name",
-        promotion=promotion,
-        description=dummy_editorjs("Test description for percentage promotion rule."),
-        catalogue_predicate={"productPredicate": {"ids": [product.id]}},
-        reward_value_type=RewardValueType.PERCENTAGE,
-        reward_value=Decimal("25"),
-    )
-    rule.channels.add(channel_USD)
-    return rule
-
-
-@pytest.fixture
-def rule_info(
-    promotion_rule,
-    promotion_translation_fr,
-    promotion_rule_translation_fr,
-    variant,
-    channel_USD,
-):
-    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
-    listing_promotion_rule = variant_channel_listing.variantlistingpromotionrule.create(
-        promotion_rule=promotion_rule,
-        discount_amount=Decimal("10"),
-        currency=channel_USD.currency_code,
-    )
-    return VariantPromotionRuleInfo(
-        rule=promotion_rule,
-        promotion=promotion_rule.promotion,
-        variant_listing_promotion_rule=listing_promotion_rule,
-        promotion_translation=promotion_translation_fr,
-        rule_translation=promotion_rule_translation_fr,
-    )
-
-
-@pytest.fixture
-def promotion_converted_from_sale(sale):
-    from ..discount.sale_converter import convert_sales_to_promotions
-
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
-
-
-@pytest.fixture
-def promotion_converted_from_sale_with_empty_predicate():
-    from ..discount.sale_converter import convert_sales_to_promotions
-
-    sale = Sale.objects.create(name="Sale with no rules", type=DiscountValueType.FIXED)
-    convert_sales_to_promotions()
-    return Promotion.objects.filter(old_sale_id=sale.id).last()
 
 
 @pytest.fixture
@@ -5705,6 +5535,17 @@ def permission_manage_channels():
 @pytest.fixture
 def permission_manage_payments():
     return Permission.objects.get(codename="handle_payments")
+
+
+@pytest.fixture
+def permission_group_manage_discounts(permission_manage_discounts, staff_users):
+    group = Group.objects.create(
+        name="Manage discounts group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_discounts)
+
+    group.user_set.add(staff_users[1])
+    return group
 
 
 @pytest.fixture

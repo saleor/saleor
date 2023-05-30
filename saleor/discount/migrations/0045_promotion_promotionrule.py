@@ -4,7 +4,6 @@ import django.utils.timezone
 import saleor.core.db.fields
 import saleor.core.utils.editorjs
 import saleor.core.utils.json_serializer
-import uuid
 
 
 class Migration(migrations.Migration):
@@ -19,12 +18,11 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
+                    models.AutoField(
+                        auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        unique=True,
+                        verbose_name="ID",
                     ),
                 ),
                 (
@@ -54,16 +52,13 @@ class Migration(migrations.Migration):
                         sanitizer=saleor.core.utils.editorjs.clean_editor_js,
                     ),
                 ),
-                (
-                    "old_sale_id",
-                    models.IntegerField(blank=True, null=True, unique=True),
-                ),
+                ("old_sale", models.BooleanField(default=False)),
                 ("start_date", models.DateTimeField(default=django.utils.timezone.now)),
                 ("end_date", models.DateTimeField(blank=True, null=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 ("updated_at", models.DateTimeField(auto_now=True, db_index=True)),
                 (
-                    "last_notification_scheduled_at",
+                    "notification_sent_at",
                     models.DateTimeField(blank=True, null=True),
                 ),
             ],
@@ -76,22 +71,14 @@ class Migration(migrations.Migration):
             fields=[
                 (
                     "id",
-                    models.UUIDField(
-                        default=uuid.uuid4,
-                        editable=False,
+                    models.AutoField(
+                        auto_created=True,
                         primary_key=True,
                         serialize=False,
-                        unique=True,
+                        verbose_name="ID",
                     ),
                 ),
-                (
-                    "name",
-                    models.CharField(
-                        max_length=255,
-                        blank=True,
-                        null=True,
-                    ),
-                ),
+                ("name", models.CharField(max_length=255)),
                 (
                     "description",
                     saleor.core.db.fields.SanitizedJSONField(
@@ -100,7 +87,7 @@ class Migration(migrations.Migration):
                         sanitizer=saleor.core.utils.editorjs.clean_editor_js,
                     ),
                 ),
-                ("catalogue_predicate", models.JSONField(blank=True, default=dict)),
+                ("catalogue_predicate", models.JSONField()),
                 (
                     "reward_value_type",
                     models.CharField(
@@ -112,12 +99,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "reward_value",
-                    models.DecimalField(
-                        decimal_places=3,
-                        max_digits=12,
-                        null=True,
-                        blank=True,
-                    ),
+                    models.DecimalField(decimal_places=3, max_digits=12, null=True),
                 ),
                 ("channels", models.ManyToManyField(to="channel.Channel")),
                 (
@@ -127,10 +109,6 @@ class Migration(migrations.Migration):
                         related_name="rules",
                         to="discount.promotion",
                     ),
-                ),
-                (
-                    "old_channel_listing_id",
-                    models.IntegerField(blank=True, null=True, unique=True),
                 ),
             ],
             options={
