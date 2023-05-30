@@ -7,7 +7,7 @@ if (!schemaUrl) {
 }
 
 const config: CodegenConfig = {
-  schema: schemaUrl,
+  schema: process.env.SCHEMA_URL,
   documents: ['src/**/*.ts'],
   config: { addExplicitOverride: true },
   generates: {
