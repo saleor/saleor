@@ -243,6 +243,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     try:
         send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
     except requests.RequestException as e:
+        app.refresh_from_db()
         app.delete()
         raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
