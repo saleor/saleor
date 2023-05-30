@@ -63,15 +63,18 @@ class PromotionRuleInput(BaseInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
 
-class PromotionCreateInput(BaseInputObjectType):
-    name = graphene.String(description="Promotion name.")
-    description = JSON(description="Promotion description.", required=False)
+class PromotionInput(BaseInputObjectType):
+    description = JSON(description="Promotion description.")
     start_date = graphene.types.datetime.DateTime(
         description="The start date of the promotion in ISO 8601 format."
     )
     end_date = graphene.types.datetime.DateTime(
         description="The end date of the promotion in ISO 8601 format."
     )
+
+
+class PromotionCreateInput(PromotionInput):
+    name = graphene.String(description="Promotion name.", required=True)
     rules = NonNullList(PromotionRuleInput, description="List of promotion rules.")
 
     class Meta:
@@ -90,6 +93,7 @@ class PromotionCreate(ModelMutation):
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = PromotionCreateError
+        doc_category = DOC_CATEGORY_DISCOUNTS
 
     @classmethod
     def clean_input(

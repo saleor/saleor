@@ -12,6 +12,7 @@ from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .filters import SaleFilter, VoucherFilter
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations.promotion_create import PromotionCreate
+from .mutations.promotion_update import PromotionUpdate
 from .mutations.sale_add_catalogues import SaleAddCatalogues
 from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
 from .mutations.sale_create import SaleCreate
@@ -162,6 +163,7 @@ class DiscountQueries(graphene.ObjectType):
 
 class DiscountMutations(graphene.ObjectType):
     promotion_create = PromotionCreate.Field()
+    promotion_update = PromotionUpdate.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()

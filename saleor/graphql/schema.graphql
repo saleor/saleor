@@ -15525,7 +15525,24 @@ type Mutation {
   promotionCreate(
     """Fields requires to create a promotion."""
     input: PromotionCreateInput!
-  ): PromotionCreate
+  ): PromotionCreate @doc(category: "Discounts")
+
+  """
+  Updates an existing promotion.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionUpdate(
+    """ID of the promotion to update."""
+    id: ID!
+
+    """Fields required to update a promotion."""
+    input: PromotionUpdateInput!
+  ): PromotionUpdate @doc(category: "Discounts")
 
   """
   Creates a new sale. 
@@ -23362,7 +23379,7 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
-type PromotionCreate {
+type PromotionCreate @doc(category: "Discounts") {
   errors: [PromotionCreateError!]!
   promotion: Promotion
 }
@@ -23392,9 +23409,6 @@ enum PromotionCreateErrorCode {
 }
 
 input PromotionCreateInput @doc(category: "Discounts") {
-  """Promotion name."""
-  name: String
-
   """Promotion description."""
   description: JSON
 
@@ -23403,6 +23417,9 @@ input PromotionCreateInput @doc(category: "Discounts") {
 
   """The end date of the promotion in ISO 8601 format."""
   endDate: DateTime
+
+  """Promotion name."""
+  name: String!
 
   """List of promotion rules."""
   rules: [PromotionRuleInput!]
@@ -23472,6 +23489,55 @@ input CategoryPredicateInput @doc(category: "Discounts") {
 input CollectionPredicateInput @doc(category: "Discounts") {
   """The list of collection ids."""
   ids: [ID!]
+}
+
+"""
+Updates an existing promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionUpdate @doc(category: "Discounts") {
+  errors: [PromotionUpdateError!]!
+  promotion: Promotion
+}
+
+type PromotionUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+  INVALID
+}
+
+input PromotionUpdateInput {
+  """Promotion description."""
+  description: JSON
+
+  """The start date of the promotion in ISO 8601 format."""
+  startDate: DateTime
+
+  """The end date of the promotion in ISO 8601 format."""
+  endDate: DateTime
+
+  """Promotion name."""
+  name: String
 }
 
 """

@@ -17,6 +17,7 @@ RewardValueTypeEnum = to_enum(RewardValueType, type_name="RewardValueTypeEnum")
 RewardValueTypeEnum.doc_category = DOC_CATEGORY_DISCOUNTS
 
 PromotionCreateErrorCode = graphene.Enum.from_enum(error_codes.PromotionCreateErrorCode)
+PromotionUpdateErrorCode = graphene.Enum.from_enum(error_codes.PromotionUpdateErrorCode)
 
 
 class SaleType(BaseEnum):

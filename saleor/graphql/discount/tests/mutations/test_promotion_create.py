@@ -6,8 +6,9 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....discount.error_codes import PromotionCreateErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import PromotionCreateErrorCode, RewardValueTypeEnum
+from ...enums import RewardValueTypeEnum
 
 PROMOTION_CREATE_MUTATION = """
     mutation promotionCreate($input: PromotionCreateInput!) {
@@ -132,8 +133,11 @@ def test_promotion_create_by_staff_user(
 
     assert not data["errors"]
     assert promotion_data["name"] == promotion_name
+    assert promotion_data["description"] == description_json
     assert promotion_data["startDate"] == start_date.isoformat()
     assert promotion_data["endDate"] == end_date.isoformat()
+    assert promotion_data["createdAt"] == timezone.now().isoformat()
+    assert promotion_data["updatedAt"] == timezone.now().isoformat()
 
     assert len(promotion_data["rules"]) == 2
     for rule_data in variables["input"]["rules"]:
@@ -204,6 +208,7 @@ def test_promotion_create_by_app(
 
     assert not data["errors"]
     assert promotion_data["name"] == promotion_name
+    assert promotion_data["description"] == description_json
     assert promotion_data["startDate"] == start_date.isoformat()
     assert promotion_data["endDate"] == end_date.isoformat()
 
@@ -598,3 +603,72 @@ def test_promotion_create_multiple_errors(
     ]
     for error in expected_errors:
         assert error in errors
+
+
+@freeze_time("2020-03-18 12:00:00")
+def test_promotion_create_end_date_before_start_date(
+    staff_api_client,
+    permission_group_manage_discounts,
+    description_json,
+    channel_USD,
+    channel_PLN,
+    product,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    start_date = timezone.now() + timedelta(days=30)
+    end_date = timezone.now() - timedelta(days=30)
+
+    promotion_name = "test promotion"
+    catalogue_predicate = {
+        "productPredicate": {"ids": [graphene.Node.to_global_id("Product", product.id)]}
+    }
+
+    rule_1_name = "test promotion rule 1"
+    rule_2_name = "test promotion rule 2"
+    reward_value = Decimal("10")
+    reward_value_type_1 = RewardValueTypeEnum.FIXED.name
+    reward_value_type_2 = RewardValueTypeEnum.PERCENTAGE.name
+    rule_1_channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    rule_2_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+
+    variables = {
+        "input": {
+            "name": promotion_name,
+            "description": description_json,
+            "startDate": start_date.isoformat(),
+            "endDate": end_date.isoformat(),
+            "rules": [
+                {
+                    "name": rule_1_name,
+                    "description": description_json,
+                    "channels": rule_1_channel_ids,
+                    "rewardValueType": reward_value_type_1,
+                    "rewardValue": reward_value,
+                    "cataloguePredicate": catalogue_predicate,
+                },
+                {
+                    "name": rule_2_name,
+                    "description": description_json,
+                    "channels": rule_2_channel_ids,
+                    "rewardValueType": reward_value_type_2,
+                    "rewardValue": reward_value,
+                    "cataloguePredicate": catalogue_predicate,
+                },
+            ],
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionCreate"]
+    errors = data["errors"]
+
+    assert not data["promotion"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
+    assert errors[0]["field"] == "endDate"
+    assert errors[0]["index"] is None
