@@ -1189,6 +1189,20 @@ type Query {
   ): VoucherCountableConnection @doc(category: "Discounts")
 
   """
+  Look up a promotion by ID.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotion(
+    """ID of the promotion."""
+    id: ID!
+  ): Promotion @doc(category: "Discounts")
+
+  """
   Look up a export file by ID.
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -13590,6 +13604,130 @@ enum VoucherSortField {
   This option requires a channel filter to work as the values can vary between channels.
   """
   MINIMUM_SPENT_AMOUNT
+}
+
+"""
+Represents the promotion that allow creating discounts based on given conditions, and is visible to all the customers.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """Name of the promotion."""
+  name: String!
+
+  """Description of the promotion."""
+  description: JSON
+
+  """Start date of the promotion."""
+  startDate: DateTime!
+
+  """End date of the promotion."""
+  endDate: DateTime
+
+  """Date time of promotion creation."""
+  createdAt: DateTime!
+
+  """Date time of last update of promotion."""
+  updatedAt: DateTime!
+
+  """The list of promotion rules."""
+  rules: [PromotionRule!]
+}
+
+scalar JSON
+
+"""
+Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionRule implements Node @doc(category: "Discounts") {
+  id: ID!
+
+  """Name of the promotion rule."""
+  name: String!
+
+  """Description of the promotion rule."""
+  description: JSON
+
+  """Promotion to which the rule belongs."""
+  promotion: Promotion
+
+  """
+  List of channels where the rule applies.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  channels: [Channel!]
+
+  """The type of reward value of the promotion rule."""
+  rewardValueType: RewardValueTypeEnum
+
+  """The catalogue predicate that must be met to apply the rule reward."""
+  cataloguePredicate: JSON
+
+  """
+  The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
+  """
+  rewardValue: PositiveDecimal
+}
+
+"""An enumeration."""
+enum RewardValueTypeEnum @doc(category: "Discounts") {
+  FIXED
+  PERCENTAGE
 }
 
 """Represents a job data of exported file."""
