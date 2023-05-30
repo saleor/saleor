@@ -144,7 +144,7 @@ def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File
 
 @app.task(bind=True, retry_backoff=2700, retry_kwargs={"max_retries": 5})
 def fetch_brand_data_task(
-    self, brand_data: dict, app_installation_id=None, app_id=None
+    self, brand_data: dict, *, app_installation_id=None, app_id=None
 ):
     """Task to fetch app's brand data. Last retry delayed 24H."""
     app = App.objects.filter(id=app_id).first()
@@ -169,6 +169,20 @@ def fetch_brand_data_task(
             raise self.retry(countdown=countdown, **self.retry_kwargs)
         except MaxRetriesExceededError:
             task_logger.info("Fetching brand data exceeded retry limit.", extra=extra)
+
+
+def fetch_brand_data_async(
+    manifest_data: dict,
+    *,
+    app_installation: Optional[AppInstallation] = None,
+    app: Optional[App] = None
+):
+    if brand_data := manifest_data.get("brand"):
+        app_id = app.pk if app else None
+        app_installation_id = app_installation.pk if app_installation else None
+        fetch_brand_data_task.delay(
+            brand_data, app_installation_id=app_installation_id, app_id=app_id
+        )
 
 
 def install_app(app_installation: AppInstallation, activate: bool = False):
@@ -201,9 +215,6 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
         is_installed=False,
         author=manifest_data.get("author"),
     )
-
-    if brand_data := manifest_data.get("brand"):
-        fetch_brand_data_task.delay(brand_data, app_installation.pk, app.pk)
 
     app.permissions.set(app_installation.permissions.all())
     for extension_data in manifest_data.get("extensions", []):
@@ -243,8 +254,9 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     try:
         send_app_token(target_url=manifest_data.get("tokenTargetUrl"), token=token)
     except requests.RequestException as e:
-        app.refresh_from_db()
+        fetch_brand_data_async(manifest_data, app_installation=app_installation)
         app.delete()
         raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
+    fetch_brand_data_async(manifest_data, app=app)
     return app, token

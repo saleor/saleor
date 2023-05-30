@@ -16,7 +16,6 @@ def install_app_task(job_id, activate=False):
     app_installation = AppInstallation.objects.get(id=job_id)
     try:
         app, _ = install_app(app_installation, activate=activate)
-        app_installation.refresh_from_db()
         app_installation.delete()
         app.is_installed = True
         app.save(update_fields=["is_installed"])

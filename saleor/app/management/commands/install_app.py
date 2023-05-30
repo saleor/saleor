@@ -54,7 +54,6 @@ class Command(BaseCommand):
 
         try:
             _, token = install_app(app_job, activate)
-            app_job.refresh_from_db()
             app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED

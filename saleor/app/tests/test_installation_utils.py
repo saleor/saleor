@@ -193,7 +193,7 @@ def test_install_app_with_brand_data(app_manifest, app_installation, monkeypatch
 
     # then
     mocked_fetch_brand_data_task.assert_called_once_with(
-        brand_data, app_installation.id, app.id
+        brand_data, app_installation_id=None, app_id=app.id
     )
 
 
@@ -702,7 +702,11 @@ def test_fetch_brand_data_task(
     mock_fetch_icon_image.return_value = logo_img
 
     # when
-    fetch_brand_data_task({"logo": {"default": logo_url}}, app_installation.id, app.id)
+    fetch_brand_data_task(
+        {"logo": {"default": logo_url}},
+        app_installation_id=app_installation.id,
+        app_id=app.id,
+    )
 
     # then
     app_installation.refresh_from_db()
@@ -717,17 +721,17 @@ def test_fetch_brand_data_task_terminated(
     mock_fetch_icon_image, app_installation, app, media_root
 ):
     app.delete(), app_installation.delete()
-    fetch_brand_data_task({}, app_installation.id, app.id)
+    fetch_brand_data_task({}, app_installation_id=app_installation.id, app_id=app.id)
     mock_fetch_icon_image.assert_not_called()
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")
-def test_fetch_brand_data_task_terminated_after_brand_data_fetched(
+def test_fetch_brand_data_task_terminated_when_brand_data_fetched(
     mock_fetch_icon_image, app_installation, app, media_root
 ):
     app_installation.delete()
     app.brand_logo_default.save("logo.png", ContentFile(b"bytes"))
-    fetch_brand_data_task({}, app_installation.id, app.id)
+    fetch_brand_data_task({}, app_installation_id=app_installation.id, app_id=app.id)
     mock_fetch_icon_image.assert_not_called()
 
 
@@ -741,7 +745,9 @@ def test_fetch_brand_data_task_retry(
 
     # when
     with pytest.raises(Retry):
-        fetch_brand_data_task(brand_data, app_installation.id, app.id)
+        fetch_brand_data_task(
+            brand_data, app_installation_id=app_installation.id, app_id=app.id
+        )
 
 
 @patch("saleor.app.installation_utils.fetch_icon_image")
@@ -761,7 +767,9 @@ def test_fetch_brand_data_task_saving_brand_data(
     mock_fetch_icon_image.side_effect = fake_fetch_icon_image
 
     # when
-    fetch_brand_data_task(brand_data, app_installation.id, app.id)
+    fetch_brand_data_task(
+        brand_data, app_installation_id=app_installation.id, app_id=app.id
+    )
 
     # then
     app.refresh_from_db()
