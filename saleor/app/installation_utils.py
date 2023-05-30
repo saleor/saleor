@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.files import File
+from django.core.files.storage import default_storage
 from django.db import DatabaseError
 from django.urls import reverse
 from requests import HTTPError, Response
@@ -119,22 +120,26 @@ def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
         logo_file = fetch_icon_image(logo_url, timeout=timeout)
         brand_data["logo"]["default"] = logo_file
     except ValidationError as error:
-        msg = "Failed fetching brand data for app:%r error:%r"
+        msg = "Fetching brand data failed for app:%r error:%r"
         logger.info(msg, manifest_data["id"], error, extra={"brand_data": brand_data})
         brand_data = None
     return brand_data
 
 
 def _set_brand_data(brand_obj: Optional[Union[App, AppInstallation]], logo: File):
-    if brand_obj:
-        try:
-            brand_obj.refresh_from_db()
-            if not brand_obj.brand_logo_default:
-                brand_obj.brand_logo_default = logo
-                brand_obj.save(update_fields=["brand_logo_default"])
-        except (ObjectDoesNotExist, DatabaseError):
-            # App or AppInstallation was already deleted from DB
-            pass
+    if not brand_obj:
+        return
+    try:
+        brand_obj.refresh_from_db()
+    except ObjectDoesNotExist:
+        return
+    try:
+        if not brand_obj.brand_logo_default:
+            brand_obj.brand_logo_default = logo
+            brand_obj.save(update_fields=["brand_logo_default"])
+    except DatabaseError:
+        # If object was already deleted from DB, remove created image
+        default_storage.delete(brand_obj.brand_logo_default.name)
 
 
 @app.task(bind=True, retry_backoff=2700, retry_kwargs={"max_retries": 5})
@@ -150,8 +155,8 @@ def fetch_brand_data_task(
             return
     try:
         logo_img = fetch_icon_image(brand_data["logo"]["default"])
-        _set_brand_data(app, logo_img)
         _set_brand_data(app_inst, logo_img)
+        _set_brand_data(app, logo_img)
     except ValidationError as error:
         extra = {
             "app_id": app_id,
