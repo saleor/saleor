@@ -562,7 +562,6 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
     #     )
 
     if filter_input:
-        # queryset &= filter_qs(iterable, args, filterset_class, filter_input, request)
         qs_to_combine = filter_qs(
             iterable, args, filterset_class, filter_input, request
         )
@@ -574,8 +573,8 @@ def where_filter_qs(iterable, args, filterset_class, filter_input, request):
 
     if isinstance(iterable, ChannelQsContext):
         return ChannelQsContext(queryset, iterable.channel_slug)
-    else:
-        return queryset
+
+    return queryset
 
 
 def contains_filter_operator(input: Dict[str, Union[dict, str]]):

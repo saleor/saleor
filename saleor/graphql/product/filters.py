@@ -58,7 +58,7 @@ from ..core.types import (
     StringFilterInput,
 )
 from ..core.types.filter_input import (
-    FloatFilterInput,
+    DecimalFilterInput,
     GlobalIDFilterInput,
     WhereInputObjectType,
 )
@@ -813,36 +813,60 @@ class ProductFilter(MetadataFilterBase):
 class ProductWhere(MetadataFilterBase):
     id = GlobalIDMultipleChoiceFilter(method=filter_by_id("Product"))
     name = OperationObjectTypeFilter(
-        input_class=StringFilterInput, method="filter_product_name"
+        input_class=StringFilterInput,
+        method="filter_product_name",
+        help_text="Filter by product name.",
     )
     slug = OperationObjectTypeFilter(
-        input_class=StringFilterInput, method="filter_product_slug"
+        input_class=StringFilterInput,
+        method="filter_product_slug",
+        help_text="Filter by product slug.",
     )
     product_type = OperationObjectTypeFilter(
-        input_class=GlobalIDFilterInput, method="filter_product_type"
+        input_class=GlobalIDFilterInput,
+        method="filter_product_type",
+        help_text="Filter by product type.",
     )
     category = OperationObjectTypeFilter(
-        input_class=GlobalIDFilterInput, method="filter_category"
+        input_class=GlobalIDFilterInput,
+        method="filter_category",
+        help_text="Filter by product category.",
     )
     collection = OperationObjectTypeFilter(
-        input_class=GlobalIDFilterInput, method="filter_collection"
+        input_class=GlobalIDFilterInput,
+        method="filter_collection",
+        help_text="Filter by collection.",
     )
-    is_available = django_filters.BooleanFilter(method="filter_is_available")
-    is_published = django_filters.BooleanFilter(method="filter_is_published")
-    is_visible_in_listing = django_filters.BooleanFilter(method="filter_is_listed")
+    is_available = django_filters.BooleanFilter(
+        method="filter_is_available", help_text="Filter by availability for purchase."
+    )
+    is_published = django_filters.BooleanFilter(
+        method="filter_is_published", help_text="Filter by public visibility."
+    )
+    is_visible_in_listing = django_filters.BooleanFilter(
+        method="filter_is_listed", help_text="Filter by visibility on the channel."
+    )
     published_from = ObjectTypeFilter(
-        input_class=graphene.DateTime, method="filter_published_from"
+        input_class=graphene.DateTime,
+        method="filter_published_from",
+        help_text="Filter by the publication date.",
     )
     available_from = ObjectTypeFilter(
         input_class=graphene.DateTime,
         method="filter_available_from",
+        help_text="Filter by the date of availability for purchase.",
     )
-    has_category = django_filters.BooleanFilter(method=filter_has_category)
+    has_category = django_filters.BooleanFilter(
+        method=filter_has_category,
+        help_text="Filter by product with category assigned.",
+    )
     price = OperationObjectTypeFilter(
-        input_class=FloatFilterInput, method="filter_variant_price"
+        input_class=DecimalFilterInput,
+        method="filter_variant_price",
+        help_text="Filter by product variant price.",
     )
     minimal_price = OperationObjectTypeFilter(
-        input_class=FloatFilterInput,
+        input_class=DecimalFilterInput,
         method="filter_minimal_price",
         field_name="minimal_price_amount",
         help_text="Filter by the lowest variant price after discounts.",
@@ -850,19 +874,25 @@ class ProductWhere(MetadataFilterBase):
     attributes = ListObjectTypeFilter(
         input_class="saleor.graphql.attribute.types.AttributeInput",
         method="filter_attributes",
+        help_text="Filter by attributes associated with the product.",
     )
     stock_availability = EnumFilter(
         input_class=StockAvailability,
         method="filter_stock_availability",
         help_text="Filter by variants having specific stock status.",
     )
-    stocks = ObjectTypeFilter(input_class=ProductStockFilterInput, method=filter_stocks)
+    stocks = ObjectTypeFilter(
+        input_class=ProductStockFilterInput,
+        method=filter_stocks,
+        help_text="Filter by stock of the product variant.",
+    )
     gift_card = django_filters.BooleanFilter(
         method=filter_gift_card,
         help_text="Filter on whether product is a gift card or not.",
     )
     has_preordered_variants = django_filters.BooleanFilter(
-        method=filter_has_preordered_variants
+        method=filter_has_preordered_variants,
+        help_text="Filter by product with preordered variants.",
     )
     updated_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput,
