@@ -16366,6 +16366,23 @@ type Mutation {
   ): AttributeTranslate @doc(category: "Attributes")
 
   """
+  Creates/updates translations for an attributes.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attributes translations."""
+    translations: [AttributeBulkTranslateInput!]!
+  ): AttributeBulkTranslate @doc(category: "Attributes")
+
+  """
   Deletes attributes. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -16434,6 +16451,23 @@ type Mutation {
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
   ): AttributeValueUpdate @doc(category: "Attributes")
+
+  """
+  Creates/updates translations for an attributes values.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeValueBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attribute values translations."""
+    translations: [AttributeValueBulkTranslateInput!]!
+  ): AttributeValueBulkTranslate @doc(category: "Attributes")
 
   """
   Creates/updates translations for an attribute value. 
@@ -25180,6 +25214,59 @@ type AttributeTranslate @doc(category: "Attributes") {
 }
 
 """
+Creates/updates translations for an attributes.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeBulkTranslateResult!]!
+  errors: [TranslationBulkError!]!
+}
+
+type AttributeBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute translation data."""
+  translation: AttributeTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [TranslationBulkError!]
+}
+
+type TranslationBulkError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TranslationErrorCode!
+}
+
+input AttributeBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute ID."""
+  id: ID
+
+  """External reference of an attribute."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: NameTranslationInput!
+}
+
+"""
 Deletes attributes. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -25243,14 +25330,43 @@ type AttributeValueUpdate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for an attribute value. 
+Creates/updates translations for an attributes values.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type AttributeValueTranslate @doc(category: "Attributes") {
-  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [TranslationError!]!
-  attributeValue: AttributeValue
+type AttributeValueBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeValueBulkTranslateResult!]!
+  errors: [TranslationBulkError!]!
+}
+
+type AttributeValueBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute value translation data."""
+  translation: AttributeValueTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [TranslationBulkError!]
+}
+
+input AttributeValueBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute value ID."""
+  id: ID
+
+  """External reference of an attribute value."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: AttributeValueTranslationInput!
 }
 
 input AttributeValueTranslationInput {
@@ -25265,6 +25381,17 @@ input AttributeValueTranslationInput {
 
   """Translated text."""
   plainText: String
+}
+
+"""
+Creates/updates translations for an attribute value. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeValueTranslate @doc(category: "Attributes") {
+  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [TranslationError!]!
+  attributeValue: AttributeValue
 }
 
 """
