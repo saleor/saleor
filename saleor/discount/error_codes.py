@@ -42,3 +42,8 @@ class PromotionRuleUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+
+
+class PromotionRuleDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
