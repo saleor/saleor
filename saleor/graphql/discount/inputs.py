@@ -35,7 +35,7 @@ class CollectionPredicateInput(BaseInputObjectType):
 class PredicateInputObjectType(BaseInputObjectType):
     """Class for defining the predicate input.
 
-    AND, OR, and NOT class type fields are automatically added to available input
+    AND and OR class type fields are automatically added to available input
     fields, allowing to create complex filter statements.
     """
 
@@ -61,10 +61,6 @@ class PredicateInputObjectType(BaseInputObjectType):
                         "A list of conditions of which at least one must be met."
                     ),
                 ),
-                # TODO: needs optimization
-                # "NOT": graphene.Field(
-                #     cls, description="A condition that cannot be met."
-                # ),
             }
         )
 
