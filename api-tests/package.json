@@ -7,8 +7,8 @@
     "test": "set -a && . .env.local && set +a && vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
-    "generate": "set -a && . .env.local && set +a && graphql-codegen ",
-    "fetch-schema": "curl https://github.com/saleor/saleor/blob/${npm_package_saleor_schemaVersion}/saleor/graphql/schema.graphql"
+    "generate": "graphql-codegen ",
+    "fetch-schema": "curl https://raw.githubusercontent.com/saleor/saleor/${npm_package_saleor_schemaVersion}/saleor/graphql/schema.graphql > graphql/schema.graphql"
   },
   "author": "Saleor Commerce",
   "license": "BSD",
