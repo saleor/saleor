@@ -22,6 +22,9 @@ PromotionDeleteErrorCode = graphene.Enum.from_enum(error_codes.PromotionDeleteEr
 PromotionRuleCreateErrorCode = graphene.Enum.from_enum(
     error_codes.PromotionRuleCreateErrorCode
 )
+PromotionRuleUpdateErrorCode = graphene.Enum.from_enum(
+    error_codes.PromotionRuleUpdateErrorCode
+)
 
 
 class SaleType(BaseEnum):

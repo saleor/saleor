@@ -14,6 +14,7 @@ from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .mutations.promotion_create import PromotionCreate
 from .mutations.promotion_delete import PromotionDelete
 from .mutations.promotion_rule_create import PromotionRuleCreate
+from .mutations.promotion_rule_update import PromotionRuleUpdate
 from .mutations.promotion_update import PromotionUpdate
 from .mutations.sale_add_catalogues import SaleAddCatalogues
 from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
@@ -168,6 +169,7 @@ class DiscountMutations(graphene.ObjectType):
     promotion_update = PromotionUpdate.Field()
     promotion_delete = PromotionDelete.Field()
     promotion_rule_create = PromotionRuleCreate.Field()
+    promotion_rule_update = PromotionRuleUpdate.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
