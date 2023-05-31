@@ -3,7 +3,18 @@ from collections import defaultdict
 from decimal import Decimal
 from enum import Enum
 from functools import partial
-from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
+from typing import (
+    Any,
+    ClassVar,
+    Dict,
+    Optional,
+    Tuple,
+    Type,
+    TypedDict,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import BaseConfig, BaseModel
@@ -110,6 +121,11 @@ class Schema(BaseModel):
         alias_generator = to_camel
         allow_population_by_field_name = True
         json_loads = partial(json.loads, parse_float=Decimal)
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any]) -> None:  # type: ignore
+            for prop in schema.get("properties", {}).values():
+                prop.pop("title", None)
 
     __config__: ClassVar[Type[ValidationErrorConfig]]
 

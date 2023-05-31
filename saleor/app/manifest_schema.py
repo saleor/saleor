@@ -26,10 +26,7 @@ from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
-from .manifest_schema_extras import (
-    manifest_fields_schema_extra,
-    manifest_schema_example,
-)
+from .manifest_schema_extras import manifest_fields_schema_extra
 from .types import AppExtensionMount, AppExtensionTarget
 
 SALEOR_VERSION = Version(__version__)
@@ -230,7 +227,6 @@ class Manifest(Schema, PermissionBase):
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
         fields = manifest_fields_schema_extra
-        schema_extra = manifest_schema_example
 
     @validator("extensions", each_item=True)
     def validate_extension(cls, v: Extension, values, **kwargs):
