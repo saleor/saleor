@@ -1,5 +1,6 @@
 from decimal import Decimal
 from unittest import mock
+from unittest.mock import patch
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
@@ -745,3 +746,57 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
     manager.get_checkout_shipping_tax_rate.assert_called_once_with(
         checkout_info, lines, checkout.shipping_address, [], expected_shipping_price
     )
+
+
+@patch("saleor.checkout.calculations.checkout_line_total")
+@patch("saleor.checkout.calculations.checkout_line_unit_price")
+def test_create_order_from_checkout_update_undiscounted_prices_match(
+    mock_unit,
+    mock_total,
+    checkout_with_items_and_shipping,
+    shipping_method,
+    customer_user,
+    app,
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
+    tc.tax_calculation_strategy = "TAX_APP"
+    tc.prices_entered_with_tax = False
+    tc.save()
+
+    # mock tax app returning different prices than local calculations
+    expected_price = TaxedMoney(
+        net=Money("35.000", "USD"),
+        gross=Money("37.720", "USD"),
+    )
+    mock_unit.return_value = expected_price
+    mock_total.return_value = expected_price
+
+    manager = get_plugins_manager()
+    country_code = checkout.shipping_address.country.code
+    line = checkout.lines.first()
+    product = line.variant.product
+    channel_listing = line.variant.channel_listings.first()
+    channel_listing.price = Money("35.000", "USD")
+    channel_listing.save()
+    product.tax_class.country_rates.update_or_create(
+        country=country_code, defaults={"rate": 7.75}
+    )
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+
+    # when
+    order = create_order_from_checkout(
+        checkout_info=checkout_info,
+        checkout_lines=lines,
+        discounts=[],
+        manager=manager,
+        user=None,
+        app=app,
+        tracking_code="tracking_code",
+    )
+    line = order.lines.first()
+    assert line.unit_price == line.undiscounted_unit_price
+    assert line.total_price == line.undiscounted_total_price

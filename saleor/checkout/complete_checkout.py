@@ -27,7 +27,6 @@ from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ..core.postgres import FlatConcatSearchVector
-from ..core.prices import quantize_price
 from ..core.taxes import TaxError, zero_taxed_money
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
@@ -58,7 +57,6 @@ from ..payment import PaymentError, TransactionKind, gateway
 from ..payment.models import Payment, Transaction
 from ..payment.utils import fetch_customer_id, store_customer_id
 from ..product.models import ProductTranslation, ProductVariantTranslation
-from ..tax.calculations import calculate_flat_rate_tax
 from ..tax.utils import (
     get_shipping_tax_class_kwargs_for_order,
     get_tax_class_kwargs_for_order_line,
@@ -82,7 +80,7 @@ from .checkout_cleaner import (
 )
 from .fetch import CheckoutInfo, CheckoutLineInfo
 from .models import Checkout
-from .utils import get_voucher_for_checkout_info
+from .utils import get_taxed_undiscounted_price, get_voucher_for_checkout_info
 
 if TYPE_CHECKING:
     from ..app.models import App
@@ -246,22 +244,18 @@ def _create_line_for_order(
         discounts=discounts,
     )
 
-    undiscounted_unit_price = quantize_price(
-        calculate_flat_rate_tax(
-            money=undiscounted_base_unit_price,
-            tax_rate=tax_rate * 100,
-            prices_entered_with_tax=prices_entered_with_tax,
-        ),
-        undiscounted_base_total_price.currency,
+    undiscounted_unit_price = get_taxed_undiscounted_price(
+        undiscounted_base_unit_price,
+        unit_price,
+        tax_rate,
+        prices_entered_with_tax,
     )
 
-    undiscounted_total_price = quantize_price(
-        calculate_flat_rate_tax(
-            money=undiscounted_base_total_price,
-            tax_rate=tax_rate * 100,
-            prices_entered_with_tax=prices_entered_with_tax,
-        ),
-        undiscounted_base_total_price.currency,
+    undiscounted_total_price = get_taxed_undiscounted_price(
+        undiscounted_base_total_price,
+        total_line_price,
+        tax_rate,
+        prices_entered_with_tax,
     )
 
     price_override = checkout_line_info.line.price_override

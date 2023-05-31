@@ -1,5 +1,4 @@
 """Checkout-related utility functions."""
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 
 import graphene
@@ -9,6 +8,7 @@ from prices import Money
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
+from ..core.prices import quantize_price
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -28,6 +28,7 @@ from ..product import models as product_models
 from ..shipping.interface import ShippingMethodData
 from ..shipping.models import ShippingMethod, ShippingMethodChannelListing
 from ..shipping.utils import convert_to_shipping_method_data
+from ..tax.calculations import calculate_flat_rate_tax
 from ..warehouse.availability import check_stock_and_preorder_quantity
 from ..warehouse.models import Warehouse
 from ..warehouse.reservations import reserve_stocks_and_preorders
@@ -918,3 +919,21 @@ def get_external_shipping_id(container: Union["Checkout", "Order"]):
 
 def delete_external_shipping_id(checkout: Checkout):
     checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
+
+
+# this function prevents edge-case where prices from tax app might be inconsistent
+def get_taxed_undiscounted_price(
+    undiscounted_base_price, price, tax_rate, prices_entered_with_tax
+):
+    if undiscounted_base_price == price.net and not prices_entered_with_tax:
+        return price
+    if undiscounted_base_price == price.gross and prices_entered_with_tax:
+        return price
+    return quantize_price(
+        calculate_flat_rate_tax(
+            money=undiscounted_base_price,
+            tax_rate=tax_rate * 100,
+            prices_entered_with_tax=prices_entered_with_tax,
+        ),
+        undiscounted_base_price.currency,
+    )
