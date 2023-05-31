@@ -655,9 +655,15 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
     # given
     checkout = checkout_with_items_and_shipping
     tc = checkout.channel.tax_configuration
+    tc.country_exceptions.all().delete()
     tc.tax_calculation_strategy = "FLAT_RATES"
     tc.prices_entered_with_tax = False
-    tc.save(update_fields=["tax_calculation_strategy", "prices_entered_with_tax"])
+    tc.save()
+    line = checkout.lines.first()
+    product = line.variant.product
+    product.tax_class.country_rates.update_or_create(
+        country=checkout.shipping_address.country.code, defaults={"rate": 7.75}
+    )
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, [], manager)
@@ -675,20 +681,21 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
 
     # then
     for line in order.lines.all():
-        expected_gross = Money(
-            quantize_price(
-                (line.base_unit_price.amount * (1 + line.tax_rate)), line.currency
-            ),
+        expected_gross = quantize_price(
+            Money((line.base_unit_price.amount * (1 + line.tax_rate)), line.currency),
             line.currency,
         )
         expected_undiscounted_unit_price = TaxedMoney(
             net=line.base_unit_price,
             gross=expected_gross,
         )
+        import ipdb
+
+        ipdb.set_trace()
         assert line.undiscounted_unit_price == expected_undiscounted_unit_price
-        expected_total_gross = Money(
-            quantize_price(
-                ((line.base_unit_price.amount * (1 + line.tax_rate)) * line.quantity),
+        expected_total_gross = quantize_price(
+            Money(
+                (line.base_unit_price.amount * (1 + line.tax_rate)) * line.quantity,
                 line.currency,
             ),
             line.currency,
