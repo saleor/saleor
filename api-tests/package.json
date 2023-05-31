@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Saleor API tests",
-  "main": "N/A",
   "scripts": {
     "test": "set -a && . .env.local && set +a && vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
