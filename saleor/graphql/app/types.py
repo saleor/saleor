@@ -136,6 +136,14 @@ class AppManifestExtension(BaseObjectType):
         """Return an extension URL."""
         return resolve_app_extension_url(root)
 
+    @staticmethod
+    def resolve_mount(root, _info: ResolveInfo):
+        return root.mount.name
+
+    @staticmethod
+    def resolve_target(root, _info: ResolveInfo):
+        return root.target.name
+
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
     id = graphene.GlobalID(required=True, description="The ID of the app extension.")

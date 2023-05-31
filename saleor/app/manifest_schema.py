@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -87,30 +88,25 @@ class PermissionChoice(BaseChoice):
 
 if TYPE_CHECKING:
     PermissionsList = list[Permission]
-    AppExtensionTargets = str
-    AppExtensionMountChoice = str
-    AsyncEventTypes = str
-    SyncEventTypes = str
-    AppExtensionMounts = str
 else:
     PermissionsList = list[PermissionChoice]
 
-    class AppExtensionTargets(BaseChoice):
-        _CHOICES = {target.upper(): target for target, _ in AppExtensionTarget.CHOICES}
 
-    class AppExtensionMountChoice(BaseChoice):
-        _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
+AppExtensionTargets = Enum(  # type: ignore[misc]
+    "AppExtensionTargets", [(m, m.upper()) for m, _ in AppExtensionTarget.CHOICES]
+)
 
-    class AsyncEventTypes(BaseChoice):
-        _CHOICES = {event.upper(): event for event, _ in WebhookEventAsyncType.CHOICES}
-        _error_mapping = {"msg": "Invalid asynchronous event."}
+AppExtensionMounts = Enum(  # type: ignore[misc]
+    "AppExtensionMounts", [(m, m.upper()) for m, _ in AppExtensionMount.CHOICES]
+)
 
-    class SyncEventTypes(BaseChoice):
-        _CHOICES = {event.upper(): event for event, _ in WebhookEventSyncType.CHOICES}
-        _error_mapping = {"msg": "Invalid synchronous event."}
+AsyncEventTypes = Enum(  # type: ignore[misc]
+    "AsyncEventTypes", [(m, m.upper()) for m, _ in WebhookEventAsyncType.CHOICES]
+)
 
-    class AppExtensionMounts(BaseChoice):
-        _CHOICES = {mount.upper(): mount for mount, _ in AppExtensionMount.CHOICES}
+SyncEventTypes = Enum(  # type: ignore[misc]
+    "SyncEventTypes", [(m, m.upper()) for m, _ in WebhookEventSyncType.CHOICES]
+)
 
 
 class AnyHttpUrl(AnyUrl):
@@ -153,7 +149,7 @@ class Webhook(Schema):
 
     @property
     def events(self) -> list[str]:
-        events_list = self.async_events + self.sync_events
+        events_list = [event.name for event in (self.async_events + self.sync_events)]
         return events_list or self.query.events
 
     @validator("custom_headers")
@@ -185,14 +181,17 @@ class UrlPathStr(ConstrainedStr):
 
 class Extension(Schema, PermissionBase):
     label: str
-    target: AppExtensionTargets = AppExtensionTarget.POPUP
+    target: AppExtensionTargets = AppExtensionTargets[AppExtensionTarget.POPUP]
     mount: AppExtensionMounts
     url: Union[AnyHttpUrl, UrlPathStr]
 
     @validator("url")
     def validate_url(cls, v: str, values, **kwargs):
-        target = values.get("target")
-        if not v.startswith("/") and target == AppExtensionTarget.APP_PAGE:
+        target = cast(AppExtensionTargets, values.get("target"))
+        if (
+            not v.startswith("/")
+            and target == AppExtensionTargets[AppExtensionTarget.APP_PAGE]
+        ):
             msg = "Url cannot start with protocol when target == APP_PAGE"
             raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
         return v
@@ -242,7 +241,7 @@ class Manifest(Schema, PermissionBase):
         app_url = values.get("app_url", [])
         if (
             v.url.startswith("/")
-            and v.target != AppExtensionTarget.APP_PAGE
+            and v.target != AppExtensionTargets[AppExtensionTarget.APP_PAGE]
             and not app_url
         ):
             msg = (

@@ -110,7 +110,6 @@ class Schema(BaseModel):
         alias_generator = to_camel
         allow_population_by_field_name = True
         json_loads = partial(json.loads, parse_float=Decimal)
-        use_enum_values = True
 
     __config__: ClassVar[Type[ValidationErrorConfig]]
 

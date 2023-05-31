@@ -229,8 +229,8 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
             app=app,
             label=extension_data.label,
             url=extension_data.url,
-            mount=extension_data.mount,
-            target=extension_data.target,
+            mount=extension_data.mount.name,
+            target=extension_data.target.name,
         )
         extension.permissions.set(extension_data.permissions)
 
