@@ -3,6 +3,7 @@ import graphene
 from ....discount import models
 from ....graphql.core.mutations import ModelDeleteMutation
 from ....permission.enums import DiscountPermissions
+from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.types import Error
 from ..enums import PromotionDeleteErrorCode
@@ -20,7 +21,7 @@ class PromotionDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes a promotion."
+        description = "Deletes a promotion." + ADDED_IN_315 + PREVIEW_FEATURE
         model = models.Promotion
         object_type = Promotion
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)

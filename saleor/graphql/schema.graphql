@@ -15545,7 +15545,11 @@ type Mutation {
   ): PromotionUpdate @doc(category: "Discounts")
 
   """
-  Deletes a promotion. 
+  Deletes a promotion.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   """
@@ -23551,7 +23555,11 @@ input PromotionUpdateInput {
 }
 
 """
-Deletes a promotion. 
+Deletes a promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 """
