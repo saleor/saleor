@@ -324,7 +324,7 @@ def test_attribute_value_bulk_translate_return_error_when_invalid_value_id(
     # given
     translations = [
         {
-            "id": graphene.Node.to_global_id("Attribute", -1),
+            "id": graphene.Node.to_global_id("AttributeValue", -1),
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
                 "name": "Czerwony",

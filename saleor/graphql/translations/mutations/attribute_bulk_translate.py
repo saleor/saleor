@@ -86,13 +86,13 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
         cleaned_inputs_map: dict = {}
 
         for index, data in enumerate(data_inputs):
-            id = data.get("id")
+            global_id = data.get("id")
             external_ref = data.get("external_reference")
 
             try:
                 validate_one_of_args_is_in_mutation(
                     "id",
-                    id,
+                    global_id,
                     "external_reference",
                     external_ref,
                     use_camel_case=True,
@@ -107,8 +107,18 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
                 cleaned_inputs_map[index] = None
                 continue
 
-            if id:
-                data["id"] = graphene.Node.from_global_id(id)[1]
+            if global_id:
+                obj_type, id = graphene.Node.from_global_id(global_id)
+                if obj_type != "Attribute":
+                    index_error_map[index].append(
+                        TranslationBulkError(
+                            message="The ID must be of an Attribute.",
+                            code=TranslationErrorCode.INVALID.value,
+                        )
+                    )
+                    cleaned_inputs_map[index] = None
+                    continue
+                data["id"] = id
 
             cleaned_inputs_map[index] = data
 
