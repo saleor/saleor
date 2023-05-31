@@ -5,10 +5,10 @@
   "description": "Saleor API tests",
   "main": "N/A",
   "scripts": {
-    "test": "set -a && . ./.env && set +a && vitest",
+    "test": "set -a && . .env.local && set +a && vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
-    "generate": "set -a && . ./.env && set +a && graphql-codegen "
+    "generate": "set -a && . .env.local && set +a && graphql-codegen "
   },
   "author": "Saleor Commerce",
   "license": "BSD",
