@@ -7,14 +7,19 @@
     "test": "set -a && . .env.local && set +a && vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
-    "generate": "set -a && . .env.local && set +a && graphql-codegen "
+    "generate": "set -a && . .env.local && set +a && graphql-codegen ",
+    "fetch-schema": "curl https://github.com/saleor/saleor/blob/${npm_package_saleor_schemaVersion}/saleor/graphql/schema.graphql"
   },
   "author": "Saleor Commerce",
   "license": "BSD",
+  "saleor": {
+    "schemaVersion": "3.10"
+  },
   "devDependencies": {
     "@graphql-codegen/cli": "^4.0.0",
     "@graphql-codegen/client-preset": "^4.0.0",
     "@graphql-codegen/typescript": "^4.0.0",
+    "@graphql-codegen/schema-ast": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@vitest/ui": "^0.31.1",
     "date-fns": "^2.30.0",
@@ -32,9 +37,7 @@
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
     "vite": "^4.3.8",
-    "vitest": "^0.31.1"
-  },
-  "dependencies": {
+    "vitest": "^0.31.1",
     "nvm": "^0.0.4"
   }
 }
