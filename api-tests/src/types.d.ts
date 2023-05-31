@@ -1,1 +1,1 @@
-import 'vite/client'
+import "vite/client";
