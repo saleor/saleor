@@ -8,13 +8,10 @@
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
     "generate": "graphql-codegen ",
-    "fetch-schema": "curl https://raw.githubusercontent.com/saleor/saleor/3.10/saleor/graphql/schema.graphql > graphql/schema.graphql"
+    "fetch-schema": "export $(cat .env.local| xargs) && curl $GRAPHQL_RAW > graphql/schema.graphql"
   },
   "author": "Saleor Commerce",
   "license": "BSD",
-  "saleor": {
-    "schemaVersion": "3.10"
-  },
   "devDependencies": {
     "@graphql-codegen/cli": "^4.0.0",
     "@graphql-codegen/client-preset": "^4.0.0",
