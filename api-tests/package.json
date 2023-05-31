@@ -20,6 +20,7 @@
     "date-fns": "^2.30.0",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
     "eslint-plugin-chai-friendly": "^0.7.2",
     "eslint-plugin-formatjs": "^4.10.1",
     "eslint-plugin-import": "^2.27.5",
@@ -31,7 +32,9 @@
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
     "vite": "^4.3.8",
-    "vitest": "^0.31.1",
-    "eslint-import-resolver-typescript": "^3.5.5"
+    "vitest": "^0.31.1"
+  },
+  "dependencies": {
+    "nvm": "^0.0.4"
   }
 }
