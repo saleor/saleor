@@ -21,7 +21,7 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
-from .validators import AppURLValidator
+from .validators import AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 
@@ -132,6 +132,11 @@ def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
         manifest_data["author"] = clean_author(manifest_data.get("author"))
     except ValidationError as e:
         errors["author"].append(e)
+
+    try:
+        brand_validator(manifest_data.get("brand"))
+    except ValidationError as e:
+        errors["brand"].append(e)
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")

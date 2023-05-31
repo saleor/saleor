@@ -2861,6 +2861,15 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Added in Saleor 3.1.
   """
   extensions: [AppExtension!]!
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppBrand
 }
 
 interface ObjectWithMetadata {
@@ -3036,6 +3045,62 @@ All available ways of opening an app extension.
 enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
+}
+
+"""
+Represents the app's brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrand @doc(category: "Apps") {
+  """
+  App's logos details.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  logo: AppBrandLogo!
+}
+
+"""
+Represents the app's brand logo data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrandLogo @doc(category: "Apps") {
+  """
+  URL to the default logo image.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  default(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: IconThumbnailFormatEnum = ORIGINAL
+  ): String!
+}
+
+"""Thumbnail formats for icon images."""
+enum IconThumbnailFormatEnum {
+  ORIGINAL
+  WEBP
 }
 
 type EventDeliveryCountableConnection {
@@ -12726,6 +12791,15 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
   message: String
   appName: String!
   manifestUrl: String!
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppBrand
 }
 
 type AppCountableConnection @doc(category: "Apps") {
@@ -25428,6 +25502,15 @@ type Manifest @doc(category: "Apps") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   author: String
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppManifestBrand
 }
 
 type AppManifestExtension @doc(category: "Apps") {
@@ -25482,6 +25565,56 @@ type AppManifestRequiredSaleorVersion @doc(category: "Apps") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   satisfied: Boolean!
+}
+
+"""
+Represents the app's manifest brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppManifestBrand @doc(category: "Apps") {
+  """
+  App's logos details.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  logo: AppManifestBrandLogo!
+}
+
+"""
+Represents the app's manifest brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppManifestBrandLogo @doc(category: "Apps") {
+  """
+  Data URL with a base64 encoded logo image.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  default(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: IconThumbnailFormatEnum = ORIGINAL
+  ): String!
 }
 
 """
