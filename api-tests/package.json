@@ -8,7 +8,7 @@
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
     "generate": "graphql-codegen ",
-    "fetch-schema": "curl https://raw.githubusercontent.com/saleor/saleor/${npm_package_saleor_schemaVersion}/saleor/graphql/schema.graphql > graphql/schema.graphql"
+    "fetch-schema": "curl https://raw.githubusercontent.com/saleor/saleor/3.10/saleor/graphql/schema.graphql > graphql/schema.graphql"
   },
   "author": "Saleor Commerce",
   "license": "BSD",
