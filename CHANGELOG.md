@@ -68,7 +68,7 @@ the [Releases](https://github.com/mirumee/saleor/releases) page.
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
 - Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel
   listings to return the pricing - #12713 by @IKarbowiak
-- Add Vitest package for API tests - #12963 by @yellowee
+- Add Vitest package for API tests, gh and a test for token retrieval - #12963 by @yellowee
 
 # 3.13.0
 
