@@ -925,6 +925,11 @@ def delete_external_shipping_id(checkout: Checkout):
 def get_taxed_undiscounted_price(
     undiscounted_base_price, price, tax_rate, prices_entered_with_tax
 ):
+    """Apply taxes to undiscounted base price.
+
+    This function also prevents rounding difference between prices from tax-app and
+    local calculations based on tax_rate that might occur in orders without discounts.
+    """
     if undiscounted_base_price == price.net and not prices_entered_with_tax:
         return price
     if undiscounted_base_price == price.gross and prices_entered_with_tax:
