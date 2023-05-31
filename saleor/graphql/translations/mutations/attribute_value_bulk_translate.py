@@ -76,7 +76,7 @@ class AttributeValueBulkTranslate(BaseBulkTranslateMutation):
 
     class Meta:
         description = (
-            "Creates/updates translations for an attributes values."
+            "Creates/updates translations for attributes values."
             + ADDED_IN_314
             + PREVIEW_FEATURE
         )

@@ -16366,7 +16366,7 @@ type Mutation {
   ): AttributeTranslate @doc(category: "Attributes")
 
   """
-  Creates/updates translations for an attributes.
+  Creates/updates translations for attributes.
   
   Added in Saleor 3.14.
   
@@ -16453,7 +16453,7 @@ type Mutation {
   ): AttributeValueUpdate @doc(category: "Attributes")
 
   """
-  Creates/updates translations for an attributes values.
+  Creates/updates translations for attributes values.
   
   Added in Saleor 3.14.
   
@@ -25214,7 +25214,7 @@ type AttributeTranslate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for an attributes.
+Creates/updates translations for attributes.
 
 Added in Saleor 3.14.
 
@@ -25330,7 +25330,7 @@ type AttributeValueUpdate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for an attributes values.
+Creates/updates translations for attributes values.
 
 Added in Saleor 3.14.
 
