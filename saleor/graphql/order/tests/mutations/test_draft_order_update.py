@@ -3,7 +3,6 @@ import graphene
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
 from .....order.models import OrderEvent
-from ....account.tests.utils import convert_dict_keys_to_camel_case
 from ....tests.utils import get_graphql_content
 
 DRAFT_UPDATE_QUERY = """
