@@ -24,6 +24,8 @@ dist/
 
 # Environments
 .env
+api-tests/.env.localk
+!api-tests/.env
 .venv
 env/
 venv/

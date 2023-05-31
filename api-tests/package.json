@@ -4,7 +4,7 @@
   "private": true,
   "description": "Saleor API tests",
   "scripts": {
-    "test": "set -a && . .env.local && set +a && vitest",
+    "test": "vitest",
     "lint": "eslint 'src/**/*.@(tsx|ts|jsx|js)' --fix",
     "check-types": "tsc --noEmit",
     "generate": "graphql-codegen ",
@@ -18,8 +18,8 @@
   "devDependencies": {
     "@graphql-codegen/cli": "^4.0.0",
     "@graphql-codegen/client-preset": "^4.0.0",
-    "@graphql-codegen/typescript": "^4.0.0",
     "@graphql-codegen/schema-ast": "^3.0.1",
+    "@graphql-codegen/typescript": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^5.59.6",
     "@vitest/ui": "^0.31.1",
     "date-fns": "^2.30.0",
@@ -34,10 +34,11 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-vitest": "^0.2.3",
+    "nvm": "^0.0.4",
     "prettier": "^2.8.8",
     "typescript": "^5.0.4",
     "vite": "^4.3.8",
     "vitest": "^0.31.1",
-    "nvm": "^0.0.4"
+    "dotenv": "^16.1.1"
   }
 }
