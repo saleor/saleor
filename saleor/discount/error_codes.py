@@ -29,3 +29,10 @@ class PromotionUpdateErrorCode(Enum):
 class PromotionDeleteErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
+
+
+class PromotionRuleCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    INVALID = "invalid"
