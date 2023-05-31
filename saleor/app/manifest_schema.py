@@ -1,11 +1,11 @@
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
-from pydantic import AnyUrl, BaseModel, ConstrainedStr, validator
+from pydantic import AnyUrl, BaseModel, ConstrainedStr, Field, validator
 from pydantic.errors import MissingError, UrlError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
@@ -111,6 +111,7 @@ SyncEventTypes = Enum(  # type: ignore[misc]
 
 class AnyHttpUrl(AnyUrl):
     allowed_schemes = {"http", "https"}
+    max_length = 200
 
     @classmethod
     def validate(cls, value, field, config):
@@ -136,10 +137,11 @@ class PermissionBase(BaseModel):
 class WebhookTargetUrl(AnyHttpUrl):
     allowed_schemes = {"http", "https", "awssqs", "gcpubsub"}
     tld_required = False
+    max_length = 255
 
 
 class Webhook(Schema):
-    name: str
+    name: Annotated[str, Field(max_length=255)]
     is_active: bool = True
     target_url: WebhookTargetUrl
     query: SubscriptionQuery
@@ -180,7 +182,7 @@ class UrlPathStr(ConstrainedStr):
 
 
 class Extension(Schema, PermissionBase):
-    label: str
+    label: Annotated[str, Field(max_length=256)]
     target: AppExtensionTargets = AppExtensionTargets[AppExtensionTarget.POPUP]
     mount: AppExtensionMounts
     url: Union[AnyHttpUrl, UrlPathStr]
@@ -200,12 +202,13 @@ class Extension(Schema, PermissionBase):
 class AuthorStr(ConstrainedStr):
     strip_whitespace = True
     min_length = 1
+    max_length = 60
 
 
 class Manifest(Schema, PermissionBase):
-    id: str
-    version: str
-    name: str
+    id: Annotated[str, Field(max_length=256)]
+    version: Annotated[str, Field(max_length=60)]
+    name: Annotated[str, Field(max_length=60)]
     token_target_url: AnyHttpUrl
     about: Optional[str] = None
     required_saleor_version: Optional[RequiredSaleorVersionSpec] = None
@@ -216,7 +219,7 @@ class Manifest(Schema, PermissionBase):
     data_privacy_url: Optional[AnyHttpUrl] = None
     homepage_url: Optional[AnyHttpUrl] = None
     support_url: Optional[AnyHttpUrl] = None
-    audience: Optional[str] = None
+    audience: Annotated[Optional[str], Field(max_length=256)] = None
     webhooks: list[Webhook] = []
     extensions: list[Extension] = []
 
