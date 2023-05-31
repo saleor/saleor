@@ -224,6 +224,15 @@ def clean_webhooks(manifest_data, errors):
     )
 
     for webhook in webhooks:
+        webhook["isActive"] = webhook.get("isActive", True)
+        if not isinstance(webhook["isActive"], bool):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Incorrect value for field: isActive.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
             try:
