@@ -1,10 +1,11 @@
 from collections import defaultdict
-from typing import DefaultDict, List
+from typing import DefaultDict, List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
 from graphql.error import GraphQLError
 
+from ....channel import models as channel_models
 from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....permission.enums import DiscountPermissions
@@ -122,7 +123,7 @@ class PromotionCreate(ModelMutation):
         info: ResolveInfo,
         rules_data: dict,
         errors: DefaultDict[str, List[ValidationError]],
-    ):
+    ) -> Tuple[list, DefaultDict[str, List[ValidationError]]]:
         cleaned_rules = []
         for index, rule_data in enumerate(rules_data):
             if channel_ids := rule_data.get("channels"):
@@ -132,7 +133,7 @@ class PromotionCreate(ModelMutation):
             if "catalogue_predicate" not in rule_data:
                 errors["catalogue_predicate"].append(
                     ValidationError(
-                        "The cataloguePredicate field is required.",
+                        "The field is required.",
                         code=PromotionCreateErrorCode.REQUIRED.value,
                         params={"index": index},
                     )
@@ -170,7 +171,7 @@ class PromotionCreate(ModelMutation):
         channel_ids: List[str],
         index: int,
         errors: DefaultDict[str, List[ValidationError]],
-    ):
+    ) -> List[channel_models.Channel]:
         try:
             channels = get_nodes(channel_ids, Channel, schema=info.schema)
         except GraphQLError as e:

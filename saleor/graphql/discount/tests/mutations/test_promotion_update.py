@@ -30,7 +30,7 @@ PROMOTION_UPDATE_MUTATION = """
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_by_staff_user(
+def test_promotion_update_by_staff_user(
     staff_api_client, permission_group_manage_discounts, promotion
 ):
     # given
@@ -66,7 +66,7 @@ def test_promotion_create_by_staff_user(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_by_app(
+def test_promotion_update_by_app(
     app_api_client, permission_manage_discounts, promotion
 ):
     # given
@@ -103,7 +103,7 @@ def test_promotion_create_by_app(
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_by_customer(api_client, promotion):
+def test_promotion_update_by_customer(api_client, promotion):
     # given
     start_date = timezone.now() + timedelta(days=1)
     end_date = timezone.now() + timedelta(days=10)
@@ -126,7 +126,7 @@ def test_promotion_create_by_customer(api_client, promotion):
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_promotion_create_end_date_before_start_date(
+def test_promotion_update_end_date_before_start_date(
     staff_api_client, permission_group_manage_discounts, description_json, promotion
 ):
     # given
