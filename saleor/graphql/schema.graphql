@@ -22082,20 +22082,69 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
+
+  """
+  List of lines which cause the error.
+  
+  Added in Saleor 3.14.
+  """
+  lines: [OrderGrantRefundCreateLineError!]
 }
 
 """An enumeration."""
 enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  SHIPPING_COSTS_ALREADY_GRANTED
+  REQUIRED
+  INVALID
+}
+
+type OrderGrantRefundCreateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
-  amount: Decimal!
+  """
+  Amount of the granted refund. If not provided, the amount will be calculated automatically based on provided `lines` and `grantRefundForShipping`.
+  """
+  amount: Decimal
 
   """Reason of the granted refund."""
   reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.14.
+  """
+  lines: [OrderGrantRefundCreateLineInput!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.14.
+  """
+  grantRefundForShipping: Boolean
 }
 
 """
@@ -22105,6 +22154,14 @@ Returns Decimal as a float in the API,
 parses float to the Decimal on the way back.
 """
 scalar Decimal
+
+input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+}
 
 """
 Updates granted refund.
@@ -22122,7 +22179,6 @@ type OrderGrantRefundUpdate @doc(category: "Orders") {
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
   errors: [OrderGrantRefundUpdateError!]!
-  orderGrantedRefund: OrderGrantedRefund
 }
 
 type OrderGrantRefundUpdateError @doc(category: "Orders") {
@@ -22136,6 +22192,20 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundUpdateErrorCode!
+
+  """
+  List of lines to add which cause the error.
+  
+  Added in Saleor 3.14.
+  """
+  addLines: [OrderGrantRefundUpdateLineError!]
+
+  """
+  List of lines to remove which cause the error.
+  
+  Added in Saleor 3.14.
+  """
+  removeLines: [OrderGrantRefundUpdateLineError!]
 }
 
 """An enumeration."""
@@ -22143,14 +22213,70 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
+  INVALID
+  SHIPPING_COSTS_ALREADY_GRANTED
+}
+
+type OrderGrantRefundUpdateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundUpdateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundUpdateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundUpdateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
+  """
+  Amount of the granted refund. if not provided and `addLines` or `removeLines` or `grantRefundForShipping` is provided, amount will be calculated automatically.
+  """
   amount: Decimal
 
   """Reason of the granted refund."""
   reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.14.
+  """
+  addLines: [OrderGrantRefundUpdateLineAddInput!]
+
+  """
+  Lines to remove from granted refund.
+  
+  Added in Saleor 3.14.
+  """
+  removeLines: [ID!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.14.
+  """
+  grantRefundForShipping: Boolean
+}
+
+input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
 }
 
 """
