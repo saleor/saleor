@@ -21,7 +21,6 @@ from ..permission.enums import get_permissions_enum_list
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
-from .manifest_schema_extras import manifest_fields_schema_extra
 from .types import AppExtensionMount, AppExtensionTarget
 
 SALEOR_VERSION = Version(__version__)
@@ -186,23 +185,82 @@ class AuthorStr(ConstrainedStr):
 
 
 class Manifest(ValidationErrorSchema):
-    id: Annotated[str, Field(max_length=256)]
-    version: Annotated[str, Field(max_length=60)]
-    name: Annotated[str, Field(max_length=60)]
-    token_target_url: AnyHttpUrl
-    about: Optional[str] = None
-    required_saleor_version: Optional[RequiredSaleorVersionSpec] = None
-    author: Optional[AuthorStr] = None
-    app_url: Optional[AnyHttpUrl] = None
-    configuration_url: Optional[AnyHttpUrl] = None
-    data_privacy: Optional[str] = None
-    data_privacy_url: Optional[AnyHttpUrl] = None
-    homepage_url: Optional[AnyHttpUrl] = None
-    support_url: Optional[AnyHttpUrl] = None
+    id: Annotated[
+        str,
+        Field(
+            max_length=256, description="Id of application used internally by Saleor"
+        ),
+    ]
+    version: Annotated[str, Field(max_length=60, description="App version")]
+    name: Annotated[
+        str, Field(max_length=60, description="App name displayed in the dashboard")
+    ]
+    token_target_url: Annotated[
+        AnyHttpUrl,
+        Field(description="Endpoint used during process of app installation"),
+    ]
+    about: Annotated[
+        Optional[str],
+        Field(description="Description of the app displayed in the dashboard"),
+    ] = None
+    required_saleor_version: Annotated[
+        Optional[RequiredSaleorVersionSpec],
+        Field(
+            description="Version range, in the semver format, which specifies Saleor "
+            "version required by the app. The field will be respected starting from "
+            "Saleor 3.13"
+        ),
+    ] = None
+    author: Annotated[
+        Optional[AuthorStr],
+        Field(
+            description="App author name displayed in the dashboard "
+            "(starting from Saleor 3.13)"
+        ),
+    ] = None
+    app_url: Annotated[
+        Optional[AnyHttpUrl], Field(description="App website rendered in the dashboard")
+    ] = None
+    configuration_url: Annotated[
+        Optional[AnyHttpUrl],
+        Field(
+            description="Address to the app configuration page, which is rendered in "
+            "the dashboard (deprecated in Saleor 3.5, use appUrl instead)"
+        ),
+    ] = None
+    data_privacy: Annotated[
+        Optional[str],
+        Field(
+            description="Short description of privacy policy displayed in the "
+            "dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)"
+        ),
+    ] = None
+    data_privacy_url: Annotated[
+        Optional[AnyHttpUrl], Field(description="URL to the full privacy policy")
+    ] = None
+    homepage_url: Annotated[
+        Optional[AnyHttpUrl], Field(description="External URL to the app homepage")
+    ] = None
+    support_url: Annotated[
+        Optional[AnyHttpUrl],
+        Field(
+            description="External URL to the page where " "app users can find support"
+        ),
+    ] = None
     audience: Annotated[Optional[str], Field(max_length=256)] = None
-    permissions: list[PermissionChoice] = []
-    webhooks: list[Webhook] = []
-    extensions: list[Extension] = []
+    permissions: Annotated[
+        list[PermissionChoice],
+        Field(description="Array of permissions requested by the app"),
+    ] = []
+    webhooks: Annotated[
+        list[Webhook], Field(description="List of webhooks that will be set")
+    ] = []
+    extensions: Annotated[
+        list[Extension],
+        Field(
+            description="List of extensions that will be mounted in Saleor's dashboard"
+        ),
+    ] = []
 
     class Config(ValidationErrorConfig):
         default_error = {"code": AppErrorCode.INVALID}
@@ -216,7 +274,7 @@ class Manifest(ValidationErrorSchema):
                 "msg": "Given permission don't exist.",
             }
         }
-        fields = manifest_fields_schema_extra
+        # fields = manifest_fields_schema_extra
 
     @validator("extensions", each_item=True)
     def validate_extension(cls, v: Extension, values, **kwargs):

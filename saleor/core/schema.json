@@ -326,10 +326,10 @@
         },
         "tokenTargetUrl": {
           "description": "Endpoint used during process of app installation",
+          "type": "string",
           "minLength": 1,
           "maxLength": 200,
-          "format": "uri",
-          "type": "string"
+          "format": "uri"
         },
         "about": {
           "description": "Description of the app displayed in the dashboard",
