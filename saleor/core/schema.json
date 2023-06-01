@@ -1,0 +1,478 @@
+{
+  "title": "Saleor JSON-schema",
+  "definitions": {
+    "PermissionChoice": {
+      "title": "PermissionChoice",
+      "description": "An enumeration.",
+      "enum": [
+        "MANAGE_USERS",
+        "MANAGE_STAFF",
+        "IMPERSONATE_USER",
+        "MANAGE_APPS",
+        "MANAGE_OBSERVABILITY",
+        "MANAGE_CHECKOUTS",
+        "HANDLE_CHECKOUTS",
+        "HANDLE_TAXES",
+        "MANAGE_TAXES",
+        "MANAGE_CHANNELS",
+        "MANAGE_DISCOUNTS",
+        "MANAGE_GIFT_CARD",
+        "MANAGE_MENUS",
+        "MANAGE_ORDERS",
+        "MANAGE_ORDERS_IMPORT",
+        "MANAGE_PAGES",
+        "MANAGE_PAGE_TYPES_AND_ATTRIBUTES",
+        "HANDLE_PAYMENTS",
+        "MANAGE_PLUGINS",
+        "MANAGE_PRODUCTS",
+        "MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES",
+        "MANAGE_SHIPPING",
+        "MANAGE_SETTINGS",
+        "MANAGE_TRANSLATIONS"
+      ]
+    },
+    "AsyncEventTypes": {
+      "title": "AsyncEventTypes",
+      "description": "An enumeration.",
+      "enum": [
+        "ANY_EVENTS",
+        "ADDRESS_CREATED",
+        "ADDRESS_UPDATED",
+        "ADDRESS_DELETED",
+        "APP_INSTALLED",
+        "APP_UPDATED",
+        "APP_DELETED",
+        "APP_STATUS_CHANGED",
+        "ATTRIBUTE_CREATED",
+        "ATTRIBUTE_UPDATED",
+        "ATTRIBUTE_DELETED",
+        "ATTRIBUTE_VALUE_CREATED",
+        "ATTRIBUTE_VALUE_UPDATED",
+        "ATTRIBUTE_VALUE_DELETED",
+        "CATEGORY_CREATED",
+        "CATEGORY_UPDATED",
+        "CATEGORY_DELETED",
+        "CHANNEL_CREATED",
+        "CHANNEL_UPDATED",
+        "CHANNEL_DELETED",
+        "CHANNEL_STATUS_CHANGED",
+        "GIFT_CARD_CREATED",
+        "GIFT_CARD_UPDATED",
+        "GIFT_CARD_DELETED",
+        "GIFT_CARD_SENT",
+        "GIFT_CARD_STATUS_CHANGED",
+        "GIFT_CARD_METADATA_UPDATED",
+        "MENU_CREATED",
+        "MENU_UPDATED",
+        "MENU_DELETED",
+        "MENU_ITEM_CREATED",
+        "MENU_ITEM_UPDATED",
+        "MENU_ITEM_DELETED",
+        "ORDER_CREATED",
+        "ORDER_CONFIRMED",
+        "ORDER_PAID",
+        "ORDER_FULLY_PAID",
+        "ORDER_REFUNDED",
+        "ORDER_FULLY_REFUNDED",
+        "ORDER_UPDATED",
+        "ORDER_CANCELLED",
+        "ORDER_EXPIRED",
+        "ORDER_FULFILLED",
+        "ORDER_METADATA_UPDATED",
+        "ORDER_BULK_CREATED",
+        "DRAFT_ORDER_CREATED",
+        "DRAFT_ORDER_UPDATED",
+        "DRAFT_ORDER_DELETED",
+        "SALE_CREATED",
+        "SALE_UPDATED",
+        "SALE_DELETED",
+        "SALE_TOGGLE",
+        "INVOICE_REQUESTED",
+        "INVOICE_DELETED",
+        "INVOICE_SENT",
+        "CUSTOMER_CREATED",
+        "CUSTOMER_UPDATED",
+        "CUSTOMER_DELETED",
+        "CUSTOMER_METADATA_UPDATED",
+        "COLLECTION_CREATED",
+        "COLLECTION_UPDATED",
+        "COLLECTION_DELETED",
+        "COLLECTION_METADATA_UPDATED",
+        "PRODUCT_CREATED",
+        "PRODUCT_UPDATED",
+        "PRODUCT_DELETED",
+        "PRODUCT_MEDIA_CREATED",
+        "PRODUCT_MEDIA_UPDATED",
+        "PRODUCT_MEDIA_DELETED",
+        "PRODUCT_METADATA_UPDATED",
+        "PRODUCT_VARIANT_CREATED",
+        "PRODUCT_VARIANT_UPDATED",
+        "PRODUCT_VARIANT_DELETED",
+        "PRODUCT_VARIANT_OUT_OF_STOCK",
+        "PRODUCT_VARIANT_BACK_IN_STOCK",
+        "PRODUCT_VARIANT_STOCK_UPDATED",
+        "PRODUCT_VARIANT_METADATA_UPDATED",
+        "CHECKOUT_CREATED",
+        "CHECKOUT_UPDATED",
+        "CHECKOUT_FULLY_PAID",
+        "CHECKOUT_METADATA_UPDATED",
+        "FULFILLMENT_CREATED",
+        "FULFILLMENT_CANCELED",
+        "FULFILLMENT_APPROVED",
+        "FULFILLMENT_METADATA_UPDATED",
+        "NOTIFY_USER",
+        "PAGE_CREATED",
+        "PAGE_UPDATED",
+        "PAGE_DELETED",
+        "PAGE_TYPE_CREATED",
+        "PAGE_TYPE_UPDATED",
+        "PAGE_TYPE_DELETED",
+        "PERMISSION_GROUP_CREATED",
+        "PERMISSION_GROUP_UPDATED",
+        "PERMISSION_GROUP_DELETED",
+        "SHIPPING_PRICE_CREATED",
+        "SHIPPING_PRICE_UPDATED",
+        "SHIPPING_PRICE_DELETED",
+        "SHIPPING_ZONE_CREATED",
+        "SHIPPING_ZONE_UPDATED",
+        "SHIPPING_ZONE_DELETED",
+        "SHIPPING_ZONE_METADATA_UPDATED",
+        "STAFF_CREATED",
+        "STAFF_UPDATED",
+        "STAFF_DELETED",
+        "TRANSACTION_ACTION_REQUEST",
+        "TRANSACTION_ITEM_METADATA_UPDATED",
+        "TRANSLATION_CREATED",
+        "TRANSLATION_UPDATED",
+        "WAREHOUSE_CREATED",
+        "WAREHOUSE_UPDATED",
+        "WAREHOUSE_DELETED",
+        "WAREHOUSE_METADATA_UPDATED",
+        "VOUCHER_CREATED",
+        "VOUCHER_UPDATED",
+        "VOUCHER_DELETED",
+        "VOUCHER_METADATA_UPDATED",
+        "OBSERVABILITY",
+        "THUMBNAIL_CREATED"
+      ]
+    },
+    "SyncEventTypes": {
+      "title": "SyncEventTypes",
+      "description": "An enumeration.",
+      "enum": [
+        "PAYMENT_AUTHORIZE",
+        "PAYMENT_CAPTURE",
+        "PAYMENT_CONFIRM",
+        "PAYMENT_LIST_GATEWAYS",
+        "PAYMENT_PROCESS",
+        "PAYMENT_REFUND",
+        "PAYMENT_VOID",
+        "TRANSACTION_CHARGE_REQUESTED",
+        "TRANSACTION_REFUND_REQUESTED",
+        "TRANSACTION_CANCELATION_REQUESTED",
+        "CHECKOUT_CALCULATE_TAXES",
+        "ORDER_CALCULATE_TAXES",
+        "SHIPPING_LIST_METHODS_FOR_CHECKOUT",
+        "ORDER_FILTER_SHIPPING_METHODS",
+        "CHECKOUT_FILTER_SHIPPING_METHODS",
+        "PAYMENT_GATEWAY_INITIALIZE_SESSION",
+        "TRANSACTION_INITIALIZE_SESSION",
+        "TRANSACTION_PROCESS_SESSION"
+      ]
+    },
+    "Webhook": {
+      "title": "Webhook",
+      "type": "object",
+      "properties": {
+        "name": {
+          "maxLength": 255,
+          "type": "string"
+        },
+        "isActive": {
+          "default": true,
+          "type": "boolean"
+        },
+        "targetUrl": {
+          "minLength": 1,
+          "maxLength": 255,
+          "format": "uri",
+          "type": "string"
+        },
+        "query": {
+          "type": "string"
+        },
+        "asyncEvents": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AsyncEventTypes"
+          }
+        },
+        "syncEvents": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SyncEventTypes"
+          }
+        },
+        "customHeaders": {
+          "default": {},
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "targetUrl",
+        "query"
+      ]
+    },
+    "AppExtensionTargets": {
+      "title": "AppExtensionTargets",
+      "description": "An enumeration.",
+      "enum": [
+        "POPUP",
+        "APP_PAGE"
+      ]
+    },
+    "AppExtensionMounts": {
+      "title": "AppExtensionMounts",
+      "description": "An enumeration.",
+      "enum": [
+        "CUSTOMER_OVERVIEW_CREATE",
+        "CUSTOMER_OVERVIEW_MORE_ACTIONS",
+        "CUSTOMER_DETAILS_MORE_ACTIONS",
+        "PRODUCT_OVERVIEW_CREATE",
+        "PRODUCT_OVERVIEW_MORE_ACTIONS",
+        "PRODUCT_DETAILS_MORE_ACTIONS",
+        "NAVIGATION_CATALOG",
+        "NAVIGATION_ORDERS",
+        "NAVIGATION_CUSTOMERS",
+        "NAVIGATION_DISCOUNTS",
+        "NAVIGATION_TRANSLATIONS",
+        "NAVIGATION_PAGES",
+        "ORDER_DETAILS_MORE_ACTIONS",
+        "ORDER_OVERVIEW_CREATE",
+        "ORDER_OVERVIEW_MORE_ACTIONS"
+      ]
+    },
+    "Extension": {
+      "title": "Extension",
+      "type": "object",
+      "properties": {
+        "label": {
+          "maxLength": 256,
+          "type": "string"
+        },
+        "target": {
+          "default": "POPUP",
+          "allOf": [
+            {
+              "$ref": "#/definitions/AppExtensionTargets"
+            }
+          ]
+        },
+        "mount": {
+          "$ref": "#/definitions/AppExtensionMounts"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "format": "uri"
+            },
+            {
+              "type": "string",
+              "pattern": "(/[^\\s?#]*)(\\?[^\\s#]*)?(#[^\\s#]*)?"
+            }
+          ]
+        },
+        "permissions": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionChoice"
+          }
+        }
+      },
+      "required": [
+        "label",
+        "mount",
+        "url"
+      ]
+    },
+    "Manifest": {
+      "title": "Manifest",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Id of application used internally by Saleor",
+          "maxLength": 256,
+          "type": "string"
+        },
+        "version": {
+          "description": "App version",
+          "maxLength": 60,
+          "type": "string"
+        },
+        "name": {
+          "description": "App name displayed in the dashboard",
+          "maxLength": 60,
+          "type": "string"
+        },
+        "tokenTargetUrl": {
+          "description": "Endpoint used during process of app installation",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "about": {
+          "description": "Description of the app displayed in the dashboard",
+          "type": "string"
+        },
+        "requiredSaleorVersion": {
+          "description": "Version range, in the semver format, which specifies Saleor version required by the app. The field will be respected starting from Saleor 3.13",
+          "type": "string"
+        },
+        "author": {
+          "description": "App author name displayed in the dashboard (starting from Saleor 3.13)",
+          "minLength": 1,
+          "maxLength": 60,
+          "type": "string"
+        },
+        "appUrl": {
+          "description": "App website rendered in the dashboard",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "configurationUrl": {
+          "description": "Address to the app configuration page, which is rendered in the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "dataPrivacy": {
+          "description": "Short description of privacy policy displayed in the dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
+          "type": "string"
+        },
+        "dataPrivacyUrl": {
+          "description": "URL to the full privacy policy",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "homepageUrl": {
+          "description": "External URL to the app homepage",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "supportUrl": {
+          "description": "External URL to the page where app users can find support",
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        },
+        "audience": {
+          "maxLength": 256,
+          "type": "string"
+        },
+        "permissions": {
+          "description": "Array of permissions requested by the app",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionChoice"
+          }
+        },
+        "webhooks": {
+          "description": "List of webhooks that will be set",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Webhook"
+          }
+        },
+        "extensions": {
+          "description": "List of extensions that will be mounted in Saleor's dashboard",
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Extension"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "name",
+        "tokenTargetUrl"
+      ]
+    },
+    "TaxLineData": {
+      "title": "TaxLineData",
+      "type": "object",
+      "properties": {
+        "tax_rate": {
+          "title": "Tax Rate",
+          "type": "number"
+        },
+        "total_gross_amount": {
+          "title": "Total Gross Amount",
+          "type": "number"
+        },
+        "total_net_amount": {
+          "title": "Total Net Amount",
+          "type": "number"
+        }
+      },
+      "required": [
+        "tax_rate",
+        "total_gross_amount",
+        "total_net_amount"
+      ]
+    },
+    "TaxData": {
+      "title": "TaxData",
+      "type": "object",
+      "properties": {
+        "shipping_price_gross_amount": {
+          "title": "Shipping Price Gross Amount",
+          "type": "number"
+        },
+        "shipping_price_net_amount": {
+          "title": "Shipping Price Net Amount",
+          "type": "number"
+        },
+        "shipping_tax_rate": {
+          "title": "Shipping Tax Rate",
+          "type": "number"
+        },
+        "lines": {
+          "title": "Lines",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaxLineData"
+          }
+        }
+      },
+      "required": [
+        "shipping_price_gross_amount",
+        "shipping_price_net_amount",
+        "shipping_tax_rate",
+        "lines"
+      ]
+    }
+  }
+}
