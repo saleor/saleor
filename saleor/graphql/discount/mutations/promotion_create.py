@@ -3,10 +3,10 @@ from typing import DefaultDict, List, Tuple
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from graphql.error import GraphQLError
 
 from ....channel import models as channel_models
-from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....permission.enums import DiscountPermissions
 from ...channel.types import Channel
@@ -194,7 +194,7 @@ class PromotionCreate(ModelMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         cls.clean_instance(info, instance)
-        with traced_atomic_transaction():
+        with transaction.atomic():
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
             cls.send_sale_notifications(manager, instance)
