@@ -10,7 +10,6 @@ from pydantic import BaseConfig, BaseModel
 from pydantic import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 from pydantic.error_wrappers import ErrorWrapper
-from pydantic.validators import str_validator
 
 T_ERRORS = dict[str, list[DjangoValidationError]]
 Loc = Tuple[Union[int, str], ...]
@@ -43,21 +42,6 @@ class SaleorValidationError(ValueError):
 
     def __str__(self) -> str:
         return self.mapping.get("msg", "")
-
-
-class StringFieldBase:
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
-        field_schema.update(type="string")
-
-    @classmethod
-    def __get_validators__(cls):
-        yield str_validator
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, value: str):
-        return value
 
 
 class ValidationErrorConfig(BaseConfig):

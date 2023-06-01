@@ -9,12 +9,7 @@ from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
-from ..core.schema import (
-    SaleorValidationError,
-    Schema,
-    StringFieldBase,
-    ValidationErrorConfig,
-)
+from ..core.schema import SaleorValidationError, Schema, ValidationErrorConfig
 from ..graphql.webhook.subscription_query import (
     SubscriptionQuery as SubscriptionQueryBase,
 )
@@ -28,7 +23,7 @@ from .types import AppExtensionMount, AppExtensionTarget
 SALEOR_VERSION = Version(__version__)
 
 
-class RequiredSaleorVersionSpec(NpmSpec, StringFieldBase):
+class RequiredSaleorVersionSpec(NpmSpec, ConstrainedStr):
     raise_for_version = False
 
     class Parser(NpmSpec.Parser):
@@ -62,7 +57,7 @@ class RequiredSaleorVersionSpec(NpmSpec, StringFieldBase):
         return self.match(SALEOR_VERSION)
 
 
-class SubscriptionQuery(SubscriptionQueryBase, StringFieldBase):
+class SubscriptionQuery(SubscriptionQueryBase, ConstrainedStr):
     @classmethod
     def validate(cls, value: str):
         query = SubscriptionQuery(value)
