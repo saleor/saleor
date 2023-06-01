@@ -62,34 +62,30 @@ class BaseSchema(BaseModel):
                 prop.pop("title", None)
 
 
-class JsonSchema(BaseModel):
+class JsonSchema(BaseSchema):
     class Config:
         alias_generator = to_camel
 
 
-class Schema(BaseSchema, JsonSchema):
+class ValidationErrorSchema(JsonSchema):
     class Config(ValidationErrorConfig):
         pass
 
     __config__: ClassVar[Type[ValidationErrorConfig]]
 
     @classmethod
-    def parse_obj(cls: Type[Model], *args, translate_errors=False, **kwargs) -> Model:
+    def parse_obj(cls: Type[Model], *args, **kwargs) -> Model:
         try:
             return super().parse_obj(*args, **kwargs)
         except PydanticValidationError as error:
-            if translate_errors:
-                raise translate_validation_error(error)
-            raise error
+            raise translate_validation_error(error)
 
     @classmethod
-    def parse_raw(cls: Type[Model], *args, translate_errors=False, **kwargs) -> Model:
+    def parse_raw(cls: Type[Model], *args, **kwargs) -> Model:
         try:
             return super().parse_raw(*args, **kwargs)
         except PydanticValidationError as error:
-            if translate_errors:
-                raise translate_validation_error(error)
-            raise error
+            raise translate_validation_error(error)
 
 
 def get_error_mapping(

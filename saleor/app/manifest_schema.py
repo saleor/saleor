@@ -9,7 +9,11 @@ from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
-from ..core.schema import SaleorValidationError, Schema, ValidationErrorConfig
+from ..core.schema import (
+    SaleorValidationError,
+    ValidationErrorConfig,
+    ValidationErrorSchema,
+)
 from ..graphql.webhook.subscription_query import (
     SubscriptionQuery as SubscriptionQueryBase,
 )
@@ -107,7 +111,7 @@ class WebhookTargetUrl(AnyHttpUrl):
     max_length = 255
 
 
-class Webhook(Schema):
+class Webhook(ValidationErrorSchema):
     name: Annotated[str, Field(max_length=255)]
     is_active: bool = True
     target_url: WebhookTargetUrl
@@ -148,7 +152,7 @@ class UrlPathStr(ConstrainedStr):
         )
 
 
-class Extension(Schema):
+class Extension(ValidationErrorSchema):
     label: Annotated[str, Field(max_length=256)]
     target: AppExtensionTargets = AppExtensionTargets[AppExtensionTarget.POPUP]
     mount: AppExtensionMounts
@@ -181,7 +185,7 @@ class AuthorStr(ConstrainedStr):
     max_length = 60
 
 
-class Manifest(Schema):
+class Manifest(ValidationErrorSchema):
     id: Annotated[str, Field(max_length=256)]
     version: Annotated[str, Field(max_length=60)]
     name: Annotated[str, Field(max_length=60)]

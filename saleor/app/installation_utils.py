@@ -200,7 +200,7 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     manifest_data = fetch_manifest(app_installation.manifest_url)
     assigned_permissions = app_installation.permissions.all()
 
-    manifest = ManifestStrict.parse_obj(manifest_data, translate_errors=True)
+    manifest = ManifestStrict.parse_obj(manifest_data)
 
     app = App.objects.create(
         name=app_installation.app_name,
