@@ -9979,7 +9979,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   refundPendingAmount: Money!
 
   """Total amount voided for this payment."""
-  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `canceledAmount` instead.")
+  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `canceledAmount` instead.")
 
   """
   Total amount canceled for this payment.
@@ -10006,10 +10006,10 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   chargePendingAmount: Money!
 
   """Status of transaction."""
-  status: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
+  status: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `name` or `message` instead.")
+  type: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `name` or `message` instead.")
 
   """
   Name of the transaction.
@@ -10026,7 +10026,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   message: String!
 
   """Reference of transaction."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
@@ -11145,7 +11145,7 @@ type OrderEvent implements Node @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
 
   """The reference of payment's transaction."""
   reference: String
@@ -11186,13 +11186,13 @@ enum OrderEventsEnum @doc(category: "Orders") {
   TRANSACTION_CHARGE_REQUESTED
 
   """
-  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
   """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
 
   """
-  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
   """
   TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
@@ -11413,10 +11413,10 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `type` instead.")
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
@@ -11426,7 +11426,7 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   pspReference: String!
 
   """Name of the transaction's event."""
-  name: String @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead.")
+  name: String @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead.")
 
   """
   Message related to the transaction's event.
@@ -20927,14 +20927,14 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
@@ -20955,7 +20955,7 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -20981,7 +20981,7 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
@@ -21010,14 +21010,14 @@ input TransactionEventInput @doc(category: "Payments") {
   """
   Current status of the payment transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Status will be calculated by Saleor.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Status will be calculated by Saleor.
   """
   status: TransactionStatus
 
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -21031,7 +21031,7 @@ input TransactionEventInput @doc(category: "Payments") {
   """
   Name of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
   """
   name: String
 
@@ -21084,14 +21084,14 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
@@ -21112,7 +21112,7 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -21138,7 +21138,7 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
