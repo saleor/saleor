@@ -16938,6 +16938,51 @@ type Mutation {
   ): ExternalNotificationTrigger
 
   """
+  Creates a new promotion.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionCreate(
+    """Fields requires to create a promotion."""
+    input: PromotionCreateInput!
+  ): PromotionCreate @doc(category: "Discounts")
+
+  """
+  Updates an existing promotion.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionUpdate(
+    """ID of the promotion to update."""
+    id: ID!
+
+    """Fields required to update a promotion."""
+    input: PromotionUpdateInput!
+  ): PromotionUpdate @doc(category: "Discounts")
+
+  """
+  Deletes a promotion.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionDelete(
+    """The ID of the promotion to remove."""
+    id: ID!
+  ): PromotionDelete @doc(category: "Discounts")
+
+  """
   Creates a new sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -25998,6 +26043,209 @@ input ExternalNotificationTriggerInput {
   External event type. This field is passed to a plugin as an event type.
   """
   externalEventType: String!
+}
+
+"""
+Creates a new promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionCreate @doc(category: "Discounts") {
+  errors: [PromotionCreateError!]!
+  promotion: Promotion
+}
+
+type PromotionCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionCreateErrorCode!
+
+  """Index of an input list item that caused the error."""
+  index: Int
+}
+
+"""An enumeration."""
+enum PromotionCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+  INVALID
+}
+
+input PromotionCreateInput @doc(category: "Discounts") {
+  """Promotion description."""
+  description: JSON
+
+  """The start date of the promotion in ISO 8601 format."""
+  startDate: DateTime
+
+  """The end date of the promotion in ISO 8601 format."""
+  endDate: DateTime
+
+  """Promotion name."""
+  name: String!
+
+  """List of promotion rules."""
+  rules: [PromotionRuleInput!]
+}
+
+input PromotionRuleInput @doc(category: "Discounts") {
+  """Promotion rule name."""
+  name: String
+
+  """Promotion rule description."""
+  description: JSON
+
+  """List of channel ids to which the rule should apply to."""
+  channels: [ID!]
+
+  """
+  Defines the conditions on the catalogue level that must be met for the reward to be applied.
+  """
+  cataloguePredicate: CataloguePredicateInput
+
+  """
+  Defines the promotion rule reward value type. Must be provided together with reward value.
+  """
+  rewardValueType: RewardValueTypeEnum
+
+  """
+  Defines the discount value. Required when catalogue predicate is provided.
+  """
+  rewardValue: PositiveDecimal
+}
+
+input CataloguePredicateInput @doc(category: "Discounts") {
+  """Defines the product variant conditions to be met."""
+  variantPredicate: ProductVariantPredicateInput
+
+  """Defines the product conditions to be met."""
+  productPredicate: ProductPredicateInput
+
+  """Defines the category conditions to be met."""
+  categoryPredicate: CategoryPredicateInput
+
+  """Defines the collection conditions to be met."""
+  collectionPredicate: CollectionPredicateInput
+
+  """List of conditions that must be met."""
+  AND: [CataloguePredicateInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CataloguePredicateInput!]
+}
+
+input ProductVariantPredicateInput @doc(category: "Discounts") {
+  """The list of product variant ids."""
+  ids: [ID!]
+}
+
+input ProductPredicateInput @doc(category: "Discounts") {
+  """The list of product ids."""
+  ids: [ID!]
+}
+
+input CategoryPredicateInput @doc(category: "Discounts") {
+  """The list of category ids."""
+  ids: [ID!]
+}
+
+input CollectionPredicateInput @doc(category: "Discounts") {
+  """The list of collection ids."""
+  ids: [ID!]
+}
+
+"""
+Updates an existing promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionUpdate @doc(category: "Discounts") {
+  errors: [PromotionUpdateError!]!
+  promotion: Promotion
+}
+
+type PromotionUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionUpdateErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+  INVALID
+}
+
+input PromotionUpdateInput {
+  """Promotion description."""
+  description: JSON
+
+  """The start date of the promotion in ISO 8601 format."""
+  startDate: DateTime
+
+  """The end date of the promotion in ISO 8601 format."""
+  endDate: DateTime
+
+  """Promotion name."""
+  name: String
+}
+
+"""
+Deletes a promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionDelete @doc(category: "Discounts") {
+  errors: [PromotionDeleteError!]!
+  promotion: Promotion
+}
+
+type PromotionDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionDeleteErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
 }
 
 """
