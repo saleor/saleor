@@ -5,7 +5,8 @@ from functools import partial
 from typing import List
 
 from prices import Money, TaxedMoney
-from pydantic import BaseModel
+
+from ..core.schema import BaseSchema
 
 
 class TaxError(Exception):
@@ -33,7 +34,7 @@ class TaxType:
     description: str
 
 
-class WebhookResponseBase(BaseModel):
+class WebhookResponseBase(BaseSchema):
     class Config:
         allow_mutation = False
         json_loads = partial(json.loads, parse_float=Decimal)

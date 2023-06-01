@@ -1,8 +1,5 @@
-import json
 from collections import defaultdict
-from decimal import Decimal
 from enum import Enum
-from functools import partial
 from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -57,32 +54,42 @@ class ValidationErrorConfig(BaseConfig):
         return None
 
 
-class Schema(BaseModel):
-    @classmethod
-    def parse_obj(cls: Type[Model], *args, **kwargs) -> Model:
-        try:
-            return super().parse_obj(*args, **kwargs)
-        except PydanticValidationError as error:
-            raise translate_validation_error(error)
-
-    @classmethod
-    def parse_raw(cls: Type[Model], *args, **kwargs) -> Model:
-        try:
-            return super().parse_raw(*args, **kwargs)
-        except PydanticValidationError as error:
-            raise translate_validation_error(error)
-
-    class Config(ValidationErrorConfig):
-        alias_generator = to_camel
-        allow_population_by_field_name = True
-        json_loads = partial(json.loads, parse_float=Decimal)
-
+class BaseSchema(BaseModel):
+    class Config:
         @staticmethod
-        def schema_extra(schema: dict[str, Any]) -> None:  # type: ignore
+        def schema_extra(schema: dict[str, Any]) -> None:
             for prop in schema.get("properties", {}).values():
                 prop.pop("title", None)
 
+
+class JsonSchema(BaseModel):
+    class Config:
+        alias_generator = to_camel
+
+
+class Schema(BaseSchema, JsonSchema):
+    class Config(ValidationErrorConfig):
+        pass
+
     __config__: ClassVar[Type[ValidationErrorConfig]]
+
+    @classmethod
+    def parse_obj(cls: Type[Model], *args, translate_errors=False, **kwargs) -> Model:
+        try:
+            return super().parse_obj(*args, **kwargs)
+        except PydanticValidationError as error:
+            if translate_errors:
+                raise translate_validation_error(error)
+            raise error
+
+    @classmethod
+    def parse_raw(cls: Type[Model], *args, translate_errors=False, **kwargs) -> Model:
+        try:
+            return super().parse_raw(*args, **kwargs)
+        except PydanticValidationError as error:
+            if translate_errors:
+                raise translate_validation_error(error)
+            raise error
 
 
 def get_error_mapping(

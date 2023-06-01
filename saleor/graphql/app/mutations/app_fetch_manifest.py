@@ -80,7 +80,7 @@ class AppFetchManifest(BaseMutation):
 
     @classmethod
     def clean_manifest_data(cls, info, manifest_data) -> ManifestSchema:
-        return ManifestSchema.parse_obj(manifest_data)
+        return ManifestSchema.parse_obj(manifest_data, translate_errors=True)
 
     @classmethod
     def perform_mutation(cls, _root, info, /, **data):

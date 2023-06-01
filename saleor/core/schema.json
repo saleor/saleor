@@ -425,15 +425,12 @@
       "type": "object",
       "properties": {
         "tax_rate": {
-          "title": "Tax Rate",
           "type": "number"
         },
         "total_gross_amount": {
-          "title": "Total Gross Amount",
           "type": "number"
         },
         "total_net_amount": {
-          "title": "Total Net Amount",
           "type": "number"
         }
       },
@@ -448,19 +445,15 @@
       "type": "object",
       "properties": {
         "shipping_price_gross_amount": {
-          "title": "Shipping Price Gross Amount",
           "type": "number"
         },
         "shipping_price_net_amount": {
-          "title": "Shipping Price Net Amount",
           "type": "number"
         },
         "shipping_tax_rate": {
-          "title": "Shipping Tax Rate",
           "type": "number"
         },
         "lines": {
-          "title": "Lines",
           "type": "array",
           "items": {
             "$ref": "#/definitions/TaxLineData"
