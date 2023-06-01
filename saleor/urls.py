@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .core.views import jwks
 from .graphql.api import schema
-from .graphql.views import AsyncGraphQLView, GraphQLView
+from .graphql.views import GraphQLView
 from .plugins.views import (
     handle_global_plugin_webhook,
     handle_plugin_per_channel_webhook,
@@ -17,9 +17,6 @@ from .thumbnail.views import handle_thumbnail
 
 urlpatterns = [
     re_path(r"^graphql/$", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
-    re_path(
-        r"^graphql_async/$", AsyncGraphQLView.as_view(schema=schema), name="async_api"
-    ),
     re_path(
         r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
         digital_product,

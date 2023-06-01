@@ -37,7 +37,6 @@ from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
-ASYNC_API_PATH = SimpleLazyObject(lambda: reverse("async_api"))
 
 
 class Query(

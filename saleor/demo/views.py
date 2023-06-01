@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from ..graphql.views import AsyncGraphQLView, arender
+from ..graphql.views import GraphQLView, arender
 
 EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 #
@@ -26,7 +26,7 @@ EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
 }
 
 
-class DemoGraphQLView(AsyncGraphQLView):
+class DemoGraphQLView(GraphQLView):
     async def render_playground(self, request):
         pwa_origin = settings.PWA_ORIGINS[0]  # type: ignore[misc] # set only in demo settings # noqa: E501
         ctx = {
