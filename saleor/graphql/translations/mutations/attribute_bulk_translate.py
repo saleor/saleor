@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from graphql.error import GraphQLError
 
 from ....attribute import models
 from ....permission.enums import SitePermissions
@@ -13,6 +14,7 @@ from ...core.types import (
     BaseObjectType,
     NonNullList,
 )
+from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
 from .utils import BaseBulkTranslateMutation, NameTranslationInput
 
@@ -108,11 +110,14 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
                 continue
 
             if global_id:
-                obj_type, id = graphene.Node.from_global_id(global_id)
-                if obj_type != "Attribute":
+                try:
+                    obj_type, id = from_global_id_or_error(
+                        global_id, only_type="Attribute"
+                    )
+                except GraphQLError as exc:
                     index_error_map[index].append(
                         AttributeBulkTranslateError(
-                            message="The ID must be of an Attribute.",
+                            message=str(exc),
                             code=AttributeTranslateErrorCode.INVALID.value,
                         )
                     )
