@@ -561,8 +561,8 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
     )
 
     class Meta:
-        root_type = "GiftCard"
-        enable_dry_run = True
+        root_type = None
+        enable_dry_run = False
         interfaces = (Event,)
         description = (
             "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
