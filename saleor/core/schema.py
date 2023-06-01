@@ -3,24 +3,12 @@ from collections import defaultdict
 from decimal import Decimal
 from enum import Enum
 from functools import partial
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    Optional,
-    Tuple,
-    Type,
-    TypedDict,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import BaseConfig, BaseModel
 from pydantic import ValidationError
 from pydantic import ValidationError as PydanticValidationError
-from pydantic import validator
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.validators import str_validator
 
@@ -72,27 +60,10 @@ class StringFieldBase:
         return value
 
 
-class BaseChoice(BaseModel):
-    _CHOICES: ClassVar[dict[str, str]] = {}
-    _error_mapping: ClassVar[ErrorMapping] = {}
-    __root__: str
-
-    @validator("__root__", pre=True)
-    def validate(cls, v):
-        if isinstance(v, str) and v in cls._CHOICES:
-            return cls._CHOICES[v]
-        raise SaleorValidationError(**cls._error_mapping)
-
-    class Config:
-        @staticmethod
-        def schema_extra(schema: dict[str, Any], model: type["BaseChoice"]) -> None:
-            schema.pop("type")
-            schema["enum"] = sorted(model._CHOICES.keys())
-
-
 class ValidationErrorConfig(BaseConfig):
     default_error: Optional[ErrorMapping] = None
     errors_map: dict[Type[Exception], ErrorMapping] = {}
+    field_errors_map: dict[str, ErrorMapping] = {}
 
     @classmethod
     def get_error_mapping(cls, type_: Type[Exception]) -> Optional[ErrorMapping]:
@@ -123,7 +94,7 @@ class Schema(BaseModel):
         json_loads = partial(json.loads, parse_float=Decimal)
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any]) -> None:  # type: ignore
+        def schema_extra(schema: dict[str, Any]) -> None:  # type: ignore
             for prop in schema.get("properties", {}).values():
                 prop.pop("title", None)
 
@@ -138,6 +109,14 @@ def get_error_mapping(
     return None
 
 
+def get_field_error_mapping(
+    field_name: str, config: Type[BaseConfig]
+) -> Optional[ErrorMapping]:
+    if issubclass(config, ValidationErrorConfig):
+        return config.field_errors_map.get(field_name)
+    return None
+
+
 def convert_error(error: ErrorWrapper, model, root_config, error_loc):
     code: Union[Enum, str] = "invalid"
     error_msg, params = "", {}
@@ -148,8 +127,10 @@ def convert_error(error: ErrorWrapper, model, root_config, error_loc):
         code = error.exc.mapping.get("code") or code
         error_msg = error.exc.mapping.get("msg") or error_msg
         params = error.exc.params
-    mapping = get_error_mapping(error.exc.__class__, model.__config__)
-    mapping = mapping or get_error_mapping(error.exc.__class__, root_config)
+    mapping = get_field_error_mapping(str(error.loc_tuple()[0]), model.__config__)
+    if not mapping:
+        mapping = get_error_mapping(error.exc.__class__, model.__config__)
+        mapping = mapping or get_error_mapping(error.exc.__class__, root_config)
     if mapping:
         code = mapping.get("code") or code
         error_msg = mapping.get("msg") or error_msg

@@ -1,18 +1,15 @@
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Annotated, Any, Dict, List, Optional, Union, cast
+from typing import Annotated, Any, Dict, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Value
-from django.db.models.functions import Concat
-from pydantic import AnyUrl, BaseModel, ConstrainedStr, Field, validator
+from pydantic import AnyUrl, ConstrainedStr, Field, validator
 from pydantic.errors import MissingError, UrlError
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..core.schema import (
-    BaseChoice,
     SaleorValidationError,
     Schema,
     StringFieldBase,
@@ -21,8 +18,7 @@ from ..core.schema import (
 from ..graphql.webhook.subscription_query import (
     SubscriptionQuery as SubscriptionQueryBase,
 )
-from ..permission.enums import get_permissions_enum_list, get_permissions_from_names
-from ..permission.models import Permission
+from ..permission.enums import get_permissions_enum_list
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
@@ -75,19 +71,9 @@ class SubscriptionQuery(SubscriptionQueryBase, StringFieldBase):
         return query
 
 
-class PermissionChoice(BaseChoice):
-    _CHOICES = {name: name for name, _ in get_permissions_enum_list()}
-    _error_mapping = {
-        "code": AppErrorCode.INVALID_PERMISSION,
-        "msg": "Given permission don't exist.",
-    }
-
-
-if TYPE_CHECKING:
-    PermissionsList = list[Permission]
-else:
-    PermissionsList = list[PermissionChoice]
-
+PermissionChoice = Enum(  # type: ignore[misc]
+    "PermissionChoice", [(p, p) for p, _ in get_permissions_enum_list()]
+)
 
 AppExtensionTargets = Enum(  # type: ignore[misc]
     "AppExtensionTargets", [(m, m.upper()) for m, _ in AppExtensionTarget.CHOICES]
@@ -118,17 +104,6 @@ class AnyHttpUrl(AnyUrl):
             raise SaleorValidationError(
                 str(error), code=AppErrorCode.INVALID_URL_FORMAT
             )
-
-
-class PermissionBase(BaseModel):
-    permissions: PermissionsList = []
-
-    @validator("permissions")
-    def validate_permissions(cls, value: list[str]) -> List[Permission]:
-        qs = get_permissions_from_names(value).annotate(
-            formated_codename=Concat("content_type__app_label", Value("."), "codename")
-        )
-        return list(qs)
 
 
 class WebhookTargetUrl(AnyHttpUrl):
@@ -178,11 +153,20 @@ class UrlPathStr(ConstrainedStr):
         )
 
 
-class Extension(Schema, PermissionBase):
+class Extension(Schema):
     label: Annotated[str, Field(max_length=256)]
     target: AppExtensionTargets = AppExtensionTargets[AppExtensionTarget.POPUP]
     mount: AppExtensionMounts
     url: Union[AnyHttpUrl, UrlPathStr]
+    permissions: list[PermissionChoice] = []
+
+    class Config(ValidationErrorConfig):
+        field_errors_map = {
+            "permissions": {
+                "code": AppErrorCode.INVALID_PERMISSION,
+                "msg": "Given permission don't exist.",
+            }
+        }
 
     @validator("url")
     def validate_url(cls, v: str, values, **kwargs):
@@ -202,7 +186,7 @@ class AuthorStr(ConstrainedStr):
     max_length = 60
 
 
-class Manifest(Schema, PermissionBase):
+class Manifest(Schema):
     id: Annotated[str, Field(max_length=256)]
     version: Annotated[str, Field(max_length=60)]
     name: Annotated[str, Field(max_length=60)]
@@ -217,6 +201,7 @@ class Manifest(Schema, PermissionBase):
     homepage_url: Optional[AnyHttpUrl] = None
     support_url: Optional[AnyHttpUrl] = None
     audience: Annotated[Optional[str], Field(max_length=256)] = None
+    permissions: list[PermissionChoice] = []
     webhooks: list[Webhook] = []
     extensions: list[Extension] = []
 
@@ -225,6 +210,12 @@ class Manifest(Schema, PermissionBase):
         errors_map = {
             MissingError: {"code": AppErrorCode.REQUIRED, "msg": "Field required."},
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
+        }
+        field_errors_map = {
+            "permissions": {
+                "code": AppErrorCode.INVALID_PERMISSION,
+                "msg": "Given permission don't exist.",
+            }
         }
         fields = manifest_fields_schema_extra
 

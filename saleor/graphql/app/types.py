@@ -8,7 +8,7 @@ from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters
-from ...permission.enums import AppPermission
+from ...permission.enums import AppPermission, get_permissions_from_names
 from ...permission.utils import message_one_of_permissions_required
 from ...thumbnail import PIL_IDENTIFIER_TO_MIME_TYPE
 from ...thumbnail.utils import (
@@ -31,7 +31,6 @@ from ..core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_APPS
-from ..core.enums import PermissionEnum
 from ..core.federation import federated_entity, resolve_federation_references
 from ..core.types import (
     BaseObjectType,
@@ -123,13 +122,8 @@ class AppManifestExtension(BaseObjectType):
 
     @staticmethod
     def resolve_permissions(root, _info: ResolveInfo):
-        return [
-            Permission(
-                code=PermissionEnum.get(p.formated_codename),
-                name=p.name,
-            )
-            for p in root.permissions
-        ]
+        permissions = get_permissions_from_names([p.value for p in root.permissions])
+        return format_permissions_for_display(permissions)
 
     @staticmethod
     def resolve_url(root, _info: ResolveInfo):
@@ -472,10 +466,8 @@ class Manifest(BaseObjectType):
 
     @staticmethod
     def resolve_permissions(root, _info: ResolveInfo):
-        return [
-            Permission(code=PermissionEnum.get(p.formated_codename), name=p.name)
-            for p in root.permissions
-        ]
+        permissions = get_permissions_from_names([p.value for p in root.permissions])
+        return format_permissions_for_display(permissions)
 
 
 class AppToken(BaseObjectType):
