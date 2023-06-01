@@ -21,7 +21,6 @@ from ...core.doc_category import DOC_CATEGORY_MAP
 from ...core.enums import ErrorPolicyEnum, TranslationErrorCode
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.types import TranslationBulkError
 from ...core.utils import from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .. import types as translation_types
@@ -271,7 +270,7 @@ class BaseBulkTranslateMutation(BaseMutation):
 
         if not base_object:
             index_error_map[index].append(
-                TranslationBulkError(
+                cls._meta.error_type_class(
                     message="Couldn't resolve to an attribute.",
                     code=TranslationErrorCode.NOT_FOUND.value,
                     path="id" if pk else "externalReference",
@@ -374,7 +373,7 @@ class BaseBulkTranslateMutation(BaseMutation):
                 for key, value in exc.error_dict.items():
                     for e in value:
                         index_error_map[index].append(
-                            TranslationBulkError(
+                            cls._meta.error_type_class(
                                 path=to_camel_case(key),
                                 message=e.messages[0],
                                 code=e.code,

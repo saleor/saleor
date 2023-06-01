@@ -6,12 +6,12 @@ from ....permission.enums import SitePermissions
 from ...attribute.types import AttributeTranslation
 from ...core.descriptions import ADDED_IN_314, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
-from ...core.enums import LanguageCodeEnum, TranslationErrorCode
+from ...core.enums import AttributeTranslateErrorCode, LanguageCodeEnum
 from ...core.types import (
+    AttributeBulkTranslateError,
     BaseInputObjectType,
     BaseObjectType,
     NonNullList,
-    TranslationBulkError,
 )
 from ...core.validators import validate_one_of_args_is_in_mutation
 from .utils import BaseBulkTranslateMutation, NameTranslationInput
@@ -22,7 +22,7 @@ class AttributeBulkTranslateResult(BaseObjectType):
         AttributeTranslation, description="Attribute translation data."
     )
     errors = NonNullList(
-        TranslationBulkError,
+        AttributeBulkTranslateError,
         required=False,
         description="List of errors occurred on translation attempt.",
     )
@@ -78,7 +78,7 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
         translation_fields = ["name"]
         base_model_relation_field = "attribute"
         result_type = AttributeBulkTranslateResult
-        error_type_class = TranslationBulkError
+        error_type_class = AttributeBulkTranslateError
         permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
@@ -99,9 +99,9 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
                 )
             except ValidationError as exc:
                 index_error_map[index].append(
-                    TranslationBulkError(
+                    AttributeBulkTranslateError(
                         message=exc.message,
-                        code=TranslationErrorCode.INVALID.value,
+                        code=AttributeTranslateErrorCode.INVALID.value,
                     )
                 )
                 cleaned_inputs_map[index] = None
@@ -111,9 +111,9 @@ class AttributeBulkTranslate(BaseBulkTranslateMutation):
                 obj_type, id = graphene.Node.from_global_id(global_id)
                 if obj_type != "Attribute":
                     index_error_map[index].append(
-                        TranslationBulkError(
+                        AttributeBulkTranslateError(
                             message="The ID must be of an Attribute.",
-                            code=TranslationErrorCode.INVALID.value,
+                            code=AttributeTranslateErrorCode.INVALID.value,
                         )
                     )
                     cleaned_inputs_map[index] = None

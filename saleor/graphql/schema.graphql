@@ -25228,7 +25228,7 @@ type AttributeBulkTranslate @doc(category: "Attributes") {
 
   """List of the translations."""
   results: [AttributeBulkTranslateResult!]!
-  errors: [TranslationBulkError!]!
+  errors: [AttributeBulkTranslateError!]!
 }
 
 type AttributeBulkTranslateResult @doc(category: "Attributes") {
@@ -25236,10 +25236,10 @@ type AttributeBulkTranslateResult @doc(category: "Attributes") {
   translation: AttributeTranslation
 
   """List of errors occurred on translation attempt."""
-  errors: [TranslationBulkError!]
+  errors: [AttributeBulkTranslateError!]
 }
 
-type TranslationBulkError {
+type AttributeBulkTranslateError {
   """
   Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -25249,7 +25249,15 @@ type TranslationBulkError {
   message: String
 
   """The error code."""
-  code: TranslationErrorCode!
+  code: AttributeTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
 }
 
 input AttributeBulkTranslateInput @doc(category: "Attributes") {
@@ -25344,7 +25352,7 @@ type AttributeValueBulkTranslate @doc(category: "Attributes") {
 
   """List of the translations."""
   results: [AttributeValueBulkTranslateResult!]!
-  errors: [TranslationBulkError!]!
+  errors: [AttributeValueBulkTranslateError!]!
 }
 
 type AttributeValueBulkTranslateResult @doc(category: "Attributes") {
@@ -25352,7 +25360,28 @@ type AttributeValueBulkTranslateResult @doc(category: "Attributes") {
   translation: AttributeValueTranslation
 
   """List of errors occurred on translation attempt."""
-  errors: [TranslationBulkError!]
+  errors: [AttributeValueBulkTranslateError!]
+}
+
+type AttributeValueBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeValueTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeValueTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
 }
 
 input AttributeValueBulkTranslateInput @doc(category: "Attributes") {
