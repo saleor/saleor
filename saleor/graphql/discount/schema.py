@@ -11,6 +11,9 @@ from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .filters import SaleFilter, VoucherFilter
 from .mutations import (
+    PromotionCreate,
+    PromotionDelete,
+    PromotionUpdate,
     SaleAddCatalogues,
     SaleChannelListingUpdate,
     SaleCreate,
@@ -162,6 +165,10 @@ class DiscountQueries(graphene.ObjectType):
 
 
 class DiscountMutations(graphene.ObjectType):
+    promotion_create = PromotionCreate.Field()
+    promotion_update = PromotionUpdate.Field()
+    promotion_delete = PromotionDelete.Field()
+
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
     sale_bulk_delete = SaleBulkDelete.Field()

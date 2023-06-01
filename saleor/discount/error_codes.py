@@ -10,3 +10,22 @@ class DiscountErrorCode(Enum):
     UNIQUE = "unique"
     CANNOT_MANAGE_PRODUCT_WITHOUT_VARIANT = "cannot_manage_product_without_variant"
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
+
+
+class PromotionCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    INVALID = "invalid"
+
+
+class PromotionUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+    INVALID = "invalid"
+
+
+class PromotionDeleteErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
