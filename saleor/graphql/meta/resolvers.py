@@ -57,6 +57,7 @@ def resolve_object_with_metadata_type(instance):
             checkout_models.Checkout: checkout_types.Checkout,
             checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,
+            discount_models.Promotion: discount_types.Promotion,
             discount_models.Sale: discount_types.Sale,
             discount_models.Voucher: discount_types.Voucher,
             giftcard_models.GiftCard: giftcard_types.GiftCard,
