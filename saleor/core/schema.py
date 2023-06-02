@@ -68,6 +68,8 @@ class JsonSchema(BaseSchema):
 
 
 class ValidationErrorSchema(JsonSchema):
+    _fields_mapping: ClassVar[Optional[dict[str, ErrorMapping]]] = None
+
     class Config(ValidationErrorConfig):
         pass
 
@@ -87,20 +89,23 @@ class ValidationErrorSchema(JsonSchema):
         except PydanticValidationError as error:
             raise translate_validation_error(error)
 
+    @classmethod
+    def get_error_mapping(
+        cls: Type["ValidationErrorSchema"], field_alias: str
+    ) -> Optional[ErrorMapping]:
+        if cls._fields_mapping is None:
+            cls._fields_mapping = {}
+            for field_name, field in cls.__fields__.items():
+                if mapping := cls.__config__.field_errors_map.get(field_name):
+                    cls._fields_mapping[field.alias] = mapping
+        return cls._fields_mapping.get(field_alias)
+
 
 def get_error_mapping(
     error_type: Type[Exception], config: Type[BaseConfig]
 ) -> Optional[ErrorMapping]:
     if issubclass(config, ValidationErrorConfig):
         return config.get_error_mapping(error_type)
-    return None
-
-
-def get_field_error_mapping(
-    field_name: str, config: Type[BaseConfig]
-) -> Optional[ErrorMapping]:
-    if issubclass(config, ValidationErrorConfig):
-        return config.field_errors_map.get(field_name)
     return None
 
 
@@ -114,7 +119,9 @@ def convert_error(error: ErrorWrapper, model, root_config, error_loc):
         code = error.exc.mapping.get("code") or code
         error_msg = error.exc.mapping.get("msg") or error_msg
         params = error.exc.params
-    mapping = get_field_error_mapping(str(error.loc_tuple()[0]), model.__config__)
+    mapping = None
+    if issubclass(model, ValidationErrorSchema):
+        mapping = model.get_error_mapping(str(error.loc_tuple()[0]))
     if not mapping:
         mapping = get_error_mapping(error.exc.__class__, model.__config__)
         mapping = mapping or get_error_mapping(error.exc.__class__, root_config)
