@@ -9633,7 +9633,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedBy: User
+  usedBy: User @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Email address of the user who bought or issued gift card.
@@ -9649,7 +9649,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedByEmail: String
+  usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
   lastUsedOn: DateTime
   expiryDate: Date
 

@@ -250,6 +250,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=("The customer who used a gift card." + ADDED_IN_31),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     created_by_email = graphene.String(
         required=False,
@@ -266,6 +267,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description=(
             "Email address of the customer who used a gift card." + ADDED_IN_31
         ),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     last_used_on = graphene.DateTime()
     expiry_date = Date()
