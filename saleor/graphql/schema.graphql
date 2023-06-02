@@ -460,6 +460,13 @@ type Query {
     """Sort products."""
     sortBy: ProductOrder
 
+    """
+    Search products.
+    
+    Added in Saleor 3.14.
+    """
+    search: String
+
     """Slug of a channel for which the data should be returned."""
     channel: String
 

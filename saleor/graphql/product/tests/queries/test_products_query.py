@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 
 import graphene
+import pytest
 from django.utils.dateparse import parse_datetime
 
 from .....core.postgres import FlatConcatSearchVector
@@ -1134,3 +1135,45 @@ def test_products_with_variants_query_as_app(
         attrs = response_product["node"]["attributes"]
         assert len(attrs) == 1
         assert attrs[0]["attribute"]["id"] == attribute_id
+
+
+PRODUCT_SEARCH_QUERY = """
+    query($search: String, $channel: String) {
+      products(first: 10, search: $search, channel: $channel) {
+        edges {
+          node {
+            name
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "search, indexes",
+    [
+        ("small", [2]),
+        ("big", [0, 1]),
+        ("product", [0, 1, 2]),
+        ("ABCD", []),
+        (None, [0, 1, 2]),
+        ("", [0, 1, 2]),
+    ],
+)
+def test_search_products_on_root_level(
+    search, indexes, api_client, product_list, channel_USD
+):
+    # given
+    variables = {"search": search, "channel": channel_USD.slug}
+
+    # when
+    response = api_client.post_graphql(PRODUCT_SEARCH_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    nodes = data["data"]["products"]["edges"]
+    assert len(nodes) == len(indexes)
+    returned_attrs = {node["node"]["slug"] for node in nodes}
+    assert returned_attrs == {product_list[index].slug for index in indexes}
