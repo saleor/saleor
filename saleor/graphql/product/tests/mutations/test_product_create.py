@@ -372,7 +372,7 @@ def test_create_product_with_using_attribute_id_and_external_ref(
     # then
     assert data["errors"]
     assert data["errors"][0]["field"] == "attributes"
-    assert data["errors"][0]["code"] == ProductErrorCode.INVALID.name
+    assert data["errors"][0]["code"] == ProductErrorCode.REQUIRED.name
     assert data["errors"][0]["message"] == (
         "Argument 'id' cannot be combined with 'externalReference'"
     )

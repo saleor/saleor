@@ -1534,7 +1534,7 @@ def test_update_product_with_attribute_without_id_or_external_ref(
     assert data["errors"] == [
         {
             "field": "attributes",
-            "code": ProductErrorCode.INVALID.name,
+            "code": ProductErrorCode.REQUIRED.name,
             "message": ANY,
             "attributes": None,
         }

@@ -181,11 +181,13 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _create_value_instance(cls, attribute, attr_value, external_ref):
-        existing_slugs = get_existing_slugs(attribute, [attr_value])
-        slug = prepare_unique_slug(slugify(unidecode(attr_value)), existing_slugs)
-
+    def _create_value_instance(
+        cls, attribute, attr_value, external_ref, attr_and_value_slugs_map
+    ):
         try:
+            slug = prepare_unique_slug(
+                slugify(unidecode(attr_value)), attr_and_value_slugs_map[attribute]
+            )
             value = attribute_models.AttributeValue.objects.create(
                 external_reference=external_ref,
                 attribute=attribute,
@@ -196,6 +198,8 @@ class AttributeAssignmentMixin:
             raise ValidationError(
                 "Attribute value with given externalReference already exists."
             )
+
+        attr_and_value_slugs_map[attribute].add(slug)
         return (value,)
 
     @classmethod
@@ -244,7 +248,7 @@ class AttributeAssignmentMixin:
             except ValidationError as error:
                 raise ValidationError(
                     error.message,
-                    code=error_class.INVALID.value,
+                    code=error_class.REQUIRED.value,
                 )
 
             values = AttrValuesInput(
@@ -392,6 +396,14 @@ class AttributeAssignmentMixin:
             AttributeInputType.RICH_TEXT: cls._pre_save_rich_text_values,
         }
         clean_assignment = []
+        attr_and_value_slugs_map = {}
+
+        for attribute, _ in cleaned_input:
+            if attribute not in attr_and_value_slugs_map:
+                attr_and_value_slugs_map[attribute] = set(
+                    attribute.values.all().values_list("slug", flat=True)
+                )
+
         for attribute, attr_values in cleaned_input:
             is_handled_by_values_field = (
                 attr_values.values
@@ -406,7 +418,9 @@ class AttributeAssignmentMixin:
                 attribute_values = cls._pre_save_values(attribute, attr_values)
             else:
                 pre_save_func = pre_save_methods_mapping[attribute.input_type]
-                attribute_values = pre_save_func(instance, attribute, attr_values)
+                attribute_values = pre_save_func(
+                    instance, attribute, attr_values, attr_and_value_slugs_map
+                )
 
             associate_attribute_values_to_instance(
                 instance, attribute, *attribute_values
@@ -426,6 +440,7 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if not attr_values.dropdown:
             return tuple()
@@ -434,7 +449,9 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.dropdown.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            value = cls._create_value_instance(
+                attribute, attr_value, external_ref, attr_and_value_slugs_map
+            )
             return value
 
         if external_ref:
@@ -466,6 +483,7 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if not attr_values.swatch:
             return tuple()
@@ -474,7 +492,9 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.swatch.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(attribute, attr_value, external_ref)
+            value = cls._create_value_instance(
+                attribute, attr_value, external_ref, attr_and_value_slugs_map
+            )
             return value
 
         if external_ref:
@@ -506,6 +526,7 @@ class AttributeAssignmentMixin:
         _,
         attribute: attribute_models.Attribute,
         attr_values_input: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if not attr_values_input.multiselect:
             return tuple()
@@ -514,7 +535,9 @@ class AttributeAssignmentMixin:
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
             if external_ref and attr_value:
-                value = cls._create_value_instance(attribute, attr_value, external_ref)
+                value = cls._create_value_instance(
+                    attribute, attr_value, external_ref, attr_and_value_slugs_map
+                )
                 return value
 
             if external_ref:
@@ -554,6 +577,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if attr_values.values:
             value = attr_values.values[0]
@@ -589,6 +613,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if not attr_values.rich_text:
             return tuple()
@@ -606,6 +631,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if not attr_values.plain_text:
             return tuple()
@@ -621,6 +647,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         if attr_values.boolean is None:
             return tuple()
@@ -642,6 +669,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         is_date_attr = attribute.input_type == AttributeInputType.DATE
         tz = timezone.utc
@@ -687,6 +715,7 @@ class AttributeAssignmentMixin:
         instance,
         attribute: attribute_models.Attribute,
         attr_values: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         """Lazy-retrieve or create the database objects from the supplied raw values.
 
@@ -721,6 +750,7 @@ class AttributeAssignmentMixin:
         instance: T_INSTANCE,
         attribute: attribute_models.Attribute,
         attr_value: AttrValuesInput,
+        attr_and_value_slugs_map,
     ):
         """Create database file attribute value object from the supplied value.
 

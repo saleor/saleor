@@ -19429,7 +19429,11 @@ input AttributeValueInput @doc(category: "Attributes") {
 }
 
 """
-Represents attribute value. If no ID or external reference provided, value will be resolved. If externalReference and value is provided then new attribute value will be created.
+Represents attribute value.
+1. If ID is provided, then attribute value will be resolved by ID.
+2. If externalReference is provided, then attribute value will be resolved by external reference.
+3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
+4. If externalReference and value is provided then new attribute value will be created.
 
 Added in Saleor 3.9.
 """

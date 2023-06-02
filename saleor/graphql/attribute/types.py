@@ -415,8 +415,13 @@ class AttributeValueSelectableTypeInput(BaseInputObjectType):
 
     class Meta:
         description = (
-            "Represents attribute value. If no ID or external reference provided, "
-            "value will be resolved. If externalReference and value is provided then "
+            "Represents attribute value.\n"
+            "1. If ID is provided, then attribute value will be resolved by ID.\n"
+            "2. If externalReference is provided, then attribute value will be "
+            "resolved by external reference.\n"
+            "3. If value is provided, then attribute value will be resolved by value. "
+            "If this attribute value doesn't exist, then it will be created.\n"
+            "4. If externalReference and value is provided then "
             "new attribute value will be created." + ADDED_IN_39
         )
         doc_category = DOC_CATEGORY_ATTRIBUTES
