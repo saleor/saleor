@@ -1,7 +1,9 @@
 import graphene
 
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
+from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
+from .enums import RewardValueTypeEnum
 
 
 class ProductVariantPredicateInput(BaseInputObjectType):
@@ -81,3 +83,25 @@ class CataloguePredicateInput(PredicateInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_DISCOUNTS
+
+
+class PromotionRuleBaseInput(BaseInputObjectType):
+    name = graphene.String(description="Promotion rule name.")
+    description = JSON(description="Promotion rule description.")
+    catalogue_predicate = CataloguePredicateInput(
+        description=(
+            "Defines the conditions on the catalogue level that must be met "
+            "for the reward to be applied."
+        ),
+    )
+    reward_value_type = RewardValueTypeEnum(
+        description=(
+            "Defines the promotion rule reward value type. "
+            "Must be provided together with reward value."
+        ),
+    )
+    reward_value = PositiveDecimal(
+        description=(
+            "Defines the discount value. Required when catalogue predicate is provided."
+        ),
+    )
