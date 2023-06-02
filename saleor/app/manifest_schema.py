@@ -69,24 +69,34 @@ class SubscriptionQuery(SubscriptionQueryBase, ConstrainedStr):
         return query
 
 
-PermissionChoice = Enum(  # type: ignore[misc]
-    "PermissionChoice", [(p, p) for p, _ in get_permissions_enum_list()]
+Permission = Enum(  # type: ignore[misc]
+    "Permission", [(p, p) for p, _ in get_permissions_enum_list()]
 )
 
-AppExtensionTargets = Enum(  # type: ignore[misc]
-    "AppExtensionTargets", [(m, m.upper()) for m, _ in AppExtensionTarget.CHOICES]
+AppExtensionTargetEnum = Enum(  # type: ignore[misc]
+    "AppExtensionTargetEnum", [(m, m.upper()) for m, _ in AppExtensionTarget.CHOICES]
+)
+AppExtensionTargetEnum.__doc__ = AppExtensionTarget.__doc__
+
+AppExtensionMountEnum = Enum(  # type: ignore[misc]
+    "AppExtensionMountEnum", [(m, m.upper()) for m, _ in AppExtensionMount.CHOICES]
+)
+AppExtensionMountEnum.__doc__ = AppExtensionMount.__doc__
+
+WebhookEventTypeAsyncEnum = Enum(  # type: ignore[misc]
+    "WebhookEventTypeAsyncEnum",
+    [(m, m.upper()) for m, _ in WebhookEventAsyncType.CHOICES],
+)
+WebhookEventTypeAsyncEnum.__doc__ = (
+    "The asynchronous events that webhook wants to subscribe."
 )
 
-AppExtensionMounts = Enum(  # type: ignore[misc]
-    "AppExtensionMounts", [(m, m.upper()) for m, _ in AppExtensionMount.CHOICES]
+WebhookEventTypeSyncEnum = Enum(  # type: ignore[misc]
+    "WebhookEventTypeSyncEnum",
+    [(m, m.upper()) for m, _ in WebhookEventSyncType.CHOICES],
 )
-
-AsyncEventTypes = Enum(  # type: ignore[misc]
-    "AsyncEventTypes", [(m, m.upper()) for m, _ in WebhookEventAsyncType.CHOICES]
-)
-
-SyncEventTypes = Enum(  # type: ignore[misc]
-    "SyncEventTypes", [(m, m.upper()) for m, _ in WebhookEventSyncType.CHOICES]
+WebhookEventTypeSyncEnum.__doc__ = (
+    "The synchronous events that webhook wants to subscribe."
 )
 
 
@@ -115,8 +125,8 @@ class Webhook(ValidationErrorSchema):
     is_active: bool = True
     target_url: WebhookTargetUrl
     query: SubscriptionQuery
-    async_events: list[AsyncEventTypes] = []
-    sync_events: list[SyncEventTypes] = []
+    async_events: list[WebhookEventTypeAsyncEnum] = []
+    sync_events: list[WebhookEventTypeSyncEnum] = []
     custom_headers: Dict[str, str] = {}
 
     @property
@@ -153,10 +163,10 @@ class UrlPathStr(ConstrainedStr):
 
 class Extension(ValidationErrorSchema):
     label: Annotated[str, Field(max_length=256)]
-    target: AppExtensionTargets = AppExtensionTargets[AppExtensionTarget.POPUP]
-    mount: AppExtensionMounts
+    target: AppExtensionTargetEnum = AppExtensionTargetEnum[AppExtensionTarget.POPUP]
+    mount: AppExtensionMountEnum
     url: Union[AnyHttpUrl, UrlPathStr]
-    permissions: list[PermissionChoice] = []
+    permissions: list[Permission] = []
 
     class Config(ValidationErrorConfig):
         field_errors_map = {
@@ -168,10 +178,10 @@ class Extension(ValidationErrorSchema):
 
     @validator("url")
     def validate_url(cls, v: str, values, **kwargs):
-        target = cast(AppExtensionTargets, values.get("target"))
+        target = cast(AppExtensionTargetEnum, values.get("target"))
         if (
             not v.startswith("/")
-            and target == AppExtensionTargets[AppExtensionTarget.APP_PAGE]
+            and target == AppExtensionTargetEnum[AppExtensionTarget.APP_PAGE]
         ):
             msg = "Url cannot start with protocol when target == APP_PAGE"
             raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
@@ -249,7 +259,7 @@ class Manifest(ValidationErrorSchema):
     ] = None
     audience: Annotated[Optional[str], Field(max_length=256)] = None
     permissions: Annotated[
-        list[PermissionChoice],
+        list[Permission],
         Field(description="Array of permissions requested by the app"),
     ] = []
     webhooks: Annotated[
@@ -274,7 +284,6 @@ class Manifest(ValidationErrorSchema):
                 "msg": "Given permission don't exist.",
             }
         }
-        # fields = manifest_fields_schema_extra
 
     @validator("extensions", each_item=True)
     def validate_extension(cls, v: Extension, values, **kwargs):
@@ -288,7 +297,7 @@ class Manifest(ValidationErrorSchema):
         app_url = values.get("app_url", [])
         if (
             v.url.startswith("/")
-            and v.target != AppExtensionTargets[AppExtensionTarget.APP_PAGE]
+            and v.target != AppExtensionTargetEnum[AppExtensionTarget.APP_PAGE]
             and not app_url
         ):
             msg = (

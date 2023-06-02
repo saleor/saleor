@@ -1,8 +1,8 @@
 {
   "title": "Saleor JSON-schema",
   "definitions": {
-    "PermissionChoice": {
-      "title": "PermissionChoice",
+    "Permission": {
+      "title": "Permission",
       "description": "An enumeration.",
       "enum": [
         "MANAGE_USERS",
@@ -31,9 +31,9 @@
         "MANAGE_TRANSLATIONS"
       ]
     },
-    "AsyncEventTypes": {
-      "title": "AsyncEventTypes",
-      "description": "An enumeration.",
+    "WebhookEventTypeAsyncEnum": {
+      "title": "WebhookEventTypeAsyncEnum",
+      "description": "The asynchronous events that webhook wants to subscribe.",
       "enum": [
         "ANY_EVENTS",
         "ADDRESS_CREATED",
@@ -156,9 +156,9 @@
         "THUMBNAIL_CREATED"
       ]
     },
-    "SyncEventTypes": {
-      "title": "SyncEventTypes",
-      "description": "An enumeration.",
+    "WebhookEventTypeSyncEnum": {
+      "title": "WebhookEventTypeSyncEnum",
+      "description": "The synchronous events that webhook wants to subscribe.",
       "enum": [
         "PAYMENT_AUTHORIZE",
         "PAYMENT_CAPTURE",
@@ -205,14 +205,14 @@
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/definitions/AsyncEventTypes"
+            "$ref": "#/definitions/WebhookEventTypeAsyncEnum"
           }
         },
         "syncEvents": {
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SyncEventTypes"
+            "$ref": "#/definitions/WebhookEventTypeSyncEnum"
           }
         },
         "customHeaders": {
@@ -229,17 +229,17 @@
         "query"
       ]
     },
-    "AppExtensionTargets": {
-      "title": "AppExtensionTargets",
-      "description": "An enumeration.",
+    "AppExtensionTargetEnum": {
+      "title": "AppExtensionTargetEnum",
+      "description": "All available ways of opening an app extension.\n\nPOPUP - app's extension will be mounted as a popup window\nAPP_PAGE - redirect to app's page",
       "enum": [
         "POPUP",
         "APP_PAGE"
       ]
     },
-    "AppExtensionMounts": {
-      "title": "AppExtensionMounts",
-      "description": "An enumeration.",
+    "AppExtensionMountEnum": {
+      "title": "AppExtensionMountEnum",
+      "description": "All places where app extension can be mounted.",
       "enum": [
         "CUSTOMER_OVERVIEW_CREATE",
         "CUSTOMER_OVERVIEW_MORE_ACTIONS",
@@ -270,12 +270,12 @@
           "default": "POPUP",
           "allOf": [
             {
-              "$ref": "#/definitions/AppExtensionTargets"
+              "$ref": "#/definitions/AppExtensionTargetEnum"
             }
           ]
         },
         "mount": {
-          "$ref": "#/definitions/AppExtensionMounts"
+          "$ref": "#/definitions/AppExtensionMountEnum"
         },
         "url": {
           "anyOf": [
@@ -295,7 +295,7 @@
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/definitions/PermissionChoice"
+            "$ref": "#/definitions/Permission"
           }
         }
       },
@@ -393,7 +393,7 @@
           "default": [],
           "type": "array",
           "items": {
-            "$ref": "#/definitions/PermissionChoice"
+            "$ref": "#/definitions/Permission"
           }
         },
         "webhooks": {
