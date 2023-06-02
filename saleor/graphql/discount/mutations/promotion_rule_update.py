@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
-from ....core.tracing import traced_atomic_transaction
 from ....discount import models
 from ....permission.enums import DiscountPermissions
 from ...core import ResolveInfo
@@ -72,7 +72,7 @@ class PromotionRuleUpdate(ModelMutation):
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
-        with traced_atomic_transaction():
+        with transaction.atomic():
             super()._save_m2m(info, instance, cleaned_data)
             if remove_channels := cleaned_data.get("remove_channels"):
                 instance.channels.remove(*remove_channels)
