@@ -28966,6 +28966,94 @@ type SaleToggle implements Event @doc(category: "Discounts") {
 }
 
 """
+Event sent when new promotion is created.
+
+Added in Saleor 3.15.
+"""
+type PromotionCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+Event sent when promotion is updated.
+
+Added in Saleor 3.15.
+"""
+type PromotionUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+Event sent when promotion is deleted.
+
+Added in Saleor 3.15.
+"""
+type PromotionDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+The event informs about the start or end of the promotion.
+
+Added in Saleor 3.15.
+"""
+type PromotionToggle implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
 Event sent when invoice is requested.
 
 Added in Saleor 3.2.

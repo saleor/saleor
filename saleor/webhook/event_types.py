@@ -86,6 +86,11 @@ class WebhookEventAsyncType:
     SALE_DELETED = "sale_deleted"
     SALE_TOGGLE = "sale_toggle"
 
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_DELETED = "promotion_deleted"
+    PROMOTION_TOGGLE = "promotion_toggle"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
