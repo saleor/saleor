@@ -13,6 +13,9 @@ from .filters import SaleFilter, VoucherFilter
 from .mutations import (
     PromotionCreate,
     PromotionDelete,
+    PromotionRuleCreate,
+    PromotionRuleDelete,
+    PromotionRuleUpdate,
     PromotionUpdate,
     SaleAddCatalogues,
     SaleChannelListingUpdate,
@@ -168,6 +171,9 @@ class DiscountMutations(graphene.ObjectType):
     promotion_create = PromotionCreate.Field()
     promotion_update = PromotionUpdate.Field()
     promotion_delete = PromotionDelete.Field()
+    promotion_rule_create = PromotionRuleCreate.Field()
+    promotion_rule_update = PromotionRuleUpdate.Field()
+    promotion_rule_delete = PromotionRuleDelete.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
