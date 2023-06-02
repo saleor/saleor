@@ -48,6 +48,7 @@ from .bulk_mutations import (
 from .filters import (
     CategoryFilterInput,
     CollectionFilterInput,
+    CollectionWhereInput,
     ProductFilterInput,
     ProductTypeFilterInput,
     ProductVariantFilterInput,
@@ -209,6 +210,9 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
+        where=CollectionWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
             "List of the shop's collections. Requires one of the following permissions "
@@ -308,10 +312,10 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
         ),
-        sort_by=ProductVariantSortingInput(description="Sort products variants."),
         where=ProductVariantWhereInput(
             description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
         ),
+        sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
             "List of product variants. Requires one of the following permissions to "
             "include the unpublished items: "

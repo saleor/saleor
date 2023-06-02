@@ -1072,6 +1072,14 @@ class CollectionFilter(MetadataFilterBase):
         return queryset
 
 
+class CollectionWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Collection"))
+
+    class Meta:
+        model = Collection
+        fields = []
+
+
 class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
@@ -1146,6 +1154,12 @@ class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionFilter
+
+
+class CollectionWhereInput(ChannelFilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = CollectionWhere
 
 
 class CategoryFilterInput(FilterInputObjectType):

@@ -397,6 +397,15 @@ type Query {
     """Filtering options for collections."""
     filter: CollectionFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CollectionWhereInput
+
     """Sort collections."""
     sortBy: CollectionSortingInput
 
@@ -552,9 +561,6 @@ type Query {
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
 
-    """Sort products variants."""
-    sortBy: ProductVariantSortingInput
-
     """
     Where filtering options.
     
@@ -563,6 +569,9 @@ type Query {
     Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     where: ProductVariantWhereInput
+
+    """Sort products variants."""
+    sortBy: ProductVariantSortingInput
 
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -12057,6 +12066,18 @@ enum CollectionPublished @doc(category: "Products") {
   HIDDEN
 }
 
+input CollectionWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """
+  Specifies the channel by which the data should be filtered. 
+  
+  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
+  """
+  channel: String
+}
+
 input CollectionSortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort collections."""
   direction: OrderDirection!
@@ -12148,6 +12169,11 @@ input ProductVariantFilterInput @doc(category: "Products") {
   updatedAt: DateTimeRangeInput
 }
 
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+}
+
 input ProductVariantSortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort productVariants."""
   direction: OrderDirection!
@@ -12159,11 +12185,6 @@ input ProductVariantSortingInput @doc(category: "Products") {
 enum ProductVariantSortField @doc(category: "Products") {
   """Sort products variants by last modified at."""
   LAST_MODIFIED_AT
-}
-
-input ProductVariantWhereInput @doc(category: "Products") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
 }
 
 type PaymentCountableConnection @doc(category: "Payments") {

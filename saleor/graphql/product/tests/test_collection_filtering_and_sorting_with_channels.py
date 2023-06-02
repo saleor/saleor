@@ -1,5 +1,6 @@
 import datetime
 
+import graphene
 import pytest
 import pytz
 
@@ -386,3 +387,39 @@ def test_collections_with_filtering_and_not_existing_channel(
     content = get_graphql_content(response)
     collections_nodes = content["data"]["collections"]["edges"]
     assert len(collections_nodes) == 0
+
+
+COLLECTION_WHERE_QUERY = """
+    query($where: CollectionWhereInput!, $channel: String) {
+      collections(first: 10, where: $where, channel: $channel) {
+        edges {
+          node {
+            id
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+def test_collections_where_by_ids(api_client, collection_list, channel_USD):
+    # given
+    ids = [
+        graphene.Node.to_global_id("Collection", collection.pk)
+        for collection in collection_list[:2]
+    ]
+    variables = {"channel": channel_USD.slug, "where": {"ids": ids}}
+
+    # when
+    response = api_client.post_graphql(COLLECTION_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    collections = data["data"]["collections"]["edges"]
+    assert len(collections) == 2
+    returned_slugs = {node["node"]["slug"] for node in collections}
+    assert returned_slugs == {
+        collection_list[0].slug,
+        collection_list[1].slug,
+    }
