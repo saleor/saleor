@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from pydantic import BaseConfig, BaseModel
+from pydantic import BaseConfig, BaseModel, ConstrainedDecimal
 from pydantic import ValidationError
 from pydantic import ValidationError as PydanticValidationError
 from pydantic.error_wrappers import ErrorWrapper
@@ -16,6 +16,13 @@ Model = TypeVar("Model", bound="BaseModel")
 def to_camel(snake_str: str) -> str:
     components = snake_str.split("_")
     return components[0] + "".join(word.capitalize() for word in components[1:])
+
+
+class DecimalType(ConstrainedDecimal):
+    @classmethod
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
+        super().__modify_schema__(field_schema)
+        field_schema["type"] = ["number", "string"]
 
 
 class ErrorMapping(TypedDict, total=False):

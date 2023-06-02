@@ -6,7 +6,7 @@ from typing import List
 
 from prices import Money, TaxedMoney
 
-from ..core.schema import BaseSchema
+from ..core.schema import BaseSchema, DecimalType
 
 
 class TaxError(Exception):
@@ -41,13 +41,13 @@ class WebhookResponseBase(BaseSchema):
 
 
 class TaxLineData(WebhookResponseBase):
-    tax_rate: Decimal
-    total_gross_amount: Decimal
-    total_net_amount: Decimal
+    tax_rate: DecimalType
+    total_gross_amount: DecimalType
+    total_net_amount: DecimalType
 
 
 class TaxData(WebhookResponseBase):
-    shipping_price_gross_amount: Decimal
-    shipping_price_net_amount: Decimal
-    shipping_tax_rate: Decimal
+    shipping_price_gross_amount: DecimalType
+    shipping_price_net_amount: DecimalType
+    shipping_tax_rate: DecimalType
     lines: List[TaxLineData]

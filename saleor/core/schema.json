@@ -425,13 +425,22 @@
       "type": "object",
       "properties": {
         "tax_rate": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         },
         "total_gross_amount": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         },
         "total_net_amount": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         }
       },
       "required": [
@@ -445,13 +454,22 @@
       "type": "object",
       "properties": {
         "shipping_price_gross_amount": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         },
         "shipping_price_net_amount": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         },
         "shipping_tax_rate": {
-          "type": "number"
+          "type": [
+            "number",
+            "string"
+          ]
         },
         "lines": {
           "type": "array",
