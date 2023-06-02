@@ -14,13 +14,13 @@ from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
-from ....core.scalars import JSON, PositiveDecimal
+from ....core.scalars import JSON
 from ....core.types import BaseInputObjectType, Error, NonNullList
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....utils import get_nodes
-from ...enums import PromotionCreateErrorCode, RewardValueTypeEnum
-from ...inputs import CataloguePredicateInput
+from ...enums import PromotionCreateErrorCode
+from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
 from ...utils import clean_predicate
 
@@ -32,29 +32,10 @@ class PromotionCreateError(Error):
     )
 
 
-class PromotionRuleInput(BaseInputObjectType):
-    name = graphene.String(description="Promotion rule name.")
-    description = JSON(description="Promotion rule description.")
+class PromotionRuleInput(PromotionRuleBaseInput):
     channels = NonNullList(
         graphene.ID,
         description="List of channel ids to which the rule should apply to.",
-    )
-    catalogue_predicate = CataloguePredicateInput(
-        description=(
-            "Defines the conditions on the catalogue level that must be met "
-            "for the reward to be applied."
-        ),
-    )
-    reward_value_type = RewardValueTypeEnum(
-        description=(
-            "Defines the promotion rule reward value type. "
-            "Must be provided together with reward value."
-        ),
-    )
-    reward_value = PositiveDecimal(
-        description=(
-            "Defines the discount value. Required when catalogue predicate is provided."
-        ),
     )
 
     class Meta:
