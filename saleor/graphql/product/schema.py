@@ -47,10 +47,13 @@ from .bulk_mutations import (
 )
 from .filters import (
     CategoryFilterInput,
+    CategoryWhereInput,
     CollectionFilterInput,
+    CollectionWhereInput,
     ProductFilterInput,
     ProductTypeFilterInput,
     ProductVariantFilterInput,
+    ProductVariantWhereInput,
     ProductWhereInput,
 )
 from .mutations import (
@@ -173,6 +176,9 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
+        where=CategoryWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,
@@ -208,6 +214,9 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
+        where=CollectionWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
             "List of the shop's collections. Requires one of the following permissions "
@@ -306,6 +315,9 @@ class ProductQueries(graphene.ObjectType):
         ),
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
+        ),
+        where=ProductVariantWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
         ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
