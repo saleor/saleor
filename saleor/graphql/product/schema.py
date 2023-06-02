@@ -51,6 +51,7 @@ from .filters import (
     ProductFilterInput,
     ProductTypeFilterInput,
     ProductVariantFilterInput,
+    ProductVariantWhereInput,
     ProductWhereInput,
 )
 from .mutations import (
@@ -308,6 +309,9 @@ class ProductQueries(graphene.ObjectType):
             description="Filtering options for product variant."
         ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
+        where=ProductVariantWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         description=(
             "List of product variants. Requires one of the following permissions to "
             "include the unpublished items: "

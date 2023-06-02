@@ -1037,6 +1037,14 @@ class ProductVariantFilter(MetadataFilterBase):
         return queryset.filter(qs)
 
 
+class ProductVariantWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("ProductVariant"))
+
+    class Meta:
+        model = ProductVariant
+        fields = []
+
+
 class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
@@ -1126,6 +1134,12 @@ class ProductVariantFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductVariantFilter
+
+
+class ProductVariantWhereInput(FilterInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = ProductVariantWhere
 
 
 class CollectionFilterInput(ChannelFilterInputObjectType):

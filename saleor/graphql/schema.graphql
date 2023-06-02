@@ -555,6 +555,15 @@ type Query {
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductVariantWhereInput
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -12150,6 +12159,11 @@ input ProductVariantSortingInput @doc(category: "Products") {
 enum ProductVariantSortField @doc(category: "Products") {
   """Sort products variants by last modified at."""
   LAST_MODIFIED_AT
+}
+
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
 }
 
 type PaymentCountableConnection @doc(category: "Payments") {
