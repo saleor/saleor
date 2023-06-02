@@ -1298,7 +1298,7 @@ class Order(ModelObjectType):
                 root, manager, lines
             ) or Decimal(0)
 
-        lines = OrderLinesByOrderIdLoader(info.context)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 

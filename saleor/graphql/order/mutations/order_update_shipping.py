@@ -2,7 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....core.permissions import OrderPermissions
-from ....order import models
+from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ....shipping import models as shipping_models
 from ....shipping.utils import convert_to_shipping_method_data
@@ -119,7 +119,8 @@ class OrderUpdateShipping(
             shipping_channel_listing,
         )
         manager = get_plugin_manager_promise(info.context).get()
-        clean_order_update_shipping(order, shipping_method_data, manager)
+        if order.status != OrderStatus.DRAFT:
+            clean_order_update_shipping(order, shipping_method_data, manager)
         cls.update_shipping_method(order, method, shipping_channel_listing)
 
         order.save(update_fields=SHIPPING_METHOD_UPDATE_FIELDS)
