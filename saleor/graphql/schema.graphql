@@ -16952,6 +16952,51 @@ type Mutation {
   ): PromotionDelete @doc(category: "Discounts")
 
   """
+  Creates a new promotion rule.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionRuleCreate(
+    """Fields required to create a promotion rule."""
+    input: PromotionRuleCreateInput!
+  ): PromotionRuleCreate @doc(category: "Discounts")
+
+  """
+  Updates an existing promotion rule.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionRuleUpdate(
+    """ID of the promotion rule to update."""
+    id: ID!
+
+    """Fields required to create a promotion rule."""
+    input: PromotionRuleUpdateInput!
+  ): PromotionRuleUpdate @doc(category: "Discounts")
+
+  """
+  Deletes a promotion rule.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotionRuleDelete(
+    """The ID of the promotion to remove."""
+    id: ID!
+  ): PromotionRuleDelete @doc(category: "Discounts")
+
+  """
   Creates a new sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -26073,9 +26118,6 @@ input PromotionRuleInput @doc(category: "Discounts") {
   """Promotion rule description."""
   description: JSON
 
-  """List of channel ids to which the rule should apply to."""
-  channels: [ID!]
-
   """
   Defines the conditions on the catalogue level that must be met for the reward to be applied.
   """
@@ -26090,6 +26132,9 @@ input PromotionRuleInput @doc(category: "Discounts") {
   Defines the discount value. Required when catalogue predicate is provided.
   """
   rewardValue: PositiveDecimal
+
+  """List of channel ids to which the rule should apply to."""
+  channels: [ID!]
 }
 
 input CataloguePredicateInput @doc(category: "Discounts") {
@@ -26210,6 +26255,169 @@ type PromotionDeleteError {
 
 """An enumeration."""
 enum PromotionDeleteErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+"""
+Creates a new promotion rule.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionRuleCreate @doc(category: "Discounts") {
+  errors: [PromotionRuleCreateError!]!
+  promotionRule: PromotionRule
+}
+
+type PromotionRuleCreateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionRuleCreateErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionRuleCreateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+  INVALID
+}
+
+input PromotionRuleCreateInput {
+  """Promotion rule name."""
+  name: String
+
+  """Promotion rule description."""
+  description: JSON
+
+  """
+  Defines the conditions on the catalogue level that must be met for the reward to be applied.
+  """
+  cataloguePredicate: CataloguePredicateInput
+
+  """
+  Defines the promotion rule reward value type. Must be provided together with reward value.
+  """
+  rewardValueType: RewardValueTypeEnum
+
+  """
+  Defines the discount value. Required when catalogue predicate is provided.
+  """
+  rewardValue: PositiveDecimal
+
+  """List of channel ids to which the rule should apply to."""
+  channels: [ID!]
+
+  """The ID of the promotion that rule belongs to."""
+  promotion: ID!
+}
+
+"""
+Updates an existing promotion rule.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionRuleUpdate @doc(category: "Discounts") {
+  errors: [PromotionRuleUpdateError!]!
+  promotionRule: PromotionRule
+}
+
+type PromotionRuleUpdateError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionRuleUpdateErrorCode!
+
+  """List of channel IDs which causes the error."""
+  channels: [ID!]
+}
+
+"""An enumeration."""
+enum PromotionRuleUpdateErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  DUPLICATED_INPUT_ITEM
+}
+
+input PromotionRuleUpdateInput {
+  """Promotion rule name."""
+  name: String
+
+  """Promotion rule description."""
+  description: JSON
+
+  """
+  Defines the conditions on the catalogue level that must be met for the reward to be applied.
+  """
+  cataloguePredicate: CataloguePredicateInput
+
+  """
+  Defines the promotion rule reward value type. Must be provided together with reward value.
+  """
+  rewardValueType: RewardValueTypeEnum
+
+  """
+  Defines the discount value. Required when catalogue predicate is provided.
+  """
+  rewardValue: PositiveDecimal
+
+  """List of channel ids to remove."""
+  addChannels: [ID!]
+
+  """List of channel ids to remove."""
+  removeChannels: [ID!]
+}
+
+"""
+Deletes a promotion rule.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_DISCOUNTS.
+"""
+type PromotionRuleDelete @doc(category: "Discounts") {
+  errors: [PromotionRuleDeleteError!]!
+  promotionRule: PromotionRule
+}
+
+type PromotionRuleDeleteError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: PromotionRuleDeleteErrorCode!
+}
+
+"""An enumeration."""
+enum PromotionRuleDeleteErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
 }
