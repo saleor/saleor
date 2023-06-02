@@ -1102,6 +1102,14 @@ class CategoryFilter(MetadataFilterBase):
         return queryset.filter(name_slug_desc_qs)
 
 
+class CategoryWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Category"))
+
+    class Meta:
+        model = Category
+        fields = []
+
+
 class ProductTypeFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="filter_product_type_searchable")
 
@@ -1144,7 +1152,7 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
-class ProductVariantWhereInput(FilterInputObjectType):
+class ProductVariantWhereInput(WhereInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = ProductVariantWhere
@@ -1156,7 +1164,7 @@ class CollectionFilterInput(ChannelFilterInputObjectType):
         filterset_class = CollectionFilter
 
 
-class CollectionWhereInput(ChannelFilterInputObjectType):
+class CollectionWhereInput(WhereInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionWhere
@@ -1166,6 +1174,12 @@ class CategoryFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CategoryFilter
+
+
+class CategoryWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = CategoryWhere
 
 
 class ProductTypeFilterInput(FilterInputObjectType):

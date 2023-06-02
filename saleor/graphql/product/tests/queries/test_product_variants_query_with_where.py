@@ -23,7 +23,7 @@ def test_product_variant_filter_by_ids(api_client, product_variant_list, channel
         graphene.Node.to_global_id("ProductVariant", variant.pk)
         for variant in product_variant_list[:2]
     ]
-    variables = {"channel": channel_USD.slug, "where": {"ids": ids}}
+    variables = {"channel": channel_USD.slug, "where": {"AND": [{"ids": ids}]}}
 
     # when
     response = api_client.post_graphql(PRODUCT_VARIANTS_WHERE_QUERY, variables)

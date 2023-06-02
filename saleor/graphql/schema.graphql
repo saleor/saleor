@@ -344,6 +344,15 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CategoryWhereInput
+
     """Sort categories."""
     sortBy: CategorySortingInput
 
@@ -12020,6 +12029,17 @@ input CategoryFilterInput @doc(category: "Products") {
   slugs: [String!]
 }
 
+input CategoryWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CategoryWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CategoryWhereInput!]
+}
+
 input CategorySortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort categories."""
   direction: OrderDirection!
@@ -12070,12 +12090,11 @@ input CollectionWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   ids: [ID!]
 
-  """
-  Specifies the channel by which the data should be filtered. 
-  
-  DEPRECATED: this field will be removed in Saleor 4.0. Use root-level channel argument instead.
-  """
-  channel: String
+  """List of conditions that must be met."""
+  AND: [CollectionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CollectionWhereInput!]
 }
 
 input CollectionSortingInput @doc(category: "Products") {
@@ -12172,6 +12191,12 @@ input ProductVariantFilterInput @doc(category: "Products") {
 input ProductVariantWhereInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [ProductVariantWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductVariantWhereInput!]
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {

@@ -47,6 +47,7 @@ from .bulk_mutations import (
 )
 from .filters import (
     CategoryFilterInput,
+    CategoryWhereInput,
     CollectionFilterInput,
     CollectionWhereInput,
     ProductFilterInput,
@@ -175,6 +176,9 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
+        where=CategoryWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,

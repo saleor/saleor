@@ -409,7 +409,7 @@ def test_collections_where_by_ids(api_client, collection_list, channel_USD):
         graphene.Node.to_global_id("Collection", collection.pk)
         for collection in collection_list[:2]
     ]
-    variables = {"channel": channel_USD.slug, "where": {"ids": ids}}
+    variables = {"channel": channel_USD.slug, "where": {"AND": [{"ids": ids}]}}
 
     # when
     response = api_client.post_graphql(COLLECTION_WHERE_QUERY, variables)
