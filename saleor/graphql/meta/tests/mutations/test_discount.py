@@ -144,3 +144,75 @@ def test_add_private_metadata_for_voucher(
     assert item_contains_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], voucher, voucher_id
     )
+
+
+def test_add_public_metadata_for_promotion(
+    staff_api_client, permission_manage_discounts, promotion
+):
+    # given
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        staff_api_client, permission_manage_discounts, promotion_id, "Promotion"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], promotion, promotion_id
+    )
+
+
+def test_delete_public_metadata_for_promotion(
+    staff_api_client, permission_manage_discounts, promotion
+):
+    # given
+    promotion.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
+    promotion.save(update_fields=["metadata"])
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_discounts, promotion_id, "Promotion"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], promotion, promotion_id
+    )
+
+
+def test_add_private_metadata_for_promotion(
+    staff_api_client, permission_manage_discounts, promotion
+):
+    # given
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_discounts, promotion_id, "Promotion"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], promotion, promotion_id
+    )
+
+
+def test_delete_private_metadata_for_promotion(
+    staff_api_client, permission_manage_discounts, promotion
+):
+    # given
+    promotion.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
+    promotion.save(update_fields=["private_metadata"])
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_discounts, promotion_id, "Promotion"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMetadata"]["item"], promotion, promotion_id
+    )
