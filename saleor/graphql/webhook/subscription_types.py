@@ -43,6 +43,7 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import (
     DOC_CATEGORY_CHECKOUT,
+    DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_ORDERS,
     DOC_CATEGORY_PAYMENTS,
     DOC_CATEGORY_PRODUCTS,
@@ -567,6 +568,7 @@ class GiftCardSent(SubscriptionObjectType, GiftCardBase):
         description = (
             "Event sent when gift card is e-mailed." + ADDED_IN_313 + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
     @staticmethod
     def resolve_gift_card(root, info: ResolveInfo):

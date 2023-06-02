@@ -27192,7 +27192,7 @@ Added in Saleor 3.13.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type GiftCardSent implements Event {
+type GiftCardSent implements Event @doc(category: "Gift cards") {
   """Time of the event."""
   issuedAt: DateTime
 
