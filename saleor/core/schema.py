@@ -31,7 +31,9 @@ class ErrorMapping(TypedDict, total=False):
     msg: str
 
 
-FIELD_MAPPING_TYPE = list[tuple[tuple[Type[Exception], ...], ErrorMapping]]
+FIELD_MAPPING_TYPE = list[
+    tuple[Union[Type[Exception], tuple[Type[Exception], ...]], ErrorMapping]
+]
 
 
 class SaleorValidationError(ValueError):

@@ -1,6 +1,5 @@
-import re
 from enum import Enum
-from typing import Annotated, Any, Dict, Optional, Union, cast
+from typing import Annotated, Dict, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import AnyUrl, ConstrainedStr, Field, validator
@@ -8,6 +7,7 @@ from pydantic.errors import (
     AnyStrMaxLengthError,
     AnyStrMinLengthError,
     MissingError,
+    StrRegexError,
     UrlError,
 )
 from semantic_version import NpmSpec, Version
@@ -101,6 +101,22 @@ WebhookEventTypeSyncEnum.__doc__ = (
     "The synchronous events that webhook wants to subscribe."
 )
 
+URL_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+    (
+        (AnyStrMinLengthError, AnyStrMaxLengthError),
+        {"code": AppErrorCode.INVALID_URL_FORMAT},
+    )
+]
+PERMISSION_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+    (
+        Exception,
+        {
+            "code": AppErrorCode.INVALID_PERMISSION,
+            "msg": "Given permission don't exist.",
+        },
+    )
+]
+
 
 class AnyHttpUrl(AnyUrl):
     allowed_schemes = {"http", "https"}
@@ -111,23 +127,6 @@ class WebhookTargetUrl(AnyHttpUrl):
     allowed_schemes = {"http", "https", "awssqs", "gcpubsub"}
     tld_required = False
     max_length = 255
-
-
-URL_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
-    (
-        (AnyStrMinLengthError, AnyStrMaxLengthError),
-        {"code": AppErrorCode.INVALID_URL_FORMAT},
-    )
-]
-PERMISSION_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
-    (
-        (Exception,),
-        {
-            "code": AppErrorCode.INVALID_PERMISSION,
-            "msg": "Given permission don't exist.",
-        },
-    )
-]
 
 
 class Webhook(ValidationErrorSchema):
@@ -159,19 +158,13 @@ class Webhook(ValidationErrorSchema):
 class UrlPathStr(ConstrainedStr):
     regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
 
-    @classmethod
-    def validate(cls, value: Any) -> str:
-        if isinstance(value, str):
-            if cls.max_length is None or len(value) <= cls.max_length:
-                if re.match(cls.regex, value):
-                    return value
-        raise SaleorValidationError(
-            msg="Invalid URL path.", code=AppErrorCode.INVALID_URL_FORMAT
-        )
+URL_PATH_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+    (
+        StrRegexError,
+        {"code": AppErrorCode.INVALID_URL_FORMAT, "msg": "Invalid URL path."},
+    )
+]
 
 
 class Extension(ValidationErrorSchema):
@@ -184,7 +177,7 @@ class Extension(ValidationErrorSchema):
     class Config(ValidationErrorConfig):
         field_errors_map = {
             "permissions": PERMISSION_ERROR_MAPPING,
-            "url": URL_ERROR_MAPPING,
+            "url": URL_PATH_ERROR_MAPPING + URL_ERROR_MAPPING,
         }
 
     @validator("url")
