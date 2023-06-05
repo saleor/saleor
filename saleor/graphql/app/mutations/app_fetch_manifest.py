@@ -3,7 +3,7 @@ import requests
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
-from ....app.installation_utils import REQUEST_TIMEOUT
+from ....app.installation_utils import REQUEST_TIMEOUT, fetch_brand_data
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
@@ -12,6 +12,8 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
+
+FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 class AppFetchManifest(BaseMutation):
@@ -77,11 +79,15 @@ class AppFetchManifest(BaseMutation):
             audience=cleaned_data.get("audience"),
             required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
             author=cleaned_data.get("author"),
+            brand=cleaned_data.get("brand"),
         )
 
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
         clean_manifest_data(manifest_data)
+        manifest_data["brand"] = fetch_brand_data(
+            manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
+        )
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(

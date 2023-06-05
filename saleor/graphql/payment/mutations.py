@@ -1365,12 +1365,17 @@ class TransactionRequestAction(BaseMutation):
 
     @classmethod
     def handle_transaction_action(
-        cls, action, action_kwargs, action_value: Optional[Decimal]
+        cls,
+        action,
+        action_kwargs,
+        action_value: Optional[Decimal],
+        user: Optional["User"],
+        app: Optional[App],
     ):
         if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             request_event = cls.create_transaction_event_requested(
-                transaction, 0, action
+                transaction, 0, action, user=user, app=app
             )
             request_cancelation_action(
                 **action_kwargs,
@@ -1383,7 +1388,7 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.authorized_value
             action_value = min(action_value, transaction.authorized_value)
             request_event = cls.create_transaction_event_requested(
-                transaction, action_value, TransactionAction.CHARGE
+                transaction, action_value, TransactionAction.CHARGE, user=user, app=app
             )
             request_charge_action(
                 **action_kwargs, charge_value=action_value, request_event=request_event
@@ -1393,14 +1398,16 @@ class TransactionRequestAction(BaseMutation):
             action_value = action_value or transaction.charged_value
             action_value = min(action_value, transaction.charged_value)
             request_event = cls.create_transaction_event_requested(
-                transaction, action_value, TransactionAction.REFUND
+                transaction, action_value, TransactionAction.REFUND, user=user, app=app
             )
             request_refund_action(
                 **action_kwargs, refund_value=action_value, request_event=request_event
             )
 
     @classmethod
-    def create_transaction_event_requested(cls, transaction, action_value, action):
+    def create_transaction_event_requested(
+        cls, transaction, action_value, action, user=None, app=None
+    ):
         if action in (TransactionAction.CANCEL, TransactionAction.VOID):
             type = TransactionEventType.CANCEL_REQUEST
         elif action == TransactionAction.CHARGE:
@@ -1420,6 +1427,9 @@ class TransactionRequestAction(BaseMutation):
             amount_value=action_value,
             currency=transaction.currency,
             type=type,
+            user=user,
+            app=app,
+            app_identifier=app.identifier if app else None,
         )
 
     @classmethod
@@ -1436,18 +1446,21 @@ class TransactionRequestAction(BaseMutation):
             channel = checkout.channel
         cls.check_channel_permissions(info, [channel.id])
         channel_slug = channel.slug
+        user = info.context.user
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
         action_kwargs = {
             "channel_slug": channel_slug,
-            "user": info.context.user,
+            "user": user,
             "app": app,
             "transaction": transaction,
             "manager": manager,
         }
 
         try:
-            cls.handle_transaction_action(action_type, action_kwargs, action_value)
+            cls.handle_transaction_action(
+                action_type, action_kwargs, action_value, user, app
+            )
         except PaymentError as e:
             error_enum = TransactionRequestActionErrorCode
             code = error_enum.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value

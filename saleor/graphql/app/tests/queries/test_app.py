@@ -5,6 +5,8 @@ from freezegun import freeze_time
 from .....app.models import App
 from .....app.types import AppType
 from .....core.jwt import create_access_token_for_app, jwt_decode
+from .....thumbnail import IconThumbnailFormat
+from .....thumbnail.models import Thumbnail
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 QUERY_APP = """
@@ -41,6 +43,11 @@ QUERY_APP = """
                 target
                 permissions{
                     code
+                }
+            }
+            brand{
+                logo{
+                    default
                 }
             }
             metafield(key: "test")
@@ -108,6 +115,7 @@ def test_app_query(
     assert app_data["configurationUrl"] == app.configuration_url
     assert app_data["appUrl"] == app.app_url
     assert app_data["author"] == app.author
+    assert app_data["brand"] is None
     if app_type == "external":
         assert app_data["accessToken"] == create_access_token_for_app(
             app, staff_api_client.user
@@ -335,7 +343,7 @@ def test_app_query_pending_installation(staff_api_client, app):
 
 
 QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
-    query ($id: ID){
+    query ($id: ID, $size: Int, $format: IconThumbnailFormatEnum){
         app(id: $id){
             id
             created
@@ -353,6 +361,11 @@ QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS = """
             configurationUrl
             appUrl
             accessToken
+            brand{
+                logo{
+                    default(size: $size, format: $format)
+                }
+            }
             extensions{
                 id
                 label
@@ -443,6 +456,83 @@ def test_app_query_access_token_with_audience(
 
     decoded_token = jwt_decode(app_data["accessToken"])
     assert decoded_token["aud"] == app.audience
+
+
+@pytest.mark.parametrize(
+    "format",
+    (
+        None,
+        IconThumbnailFormat.WEBP,
+        IconThumbnailFormat.ORIGINAL,
+    ),
+)
+@pytest.mark.parametrize("thumbnail_exists", (True, False))
+def test_app_query_logo_thumbnail_with_size_and_format_url_returned(
+    thumbnail_exists,
+    format,
+    staff_api_client,
+    app,
+    site_settings,
+    icon_image,
+    media_root,
+):
+    # given
+    app.brand_logo_default = icon_image
+    app.save()
+    id = graphene.Node.to_global_id("App", app.id)
+    media_id = graphene.Node.to_global_id("App", app.uuid)
+    domain = site_settings.site.domain
+    if thumbnail_exists:
+        thumbnail = Thumbnail.objects.create(
+            app=app,
+            size=128,
+            format=format or IconThumbnailFormat.ORIGINAL,
+            image=icon_image,
+        )
+        expected_url = f"http://{domain}/media/{thumbnail.image.name}"
+    else:
+        expected_url = f"http://{domain}/thumbnail/{media_id}/128/"
+        if format not in [None, IconThumbnailFormat.ORIGINAL]:
+            expected_url += f"{format}/"
+    variables = {"id": id, "size": 120, "format": format.upper() if format else None}
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+        variables,
+    )
+    # then
+    content = get_graphql_content(response)
+    thumbnail_url = content["data"]["app"]["brand"]["logo"]["default"]
+    assert thumbnail_url == expected_url
+
+
+@pytest.mark.parametrize(
+    "format",
+    (
+        None,
+        IconThumbnailFormat.WEBP,
+        IconThumbnailFormat.ORIGINAL,
+    ),
+)
+def test_app_query_logo_thumbnail_with_zero_size_value_original_image_url_returned(
+    format, staff_api_client, app, site_settings, icon_image, media_root
+):
+    # given
+    app.brand_logo_default = icon_image
+    app.save()
+    id = graphene.Node.to_global_id("App", app.id)
+    domain = site_settings.site.domain
+    expected_url = f"http://{domain}/media/{app.brand_logo_default.name}"
+    variables = {"id": id, "size": 0, "format": format.upper() if format else None}
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_APP_AVAILABLE_FOR_STAFF_WITHOUT_MANAGE_APPS,
+        variables,
+    )
+    # then
+    content = get_graphql_content(response)
+    thumbnail_url = content["data"]["app"]["brand"]["logo"]["default"]
+    assert thumbnail_url == expected_url
 
 
 def test_app_query_for_normal_user(

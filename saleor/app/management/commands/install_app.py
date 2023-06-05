@@ -57,6 +57,6 @@ class Command(BaseCommand):
             app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED
-            app_job.save()
+            app_job.save(update_fields=["status"])
             raise e
         return json.dumps({"auth_token": token})

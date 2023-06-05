@@ -1373,6 +1373,26 @@ def color_attribute(db):
 
 
 @pytest.fixture
+def color_attribute_with_translations(db):
+    attribute = Attribute.objects.create(
+        slug="color",
+        name="Color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
+    AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    attribute.translations.create(language_code="pl", name="Czerwony")
+    attribute.translations.create(language_code="de", name="Rot")
+    value1.translations.create(language_code="pl", plain_text="Old Kolor")
+    value1.translations.create(language_code="de", name="Rot", plain_text="Old Kolor")
+
+    return attribute
+
+
+@pytest.fixture
 def attribute_without_values():
     return Attribute.objects.create(
         slug="dropdown",
@@ -1963,6 +1983,14 @@ def image():
     image = Image.new("RGB", size=(1, 1))
     image.save(img_data, format="JPEG")
     return SimpleUploadedFile("product.jpg", img_data.getvalue())
+
+
+@pytest.fixture
+def icon_image():
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="PNG")
+    return SimpleUploadedFile("logo.png", img_data.getvalue())
 
 
 @pytest.fixture
@@ -5108,6 +5136,17 @@ def permission_group_manage_apps(permission_manage_apps, staff_users):
         name="Manage apps group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_apps)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_handle_payments(permission_manage_payments, staff_users):
+    group = Group.objects.create(
+        name="Manage apps group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_payments)
 
     group.user_set.add(staff_users[1])
     return group

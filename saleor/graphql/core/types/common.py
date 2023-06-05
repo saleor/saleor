@@ -30,11 +30,14 @@ from ..descriptions import (
     ADDED_IN_312,
     ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
 )
 from ..enums import (
     AccountErrorCode,
     AppErrorCode,
     AttributeErrorCode,
+    AttributeTranslateErrorCode,
+    AttributeValueTranslateErrorCode,
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
@@ -44,6 +47,7 @@ from ..enums import (
     ExternalNotificationTriggerErrorCode,
     GiftCardErrorCode,
     GiftCardSettingsErrorCode,
+    IconThumbnailFormatEnum,
     InvoiceErrorCode,
     JobStatusEnum,
     LanguageCodeEnum,
@@ -709,9 +713,23 @@ class TranslationError(Error):
     code = TranslationErrorCode(description="The error code.", required=True)
 
 
+class TranslationBulkError(BulkError):
+    code = TranslationErrorCode(description="The error code.", required=True)
+
+
 class SeoInput(graphene.InputObjectType):
     title = graphene.String(description="SEO title.")
     description = graphene.String(description="SEO description.")
+
+
+class AttributeBulkTranslateError(BulkError):
+    code = AttributeTranslateErrorCode(description="The error code.", required=True)
+
+
+class AttributeValueBulkTranslateError(BulkError):
+    code = AttributeValueTranslateErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class Weight(graphene.ObjectType):
@@ -834,6 +852,16 @@ class ThumbnailField(graphene.Field):
         kwargs["size"] = self.size
         kwargs["format"] = self.format
         super().__init__(of_type, *args, **kwargs)
+
+
+class IconThumbnailField(ThumbnailField):
+    format = IconThumbnailFormatEnum(
+        default_value="ORIGINAL",
+        description=(
+            "The format of the image. When not provided, format of the original "
+            "image will be used." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
+    )
 
 
 class MediaInput(graphene.InputObjectType):
