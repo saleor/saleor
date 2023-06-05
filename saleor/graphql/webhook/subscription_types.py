@@ -53,6 +53,7 @@ from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import NonNullList, SubscriptionObjectType
 from ..core.types.order_or_checkout import OrderOrCheckout
 from ..order.dataloaders import OrderByIdLoader
+from ..order.types import OrderGrantedRefund
 from ..payment.enums import TransactionActionEnum
 from ..payment.types import TransactionItem
 from ..plugins.dataloaders import plugin_manager_promise_callback
@@ -1472,6 +1473,13 @@ class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
 
 
 class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
+    granted_refund = graphene.Field(
+        OrderGrantedRefund,
+        description="Granted refund related to refund request."
+        + ADDED_IN_314
+        + PREVIEW_FEATURE,
+    )
+
     class Meta:
         interfaces = (Event,)
         root_type = None
@@ -1482,6 +1490,12 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
             + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS
+
+    @staticmethod
+    def resolve_granted_refund(root, _info: ResolveInfo):
+        _, transaction_action_data = root
+        transaction_action_data: TransactionActionData
+        return transaction_action_data.granted_refund
 
 
 class TransactionCancelationRequested(TransactionActionBase, SubscriptionObjectType):
