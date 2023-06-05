@@ -39,6 +39,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `AttributeBulkTranslate` and `AttributeValueBulkTranslate` mutation - #12965 by @SzymJ
 - [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
 - Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
+- [Preview] Add `where` filtering option with `ids` filter for `product_variants`, `collections` and `categories` query - #13004 by @zedzior
 
 ### Saleor Apps
 
