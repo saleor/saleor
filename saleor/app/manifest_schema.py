@@ -4,12 +4,18 @@ from typing import Annotated, Any, Dict, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import AnyUrl, ConstrainedStr, Field, validator
-from pydantic.errors import MissingError, UrlError
+from pydantic.errors import (
+    AnyStrMaxLengthError,
+    AnyStrMinLengthError,
+    MissingError,
+    UrlError,
+)
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..core.schema import (
+    FIELD_MAPPING_TYPE,
     SaleorValidationError,
     ValidationErrorConfig,
     ValidationErrorSchema,
@@ -100,20 +106,28 @@ class AnyHttpUrl(AnyUrl):
     allowed_schemes = {"http", "https"}
     max_length = 200
 
-    @classmethod
-    def validate(cls, value, field, config):
-        try:
-            return super().validate(value, field, config)
-        except (ValueError, TypeError) as error:
-            raise SaleorValidationError(
-                str(error), code=AppErrorCode.INVALID_URL_FORMAT
-            )
-
 
 class WebhookTargetUrl(AnyHttpUrl):
     allowed_schemes = {"http", "https", "awssqs", "gcpubsub"}
     tld_required = False
     max_length = 255
+
+
+URL_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+    (
+        (AnyStrMinLengthError, AnyStrMaxLengthError),
+        {"code": AppErrorCode.INVALID_URL_FORMAT},
+    )
+]
+PERMISSION_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+    (
+        (Exception,),
+        {
+            "code": AppErrorCode.INVALID_PERMISSION,
+            "msg": "Given permission don't exist.",
+        },
+    )
+]
 
 
 class Webhook(ValidationErrorSchema):
@@ -124,6 +138,9 @@ class Webhook(ValidationErrorSchema):
     async_events: list[WebhookEventTypeAsyncEnum] = []
     sync_events: list[WebhookEventTypeSyncEnum] = []
     custom_headers: Dict[str, str] = {}
+
+    class Config(ValidationErrorConfig):
+        field_errors_map = {"target_url": URL_ERROR_MAPPING}
 
     @property
     def events(self) -> list[str]:
@@ -166,12 +183,8 @@ class Extension(ValidationErrorSchema):
 
     class Config(ValidationErrorConfig):
         field_errors_map = {
-            "permissions": {
-                Exception: {
-                    "code": AppErrorCode.INVALID_PERMISSION,
-                    "msg": "Given permission don't exist.",
-                }
-            }
+            "permissions": PERMISSION_ERROR_MAPPING,
+            "url": URL_ERROR_MAPPING,
         }
 
     @validator("url")
@@ -277,12 +290,13 @@ class Manifest(ValidationErrorSchema):
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
         field_errors_map = {
-            "permissions": {
-                Exception: {
-                    "code": AppErrorCode.INVALID_PERMISSION,
-                    "msg": "Given permission don't exist.",
-                }
-            }
+            "permissions": PERMISSION_ERROR_MAPPING,
+            "token_target_url": URL_ERROR_MAPPING,
+            "app_url": URL_ERROR_MAPPING,
+            "configuration_url": URL_ERROR_MAPPING,
+            "data_privacy_url": URL_ERROR_MAPPING,
+            "homepage_url": URL_ERROR_MAPPING,
+            "support_url": URL_ERROR_MAPPING,
         }
 
     @validator("extensions", each_item=True)

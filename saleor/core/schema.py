@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Iterable
 from enum import Enum
 from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
 
@@ -30,6 +31,9 @@ class ErrorMapping(TypedDict, total=False):
     msg: str
 
 
+FIELD_MAPPING_TYPE = list[tuple[tuple[Type[Exception], ...], ErrorMapping]]
+
+
 class SaleorValidationError(ValueError):
     def __init__(
         self,
@@ -51,7 +55,7 @@ class SaleorValidationError(ValueError):
 class ValidationErrorConfig(BaseConfig):
     default_error: Optional[ErrorMapping] = None
     errors_map: dict[Type[Exception], ErrorMapping] = {}
-    field_errors_map: dict[str, dict[Type[Exception], ErrorMapping]] = {}
+    field_errors_map: dict[str, FIELD_MAPPING_TYPE] = {}
 
     @classmethod
     def get_error_mapping(cls, type_: Type[Exception]) -> Optional[ErrorMapping]:
@@ -75,9 +79,7 @@ class JsonSchema(BaseSchema):
 
 
 class ValidationErrorSchema(JsonSchema):
-    _fields_mapping: ClassVar[
-        Optional[dict[str, dict[Type[Exception], ErrorMapping]]]
-    ] = None
+    _fields_mapping: ClassVar[Optional[dict[str, FIELD_MAPPING_TYPE]]] = None
 
     class Config(ValidationErrorConfig):
         pass
@@ -109,10 +111,16 @@ class ValidationErrorSchema(JsonSchema):
             for field_name, field in cls.__fields__.items():
                 if mapping := cls.__config__.field_errors_map.get(field_name):
                     cls._fields_mapping[field.alias] = mapping
-        mappings = cls._fields_mapping.get(field_alias, {})
-        for type_mapping, error_mapping in mappings.items():
-            if issubclass(type_mapping, error_type):
-                return error_mapping
+        try:
+            mappings = cls._fields_mapping[field_alias]
+        except KeyError:
+            return None
+        for type_mappings, error_mapping in mappings:
+            if not isinstance(type_mappings, Iterable):
+                type_mappings = (type_mappings,)
+            for type_mapping in type_mappings:
+                if issubclass(error_type, type_mapping):
+                    return error_mapping
         return None
 
 
