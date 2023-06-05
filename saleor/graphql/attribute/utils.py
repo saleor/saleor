@@ -1114,7 +1114,7 @@ def validate_single_selectable_field(
         )
         return
 
-    if not id and not value and attribute.value_required:
+    if not id and not external_reference and not value and attribute.value_required:
         attribute_errors[AttributeInputErrors.ERROR_NO_VALUE_GIVEN].append(
             attr_identifier
         )
