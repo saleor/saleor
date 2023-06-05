@@ -8,7 +8,7 @@ from graphql import GraphQLError
 from ....order import models
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_313, ADDED_IN_314, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -39,12 +39,12 @@ class OrderGrantRefundUpdateError(Error):
 
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to add which cause the error." + ADDED_IN_314,
+        description="List of lines to add which cause the error." + ADDED_IN_315,
         required=False,
     )
     remove_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to remove which cause the error." + ADDED_IN_314,
+        description="List of lines to remove which cause the error." + ADDED_IN_315,
         required=False,
     )
 
@@ -73,17 +73,17 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineAddInput,
-        description="Lines to assign to granted refund." + ADDED_IN_314,
+        description="Lines to assign to granted refund." + ADDED_IN_315,
         required=False,
     )
     remove_lines = NonNullList(
         graphene.ID,
-        description="Lines to remove from granted refund." + ADDED_IN_314,
+        description="Lines to remove from granted refund." + ADDED_IN_315,
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
         description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_314,
+        + ADDED_IN_315,
         required=False,
     )
 

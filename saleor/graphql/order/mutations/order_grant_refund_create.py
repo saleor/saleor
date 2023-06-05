@@ -8,7 +8,7 @@ from django.db import transaction
 from ....order import models
 from ....permission.enums import OrderPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_313, ADDED_IN_314, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_313, ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -37,7 +37,7 @@ class OrderGrantRefundCreateError(Error):
     code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
     lines = NonNullList(
         OrderGrantRefundCreateLineError,
-        description="List of lines which cause the error." + ADDED_IN_314,
+        description="List of lines which cause the error." + ADDED_IN_315,
         required=False,
     )
 
@@ -66,12 +66,12 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
-        description="Lines to assign to granted refund." + ADDED_IN_314,
+        description="Lines to assign to granted refund." + ADDED_IN_315,
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
         description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_314,
+        + ADDED_IN_315,
         required=False,
     )
 

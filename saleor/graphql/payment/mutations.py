@@ -85,7 +85,7 @@ from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_34,
     ADDED_IN_313,
-    ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
@@ -1474,7 +1474,7 @@ class TransactionRequestRefundForGrantedRefund(BaseMutation):
     class Meta:
         description = (
             "Request a refund for payment transaction based on granted refund."
-            + ADDED_IN_314
+            + ADDED_IN_315
             + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_PAYMENTS

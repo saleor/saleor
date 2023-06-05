@@ -74,7 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
-    ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
@@ -206,7 +206,7 @@ class OrderGrantedRefundLine(ModelObjectType[models.OrderGrantedRefundLine]):
     )
 
     class Meta:
-        description = "Represents granted refund line." + ADDED_IN_314 + PREVIEW_FEATURE
+        description = "Represents granted refund line." + ADDED_IN_315 + PREVIEW_FEATURE
         model = models.OrderGrantedRefundLine
 
     @staticmethod
@@ -235,14 +235,14 @@ class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
         description=(
             "If true, the refunded amount includes the shipping price."
             "If false, the refunded amount does not include the shipping price."
-            + ADDED_IN_314
+            + ADDED_IN_315
             + PREVIEW_FEATURE
         ),
     )
     lines = NonNullList(
         OrderGrantedRefundLine,
         description="Lines assigned to the granted refund."
-        + ADDED_IN_314
+        + ADDED_IN_315
         + PREVIEW_FEATURE,
     )
 

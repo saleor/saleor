@@ -39,6 +39,7 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -1498,7 +1499,7 @@ class TransactionRefundRequested(TransactionActionBase, SubscriptionObjectType):
     granted_refund = graphene.Field(
         OrderGrantedRefund,
         description="Granted refund related to refund request."
-        + ADDED_IN_314
+        + ADDED_IN_315
         + PREVIEW_FEATURE,
     )
 

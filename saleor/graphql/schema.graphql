@@ -11559,7 +11559,7 @@ type OrderGrantedRefund @doc(category: "Orders") {
   """
   If true, the refunded amount includes the shipping price.If false, the refunded amount does not include the shipping price.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11568,7 +11568,7 @@ type OrderGrantedRefund @doc(category: "Orders") {
   """
   Lines assigned to the granted refund.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -11578,7 +11578,7 @@ type OrderGrantedRefund @doc(category: "Orders") {
 """
 Represents granted refund line.
 
-Added in Saleor 3.14.
+Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
@@ -14571,7 +14571,7 @@ type Mutation {
   """
   Request a refund for payment transaction based on granted refund.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -21438,7 +21438,7 @@ enum TransactionRequestActionErrorCode @doc(category: "Payments") {
 """
 Request a refund for payment transaction based on granted refund.
 
-Added in Saleor 3.14.
+Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -22461,7 +22461,7 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
   """
   List of lines which cause the error.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   lines: [OrderGrantRefundCreateLineError!]
 }
@@ -22510,14 +22510,14 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   """
   Lines to assign to granted refund.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   lines: [OrderGrantRefundCreateLineInput!]
 
   """
   Determine if granted refund should include shipping costs.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   grantRefundForShipping: Boolean
 }
@@ -22563,14 +22563,14 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
   """
   List of lines to add which cause the error.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   addLines: [OrderGrantRefundUpdateLineError!]
 
   """
   List of lines to remove which cause the error.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   removeLines: [OrderGrantRefundUpdateLineError!]
 }
@@ -22619,21 +22619,21 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   """
   Lines to assign to granted refund.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   addLines: [OrderGrantRefundUpdateLineAddInput!]
 
   """
   Lines to remove from granted refund.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   removeLines: [ID!]
 
   """
   Determine if granted refund should include shipping costs.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   """
   grantRefundForShipping: Boolean
 }
@@ -30204,7 +30204,7 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
   """
   Granted refund related to refund request.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
