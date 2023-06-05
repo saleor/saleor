@@ -87,7 +87,6 @@ from ..core.descriptions import (
     ADDED_IN_313,
     DEPRECATED_IN_3X_INPUT,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT,
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ..core.enums import (
@@ -107,7 +106,6 @@ from ..utils import get_user_or_app_from_context
 from .enums import (
     StorePaymentMethodEnum,
     TransactionActionEnum,
-    TransactionEventStatusEnum,
     TransactionEventTypeEnum,
 )
 from .types import Payment, PaymentInitialized, TransactionEvent, TransactionItem
@@ -690,19 +688,6 @@ class PaymentCheckBalance(BaseMutation):
 
 
 class TransactionUpdateInput(BaseInputObjectType):
-    status = graphene.String(
-        description=(
-            "Status of the transaction."
-            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-            + " The `status` is not needed. The amounts can be used to define "
-            "the current status of transactions."
-        ),
-    )
-    type = graphene.String(
-        description="Payment type used for this transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-        + " Use `name` and `message` instead.",
-    )
     name = graphene.String(
         description="Payment name of the transaction." + ADDED_IN_313
     )
@@ -710,13 +695,6 @@ class TransactionUpdateInput(BaseInputObjectType):
         description="The message of the transaction." + ADDED_IN_313
     )
 
-    reference = graphene.String(
-        description=(
-            "Reference of the transaction. "
-            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-            + " Use `pspReference` instead."
-        )
-    )
     psp_reference = graphene.String(
         description=("PSP Reference of the transaction. " + ADDED_IN_313)
     )
@@ -727,11 +705,6 @@ class TransactionUpdateInput(BaseInputObjectType):
     amount_authorized = MoneyInput(description="Amount authorized by this transaction.")
     amount_charged = MoneyInput(description="Amount charged by this transaction.")
     amount_refunded = MoneyInput(description="Amount refunded by this transaction.")
-    amount_voided = MoneyInput(
-        description="Amount voided by this transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-        + " Use `amountCanceled` instead."
-    )
     amount_canceled = MoneyInput(
         description="Amount canceled by this transaction." + ADDED_IN_313
     )
@@ -765,28 +738,8 @@ class TransactionCreateInput(TransactionUpdateInput):
 
 
 class TransactionEventInput(BaseInputObjectType):
-    status = graphene.Field(
-        TransactionEventStatusEnum,
-        required=False,
-        description="Current status of the payment transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-        + " Status will be calculated by Saleor.",
-    )
-    reference = graphene.String(
-        description=(
-            "Reference of the transaction. "
-            + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-            + " Use `pspReference` instead."
-        )
-    )
-
     psp_reference = graphene.String(
         description=("PSP Reference related to this action." + ADDED_IN_313)
-    )
-    name = graphene.String(
-        description="Name of the transaction."
-        + PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT
-        + " Use `message` instead. `name` field will be added to `message`."
     )
     message = graphene.String(
         description="The message related to the event." + ADDED_IN_313
@@ -862,8 +815,6 @@ class TransactionCreate(BaseMutation):
 
         if amount_canceled := cleaned_data.pop("amount_canceled", None):
             money_data["canceled_value"] = amount_canceled["amount"]
-        elif amount_voided := cleaned_data.pop("amount_voided", None):
-            money_data["canceled_value"] = amount_voided["amount"]
         return money_data
 
     @classmethod
@@ -902,7 +853,6 @@ class TransactionCreate(BaseMutation):
             "amount_charged",
             "amount_refunded",
             "amount_canceled",
-            "amount_voided",
         ]
         errors = {}
         for money_field_name in money_input_fields:
@@ -949,13 +899,6 @@ class TransactionCreate(BaseMutation):
         cls, transaction_input: dict, user, app, save: bool = True
     ) -> payment_models.TransactionItem:
         cls.cleanup_metadata_data(transaction_input)
-
-        transaction_type = transaction_input.pop("type", None)
-        transaction_input["name"] = transaction_input.get("name", transaction_type)
-        reference = transaction_input.pop("reference", None)
-        transaction_input["psp_reference"] = transaction_input.get(
-            "psp_reference", reference
-        )
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
@@ -979,15 +922,12 @@ class TransactionCreate(BaseMutation):
         user,
         app,
     ) -> payment_models.TransactionEvent:
-        reference = transaction_event_input.pop("reference", None)
-        psp_reference = transaction_event_input.get("psp_reference", reference)
         app_identifier = None
         if app and app.identifier:
             app_identifier = app.identifier
         return transaction.events.create(
-            status=transaction_event_input.get("status"),
-            psp_reference=psp_reference,
-            message=cls.create_event_message(transaction_event_input),
+            psp_reference=transaction_event_input.get("psp_reference"),
+            message=transaction_event_input.get("message", ""),
             transaction=transaction,
             user=user if user and user.is_authenticated else None,
             app_identifier=app_identifier,
@@ -995,18 +935,6 @@ class TransactionCreate(BaseMutation):
             type=TransactionEventType.INFO,
             currency=transaction.currency,
         )
-
-    @classmethod
-    def create_event_message(cls, transaction_event: dict) -> str:
-        message = transaction_event.get("message")
-        name = transaction_event.get("name")
-        if message and name:
-            return message + " " + name
-        elif message:
-            return message
-        elif name:
-            return name
-        return ""
 
     @classmethod
     def update_order(
@@ -1072,15 +1000,12 @@ class TransactionCreate(BaseMutation):
         else:
             transaction_data["order_id"] = order_or_checkout_instance.pk
             if transaction_event:
-                reference = transaction_event.get("reference", None)
-                psp_reference = transaction_event.get("psp_reference", reference)
                 order_transaction_event(
                     order=order_or_checkout_instance,
                     user=user,
                     app=app,
-                    reference=psp_reference,
-                    status=transaction_event.get("status"),
-                    message=cls.create_event_message(transaction_event),
+                    reference=transaction_event.get("psp_reference"),
+                    message=transaction_event.get("message", ""),
                 )
         money_data = cls.get_money_data_from_input(transaction_data)
         new_transaction = cls.create_transaction(transaction_data, user=user, app=app)
@@ -1222,9 +1147,7 @@ class TransactionUpdate(TransactionCreate):
         user: Optional["User"],
         app: Optional["App"],
     ):
-        psp_reference = transaction_data.get(
-            "psp_reference", transaction_data.pop("reference", None)
-        )
+        psp_reference = transaction_data.get("psp_reference")
         if psp_reference and instance.psp_reference != psp_reference:
             if payment_models.TransactionItem.objects.filter(
                 psp_reference=psp_reference
@@ -1237,10 +1160,6 @@ class TransactionUpdate(TransactionCreate):
                         )
                     }
                 )
-        transaction_data["name"] = transaction_data.get(
-            "name", transaction_data.pop("type", None)
-        )
-        transaction_data["psp_reference"] = psp_reference
         instance = cls.construct_instance(instance, transaction_data)
         instance.save()
         if money_data:
@@ -1287,15 +1206,12 @@ class TransactionUpdate(TransactionCreate):
         if transaction_event:
             event = cls.create_transaction_event(transaction_event, instance, user, app)
             if instance.order:
-                reference = transaction_event.pop("reference", None)
-                psp_reference = transaction_event.get("psp_reference", reference)
                 order_transaction_event(
                     order=instance.order,
                     user=user,
                     app=app,
-                    reference=psp_reference or "",
-                    status=transaction_event["status"],
-                    message=cls.create_event_message(transaction_event),
+                    reference=transaction_event.get("psp_reference"),
+                    message=transaction_event.get("message", ""),
                 )
         if instance.order_id:
             order = cast(order_models.Order, instance.order)
@@ -1372,7 +1288,7 @@ class TransactionRequestAction(BaseMutation):
         user: Optional["User"],
         app: Optional[App],
     ):
-        if action == TransactionAction.VOID or action == TransactionAction.CANCEL:
+        if action == TransactionAction.CANCEL:
             transaction = action_kwargs["transaction"]
             request_event = cls.create_transaction_event_requested(
                 transaction, 0, action, user=user, app=app
@@ -1408,7 +1324,7 @@ class TransactionRequestAction(BaseMutation):
     def create_transaction_event_requested(
         cls, transaction, action_value, action, user=None, app=None
     ):
-        if action in (TransactionAction.CANCEL, TransactionAction.VOID):
+        if action == TransactionAction.CANCEL:
             type = TransactionEventType.CANCEL_REQUEST
         elif action == TransactionAction.CHARGE:
             type = TransactionEventType.CHARGE_REQUEST

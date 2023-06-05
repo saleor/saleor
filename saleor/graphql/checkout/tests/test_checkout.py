@@ -2226,12 +2226,11 @@ QUERY_CHECKOUT_TRANSACTIONS = """
 def test_checkout_transactions_missing_permission(api_client, checkout):
     # given
     checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2248,12 +2247,11 @@ def test_checkout_transactions_with_manage_checkouts(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2277,12 +2275,11 @@ def test_checkout_transactions_with_handle_payments(
 ):
     # given
     transaction = checkout.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_TRANSACTIONS
     variables = {"id": to_global_id_or_none(checkout)}
@@ -2322,14 +2319,13 @@ def test_checkout_payment_statuses(
 ):
     # given
     checkout_with_prices.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         charged_value=Decimal("5"),
         charge_pending_value=Decimal("6"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
     variables = {"id": to_global_id_or_none(checkout_with_prices)}
@@ -2359,14 +2355,13 @@ def test_checkout_balance(
 ):
     # given
     transaction = checkout_with_prices.payment_transactions.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="123",
         currency="USD",
         authorized_value=Decimal("15"),
         charged_value=Decimal("5"),
         charge_pending_value=Decimal("6"),
-        available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+        available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
     )
     query = QUERY_CHECKOUT_STATUSES_AND_BALANCE
     variables = {"id": to_global_id_or_none(checkout_with_prices)}

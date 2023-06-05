@@ -8,13 +8,13 @@ from .....checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus
 from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents
-from .....payment import TransactionEventStatus, TransactionEventType
+from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionUpdateErrorCode
 from .....payment.models import TransactionEvent, TransactionItem
 from .....payment.transaction_item_calculations import recalculate_transaction_amounts
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import TransactionActionEnum, TransactionEventStatusEnum
+from ...enums import TransactionActionEnum
 
 TEST_SERVER_DOMAIN = "testserver.com"
 
@@ -33,20 +33,14 @@ mutation TransactionUpdate(
                 id
                 actions
                 pspReference
-                type
                 name
                 message
-                status
                 modifiedAt
                 createdAt
                 externalUrl
                 authorizedAmount{
                     amount
                     currency
-                }
-                voidedAmount{
-                    currency
-                    amount
                 }
                 canceledAmount{
                     currency
@@ -69,9 +63,7 @@ mutation TransactionUpdate(
                     value
                 }
                 events{
-                    status
                     pspReference
-                    name
                     message
                     createdAt
                     externalUrl
@@ -112,12 +104,12 @@ def test_only_owner_can_update_its_transaction_by_app(
     transaction.app_identifier = external_app.identifier
     transaction.save()
 
-    status = "Captured for 10$"
+    message = "Captured for 10$"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
-            "status": status,
+            "message": message,
         },
     }
     # when
@@ -127,33 +119,6 @@ def test_only_owner_can_update_its_transaction_by_app(
 
     # then
     assert_no_permission(response)
-
-
-def test_transaction_update_status_by_app(
-    transaction_item_created_by_app, permission_manage_payments, app_api_client
-):
-    # given
-    transaction = transaction_item_created_by_app
-    status = "Captured for 10$"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "transaction": {
-            "status": status,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["status"] == status
-    assert transaction_item_created_by_app.status == status
 
 
 def test_transaction_update_metadata_by_app(
@@ -274,34 +239,6 @@ def test_transaction_update_private_metadata_incorrect_key_by_app(
     assert error["code"] == TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.name
 
 
-def test_transaction_update_type_by_app(
-    transaction_item_created_by_app, permission_manage_payments, app_api_client
-):
-    # given
-    transaction = transaction_item_created_by_app
-    type = "New credit card"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "transaction": {
-            "type": type,
-        },
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["type"] == type
-    assert data["name"] == type
-    assert transaction.name == type
-
-
 def test_transaction_update_name_by_app(
     transaction_item_created_by_app, permission_manage_payments, app_api_client
 ):
@@ -326,7 +263,6 @@ def test_transaction_update_name_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
     assert data["name"] == name
-    assert data["type"] == name
     assert transaction.name == name
 
 
@@ -419,7 +355,6 @@ def test_transaction_update_available_actions_by_app(
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
         ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
-        ("amountVoided", "voidedAmount", "canceled_value", Decimal("14")),
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
 )
@@ -839,7 +774,6 @@ def test_transaction_update_multiple_amounts_provided_by_app(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == canceled_value
     assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction
@@ -854,14 +788,14 @@ def test_transaction_update_for_order_missing_permission_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    message = "Authorized for 10$"
+    name = "Credit Card"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
-            "status": status,
-            "type": type,
+            "message": message,
+            "name": name,
         },
     }
 
@@ -877,7 +811,6 @@ def test_transaction_update_for_order_missing_permission_by_app(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -925,14 +858,12 @@ def test_transaction_update_adds_transaction_event_to_order_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    transaction_status = "PENDING"
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
-            "status": transaction_status,
             "pspReference": transaction_reference,
             "message": transaction_name,
         },
@@ -952,7 +883,6 @@ def test_transaction_update_adds_transaction_event_to_order_by_app(
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
-        "status": transaction_status.lower(),
     }
 
 
@@ -965,15 +895,13 @@ def test_creates_transaction_event_for_order_by_app(
     # given
 
     transaction = order_with_lines.payment_transactions.first()
-    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
-            "message": event_name,
+            "message": event_message,
         },
     }
 
@@ -991,15 +919,12 @@ def test_creates_transaction_event_for_order_by_app(
     event_data = [
         event for event in events_data if event["pspReference"] == event_reference
     ][0]
-    assert event_data["message"] == event_name
-    assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["message"] == event_message
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
-    assert event.message == event_name
-    assert event.status == event_status
+    assert event.message == event_message
     assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
@@ -1015,15 +940,13 @@ def test_creates_transaction_event_by_reinstalled_app(
     transaction_item_created_by_app.save()
 
     transaction = order_with_lines.payment_transactions.first()
-    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
-            "message": event_name,
+            "message": event_message,
         },
     }
 
@@ -1037,8 +960,7 @@ def test_creates_transaction_event_by_reinstalled_app(
 
     assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
-    assert event.message == event_name
-    assert event.status == event_status
+    assert event.message == event_message
     assert event.app_identifier == app_api_client.app.identifier
     assert event.user is None
 
@@ -1051,12 +973,12 @@ def test_only_app_owner_can_update_its_transaction_by_staff(
     # given
     transaction = transaction_item_created_by_app
 
-    status = "Captured for 10$"
+    message = "Captured for 10$"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
-            "status": status,
+            "message": message,
         },
     }
     # when
@@ -1066,33 +988,6 @@ def test_only_app_owner_can_update_its_transaction_by_staff(
 
     # then
     assert_no_permission(response)
-
-
-def test_transaction_update_status_by_staff(
-    transaction_item_created_by_user, permission_manage_payments, staff_api_client
-):
-    # given
-    transaction = transaction_item_created_by_user
-    status = "Captured for 10$"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "transaction": {
-            "status": status,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["status"] == status
-    assert transaction_item_created_by_user.status == status
 
 
 def test_transaction_update_by_another_staff(
@@ -1106,12 +1001,12 @@ def test_transaction_update_by_another_staff(
     transaction.user = admin_user
     transaction.save()
 
-    status = "Captured for 10$"
+    message = "Captured for 10$"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
-            "status": status,
+            "message": message,
         },
     }
 
@@ -1250,34 +1145,6 @@ def test_transaction_update_private_metadata_incorrect_key_by_staff(
     assert error["code"] == TransactionUpdateErrorCode.METADATA_KEY_REQUIRED.name
 
 
-def test_transaction_update_type_by_staff(
-    transaction_item_created_by_user, permission_manage_payments, staff_api_client
-):
-    # given
-    transaction = transaction_item_created_by_user
-    type = "New credit card"
-
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "transaction": {
-            "type": type,
-        },
-    }
-
-    # when
-    response = staff_api_client.post_graphql(
-        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
-    )
-
-    # then
-    transaction.refresh_from_db()
-    content = get_graphql_content(response)
-    data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["type"] == type
-    assert data["name"] == type
-    assert transaction.name == type
-
-
 def test_transaction_update_name_by_staff(
     transaction_item_created_by_user, permission_manage_payments, staff_api_client
 ):
@@ -1301,7 +1168,6 @@ def test_transaction_update_name_by_staff(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["type"] == name
     assert data["name"] == name
     assert transaction.name == name
 
@@ -1392,7 +1258,6 @@ def test_transaction_update_available_actions_by_staff(
     [
         ("amountAuthorized", "authorizedAmount", "authorized_value", Decimal("12")),
         ("amountCharged", "chargedAmount", "charged_value", Decimal("13")),
-        ("amountVoided", "voidedAmount", "canceled_value", Decimal("14")),
         ("amountCanceled", "canceledAmount", "canceled_value", Decimal("14")),
         ("amountRefunded", "refundedAmount", "refunded_value", Decimal("15")),
     ],
@@ -1769,7 +1634,6 @@ def test_transaction_update_multiple_amounts_provided_by_staff(
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == canceled_value
     assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction
@@ -1784,14 +1648,14 @@ def test_transaction_update_for_order_missing_permission_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    message = "Authorized for 10$"
+    name = "Credit Card"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction": {
-            "status": status,
-            "type": type,
+            "message": message,
+            "name": name,
         },
     }
 
@@ -1807,7 +1671,6 @@ def test_transaction_update_for_order_missing_permission_by_staff(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -1855,14 +1718,12 @@ def test_transaction_update_adds_transaction_event_to_order_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    transaction_status = "PENDING"
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
-            "status": transaction_status,
             "pspReference": transaction_reference,
             "message": transaction_name,
         },
@@ -1882,7 +1743,6 @@ def test_transaction_update_adds_transaction_event_to_order_by_staff(
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
-        "status": transaction_status.lower(),
     }
 
 
@@ -1895,15 +1755,13 @@ def test_creates_transaction_event_for_order_by_staff(
     # given
 
     transaction = order_with_lines.payment_transactions.first()
-    event_status = TransactionEventStatus.FAILURE
     event_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_reference,
-            "name": event_name,
+            "message": event_message,
         },
     }
 
@@ -1921,15 +1779,12 @@ def test_creates_transaction_event_for_order_by_staff(
     event_data = [
         event for event in events_data if event["pspReference"] == event_reference
     ][0]
-    assert event_data["message"] == event_name
-    assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["message"] == event_message
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert transaction.events.count() == 2
     event = transaction.events.filter(psp_reference=event_reference).first()
-    assert event.message == event_name
-    assert event.status == event_status
+    assert event.message == event_message
     assert event.psp_reference == event_reference
     assert event.app_identifier is None
     assert event.user == staff_api_client.user
@@ -2392,16 +2247,6 @@ def test_transaction_update_creates_calculation_event(
             Decimal("4"),
         ),
         (
-            "amountVoided",
-            "voidedAmount",
-            "canceled_value",
-            Decimal("14"),
-            Decimal("1"),
-            Decimal("2"),
-            Decimal("3"),
-            Decimal("4"),
-        ),
-        (
             "amountRefunded",
             "refundedAmount",
             "refunded_value",
@@ -2617,12 +2462,12 @@ def test_transaction_update_accepts_old_id_for_old_transaction(
 ):
     # given
     transaction = transaction_item_generator(use_old_id=True)
-    status = "Captured for 10$"
+    message = "Captured for 10$"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {
-            "status": status,
+            "message": message,
         },
     }
 
@@ -2635,8 +2480,8 @@ def test_transaction_update_accepts_old_id_for_old_transaction(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["status"] == status
-    assert transaction.status == status
+    assert data["message"] == message
+    assert transaction.message == message
 
 
 def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
@@ -2644,12 +2489,12 @@ def test_transaction_update_doesnt_accept_old_id_for_new_transactions(
 ):
     # given
     transaction = transaction_item_generator(use_old_id=False)
-    status = "Captured for 10$"
+    message = "Captured for 10$"
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.pk),
         "transaction": {
-            "status": status,
+            "message": message,
         },
     }
 

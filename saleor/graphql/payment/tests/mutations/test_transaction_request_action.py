@@ -28,19 +28,12 @@ mutation TransactionRequestAction(
         transaction{
                 id
                 actions
-                reference
                 pspReference
-                type
-                status
                 modifiedAt
                 createdAt
                 authorizedAmount{
                     amount
                     currency
-                }
-                voidedAmount{
-                    currency
-                    amount
                 }
                 chargedAmount{
                     currency
@@ -84,10 +77,9 @@ def test_transaction_request_charge_action_for_order(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -161,7 +153,6 @@ def test_transaction_request_refund_action_for_order(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -217,70 +208,7 @@ def test_transaction_request_refund_action_for_order(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_transaction_request_void_action_for_order(
-    mocked_payment_action_request,
-    mocked_is_active,
-    order_with_lines,
-    app_api_client,
-    permission_manage_payments,
-):
-    # given
-    mocked_is_active.side_effect = [True, False]
-
-    transaction = TransactionItem.objects.create(
-        status="Authorized",
-        name="Credit card",
-        psp_reference="PSP ref",
-        available_actions=["charge", "void"],
-        currency="USD",
-        order_id=order_with_lines.pk,
-        authorized_value=Decimal("10"),
-    )
-    variables = {
-        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
-    }
-
-    # when
-    response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_REQUEST_ACTION,
-        variables,
-        permissions=[permission_manage_payments],
-    )
-
-    # then
-    get_graphql_content(response)
-
-    request_event = TransactionEvent.objects.filter(
-        type=TransactionEventType.CANCEL_REQUEST,
-    ).first()
-    assert request_event
-    assert mocked_is_active.called
-    mocked_payment_action_request.assert_called_once_with(
-        TransactionActionData(
-            transaction=transaction,
-            action_type=TransactionAction.VOID,
-            action_value=None,
-            event=request_event,
-            transaction_app_owner=None,
-        ),
-        channel_slug=order_with_lines.channel.slug,
-    )
-
-    event = order_with_lines.events.first()
-    assert event.type == OrderEvents.TRANSACTION_CANCEL_REQUESTED
-    assert event.parameters["reference"] == transaction.psp_reference
-
-    assert TransactionEvent.objects.get(
-        transaction=transaction,
-        type=TransactionEventType.CANCEL_REQUEST,
-        amount_value=0,
-    )
-
-
-@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
-@patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_transaction_request_void_action_for_order_by_user_no_channel_access(
+def test_transaction_request_cancel_action_for_order_by_user_no_channel_access(
     mocked_payment_action_request,
     mocked_is_active,
     order_with_lines,
@@ -296,16 +224,15 @@ def test_transaction_request_void_action_for_order_by_user_no_channel_access(
     order_with_lines.save(update_fields=["channel"])
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -320,7 +247,7 @@ def test_transaction_request_void_action_for_order_by_user_no_channel_access(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_action_request")
-def test_transaction_request_void_action_for_checkout(
+def test_transaction_request_cancel_action_for_checkout(
     mocked_payment_action_request,
     mocked_is_active,
     checkout,
@@ -331,17 +258,16 @@ def test_transaction_request_void_action_for_checkout(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -363,7 +289,7 @@ def test_transaction_request_void_action_for_checkout(
     mocked_payment_action_request.assert_called_once_with(
         TransactionActionData(
             transaction=transaction,
-            action_type=TransactionAction.VOID,
+            action_type=TransactionAction.CANCEL,
             action_value=None,
             event=request_event,
             transaction_app_owner=None,
@@ -401,10 +327,9 @@ def test_transaction_request_charge_action_for_checkout(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -473,7 +398,6 @@ def test_transaction_request_refund_action_for_checkout(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -535,7 +459,6 @@ def test_transaction_action_request_uses_handle_payment_permission(
     mocked_is_active.side_effect = [True, False]
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -584,17 +507,16 @@ def test_transaction_request_action_missing_permission(
     # given
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -619,10 +541,9 @@ def test_transaction_request_action_missing_event(
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     authorization_value = Decimal("10")
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorization_value,
@@ -631,7 +552,7 @@ def test_transaction_request_action_missing_event(
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
     permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
 
@@ -700,10 +621,9 @@ def test_transaction_request_charge_for_order(
     mocked_is_active.return_value = False
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -784,7 +704,6 @@ def test_transaction_request_refund_for_order(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -856,10 +775,9 @@ def test_transaction_request_cancelation_for_order(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -868,7 +786,7 @@ def test_transaction_request_cancelation_for_order(
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -927,10 +845,9 @@ def test_transaction_request_cancelation_for_checkout(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -939,7 +856,7 @@ def test_transaction_request_cancelation_for_checkout(
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -1004,10 +921,9 @@ def test_transaction_request_charge_for_checkout(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         checkout_id=checkout.pk,
         authorized_value=Decimal("10"),
@@ -1082,7 +998,6 @@ def test_transaction_request_refund_for_checkout(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -1152,7 +1067,6 @@ def test_transaction_request_refund_when_app_reinstalled(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -1220,7 +1134,6 @@ def test_transaction_request_uses_handle_payment_permission(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -1275,10 +1188,9 @@ def test_transaction_request_missing_permission(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order_with_lines.pk,
         authorized_value=Decimal("10"),
@@ -1287,7 +1199,7 @@ def test_transaction_request_missing_permission(
     )
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
 
     # when
@@ -1313,10 +1225,9 @@ def test_transaction_request_missing_event(
     # given
     authorization_value = Decimal("10")
     transaction = TransactionItem.objects.create(
-        status="Authorized",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["charge", "void"],
+        available_actions=["charge", "cancel"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorization_value,
@@ -1329,7 +1240,7 @@ def test_transaction_request_missing_event(
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
-        "action_type": TransactionActionEnum.VOID.name,
+        "action_type": TransactionActionEnum.CANCEL.name,
     }
     permission_group_no_perms_all_channels.user_set.add(staff_api_client.user)
 

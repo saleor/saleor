@@ -189,7 +189,7 @@ def request_cancelation_action(
 
 def _create_transaction_data(
     transaction: TransactionItem,
-    action_type: "str",
+    action_type: str,
     action_value: Optional[Decimal],
     request_event: TransactionEvent,
 ):
@@ -245,9 +245,6 @@ def _request_payment_action(
         )
 
     if transaction_request_event_active or webhooks:
-        # This if can be dropped in future releases as VOID will be dropped.
-        if transaction_action_data.action_type == TransactionAction.VOID:
-            transaction_action_data.action_type = TransactionAction.CANCEL
         transaction_request_func(transaction_action_data, channel_slug)
     else:
         manager.transaction_action_request(

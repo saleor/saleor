@@ -39,7 +39,6 @@ def test_transaction_refund_request(order, webhook_app, permission_manage_paymen
     charged_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
@@ -85,7 +84,7 @@ def test_transaction_refund_request(order, webhook_app, permission_manage_paymen
             "actions": ["REFUND"],
             "authorizedAmount": {"currency": "USD", "amount": 0.0},
             "refundedAmount": {"currency": "USD", "amount": 0.0},
-            "voidedAmount": {"currency": "USD", "amount": 0.0},
+            "canceledAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {
                 "currency": "USD",
                 "amount": quantize_price(charged_value, "USD"),
@@ -93,9 +92,6 @@ def test_transaction_refund_request(order, webhook_app, permission_manage_paymen
             "events": [
                 {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
             ],
-            "status": "Captured",
-            "type": "Credit card",
-            "reference": "PSP ref",
             "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
