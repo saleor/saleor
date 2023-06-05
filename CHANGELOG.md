@@ -37,6 +37,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
 - [Preview] Add `AttributeBulkTranslate` and `AttributeValueBulkTranslate` mutation - #12965 by @SzymJ
+- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
 
 ### Saleor Apps
 
