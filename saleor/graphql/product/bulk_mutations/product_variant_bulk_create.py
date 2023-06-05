@@ -49,10 +49,7 @@ from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.channels import ProductVariantChannelListingAddInput
 from ..mutations.product.product_create import StockInput
-from ..mutations.product_variant.product_variant_create import (
-    ProductVariantCreate,
-    ProductVariantInput,
-)
+from ..mutations.product_variant.product_variant_create import ProductVariantInput
 from ..types import ProductVariant
 from ..utils import clean_variant_sku, get_used_variants_attribute_values
 
@@ -326,9 +323,6 @@ class ProductVariantBulkCreate(BaseMutation):
                 try:
                     cleaned_attributes = AttributeAssignmentMixin.clean_input(
                         attributes_input, variant_attributes
-                    )
-                    ProductVariantCreate.validate_duplicated_attribute_values(
-                        cleaned_attributes, used_attribute_values, None
                     )
                     cleaned_input["attributes"] = cleaned_attributes
                 except ValidationError as exc:

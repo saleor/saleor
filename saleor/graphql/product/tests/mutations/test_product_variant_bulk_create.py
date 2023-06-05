@@ -114,20 +114,27 @@ def test_product_variant_bulk_create_by_name(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     attribute_value = size_attribute.values.last()
-    sku = str(uuid4())[:12]
-    name = "new-variant-name"
+    sku1 = str(uuid4())[:12]
+    sku2 = str(uuid4())[:12]
+    name1 = "new-variant-name"
+    name2 = "new-variant-name"
     metadata_key = "md key"
     metadata_value = "md value"
 
     variants = [
         {
-            "sku": sku,
+            "sku": sku1,
             "weight": 2.5,
             "trackInventory": True,
-            "name": name,
+            "name": name1,
             "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
             "metadata": [{"key": metadata_key, "value": metadata_value}],
-        }
+        },
+        {
+            "sku": sku2,
+            "name": name2,
+            "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+        },
     ]
 
     variables = {"productId": product_id, "variants": variants}
@@ -143,18 +150,19 @@ def test_product_variant_bulk_create_by_name(
 
     # then
     assert not data["results"][0]["errors"]
-    assert data["count"] == 1
+    assert not data["results"][1]["errors"]
+    assert data["count"] == 2
     variant_data = data["results"][0]["productVariant"]
-    assert variant_data["name"] == name
+    assert variant_data["name"] == name1
     assert variant_data["metadata"][0]["key"] == metadata_key
     assert variant_data["metadata"][0]["value"] == metadata_value
-    assert product_variant_count + 1 == ProductVariant.objects.count()
+    assert product_variant_count + 2 == ProductVariant.objects.count()
     assert attribute_value_count == size_attribute.values.count()
-    product_variant = ProductVariant.objects.get(sku=sku)
+    product_variant = ProductVariant.objects.get(sku=sku1)
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_product_discounted_price_task_mock.call_count == data["count"]
 
 
 @patch("saleor.product.tasks.update_product_discounted_price_task.delay")
@@ -2189,87 +2197,6 @@ def test_product_variant_bulk_create_many_errors_with_reject_failed_rows(
         "channels": None,
     }
     assert product_variant_count + 1 == ProductVariant.objects.count()
-
-
-def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
-    staff_api_client,
-    product_with_variant_with_two_attributes,
-    color_attribute,
-    size_attribute,
-    permission_manage_products,
-):
-    # given
-    product = product_with_variant_with_two_attributes
-    product_variant_count = ProductVariant.objects.count()
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
-    variants = [
-        {
-            "sku": str(uuid4())[:12],
-            "attributes": [
-                {"id": color_attribute_id, "values": ["red"]},
-                {"id": size_attribute_id, "values": ["small"]},
-            ],
-        }
-    ]
-    variables = {"productId": product_id, "variants": variants}
-
-    # when
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantBulkCreate"]
-
-    # then
-    input_errors = data["results"][0]["errors"]
-    assert len(input_errors) == 1
-    error = input_errors[0]
-    assert error["field"] == "attributes"
-    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert product_variant_count == ProductVariant.objects.count()
-
-
-def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_input(
-    staff_api_client,
-    product_with_variant_with_two_attributes,
-    permission_manage_products,
-    color_attribute,
-    size_attribute,
-):
-    # given
-    product = product_with_variant_with_two_attributes
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    product_variant_count = ProductVariant.objects.count()
-    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
-    attributes = [
-        {"id": color_attribute_id, "values": [color_attribute.values.last().slug]},
-        {"id": size_attribute_id, "values": [size_attribute.values.last().slug]},
-    ]
-    variants = [
-        {"sku": str(uuid4())[:12], "attributes": attributes},
-        {"sku": str(uuid4())[:12], "attributes": attributes},
-    ]
-    variables = {"productId": product_id, "variants": variants}
-
-    # when
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantBulkCreate"]
-
-    # then
-    input_2_errors = data["results"][1]["errors"]
-    assert len(input_2_errors) == 1
-    error = input_2_errors[0]
-    assert error["field"] == "attributes"
-    assert error["code"] == ProductVariantBulkErrorCode.DUPLICATED_INPUT_ITEM.name
-    assert product_variant_count == ProductVariant.objects.count()
 
 
 def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value(
