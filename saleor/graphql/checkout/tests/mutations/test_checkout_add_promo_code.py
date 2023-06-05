@@ -1010,6 +1010,52 @@ def test_checkout_add_promo_code_without_checkout_email(
     assert data["checkout"]["voucherCode"] == voucher.code
 
 
+def test_checkout_add_gift_card_without_checkout_email(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
+    assert data["checkout"]["giftCards"][0]["last4CodeChars"] == gift_card.display_code
+
+
+def test_checkout_add_gift_card_without_checkout_email_used_by_someone_else(
+    api_client, checkout_with_item, gift_card
+):
+    # given
+    checkout_with_item.email = None
+    checkout_with_item.save(update_fields=["email"])
+    gift_card.used_by_email = "nonexisting@example.com"
+    gift_card.save(update_fields=["used_by_email"])
+    gift_card_id = graphene.Node.to_global_id("GiftCard", gift_card.pk)
+    variables = {
+        "id": to_global_id_or_none(checkout_with_item),
+        "promoCode": gift_card.code,
+    }
+
+    # when
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    # then
+    assert not data["errors"]
+    assert data["checkout"]["token"] == str(checkout_with_item.token)
+    assert data["checkout"]["giftCards"][0]["id"] == gift_card_id
+    assert data["checkout"]["giftCards"][0]["last4CodeChars"] == gift_card.display_code
+
+
 @pytest.mark.parametrize("shipping_price", [12, 10, 5])
 def test_checkout_add_free_shipping_voucher_do_not_invalidate_shipping_method(
     shipping_price,
