@@ -534,9 +534,10 @@ class AttributeAssignmentMixin:
         attribute_values: List[attribute_models.AttributeValue] = []
         for attr_value in attr_values_input.multiselect:
             external_ref = attr_value.external_reference
-            if external_ref and attr_value:
+
+            if external_ref and attr_value.value:
                 value = cls._create_value_instance(
-                    attribute, attr_value, external_ref, attr_and_value_slugs_map
+                    attribute, attr_value.value, external_ref, attr_and_value_slugs_map
                 )
                 return value
 
