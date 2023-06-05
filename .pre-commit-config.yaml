@@ -55,3 +55,11 @@ repos:
         name: Check GraphQL schema is up to date.
         entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
         stages: [commit]
+
+  - repo: local
+    hooks:
+      - id: json-schema-check
+        language: system
+        name: Check Json schema is up to date.
+        entry: sh -c "./manage.py get_json_schema | diff saleor/core/schema.json -"
+        stages: [ commit ]
