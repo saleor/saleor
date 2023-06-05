@@ -173,6 +173,10 @@ class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
         return root.target
 
     @staticmethod
+    def resolve_mount(root, _info: ResolveInfo):
+        return root.mount
+
+    @staticmethod
     @app_promise_callback
     def resolve_app(root, info: ResolveInfo, app):
         app_id = None

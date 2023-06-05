@@ -91,18 +91,22 @@ class ValidationErrorSchema(JsonSchema):
     __config__: ClassVar[Type[ValidationErrorConfig]]
 
     @classmethod
-    def parse_obj(cls: Type[Model], *args, **kwargs) -> Model:
+    def parse_obj(
+        cls: Type[Model], *args, root_error_field: Optional[str] = None, **kwargs
+    ) -> Model:
         try:
             return super().parse_obj(*args, **kwargs)
         except PydanticValidationError as error:
-            raise translate_validation_error(error)
+            raise translate_validation_error(error, root_error_field)
 
     @classmethod
-    def parse_raw(cls: Type[Model], *args, **kwargs) -> Model:
+    def parse_raw(
+        cls: Type[Model], *args, root_error_field: Optional[str] = None, **kwargs
+    ) -> Model:
         try:
             return super().parse_raw(*args, **kwargs)
         except PydanticValidationError as error:
-            raise translate_validation_error(error)
+            raise translate_validation_error(error, root_error_field)
 
     @classmethod
     def get_error_mapping(
@@ -185,7 +189,9 @@ def flatten_errors(errors, model, config, loc: Optional[Loc] = None):
             raise RuntimeError(f"Unknown error object: {error}")
 
 
-def translate_validation_error(error: PydanticValidationError):
+def translate_validation_error(
+    error: PydanticValidationError, root_error_field: Optional[str] = None
+):
     validation_errors: T_ERRORS = defaultdict(list)
     errors, model = error.raw_errors, error.model
     if issubclass(model, BaseModel):
@@ -193,6 +199,9 @@ def translate_validation_error(error: PydanticValidationError):
     else:
         root_config = model.__pydantic_model__.__config__
     for error_loc, validation_error in flatten_errors(errors, model, root_config):
-        field = ".".join([str(loc) for loc in error_loc])
+        if root_error_field and error_loc == (NON_FIELD_ERRORS,):
+            field = root_error_field
+        else:
+            field = ".".join([str(loc) for loc in error_loc])
         validation_errors[field].append(validation_error)
     return DjangoValidationError(validation_errors)
