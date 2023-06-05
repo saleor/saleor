@@ -278,6 +278,15 @@ class Manifest(ValidationErrorSchema):
 
     class Config(ValidationErrorConfig):
         default_error = {"code": AppErrorCode.INVALID}
+        root_errors_map = [
+            (
+                (ValueError, TypeError, UnicodeDecodeError),
+                {
+                    "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
+                    "msg": "Incorrect structure of manifest.",
+                },
+            )
+        ]
         errors_map = {
             MissingError: {"code": AppErrorCode.REQUIRED, "msg": "Field required."},
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
