@@ -1,5 +1,16 @@
 {
-  "title": "Saleor JSON-schema",
+  "title": "Schema",
+  "anyOf": [
+    {
+      "$ref": "#/definitions/Manifest"
+    },
+    {
+      "$ref": "#/definitions/CheckoutCalculateTaxes"
+    },
+    {
+      "$ref": "#/definitions/OrderCalculateTaxes"
+    }
+  ],
   "definitions": {
     "Permission": {
       "title": "Permission",
@@ -449,8 +460,44 @@
         "total_net_amount"
       ]
     },
-    "TaxData": {
-      "title": "TaxData",
+    "CheckoutCalculateTaxes": {
+      "title": "CHECKOUT_CALCULATE_TAXES",
+      "type": "object",
+      "properties": {
+        "shipping_price_gross_amount": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "shipping_price_net_amount": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "shipping_tax_rate": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaxLineData"
+          }
+        }
+      },
+      "required": [
+        "shipping_price_gross_amount",
+        "shipping_price_net_amount",
+        "shipping_tax_rate",
+        "lines"
+      ]
+    },
+    "OrderCalculateTaxes": {
+      "title": "ORDER_CALCULATE_TAXES",
       "type": "object",
       "properties": {
         "shipping_price_gross_amount": {
