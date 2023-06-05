@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union, cast
+from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union
 
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -56,17 +56,17 @@ class SaleorValidationError(ValueError):
 
 
 class ValidationErrorConfig(BaseConfig):
-    default_error: Optional[ErrorMapping] = None
+    default_error: ErrorMapping = {}
     root_errors_map: FIELD_MAPPING_TYPE = []
     errors_map: dict[Type[Exception], ErrorMapping] = {}
     field_errors_map: dict[str, FIELD_MAPPING_TYPE] = {}
 
     @classmethod
-    def get_error_mapping(cls, type_: Type[Exception]) -> Optional[ErrorMapping]:
+    def get_error_mapping(cls, type_: Type[Exception]) -> ErrorMapping:
         for error_type, mapping in cls.errors_map.items():
             if issubclass(type_, error_type):
                 return mapping
-        return None
+        return {}
 
 
 class BaseSchema(BaseModel):
@@ -109,7 +109,7 @@ class ValidationErrorSchema(JsonSchema):
         cls: Type["ValidationErrorSchema"],
         field_alias: str,
         error_type: Type[Exception],
-    ) -> Optional[ErrorMapping]:
+    ) -> ErrorMapping:
         if cls._fields_mapping is None:
             cls._fields_mapping = {}
             for field_name, field in cls.__fields__.items():
@@ -122,41 +122,47 @@ class ValidationErrorSchema(JsonSchema):
         for type_mappings, error_mapping in mappings:
             if issubclass(error_type, type_mappings):
                 return error_mapping
-        return None
+        return {}
 
 
 def get_error_mapping(
-    error_type: Type[Exception], config: Type[BaseConfig]
-) -> Optional[ErrorMapping]:
-    if issubclass(config, ValidationErrorConfig):
-        return config.get_error_mapping(error_type)
-    return None
-
-
-def convert_error(error: ErrorWrapper, model, root_config, error_loc):
-    code, msg, params = "invalid", str(error.exc), {}
-    mapping: Optional[ErrorMapping] = None
-    field_name = str(error.loc_tuple()[0])
-    if default_error := cast(ErrorMapping, getattr(root_config, "default_error", None)):
-        code = default_error["code"].value if "code" in default_error else code
-        msg = default_error.get("msg") or msg
-    if isinstance(error.exc, SaleorValidationError):
-        code = error.exc.mapping["code"].value if "code" in error.exc.mapping else code
-        msg = error.exc.mapping.get("msg") or msg
-        params = error.exc.params
+    error: ErrorWrapper,
+    model: Type[BaseModel],
+    root_config: Type[ValidationErrorConfig],
+) -> ErrorMapping:
+    mapping: ErrorMapping = root_config.default_error.copy()
+    mapping.update(root_config.get_error_mapping(error.exc.__class__))
     if issubclass(model, ValidationErrorSchema):
-        mapping = model.get_error_mapping(field_name, error.exc.__class__)
-    if not mapping:
-        mapping = get_error_mapping(error.exc.__class__, model.__config__)
-        mapping = mapping or get_error_mapping(error.exc.__class__, root_config)
-    if mapping:
-        code = mapping["code"].value if "code" in mapping else code
-        msg = mapping.get("msg") or msg
+        mapping.update(model.__config__.get_error_mapping(error.exc.__class__))
+        field_alias = str(error.loc_tuple()[0])
+        field_mapping = model.get_error_mapping(field_alias, error.exc.__class__)
+        mapping.update(field_mapping)
+    if isinstance(error.exc, SaleorValidationError):
+        mapping.update(error.exc.mapping)
+    return mapping
+
+
+def prepare_error_message(msg: str):
     msg = f"{msg[:1].upper()}{msg[1:]}"
     if msg and msg[-1:] != ".":
         msg += "."
-    if field_name == ROOT_KEY:
-        return (NON_FIELD_ERRORS,), DjangoValidationError(msg, code=code, params=params)
+    return msg
+
+
+def convert_error(
+    error: ErrorWrapper,
+    model: Type[BaseModel],
+    root_config: Type[ValidationErrorConfig],
+    error_loc: Loc,
+) -> tuple[Loc, DjangoValidationError]:
+    mapping = get_error_mapping(error, model, root_config)
+    code = mapping["code"].value if "code" in mapping else "invalid"
+    msg = prepare_error_message(mapping.get("msg") or str(error.exc))
+    if error_loc == (ROOT_KEY,):
+        return (NON_FIELD_ERRORS,), DjangoValidationError(msg, code=code)
+    params = {}
+    if isinstance(error.exc, SaleorValidationError):
+        params = error.exc.params
     return error_loc, DjangoValidationError(msg, code=code, params=params)
 
 
