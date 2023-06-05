@@ -72,17 +72,14 @@ class SubscriptionQuery(SubscriptionQueryBase, ConstrainedStr):
 Permission = Enum(  # type: ignore[misc]
     "Permission", [(p, p) for p, _ in get_permissions_enum_list()]
 )
-
 AppExtensionTargetEnum = Enum(  # type: ignore[misc]
     "AppExtensionTargetEnum", [(m, m.upper()) for m, _ in AppExtensionTarget.CHOICES]
 )
 AppExtensionTargetEnum.__doc__ = AppExtensionTarget.__doc__
-
 AppExtensionMountEnum = Enum(  # type: ignore[misc]
     "AppExtensionMountEnum", [(m, m.upper()) for m, _ in AppExtensionMount.CHOICES]
 )
 AppExtensionMountEnum.__doc__ = AppExtensionMount.__doc__
-
 WebhookEventTypeAsyncEnum = Enum(  # type: ignore[misc]
     "WebhookEventTypeAsyncEnum",
     [(m, m.upper()) for m, _ in WebhookEventAsyncType.CHOICES],
@@ -90,7 +87,6 @@ WebhookEventTypeAsyncEnum = Enum(  # type: ignore[misc]
 WebhookEventTypeAsyncEnum.__doc__ = (
     "The asynchronous events that webhook wants to subscribe."
 )
-
 WebhookEventTypeSyncEnum = Enum(  # type: ignore[misc]
     "WebhookEventTypeSyncEnum",
     [(m, m.upper()) for m, _ in WebhookEventSyncType.CHOICES],
@@ -171,8 +167,10 @@ class Extension(ValidationErrorSchema):
     class Config(ValidationErrorConfig):
         field_errors_map = {
             "permissions": {
-                "code": AppErrorCode.INVALID_PERMISSION,
-                "msg": "Given permission don't exist.",
+                Exception: {
+                    "code": AppErrorCode.INVALID_PERMISSION,
+                    "msg": "Given permission don't exist.",
+                }
             }
         }
 
@@ -280,8 +278,10 @@ class Manifest(ValidationErrorSchema):
         }
         field_errors_map = {
             "permissions": {
-                "code": AppErrorCode.INVALID_PERMISSION,
-                "msg": "Given permission don't exist.",
+                Exception: {
+                    "code": AppErrorCode.INVALID_PERMISSION,
+                    "msg": "Given permission don't exist.",
+                }
             }
         }
 

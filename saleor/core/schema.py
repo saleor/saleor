@@ -51,7 +51,7 @@ class SaleorValidationError(ValueError):
 class ValidationErrorConfig(BaseConfig):
     default_error: Optional[ErrorMapping] = None
     errors_map: dict[Type[Exception], ErrorMapping] = {}
-    field_errors_map: dict[str, ErrorMapping] = {}
+    field_errors_map: dict[str, dict[Type[Exception], ErrorMapping]] = {}
 
     @classmethod
     def get_error_mapping(cls, type_: Type[Exception]) -> Optional[ErrorMapping]:
@@ -75,7 +75,9 @@ class JsonSchema(BaseSchema):
 
 
 class ValidationErrorSchema(JsonSchema):
-    _fields_mapping: ClassVar[Optional[dict[str, ErrorMapping]]] = None
+    _fields_mapping: ClassVar[
+        Optional[dict[str, dict[Type[Exception], ErrorMapping]]]
+    ] = None
 
     class Config(ValidationErrorConfig):
         pass
@@ -98,14 +100,20 @@ class ValidationErrorSchema(JsonSchema):
 
     @classmethod
     def get_error_mapping(
-        cls: Type["ValidationErrorSchema"], field_alias: str
+        cls: Type["ValidationErrorSchema"],
+        field_alias: str,
+        error_type: Type[Exception],
     ) -> Optional[ErrorMapping]:
         if cls._fields_mapping is None:
             cls._fields_mapping = {}
             for field_name, field in cls.__fields__.items():
                 if mapping := cls.__config__.field_errors_map.get(field_name):
                     cls._fields_mapping[field.alias] = mapping
-        return cls._fields_mapping.get(field_alias)
+        mappings = cls._fields_mapping.get(field_alias, {})
+        for type_mapping, error_mapping in mappings.items():
+            if issubclass(type_mapping, error_type):
+                return error_mapping
+        return None
 
 
 def get_error_mapping(
@@ -128,7 +136,9 @@ def convert_error(error: ErrorWrapper, model, root_config, error_loc):
         params = error.exc.params
     mapping = None
     if issubclass(model, ValidationErrorSchema):
-        mapping = model.get_error_mapping(str(error.loc_tuple()[0]))
+        mapping = model.get_error_mapping(
+            str(error.loc_tuple()[0]), error.exc.__class__
+        )
     if not mapping:
         mapping = get_error_mapping(error.exc.__class__, model.__config__)
         mapping = mapping or get_error_mapping(error.exc.__class__, root_config)
