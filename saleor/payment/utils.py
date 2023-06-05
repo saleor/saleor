@@ -31,6 +31,7 @@ from . import (
     GatewayError,
     PaymentError,
     StorePaymentMethod,
+    TransactionAction,
     TransactionEventType,
     TransactionKind,
 )
@@ -823,6 +824,18 @@ def parse_transaction_action_data(
         logger.error(msg)
         return None, msg
 
+    available_actions = response_data.get("actions", None)
+    if available_actions is not None:
+        possible_actions = {
+            str_to_enum(event_action): event_action
+            for event_action, _ in TransactionAction.CHOICES
+        }
+        available_actions = [
+            possible_actions[action]
+            for action in available_actions
+            if action in possible_actions
+        ]
+
     parsed_event_data: dict = {}
     error_field_msg: list[str] = []
     parse_transaction_event_data(
@@ -845,6 +858,7 @@ def parse_transaction_action_data(
     return (
         TransactionRequestResponse(
             psp_reference=psp_reference,
+            available_actions=available_actions,
             event=TransactionRequestEventResponse(**parsed_event_data)
             if parsed_event_data
             else None,
@@ -1090,12 +1104,14 @@ def create_transaction_event_for_transaction_session(
         request_event.amount_value = response_event.amount
         request_event.psp_reference = response_event.psp_reference
         request_event.include_in_calculations = True
+        request_event.app = app
         request_event_update_fields.extend(
             [
                 "type",
                 "amount_value",
                 "psp_reference",
                 "include_in_calculations",
+                "app",
             ]
         )
         event = request_event
@@ -1127,6 +1143,10 @@ def create_transaction_event_for_transaction_session(
         previous_refunded_value = transaction_item.refunded_value
 
         transaction_item.psp_reference = event.psp_reference
+        available_actions = transaction_request_response.available_actions
+        if available_actions is not None:
+            transaction_item.available_actions = available_actions
+
         recalculate_transaction_amounts(transaction_item, save=False)
         transaction_item.save(
             update_fields=[
@@ -1139,6 +1159,7 @@ def create_transaction_event_for_transaction_session(
                 "refund_pending_value",
                 "cancel_pending_value",
                 "psp_reference",
+                "available_actions",
             ]
         )
         if transaction_item.order_id:
@@ -1193,7 +1214,24 @@ def create_transaction_event_from_request_and_webhook_response(
     previous_authorized_value = transaction_item.authorized_value
     previous_charged_value = transaction_item.charged_value
     previous_refunded_value = transaction_item.refunded_value
-    recalculate_transaction_amounts(transaction_item)
+    recalculate_transaction_amounts(transaction_item, save=False)
+    available_actions = transaction_request_response.available_actions
+    if available_actions is not None:
+        transaction_item.available_actions = available_actions
+
+    transaction_item.save(
+        update_fields=[
+            "available_actions",
+            "authorized_value",
+            "charged_value",
+            "refunded_value",
+            "canceled_value",
+            "authorize_pending_value",
+            "charge_pending_value",
+            "refund_pending_value",
+            "cancel_pending_value",
+        ]
+    )
 
     if transaction_item.order_id:
         # circular import
@@ -1339,8 +1377,11 @@ def create_transaction_item(
     user: Optional[User],
     app: Optional[App],
     psp_reference: Optional[str],
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ):
     return TransactionItem.objects.create(
+        name=name,
         checkout_id=source_object.pk if isinstance(source_object, Checkout) else None,
         order_id=source_object.pk if isinstance(source_object, Order) else None,
         currency=source_object.currency,
@@ -1348,6 +1389,7 @@ def create_transaction_item(
         app_identifier=app.identifier if app else None,
         user=user,
         psp_reference=psp_reference,
+        available_actions=available_actions if available_actions else [],
     )
 
 
@@ -1357,9 +1399,16 @@ def create_transaction_for_order(
     app: Optional["App"],
     psp_reference: Optional[str],
     charged_value: Decimal,
+    available_actions: Optional[list[str]] = None,
+    name: str = "",
 ) -> TransactionItem:
     transaction = create_transaction_item(
-        source_object=order, user=user, app=app, psp_reference=psp_reference
+        source_object=order,
+        user=user,
+        app=app,
+        psp_reference=psp_reference,
+        available_actions=available_actions,
+        name=name,
     )
     create_manual_adjustment_events(
         transaction=transaction,

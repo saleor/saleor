@@ -197,9 +197,9 @@ def _finalize_checkout(
             )
 
         order, _, _ = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data={},
             store_source=False,
             user=checkout.user or None,

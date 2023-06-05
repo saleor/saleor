@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest import mock
 
 import graphene
@@ -44,6 +45,7 @@ CHANNEL_CREATE_MUTATION = """
                     expireOrdersAfter
                     markAsPaidStrategy
                     defaultTransactionFlowStrategy
+                    deleteExpiredOrdersAfter
                 }
             }
             errors{
@@ -636,3 +638,76 @@ def test_channel_create_set_default_transaction_flow_strategy(
         channel.default_transaction_flow_strategy
         == TransactionFlowStrategyEnum.AUTHORIZATION.value
     )
+
+
+def test_channel_create_set_delete_expired_orders_after(
+    permission_manage_channels,
+    staff_api_client,
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    delete_expired_after = 10
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"deleteExpiredOrdersAfter": delete_expired_after},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["channelCreate"]
+    assert not data["errors"]
+    channel_data = data["channel"]
+    channel = Channel.objects.get()
+    assert (
+        channel_data["orderSettings"]["deleteExpiredOrdersAfter"]
+        == delete_expired_after
+    )
+    assert channel.delete_expired_orders_after == timedelta(days=delete_expired_after)
+
+
+@pytest.mark.parametrize("delete_expired_after", [-1, 0, 121, 300])
+def test_channel_create_mutation_set_incorrect_delete_expired_orders_after(
+    delete_expired_after, permission_manage_channels, staff_api_client, channel_USD
+):
+    # given
+    name = "testName"
+    slug = "test_slug"
+    currency_code = "USD"
+    default_country = "US"
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "currencyCode": currency_code,
+            "defaultCountry": default_country,
+            "orderSettings": {"deleteExpiredOrdersAfter": delete_expired_after},
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHANNEL_CREATE_MUTATION,
+        variables=variables,
+        permissions=(permission_manage_channels,),
+    )
+    content = get_graphql_content(response)
+
+    # then
+    error = content["data"]["channelCreate"]["errors"][0]
+    assert error["field"] == "deleteExpiredOrdersAfter"
+    assert error["code"] == ChannelErrorCode.INVALID.name

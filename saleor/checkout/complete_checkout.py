@@ -23,7 +23,7 @@ from prices import Money, TaxedMoney
 
 from ..account.error_codes import AccountErrorCode
 from ..account.models import User
-from ..account.utils import store_user_address
+from ..account.utils import retrieve_user_by_email, store_user_address
 from ..channel import MarkAsPaidStrategy
 from ..checkout import CheckoutAuthorizeStatus, calculations
 from ..checkout.error_codes import CheckoutErrorCode
@@ -80,7 +80,12 @@ from .checkout_cleaner import (
     clean_checkout_payment,
     clean_checkout_shipping,
 )
-from .fetch import CheckoutInfo, CheckoutLineInfo
+from .fetch import (
+    CheckoutInfo,
+    CheckoutLineInfo,
+    fetch_checkout_info,
+    fetch_checkout_lines,
+)
 from .models import Checkout
 from .utils import (
     get_checkout_metadata,
@@ -1203,7 +1208,6 @@ def _create_order_from_checkout(
 
 def create_order_from_checkout(
     checkout_info: CheckoutInfo,
-    checkout_lines: Iterable["CheckoutLineInfo"],
     manager: "PluginsManager",
     user: Optional["User"],
     app: Optional["App"],
@@ -1230,11 +1234,26 @@ def create_order_from_checkout(
     :raises: InsufficientStock, GiftCardNotApplicable
     """
 
-    if checkout_info.voucher:
+    voucher = None
+    if voucher := checkout_info.voucher:
         with transaction.atomic():
             _increase_voucher_usage(checkout_info=checkout_info)
 
     with transaction.atomic():
+        checkout_pk = checkout_info.checkout.pk
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
+        if not checkout:
+            order = Order.objects.get_by_checkout_token(checkout_pk)
+            return order
+
+        # Fetching checkout info inside the transaction block with select_for_update
+        # enure that we are processing checkout on the current data.
+        checkout_lines, _ = fetch_checkout_lines(checkout, voucher=voucher)
+        checkout_info = fetch_checkout_info(
+            checkout, checkout_lines, manager, voucher=voucher
+        )
+        assign_checkout_user(user, checkout_info)
+
         try:
             order = _create_order_from_checkout(
                 checkout_info=checkout_info,
@@ -1259,6 +1278,19 @@ def create_order_from_checkout(
                 checkout_info.voucher, checkout_info.checkout.get_customer_email()
             )
             raise
+
+
+def assign_checkout_user(
+    user: Optional["User"],
+    checkout_info: "CheckoutInfo",
+):
+    # Assign checkout user to an existing user if checkout email matches a valid
+    #  customer account
+    if user is None and not checkout_info.user and checkout_info.checkout.email:
+        existing_user = retrieve_user_by_email(checkout_info.checkout.email)
+        checkout_info.user = (
+            existing_user if existing_user and existing_user.is_active else None
+        )
 
 
 def complete_checkout(
@@ -1303,8 +1335,7 @@ def complete_checkout(
 
     return complete_checkout_with_payment(
         manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
+        checkout_pk=checkout_info.checkout.pk,
         payment_data=payment_data,
         store_source=store_source,
         user=user,
@@ -1338,7 +1369,6 @@ def complete_checkout_with_transaction(
 
     return create_order_from_checkout(
         checkout_info=checkout_info,
-        checkout_lines=lines,
         manager=manager,
         user=user,
         app=app,
@@ -1351,8 +1381,7 @@ def complete_checkout_with_transaction(
 
 def complete_checkout_with_payment(
     manager: "PluginsManager",
-    checkout_info: "CheckoutInfo",
-    lines: Iterable["CheckoutLineInfo"],
+    checkout_pk: UUID,
     payment_data,
     store_source,
     user,
@@ -1370,14 +1399,16 @@ def complete_checkout_with_payment(
     :raises ValidationError
     """
     with transaction_with_commit_on_errors():
-        checkout = (
-            Checkout.objects.select_for_update()
-            .filter(pk=checkout_info.checkout.pk)
-            .first()
-        )
+        checkout = Checkout.objects.select_for_update().filter(pk=checkout_pk).first()
         if not checkout:
-            order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
+            order = Order.objects.get_by_checkout_token(checkout_pk)
             return order, False, {}
+
+        # Fetching checkout info inside the transaction block with select_for_update
+        # enure that we are processing checkout on the current data.
+        lines, _ = fetch_checkout_lines(checkout)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
+        assign_checkout_user(user, checkout_info)
 
         payment, customer_id, order_data = complete_checkout_pre_payment_part(
             manager=manager,
@@ -1388,7 +1419,8 @@ def complete_checkout_with_payment(
             tracking_code=tracking_code,
             redirect_url=redirect_url,
         )
-        reservations = _reserve_stocks_without_availability_check(checkout_info, lines)
+
+        _reserve_stocks_without_availability_check(checkout_info, lines)
 
     # Process payments out of transaction to unlock stock rows for another user,
     # who potentially can order the same product variants.
@@ -1426,60 +1458,27 @@ def complete_checkout_with_payment(
             order = Order.objects.get_by_checkout_token(checkout_info.checkout.token)
             return order, False, {}
 
-        # Run pre-payment checks to make sure, that nothing has changed to the
-        # checkout, during processing payment.
+        # We need to refetch the checkout info to ensure that we process checkout
+        # for correct data.
+        lines, _ = fetch_checkout_lines(checkout, skip_recalculation=True)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
+
         checkout_info.checkout.voucher_code = None
-        _, _, post_payment_order_data = complete_checkout_pre_payment_part(
+        order, action_required, action_data = complete_checkout_post_payment_part(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            payment=payment,
+            txn=txn,
+            order_data=order_data,
             user=user,
+            app=app,
             site_settings=site_settings,
-            tracking_code=tracking_code,
-            redirect_url=redirect_url,
+            metadata_list=metadata_list,
+            private_metadata_list=private_metadata_list,
         )
-        if _compare_order_data(order_data, post_payment_order_data):
-            order, action_required, action_data = complete_checkout_post_payment_part(
-                manager=manager,
-                checkout_info=checkout_info,
-                lines=lines,
-                payment=payment,
-                txn=txn,
-                order_data=order_data,
-                user=user,
-                app=app,
-                site_settings=site_settings,
-                metadata_list=metadata_list,
-                private_metadata_list=private_metadata_list,
-            )
-        else:
-            release_voucher_usage(
-                order_data.get("voucher"), order_data.get("user_email")
-            )
-            gateway.payment_refund_or_void(
-                payment,
-                manager,
-                channel_slug=checkout_info.channel.slug,
-            )
-            if not is_reservation_enabled(site_settings):
-                Reservation.objects.filter(id__in=[r.id for r in reservations]).delete()
-            raise ValidationError("Checkout has changed during payment processing")
 
     return order, action_required, action_data
-
-
-def _compare_order_data(order_data_1, order_data_2):
-    order_total_check = (
-        order_data_1["total"].gross.amount == order_data_2["total"].gross.amount
-    )
-    order_lines_quantity_check = len(order_data_1["lines"]) == len(
-        order_data_2["lines"]
-    )
-    variants_id_1 = [line.variant.id for line in order_data_1["lines"]]
-    order_lines_check = all(
-        [line.variant.id in variants_id_1 for line in order_data_2["lines"]]
-    )
-    return order_total_check and order_lines_quantity_check and order_lines_check
 
 
 def _reserve_stocks_without_availability_check(

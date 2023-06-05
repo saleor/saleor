@@ -10,7 +10,11 @@ from freezegun import freeze_time
 
 from .....attribute import AttributeInputType
 from .....product.error_codes import ProductVariantBulkErrorCode
-from .....product.models import ProductChannelListing, ProductVariant
+from .....product.models import (
+    ProductChannelListing,
+    ProductVariant,
+    ProductVariantChannelListing,
+)
 from .....tests.utils import dummy_editorjs, flush_post_commit_hooks
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
@@ -91,9 +95,11 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 """
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_name(
     product_variant_created_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     product,
     size_attribute,
@@ -145,11 +151,14 @@ def test_product_variant_bulk_create_by_name(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 def test_product_variant_bulk_create_by_attribute_id(
     product_variant_created_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     product,
     size_attribute,
@@ -192,6 +201,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     product.refresh_from_db()
     assert product.default_variant == product_variant
     assert product_variant_created_webhook_mock.call_count == data["count"]
+    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
 
 
 def test_product_variant_bulk_create_with_swatch_attribute(
@@ -1180,6 +1190,15 @@ def test_product_variant_bulk_create_channel_listings_input(
             ]
         )
 
+    # ensure all variants channel listings has discounted_price_amount set
+    assert all(
+        list(
+            ProductVariantChannelListing.objects.values_list(
+                "discounted_price_amount", flat=True
+            )
+        )
+    )
+
 
 def test_product_variant_bulk_create_preorder_channel_listings_input(
     staff_api_client,
@@ -1791,8 +1810,13 @@ def test_product_variant_bulk_create_without_sku(
     assert ProductVariant.objects.filter(sku__isnull=True).count() == 2
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 def test_product_variant_bulk_create_many_errors(
-    staff_api_client, product, size_attribute, permission_manage_products
+    update_product_discounted_price_task_mock,
+    staff_api_client,
+    product,
+    size_attribute,
+    permission_manage_products,
 ):
     # given
     product_variant_count = ProductVariant.objects.count()
@@ -1852,6 +1876,7 @@ def test_product_variant_bulk_create_many_errors(
         "channels": None,
     }
     assert product_variant_count == ProductVariant.objects.count()
+    update_product_discounted_price_task_mock.assert_not_called()
 
 
 def test_product_variant_bulk_create_many_errors_with_ignore_failed(

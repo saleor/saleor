@@ -1,7 +1,9 @@
 import graphene
+from django.db.models import Exists, OuterRef
 
 from ....permission.enums import ProductPermissions
 from ....product import models
+from ....product.tasks import update_products_discounted_prices_task
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import CollectionError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -25,10 +27,13 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def bulk_action(cls, info, queryset):
         collections_ids = queryset.values_list("id", flat=True)
+        collection_products = models.CollectionProduct.objects.filter(
+            collection_id__in=collections_ids
+        )
         products = list(
-            models.Product.objects.prefetched_for_webhook(single_object=False)
-            .filter(collections__in=collections_ids)
-            .distinct()
+            models.Product.objects.prefetched_for_webhook(single_object=False).filter(
+                Exists(collection_products.filter(product_id=OuterRef("id")))
+            )
         )
         manager = get_plugin_manager_promise(info.context).get()
         for collection in queryset.iterator():
@@ -37,3 +42,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
 
         for product in products:
             manager.product_updated(product)
+
+        update_products_discounted_prices_task.delay(
+            [product.id for product in products]
+        )

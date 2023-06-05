@@ -217,7 +217,11 @@ def test_handle_transaction_request_task_with_only_psp_reference(
     event.refresh_from_db()
     assert event.psp_reference == expected_psp_reference
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -349,7 +353,11 @@ def test_handle_transaction_request_task_with_missing_psp_reference(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -428,7 +436,11 @@ def test_handle_transaction_request_task_with_missing_required_event_field(
     assert failure_event.amount_value == event.amount_value
     assert failure_event.transaction_id == event.transaction_id
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -522,7 +534,11 @@ def test_handle_transaction_request_task_with_result_event(
     assert success_event.message == event_cause
 
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -610,7 +626,11 @@ def test_handle_transaction_request_task_with_only_required_fields_for_result_ev
     assert success_event.message == ""
 
     mocked_post_request.assert_called_once_with(
-        target_url, data=payload.encode("utf-8"), headers=mock.ANY, timeout=mock.ANY
+        target_url,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+        allow_redirects=False,
     )
 
 
@@ -683,6 +703,101 @@ def test_handle_transaction_request_task_calls_recalculation_of_amounts(
     handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
 
     # then
-    mocked_recalculation.assert_called_once_with(transaction)
+    mocked_recalculation.assert_called_once_with(transaction, save=False)
     transaction.refresh_from_db()
     assert transaction.charged_value == event_amount
+
+
+@freeze_time("2022-06-11 12:50")
+@mock.patch("saleor.plugins.webhook.tasks.requests.post")
+def test_handle_transaction_request_task_with_available_actions(
+    mocked_post_request,
+    transaction_item_generator,
+    permission_manage_payments,
+    staff_user,
+    mocked_webhook_response,
+    app,
+):
+    # given
+    transaction = transaction_item_generator()
+    request_psp_reference = "psp:123:111"
+    event_amount = 12.00
+    event_type = TransactionEventType.CHARGE_SUCCESS
+
+    response_payload = {
+        "pspReference": request_psp_reference,
+        "amount": event_amount,
+        "result": event_type.upper(),
+        "actions": ["CHARGE", "REFUND", "CANCEL", "VOID", "INCORRECT_EVENT"],
+    }
+    mocked_webhook_response.text = json.dumps(response_payload)
+    mocked_webhook_response.content = json.dumps(response_payload)
+    mocked_post_request.return_value = mocked_webhook_response
+
+    target_url = "http://localhost:3000/"
+
+    request_event = transaction.events.create(type=TransactionEventType.CHARGE_REQUEST)
+    app.permissions.set([permission_manage_payments])
+
+    webhook = app.webhooks.create(
+        name="webhook",
+        is_active=True,
+        target_url=target_url,
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED)
+
+    transaction_data = TransactionActionData(
+        transaction=transaction,
+        action_type="refund",
+        action_value=Decimal("10.00"),
+        event=request_event,
+        transaction_app_owner=app,
+    )
+
+    payload = generate_transaction_action_request_payload(transaction_data, staff_user)
+    event_payload = EventPayload.objects.create(payload=payload)
+    delivery = EventDelivery.objects.create(
+        status=EventDeliveryStatus.PENDING,
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED,
+        payload=event_payload,
+        webhook=webhook,
+    )
+
+    # when
+    handle_transaction_request_task(delivery.id, app.name, transaction_data.event.id)
+
+    # then
+    assert TransactionEvent.objects.all().count() == 2
+    assert (
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.CHARGE_REQUEST
+        ).count()
+        == 1
+    )
+    assert (
+        TransactionEvent.objects.filter(
+            type=TransactionEventType.CHARGE_SUCCESS
+        ).count()
+        == 1
+    )
+    success_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_SUCCESS
+    ).first()
+    assert success_event
+    request_event.refresh_from_db()
+    assert request_event.psp_reference == request_psp_reference
+    assert success_event.psp_reference == request_psp_reference
+    assert success_event.amount_value == event_amount
+
+    transaction.refresh_from_db()
+    assert set(transaction.available_actions) == set(
+        ["charge", "refund", "cancel", "void"]
+    )
+
+    mocked_post_request.assert_called_once_with(
+        target_url,
+        allow_redirects=False,
+        data=payload.encode("utf-8"),
+        headers=mock.ANY,
+        timeout=mock.ANY,
+    )

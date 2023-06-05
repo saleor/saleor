@@ -5,8 +5,9 @@ from prices import Money, TaxedMoney
 from .....channel import MarkAsPaidStrategy
 from .....order import OrderStatus
 from .....order import events as order_events
+from .....order.actions import MARK_AS_PAID_TRANSACTION_NAME
 from .....order.error_codes import OrderErrorCode
-from .....payment import TransactionEventType
+from .....payment import TransactionAction, TransactionEventType
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 MARK_ORDER_AS_PAID_MUTATION = """
@@ -25,6 +26,10 @@ MARK_ORDER_AS_PAID_MUTATION = """
                 isPaid
                 events{
                     transactionReference
+                }
+                transactions{
+                    name
+                    actions
                 }
             }
         }
@@ -379,3 +384,71 @@ def test_draft_order_mark_as_paid_check_price_recalculation_transaction(
     event_order_paid = order.events.first()
     assert event_order_paid.type == order_events.OrderEvents.ORDER_MARKED_AS_PAID
     assert event_order_paid.user == staff_user
+
+
+def test_order_mark_as_paid_with_with_transaction_sets_available_actions(
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    channel = order.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    transaction_reference = "searchable-id"
+    query = MARK_ORDER_AS_PAID_MUTATION
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "transaction": transaction_reference}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    transactions = order.payment_transactions.filter(
+        psp_reference=transaction_reference
+    )
+    assert transactions.count() == 1
+    transaction = transactions.first()
+    assert transaction.available_actions == [TransactionAction.REFUND]
+    assert len(data["transactions"]) == 1
+    assert data["transactions"][0]["actions"] == [TransactionAction.REFUND.upper()]
+
+
+def test_order_mark_as_paid_with_with_transaction_sets_name(
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
+):
+    # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    channel = order.channel
+    channel.order_mark_as_paid_strategy = MarkAsPaidStrategy.TRANSACTION_FLOW
+    channel.save(update_fields=["order_mark_as_paid_strategy"])
+
+    transaction_reference = "searchable-id"
+    query = MARK_ORDER_AS_PAID_MUTATION
+    assert not order.is_fully_paid()
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id, "transaction": transaction_reference}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+
+    data = content["data"]["orderMarkAsPaid"]["order"]
+    order.refresh_from_db()
+    transactions = order.payment_transactions.filter(
+        psp_reference=transaction_reference
+    )
+    assert transactions.count() == 1
+    transaction = transactions.first()
+    assert transaction.name == MARK_AS_PAID_TRANSACTION_NAME
+    assert len(data["transactions"]) == 1
+    assert data["transactions"][0]["name"] == MARK_AS_PAID_TRANSACTION_NAME

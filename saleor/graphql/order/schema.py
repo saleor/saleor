@@ -21,6 +21,7 @@ from ..core.types import FilterInputObjectType, TaxedMoney
 from ..core.utils import ext_ref_to_global_id_or_error, from_global_id_or_error
 from ..core.validators import validate_one_of_args_is_in_query
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
+from .bulk_mutations.order_bulk_create import OrderBulkCreate
 from .bulk_mutations.orders import OrderBulkCancel
 from .filters import DraftOrderFilter, OrderFilter
 from .mutations.draft_order_complete import DraftOrderComplete
@@ -252,3 +253,4 @@ class OrderMutations(graphene.ObjectType):
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
     order_bulk_cancel = OrderBulkCancel.Field()
+    order_bulk_create = OrderBulkCreate.Field()

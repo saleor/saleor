@@ -33,7 +33,7 @@ class Command(BaseCommand):
             raise CommandError(f"Incorrect format of manifest-url: {manifest_url}")
 
     def fetch_manifest_data(self, manifest_url: str) -> dict:
-        response = requests.get(manifest_url)
+        response = requests.get(manifest_url, timeout=30, allow_redirects=False)
         response.raise_for_status()
         return response.json()
 
@@ -57,6 +57,6 @@ class Command(BaseCommand):
             app_job.delete()
         except Exception as e:
             app_job.status = JobStatus.FAILED
-            app_job.save()
+            app_job.save(update_fields=["status"])
             raise e
         return json.dumps({"auth_token": token})

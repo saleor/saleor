@@ -1,6 +1,7 @@
 import graphene
+from PIL import Image
 
-from .. import ThumbnailFormat
+from .. import IconThumbnailFormat, ThumbnailFormat
 from ..models import Thumbnail
 
 
@@ -208,13 +209,24 @@ def test_handle_thumbnail_view_invalid_object_type(client, order):
     assert response.status_code == 404
 
 
-def test_handle_thumbnail_view_invalid_format(client, order):
+def test_handle_thumbnail_view_invalid_format(client, category):
     # given
     size = 60
-    category_id = graphene.Node.to_global_id("Order", order.id)
+    category_id = graphene.Node.to_global_id("Category", category.id)
 
     # when
     response = client.get(f"/thumbnail/{category_id}/{size}/XYZ/")
+
+    # then
+    assert response.status_code == 404
+
+
+def test_handle_icon_thumbnail_view_invalid_format(client, app):
+    # given
+    app_uuid = graphene.Node.to_global_id("App", app.uuid)
+
+    # when
+    response = client.get(f"/thumbnail/{app_uuid}/60/XYZ/")
 
     # then
     assert response.status_code == 404
@@ -242,3 +254,118 @@ def test_handle_thumbnail_view_object_does_not_exists(client):
 
     # then
     assert response.status_code == 404
+
+
+def test_handle_icon_thumbnail_view_with_format(
+    client, app, icon_image, media_root, settings
+):
+    # given
+    app.brand_logo_default = icon_image
+    app.save(update_fields=["brand_logo_default"])
+
+    size = 60
+    format = IconThumbnailFormat.WEBP
+    app_uuid = graphene.Node.to_global_id("App", app.uuid)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{app_uuid}/{size}/{format}/")
+
+    # then
+    assert response.status_code == 302
+    file_path, _ = app.brand_logo_default.name.rsplit(".")
+    assert (
+        response.url
+        == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_64.{format.lower()}"
+    )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
+
+    thumbnail = Thumbnail.objects.last()
+    with Image.open(thumbnail.image) as image:
+        assert image.format == "WEBP"
+
+
+def test_handle_thumbnail_view_for_app_logo_default(
+    client, app, icon_image, media_root, settings
+):
+    # given
+    app.brand_logo_default = icon_image
+    app.save(update_fields=["brand_logo_default"])
+
+    size = 200
+    uuid = graphene.Node.to_global_id("App", app.uuid)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{uuid}/{size}/")
+
+    # then
+    assert response.status_code == 302
+    file_path, ext = app.brand_logo_default.name.rsplit(".")
+    assert (
+        response.url
+        == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_256.{ext}"
+    )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
+
+
+def test_handle_thumbnail_view_for_app_logo_default_thumbnail_exist(
+    client, app, icon_image, media_root, settings
+):
+    # given
+    size = 128
+    thumbnail = Thumbnail.objects.create(app=app, size=128, image=icon_image)
+    uuid = graphene.Node.to_global_id("App", app.uuid)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{uuid}/{size}/")
+
+    # then
+    assert response.status_code == 302
+    assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count
+
+
+def test_handle_thumbnail_view_for_app_installation_logo_default(
+    client, app_installation, icon_image, media_root, settings
+):
+    # given
+    app_installation.brand_logo_default = icon_image
+    app_installation.save(update_fields=["brand_logo_default"])
+
+    size = 200
+    uuid = graphene.Node.to_global_id("AppInstallation", app_installation.uuid)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{uuid}/{size}/")
+
+    # then
+    assert response.status_code == 302
+    file_path, ext = app_installation.brand_logo_default.name.rsplit(".")
+    assert (
+        response.url
+        == settings.MEDIA_URL + f"thumbnails/{file_path}_thumbnail_256.{ext}"
+    )
+    assert Thumbnail.objects.count() == thumbnail_count + 1
+
+
+def test_handle_thumbnail_view_for_app_installation_logo_default_thumbnail_exist(
+    client, app_installation, icon_image, media_root, settings
+):
+    # given
+    size = 128
+    thumbnail = Thumbnail.objects.create(
+        app_installation=app_installation, size=128, image=icon_image
+    )
+    uuid = graphene.Node.to_global_id("AppInstallation", app_installation.uuid)
+    thumbnail_count = Thumbnail.objects.count()
+
+    # when
+    response = client.get(f"/thumbnail/{uuid}/{size}/")
+
+    # then
+    assert response.status_code == 302
+    assert response.url == thumbnail.image.url
+    assert Thumbnail.objects.count() == thumbnail_count

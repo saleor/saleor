@@ -202,9 +202,9 @@ def create_order(payment, checkout, manager):
                 "Cannot create order - some products do not exist anymore."
             )
         order, _, _ = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data={},
             store_source=False,
             user=checkout.user or None,
@@ -909,7 +909,7 @@ def validate_hmac_signature(
     if not hmac_key:
         return not hmac_signature
 
-    if not hmac_signature and hmac_key:
+    if not hmac_signature:
         return False
 
     hmac_key = hmac_key.encode()
@@ -933,7 +933,7 @@ def validate_hmac_signature(
     hmac_key = binascii.a2b_hex(hmac_key)
     hm = hmac.new(hmac_key, payload.encode("utf-8"), hashlib.sha256)
     expected_merchant_sign = base64.b64encode(hm.digest())
-    return hmac_signature == expected_merchant_sign.decode("utf-8")
+    return hmac.compare_digest(hmac_signature, expected_merchant_sign.decode("utf-8"))
 
 
 def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") -> bool:

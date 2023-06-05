@@ -67,9 +67,11 @@ PRODUCT_VARIANT_BULK_UPDATE_MUTATION = """
 """
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_product_variant_bulk_update(
     product_variant_created_webhook_mock,
+    update_product_discounted_price_task_mock,
     staff_api_client,
     product_with_single_variant,
     size_attribute,
@@ -113,9 +115,14 @@ def test_product_variant_bulk_update(
     assert product_with_single_variant.variants.count() == 1
     assert old_name != new_name
     assert product_variant_created_webhook_mock.call_count == data["count"]
+    update_product_discounted_price_task_mock.assert_called_once_with(
+        product_with_single_variant.id
+    )
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 def test_product_variant_bulk_update_stocks(
+    update_product_discounted_price_task_mock,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
@@ -175,6 +182,9 @@ def test_product_variant_bulk_update_stocks(
     assert stock_to_update.quantity == new_quantity
     assert variant.stocks.count() == 3
     assert variant.stocks.last().quantity == new_stock_quantity
+    update_product_discounted_price_task_mock.assert_called_once_with(
+        variant.product_id
+    )
 
 
 def test_product_variant_bulk_update_and_remove_stock(
@@ -218,7 +228,9 @@ def test_product_variant_bulk_update_and_remove_stock(
     assert variant.stocks.count() == 1
 
 
+@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
 def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
+    update_product_discounted_price_task_mock,
     staff_api_client,
     variant_with_many_stocks,
     warehouse,
@@ -256,6 +268,7 @@ def test_product_variant_bulk_update_and_remove_stock_when_stock_not_exists(
     assert variant.stocks.count() == 2
     error = data["results"][0]["errors"][0]
     assert error["code"] == ProductVariantBulkErrorCode.NOT_FOUND.name
+    update_product_discounted_price_task_mock.assert_not_called()
 
 
 def test_product_variant_bulk_update_stocks_with_invalid_warehouse(
@@ -370,9 +383,17 @@ def test_product_variant_bulk_update_channel_listings_input(
     assert (
         new_variant_channel_listing.price_amount == not_existing_variant_listing_price
     )
+    assert (
+        new_variant_channel_listing.discounted_price_amount
+        == not_existing_variant_listing_price
+    )
     assert new_variant_channel_listing.channel == channel_PLN
     assert (
         existing_variant_listing.price_amount == new_price_for_existing_variant_listing
+    )
+    assert (
+        existing_variant_listing.discounted_price_amount
+        == new_price_for_existing_variant_listing
     )
 
 

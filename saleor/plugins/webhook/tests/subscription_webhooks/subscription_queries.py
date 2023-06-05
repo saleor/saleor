@@ -970,6 +970,18 @@ ORDER_METADATA_UPDATED = """
     }
 """
 
+ORDER_BULK_CREATED = """
+    subscription{
+      event{
+        ...on OrderBulkCreated{
+          orders{
+            id
+          }
+        }
+      }
+    }
+"""
+
 DRAFT_ORDER_CREATED = """
     subscription{
       event{
