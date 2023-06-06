@@ -17,9 +17,11 @@ from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
     PromotionByIdLoader,
+    PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
 from ..enums import RewardValueTypeEnum
+from .promotion_events import PromotionEvent
 
 
 class Promotion(ModelObjectType[models.Promotion]):
@@ -40,6 +42,10 @@ class Promotion(ModelObjectType[models.Promotion]):
         lambda: PromotionRule, description="The list of promotion rules."
     )
     translation = TranslationField(PromotionTranslation, type_name="promotion")
+    events = NonNullList(
+        lambda: PromotionEvent,
+        description="The list of events associated with the promotion.",
+    )
 
     class Meta:
         description = (
@@ -55,6 +61,10 @@ class Promotion(ModelObjectType[models.Promotion]):
     @staticmethod
     def resolve_rules(root: models.Promotion, info: ResolveInfo):
         return PromotionRulesByPromotionIdLoader(info.context).load(root.id)
+
+    @staticmethod
+    def resolve_events(root: models.Promotion, info: ResolveInfo):
+        return PromotionEventsByPromotionIdLoader(info.context).load(root.id)
 
 
 class PromotionRule(ModelObjectType[models.PromotionRule]):

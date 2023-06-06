@@ -3,7 +3,9 @@ from unittest.mock import ANY, patch
 
 import graphene
 
+from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionRuleCreateErrorCode
+from .....discount.models import PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardValueTypeEnum
 
@@ -11,10 +13,19 @@ PROMOTION_RULE_CREATE_MUTATION = """
     mutation promotionRuleCreate($input: PromotionRuleCreateInput!) {
         promotionRuleCreate(input: $input) {
             promotionRule {
+                id
                 name
                 description
                 promotion {
                     id
+                    events {
+                        ... on PromotionEvent {
+                            type
+                        }
+                        ... on PromotionRuleEvent {
+                            ruleId
+                    }
+                }
                 }
                 channels {
                     id
@@ -841,3 +852,54 @@ def test_promotion_rule_create_clears_old_sale_id(
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
+
+
+def test_promotion_rule_create_events(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    variant,
+    promotion,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    channel_ids = [graphene.Node.to_global_id("Channel", channel_USD.pk)]
+    catalogue_predicate = {
+        "OR": [
+            {
+                "variantPredicate": {
+                    "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+                }
+            },
+        ]
+    }
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.FIXED.name
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    variables = {
+        "input": {
+            "name": "test promotion rule",
+            "promotion": promotion_id,
+            "channels": channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        }
+    }
+    event_count = PromotionEvent.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleCreate"]
+    assert not data["errors"]
+
+    events = data["promotionRule"]["promotion"]["events"]
+    assert len(events) == 1
+    assert PromotionEvent.objects.count() == event_count + 1
+    assert PromotionEvents.RULE_CREATED.upper() == events[0]["type"]
+
+    assert events[0]["ruleId"] == data["promotionRule"]["id"]

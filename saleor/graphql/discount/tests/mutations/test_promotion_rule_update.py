@@ -3,8 +3,9 @@ from unittest.mock import ANY, patch
 
 import graphene
 
-from .....discount import RewardValueType
+from .....discount import PromotionEvents, RewardValueType
 from .....discount.error_codes import PromotionRuleUpdateErrorCode
+from .....discount.models import PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardValueTypeEnum
 
@@ -16,6 +17,14 @@ PROMOTION_RULE_UPDATE_MUTATION = """
                 description
                 promotion {
                     id
+                    events {
+                        ... on PromotionEvent {
+                            type
+                        }
+                        ... on PromotionRuleEvent {
+                            ruleId
+                        }
+                    }
                 }
                 channels {
                     slug
@@ -689,3 +698,55 @@ def test_promotion_rule_update_clears_old_sale_id(
 
     promotion.refresh_from_db()
     assert promotion.old_sale_id is None
+
+
+def test_promotion_rule_update_events(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_PLN,
+    category,
+    promotion,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
+    catalogue_predicate = {
+        "OR": [
+            {
+                "categoryPredicate": {
+                    "ids": [graphene.Node.to_global_id("Category", category.id)]
+                }
+            },
+        ]
+    }
+    reward_value = Decimal("10")
+    reward_value_type = RewardValueTypeEnum.PERCENTAGE.name
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "addChannels": add_channel_ids,
+            "rewardValueType": reward_value_type,
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        },
+    }
+    event_count = PromotionEvent.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    assert not data["errors"]
+
+    events = data["promotionRule"]["promotion"]["events"]
+    assert len(events) == 1
+    assert PromotionEvent.objects.count() == event_count + 1
+    assert PromotionEvents.RULE_UPDATED.upper() == events[0]["type"]
+
+    assert events[0]["ruleId"] == rule_id
