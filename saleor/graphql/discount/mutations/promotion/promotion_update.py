@@ -55,7 +55,7 @@ class PromotionUpdate(ModelMutation):
             cls.clean_instance(info, instance)
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
-            cls.send_promotion_notifications(
+            cls.send_promotion_webhooks(
                 manager, instance, cleaned_input, previous_end_date
             )
         return cls.success_response(instance)
@@ -75,7 +75,7 @@ class PromotionUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def send_promotion_notifications(
+    def send_promotion_webhooks(
         cls,
         manager: "PluginsManager",
         instance: models.Promotion,
@@ -86,22 +86,22 @@ class PromotionUpdate(ModelMutation):
             manager.promotion_updated,
             instance,
         )
-        cls.send_promotion_toggle_notification(
+        cls.send_promotion_toggle_webhook(
             manager, instance, cleaned_input, previous_end_date
         )
 
-    @staticmethod
-    def send_promotion_toggle_notification(
+    @classmethod
+    def send_promotion_toggle_webhook(
+        cls,
         manager: "PluginsManager",
         instance: models.Promotion,
         clean_input: dict,
         previous_end_date: datetime,
     ):
-        """Send a notify about starting or ending promotion if it wasn't sent yet.
+        """Send a webhook about starting or ending promotion if it wasn't sent yet.
 
-        Send notification if the notification when the start or end date already passed
-        and the notification_date is not set or the last notification was sent
-        before start or end date.
+        Send webhook when the start or end date already passed and the notification_date
+        is not set or the last notification was sent before start or end date.
         """
         now = datetime.now(pytz.utc)
 
@@ -127,6 +127,9 @@ class PromotionUpdate(ModelMutation):
             send_notification = True
 
         if send_notification:
-            manager.promotion_toggle(instance)
+            cls.call_event(
+                manager.promotion_toggle,
+                instance,
+            )
             instance.notification_sent_at = now
             instance.save(update_fields=["notification_sent_at"])

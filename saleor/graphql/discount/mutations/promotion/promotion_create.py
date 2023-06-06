@@ -181,7 +181,7 @@ class PromotionCreate(ModelMutation):
         with transaction.atomic():
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
-            cls.send_promotion_notifications(manager, instance)
+            cls.send_promotion_webhooks(manager, instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -203,19 +203,19 @@ class PromotionCreate(ModelMutation):
             rule.channels.set(channels)
 
     @classmethod
-    def send_promotion_notifications(
+    def send_promotion_webhooks(
         cls, manager: "PluginsManager", instance: models.Promotion
     ):
         cls.call_event(manager.promotion_created, instance)
-        cls.send_promotion_toggle_notification(manager, instance)
+        cls.send_promotion_toggle_webhook(manager, instance)
 
-    @staticmethod
-    def send_promotion_toggle_notification(
-        manager: "PluginsManager", instance: models.Promotion
+    @classmethod
+    def send_promotion_toggle_webhook(
+        cls, manager: "PluginsManager", instance: models.Promotion
     ):
-        """Send a notify about starting or ending promotion if it hasn't been sent yet.
+        """Send a webhook about starting or ending promotion if it hasn't been sent yet.
 
-        Send the notification when the start date is before the current date and the
+        Send the webhook when the start date is before the current date and the
         promotion is not already finished.
         """
         now = datetime.now(pytz.utc)
@@ -224,6 +224,6 @@ class PromotionCreate(ModelMutation):
         end_date = instance.end_date
 
         if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            manager.promotion_toggle(instance)
+            cls.call_event(manager.promotion_toggle, instance)
             instance.notification_sent_at = now
             instance.save(update_fields=["notification_sent_at"])
