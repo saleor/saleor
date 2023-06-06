@@ -13,7 +13,7 @@ from ....core.mutations import ModelMutation
 from ....core.types import Error
 from ...enums import PromotionRuleCreateErrorCode
 from ...types import PromotionRule
-from ...utils import clean_predicate
+from ...validators import clean_predicate
 from .promotion_create import PromotionRuleInput
 
 
@@ -72,9 +72,14 @@ class PromotionRuleCreate(ModelMutation):
                         code=PromotionRuleCreateErrorCode.REQUIRED.value,
                     )
                 )
-            cleaned_input["catalogue_predicate"] = clean_predicate(
-                cleaned_input.get("catalogue_predicate")
-            )
+            try:
+                cleaned_input["catalogue_predicate"] = clean_predicate(
+                    cleaned_input.get("catalogue_predicate"),
+                    PromotionRuleCreateErrorCode,
+                )
+            except ValidationError as error:
+                errors["catalogue_predicate"].append(error)
+
         if errors:
             raise ValidationError(errors)
         return cleaned_input
