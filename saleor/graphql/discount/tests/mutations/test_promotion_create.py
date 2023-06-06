@@ -153,7 +153,7 @@ def test_promotion_create_by_staff_user(
         assert rule_data in promotion_data["rules"]
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
-    assert promotion.notification_sent_at == timezone.now()
+    assert promotion.last_notification_scheduled_at == timezone.now()
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_called_once_with(promotion)
@@ -228,7 +228,7 @@ def test_promotion_create_by_app(
     assert promotion_data["endDate"] == end_date.isoformat()
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
-    assert promotion.notification_sent_at == timezone.now()
+    assert promotion.last_notification_scheduled_at == timezone.now()
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_called_once_with(promotion)
@@ -394,7 +394,7 @@ def test_promotion_create_start_date_and_end_date_after_current_date(
         assert rule_data in promotion_data["rules"]
 
     promotion = Promotion.objects.filter(name=promotion_name).get()
-    assert promotion.notification_sent_at is None
+    assert promotion.last_notification_scheduled_at is None
 
     promotion_created_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_not_called()

@@ -72,7 +72,7 @@ def test_promotion_update_by_staff_user(
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
 
     promotion.refresh_from_db()
-    assert promotion.notification_sent_at == timezone.now()
+    assert promotion.last_notification_scheduled_at == timezone.now()
 
     promotion_updated_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_called_once_with(promotion)

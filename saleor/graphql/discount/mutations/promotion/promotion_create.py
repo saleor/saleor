@@ -225,5 +225,5 @@ class PromotionCreate(ModelMutation):
 
         if (start_date and start_date <= now) and (not end_date or not end_date <= now):
             cls.call_event(manager.promotion_toggle, instance)
-            instance.notification_sent_at = now
-            instance.save(update_fields=["notification_sent_at"])
+            instance.last_notification_scheduled_at = now
+            instance.save(update_fields=["last_notification_scheduled_at"])

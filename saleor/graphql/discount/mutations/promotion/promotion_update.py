@@ -105,7 +105,7 @@ class PromotionUpdate(ModelMutation):
         """
         now = datetime.now(pytz.utc)
 
-        notification_date = instance.notification_sent_at
+        notification_date = instance.last_notification_scheduled_at
         start_date = clean_input.get("start_date")
         end_date = clean_input.get("end_date")
 
@@ -131,5 +131,5 @@ class PromotionUpdate(ModelMutation):
                 manager.promotion_toggle,
                 instance,
             )
-            instance.notification_sent_at = now
-            instance.save(update_fields=["notification_sent_at"])
+            instance.last_notification_scheduled_at = now
+            instance.save(update_fields=["last_notification_scheduled_at"])
