@@ -12,7 +12,7 @@ from prices import Money
 
 from ...app.models import App
 from ...checkout.models import Checkout
-from ...core.schema import DecimalType, WebhookResponseBase
+from ...core.json_schema import DecimalType, WebhookResponseBase
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order

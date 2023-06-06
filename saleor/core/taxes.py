@@ -3,7 +3,7 @@ from typing import List
 
 from prices import Money, TaxedMoney
 
-from ..core.schema import DecimalType, WebhookResponseBase
+from ..core.json_schema import DecimalType, WebhookResponseBase
 
 
 class TaxError(Exception):

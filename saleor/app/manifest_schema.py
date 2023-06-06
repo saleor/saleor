@@ -14,7 +14,7 @@ from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
-from ..core.schema import (
+from ..core.json_schema import (
     FIELD_MAPPING_TYPE,
     SaleorValidationError,
     ValidationErrorConfig,
