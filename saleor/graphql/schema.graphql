@@ -1853,9 +1853,17 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
 
   """A sale is activated or deactivated."""
   SALE_TOGGLE
+
+  """A promotion is created."""
   PROMOTION_CREATED
+
+  """A promotion is updated."""
   PROMOTION_UPDATED
+
+  """A promotion is deleted."""
   PROMOTION_DELETED
+
+  """A promotion is activated or deactivated."""
   PROMOTION_TOGGLE
 
   """An invoice for order requested."""
@@ -2488,9 +2496,17 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A sale is activated or deactivated."""
   SALE_TOGGLE
+
+  """A promotion is created."""
   PROMOTION_CREATED
+
+  """A promotion is updated."""
   PROMOTION_UPDATED
+
+  """A promotion is deleted."""
   PROMOTION_DELETED
+
+  """A promotion is activated or deactivated."""
   PROMOTION_TOGGLE
 
   """An invoice for order requested."""
