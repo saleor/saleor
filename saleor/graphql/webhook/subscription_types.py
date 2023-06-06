@@ -971,7 +971,9 @@ class PromotionCreated(SubscriptionObjectType, PromotionBase):
         root_type = "Promotion"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when new promotion is created." + ADDED_IN_315
+        description = (
+            "Event sent when new promotion is created." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
 
 
 class PromotionUpdated(SubscriptionObjectType, PromotionBase):
@@ -979,7 +981,9 @@ class PromotionUpdated(SubscriptionObjectType, PromotionBase):
         root_type = "Promotion"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when promotion is updated." + ADDED_IN_315
+        description = (
+            "Event sent when promotion is updated." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
 
 
 class PromotionDeleted(SubscriptionObjectType, PromotionBase):
@@ -987,7 +991,9 @@ class PromotionDeleted(SubscriptionObjectType, PromotionBase):
         root_type = "Promotion"
         enable_dry_run = True
         interfaces = (Event,)
-        description = "Event sent when promotion is deleted." + ADDED_IN_315
+        description = (
+            "Event sent when promotion is deleted." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
 
 
 class PromotionToggle(SubscriptionObjectType, PromotionBase):
@@ -995,7 +1001,9 @@ class PromotionToggle(SubscriptionObjectType, PromotionBase):
         root_type = "Promotion"
         enable_dry_run = True
         description = (
-            "The event informs about the start or end of the promotion." + ADDED_IN_315
+            "The event informs about the start or end of the promotion."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
         )
         interfaces = (Event,)
 

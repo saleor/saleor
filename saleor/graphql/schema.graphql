@@ -28981,6 +28981,8 @@ type SaleToggle implements Event @doc(category: "Discounts") {
 Event sent when new promotion is created.
 
 Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PromotionCreated implements Event {
   """Time of the event."""
@@ -29003,6 +29005,8 @@ type PromotionCreated implements Event {
 Event sent when promotion is updated.
 
 Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PromotionUpdated implements Event {
   """Time of the event."""
@@ -29025,6 +29029,8 @@ type PromotionUpdated implements Event {
 Event sent when promotion is deleted.
 
 Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PromotionDeleted implements Event {
   """Time of the event."""
@@ -29047,6 +29053,8 @@ type PromotionDeleted implements Event {
 The event informs about the start or end of the promotion.
 
 Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
 type PromotionToggle implements Event {
   """Time of the event."""
