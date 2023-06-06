@@ -26391,6 +26391,7 @@ type PromotionRuleUpdateError {
 enum PromotionRuleUpdateErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+  INVALID
   DUPLICATED_INPUT_ITEM
 }
 
