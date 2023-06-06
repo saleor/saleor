@@ -45,4 +45,4 @@ def install_app_task(job_id, activate=False):
         logger.warning("Failed to install app. Error: %s", e)
         app_installation.message = "Unknown error. Contact with app support."
     app_installation.status = JobStatus.FAILED
-    app_installation.save()
+    app_installation.save(update_fields=["message", "status"])

@@ -10,7 +10,7 @@ from ...app.models import App, AppExtension, AppToken
 from ...core.auth import get_token_from_request
 from ...core.utils.lazyobjects import unwrap_lazy
 from ..core import SaleorContext
-from ..core.dataloaders import DataLoader
+from ..core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
 
 
 class AppByIdLoader(DataLoader):
@@ -100,6 +100,18 @@ class AppByTokenLoader(DataLoader):
         apps = App.objects.filter(id__in=authed_apps.values(), is_active=True).in_bulk()
 
         return [apps.get(authed_apps.get(key)) for key in keys]
+
+
+class ThumbnailByAppIdSizeAndFormatLoader(BaseThumbnailBySizeAndFormatLoader):
+    context_key = "thumbnail_by_app_size_and_format"
+    model_name = "app"
+
+
+class ThumbnailByAppInstallationIdSizeAndFormatLoader(
+    BaseThumbnailBySizeAndFormatLoader
+):
+    context_key = "thumbnail_by_app_installation_size_and_format"
+    model_name = "app_installation"
 
 
 def promise_app(context: SaleorContext) -> Promise[Optional[App]]:

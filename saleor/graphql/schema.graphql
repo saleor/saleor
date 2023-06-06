@@ -448,8 +448,24 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
     """Sort products."""
     sortBy: ProductOrder
+
+    """
+    Search products.
+    
+    Added in Saleor 3.14.
+    """
+    search: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -1810,6 +1826,15 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2432,6 +2457,15 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """
   ORDER_METADATA_UPDATED
 
+  """
+  Orders are imported.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  ORDER_BULK_CREATED
+
   """A draft order is created."""
   DRAFT_ORDER_CREATED
 
@@ -2843,6 +2877,15 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Added in Saleor 3.1.
   """
   extensions: [AppExtension!]!
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppBrand
 }
 
 interface ObjectWithMetadata {
@@ -2923,6 +2966,7 @@ enum PermissionEnum @doc(category: "Users") {
   MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
+  MANAGE_ORDERS_IMPORT
   MANAGE_PAGES
   MANAGE_PAGE_TYPES_AND_ATTRIBUTES
   HANDLE_PAYMENTS
@@ -3017,6 +3061,62 @@ All available ways of opening an app extension.
 enum AppExtensionTargetEnum @doc(category: "Apps") {
   POPUP
   APP_PAGE
+}
+
+"""
+Represents the app's brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrand @doc(category: "Apps") {
+  """
+  App's logos details.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  logo: AppBrandLogo!
+}
+
+"""
+Represents the app's brand logo data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrandLogo @doc(category: "Apps") {
+  """
+  URL to the default logo image.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  default(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: IconThumbnailFormatEnum = ORIGINAL
+  ): String!
+}
+
+"""Thumbnail formats for icon images."""
+enum IconThumbnailFormatEnum {
+  ORIGINAL
+  WEBP
 }
 
 type EventDeliveryCountableConnection {
@@ -3228,6 +3328,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ORDER_EXPIRED
   ORDER_FULFILLED
   ORDER_METADATA_UPDATED
+  ORDER_BULK_CREATED
   DRAFT_ORDER_CREATED
   DRAFT_ORDER_UPDATED
   DRAFT_ORDER_DELETED
@@ -6268,6 +6369,15 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     filter: ProductFilterInput
 
     """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
+    """
     Sort products.
     
     Added in Saleor 3.10.
@@ -6475,6 +6585,123 @@ input PriceRangeInput {
 
   """Price less than or equal to."""
   lte: Float
+}
+
+input ProductWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """Filter by product name."""
+  name: StringFilterInput
+
+  """Filter by product slug."""
+  slug: StringFilterInput
+
+  """Filter by product type."""
+  productType: GlobalIDFilterInput
+
+  """Filter by product category."""
+  category: GlobalIDFilterInput
+
+  """Filter by collection."""
+  collection: GlobalIDFilterInput
+
+  """Filter by availability for purchase."""
+  isAvailable: Boolean
+
+  """Filter by public visibility."""
+  isPublished: Boolean
+
+  """Filter by visibility on the channel."""
+  isVisibleInListing: Boolean
+
+  """Filter by the publication date."""
+  publishedFrom: DateTime
+
+  """Filter by the date of availability for purchase."""
+  availableFrom: DateTime
+
+  """Filter by product with category assigned."""
+  hasCategory: Boolean
+
+  """Filter by product variant price."""
+  price: DecimalFilterInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: DecimalFilterInput
+
+  """Filter by attributes associated with the product."""
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+
+  """Filter by stock of the product variant."""
+  stocks: ProductStockFilterInput
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+
+  """Filter by product with preordered variants."""
+  hasPreorderedVariants: Boolean
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [ProductWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductWhereInput!]
+}
+
+"""
+Define the filtering options for foreign key fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input GlobalIDFilterInput {
+  """The value equal to."""
+  eq: ID
+
+  """The value included in."""
+  oneOf: [ID!]
+}
+
+"""
+Define the filtering options for decimal fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input DecimalFilterInput {
+  """The value equal to."""
+  eq: Decimal
+
+  """The value included in."""
+  oneOf: [Decimal!]
+
+  """The value in range."""
+  range: DecimalRangeInput
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+input DecimalRangeInput {
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
 }
 
 input ProductOrder @doc(category: "Products") {
@@ -7345,6 +7572,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   products(
     """Filtering options for products."""
     filter: ProductFilterInput
+
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
@@ -9894,7 +10130,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   refundPendingAmount: Money!
 
   """Total amount voided for this payment."""
-  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `canceledAmount` instead.")
+  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `canceledAmount` instead.")
 
   """
   Total amount canceled for this payment.
@@ -9921,10 +10157,10 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   chargePendingAmount: Money!
 
   """Status of transaction."""
-  status: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
+  status: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
 
   """Type of transaction."""
-  type: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `name` or `message` instead.")
+  type: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `name` or `message` instead.")
 
   """
   Name of the transaction.
@@ -9941,7 +10177,7 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   message: String!
 
   """Reference of transaction."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
@@ -10771,6 +11007,7 @@ enum OrderOriginEnum @doc(category: "Orders") {
   CHECKOUT
   DRAFT
   REISSUE
+  BULK_CREATE
 }
 
 """An enumeration."""
@@ -11059,7 +11296,7 @@ type OrderEvent implements Node @doc(category: "Orders") {
   discount: OrderEventDiscountObject
 
   """The status of payment's transaction."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
 
   """The reference of payment's transaction."""
   reference: String
@@ -11100,13 +11337,13 @@ enum OrderEventsEnum @doc(category: "Orders") {
   TRANSACTION_CHARGE_REQUESTED
 
   """
-  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
+  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
   """
   TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
 
   """
-  This field will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
+  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
   """
   TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
@@ -11327,10 +11564,10 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   createdAt: DateTime!
 
   """Status of transaction's event."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `type` instead.")
+  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `type` instead.")
 
   """Reference of transaction's event."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature).Use `pspReference` instead.")
+  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
@@ -11340,7 +11577,7 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   pspReference: String!
 
   """Name of the transaction's event."""
-  name: String @deprecated(reason: "This field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead.")
+  name: String @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead.")
 
   """
   Message related to the transaction's event.
@@ -12705,6 +12942,15 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
   message: String
   appName: String!
   manifestUrl: String!
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppBrand
 }
 
 type AppCountableConnection @doc(category: "Apps") {
@@ -14969,6 +15215,28 @@ type Mutation {
   ): OrderBulkCancel @doc(category: "Orders")
 
   """
+  Creates multiple orders.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
+  """
+  orderBulkCreate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """Input list of orders to create. Orders limit: 50."""
+    orders: [OrderBulkCreateInput!]!
+
+    """
+    Determine how stock should be updated, while processing the order. DEFAULT: UPDATE - Only do update, if there is enough stocks.
+    """
+    stockUpdatePolicy: StockUpdatePolicyEnum
+  ): OrderBulkCreate @doc(category: "Orders")
+
+  """
   Delete metadata of an object. To use it, you need to have access to the modified object.
   """
   deleteMetadata(
@@ -16249,6 +16517,23 @@ type Mutation {
   ): AttributeTranslate @doc(category: "Attributes")
 
   """
+  Creates/updates translations for attributes.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attributes translations."""
+    translations: [AttributeBulkTranslateInput!]!
+  ): AttributeBulkTranslate @doc(category: "Attributes")
+
+  """
   Deletes attributes. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -16317,6 +16602,23 @@ type Mutation {
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
   ): AttributeValueUpdate @doc(category: "Attributes")
+
+  """
+  Creates/updates translations for attributes values.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeValueBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attribute values translations."""
+    translations: [AttributeValueBulkTranslateInput!]!
+  ): AttributeValueBulkTranslate @doc(category: "Attributes")
 
   """
   Creates/updates translations for an attribute value. 
@@ -19062,26 +19364,33 @@ input AttributeValueInput @doc(category: "Attributes") {
   id: ID
 
   """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
+
+  """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   dropdown: AttributeValueSelectableTypeInput
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   swatch: AttributeValueSelectableTypeInput
 
   """
-  List of attribute value IDs.
+  List of attribute value IDs or external references.
   
   Added in Saleor 3.9.
   """
@@ -19120,13 +19429,24 @@ input AttributeValueInput @doc(category: "Attributes") {
 }
 
 """
-Represents attribute value. If no ID provided, value will be resolved. 
+Represents attribute value.
+1. If ID is provided, then attribute value will be resolved by ID.
+2. If externalReference is provided, then attribute value will be resolved by external reference.
+3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
+4. If externalReference and value is provided then new attribute value will be created.
 
 Added in Saleor 3.9.
 """
 input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
+
+  """
+  External reference of an attribute value.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
@@ -19386,6 +19706,13 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
 input BulkAttributeValueInput @doc(category: "Products") {
   """ID of the selected attribute."""
   id: ID
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
@@ -20810,14 +21137,14 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
@@ -20838,7 +21165,7 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -20864,7 +21191,7 @@ input TransactionCreateInput @doc(category: "Payments") {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
@@ -20893,14 +21220,14 @@ input TransactionEventInput @doc(category: "Payments") {
   """
   Current status of the payment transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Status will be calculated by Saleor.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Status will be calculated by Saleor.
   """
   status: TransactionStatus
 
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -20914,7 +21241,7 @@ input TransactionEventInput @doc(category: "Payments") {
   """
   Name of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
   """
   name: String
 
@@ -20967,14 +21294,14 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Status of the transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
   """
   status: String
 
   """
   Payment type used for this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `name` and `message` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
   """
   type: String
 
@@ -20995,7 +21322,7 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Reference of the transaction. 
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `pspReference` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
   """
   reference: String
 
@@ -21021,7 +21348,7 @@ input TransactionUpdateInput @doc(category: "Payments") {
   """
   Amount voided by this transaction.
   
-  DEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature). Use `amountCanceled` instead.
+  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
   """
   amountVoided: MoneyInput
 
@@ -22085,14 +22412,6 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
 }
 
 """
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
-
-"""
 Updates granted refund.
 
 Added in Saleor 3.13.
@@ -22358,6 +22677,342 @@ type OrderBulkCancel @doc(category: "Orders") {
   count: Int!
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Creates multiple orders.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS_IMPORT.
+"""
+type OrderBulkCreate @doc(category: "Orders") {
+  """Returns how many objects were created."""
+  count: Int!
+
+  """List of the created orders."""
+  results: [OrderBulkCreateResult!]!
+  errors: [OrderBulkCreateError!]!
+}
+
+type OrderBulkCreateResult @doc(category: "Orders") {
+  """Order data."""
+  order: Order
+
+  """List of errors occurred on create attempt."""
+  errors: [OrderBulkCreateError!]
+}
+
+type OrderBulkCreateError @doc(category: "Orders") {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderBulkCreateErrorCode
+}
+
+"""An enumeration."""
+enum OrderBulkCreateErrorCode {
+  GRAPHQL_ERROR
+  REQUIRED
+  INVALID
+  NOT_FOUND
+  UNIQUE
+  BULK_LIMIT
+  TOO_MANY_IDENTIFIERS
+  FUTURE_DATE
+  INVALID_QUANTITY
+  PRICE_ERROR
+  NOTE_LENGTH
+  INSUFFICIENT_STOCK
+  NON_EXISTING_STOCK
+  NO_RELATED_ORDER_LINE
+  NEGATIVE_INDEX
+  ORDER_LINE_FULFILLMENT_LINE_MISMATCH
+  METADATA_KEY_REQUIRED
+  INCORRECT_CURRENCY
+}
+
+input OrderBulkCreateInput @doc(category: "Orders") {
+  """External ID of the order."""
+  externalReference: String
+
+  """Slug of the channel associated with the order."""
+  channel: String!
+
+  """The date, when the order was inserted to Saleor database."""
+  createdAt: DateTime!
+
+  """Status of the order."""
+  status: OrderStatus
+
+  """Customer associated with the order."""
+  user: OrderBulkCreateUserInput!
+
+  """Tracking ID of the customer."""
+  trackingClientId: String
+
+  """Billing address of the customer."""
+  billingAddress: AddressInput!
+
+  """Shipping address of the customer."""
+  shippingAddress: AddressInput
+
+  """Currency code."""
+  currency: String!
+
+  """Metadata of the order."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order."""
+  privateMetadata: [MetadataInput!]
+
+  """Note about customer."""
+  customerNote: String
+
+  """Notes related to the order."""
+  notes: [OrderBulkCreateNoteInput!]
+
+  """Order language code."""
+  languageCode: LanguageCodeEnum!
+
+  """
+  Determines whether checkout prices should include taxes, when displayed in a storefront.
+  """
+  displayGrossPrices: Boolean
+
+  """Weight of the order in kg."""
+  weight: WeightScalar
+
+  """
+  URL of a view, where users should be redirected to see the order details.
+  """
+  redirectUrl: String
+
+  """List of order lines."""
+  lines: [OrderBulkCreateOrderLineInput!]!
+
+  """The delivery method selected for this order."""
+  deliveryMethod: OrderBulkCreateDeliveryMethodInput
+
+  """List of gift card codes associated with the order."""
+  giftCards: [String!]
+
+  """Code of a voucher associated with the order."""
+  voucher: String
+
+  """List of discounts."""
+  discounts: [OrderDiscountCommonInput!]
+
+  """Fulfillments of the order."""
+  fulfillments: [OrderBulkCreateFulfillmentInput!]
+
+  """Transactions related to the order."""
+  transactions: [TransactionCreateInput!]
+
+  """Invoices related to the order."""
+  invoices: [OrderBulkCreateInvoiceInput!]
+}
+
+input OrderBulkCreateUserInput @doc(category: "Orders") {
+  """Customer ID associated with the order."""
+  id: ID
+
+  """Customer email associated with the order."""
+  email: String
+
+  """Customer external ID associated with the order."""
+  externalReference: String
+}
+
+input OrderBulkCreateNoteInput @doc(category: "Orders") {
+  """Note message. Max characters: 255."""
+  message: String!
+
+  """The date associated with the message."""
+  date: DateTime
+
+  """The user ID associated with the message."""
+  userId: ID
+
+  """The user email associated with the message."""
+  userEmail: ID
+
+  """The user external ID associated with the message."""
+  userExternalReference: ID
+
+  """The app ID associated with the message."""
+  appId: ID
+}
+
+input OrderBulkCreateOrderLineInput @doc(category: "Orders") {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The SKU of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """The name of the product variant."""
+  variantName: String
+
+  """The name of the product."""
+  productName: String
+
+  """Translation of the product variant name."""
+  translatedVariantName: String
+
+  """Translation of the product name."""
+  translatedProductName: String
+
+  """The date, when the order line was created."""
+  createdAt: DateTime!
+
+  """Determines whether shipping of the order line items is required."""
+  isShippingRequired: Boolean!
+
+  """Gift card flag."""
+  isGiftCard: Boolean!
+
+  """Number of items in the order line"""
+  quantity: Int!
+
+  """Price of the order line."""
+  totalPrice: TaxedMoneyInput!
+
+  """Price of the order line excluding applied discount."""
+  undiscountedTotalPrice: TaxedMoneyInput!
+
+  """The ID of the warehouse, where the line will be allocated."""
+  warehouse: ID!
+
+  """Metadata of the order line."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the order line."""
+  privateMetadata: [MetadataInput!]
+
+  """Tax rate of the order line."""
+  taxRate: PositiveDecimal
+
+  """The ID of the tax class."""
+  taxClassId: ID
+
+  """The name of the tax class."""
+  taxClassName: String
+
+  """Metadata of the tax class."""
+  taxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  taxClassPrivateMetadata: [MetadataInput!]
+}
+
+input TaxedMoneyInput @doc(category: "Orders") {
+  """Gross value of an item."""
+  gross: PositiveDecimal!
+
+  """Net value of an item."""
+  net: PositiveDecimal!
+}
+
+input OrderBulkCreateDeliveryMethodInput @doc(category: "Orders") {
+  """The ID of the warehouse."""
+  warehouseId: ID
+
+  """The name of the warehouse."""
+  warehouseName: String
+
+  """The ID of the shipping method."""
+  shippingMethodId: ID
+
+  """The name of the shipping method."""
+  shippingMethodName: String
+
+  """The price of the shipping."""
+  shippingPrice: TaxedMoneyInput
+
+  """Tax rate of the shipping."""
+  shippingTaxRate: PositiveDecimal
+
+  """The ID of the tax class."""
+  shippingTaxClassId: ID
+
+  """The name of the tax class."""
+  shippingTaxClassName: String
+
+  """Metadata of the tax class."""
+  shippingTaxClassMetadata: [MetadataInput!]
+
+  """Private metadata of the tax class."""
+  shippingTaxClassPrivateMetadata: [MetadataInput!]
+}
+
+input OrderBulkCreateFulfillmentInput @doc(category: "Orders") {
+  """Fulfillment's tracking code."""
+  trackingCode: String
+
+  """List of items informing how to fulfill the order."""
+  lines: [OrderBulkCreateFulfillmentLineInput!]
+}
+
+input OrderBulkCreateFulfillmentLineInput @doc(category: "Orders") {
+  """The ID of the product variant."""
+  variantId: ID
+
+  """The SKU of the product variant."""
+  variantSku: String
+
+  """The external ID of the product variant."""
+  variantExternalReference: String
+
+  """The number of line items to be fulfilled from given warehouse."""
+  quantity: Int!
+
+  """ID of the warehouse from which the item will be fulfilled."""
+  warehouse: ID!
+
+  """0-based index of order line, which the fulfillment line refers to."""
+  orderLineIndex: Int!
+}
+
+input OrderBulkCreateInvoiceInput @doc(category: "Orders") {
+  """The date, when the invoice was created."""
+  createdAt: DateTime!
+
+  """Invoice number."""
+  number: String
+
+  """URL of the invoice to download."""
+  url: String
+
+  """Metadata of the invoice."""
+  metadata: [MetadataInput!]
+
+  """Private metadata of the invoice."""
+  privateMetadata: [MetadataInput!]
+}
+
+"""
+Determine how stocks should be updated, while processing an order.
+
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
+"""
+enum StockUpdatePolicyEnum {
+  SKIP
+  UPDATE
+  FORCE
 }
 
 """
@@ -24727,6 +25382,67 @@ type AttributeTranslate @doc(category: "Attributes") {
 }
 
 """
+Creates/updates translations for attributes.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeBulkTranslateResult!]!
+  errors: [AttributeBulkTranslateError!]!
+}
+
+type AttributeBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute translation data."""
+  translation: AttributeTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [AttributeBulkTranslateError!]
+}
+
+type AttributeBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input AttributeBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute ID."""
+  id: ID
+
+  """External reference of an attribute."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: NameTranslationInput!
+}
+
+"""
 Deletes attributes. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -24790,14 +25506,64 @@ type AttributeValueUpdate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for an attribute value. 
+Creates/updates translations for attributes values.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type AttributeValueTranslate @doc(category: "Attributes") {
-  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [TranslationError!]!
-  attributeValue: AttributeValue
+type AttributeValueBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeValueBulkTranslateResult!]!
+  errors: [AttributeValueBulkTranslateError!]!
+}
+
+type AttributeValueBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute value translation data."""
+  translation: AttributeValueTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [AttributeValueBulkTranslateError!]
+}
+
+type AttributeValueBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeValueTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeValueTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input AttributeValueBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute value ID."""
+  id: ID
+
+  """External reference of an attribute value."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: AttributeValueTranslationInput!
 }
 
 input AttributeValueTranslationInput {
@@ -24812,6 +25578,17 @@ input AttributeValueTranslationInput {
 
   """Translated text."""
   plainText: String
+}
+
+"""
+Creates/updates translations for an attribute value. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeValueTranslate @doc(category: "Attributes") {
+  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [TranslationError!]!
+  attributeValue: AttributeValue
 }
 
 """
@@ -25049,6 +25826,15 @@ type Manifest @doc(category: "Apps") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   author: String
+
+  """
+  App's brand data.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  brand: AppManifestBrand
 }
 
 type AppManifestExtension @doc(category: "Apps") {
@@ -25103,6 +25889,56 @@ type AppManifestRequiredSaleorVersion @doc(category: "Apps") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   satisfied: Boolean!
+}
+
+"""
+Represents the app's manifest brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppManifestBrand @doc(category: "Apps") {
+  """
+  App's logos details.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  logo: AppManifestBrandLogo!
+}
+
+"""
+Represents the app's manifest brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppManifestBrandLogo @doc(category: "Apps") {
+  """
+  Data URL with a base64 encoded logo image.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  default(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: IconThumbnailFormatEnum = ORIGINAL
+  ): String!
 }
 
 """
@@ -27145,6 +27981,30 @@ type OrderMetadataUpdated implements Event @doc(category: "Orders") {
 
   """The order the event relates to."""
   order: Order
+}
+
+"""
+Event sent when orders are imported.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderBulkCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The orders the event relates to."""
+  orders: [Order!]
 }
 
 """

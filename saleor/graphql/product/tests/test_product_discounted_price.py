@@ -181,7 +181,7 @@ def test_collection_remove_products_updates_discounted_price(
 
 @freeze_time("2010-05-31 12:00:01")
 @patch(
-    "saleor.graphql.discount.mutations.sale_create"
+    "saleor.graphql.discount.mutations.sale.sale_create"
     ".update_products_discounted_prices_of_sale_task"
 )
 def test_sale_create_updates_products_discounted_prices(
@@ -234,7 +234,7 @@ def test_sale_create_updates_products_discounted_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_update"
+    "saleor.graphql.discount.mutations.sale.sale_update"
     ".update_products_discounted_prices_of_catalogues_task.delay"
 )
 def test_sale_update_updates_products_discounted_prices(
@@ -284,7 +284,7 @@ def test_sale_update_updates_products_discounted_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_delete"
+    "saleor.graphql.discount.mutations.sale.sale_delete"
     ".update_products_discounted_prices_of_catalogues_task.delay"
 )
 def test_sale_delete_updates_products_discounted_prices(
@@ -329,7 +329,7 @@ def test_sale_delete_updates_products_discounted_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_base_discount_catalogue"
+    "saleor.graphql.discount.mutations.sale.sale_base_discount_catalogue"
     ".update_products_discounted_prices_of_catalogues_task"
 )
 def test_sale_add_catalogues_updates_products_discounted_prices(
@@ -389,7 +389,7 @@ def test_sale_add_catalogues_updates_products_discounted_prices(
 
 
 @patch(
-    "saleor.graphql.discount.mutations.sale_base_discount_catalogue"
+    "saleor.graphql.discount.mutations.sale.sale_base_discount_catalogue"
     ".update_products_discounted_prices_of_catalogues_task"
 )
 def test_sale_remove_catalogues_updates_products_discounted_prices(

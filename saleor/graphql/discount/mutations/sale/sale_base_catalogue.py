@@ -1,8 +1,8 @@
 import graphene
 
-from ..types import Sale
+from ...types import Sale
+from ..voucher.voucher_add_catalogues import CatalogueInput
 from .sale_base_discount_catalogue import BaseDiscountCatalogueMutation
-from .voucher_add_catalogues import CatalogueInput
 
 
 class SaleBaseCatalogueMutation(BaseDiscountCatalogueMutation):

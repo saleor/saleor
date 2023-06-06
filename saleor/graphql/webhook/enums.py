@@ -113,6 +113,9 @@ WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ORDER_METADATA_UPDATED: (
         "An order metadata is updated." + ADDED_IN_38
     ),
+    WebhookEventAsyncType.ORDER_BULK_CREATED: "Orders are imported."
+    + ADDED_IN_314
+    + PREVIEW_FEATURE,
     WebhookEventAsyncType.DRAFT_ORDER_CREATED: "A draft order is created.",
     WebhookEventAsyncType.DRAFT_ORDER_UPDATED: "A draft order is updated.",
     WebhookEventAsyncType.DRAFT_ORDER_DELETED: "A draft order is deleted.",

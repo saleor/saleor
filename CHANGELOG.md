@@ -36,6 +36,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
 - Add `enableAccountConfirmationByEmail` option in the `shopSettingsUpdate` mutation, which allows controlling whether account confirmation should be sent on new account registrations (before it was controlled by env variable `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL`) - #12781 by @SzymJ
 - Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
+- Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
+- [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
+- Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
+- [Preview] Add `AttributeBulkTranslate` and `AttributeValueBulkTranslate` mutation - #12965 by @SzymJ
+- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
+- Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
 
 ### Saleor Apps
 

@@ -19,6 +19,7 @@ from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
 from ....product.tasks import update_products_discounted_prices_task
+from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
 from ...attribute.utils import AttributeAssignmentMixin
@@ -39,12 +40,7 @@ from ...core.types import (
 )
 from ...core.utils import get_duplicated_values
 from ...core.validators import clean_seo_fields
-from ...core.validators.file import (
-    clean_image_file,
-    get_filename_from_url,
-    is_image_url,
-    validate_image_url,
-)
+from ...core.validators.file import clean_image_file, is_image_url, validate_image_url
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..mutations.product.product_create import ProductCreateInput
@@ -467,6 +463,10 @@ class ProductBulkCreate(BaseMutation):
             graphene.Node.to_global_id("Attribute", variant_attribute.id)
             for variant_attribute in variant_attributes
         }
+        variant_attributes_external_refs = {
+            variant_attribute.external_reference
+            for variant_attribute in variant_attributes
+        }
 
         for index, variant_data in enumerate(variant_inputs):
             variant_data["product_type"] = product_type
@@ -478,6 +478,7 @@ class ProductBulkCreate(BaseMutation):
                 variant_attributes,
                 [],
                 variant_attributes_ids,
+                variant_attributes_external_refs,
                 duplicated_sku,
                 variant_index_error_map,
                 index,
