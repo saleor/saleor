@@ -314,7 +314,9 @@ class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
             )
 
     @classmethod
-    def _commit_changes(cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app):
+    def _commit_changes(
+        cls, info: ResolveInfo, instance, cleaned_input, is_new_instance, app
+    ):
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
