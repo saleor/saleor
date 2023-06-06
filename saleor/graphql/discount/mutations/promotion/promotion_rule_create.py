@@ -4,9 +4,10 @@ from typing import DefaultDict, List
 import graphene
 from django.core.exceptions import ValidationError
 
-from .....discount import models
+from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -93,3 +94,5 @@ class PromotionRuleCreate(ModelMutation):
             update_products_discounted_prices_for_promotion_task.delay(
                 list(products.values_list("id", flat=True))
             )
+        app = get_app_promise(info.context).get()
+        events.rule_created_event(info.context.user, app, [instance])

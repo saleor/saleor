@@ -242,3 +242,59 @@ def test_query_promotion_rule_translation(
             assert rule["translation"]["language"]["code"] == "FR"
         else:
             assert not rule["translation"]
+
+
+QUERY_PROMOTION_BY_ID_WITH_EVENTS = """
+    query Promotion($id: ID!) {
+        promotion(id: $id) {
+            id
+            events {
+                type
+                createdBy {
+                    ... on User {
+                        id
+                    }
+                }
+                ... on PromotionRuleCreatedEvent {
+                    ruleId
+                }
+                ... on PromotionRuleUpdatedEvent {
+                    ruleId
+                }
+                ... on PromotionRuleDeletedEvent {
+                    ruleId
+                }
+            }
+        }
+    }
+"""
+
+
+def test_query_promotion_events(
+    promotion_events,
+    staff_api_client,
+    permission_manage_discounts,
+    permission_manage_staff,
+):
+    # given
+    promotion = promotion_events[0].promotion
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+    variables = {"id": promotion_id}
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_PROMOTION_BY_ID_WITH_EVENTS,
+        variables,
+        permissions=(permission_manage_discounts, permission_manage_staff),
+    )
+
+    # then
+    content = get_graphql_content(response)
+    events = content["data"]["promotion"]["events"]
+    assert len(events) == promotion.events.count()
+    for event in promotion.events.all():
+        event_data = {
+            "type": event.type.upper(),
+            "createdBy": {"id": graphene.Node.to_global_id("User", event.user.id)},
+        }
+        assert event_data in events

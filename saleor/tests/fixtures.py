@@ -50,10 +50,17 @@ from ..core.units import MeasurementUnits
 from ..core.utils.editorjs import clean_editor_js
 from ..csv.events import ExportEvents
 from ..csv.models import ExportEvent, ExportFile
-from ..discount import DiscountInfo, DiscountValueType, RewardValueType, VoucherType
+from ..discount import (
+    DiscountInfo,
+    DiscountValueType,
+    PromotionEvents,
+    RewardValueType,
+    VoucherType,
+)
 from ..discount.models import (
     NotApplicable,
     Promotion,
+    PromotionEvent,
     PromotionRule,
     PromotionRuleTranslation,
     PromotionTranslation,
@@ -5183,6 +5190,28 @@ def promotion_rule(channel_USD, promotion, product):
     )
     rule.channels.add(channel_USD)
     return rule
+
+
+@pytest.fixture
+def promotion_events(promotion, staff_user):
+    events = PromotionEvent.objects.bulk_create(
+        [
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_CREATED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+            PromotionEvent(
+                type=PromotionEvents.RULE_CREATED, user=staff_user, promotion=promotion
+            ),
+            PromotionEvent(
+                type=PromotionEvents.PROMOTION_STARTED,
+                user=staff_user,
+                promotion=promotion,
+            ),
+        ]
+    )
+    return events
 
 
 @pytest.fixture

@@ -99,7 +99,12 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "reward_value",
-                    models.DecimalField(decimal_places=3, max_digits=12, null=True),
+                    models.DecimalField(
+                        decimal_places=3,
+                        max_digits=12,
+                        null=True,
+                        blank=True,
+                    ),
                 ),
                 ("channels", models.ManyToManyField(to="channel.Channel")),
                 (

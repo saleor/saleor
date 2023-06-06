@@ -9,10 +9,11 @@ from django.db import transaction
 from graphql.error import GraphQLError
 
 from .....channel import models as channel_models
-from .....discount import models
+from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....channel.types import Channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
@@ -185,7 +186,8 @@ class PromotionCreate(ModelMutation):
         cls.clean_instance(info, instance)
         with transaction.atomic():
             cls.save(info, instance, cleaned_input)
-            cls._save_m2m(info, instance, cleaned_input)
+            rules = cls._save_m2m(info, instance, cleaned_input)
+            cls.save_events(info, instance, rules)
             cls.send_promotion_webhooks(manager, instance)
             update_products_discounted_prices_of_promotion_task.delay(instance.pk)
         return cls.success_response(instance)
@@ -196,8 +198,8 @@ class PromotionCreate(ModelMutation):
     ):
         super()._save_m2m(info, instance, cleaned_data)
         rules_with_channels_to_add = []
+        rules = []
         if rules_data := cleaned_data.get("rules"):
-            rules = []
             for rule_data in rules_data:
                 channels = rule_data.pop("channels", None)
                 rule = models.PromotionRule(promotion=instance, **rule_data)
@@ -207,6 +209,8 @@ class PromotionCreate(ModelMutation):
 
         for rule, channels in rules_with_channels_to_add:
             rule.channels.set(channels)
+
+        return rules
 
     @classmethod
     def send_promotion_webhooks(
@@ -233,3 +237,15 @@ class PromotionCreate(ModelMutation):
             cls.call_event(manager.promotion_started, instance)
             instance.last_notification_scheduled_at = now
             instance.save(update_fields=["last_notification_scheduled_at"])
+
+    @classmethod
+    def save_events(
+        cls,
+        info: ResolveInfo,
+        instance: models.Promotion,
+        rules: List[models.PromotionRule],
+    ):
+        app = get_app_promise(info.context).get()
+        events.promotion_created_event(instance, info.context.user, app)
+        if rules:
+            events.rule_created_event(info.context.user, app, rules)

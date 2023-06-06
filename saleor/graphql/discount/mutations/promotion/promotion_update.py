@@ -5,10 +5,11 @@ import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import models
+from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
 from .....product.tasks import update_products_discounted_prices_of_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -60,6 +61,7 @@ class PromotionUpdate(ModelMutation):
             # start or end date has changed
             if "start_date" in cleaned_input or "end_date" in cleaned_input:
                 update_products_discounted_prices_of_promotion_task.delay(instance.pk)
+            cls.save_events(info, instance)
             cls.send_promotion_webhooks(
                 manager, instance, cleaned_input, previous_end_date
             )
@@ -78,6 +80,11 @@ class PromotionUpdate(ModelMutation):
             error.code = PromotionUpdateErrorCode.INVALID.value
             raise ValidationError({"endDate": error})
         return cleaned_input
+
+    @classmethod
+    def save_events(cls, info, instance):
+        app = get_app_promise(info.context).get()
+        events.promotion_updated_event(instance, info.context.user, app)
 
     @classmethod
     def send_promotion_webhooks(

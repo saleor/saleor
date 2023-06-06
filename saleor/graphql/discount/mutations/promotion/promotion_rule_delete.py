@@ -1,10 +1,11 @@
 import graphene
 
-from .....discount import models
+from .....discount import events, models
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....core import ResolveInfo
+from ....app.dataloaders import get_app_promise
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
@@ -53,3 +54,8 @@ class PromotionRuleDelete(ModelDeleteMutation):
             update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
         return cls.success_response(instance)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        app = get_app_promise(info.context).get()
+        events.rule_deleted_event(info.context.user, app, [instance])

@@ -5,7 +5,9 @@ import graphene
 from django.utils import timezone
 from freezegun import freeze_time
 
+from .....discount import PromotionEvents
 from .....discount.error_codes import PromotionCreateErrorCode
+from .....discount.models import PromotionEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 PROMOTION_UPDATE_MUTATION = """
@@ -19,6 +21,14 @@ PROMOTION_UPDATE_MUTATION = """
                 endDate
                 createdAt
                 updatedAt
+                events {
+                    ... on PromotionEvent {
+                        type
+                    }
+                    ... on PromotionRuleEvent {
+                        type
+                    }
+                }
             }
             errors {
                 field
@@ -261,3 +271,31 @@ def test_promotion_update_end_date_before_start_date(
     assert len(errors) == 1
     assert errors[0]["code"] == PromotionCreateErrorCode.INVALID.name
     assert errors[0]["field"] == "endDate"
+
+
+def test_promotion_update_events(
+    staff_api_client, permission_group_manage_discounts, promotion
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    new_promotion_name = "new test promotion"
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "name": new_promotion_name,
+        },
+    }
+    event_count = PromotionEvent.objects.count()
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+    assert not data["errors"]
+
+    events = data["promotion"]["events"]
+    assert len(events) == 1
+    assert PromotionEvent.objects.count() == event_count + 1
+    assert PromotionEvents.PROMOTION_UPDATED.upper() == events[0]["type"]

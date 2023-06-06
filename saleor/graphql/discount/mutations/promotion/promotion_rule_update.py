@@ -2,9 +2,10 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .....discount import models
+from .....discount import events, models
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_for_promotion_task
+from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -107,3 +108,8 @@ class PromotionRuleUpdate(ModelMutation):
                 instance.channels.remove(*remove_channels)
             if add_channels := cleaned_data.get("add_channels"):
                 instance.channels.add(*add_channels)
+
+    @classmethod
+    def post_save_action(cls, info, instance, cleaned_input):
+        app = get_app_promise(info.context).get()
+        events.rule_updated_event(info.context.user, app, [instance])
