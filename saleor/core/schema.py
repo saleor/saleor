@@ -1,5 +1,8 @@
+import json
 from collections import defaultdict
+from decimal import Decimal
 from enum import Enum
+from functools import partial
 from typing import Any, ClassVar, Optional, Tuple, Type, TypedDict, TypeVar, Union
 
 from django.core.exceptions import NON_FIELD_ERRORS
@@ -75,6 +78,12 @@ class BaseSchema(BaseModel):
         def schema_extra(schema: dict[str, Any]) -> None:
             for prop in schema.get("properties", {}).values():
                 prop.pop("title", None)
+
+
+class WebhookResponseBase(BaseSchema):
+    class Config:
+        allow_mutation = False
+        json_loads = partial(json.loads, parse_float=Decimal)
 
 
 class JsonSchema(BaseSchema):

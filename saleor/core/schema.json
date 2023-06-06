@@ -9,6 +9,9 @@
     },
     {
       "$ref": "#/definitions/OrderCalculateTaxes"
+    },
+    {
+      "$ref": "#/definitions/ShippingListMethodsForCheckout"
     }
   ],
   "definitions": {
@@ -531,6 +534,42 @@
         "shipping_tax_rate",
         "lines"
       ]
+    },
+    "ShippingMethodSchema": {
+      "title": "ShippingMethodSchema",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "amount": {
+          "type": [
+            "number",
+            "string"
+          ]
+        },
+        "currency": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "maximum_delivery_days": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "amount",
+        "currency"
+      ]
+    },
+    "ShippingListMethodsForCheckout": {
+      "title": "SHIPPING_LIST_METHODS_FOR_CHECKOUT",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ShippingMethodSchema"
+      }
     }
   }
 }

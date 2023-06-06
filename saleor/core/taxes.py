@@ -1,12 +1,9 @@
-import json
 from dataclasses import dataclass
-from decimal import Decimal
-from functools import partial
 from typing import List
 
 from prices import Money, TaxedMoney
 
-from ..core.schema import BaseSchema, DecimalType
+from ..core.schema import DecimalType, WebhookResponseBase
 
 
 class TaxError(Exception):
@@ -32,12 +29,6 @@ class TaxType:
 
     code: str
     description: str
-
-
-class WebhookResponseBase(BaseSchema):
-    class Config:
-        allow_mutation = False
-        json_loads = partial(json.loads, parse_float=Decimal)
 
 
 class TaxLineData(WebhookResponseBase):

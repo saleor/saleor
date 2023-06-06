@@ -12,6 +12,7 @@ from prices import Money
 
 from ...app.models import App
 from ...checkout.models import Checkout
+from ...core.schema import DecimalType, WebhookResponseBase
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
@@ -53,26 +54,37 @@ def convert_to_app_id_with_identifier(shipping_app_id: str):
     return to_shipping_app_id(app, splitted_id[2])
 
 
+class ShippingMethodSchema(WebhookResponseBase):
+    id: str
+    amount: DecimalType
+    currency: str
+    name: Optional[str] = None
+    maximum_delivery_days: Optional[int] = None
+
+    @property
+    def price(self) -> Money:
+        return Money(self.amount, self.currency)
+
+    def get_shipping_method_data(self, app: "App"):
+        return ShippingMethodData(
+            id=to_shipping_app_id(app, self.id),
+            name=self.name,
+            price=self.price,
+            maximum_delivery_days=self.maximum_delivery_days,
+        )
+
+
+class ShippingMethodsSchema(WebhookResponseBase):
+    __root__: list[ShippingMethodSchema]
+
+
 def parse_list_shipping_methods_response(
     response_data: Any, app: "App"
 ) -> List["ShippingMethodData"]:
-    shipping_methods = []
-    for shipping_method_data in response_data:
-        method_id = shipping_method_data.get("id")
-        method_name = shipping_method_data.get("name")
-        method_amount = shipping_method_data.get("amount")
-        method_currency = shipping_method_data.get("currency")
-        method_maximum_delivery_days = shipping_method_data.get("maximum_delivery_days")
-
-        shipping_methods.append(
-            ShippingMethodData(
-                id=to_shipping_app_id(app, method_id),
-                name=method_name,
-                price=Money(method_amount, method_currency),
-                maximum_delivery_days=method_maximum_delivery_days,
-            )
-        )
-    return shipping_methods
+    shipping_methods = ShippingMethodsSchema.parse_obj(response_data)
+    return [
+        method.get_shipping_method_data(app) for method in shipping_methods.__root__
+    ]
 
 
 def _compare_order_payloads(payload: str, cached_payload: str) -> bool:
