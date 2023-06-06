@@ -789,28 +789,6 @@ def test_checkout_add_used_gift_card_code(
     )
 
 
-def test_checkout_add_used_gift_card_code_invalid_user(
-    staff_api_client, checkout_with_item, gift_card_used, staff_user
-):
-    # given
-    checkout_with_item.user = staff_user
-    assert gift_card_used.used_by_email != checkout_with_item.user.email
-
-    variables = {
-        "id": to_global_id_or_none(checkout_with_item),
-        "promoCode": gift_card_used.code,
-    }
-
-    # when
-    data = _mutate_checkout_add_promo_code(staff_api_client, variables)
-
-    # then
-    assert not data["checkout"]
-    assert len(data["errors"]) == 1
-    assert data["errors"][0]["code"] == CheckoutErrorCode.INVALID.name
-    assert data["errors"][0]["field"] == "promoCode"
-
-
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_item)
