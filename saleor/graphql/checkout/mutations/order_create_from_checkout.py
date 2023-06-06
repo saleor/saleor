@@ -11,7 +11,7 @@ from ....permission.enums import CheckoutPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
-from ...core.doc_category import DOC_CATEGORY_CHECKOUT
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
 from ...meta.mutations import MetadataInput
@@ -38,7 +38,7 @@ class OrderCreateFromCheckoutError(Error):
     )
 
     class Meta:
-        doc_category = DOC_CATEGORY_CHECKOUT
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderCreateFromCheckout(BaseMutation):
@@ -78,7 +78,7 @@ class OrderCreateFromCheckout(BaseMutation):
             "following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS."
             + ADDED_IN_32
         )
-        doc_category = DOC_CATEGORY_CHECKOUT
+        doc_category = DOC_CATEGORY_ORDERS
         object_type = Order
         permissions = (CheckoutPermissions.HANDLE_CHECKOUTS,)
         error_type_class = OrderCreateFromCheckoutError

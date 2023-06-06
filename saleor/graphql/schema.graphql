@@ -16385,7 +16385,7 @@ type Mutation {
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
-  ): OrderCreateFromCheckout @doc(category: "Checkout")
+  ): OrderCreateFromCheckout @doc(category: "Orders")
 
   """
   Creates new channel. 
@@ -24815,13 +24815,13 @@ Create new order from existing checkout. Requires the following permissions: AUT
 
 Added in Saleor 3.2.
 """
-type OrderCreateFromCheckout @doc(category: "Checkout") {
+type OrderCreateFromCheckout @doc(category: "Orders") {
   """Placed order."""
   order: Order
   errors: [OrderCreateFromCheckoutError!]!
 }
 
-type OrderCreateFromCheckoutError @doc(category: "Checkout") {
+type OrderCreateFromCheckoutError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
