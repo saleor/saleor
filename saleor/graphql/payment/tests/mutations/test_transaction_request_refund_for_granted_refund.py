@@ -3,13 +3,13 @@ from decimal import Decimal
 import graphene
 from mock import patch
 
-from saleor.graphql.core.enums import TransactionRequestRefundForGrantedRefundErrorCode
-from saleor.graphql.core.utils import to_global_id_or_none
-from saleor.graphql.tests.utils import assert_no_permission, get_graphql_content
-from saleor.payment import TransactionAction, TransactionEventType
-from saleor.payment.interface import TransactionActionData
-from saleor.payment.models import TransactionEvent
-from saleor.webhook.event_types import WebhookEventSyncType
+from .....payment import TransactionAction, TransactionEventType
+from .....payment.interface import TransactionActionData
+from .....payment.models import TransactionEvent
+from .....webhook.event_types import WebhookEventSyncType
+from ....core.enums import TransactionRequestRefundForGrantedRefundErrorCode
+from ....core.utils import to_global_id_or_none
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 TRANSACTION_REQUEST_REFUND_FOR_GRANTED_REFUND = """
 mutation TransactionRequestRefundForGrantedRefund($id: ID!, $grantedRefundID: ID!) {
@@ -301,6 +301,7 @@ def test_triggers_refund_request_for_app(
             action_value=expected_refund_amount,
             event=request_event,
             transaction_app_owner=app,
+            granted_refund=granted_refund,
         ),
         order_with_lines.channel.slug,
     )
@@ -367,6 +368,7 @@ def test_triggers_refund_request_for_staff_user(
             action_value=expected_refund_amount,
             event=request_event,
             transaction_app_owner=app,
+            granted_refund=granted_refund,
         ),
         order_with_lines.channel.slug,
     )
