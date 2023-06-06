@@ -257,3 +257,57 @@ def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(
     ]
     for error in expected_errors:
         assert error in errors
+
+
+def test_promotion_rule_update_invalid_catalogue_predicate(
+    staff_api_client,
+    permission_group_manage_discounts,
+    channel_USD,
+    channel_PLN,
+    collection,
+    category,
+    promotion,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    rule = promotion.rules.first()
+    rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
+
+    catalogue_predicate = {
+        "OR": [
+            {
+                "categoryPredicate": {
+                    "ids": [graphene.Node.to_global_id("Category", category.id)]
+                }
+            },
+        ],
+        "AND": [
+            {
+                "collectionPredicate": {
+                    "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                }
+            },
+        ],
+    }
+    reward_value = Decimal("10")
+
+    variables = {
+        "id": rule_id,
+        "input": {
+            "rewardValue": reward_value,
+            "cataloguePredicate": catalogue_predicate,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_RULE_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleUpdate"]
+    errors = data["errors"]
+
+    assert not data["promotionRule"]
+    assert len(errors) == 1
+    assert errors[0]["code"] == PromotionRuleUpdateErrorCode.INVALID.name
+    assert errors[0]["field"] == "cataloguePredicate"
