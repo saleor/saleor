@@ -198,6 +198,17 @@ class AuthorStr(ConstrainedStr):
     max_length = 60
 
 
+class ManifestBrandLogo(ValidationErrorSchema):
+    default: AnyHttpUrl
+
+    class Config(ValidationErrorConfig):
+        field_errors_map = {"default": URL_ERROR_MAPPING}
+
+
+class ManifestBrandData(ValidationErrorSchema):
+    logo: ManifestBrandLogo
+
+
 class Manifest(ValidationErrorSchema):
     id: Annotated[
         str,
@@ -275,6 +286,7 @@ class Manifest(ValidationErrorSchema):
             description="List of extensions that will be mounted in Saleor's dashboard"
         ),
     ] = []
+    brand: Optional[ManifestBrandData] = None
 
     class Config(ValidationErrorConfig):
         default_error = {"code": AppErrorCode.INVALID}

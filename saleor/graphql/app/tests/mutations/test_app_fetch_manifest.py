@@ -12,7 +12,7 @@ from .....app.error_codes import AppErrorCode
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
-from ...mutations.app_fetch_manifest import FETCH_BRAND_DATA_TIMEOUT
+from ...types import FETCH_BRAND_DATA_TIMEOUT
 
 APP_FETCH_MANIFEST_MUTATION = """
 mutation AppFetchManifest(
@@ -791,7 +791,7 @@ def test_app_fetch_manifest_with_brand_data(
     logo_url = "http://localhost:3000/logo.png"
     app_manifest["brand"] = {"logo": {"default": logo_url}}
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     mock_fetch_icon_image = Mock(return_value=icon_image)
     monkeypatch.setattr(
@@ -830,7 +830,7 @@ def test_app_fetch_manifest_with_invalid_brand_data(
     # given
     app_manifest["brand"] = {"logo": {"default": "wrong-url.png"}}
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
 
     # when
@@ -844,5 +844,5 @@ def test_app_fetch_manifest_with_invalid_brand_data(
     content = get_graphql_content(response)
     errors = content["data"]["appFetchManifest"]["errors"]
     assert len(errors) == 1
-    assert errors[0]["field"] == "brand"
+    assert errors[0]["field"] == "brand.logo.default"
     assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name

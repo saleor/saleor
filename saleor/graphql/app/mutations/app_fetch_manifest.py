@@ -12,8 +12,6 @@ from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
 
-FETCH_BRAND_DATA_TIMEOUT = 5
-
 
 class AppFetchManifest(BaseMutation):
     manifest = graphene.Field(Manifest, description="The validated manifest.")
@@ -78,6 +76,7 @@ class AppFetchManifest(BaseMutation):
             audience=cleaned_data.audience,
             required_saleor_version=cleaned_data.required_saleor_version,
             author=cleaned_data.author,
+            brand=cleaned_data.brand,
         )
 
     @classmethod

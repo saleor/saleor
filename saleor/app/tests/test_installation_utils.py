@@ -187,7 +187,7 @@ def test_install_app_with_brand_data(app_manifest, app_installation, monkeypatch
     brand_data = {"logo": {"default": "https://example.com/logo.png"}}
     app_manifest["brand"] = brand_data
     mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get_response.content = json.dumps(app_manifest)
     monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
     monkeypatch.setattr("saleor.app.installation_utils.send_app_token", Mock())
     mocked_fetch_brand_data_task = Mock()

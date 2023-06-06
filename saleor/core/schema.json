@@ -319,6 +319,33 @@
         "url"
       ]
     },
+    "ManifestBrandLogo": {
+      "title": "ManifestBrandLogo",
+      "type": "object",
+      "properties": {
+        "default": {
+          "minLength": 1,
+          "maxLength": 200,
+          "format": "uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "default"
+      ]
+    },
+    "ManifestBrandData": {
+      "title": "ManifestBrandData",
+      "type": "object",
+      "properties": {
+        "logo": {
+          "$ref": "#/definitions/ManifestBrandLogo"
+        }
+      },
+      "required": [
+        "logo"
+      ]
+    },
     "Manifest": {
       "title": "Manifest",
       "type": "object",
@@ -425,6 +452,9 @@
           "items": {
             "$ref": "#/definitions/Extension"
           }
+        },
+        "brand": {
+          "$ref": "#/definitions/ManifestBrandData"
         }
       },
       "required": [

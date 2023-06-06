@@ -4,6 +4,7 @@ from typing import List, Optional, Type, Union
 import graphene
 
 from ...app import models
+from ...app.installation_utils import fetch_brand_data
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -64,6 +65,7 @@ from .resolvers import (
 
 # Maximal thumbnail size for manifest preview
 MANIFEST_THUMBNAIL_MAX_SIZE = 512
+FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 def has_required_permission(app: models.App, context: SaleorContext):
@@ -472,6 +474,10 @@ class Manifest(BaseObjectType):
     def resolve_permissions(root, _info: ResolveInfo):
         permissions = get_permissions_from_names([p.value for p in root.permissions])
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_brand(root, _info: ResolveInfo):
+        return fetch_brand_data(root, timeout=FETCH_BRAND_DATA_TIMEOUT)
 
 
 class AppToken(BaseObjectType):

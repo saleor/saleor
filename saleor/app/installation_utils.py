@@ -114,16 +114,20 @@ def fetch_icon_image(
 
 
 def fetch_brand_data(manifest_data, timeout=REQUEST_TIMEOUT):
-    brand_data = manifest_data.get("brand")
-    if not brand_data:
+    if not manifest_data.brand:
         return None
     try:
-        logo_url = brand_data["logo"]["default"]
+        logo_url = manifest_data.brand.logo.default
         logo_file = fetch_icon_image(logo_url, timeout=timeout)
-        brand_data["logo"]["default"] = logo_file
+        brand_data = {"logo": {"default": logo_file}}
     except ValidationError as error:
         msg = "Fetching brand data failed for app:%r error:%r"
-        logger.info(msg, manifest_data["id"], error, extra={"brand_data": brand_data})
+        logger.info(
+            msg,
+            manifest_data.identifier,
+            error,
+            extra={"brand_data": manifest_data.brand.dict()},
+        )
         brand_data = None
     return brand_data
 
@@ -174,12 +178,13 @@ def fetch_brand_data_task(
 
 
 def fetch_brand_data_async(
-    manifest_data: dict,
+    manifest_data: ManifestStrict,
     *,
     app_installation: Optional[AppInstallation] = None,
     app: Optional[App] = None
 ):
-    if brand_data := manifest_data.get("brand"):
+    if manifest_data.brand:
+        brand_data = manifest_data.brand.dict()
         app_id = app.pk if app else None
         app_installation_id = app_installation.pk if app_installation else None
         fetch_brand_data_task.delay(
@@ -262,9 +267,9 @@ def install_app(app_installation: AppInstallation, activate: bool = False):
     try:
         send_app_token(target_url=manifest.token_target_url, token=token)
     except requests.RequestException as e:
-        fetch_brand_data_async(manifest_data, app_installation=app_installation)
+        fetch_brand_data_async(manifest, app_installation=app_installation)
         app.delete()
         raise e
     PluginsManager(plugins=settings.PLUGINS).app_installed(app)
-    fetch_brand_data_async(manifest_data, app=app)
+    fetch_brand_data_async(manifest, app=app)
     return app, token
