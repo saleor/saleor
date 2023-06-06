@@ -1,6 +1,7 @@
 from django.db import migrations
 from django.utils import timezone
 
+# Batch size of size 5000 is about 5MB memory usage in task
 BATCH_SIZE = 5000
 
 
