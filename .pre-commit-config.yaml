@@ -61,5 +61,5 @@ repos:
       - id: json-schema-check
         language: system
         name: Check Json schema is up to date.
-        entry: sh -c "./manage.py get_json_schema | diff saleor/core/schema.json -"
+        entry: sh -c "./manage.py get_json_schema | diff saleor/core/json_schema.json -"
         stages: [ commit ]
