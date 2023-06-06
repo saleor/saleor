@@ -20,6 +20,7 @@ from ....order.utils import (
     recalculate_order_weight,
     update_order_display_gross_prices,
 )
+from ....shipping.utils import convert_to_shipping_method_data
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
@@ -37,6 +38,7 @@ from ..utils import (
     validate_product_is_published_in_channel,
     validate_variant_channel_listings,
 )
+from .utils import SHIPPING_METHOD_UPDATE_FIELDS, ShippingMethodUpdateMixin
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -95,7 +97,7 @@ class DraftOrderCreateInput(DraftOrderInput):
     )
 
 
-class DraftOrderCreate(ModelMutation, I18nMixin):
+class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -116,9 +118,11 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         redirect_url = data.pop("redirect_url", None)
         channel_id = data.pop("channel_id", None)
         manager = get_plugin_manager_promise(info.context).get()
-        shipping_method = get_shipping_model_by_object_id(
-            object_id=data.pop("shipping_method", None), raise_error=False
-        )
+        shipping_method_input = {}
+        if "shipping_method" in data:
+            shipping_method_input["shipping_method"] = get_shipping_model_by_object_id(
+                object_id=data.pop("shipping_method", None), raise_error=False
+            )
 
         if email := data.get("user_email", None):
             try:
@@ -128,7 +132,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 data["user"] = None
 
         cleaned_input = super().clean_input(info, instance, data)
-
+        cleaned_input.update(shipping_method_input)
         channel = cls.clean_channel_id(info, instance, cleaned_input, channel_id)
 
         voucher = cleaned_input.get("voucher", None)
@@ -140,8 +144,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         lines = data.pop("lines", None)
         cls.clean_lines(cleaned_input, lines, channel)
-
-        cleaned_input["shipping_method"] = shipping_method
         cleaned_input["status"] = OrderStatus.DRAFT
         cleaned_input["origin"] = OrderOrigin.DRAFT
 
@@ -303,14 +305,6 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def _commit_changes(cls, info, instance, cleaned_input, is_new_instance, app):
-        if shipping_method := cleaned_input["shipping_method"]:
-            instance.shipping_method_name = shipping_method.name
-            tax_class = shipping_method.tax_class
-            if tax_class:
-                instance.shipping_tax_class = tax_class
-                instance.shipping_tax_class_name = tax_class.name
-                instance.shipping_tax_class_private_metadata = tax_class.metadata
-                instance.shipping_tax_class_metadata = tax_class.private_metadata
         super().save(info, instance, cleaned_input)
 
         # Create draft created event if the instance is from scratch
@@ -345,9 +339,25 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     def _save_draft_order(
         cls, info, instance, cleaned_input, *, is_new_instance, app, manager
     ):
+        updated_fields = []
         with traced_atomic_transaction():
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
+
+            if "shipping_method" in cleaned_input:
+                method = cleaned_input["shipping_method"]
+                if method is None:
+                    cls.clear_shipping_method_from_order(instance)
+                else:
+                    shipping_channel_listing = cls.validate_shipping_channel_listing(
+                        method, instance
+                    )
+                    shipping_method_data = convert_to_shipping_method_data(
+                        method,
+                        shipping_channel_listing,
+                    )
+                    cls.update_shipping_method(instance, method, shipping_method_data)
+                updated_fields.extend(SHIPPING_METHOD_UPDATE_FIELDS)
 
             # Parse shipping name
             cls._parse_shipping_method_name(instance, cleaned_input)
@@ -375,12 +385,14 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 cls.call_event(manager.draft_order_updated, instance)
 
             # Post-process the results
-            updated_fields = [
-                "weight",
-                "search_vector",
-                "updated_at",
-                "display_gross_prices",
-            ]
+            updated_fields.extend(
+                [
+                    "weight",
+                    "search_vector",
+                    "updated_at",
+                    "display_gross_prices",
+                ]
+            )
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
                 updated_fields.append("should_refresh_prices")
