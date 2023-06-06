@@ -22,6 +22,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- [Preview] Add `orderBulkCreate` mutation - #12269 by @zedzior
+- [Preview] Add `attributeBulkTranslate` and `attributeValueBulkTranslate` mutations - #12965 by @SzymJ
+- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
 - Allow setting metadata during user creating and updating - #12577 by @IKarbowiak
   - The following mutations have been updated:
     - `customerCreate`
@@ -37,11 +40,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `enableAccountConfirmationByEmail` option in the `shopSettingsUpdate` mutation, which allows controlling whether account confirmation should be sent on new account registrations (before it was controlled by env variable `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL`) - #12781 by @SzymJ
 - Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
-- [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
-- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
-- [Preview] Add `AttributeBulkTranslate` and `AttributeValueBulkTranslate` mutation - #12965 by @SzymJ
-- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
 - Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
 
 ### Saleor Apps
@@ -51,6 +50,7 @@ All notable, unreleased changes to this project will be documented in this file.
   - When the OpenID plugin is active, the default staff permission group is created, and all staff users are assigned to it.
   - To ensure the proper functioning of OAuth permissions, ensure that the
     `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 
 ### Other changes
 
