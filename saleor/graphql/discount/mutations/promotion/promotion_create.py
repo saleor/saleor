@@ -22,7 +22,7 @@ from ....utils import get_nodes
 from ...enums import PromotionCreateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import Promotion
-from ...utils import clean_predicate
+from ...validators import clean_predicate
 
 
 class PromotionCreateError(Error):
@@ -138,9 +138,13 @@ class PromotionCreate(ModelMutation):
                             params={"index": index},
                         )
                     )
-                rule_data["catalogue_predicate"] = clean_predicate(
-                    rule_data.get("catalogue_predicate")
-                )
+                try:
+                    rule_data["catalogue_predicate"] = clean_predicate(
+                        rule_data.get("catalogue_predicate"), PromotionCreateErrorCode
+                    )
+                except ValidationError as error:
+                    error.params = {"index": index}
+                    errors["catalogue_predicate"].append(error)
             cleaned_rules.append(rule_data)
 
         return cleaned_rules, errors
