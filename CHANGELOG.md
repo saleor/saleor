@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
 - [Preview] Add `AttributeBulkTranslate` and `AttributeValueBulkTranslate` mutation - #12965 by @SzymJ
 - [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
+- Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
 
 ### Saleor Apps
 
