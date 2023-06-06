@@ -811,8 +811,6 @@ class BasePlugin:
 
     process_payment: Callable[["PaymentData", Any], Any]
 
-    transaction_action_request: Callable[["TransactionActionData", None], None]
-
     transaction_charge_requested: Callable[["TransactionActionData", None], None]
 
     transaction_cancelation_requested: Callable[["TransactionActionData", None], None]

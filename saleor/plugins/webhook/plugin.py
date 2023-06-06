@@ -52,7 +52,6 @@ from ...webhook.payloads import (
     generate_sale_payload,
     generate_sale_toggle_payload,
     generate_thumbnail_payload,
-    generate_transaction_action_request_payload,
     generate_transaction_session_payload,
     generate_translation_payload,
 )
@@ -1454,24 +1453,6 @@ class WebhookPlugin(BasePlugin):
         delivery_update(delivery, status=EventDeliveryStatus.PENDING)
         send_webhook_request_async.delay(delivery.pk)
 
-    def transaction_action_request(
-        self, transaction_data: "TransactionActionData", previous_value: None
-    ) -> None:
-        if not self.active:
-            return previous_value
-        event_type = WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
-        if webhooks := get_webhooks_for_event(event_type):
-            payload = generate_transaction_action_request_payload(
-                transaction_data, self.requestor
-            )
-            trigger_webhooks_async(
-                payload,
-                event_type,
-                webhooks,
-                subscribable_object=transaction_data,
-                requestor=self.requestor,
-            )
-
     def _request_transaction_action(
         self,
         transaction_data: "TransactionActionData",
@@ -2011,9 +1992,6 @@ class WebhookPlugin(BasePlugin):
     def is_event_active(self, event: str, channel=Optional[str]):
         map_event = {
             "invoice_request": WebhookEventAsyncType.INVOICE_REQUESTED,
-            "transaction_action_request": (
-                WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST
-            ),
         }
 
         if event in map_event:

@@ -150,7 +150,6 @@ class WebhookEventAsyncType:
     STAFF_UPDATED = "staff_updated"
     STAFF_DELETED = "staff_deleted"
 
-    TRANSACTION_ACTION_REQUEST = "transaction_action_request"
     TRANSACTION_ITEM_METADATA_UPDATED = "transaction_item_metadata_updated"
 
     TRANSLATION_CREATED = "translation_created"
@@ -276,7 +275,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: "Staff created",
         STAFF_UPDATED: "Staff updated",
         STAFF_DELETED: "Staff deleted",
-        TRANSACTION_ACTION_REQUEST: "Payment action request",
         TRANSACTION_ITEM_METADATA_UPDATED: "Transaction item metadata updated",
         TRANSLATION_CREATED: "Create translation",
         TRANSLATION_UPDATED: "Update translation",
@@ -404,7 +402,6 @@ class WebhookEventAsyncType:
         (STAFF_CREATED, DISPLAY_LABELS[STAFF_CREATED]),
         (STAFF_UPDATED, DISPLAY_LABELS[STAFF_UPDATED]),
         (STAFF_DELETED, DISPLAY_LABELS[STAFF_DELETED]),
-        (TRANSACTION_ACTION_REQUEST, DISPLAY_LABELS[TRANSACTION_ACTION_REQUEST]),
         (
             TRANSACTION_ITEM_METADATA_UPDATED,
             DISPLAY_LABELS[TRANSACTION_ITEM_METADATA_UPDATED],
@@ -530,7 +527,6 @@ class WebhookEventAsyncType:
         STAFF_CREATED: AccountPermissions.MANAGE_STAFF,
         STAFF_UPDATED: AccountPermissions.MANAGE_STAFF,
         STAFF_DELETED: AccountPermissions.MANAGE_STAFF,
-        TRANSACTION_ACTION_REQUEST: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSACTION_ITEM_METADATA_UPDATED: PaymentPermissions.HANDLE_PAYMENTS,
         TRANSLATION_CREATED: SitePermissions.MANAGE_TRANSLATIONS,
         TRANSLATION_UPDATED: SitePermissions.MANAGE_TRANSLATIONS,

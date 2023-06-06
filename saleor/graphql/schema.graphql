@@ -2040,13 +2040,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   STAFF_DELETED
 
   """
-  An action requested for transaction.
-  
-  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
-  """
-  TRANSACTION_ACTION_REQUEST
-
-  """
   Transaction item metadata is updated.
   
   Added in Saleor 3.8.
@@ -2669,13 +2662,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
-
-  """
-  An action requested for transaction.
-  
-  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
-  """
-  TRANSACTION_ACTION_REQUEST
 
   """
   Transaction item metadata is updated.
@@ -3373,7 +3359,6 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
-  TRANSACTION_ACTION_REQUEST
   TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -28990,41 +28975,6 @@ type StaffDeleted implements Event @doc(category: "Users") {
 }
 
 """
-Event sent when transaction action is requested.
-
-Added in Saleor 3.4.
-
-DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
-"""
-type TransactionActionRequest implements Event @doc(category: "Payments") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """Look up a transaction."""
-  transaction: TransactionItem
-
-  """Requested action data."""
-  action: TransactionAction!
-}
-
-type TransactionAction @doc(category: "Payments") {
-  """Determines the action type."""
-  actionType: TransactionActionEnum!
-
-  """Transaction request amount. Null when action type is VOID."""
-  amount: PositiveDecimal
-}
-
-"""
 Event sent when transaction item metadata is updated.
 
 Added in Saleor 3.8.
@@ -29506,6 +29456,14 @@ type TransactionCancelationRequested implements Event @doc(category: "Payments")
 
   """Requested action data."""
   action: TransactionAction!
+}
+
+type TransactionAction @doc(category: "Payments") {
+  """Determines the action type."""
+  actionType: TransactionActionEnum!
+
+  """Transaction request amount. Null when action type is VOID."""
+  amount: PositiveDecimal
 }
 
 """
