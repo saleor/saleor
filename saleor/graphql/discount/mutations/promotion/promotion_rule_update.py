@@ -13,7 +13,7 @@ from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
-from ...utils import clean_predicate
+from ...validators import clean_predicate
 
 
 class PromotionRuleUpdateError(Error):
@@ -67,7 +67,12 @@ class PromotionRuleUpdate(ModelMutation):
             raise ValidationError({"addChannels": error, "removeChannels": error})
         cleaned_input = super().clean_input(info, instance, data, **kwargs)
         if catalogue_predicate := cleaned_input.get("catalogue_predicate"):
-            cleaned_input["catalogue_predicate"] = clean_predicate(catalogue_predicate)
+            try:
+                cleaned_input["catalogue_predicate"] = clean_predicate(
+                    catalogue_predicate, PromotionRuleUpdateErrorCode
+                )
+            except ValidationError as error:
+                raise ValidationError({"catalogue_predicate": error})
         return cleaned_input
 
     @classmethod
