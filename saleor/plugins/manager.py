@@ -59,8 +59,9 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ..checkout.models import Checkout
     from ..core.middleware import Requestor
+    from ..core.utils.translations import Translation
     from ..csv.models import ExportFile
-    from ..discount.models import Sale, Voucher
+    from ..discount.models import Promotion, Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -80,7 +81,6 @@ if TYPE_CHECKING:
     from ..site.models import SiteSettings
     from ..tax.models import TaxClass
     from ..thumbnail.models import Thumbnail
-    from ..translation.models import Translation
     from ..warehouse.models import Stock, Warehouse
     from .base_plugin import BasePlugin
 
@@ -758,6 +758,30 @@ class PluginsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins(
             "sale_toggle", default_value, sale, catalogue
+        )
+
+    def promotion_created(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_created", default_value, promotion
+        )
+
+    def promotion_updated(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_updated", default_value, promotion
+        )
+
+    def promotion_deleted(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_deleted", default_value, promotion
+        )
+
+    def promotion_toggle(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "promotion_toggle", default_value, promotion
         )
 
     def invoice_request(

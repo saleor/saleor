@@ -100,6 +100,11 @@ class WebhookEventAsyncType:
     SALE_DELETED = "sale_deleted"
     SALE_TOGGLE = "sale_toggle"
 
+    PROMOTION_CREATED = "promotion_created"
+    PROMOTION_UPDATED = "promotion_updated"
+    PROMOTION_DELETED = "promotion_deleted"
+    PROMOTION_TOGGLE = "promotion_toggle"
+
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
     INVOICE_SENT = "invoice_sent"
@@ -445,6 +450,22 @@ class WebhookEventAsyncType:
         },
         SALE_TOGGLE: {
             "name": "Sale toggle",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_CREATED: {
+            "name": "Promotion created",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_UPDATED: {
+            "name": "Promotion updated",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_DELETED: {
+            "name": "Promotion deleted",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_TOGGLE: {
+            "name": "Promotion toggle",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         INVOICE_REQUESTED: {
