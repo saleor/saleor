@@ -1,7 +1,9 @@
 from collections import defaultdict
+from datetime import datetime
 from typing import DefaultDict, List, Tuple
 
 import graphene
+import pytz
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from graphql.error import GraphQLError
@@ -9,6 +11,7 @@ from graphql.error import GraphQLError
 from .....channel import models as channel_models
 from .....discount import models
 from .....permission.enums import DiscountPermissions
+from .....plugins.manager import PluginsManager
 from ....channel.types import Channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
@@ -182,7 +185,7 @@ class PromotionCreate(ModelMutation):
         with transaction.atomic():
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
-            cls.send_sale_notifications(manager, instance)
+            cls.send_promotion_webhooks(manager, instance)
         return cls.success_response(instance)
 
     @classmethod
@@ -204,6 +207,27 @@ class PromotionCreate(ModelMutation):
             rule.channels.set(channels)
 
     @classmethod
-    def send_sale_notifications(cls, manager, instance):
-        # TODO: implement the notifications
-        pass
+    def send_promotion_webhooks(
+        cls, manager: "PluginsManager", instance: models.Promotion
+    ):
+        cls.call_event(manager.promotion_created, instance)
+        cls.send_promotion_toggle_webhook(manager, instance)
+
+    @classmethod
+    def send_promotion_toggle_webhook(
+        cls, manager: "PluginsManager", instance: models.Promotion
+    ):
+        """Send a webhook about starting or ending promotion if it hasn't been sent yet.
+
+        Send the webhook when the start date is before the current date and the
+        promotion is not already finished.
+        """
+        now = datetime.now(pytz.utc)
+
+        start_date = instance.start_date
+        end_date = instance.end_date
+
+        if (start_date and start_date <= now) and (not end_date or not end_date <= now):
+            cls.call_event(manager.promotion_toggle, instance)
+            instance.last_notification_scheduled_at = now
+            instance.save(update_fields=["last_notification_scheduled_at"])

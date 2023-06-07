@@ -1976,6 +1976,18 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A sale is activated or deactivated."""
   SALE_TOGGLE
 
+  """A promotion is created."""
+  PROMOTION_CREATED
+
+  """A promotion is updated."""
+  PROMOTION_UPDATED
+
+  """A promotion is deleted."""
+  PROMOTION_DELETED
+
+  """A promotion is activated or deactivated."""
+  PROMOTION_TOGGLE
+
   """An invoice for order requested."""
   INVOICE_REQUESTED
 
@@ -2656,6 +2668,18 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A sale is activated or deactivated."""
   SALE_TOGGLE
+
+  """A promotion is created."""
+  PROMOTION_CREATED
+
+  """A promotion is updated."""
+  PROMOTION_UPDATED
+
+  """A promotion is deleted."""
+  PROMOTION_DELETED
+
+  """A promotion is activated or deactivated."""
+  PROMOTION_TOGGLE
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -3515,6 +3539,10 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   SALE_UPDATED
   SALE_DELETED
   SALE_TOGGLE
+  PROMOTION_CREATED
+  PROMOTION_UPDATED
+  PROMOTION_DELETED
+  PROMOTION_TOGGLE
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -13623,8 +13651,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -13632,8 +13658,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -13646,8 +13670,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -13655,8 +13677,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -13681,8 +13701,6 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   """The list of promotion rules."""
   rules: [PromotionRule!]
 }
-
-scalar JSON
 
 """
 Represents the promotion rule that specifies the conditions that must be met to apply the promotion discount.
@@ -32074,6 +32092,102 @@ type SaleToggle implements Event @doc(category: "Discounts") {
     """Slug of a channel for which the data should be returned."""
     channel: String
   ): Sale
+}
+
+"""
+Event sent when new promotion is created.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionCreated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+Event sent when promotion is updated.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionUpdated implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+Event sent when promotion is deleted.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionDeleted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+The event informs about the start or end of the promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionToggle implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
 }
 
 """
