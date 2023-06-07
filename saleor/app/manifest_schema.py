@@ -250,14 +250,16 @@ class Manifest(ValidationErrorSchema):
         Optional[AnyHttpUrl],
         Field(
             description="Address to the app configuration page, which is rendered in "
-            "the dashboard (deprecated in Saleor 3.5, use appUrl instead)"
+            "the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
+            deprecated=True,
         ),
     ] = None
     data_privacy: Annotated[
         Optional[str],
         Field(
             description="Short description of privacy policy displayed in the "
-            "dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)"
+            "dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
+            deprecated=True,
         ),
     ] = None
     data_privacy_url: Annotated[

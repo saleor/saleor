@@ -1,19 +1,5 @@
 {
-  "title": "Schema",
-  "anyOf": [
-    {
-      "$ref": "#/definitions/Manifest"
-    },
-    {
-      "$ref": "#/definitions/CheckoutCalculateTaxes"
-    },
-    {
-      "$ref": "#/definitions/OrderCalculateTaxes"
-    },
-    {
-      "$ref": "#/definitions/ShippingListMethodsForCheckout"
-    }
-  ],
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
     "Permission": {
       "title": "Permission",
@@ -395,6 +381,7 @@
         },
         "configurationUrl": {
           "description": "Address to the app configuration page, which is rendered in the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
+          "deprecated": true,
           "minLength": 1,
           "maxLength": 200,
           "format": "uri",
@@ -402,6 +389,7 @@
         },
         "dataPrivacy": {
           "description": "Short description of privacy policy displayed in the dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
+          "deprecated": true,
           "type": "string"
         },
         "dataPrivacyUrl": {
