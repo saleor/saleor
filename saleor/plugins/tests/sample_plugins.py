@@ -32,7 +32,7 @@ if TYPE_CHECKING:
     from ...checkout.fetch import CheckoutInfo, CheckoutLineInfo
     from ...checkout.models import Checkout
     from ...core.models import EventDelivery
-    from ...discount.models import Sale
+    from ...discount.models import Promotion, Sale
     from ...order.models import Order, OrderLine
     from ...product.models import Product, ProductVariant
 
@@ -248,6 +248,18 @@ class PluginSample(BasePlugin):
         previous_value: Any,
     ):
         return sale, catalogue
+
+    def promotion_created(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_updated(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_deleted(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_toggle(self, promotion: "Promotion", previous_value: Any):
+        return None
 
     def get_checkout_line_tax_rate(
         self,

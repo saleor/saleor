@@ -1074,6 +1074,60 @@ class SaleToggle(SubscriptionObjectType, SaleBase):
         interfaces = (Event,)
 
 
+class PromotionBase(AbstractType):
+    promotion = graphene.Field(
+        "saleor.graphql.discount.types.Promotion",
+        description="The promotion the event relates to.",
+    )
+
+    @staticmethod
+    def resolve_promotion(root, info: ResolveInfo, channel=None):
+        _, promotion = root
+        return promotion
+
+
+class PromotionCreated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when new promotion is created." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
+
+
+class PromotionUpdated(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is updated." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
+
+
+class PromotionDeleted(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        interfaces = (Event,)
+        description = (
+            "Event sent when promotion is deleted." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
+
+
+class PromotionToggle(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the start or end of the promotion."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        interfaces = (Event,)
+
+
 class InvoiceBase(AbstractType):
     invoice = graphene.Field(
         "saleor.graphql.invoice.types.Invoice",
@@ -2233,6 +2287,10 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.SALE_UPDATED: SaleUpdated,
     WebhookEventAsyncType.SALE_DELETED: SaleDeleted,
     WebhookEventAsyncType.SALE_TOGGLE: SaleToggle,
+    WebhookEventAsyncType.PROMOTION_CREATED: PromotionCreated,
+    WebhookEventAsyncType.PROMOTION_UPDATED: PromotionUpdated,
+    WebhookEventAsyncType.PROMOTION_DELETED: PromotionDeleted,
+    WebhookEventAsyncType.PROMOTION_TOGGLE: PromotionToggle,
     WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
