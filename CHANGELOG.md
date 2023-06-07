@@ -11,6 +11,7 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Saleor Apps
 
 ### Other changes
+- Add POC of Core API tests - #13034 by @fowczarek
 
 # 3.14.0
 
