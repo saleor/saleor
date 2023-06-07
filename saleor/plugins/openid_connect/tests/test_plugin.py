@@ -29,6 +29,7 @@ from ..utils import (
 )
 
 
+# Testing Could team as Owner of OIDC. Do not merge me.
 def test_get_oauth_session_adds_refresh_scope_when_enabled(openid_plugin):
     plugin = openid_plugin(enable_refresh_token=True)
     session = plugin._get_oauth_session()
