@@ -5941,7 +5941,9 @@ enum MeasurementUnitsEnum {
   FT
   YD
   INCH
+  SQ_MM
   SQ_CM
+  SQ_DM
   SQ_M
   SQ_KM
   SQ_FT
