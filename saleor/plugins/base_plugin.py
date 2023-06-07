@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
     from ..csv.models import ExportFile
-    from ..discount.models import Sale, Voucher
+    from ..discount.models import Promotion, Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
@@ -1038,6 +1038,30 @@ class BasePlugin:
     sale_updated: Callable[
         ["Sale", DefaultDict[str, Set[str]], DefaultDict[str, Set[str]], Any], Any
     ]
+
+    # Trigger when promotion is created.
+    #
+    # Overwrite this method if you need to trigger specific logic after promotion
+    # is created.
+    promotion_created: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is deleted.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is deleted.
+    promotion_deleted: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is updated.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is updated.
+    promotion_updated: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is started or ended.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is updated.
+    promotion_toggle: Callable[["Promotion", Any], Any]
 
     # Trigger when shipping price is created.
     #

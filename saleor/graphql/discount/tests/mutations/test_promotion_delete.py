@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
@@ -20,8 +22,12 @@ PROMOTION_DELETE_MUTATION = """
 """
 
 
+@patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_user(
-    staff_api_client, permission_group_manage_discounts, promotion
+    promotion_deleted_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
@@ -34,12 +40,16 @@ def test_promotion_delete_by_staff_user(
     content = get_graphql_content(response)
     data = content["data"]["promotionDelete"]
     assert data["promotion"]["name"] == promotion.name
+
+    promotion_deleted_mock.assert_called_once_with(promotion)
+
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
 
+@patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
 def test_promotion_delete_by_staff_app(
-    app_api_client, permission_manage_discounts, promotion
+    promotion_deleted_mock, app_api_client, permission_manage_discounts, promotion
 ):
     # given
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
@@ -53,11 +63,15 @@ def test_promotion_delete_by_staff_app(
     content = get_graphql_content(response)
     data = content["data"]["promotionDelete"]
     assert data["promotion"]["name"] == promotion.name
+
+    promotion_deleted_mock.assert_called_once_with(promotion)
+
     with pytest.raises(promotion._meta.model.DoesNotExist):
         promotion.refresh_from_db()
 
 
-def test_promotion_delete_by_customer(api_client, promotion):
+@patch("saleor.plugins.manager.PluginsManager.promotion_deleted")
+def test_promotion_delete_by_customer(promotion_deleted_mock, api_client, promotion):
     # given
     variables = {"id": graphene.Node.to_global_id("Promotion", promotion.id)}
 
@@ -66,3 +80,5 @@ def test_promotion_delete_by_customer(api_client, promotion):
 
     # then
     assert_no_permission(response)
+
+    promotion_deleted_mock.assert_not_called()

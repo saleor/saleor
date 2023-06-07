@@ -124,8 +124,9 @@ if TYPE_CHECKING:
     from ...account.models import Address, Group, User
     from ...attribute.models import Attribute, AttributeValue
     from ...channel.models import Channel
+    from ...core.utils.translations import Translation
     from ...csv.models import ExportFile
-    from ...discount.models import Sale, Voucher
+    from ...discount.models import Promotion, Sale, Voucher
     from ...giftcard.models import GiftCard
     from ...invoice.models import Invoice
     from ...menu.models import Menu, MenuItem
@@ -143,7 +144,6 @@ if TYPE_CHECKING:
     from ...shipping.models import ShippingMethod, ShippingZone
     from ...site.models import SiteSettings
     from ...tax.models import TaxClass
-    from ...translation.models import Translation
     from ...warehouse.models import Stock, Warehouse
     from ...webhook.models import Webhook
 
@@ -966,6 +966,59 @@ class WebhookPlugin(BasePlugin):
                 self.requestor,
                 legacy_data_generator=sale_data_generator,
             )
+
+    def _trigger_promotion_event(self, event_type: str, promotion: "Promotion"):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("Promotion", promotion.id),
+                }
+            )
+            trigger_webhooks_async(
+                payload, event_type, webhooks, promotion, self.requestor
+            )
+
+    def promotion_created(
+        self,
+        promotion: "Promotion",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_event(
+            WebhookEventAsyncType.PROMOTION_CREATED, promotion
+        )
+
+    def promotion_updated(
+        self,
+        promotion: "Promotion",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_event(
+            WebhookEventAsyncType.PROMOTION_UPDATED, promotion
+        )
+
+    def promotion_deleted(
+        self,
+        promotion: "Promotion",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_event(
+            WebhookEventAsyncType.PROMOTION_DELETED, promotion
+        )
+
+    def promotion_toggle(
+        self,
+        promotion: "Promotion",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_event(WebhookEventAsyncType.PROMOTION_TOGGLE, promotion)
 
     def invoice_request(
         self,

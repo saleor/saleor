@@ -374,6 +374,18 @@ fragment SaleDetails on Sale {
 }
 """
 
+PROMOTION_DETAILS = """
+fragment PromotionDetails on Promotion {
+  id
+  name
+  startDate
+  endDate
+  rules{
+    name
+  }
+}
+"""
+
 GIFT_CARD_DETAILS = """
 fragment GiftCardDetails on GiftCard{
   id
