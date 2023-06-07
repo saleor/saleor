@@ -76,7 +76,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
 - Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak
-- Expand metric units to support more types of products. - #13008 by @FremahA
+- Expand metric units to support more types of products. - #13043 by @FremahA
 
 # 3.13.0
 
