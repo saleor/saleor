@@ -1360,6 +1360,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 @pytest.fixture
 def color_attribute(db):
     attribute = Attribute.objects.create(
+        external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
@@ -1367,8 +1368,18 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
-    AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue1ExternalReference",
+        attribute=attribute,
+        name="Red",
+        slug="red",
+    )
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue2ExternalReference",
+        attribute=attribute,
+        name="Blue",
+        slug="blue",
+    )
     return attribute
 
 
@@ -1684,6 +1695,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
+        external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
@@ -2028,6 +2040,14 @@ def categories(db):
 
 
 @pytest.fixture
+def category_list():
+    category_1 = Category.objects.create(name="Category 1", slug="category-1")
+    category_2 = Category.objects.create(name="Category 2", slug="category-2")
+    category_3 = Category.objects.create(name="Category 3", slug="category-3")
+    return category_1, category_2, category_3
+
+
+@pytest.fixture
 def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
     parent = Category.objects.create(name="Parent", slug="parent")
     parent.children.create(name="Child", slug="child")
@@ -2165,6 +2185,20 @@ def product_type(color_attribute, size_attribute, default_tax_class):
         size_attribute, through_defaults={"variant_selection": True}
     )
     return product_type
+
+
+@pytest.fixture
+def product_type_list():
+    product_type_1 = ProductType.objects.create(
+        name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
+    )
+    product_type_2 = ProductType.objects.create(
+        name="Type 2", slug="type-2", kind=ProductTypeKind.NORMAL
+    )
+    product_type_3 = ProductType.objects.create(
+        name="Type 3", slug="type-3", kind=ProductTypeKind.NORMAL
+    )
+    return product_type_1, product_type_2, product_type_3
 
 
 @pytest.fixture
