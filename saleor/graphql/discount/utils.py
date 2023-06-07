@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Dict, List, Optional, Union, cast
 
-from django.db.models import Exists, OuterRef, QuerySet
+from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
 from ...product.models import (
@@ -10,6 +10,7 @@ from ...product.models import (
     CollectionProduct,
     Product,
     ProductVariant,
+    ProductVariantQueryset,
 )
 from ..core.connection import where_filter_qs
 from ..product.filters import (
@@ -40,7 +41,9 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
     }
 
 
-def _handle_product_predicate(predicate_data: Dict[str, Union[dict, list]]):
+def _handle_product_predicate(
+    predicate_data: Dict[str, Union[dict, list]]
+) -> ProductVariantQueryset:
     product_qs = where_filter_qs(
         Product.objects.all(), {}, ProductWhere, predicate_data, None
     )
@@ -49,13 +52,17 @@ def _handle_product_predicate(predicate_data: Dict[str, Union[dict, list]]):
     )
 
 
-def _handle_variant_predicate(predicate_data: Dict[str, Union[dict, list]]):
+def _handle_variant_predicate(
+    predicate_data: Dict[str, Union[dict, list]]
+) -> ProductVariantQueryset:
     return where_filter_qs(
         ProductVariant.objects.all(), {}, ProductVariantWhere, predicate_data, None
     )
 
 
-def _handle_collection_predicate(predicate_data: Dict[str, Union[dict, list]]):
+def _handle_collection_predicate(
+    predicate_data: Dict[str, Union[dict, list]]
+) -> ProductVariantQueryset:
     collection_qs = where_filter_qs(
         Collection.objects.all(), {}, CollectionWhere, predicate_data, None
     )
@@ -70,7 +77,9 @@ def _handle_collection_predicate(predicate_data: Dict[str, Union[dict, list]]):
     )
 
 
-def _handle_category_predicate(predicate_data: Dict[str, Union[dict, list]]):
+def _handle_category_predicate(
+    predicate_data: Dict[str, Union[dict, list]]
+) -> ProductVariantQueryset:
     category_qs = where_filter_qs(
         Category.objects.all(), {}, CategoryWhere, predicate_data, None
     )
@@ -90,11 +99,12 @@ PREDICATE_TO_HANDLE_METHOD = {
 }
 
 
-def get_variants_for_predicate(predicate: dict, queryset: Optional[QuerySet] = None):
+def get_variants_for_predicate(
+    predicate: dict, queryset: Optional[ProductVariantQueryset] = None
+) -> ProductVariantQueryset:
     """Get variants that met the predicate conditions."""
     if queryset is None:
         queryset = ProductVariant.objects.none()
-    queryset = cast(QuerySet, queryset)
     and_data: Optional[List[dict]] = predicate.pop("AND", None)
     or_data: Optional[List[dict]] = predicate.pop("OR", None)
 
@@ -112,7 +122,9 @@ def get_variants_for_predicate(predicate: dict, queryset: Optional[QuerySet] = N
     return queryset
 
 
-def _handle_and_data(queryset: QuerySet, data: List[Dict[str, Union[list, dict, str]]]):
+def _handle_and_data(
+    queryset: ProductVariantQueryset, data: List[Dict[str, Union[list, dict, str]]]
+) -> ProductVariantQueryset:
     qs = ProductVariant.objects.all()
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
@@ -123,7 +135,9 @@ def _handle_and_data(queryset: QuerySet, data: List[Dict[str, Union[list, dict, 
     return queryset
 
 
-def _handle_or_data(queryset: QuerySet, data: List[Dict[str, Union[dict, str, list]]]):
+def _handle_or_data(
+    queryset: ProductVariantQueryset, data: List[Dict[str, Union[dict, str, list]]]
+) -> ProductVariantQueryset:
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
             queryset |= get_variants_for_predicate(predicate_data, queryset)
@@ -134,13 +148,15 @@ def _handle_or_data(queryset: QuerySet, data: List[Dict[str, Union[dict, str, li
     return queryset
 
 
-def contains_filter_operator(input: Dict[str, Union[dict, str, list]]):
+def contains_filter_operator(input: Dict[str, Union[dict, str, list]]) -> bool:
     return any([operator in input for operator in ["AND", "OR", "NOT"]])
 
 
 def _handle_catalogue_predicate(
-    queryset: QuerySet, predicate_data: Dict[str, Union[dict, str, list]], operator
-):
+    queryset: ProductVariantQueryset,
+    predicate_data: Dict[str, Union[dict, str, list]],
+    operator,
+) -> ProductVariantQueryset:
     for field, handle_method in PREDICATE_TO_HANDLE_METHOD.items():
         if field_data := predicate_data.get(field):
             field_data = cast(Dict[str, Union[dict, list]], field_data)

@@ -1,14 +1,19 @@
 from collections import defaultdict
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from django.db.models import Exists, OuterRef
 from django.db.models.query_utils import Q
 from prices import Money
 
 from ...channel.models import Channel
-from ...discount import DiscountInfo
+from ...discount import DiscountInfo, PromotionRuleInfo
 from ...discount.models import Sale
-from ...discount.utils import calculate_discounted_price, fetch_active_discounts
+from ...discount.utils import (
+    calculate_discounted_price,
+    calculate_discounted_price_for_promotions,
+    fetch_active_discounts,
+    fetch_active_promotion_rules,
+)
 from ..models import (
     Category,
     CollectionProduct,
@@ -17,6 +22,67 @@ from ..models import (
     ProductVariant,
     ProductVariantChannelListing,
 )
+
+
+def update_discounted_prices_for_promotion(
+    products: Iterable[Product], rules_info: Optional[List[PromotionRuleInfo]] = None
+):
+    """Update Products and ProductVariants discounted prices.
+
+    The discounted price is the minimal price of the product/variant based on active
+    promotions that are applied to a given product.
+    If there is no applied promotion rule, the discounted price for the product
+    is equal to the cheapest variant price, in the case of the variant it's equal
+    to the variant price.
+    """
+    if rules_info is None:
+        rules_info = fetch_active_promotion_rules()
+    product_ids = [product.id for product in products]
+    product_qs = Product.objects.filter(id__in=product_ids)
+    product_to_variant_listings_per_channel_map = (
+        _get_product_to_variant_channel_listings_per_channel_map(product_ids)
+    )
+
+    changed_products_listings_to_update = []
+    changed_variants_listings_to_update = []
+    product_channel_listings = ProductChannelListing.objects.filter(
+        Exists(product_qs.filter(id=OuterRef("product_id")))
+    )
+    for product_channel_listing in product_channel_listings:
+        product_id = product_channel_listing.product_id
+        channel_id = product_channel_listing.channel_id
+        variant_listings = product_to_variant_listings_per_channel_map[product_id][
+            channel_id
+        ]
+        if not variant_listings:
+            continue
+        (
+            discounted_variants_price,
+            variant_listings_to_update,
+        ) = _get_discounted_variants_prices_for_promotions(
+            variant_listings,
+            rules_info,
+            product_channel_listing.channel,
+        )
+
+        product_discounted_price = min(discounted_variants_price)
+        changed_variants_listings_to_update.extend(variant_listings_to_update)
+
+        # check if the product discounted_price has changed
+        if product_channel_listing.discounted_price != product_discounted_price:
+            product_channel_listing.discounted_price_amount = (
+                product_discounted_price.amount
+            )
+            changed_products_listings_to_update.append(product_channel_listing)
+
+    if changed_products_listings_to_update:
+        ProductChannelListing.objects.bulk_update(
+            changed_products_listings_to_update, ["discounted_price_amount"]
+        )
+    if changed_variants_listings_to_update:
+        ProductVariantChannelListing.objects.bulk_update(
+            changed_variants_listings_to_update, ["discounted_price_amount"]
+        )
 
 
 def update_products_discounted_price(products: Iterable[Product], discounts=None):
@@ -140,6 +206,27 @@ def _get_discounted_variants_prices(
     return discounted_variants_price, variants_listings_to_update
 
 
+def _get_discounted_variants_prices_for_promotions(
+    variant_listings: List[ProductVariantChannelListing],
+    rules_info: List[PromotionRuleInfo],
+    channel: Channel,
+) -> Tuple[Money, List[ProductVariantChannelListing]]:
+    variants_listings_to_update: List[ProductVariantChannelListing] = []
+    discounted_variants_price: List[Money] = []
+    for variant_listing in variant_listings:
+        discounted_variant_price = calculate_discounted_price_for_promotions(
+            price=variant_listing.price,
+            rules_info=rules_info,
+            channel=channel,
+            variant_id=variant_listing.variant_id,
+        )
+        if variant_listing.discounted_price != discounted_variant_price:
+            variant_listing.discounted_price_amount = discounted_variant_price.amount
+            variants_listings_to_update.append(variant_listing)
+        discounted_variants_price.append(discounted_variant_price)
+    return discounted_variants_price, variants_listings_to_update
+
+
 def _products_in_batches(products_qs):
     """Slice a products queryset into batches."""
     start_pk = 0
@@ -171,6 +258,19 @@ def update_products_discounted_prices(products, discounts=None):
 
     for product_batch in _products_in_batches(products):
         update_products_discounted_price(product_batch)
+
+
+def update_products_discounted_prices_for_promotion(products):
+    rules_info = fetch_active_promotion_rules()
+    variants = ProductVariant.objects.none()
+    for rule_info in rules_info:
+        variants |= rule_info.variants
+
+    products = Product.objects.filter(
+        Exists(variants.filter(product_id=OuterRef("id")))
+    )
+    for product_batch in _products_in_batches(products):
+        update_discounted_prices_for_promotion(product_batch)
 
 
 def update_products_discounted_prices_of_catalogues(

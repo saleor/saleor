@@ -20,17 +20,19 @@ from uuid import UUID
 
 from babel.numbers import get_currency_precision
 from django.conf import settings
-from django.db.models import F
+from django.db.models import Exists, F, OuterRef
 from django.utils import timezone
 from prices import Money, TaxedMoney, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.taxes import zero_money
-from . import DiscountInfo, DiscountType
+from . import DiscountInfo, DiscountType, PromotionRuleInfo
 from .models import (
     CheckoutLineDiscount,
     DiscountValueType,
     NotApplicable,
+    Promotion,
+    PromotionRule,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -199,6 +201,75 @@ def get_sale_id_applied_as_a_discount(
         variant_id=variant_id,
     )
     return sale_id
+
+
+def calculate_discounted_price_for_promotions(
+    *,
+    price: Money,
+    rules_info: List[PromotionRuleInfo],
+    channel: "Channel",
+    variant_id: Optional[int] = None,
+) -> Money:
+    """Return minimum product's price of all prices with promotions applied."""
+    if rules_info:
+        _, price = get_rule_id_with_min_price(
+            price=price,
+            rules_info=rules_info,
+            channel=channel,
+            variant_id=variant_id,
+        )
+    return price
+
+
+def get_rule_id_with_min_price(
+    *,
+    price: Money,
+    rules_info: List[PromotionRuleInfo],
+    channel: "Channel",
+    variant_id: Optional[int] = None,
+) -> Tuple[Optional[int], Money]:
+    """Return a rule_id and minimum product's price."""
+    available_discounts = [
+        (rule_id, discount)
+        for rule_id, discount in get_product_promotion_discounts(
+            rules_info=rules_info,
+            channel=channel,
+            variant_id=variant_id,
+        )
+    ]
+    if not available_discounts:
+        return None, price
+
+    applied_discount = min(
+        [(rule_id, discount(price)) for rule_id, discount in available_discounts],
+        key=lambda d: d[1],  # sort over a min price
+    )
+    return applied_discount
+
+
+def get_product_promotion_discounts(
+    *,
+    rules_info: List[PromotionRuleInfo],
+    channel: "Channel",
+    variant_id: Optional[int],
+) -> Iterator[Tuple[int, Callable]]:
+    """Return promotion rule id, discount value for all rules applicable on product."""
+    for rule_info in rules_info:
+        try:
+            yield get_product_discount_on_promotion(rule_info, channel, variant_id)
+        except NotApplicable:
+            pass
+
+
+def get_product_discount_on_promotion(
+    rule_info: PromotionRuleInfo,
+    channel: "Channel",
+    variant_id: Optional[int] = None,
+) -> Tuple[int, Callable]:
+    """Return rule id, discount value if rule applied or raise NotApplicable."""
+    if variant_id in rule_info.variant_ids and channel in rule_info.channels:
+        return rule_info.rule.id, rule_info.rule.get_discount(channel.currency_code)
+    raise NotApplicable("Promotion rule not applicable for this product")
 
 
 def validate_voucher_for_checkout(
@@ -717,3 +788,28 @@ def generate_sale_discount_objects_for_checkout(
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, lines_info, sales_info
     )
+
+
+def fetch_active_promotion_rules(
+    date: Optional[datetime.date] = None,
+) -> List[PromotionRuleInfo]:
+    from ..graphql.discount.utils import get_variants_for_predicate
+
+    if date is None:
+        date = timezone.now()
+    promotions = Promotion.objects.active()
+    rules = PromotionRule.objects.filter(
+        Exists(promotions.filter(id=OuterRef("promotion_id")))
+    ).prefetch_related("channels")
+    infos = []
+    for rule in rules.iterator():
+        variants = get_variants_for_predicate(rule.catalogue_predicate)
+        infos.append(
+            PromotionRuleInfo(
+                rule=rule,
+                variants=variants,
+                variant_ids=list(variants.values_list("id", flat=True)),
+                channels=list(rule.channels.all()),
+            )
+        )
+    return infos
