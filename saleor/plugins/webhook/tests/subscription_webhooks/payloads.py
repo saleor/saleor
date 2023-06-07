@@ -365,6 +365,18 @@ def generate_sale_payload(sale):
     }
 
 
+def generate_promotion_payload(promotion):
+    return {
+        "promotion": {
+            "id": graphene.Node.to_global_id("Promotion", promotion.pk),
+            "name": promotion.name,
+            "startDate": promotion.start_date.isoformat(),
+            "endDate": promotion.end_date.isoformat(),
+            "rules": [{"name": rule.name} for rule in promotion.rules.all()],
+        }
+    }
+
+
 def generate_voucher_payload(voucher, voucher_global_id):
     return json.dumps(
         {
