@@ -41,4 +41,5 @@ def create_digital_product_type(staff_api_client, permissions):
     assert data["slug"] == slug
     assert data["isShippingRequired"] is False
     assert data["isDigital"] is True
-    return data["id"]
+
+    return data
