@@ -349,6 +349,7 @@ class ProductVariantBulkUpdate(BaseMutation):
         variant_attributes,
         used_attribute_values,
         variant_attributes_ids,
+        variant_attributes_external_refs,
         duplicated_sku,
         index_error_map,
         index,
@@ -378,6 +379,7 @@ class ProductVariantBulkUpdate(BaseMutation):
             variant_data["product_type"],
             variant_attributes,
             variant_attributes_ids,
+            variant_attributes_external_refs,
             used_attribute_values,
             None,
             index,
@@ -452,6 +454,10 @@ class ProductVariantBulkUpdate(BaseMutation):
             graphene.Node.to_global_id("Attribute", variant_attribute.id)
             for variant_attribute in variant_attributes
         }
+        variant_attributes_external_refs = {
+            variant_attribute.external_reference
+            for variant_attribute in variant_attributes
+        }
         duplicated_sku = get_duplicated_values(
             [variant.sku for variant in variants if variant.sku]
         )
@@ -484,6 +490,7 @@ class ProductVariantBulkUpdate(BaseMutation):
                 variant_attributes,
                 used_attribute_values,
                 variant_attributes_ids,
+                variant_attributes_external_refs,
                 duplicated_sku,
                 index_error_map,
                 index,

@@ -448,8 +448,24 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
     """Sort products."""
     sortBy: ProductOrder
+
+    """
+    Search products.
+    
+    Added in Saleor 3.14.
+    """
+    search: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -6353,6 +6369,15 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     filter: ProductFilterInput
 
     """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
+    """
     Sort products.
     
     Added in Saleor 3.10.
@@ -6560,6 +6585,123 @@ input PriceRangeInput {
 
   """Price less than or equal to."""
   lte: Float
+}
+
+input ProductWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """Filter by product name."""
+  name: StringFilterInput
+
+  """Filter by product slug."""
+  slug: StringFilterInput
+
+  """Filter by product type."""
+  productType: GlobalIDFilterInput
+
+  """Filter by product category."""
+  category: GlobalIDFilterInput
+
+  """Filter by collection."""
+  collection: GlobalIDFilterInput
+
+  """Filter by availability for purchase."""
+  isAvailable: Boolean
+
+  """Filter by public visibility."""
+  isPublished: Boolean
+
+  """Filter by visibility on the channel."""
+  isVisibleInListing: Boolean
+
+  """Filter by the publication date."""
+  publishedFrom: DateTime
+
+  """Filter by the date of availability for purchase."""
+  availableFrom: DateTime
+
+  """Filter by product with category assigned."""
+  hasCategory: Boolean
+
+  """Filter by product variant price."""
+  price: DecimalFilterInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: DecimalFilterInput
+
+  """Filter by attributes associated with the product."""
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+
+  """Filter by stock of the product variant."""
+  stocks: ProductStockFilterInput
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+
+  """Filter by product with preordered variants."""
+  hasPreorderedVariants: Boolean
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [ProductWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductWhereInput!]
+}
+
+"""
+Define the filtering options for foreign key fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input GlobalIDFilterInput {
+  """The value equal to."""
+  eq: ID
+
+  """The value included in."""
+  oneOf: [ID!]
+}
+
+"""
+Define the filtering options for decimal fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input DecimalFilterInput {
+  """The value equal to."""
+  eq: Decimal
+
+  """The value included in."""
+  oneOf: [Decimal!]
+
+  """The value in range."""
+  range: DecimalRangeInput
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+input DecimalRangeInput {
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
 }
 
 input ProductOrder @doc(category: "Products") {
@@ -7430,6 +7572,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   products(
     """Filtering options for products."""
     filter: ProductFilterInput
+
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
@@ -16234,7 +16385,7 @@ type Mutation {
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
-  ): OrderCreateFromCheckout @doc(category: "Checkout")
+  ): OrderCreateFromCheckout @doc(category: "Orders")
 
   """
   Creates new channel. 
@@ -19213,26 +19364,33 @@ input AttributeValueInput @doc(category: "Attributes") {
   id: ID
 
   """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
+
+  """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   dropdown: AttributeValueSelectableTypeInput
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   swatch: AttributeValueSelectableTypeInput
 
   """
-  List of attribute value IDs.
+  List of attribute value IDs or external references.
   
   Added in Saleor 3.9.
   """
@@ -19271,13 +19429,24 @@ input AttributeValueInput @doc(category: "Attributes") {
 }
 
 """
-Represents attribute value. If no ID provided, value will be resolved. 
+Represents attribute value.
+1. If ID is provided, then attribute value will be resolved by ID.
+2. If externalReference is provided, then attribute value will be resolved by external reference.
+3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
+4. If externalReference and value is provided then new attribute value will be created.
 
 Added in Saleor 3.9.
 """
 input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
+
+  """
+  External reference of an attribute value.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
@@ -19537,6 +19706,13 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
 input BulkAttributeValueInput @doc(category: "Products") {
   """ID of the selected attribute."""
   id: ID
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
@@ -22236,14 +22412,6 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
 }
 
 """
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
-
-"""
 Updates granted refund.
 
 Added in Saleor 3.13.
@@ -24647,13 +24815,13 @@ Create new order from existing checkout. Requires the following permissions: AUT
 
 Added in Saleor 3.2.
 """
-type OrderCreateFromCheckout @doc(category: "Checkout") {
+type OrderCreateFromCheckout @doc(category: "Orders") {
   """Placed order."""
   order: Order
   errors: [OrderCreateFromCheckoutError!]!
 }
 
-type OrderCreateFromCheckoutError @doc(category: "Checkout") {
+type OrderCreateFromCheckoutError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """

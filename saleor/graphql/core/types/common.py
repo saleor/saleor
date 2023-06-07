@@ -25,6 +25,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
+from ...core.scalars import Decimal
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
@@ -776,6 +777,11 @@ class PriceInput(graphene.InputObjectType):
 class PriceRangeInput(graphene.InputObjectType):
     gte = graphene.Float(description="Price greater than or equal to.", required=False)
     lte = graphene.Float(description="Price less than or equal to.", required=False)
+
+
+class DecimalRangeInput(graphene.InputObjectType):
+    gte = Decimal(description="Decimal value greater than or equal to.", required=False)
+    lte = Decimal(description="Decimal value less than or equal to.", required=False)
 
 
 class DateRangeInput(graphene.InputObjectType):

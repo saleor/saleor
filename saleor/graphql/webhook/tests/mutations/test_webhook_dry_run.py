@@ -603,6 +603,7 @@ def test_webhook_dry_run_root_type(
     for event_name, event_type in WEBHOOK_TYPES_MAP.items():
         if not event_type._meta.enable_dry_run:
             continue
+
         webhook = async_subscription_webhooks_with_root_objects[event_name][0]
         object = async_subscription_webhooks_with_root_objects[event_name][1]
         object_id = graphene.Node.to_global_id(object.__class__.__name__, object.pk)
@@ -615,7 +616,9 @@ def test_webhook_dry_run_root_type(
 
         # then
         assert not content["data"]["webhookDryRun"]["errors"]
-        assert content["data"]["webhookDryRun"]["payload"]
+        payload = content["data"]["webhookDryRun"]["payload"]
+        assert payload
+        assert not json.loads(payload).get("errors")
 
 
 def test_webhook_dry_run_root_type_for_transaction_item_metadata_updated(

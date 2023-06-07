@@ -13,7 +13,6 @@ from ....checkout.utils import add_variant_to_checkout, calculate_checkout_quant
 from ....order import OrderEvents, OrderStatus
 from ....order.models import OrderEvent, OrderLine
 from ....plugins.manager import get_plugins_manager
-from ....product import ProductTypeKind
 from ....product.error_codes import ProductErrorCode
 from ....product.models import (
     Category,
@@ -29,29 +28,6 @@ from ....product.models import (
 from ....tests.utils import flush_post_commit_hooks
 from ....thumbnail.models import Thumbnail
 from ...tests.utils import get_graphql_content
-
-
-@pytest.fixture
-def category_list():
-    category_1 = Category.objects.create(name="Category 1", slug="category-1")
-    category_2 = Category.objects.create(name="Category 2", slug="category-2")
-    category_3 = Category.objects.create(name="Category 3", slug="category-3")
-    return category_1, category_2, category_3
-
-
-@pytest.fixture
-def product_type_list():
-    product_type_1 = ProductType.objects.create(
-        name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
-    )
-    product_type_2 = ProductType.objects.create(
-        name="Type 2", slug="type-2", kind=ProductTypeKind.NORMAL
-    )
-    product_type_3 = ProductType.objects.create(
-        name="Type 3", slug="type-3", kind=ProductTypeKind.NORMAL
-    )
-    return product_type_1, product_type_2, product_type_3
-
 
 MUTATION_CATEGORY_BULK_DELETE = """
     mutation categoryBulkDelete($ids: [ID!]!) {
