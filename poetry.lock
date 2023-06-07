@@ -4986,14 +4986,14 @@ files = [
 
 [[package]]
 name = "wescommon"
-version = "0.1.0.12"
+version = "0.1.0.13"
 description = ""
 category = "main"
 optional = false
 python-versions = ">=3.9,<3.11"
 files = [
-    {file = "wescommon-0.1.0.12-py3-none-any.whl", hash = "sha256:4af94a627a6ba96ee8bd65900a625749c4f47d293ba144576ed6426d30a10365"},
-    {file = "wescommon-0.1.0.12.tar.gz", hash = "sha256:e7dbf1b6ab598b4f067575b9ed2c9dbb7735feda6605f00ffc5accfeaca0e3bf"},
+    {file = "wescommon-0.1.0.13-py3-none-any.whl", hash = "sha256:5aed577673c5d9688dc0303884cfac1f8347b81872c39b6b86c33e64b4dc550a"},
+    {file = "wescommon-0.1.0.13.tar.gz", hash = "sha256:3047b41c5a17d41ec0edec5d5995245524d7cf8c561e72f18107b7833f7e60f3"},
 ]
 
 [package.dependencies]
@@ -5278,4 +5278,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
   python-versions = "~3.9"
-content-hash = "233f3686d0cbd7ef5b71a5288d4c3ef7ee2afe857d4a9e8db3b5ea165034542e"
+content-hash = "8f512474aba8864447c993bae36803ca66975bc0c16e46e1976d5f1572e2cbc8"

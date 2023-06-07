@@ -74,7 +74,7 @@ documentation = "https://docs.saleor.io/"
   django-allow-cidr = "0.6.0"
   djangorestframework = "3.14.0"
 
-  wescommon = "0.1.0.12"
+  wescommon = "0.1.0.13"
 
 
     [tool.poetry.dependencies.django]
