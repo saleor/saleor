@@ -29,8 +29,6 @@ from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
 from .webhook.subscription_types import WEBHOOK_TYPES_MAP, Subscription
 
-from .pharmacy.schema import PatientQueries, PatientMutations
-
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 
@@ -57,7 +55,6 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
-    PatientQueries,
 ):
     pass
 
@@ -86,7 +83,6 @@ class Mutation(
     TaxMutations,
     WarehouseMutations,
     WebhookMutations,
-    PatientMutations,
 ):
     pass
 

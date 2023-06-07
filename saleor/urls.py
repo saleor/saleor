@@ -15,10 +15,8 @@ from .plugins.views import (
 from .product.views import digital_product
 from .thumbnail.views import handle_thumbnail
 
-from .pharmacy.api import urls as rest_urlpatterns
 
 urlpatterns = [
-    path("rest/", include(rest_urlpatterns)),
     re_path(r"^graphql/$", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
     re_path(
         r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",

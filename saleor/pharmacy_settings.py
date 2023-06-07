@@ -30,7 +30,7 @@ from saleor.core.schedules import initiated_sale_webhook_schedule
 
 django_stubs_ext.monkeypatch()
 
-from saleor.pharmacy.google_secrets import GoogleSecretManager
+from wellstand_common.wes_secrets.google_secrets import GoogleSecretManager
 
 
 def get_list(text):
@@ -236,14 +236,13 @@ INSTALLED_APPS = [
     "storages",
     # Django modules
     "django.contrib.contenttypes",
-    "django.contrib.auth",
     "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_celery_beat",
     # Local apps
     "saleor.permission",
-    # "saleor.auth",
+    "saleor.auth",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -269,7 +268,7 @@ INSTALLED_APPS = [
     "saleor.app",
     "saleor.thumbnail",
     "saleor.schedulers",
-    "saleor.pharmacy",
+    # "saleor.pharmacy",
     # External apps
     "django_measurement",
     "django_prices",
@@ -857,3 +856,11 @@ WEBHOOK_CELERY_QUEUE_NAME = os.environ.get("WEBHOOK_CELERY_QUEUE_NAME", None)
 RESET_PASSWORD_LOCK_TIME = parse(
     os.environ.get("RESET_PASSWORD_LOCK_TIME", "15 minutes")
 )
+
+# configure REST Framework API settings
+REST_FRAMEWORK = {
+    "UNAUTHENTICATED_USER": None,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+}
