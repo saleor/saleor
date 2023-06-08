@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Annotated, List
 
 from prices import Money, TaxedMoney
+from pydantic import Field
 
 from ..core.json_schema import DecimalType, WebhookResponseBase
 
@@ -32,13 +33,35 @@ class TaxType:
 
 
 class TaxLineData(WebhookResponseBase):
-    tax_rate: DecimalType
-    total_gross_amount: DecimalType
-    total_net_amount: DecimalType
+    tax_rate: Annotated[
+        DecimalType,
+        Field(
+            description="Tax rate value provided as percentage. "
+            "Example: provide 23 to represent the 23% tax rate."
+        ),
+    ]
+    total_gross_amount: Annotated[
+        DecimalType, Field(description="Gross price of the line.")
+    ]
+    total_net_amount: Annotated[
+        DecimalType, Field(description="Net price of the line.")
+    ]
 
 
 class TaxData(WebhookResponseBase):
-    shipping_price_gross_amount: DecimalType
-    shipping_price_net_amount: DecimalType
-    shipping_tax_rate: DecimalType
-    lines: List[TaxLineData]
+    shipping_tax_rate: Annotated[
+        DecimalType, Field(description="Tax rate of shipping.")
+    ]
+    shipping_price_gross_amount: Annotated[
+        DecimalType, Field(description="The gross price of shipping.")
+    ]
+    shipping_price_net_amount: Annotated[
+        DecimalType, Field(description="Net price of shipping.")
+    ]
+    lines: Annotated[
+        List[TaxLineData],
+        Field(
+            description="List of lines tax assigned to checkout. Lines should be "
+            "returned in the same order in which they were sent to the App."
+        ),
+    ]
