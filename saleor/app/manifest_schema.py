@@ -10,12 +10,13 @@ from pydantic.errors import (
     StrRegexError,
     UrlError,
 )
+from pydantic.utils import ROOT_KEY
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..core.json_schema import (
-    FIELD_MAPPING_TYPE,
+    FIELD_ERROR_MAPPING_TYPE,
     SaleorValidationError,
     ValidationErrorConfig,
     ValidationErrorSchema,
@@ -101,13 +102,13 @@ WebhookEventTypeSyncEnum.__doc__ = (
     "The synchronous events that webhook wants to subscribe."
 )
 
-URL_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+URL_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
     (
         (AnyStrMinLengthError, AnyStrMaxLengthError),
         {"code": AppErrorCode.INVALID_URL_FORMAT},
     )
 ]
-PERMISSION_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+PERMISSION_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
     (
         Exception,
         {
@@ -159,7 +160,7 @@ class UrlPathStr(ConstrainedStr):
     regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
 
 
-URL_PATH_ERROR_MAPPING: FIELD_MAPPING_TYPE = [
+URL_PATH_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
     (
         StrRegexError,
         {"code": AppErrorCode.INVALID_URL_FORMAT, "msg": "Invalid URL path."},
@@ -292,20 +293,20 @@ class Manifest(ValidationErrorSchema):
 
     class Config(ValidationErrorConfig):
         default_error = {"code": AppErrorCode.INVALID}
-        root_errors_map = [
-            (
-                (ValueError, TypeError, UnicodeDecodeError),
-                {
-                    "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
-                    "msg": "Incorrect structure of manifest.",
-                },
-            )
-        ]
         errors_map = {
             MissingError: {"code": AppErrorCode.REQUIRED, "msg": "Field required."},
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
         field_errors_map = {
+            ROOT_KEY: [
+                (
+                    (ValueError, TypeError, UnicodeDecodeError),
+                    {
+                        "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
+                        "msg": "Incorrect structure of manifest.",
+                    },
+                )
+            ],
             "permissions": PERMISSION_ERROR_MAPPING,
             "token_target_url": URL_ERROR_MAPPING,
             "app_url": URL_ERROR_MAPPING,
