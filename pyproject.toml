@@ -73,8 +73,8 @@ documentation = "https://docs.saleor.io/"
   google-cloud-secret-manager = "^2.16.1"
   django-allow-cidr = "0.6.0"
   djangorestframework = "3.14.0"
+  wes-common = "^0.1.0.13"
 
-  wescommon = "0.1.0.13"
 
 
     [tool.poetry.dependencies.django]
