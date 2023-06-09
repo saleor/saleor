@@ -1,6 +1,10 @@
+from decimal import Decimal
+
 import graphene
 
-from ..utils import get_variants_for_predicate
+from ....discount import RewardValueType
+from ....discount.models import Promotion, PromotionRule
+from ..utils import get_variants_for_predicate, get_variants_for_promotion
 
 
 def test_get_variants_for_predicate_with_or(product_with_two_variants, variant):
@@ -192,3 +196,54 @@ def test_get_variants_for_predicate_with_nested_conditions(
     assert variant in variants
     for product_variant in product_in_collection.variants.all():
         assert product_variant in variants
+
+
+def test_get_variants_for_promotion(
+    variant, product_with_two_variants, product_variant_list
+):
+    # given
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Percentage promotion rule 1",
+                promotion=promotion,
+                catalogue_predicate={
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("ProductVariant", variant.id)
+                        ]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=reward_value,
+            ),
+            PromotionRule(
+                name="Percentage promotion rule 2",
+                promotion=promotion,
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id(
+                                "Product", product_with_two_variants.id
+                            )
+                        ]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=reward_value,
+            ),
+        ]
+    )
+
+    # when
+    variants = get_variants_for_promotion(promotion)
+
+    # then
+    assert len(variants) == product_with_two_variants.variants.count() + 1
+    assert variant in variants
+    for variant in product_with_two_variants.variants.all():
+        assert variant in variants
