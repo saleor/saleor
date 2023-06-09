@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Union, cast
 from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
+from ...discount.models import Promotion
 from ...product.models import (
     Category,
     Collection,
@@ -39,6 +40,14 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
         else value
         for key, value in predicate.items()
     }
+
+
+def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
+    """Get variants that are included in the promotion based on catalogue predicate."""
+    queryset = ProductVariant.objects.none()
+    for rule in promotion.rules.iterator():
+        queryset |= get_variants_for_predicate(rule.catalogue_predicate)
+    return queryset
 
 
 def _handle_product_predicate(
