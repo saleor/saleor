@@ -55,12 +55,12 @@ class SubSchema(ValidationErrorSchema):
             }
         }
         field_errors_map = {
-            "data_c": [
-                (
-                    AnyStrMinLengthError,
-                    {"code": ErrorCode.SUBCLASS_FIELD, "msg": "subclass field mapping"},
-                )
-            ]
+            "data_c": {
+                AnyStrMinLengthError: {
+                    "code": ErrorCode.SUBCLASS_FIELD,
+                    "msg": "subclass field mapping",
+                }
+            }
         }
 
     @validator("data_d", always=True)
@@ -82,12 +82,9 @@ class Schema(ValidationErrorSchema):
             AnyStrMinLengthError: {"code": ErrorCode.CLASS, "msg": "class mapping"}
         }
         field_errors_map = {
-            "data_b": [
-                (
-                    AnyStrMinLengthError,
-                    {"code": ErrorCode.FIELD, "msg": "field mapping"},
-                )
-            ]
+            "data_b": {
+                AnyStrMinLengthError: {"code": ErrorCode.FIELD, "msg": "field mapping"}
+            }
         }
 
     @validator("data_c")

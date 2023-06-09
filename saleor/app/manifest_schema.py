@@ -16,7 +16,7 @@ from semantic_version.base import Range
 
 from .. import __version__
 from ..core.json_schema import (
-    FIELD_ERROR_MAPPING_TYPE,
+    ERROR_MAPPING_TYPE,
     SaleorValidationError,
     ValidationErrorConfig,
     ValidationErrorSchema,
@@ -102,21 +102,18 @@ WebhookEventTypeSyncEnum.__doc__ = (
     "The synchronous events that webhook wants to subscribe."
 )
 
-URL_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
-    (
-        (AnyStrMinLengthError, AnyStrMaxLengthError),
-        {"code": AppErrorCode.INVALID_URL_FORMAT},
-    )
-]
-PERMISSION_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
-    (
-        Exception,
-        {
-            "code": AppErrorCode.INVALID_PERMISSION,
-            "msg": "Given permission don't exist.",
-        },
-    )
-]
+URL_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
+    (AnyStrMinLengthError, AnyStrMaxLengthError): {
+        "code": AppErrorCode.INVALID_URL_FORMAT
+    }
+}
+
+PERMISSION_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
+    Exception: {
+        "code": AppErrorCode.INVALID_PERMISSION,
+        "msg": "Given permission don't exist.",
+    },
+}
 
 
 class AnyHttpUrl(AnyUrl):
@@ -160,12 +157,12 @@ class UrlPathStr(ConstrainedStr):
     regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
 
 
-URL_PATH_ERROR_MAPPING: FIELD_ERROR_MAPPING_TYPE = [
-    (
-        StrRegexError,
-        {"code": AppErrorCode.INVALID_URL_FORMAT, "msg": "Invalid URL path."},
-    )
-]
+URL_PATH_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
+    StrRegexError: {
+        "code": AppErrorCode.INVALID_URL_FORMAT,
+        "msg": "Invalid URL path.",
+    },
+}
 
 
 class Extension(ValidationErrorSchema):
@@ -178,7 +175,7 @@ class Extension(ValidationErrorSchema):
     class Config(ValidationErrorConfig):
         field_errors_map = {
             "permissions": PERMISSION_ERROR_MAPPING,
-            "url": URL_PATH_ERROR_MAPPING + URL_ERROR_MAPPING,
+            "url": URL_PATH_ERROR_MAPPING | URL_ERROR_MAPPING,
         }
 
     @validator("url")
@@ -298,15 +295,12 @@ class Manifest(ValidationErrorSchema):
             UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
         field_errors_map = {
-            ROOT_KEY: [
-                (
-                    (ValueError, TypeError, UnicodeDecodeError),
-                    {
-                        "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
-                        "msg": "Incorrect structure of manifest.",
-                    },
-                )
-            ],
+            ROOT_KEY: {
+                (ValueError, TypeError, UnicodeDecodeError): {
+                    "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
+                    "msg": "Incorrect structure of manifest.",
+                }
+            },
             "permissions": PERMISSION_ERROR_MAPPING,
             "token_target_url": URL_ERROR_MAPPING,
             "app_url": URL_ERROR_MAPPING,

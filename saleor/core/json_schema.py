@@ -22,8 +22,8 @@ class ErrorMapping(TypedDict, total=False):
     msg: str
 
 
-FIELD_ERROR_MAPPING_TYPE = list[
-    tuple[Union[Type[Exception], tuple[Type[Exception], ...]], ErrorMapping]
+ERROR_MAPPING_TYPE = dict[
+    Union[Type[Exception], tuple[Type[Exception], ...]], ErrorMapping
 ]
 
 
@@ -65,8 +65,8 @@ class JsonSchema(BaseSchema):
 
 class ValidationErrorConfig(BaseConfig):
     default_error: ErrorMapping = {}
-    errors_map: dict[Type[Exception], ErrorMapping] = {}
-    field_errors_map: dict[str, FIELD_ERROR_MAPPING_TYPE] = {}
+    errors_map: ERROR_MAPPING_TYPE = {}
+    field_errors_map: dict[str, ERROR_MAPPING_TYPE] = {}
 
     @classmethod
     def get_error_mapping(cls, type_: Type[Exception]) -> ErrorMapping:
@@ -77,14 +77,14 @@ class ValidationErrorConfig(BaseConfig):
 
 
 class ValidationErrorSchema(JsonSchema):
-    _field_errors_map: ClassVar[Optional[dict[str, FIELD_ERROR_MAPPING_TYPE]]] = None
+    _field_errors_map: ClassVar[Optional[dict[str, ERROR_MAPPING_TYPE]]] = None
     __config__: ClassVar[Type[ValidationErrorConfig]]
 
     class Config(ValidationErrorConfig):
         pass
 
     @classmethod
-    def get_field_errors_map(cls) -> dict[str, FIELD_ERROR_MAPPING_TYPE]:
+    def get_field_errors_map(cls) -> dict[str, ERROR_MAPPING_TYPE]:
         if cls._field_errors_map is None:
             cls._field_errors_map = {}
             for field_name, field in cls.__fields__.items():
@@ -98,8 +98,8 @@ class ValidationErrorSchema(JsonSchema):
     def get_error_mapping(
         cls, field_alias: str, error_type: Type[Exception]
     ) -> ErrorMapping:
-        mappings = cls.get_field_errors_map().get(field_alias, [])
-        for type_mappings, error_mapping in mappings:
+        mappings = cls.get_field_errors_map().get(field_alias, {})
+        for type_mappings, error_mapping in mappings.items():
             if issubclass(error_type, type_mappings):
                 return error_mapping
         return {}
