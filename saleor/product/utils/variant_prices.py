@@ -260,19 +260,6 @@ def update_products_discounted_prices(products, discounts=None):
         update_products_discounted_price(product_batch)
 
 
-def update_products_discounted_prices_for_promotion(products):
-    rules_info = fetch_active_promotion_rules()
-    variants = ProductVariant.objects.none()
-    for rule_info in rules_info:
-        variants |= rule_info.variants
-
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
-    for product_batch in _products_in_batches(products):
-        update_discounted_prices_for_promotion(product_batch)
-
-
 def update_products_discounted_prices_of_catalogues(
     product_ids=None, category_ids=None, collection_ids=None, variant_ids=None
 ):
