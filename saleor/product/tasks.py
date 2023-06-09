@@ -4,7 +4,6 @@ from typing import Iterable, List, Optional
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Exists, OuterRef
 from django.utils import timezone
 
 from ..attribute.models import Attribute
@@ -115,17 +114,14 @@ def update_products_discounted_prices_of_sale_task(discount_pk: int):
 
 @app.task
 def update_products_discounted_prices_of_promotion_task(promotion_pk: int):
-    from ..graphql.discount.utils import get_variants_for_promotion
+    from ..graphql.discount.utils import get_products_for_promotion
 
     try:
         promotion = Promotion.objects.get(pk=promotion_pk)
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
         return
-    variants = get_variants_for_promotion(promotion)
-    products = Product.objects.filter(
-        Exists(variants.filter(product_id=OuterRef("id")))
-    )
+    products = get_products_for_promotion(promotion)
     update_products_discounted_prices_for_promotion_task.delay(
         list(products.values_list("id", flat=True))
     )

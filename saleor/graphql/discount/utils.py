@@ -10,6 +10,7 @@ from ...product.models import (
     Collection,
     CollectionProduct,
     Product,
+    ProductsQueryset,
     ProductVariant,
     ProductVariantQueryset,
 )
@@ -40,6 +41,12 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
         else value
         for key, value in predicate.items()
     }
+
+
+def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
+    """Get products that are included in the promotion based on catalogue predicate."""
+    variants = get_variants_for_promotion(promotion)
+    return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
 def get_variants_for_promotion(promotion: Promotion) -> ProductVariantQueryset:
