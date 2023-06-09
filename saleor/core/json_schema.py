@@ -29,7 +29,7 @@ FIELD_ERROR_MAPPING_TYPE = list[
 
 def to_camel(snake_str: str) -> str:
     components = snake_str.split("_")
-    return components[0] + "".join(word.capitalize() for word in components[1:])
+    return components[0] + "".join(map(str.capitalize, components[1:]))
 
 
 class SaleorValidationError(ValueError):
@@ -194,8 +194,8 @@ def convert_pydantic_validation_error(
     if not issubclass(model, BaseModel):
         raise RuntimeError("Pydantic Dataclasses not supported")
     for error_loc, validation_error in flatten_errors(errors, model, model.__config__):
-        if error_loc == (NON_FIELD_ERRORS,):
-            error_loc = (field_name,) or error_loc
+        if error_loc == (NON_FIELD_ERRORS,) and field_name:
+            error_loc = (field_name,)
         field = ".".join([str(loc) for loc in error_loc])
         validation_errors[field].append(validation_error)
     return DjangoValidationError(validation_errors)
