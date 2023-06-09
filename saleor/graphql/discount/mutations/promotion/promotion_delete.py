@@ -4,10 +4,12 @@ from django.db import transaction
 from .....discount import models
 from .....graphql.core.mutations import ModelDeleteMutation
 from .....permission.enums import DiscountPermissions
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import Error
+from ....discount.utils import get_products_for_promotion
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import PromotionDeleteErrorCode
 from ...types import Promotion
@@ -37,7 +39,12 @@ class PromotionDelete(ModelDeleteMutation):
     ):
         instance = cls.get_node_or_error(info, id, only_type=Promotion)
         manager = get_plugin_manager_promise(info.context).get()
+        product_ids = list(
+            get_products_for_promotion(instance).values_list("id", flat=True)
+        )
+
         with transaction.atomic():
             response = super().perform_mutation(root, info, id=id)
             cls.call_event(manager.promotion_deleted(instance))
+            update_products_discounted_prices_for_promotion_task.delay(product_ids)
         return response
