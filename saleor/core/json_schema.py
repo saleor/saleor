@@ -7,7 +7,7 @@ from typing import Any, ClassVar, Optional, Sequence, Type, TypedDict, TypeVar, 
 
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.exceptions import ValidationError as DjangoValidationError
-from pydantic import BaseConfig, BaseModel, ConstrainedDecimal
+from pydantic import BaseConfig, BaseModel
 from pydantic import ValidationError as PydanticValidationError
 from pydantic.error_wrappers import ErrorWrapper
 from pydantic.utils import ROOT_KEY
@@ -63,6 +63,15 @@ class JsonSchema(BaseSchema):
         alias_generator = to_camel
 
 
+def _error_mapping(
+    error_type: Type[Exception], error_mappings: ERROR_MAPPING_TYPE
+) -> ErrorMapping:
+    for type_mappings, error_mapping in error_mappings.items():
+        if issubclass(error_type, type_mappings):
+            return error_mapping
+    return {}
+
+
 class ValidationErrorConfig(BaseConfig):
     default_error: ErrorMapping = {}
     errors_map: ERROR_MAPPING_TYPE = {}
@@ -73,10 +82,7 @@ class ValidationErrorConfig(BaseConfig):
         cls, error_type: Type[Exception], skip_default=False
     ) -> ErrorMapping:
         mapping: ErrorMapping = {} if skip_default else cls.default_error.copy()
-        for type_mappings, error_mapping in cls.errors_map.items():
-            if issubclass(error_type, type_mappings):
-                mapping.update(error_mapping)
-                break
+        mapping.update(_error_mapping(error_type, cls.errors_map))
         return mapping
 
 
@@ -104,10 +110,7 @@ class ValidationErrorSchema(JsonSchema):
     ) -> ErrorMapping:
         mapping = cls.__config__.get_error_mapping(error_type, skip_default=True)
         field_mappings = cls.get_field_errors_map().get(field_alias, {})
-        for type_mappings, error_mapping in field_mappings.items():
-            if issubclass(error_type, type_mappings):
-                mapping.update(error_mapping)
-                break
+        mapping.update(_error_mapping(error_type, field_mappings))
         return mapping
 
     @classmethod
@@ -205,10 +208,9 @@ def convert_pydantic_validation_error(
     return DjangoValidationError(validation_errors)
 
 
-class DecimalType(ConstrainedDecimal):
+class DecimalType(Decimal):
     @classmethod
     def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
-        super().__modify_schema__(field_schema)
         field_schema["type"] = ["number", "string"]
 
 
