@@ -69,11 +69,15 @@ class ValidationErrorConfig(BaseConfig):
     field_errors_map: dict[str, ERROR_MAPPING_TYPE] = {}
 
     @classmethod
-    def get_error_mapping(cls, type_: Type[Exception]) -> ErrorMapping:
-        for error_type, mapping in cls.errors_map.items():
-            if issubclass(type_, error_type):
-                return mapping
-        return {}
+    def get_error_mapping(
+        cls, error_type: Type[Exception], skip_default=False
+    ) -> ErrorMapping:
+        mapping: ErrorMapping = {} if skip_default else cls.default_error.copy()
+        for type_mappings, error_mapping in cls.errors_map.items():
+            if issubclass(error_type, type_mappings):
+                mapping.update(error_mapping)
+                break
+        return mapping
 
 
 class ValidationErrorSchema(JsonSchema):
@@ -98,11 +102,13 @@ class ValidationErrorSchema(JsonSchema):
     def get_error_mapping(
         cls, field_alias: str, error_type: Type[Exception]
     ) -> ErrorMapping:
-        mappings = cls.get_field_errors_map().get(field_alias, {})
-        for type_mappings, error_mapping in mappings.items():
+        mapping = cls.__config__.get_error_mapping(error_type, skip_default=True)
+        field_mappings = cls.get_field_errors_map().get(field_alias, {})
+        for type_mappings, error_mapping in field_mappings.items():
             if issubclass(error_type, type_mappings):
-                return error_mapping
-        return {}
+                mapping.update(error_mapping)
+                break
+        return mapping
 
     @classmethod
     def parse_obj(
@@ -131,10 +137,8 @@ def get_error_mapping(
     mapping: ErrorMapping = {}
     error_type = error.exc.__class__
     if issubclass(root_config, ValidationErrorConfig):
-        mapping = root_config.default_error.copy()
         mapping.update(root_config.get_error_mapping(error_type))
     if issubclass(model, ValidationErrorSchema):
-        mapping.update(model.__config__.get_error_mapping(error_type))
         field_mapping = model.get_error_mapping(str(error.loc_tuple()[0]), error_type)
         mapping.update(field_mapping)
     if isinstance(error.exc, SaleorValidationError):

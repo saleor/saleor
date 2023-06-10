@@ -144,6 +144,7 @@ def test_error_mapping_with_sub_schema():
         Schema.parse_raw(json.dumps({"subSchema": {"dataB": "", "dataC": ""}}))
 
     # Default error mapping from Schema not SubSchema is used
+
     validation_error = error.value.error_dict["subSchema.dataA"][0]
     assert validation_error.code == ErrorCode.DEFAULT.value
     assert validation_error.message == "Default mapping."
