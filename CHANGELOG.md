@@ -8,6 +8,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 
+- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+
 ### Saleor Apps
 
 ### Other changes
@@ -52,7 +54,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
 - Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
-- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 
 ### Saleor Apps
 

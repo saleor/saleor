@@ -74,7 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
-    ADDED_IN_314,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
@@ -344,7 +344,9 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     )
     related = graphene.Field(
         lambda: OrderEvent,
-        description="The order event which is related to this event." + ADDED_IN_314,
+        description="The order event which is related to this event."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
     )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."

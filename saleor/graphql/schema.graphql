@@ -11295,7 +11295,9 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """
   The order event which is related to this event.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   related: OrderEvent
 
@@ -15148,7 +15150,7 @@ type Mutation {
   """
   Adds note to the order.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -15165,7 +15167,7 @@ type Mutation {
   """
   Updates note of an order.
   
-  Added in Saleor 3.14.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
@@ -22636,7 +22638,7 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
 """
 Adds note to the order.
 
-Added in Saleor 3.14.
+Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
@@ -22679,7 +22681,7 @@ input OrderNoteInput @doc(category: "Orders") {
 """
 Updates note of an order.
 
-Added in Saleor 3.14.
+Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
