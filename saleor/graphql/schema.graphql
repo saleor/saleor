@@ -344,6 +344,15 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CategoryWhereInput
+
     """Sort categories."""
     sortBy: CategorySortingInput
 
@@ -396,6 +405,15 @@ type Query {
   collections(
     """Filtering options for collections."""
     filter: CollectionFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CollectionWhereInput
 
     """Sort collections."""
     sortBy: CollectionSortingInput
@@ -551,6 +569,15 @@ type Query {
 
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductVariantWhereInput
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -11960,6 +11987,17 @@ input CategoryFilterInput @doc(category: "Products") {
   slugs: [String!]
 }
 
+input CategoryWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CategoryWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CategoryWhereInput!]
+}
+
 input CategorySortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort categories."""
   direction: OrderDirection!
@@ -12004,6 +12042,17 @@ input CollectionFilterInput @doc(category: "Products") {
 enum CollectionPublished @doc(category: "Products") {
   PUBLISHED
   HIDDEN
+}
+
+input CollectionWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CollectionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CollectionWhereInput!]
 }
 
 input CollectionSortingInput @doc(category: "Products") {
@@ -12095,6 +12144,17 @@ input ProductVariantFilterInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   isPreorder: Boolean
   updatedAt: DateTimeRangeInput
+}
+
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [ProductVariantWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductVariantWhereInput!]
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {
