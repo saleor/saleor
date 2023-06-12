@@ -250,6 +250,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
         description=("The customer who used a gift card." + ADDED_IN_31),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     created_by_email = graphene.String(
         required=False,
@@ -266,6 +267,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description=(
             "Email address of the customer who used a gift card." + ADDED_IN_31
         ),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     last_used_on = graphene.DateTime()
     expiry_date = Date()
@@ -345,15 +347,12 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     @staticmethod
     def resolve_code(root: models.GiftCard, info):
         def _resolve_code(user):
-            requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
             # with manage gift card permission and by the card owner.
-            if requestor:
+            if requestor := get_user_or_app_from_context(info.context):
                 requestor_is_an_owner = user and requestor == user
-                card_already_used = bool(root.used_by_email)
-                if requestor_is_an_owner or (
-                    not card_already_used
-                    and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
+                if requestor_is_an_owner or requestor.has_perm(
+                    GiftcardPermissions.MANAGE_GIFT_CARD
                 ):
                     return root.code
 

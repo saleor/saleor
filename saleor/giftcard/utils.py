@@ -38,10 +38,6 @@ def add_gift_card_code_to_checkout(
     Raise ValidationError if email is not provided.
     Raise InvalidPromoCode if gift card cannot be applied.
     """
-    from ..checkout.checkout_cleaner import validate_checkout_email
-
-    validate_checkout_email(checkout)
-
     try:
         # only active gift card with currency the same as channel currency can be used
         gift_card = (
@@ -50,11 +46,6 @@ def add_gift_card_code_to_checkout(
             .get(code=promo_code)
         )
     except GiftCard.DoesNotExist:
-        raise InvalidPromoCode()
-
-    used_by_email = gift_card.used_by_email
-    # gift card can be used only by one user
-    if used_by_email and used_by_email != email:
         raise InvalidPromoCode()
 
     checkout.gift_cards.add(gift_card)
@@ -66,8 +57,7 @@ def remove_gift_card_code_from_checkout(checkout: Checkout, gift_card_code: str)
 
     Return information whether promo code was removed.
     """
-    gift_card = checkout.gift_cards.filter(code=gift_card_code).first()
-    if gift_card:
+    if gift_card := checkout.gift_cards.filter(code=gift_card_code).first():
         checkout.gift_cards.remove(gift_card)
         checkout.save(update_fields=["last_change"])
         return True
