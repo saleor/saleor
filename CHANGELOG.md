@@ -6,7 +6,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
-- `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
 - Gift cards can now be applied on a checkout without an email, fields `used_by` and `used_by_email` on GiftCard model are deprecated and will be removed in 4.0. - #13019 by @tomaszszymanski129
 ### GraphQL API
 
