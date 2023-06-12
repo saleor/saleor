@@ -441,9 +441,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         on_delete=models.SET_NULL,
     )
 
-    # deprecated
-    charge_taxes = models.BooleanField(default=True)
-
     objects = ProductManager()
     translated = TranslationProxy()
 
@@ -462,6 +459,11 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
             GinIndex(
                 name="product_tsearch",
                 fields=["search_vector"],
+            ),
+            GinIndex(
+                name="product_gin",
+                fields=["name", "slug"],
+                opclasses=["gin_trgm_ops"] * 2,
             ),
         ]
         indexes.extend(ModelWithMetadata.Meta.indexes)

@@ -28,7 +28,8 @@ from ...plugins import error_codes as plugin_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...site import error_codes as site_error_codes
-from ...thumbnail import ThumbnailFormat
+from ...thumbnail import IconThumbnailFormat, ThumbnailFormat
+from ...translations import error_codes as translatable_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
 from ...webhook import error_codes as webhook_error_codes
 from ..notifications import error_codes as external_notifications_error_codes
@@ -110,6 +111,11 @@ PermissionEnum.doc_category = DOC_CATEGORY_USERS
 
 TimePeriodTypeEnum = to_enum(TimePeriodType)
 ThumbnailFormatEnum = to_enum(ThumbnailFormat)
+IconThumbnailFormatEnum = to_enum(
+    IconThumbnailFormat,
+    type_name="IconThumbnailFormatEnum",
+    description=IconThumbnailFormat.__doc__,
+)
 
 # unit enums
 MeasurementUnitsEnum = to_enum(MeasurementUnits)
@@ -155,6 +161,16 @@ AppErrorCode.doc_category = DOC_CATEGORY_APPS
 
 AttributeErrorCode = graphene.Enum.from_enum(attribute_error_codes.AttributeErrorCode)
 AttributeErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+AttributeTranslateErrorCode = graphene.Enum.from_enum(
+    translatable_error_codes.AttributeTranslateErrorCode
+)
+AttributeTranslateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
+
+AttributeValueTranslateErrorCode = graphene.Enum.from_enum(
+    translatable_error_codes.AttributeValueTranslateErrorCode
+)
+AttributeValueTranslateErrorCode.doc_category = DOC_CATEGORY_ATTRIBUTES
 
 ChannelErrorCode = graphene.Enum.from_enum(channel_error_codes.ChannelErrorCode)
 ChannelErrorCode.doc_category = DOC_CATEGORY_CHANNELS

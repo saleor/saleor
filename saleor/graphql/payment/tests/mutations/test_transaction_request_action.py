@@ -1360,3 +1360,296 @@ def test_transaction_request_missing_event(
         event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED,
         apps_ids=[app.id],
     )
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_sets_app_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    refund_amount = Decimal("1")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": refund_amount,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app.id == app_api_client.app.id
+    assert request_event.app_identifier == app_api_client.app.identifier
+    assert request_event.user is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_transaction_request_refund_sets_user_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        charged_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    refund_amount = Decimal("1")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.REFUND.name,
+        "amount": refund_amount,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.REFUND_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app is None
+    assert request_event.app_identifier is None
+    assert request_event.user == staff_api_client.user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_charge_sets_app_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    amount = Decimal("1")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": amount,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app.id == app_api_client.app.id
+    assert request_event.app_identifier == app_api_client.app.identifier
+    assert request_event.user is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_charge_requested")
+def test_transaction_request_charge_sets_user_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CHARGE_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    amount = Decimal("1")
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CHARGE.name,
+        "amount": amount,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CHARGE_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app is None
+    assert request_event.app_identifier is None
+    assert request_event.user == staff_api_client.user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
+def test_transaction_request_cancel_sets_app_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    app_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_payments],
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CANCEL_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app.id == app_api_client.app.id
+    assert request_event.app_identifier == app_api_client.app.identifier
+    assert request_event.user is None
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_cancelation_requested")
+def test_transaction_request_cancel_sets_user_to_request_event(
+    mocked_payment_action_request,
+    mocked_is_active,
+    checkout,
+    staff_api_client,
+    permission_manage_payments,
+    transaction_request_webhook,
+    transaction_item_generator,
+    permission_group_handle_payments,
+):
+    # given
+    mocked_is_active.return_value = False
+
+    transaction_request_webhook.events.create(
+        event_type=WebhookEventSyncType.TRANSACTION_CANCELATION_REQUESTED
+    )
+    transaction = transaction_item_generator(
+        checkout_id=checkout.pk,
+        authorized_value=Decimal(10),
+        app=transaction_request_webhook.app,
+    )
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "action_type": TransactionActionEnum.CANCEL.name,
+    }
+    staff_api_client.user.groups.add(permission_group_handle_payments)
+
+    # when
+    response = staff_api_client.post_graphql(
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+    )
+
+    # then
+    get_graphql_content(response)
+
+    request_event = TransactionEvent.objects.filter(
+        type=TransactionEventType.CANCEL_REQUEST,
+    ).first()
+
+    assert request_event
+    assert request_event.app is None
+    assert request_event.app_identifier is None
+    assert request_event.user == staff_api_client.user

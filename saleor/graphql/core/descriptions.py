@@ -2,14 +2,14 @@
 # `deprecation_reason` argument is supported.
 DEPRECATED_IN_3X_FIELD = "This field will be removed in Saleor 4.0."
 PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD = (
-    "This field will be removed in Saleor 3.14 (Preview Feature)."
+    "This field will be removed in Saleor 3.15 (Preview Feature)."
 )
 
 # Deprecation message for input fields and query arguments. Use it, when
 # deprecation message needs to be included in the field description.
 DEPRECATED_IN_3X_INPUT = "\n\nDEPRECATED: this field will be removed in Saleor 4.0."
 PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT = (
-    "\n\nDEPRECATED: this field will be removed in Saleor 3.14 (Preview Feature)."
+    "\n\nDEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature)."
 )
 
 DEPRECATED_IN_3X_MUTATION = (
@@ -30,6 +30,7 @@ ADDED_IN_311 = "\n\nAdded in Saleor 3.11."
 ADDED_IN_312 = "\n\nAdded in Saleor 3.12."
 ADDED_IN_313 = "\n\nAdded in Saleor 3.13."
 ADDED_IN_314 = "\n\nAdded in Saleor 3.14."
+ADDED_IN_315 = "\n\nAdded in Saleor 3.15."
 
 
 PREVIEW_FEATURE = (

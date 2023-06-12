@@ -1360,6 +1360,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 @pytest.fixture
 def color_attribute(db):
     attribute = Attribute.objects.create(
+        external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
@@ -1367,8 +1368,38 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue1ExternalReference",
+        attribute=attribute,
+        name="Red",
+        slug="red",
+    )
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue2ExternalReference",
+        attribute=attribute,
+        name="Blue",
+        slug="blue",
+    )
+    return attribute
+
+
+@pytest.fixture
+def color_attribute_with_translations(db):
+    attribute = Attribute.objects.create(
+        slug="color",
+        name="Color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    attribute.translations.create(language_code="pl", name="Czerwony")
+    attribute.translations.create(language_code="de", name="Rot")
+    value1.translations.create(language_code="pl", plain_text="Old Kolor")
+    value1.translations.create(language_code="de", name="Rot", plain_text="Old Kolor")
+
     return attribute
 
 
@@ -1664,6 +1695,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
+        external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
@@ -1966,6 +1998,14 @@ def image():
 
 
 @pytest.fixture
+def icon_image():
+    img_data = BytesIO()
+    image = Image.new("RGB", size=(1, 1))
+    image.save(img_data, format="PNG")
+    return SimpleUploadedFile("logo.png", img_data.getvalue())
+
+
+@pytest.fixture
 def image_list():
     img_data_1 = BytesIO()
     image_1 = Image.new("RGB", size=(1, 1))
@@ -1997,6 +2037,14 @@ def categories(db):
     category1 = Category.objects.create(name="Category1", slug="cat1")
     category2 = Category.objects.create(name="Category2", slug="cat2")
     return [category1, category2]
+
+
+@pytest.fixture
+def category_list():
+    category_1 = Category.objects.create(name="Category 1", slug="category-1")
+    category_2 = Category.objects.create(name="Category 2", slug="category-2")
+    category_3 = Category.objects.create(name="Category 3", slug="category-3")
+    return category_1, category_2, category_3
 
 
 @pytest.fixture
@@ -2137,6 +2185,20 @@ def product_type(color_attribute, size_attribute, default_tax_class):
         size_attribute, through_defaults={"variant_selection": True}
     )
     return product_type
+
+
+@pytest.fixture
+def product_type_list():
+    product_type_1 = ProductType.objects.create(
+        name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
+    )
+    product_type_2 = ProductType.objects.create(
+        name="Type 2", slug="type-2", kind=ProductTypeKind.NORMAL
+    )
+    product_type_3 = ProductType.objects.create(
+        name="Type 3", slug="type-3", kind=ProductTypeKind.NORMAL
+    )
+    return product_type_1, product_type_2, product_type_3
 
 
 @pytest.fixture
@@ -5108,6 +5170,17 @@ def permission_group_manage_apps(permission_manage_apps, staff_users):
         name="Manage apps group.", restricted_access_to_channels=False
     )
     group.permissions.add(permission_manage_apps)
+
+    group.user_set.add(staff_users[1])
+    return group
+
+
+@pytest.fixture
+def permission_group_handle_payments(permission_manage_payments, staff_users):
+    group = Group.objects.create(
+        name="Manage apps group.", restricted_access_to_channels=False
+    )
+    group.permissions.add(permission_manage_payments)
 
     group.user_set.add(staff_users[1])
     return group

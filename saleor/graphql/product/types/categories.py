@@ -18,7 +18,13 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.descriptions import (
+    ADDED_IN_310,
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import ConnectionField, FilterConnectionField, JSONString
@@ -32,7 +38,7 @@ from ..dataloaders import (
     CategoryChildrenByCategoryIdLoader,
     ThumbnailByCategoryIdSizeAndFormatLoader,
 )
-from ..filters import ProductFilterInput
+from ..filters import ProductFilterInput, ProductWhereInput
 from ..sorters import ProductOrder
 from .products import ProductCountableConnection
 
@@ -61,6 +67,11 @@ class Category(ModelObjectType[models.Category]):
         ProductCountableConnection,
         filter=ProductFilterInput(
             description="Filtering options for products." + ADDED_IN_310
+        ),
+        where=ProductWhereInput(
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
         sort_by=ProductOrder(description="Sort products." + ADDED_IN_310),
         channel=graphene.String(

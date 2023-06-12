@@ -9,6 +9,7 @@ from ..manifest_validations import (
     clean_required_saleor_version,
     parse_version,
 )
+from ..validators import brand_validator
 
 
 def test_validate_url():
@@ -66,3 +67,23 @@ def test_clean_required_saleor_version_raise_for_saleor_version():
 @pytest.mark.parametrize("author,cleaned", [(None, None), (" Acme Ltd ", "Acme Ltd")])
 def test_clean_author(author, cleaned):
     assert clean_author(author) == cleaned
+
+
+def test_brand_validator_required_fields():
+    with pytest.raises(ValidationError) as error:
+        brand_validator({"logo": {}})
+    assert error.value.code == AppErrorCode.REQUIRED.value
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "example.com/logo.png",
+        "https://exmple.com/logo",
+        "https://exmple.com/logo.jpg",
+    ],
+)
+def test_brand_validator_with_invalid_logo_url(url):
+    with pytest.raises(ValidationError) as error:
+        brand_validator({"logo": {"default": url}})
+    assert error.value.code == AppErrorCode.INVALID_URL_FORMAT.value

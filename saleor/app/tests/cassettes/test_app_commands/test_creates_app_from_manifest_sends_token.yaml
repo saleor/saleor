@@ -18,7 +18,7 @@ interactions:
         : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
         ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
-        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        : \"http://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
         ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
         app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
@@ -69,7 +69,7 @@ interactions:
         : \"Lorem ipsum\",\n  \"dataPrivacy\": \"Lorem ipsum\",\n  \"dataPrivacyUrl\"\
         : \"http://localhost:8888/app-data-privacy\",\n  \"homepageUrl\": \"http://localhost:8888/homepage\"\
         ,\n  \"supportUrl\": \"http://localhost:8888/support\",\n  \"configurationUrl\"\
-        : \"htpp://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
+        : \"http://localhost:8888/configuration\",\n  \"appUrl\": \"http://localhost:8888/app\"\
         ,\n  \"tokenTargetUrl\": \"http://localhost:3000/register\",\n  \"id\": \"\
         app2\",\n  \"permissions\": [\n    \"MANAGE_USERS\",\n    \"MANAGE_ORDERS\"\
         \n  ]\n}"
