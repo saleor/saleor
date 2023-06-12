@@ -183,7 +183,7 @@ def test_app_fetch_manifest_incorrect_permission_in_manifest(
     assert len(errors) == 1
     assert errors[0] == {
         "field": "permissions.0",
-        "message": "Given permission don't exist.",
+        "message": "Given permission doesn't exist.",
         "code": "INVALID_PERMISSION",
     }
     assert not manifest
@@ -617,7 +617,7 @@ def test_app_fetch_manifest_extensions_invalid_permission(
     assert errors[0] == {
         "code": "INVALID_PERMISSION",
         "field": "extensions.0.permissions.0",
-        "message": "Given permission don't exist.",
+        "message": "Given permission doesn't exist.",
     }
 
 

@@ -97,7 +97,7 @@ WebhookEventTypeSyncEnum.__doc__ = (
 URL_ERROR_MAPPING: ErrorMapping = {"code": AppErrorCode.INVALID_URL_FORMAT}
 PERMISSION_ERROR_MAPPING: ErrorMapping = {
     "code": AppErrorCode.INVALID_PERMISSION,
-    "msg": "Given permission don't exist.",
+    "msg": "Given permission doesn't exist.",
 }
 
 
