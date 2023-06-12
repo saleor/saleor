@@ -1,8 +1,9 @@
 from decimal import Decimal
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 import graphene
 
+from .....discount import RewardValueType
 from .....discount.error_codes import PromotionRuleUpdateErrorCode
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import RewardValueTypeEnum
@@ -34,7 +35,11 @@ PROMOTION_RULE_UPDATE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_update_by_staff_user(
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     channel_USD,
@@ -42,10 +47,22 @@ def test_promotion_rule_update_by_staff_user(
     collection,
     category,
     promotion,
+    product_list,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    rule = promotion.rules.first()
+    rule = promotion.rules.create(
+        name="Rule",
+        promotion=promotion,
+        description=None,
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", product_list[0].id)]
+            }
+        },
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("5"),
+    )
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
     add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -53,8 +70,12 @@ def test_promotion_rule_update_by_staff_user(
     catalogue_predicate = {
         "OR": [
             {
-                "categoryPredicate": {
-                    "ids": [graphene.Node.to_global_id("Category", category.id)]
+                "variantPredicate": {
+                    "ids": [
+                        graphene.Node.to_global_id(
+                            "ProductVariant", product_list[1].variants.first().id
+                        )
+                    ]
                 }
             },
             {
@@ -64,6 +85,7 @@ def test_promotion_rule_update_by_staff_user(
             },
         ]
     }
+    collection.products.add(product_list[2])
     reward_value = Decimal("10")
     reward_value_type = RewardValueTypeEnum.FIXED.name
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
@@ -98,17 +120,25 @@ def test_promotion_rule_update_by_staff_user(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once()
+    args, _kwargs = update_products_discounted_prices_for_promotion_task_mock.call_args
+    assert set(args[0]) == {product_list[1].id, product_list[2].id}
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_update_by_app(
+    update_products_discounted_prices_for_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     channel_USD,
     channel_PLN,
     promotion,
+    product,
 ):
     # given
-    rule = promotion.rules.first()
+    rule = promotion.rules.get(name="Percentage promotion rule")
     rule_id = graphene.Node.to_global_id("PromotionRule", rule.id)
 
     add_channel_ids = [graphene.Node.to_global_id("Channel", channel_PLN.pk)]
@@ -150,9 +180,16 @@ def test_promotion_rule_update_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_update_by_customer(
+    update_products_discounted_prices_for_promotion_task_mock,
     api_client,
     channel_USD,
     channel_PLN,
@@ -182,6 +219,7 @@ def test_promotion_rule_update_by_customer(
 
     # then
     assert_no_permission(response)
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_promotion_rule_update_duplicates_channels_in_add_and_remove_field(

@@ -1,10 +1,11 @@
+from copy import deepcopy
 from enum import Enum
 from typing import Dict, List, Optional, Union, cast
 
 from django.db.models import Exists, OuterRef
 from graphene.utils.str_converters import to_camel_case
 
-from ...discount.models import Promotion
+from ...discount.models import Promotion, PromotionRule
 from ...product.models import (
     Category,
     Collection,
@@ -46,6 +47,12 @@ def clean_predicate(predicate: Union[Dict[str, Union[dict, list]], list]):
 def get_products_for_promotion(promotion: Promotion) -> ProductsQueryset:
     """Get products that are included in the promotion based on catalogue predicate."""
     variants = get_variants_for_promotion(promotion)
+    return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
+
+
+def get_products_for_rule(rule: PromotionRule) -> ProductsQueryset:
+    """Get products that are included in the rule based on catalogue predicate."""
+    variants = get_variants_for_predicate(deepcopy(rule.catalogue_predicate))
     return Product.objects.filter(Exists(variants.filter(product_id=OuterRef("id"))))
 
 
