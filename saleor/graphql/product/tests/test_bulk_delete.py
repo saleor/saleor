@@ -38,7 +38,9 @@ MUTATION_CATEGORY_BULK_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_categories(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -194,9 +196,9 @@ def test_delete_categories_trigger_product_updated_webhook(
     assert product_updated_mock.call_count == 2
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_delete_categories_with_subcategories_and_products(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     category_list,
     permission_manage_products,
@@ -249,11 +251,11 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_discounted_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
 
     assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 
@@ -279,7 +281,9 @@ MUTATION_COLLECTION_BULK_DELETE = """
 """
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_collections(
     update_products_discounted_price_task_mock,
     staff_api_client,
@@ -941,7 +945,9 @@ def test_delete_product_variants_by_sku(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_by_sku_task_for_recalculate_product_prices_called(
@@ -1041,7 +1047,9 @@ def test_delete_product_variants(
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_deleted")
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_delete_product_variants_task_for_recalculate_product_prices_called(
@@ -1085,7 +1093,9 @@ def test_delete_product_variants_task_for_recalculate_product_prices_called(
     assert args == {product.id for product in product_list}
 
 
-@patch("saleor.product.tasks.update_products_discounted_prices_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_delete_product_variants_invalid_object_typed_of_given_ids(
     update_products_discounted_price_task_mock,
     staff_api_client,

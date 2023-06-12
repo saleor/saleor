@@ -9,12 +9,12 @@ from ...tests.utils import get_graphql_content
 
 @patch(
     "saleor.graphql.product.mutations.product_variant.product_variant_delete"
-    ".update_product_discounted_price_task"
+    ".update_products_discounted_prices_for_promotion_task"
 )
 @patch("saleor.order.tasks.recalculate_orders_task.delay")
 def test_product_variant_delete_updates_discounted_price(
     mocked_recalculate_orders_task,
-    mock_update_product_discounted_price_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     product,
     permission_manage_products,
@@ -42,13 +42,15 @@ def test_product_variant_delete_updates_discounted_price(
     data = content["data"]["productVariantDelete"]
     assert data["errors"] == []
 
-    mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once_with(
+        [product.pk]
+    )
     mocked_recalculate_orders_task.assert_not_called()
 
 
-@patch("saleor.product.utils.update_products_discounted_prices_task")
+@patch("saleor.product.utils.update_products_discounted_prices_for_promotion_task")
 def test_category_delete_updates_discounted_price(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -79,11 +81,11 @@ def test_category_delete_updates_discounted_price(
     data = content["data"]["categoryDelete"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_task.delay.assert_called_once()
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once()
     (
         _call_args,
         call_kwargs,
-    ) = mock_update_products_discounted_prices_task.delay.call_args
+    ) = mock_update_products_discounted_prices_for_promotion_task.delay.call_args
     assert set(call_kwargs["product_ids"]) == set(p.pk for p in product_list)
 
     for product in product_list:
@@ -93,10 +95,10 @@ def test_category_delete_updates_discounted_price(
 
 @patch(
     "saleor.graphql.product.mutations.collection.collection_add_products"
-    ".update_products_discounted_prices_task.delay"
+    ".update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_collection_add_products_updates_discounted_price(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     sale,
     collection,
@@ -130,17 +132,19 @@ def test_collection_add_products_updates_discounted_price(
     data = content["data"]["collectionAddProducts"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_task.assert_called_once()
-    args = set(mock_update_products_discounted_prices_task.call_args.args[0])
+    mock_update_products_discounted_prices_for_promotion_task.assert_called_once()
+    args = set(
+        mock_update_products_discounted_prices_for_promotion_task.call_args.args[0]
+    )
     assert args == {product.id for product in product_list}
 
 
 @patch(
     "saleor.graphql.product.mutations.collection.collection_remove_products"
-    ".update_products_discounted_prices_task.delay"
+    ".update_products_discounted_prices_for_promotion_task.delay"
 )
 def test_collection_remove_products_updates_discounted_price(
-    mock_update_products_discounted_prices_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     sale,
     collection,
@@ -174,8 +178,10 @@ def test_collection_remove_products_updates_discounted_price(
     data = content["data"]["collectionRemoveProducts"]
     assert data["errors"] == []
 
-    mock_update_products_discounted_prices_task.assert_called_once()
-    args = set(mock_update_products_discounted_prices_task.call_args.args[0])
+    mock_update_products_discounted_prices_for_promotion_task.assert_called_once()
+    args = set(
+        mock_update_products_discounted_prices_for_promotion_task.call_args.args[0]
+    )
     assert args == {product.id for product in product_list}
 
 
