@@ -13,6 +13,7 @@ from ...core.descriptions import (
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import BaseInputObjectType, OrderError
+from ...core.types.common import OrderNoteError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
@@ -34,7 +35,7 @@ class OrderNoteAdd(OrderNoteCommon):
         description = "Adds note to the order." + ADDED_IN_314 + PREVIEW_FEATURE
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderError
+        error_type_class = OrderNoteError
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

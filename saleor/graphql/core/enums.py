@@ -216,6 +216,8 @@ OrderBulkCreateErrorCode = graphene.Enum.from_enum(
     order_error_codes.OrderBulkCreateErrorCode
 )
 
+OrderNoteErrorCode = graphene.Enum.from_enum(order_error_codes.OrderNoteErrorCode)
+
 InvoiceErrorCode = graphene.Enum.from_enum(invoice_error_codes.InvoiceErrorCode)
 InvoiceErrorCode.doc_category = DOC_CATEGORY_ORDERS
 

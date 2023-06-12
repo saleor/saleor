@@ -22648,7 +22648,27 @@ type OrderNoteAdd @doc(category: "Orders") {
 
   """Order note created."""
   event: OrderEvent
-  errors: [OrderError!]!
+  errors: [OrderNoteError!]!
+}
+
+type OrderNoteError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
 }
 
 input OrderNoteInput @doc(category: "Orders") {
@@ -22671,7 +22691,7 @@ type OrderNoteUpdate @doc(category: "Orders") {
 
   """Order note updated."""
   event: OrderEvent
-  errors: [OrderError!]!
+  errors: [OrderNoteError!]!
 }
 
 """
