@@ -52,6 +52,7 @@ from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, TranslationProxy
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
+from ..discount.models import PromotionRule
 from ..discount.utils import calculate_discounted_price
 from ..permission.enums import (
     DiscountPermissions,
@@ -791,6 +792,11 @@ class ProductVariantChannelListing(models.Model):
     )
     discounted_price = MoneyField(
         amount_field="discounted_price_amount", currency_field="currency"
+    )
+    promotion_rules = models.ManyToManyField(
+        PromotionRule,
+        help_text=("Promotion rules that were included in the discounted price."),
+        blank=True,
     )
 
     preorder_quantity_threshold = models.IntegerField(blank=True, null=True)
