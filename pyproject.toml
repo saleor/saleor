@@ -67,7 +67,7 @@ documentation = "https://docs.saleor.io/"
   sendgrid = "^6.7.1"
   micawber = "^0.5.2"
   django-celery-beat = "^2.2.1"
-  posuto = "^2023.2.0"
+  posuto = "^2023.6.1"
   cryptography = "^41.0.0"
   graphene = "<3.0"
   uvicorn = {extras = ["standard"], version = "^0.19.0"}
