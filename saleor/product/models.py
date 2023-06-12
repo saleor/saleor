@@ -441,9 +441,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
         on_delete=models.SET_NULL,
     )
 
-    # deprecated
-    charge_taxes = models.BooleanField(default=True)
-
     objects = ProductManager()
     translated = TranslationProxy()
 

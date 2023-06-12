@@ -463,6 +463,10 @@ class ProductBulkCreate(BaseMutation):
             graphene.Node.to_global_id("Attribute", variant_attribute.id)
             for variant_attribute in variant_attributes
         }
+        variant_attributes_external_refs = {
+            variant_attribute.external_reference
+            for variant_attribute in variant_attributes
+        }
 
         for index, variant_data in enumerate(variant_inputs):
             variant_data["product_type"] = product_type
@@ -474,6 +478,7 @@ class ProductBulkCreate(BaseMutation):
                 variant_attributes,
                 [],
                 variant_attributes_ids,
+                variant_attributes_external_refs,
                 duplicated_sku,
                 variant_index_error_map,
                 index,

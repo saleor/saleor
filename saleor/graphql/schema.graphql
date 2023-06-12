@@ -16437,7 +16437,7 @@ type Mutation {
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
-  ): OrderCreateFromCheckout @doc(category: "Checkout")
+  ): OrderCreateFromCheckout @doc(category: "Orders")
 
   """
   Creates new channel. 
@@ -19416,26 +19416,33 @@ input AttributeValueInput @doc(category: "Attributes") {
   id: ID
 
   """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
+
+  """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   dropdown: AttributeValueSelectableTypeInput
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   swatch: AttributeValueSelectableTypeInput
 
   """
-  List of attribute value IDs.
+  List of attribute value IDs or external references.
   
   Added in Saleor 3.9.
   """
@@ -19474,13 +19481,24 @@ input AttributeValueInput @doc(category: "Attributes") {
 }
 
 """
-Represents attribute value. If no ID provided, value will be resolved. 
+Represents attribute value.
+1. If ID is provided, then attribute value will be resolved by ID.
+2. If externalReference is provided, then attribute value will be resolved by external reference.
+3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
+4. If externalReference and value is provided then new attribute value will be created.
 
 Added in Saleor 3.9.
 """
 input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
+
+  """
+  External reference of an attribute value.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
@@ -19740,6 +19758,13 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
 input BulkAttributeValueInput @doc(category: "Products") {
   """ID of the selected attribute."""
   id: ID
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
@@ -25003,13 +25028,13 @@ Create new order from existing checkout. Requires the following permissions: AUT
 
 Added in Saleor 3.2.
 """
-type OrderCreateFromCheckout @doc(category: "Checkout") {
+type OrderCreateFromCheckout @doc(category: "Orders") {
   """Placed order."""
   order: Order
   errors: [OrderCreateFromCheckoutError!]!
 }
 
-type OrderCreateFromCheckoutError @doc(category: "Checkout") {
+type OrderCreateFromCheckoutError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """

@@ -494,6 +494,7 @@ def test_update_attribute_slug_exists(
 
     second_attribute = Attribute.objects.get(pk=color_attribute.pk)
     second_attribute.pk = None
+    second_attribute.external_reference = None
     second_attribute.slug = "second-attribute"
     second_attribute.save()
 
