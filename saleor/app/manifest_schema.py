@@ -3,21 +3,13 @@ from typing import Annotated, Dict, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import AnyUrl, ConstrainedStr, Field, validator
-from pydantic.errors import (
-    AnyStrMaxLengthError,
-    AnyStrMinLengthError,
-    MissingError,
-    StrRegexError,
-    UrlError,
-)
-from pydantic.utils import ROOT_KEY
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
 from .. import __version__
 from ..core.json_schema import (
-    ERROR_MAPPING_TYPE,
-    SaleorValidationError,
+    CustomValueError,
+    ErrorMapping,
     ValidationErrorConfig,
     ValidationErrorSchema,
 )
@@ -47,14 +39,14 @@ class RequiredSaleorVersionSpec(NpmSpec, ConstrainedStr):
         try:
             spec = cls(value)
         except Exception:
-            raise SaleorValidationError(
-                msg="Invalid value. Version range required in the semver format."
+            raise CustomValueError(
+                "Invalid value. Version range required in the semver format."
             )
         if cls.raise_for_version:
             if not spec.satisfied:
-                raise SaleorValidationError(
-                    msg=f"Saleor version {SALEOR_VERSION} is not supported by the app.",
-                    code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION,
+                raise CustomValueError(
+                    f"Saleor version {SALEOR_VERSION} is not supported by the app.",
+                    error_code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION,
                 )
         return spec
 
@@ -72,7 +64,7 @@ class SubscriptionQuery(SubscriptionQueryBase, ConstrainedStr):
     def validate(cls, value: str):
         query = SubscriptionQuery(value)
         if not query.is_valid:
-            raise SaleorValidationError(msg=query.error_msg)
+            raise CustomValueError(query.error_msg)
         return query
 
 
@@ -102,17 +94,10 @@ WebhookEventTypeSyncEnum.__doc__ = (
     "The synchronous events that webhook wants to subscribe."
 )
 
-URL_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
-    (AnyStrMinLengthError, AnyStrMaxLengthError): {
-        "code": AppErrorCode.INVALID_URL_FORMAT
-    }
-}
-
-PERMISSION_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
-    Exception: {
-        "code": AppErrorCode.INVALID_PERMISSION,
-        "msg": "Given permission don't exist.",
-    },
+URL_ERROR_MAPPING: ErrorMapping = {"code": AppErrorCode.INVALID_URL_FORMAT}
+PERMISSION_ERROR_MAPPING: ErrorMapping = {
+    "code": AppErrorCode.INVALID_PERMISSION,
+    "msg": "Given permission don't exist.",
 }
 
 
@@ -150,19 +135,11 @@ class Webhook(ValidationErrorSchema):
             return custom_headers_validator(v)
         except DjangoValidationError as err:
             code = AppErrorCode.INVALID_CUSTOM_HEADERS
-            raise SaleorValidationError(msg=cast(str, err.message), code=code)
+            raise CustomValueError(cast(str, err.message), error_code=code)
 
 
 class UrlPathStr(ConstrainedStr):
     regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
-
-
-URL_PATH_ERROR_MAPPING: ERROR_MAPPING_TYPE = {
-    StrRegexError: {
-        "code": AppErrorCode.INVALID_URL_FORMAT,
-        "msg": "Invalid URL path.",
-    },
-}
 
 
 class Extension(ValidationErrorSchema):
@@ -175,7 +152,7 @@ class Extension(ValidationErrorSchema):
     class Config(ValidationErrorConfig):
         field_errors_map = {
             "permissions": PERMISSION_ERROR_MAPPING,
-            "url": URL_PATH_ERROR_MAPPING | URL_ERROR_MAPPING,
+            "url": URL_ERROR_MAPPING,
         }
 
     @validator("url")
@@ -186,7 +163,7 @@ class Extension(ValidationErrorSchema):
             and target == AppExtensionTargetEnum[AppExtensionTarget.APP_PAGE]
         ):
             msg = "Url cannot start with protocol when target == APP_PAGE"
-            raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
+            raise CustomValueError(msg)
         return v
 
 
@@ -290,17 +267,18 @@ class Manifest(ValidationErrorSchema):
 
     class Config(ValidationErrorConfig):
         default_error = {"code": AppErrorCode.INVALID}
+        root_error = {
+            "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
+            "msg": "Incorrect structure of manifest.",
+        }
         errors_map = {
-            MissingError: {"code": AppErrorCode.REQUIRED, "msg": "Field required."},
-            UrlError: {"code": AppErrorCode.INVALID_URL_FORMAT},
+            "value_error.missing": {
+                "code": AppErrorCode.REQUIRED,
+                "msg": "Field required.",
+            },
+            "value_error.url*": {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
         field_errors_map = {
-            ROOT_KEY: {
-                (ValueError, TypeError, UnicodeDecodeError): {
-                    "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
-                    "msg": "Incorrect structure of manifest.",
-                }
-            },
             "permissions": PERMISSION_ERROR_MAPPING,
             "token_target_url": URL_ERROR_MAPPING,
             "app_url": URL_ERROR_MAPPING,
@@ -315,9 +293,9 @@ class Manifest(ValidationErrorSchema):
         app_permissions = values.get("permissions", [])
         for permission in v.permissions:
             if permission not in app_permissions:
-                raise SaleorValidationError(
-                    msg="Extension permission must be listed in App's permissions.",
-                    code=AppErrorCode.OUT_OF_SCOPE_PERMISSION,
+                raise CustomValueError(
+                    "Extension permission must be listed in App's permissions.",
+                    error_code=AppErrorCode.OUT_OF_SCOPE_PERMISSION,
                 )
         app_url = values.get("app_url", [])
         if (
@@ -329,7 +307,7 @@ class Manifest(ValidationErrorSchema):
                 "Incorrect relation between extension's target and URL fields. "
                 "APP_PAGE can be used only with relative URL path."
             )
-            raise SaleorValidationError(msg, code=AppErrorCode.INVALID_URL_FORMAT)
+            raise CustomValueError(msg, error_code=AppErrorCode.INVALID_URL_FORMAT)
         return v
 
 
