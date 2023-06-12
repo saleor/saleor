@@ -22487,6 +22487,8 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
   List of lines which cause the error.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   lines: [OrderGrantRefundCreateLineError!]
 }
@@ -22536,6 +22538,8 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   Lines to assign to granted refund.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   lines: [OrderGrantRefundCreateLineInput!]
 
@@ -22543,6 +22547,8 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
   Determine if granted refund should include shipping costs.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
 }
@@ -22589,6 +22595,8 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
   List of lines to add which cause the error.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addLines: [OrderGrantRefundUpdateLineError!]
 
@@ -22596,6 +22604,8 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
   List of lines to remove which cause the error.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeLines: [OrderGrantRefundUpdateLineError!]
 }
@@ -22645,6 +22655,8 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   Lines to assign to granted refund.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   addLines: [OrderGrantRefundUpdateLineAddInput!]
 
@@ -22652,6 +22664,8 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   Lines to remove from granted refund.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   removeLines: [ID!]
 
@@ -22659,6 +22673,8 @@ input OrderGrantRefundUpdateInput @doc(category: "Orders") {
   Determine if granted refund should include shipping costs.
   
   Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   grantRefundForShipping: Boolean
 }

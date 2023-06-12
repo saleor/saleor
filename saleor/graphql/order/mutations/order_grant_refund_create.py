@@ -37,7 +37,9 @@ class OrderGrantRefundCreateError(Error):
     code = OrderGrantRefundCreateErrorCode(description="The error code.", required=True)
     lines = NonNullList(
         OrderGrantRefundCreateLineError,
-        description="List of lines which cause the error." + ADDED_IN_315,
+        description="List of lines which cause the error."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -66,12 +68,15 @@ class OrderGrantRefundCreateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     lines = NonNullList(
         OrderGrantRefundCreateLineInput,
-        description="Lines to assign to granted refund." + ADDED_IN_315,
+        description="Lines to assign to granted refund."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
         description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_315,
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
 

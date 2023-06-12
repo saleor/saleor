@@ -39,12 +39,16 @@ class OrderGrantRefundUpdateError(Error):
 
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to add which cause the error." + ADDED_IN_315,
+        description="List of lines to add which cause the error."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
     remove_lines = NonNullList(
         OrderGrantRefundUpdateLineError,
-        description="List of lines to remove which cause the error." + ADDED_IN_315,
+        description="List of lines to remove which cause the error."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
 
@@ -73,17 +77,22 @@ class OrderGrantRefundUpdateInput(BaseInputObjectType):
     reason = graphene.String(description="Reason of the granted refund.")
     add_lines = NonNullList(
         OrderGrantRefundUpdateLineAddInput,
-        description="Lines to assign to granted refund." + ADDED_IN_315,
+        description="Lines to assign to granted refund."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
     remove_lines = NonNullList(
         graphene.ID,
-        description="Lines to remove from granted refund." + ADDED_IN_315,
+        description="Lines to remove from granted refund."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
     grant_refund_for_shipping = graphene.Boolean(
         description="Determine if granted refund should include shipping costs."
-        + ADDED_IN_315,
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
         required=False,
     )
 
