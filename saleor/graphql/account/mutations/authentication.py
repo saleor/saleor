@@ -33,6 +33,7 @@ from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..types import User
 
 
@@ -118,7 +119,8 @@ class CreateToken(BaseMutation):
         return None
 
     @classmethod
-    def get_user(cls, _info: ResolveInfo, email, password):
+    def get_user(cls, info: ResolveInfo, email, password):
+        site_settings = get_site_promise(info.context).get().settings
         user = cls._retrieve_user_from_credentials(email, password)
         if not user:
             raise ValidationError(
@@ -129,7 +131,7 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
-        if not user.is_active and not user.last_login:
+        if not site_settings.allow_login_without_confirmation and not user.is_confirmed:
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -138,8 +140,7 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
-
-        if not user.is_active and user.last_login:
+        if not user.is_active and user.is_confirmed:
             raise ValidationError(
                 {
                     "email": ValidationError(

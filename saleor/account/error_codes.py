@@ -59,3 +59,12 @@ class PermissionGroupErrorCode(Enum):
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
     OUT_OF_SCOPE_CHANNEL = "out_of_scope_channel"
+
+
+class SendConfirmationEmailErrorCode(Enum):
+    INVALID = "invalid"
+    INVALID_PERMISSION = "invalid_permission"
+    ACCOUNT_CONFIRMED = "account_confirmed"
+    CONFIRMATION_DISABLED = "confirmation_disabled"
+    CONFIRMATION_ALREADY_REQUESTED = "confirmation_already_requested"
+    MISSING_CHANNEL_SLUG = "missing_channel_slug"

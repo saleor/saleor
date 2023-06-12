@@ -10,8 +10,9 @@ from django.utils import timezone
 
 from ....account import events as account_events
 from ....account import models
-from ....account.error_codes import AccountErrorCode
+from ....account.error_codes import AccountErrorCode, SendConfirmationEmailErrorCode
 from ....account.notifications import (
+    send_account_confirmation,
     send_password_reset_notification,
     send_set_password_notification,
 )
@@ -32,7 +33,7 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
-from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314, ADDED_IN_315
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
@@ -41,9 +42,15 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types import AccountError, BaseInputObjectType, NonNullList
+from ...core.types import (
+    AccountError,
+    BaseInputObjectType,
+    NonNullList,
+    SendConfirmationEmailError,
+)
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from .authentication import CreateToken
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -167,7 +174,7 @@ class RequestPasswordReset(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def clean_user(cls, email, redirect_url):
+    def clean_user(cls, email, redirect_url, info: ResolveInfo):
         try:
             validate_storefront_url(redirect_url)
         except ValidationError as error:
@@ -175,6 +182,7 @@ class RequestPasswordReset(BaseMutation):
                 {"redirect_url": error}, code=AccountErrorCode.INVALID.value
             )
 
+        site = get_site_promise(info.context).get()
         user = retrieve_user_by_email(email)
         if not user:
             raise ValidationError(
@@ -186,7 +194,7 @@ class RequestPasswordReset(BaseMutation):
                 }
             )
 
-        if not user.is_active:
+        if not user.can_login(site.settings):
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -215,7 +223,7 @@ class RequestPasswordReset(BaseMutation):
         email = data["email"]
         redirect_url = data["redirect_url"]
         channel_slug = data.get("channel")
-        user = cls.clean_user(email, redirect_url)
+        user = cls.clean_user(email, redirect_url, info)
 
         if not user.is_staff:
             channel_slug = clean_channel(
@@ -236,6 +244,96 @@ class RequestPasswordReset(BaseMutation):
         user.last_password_reset_request = timezone.now()
         user.save(update_fields=["last_password_reset_request"])
         return RequestPasswordReset()
+
+
+class SendConfirmationEmail(BaseMutation):
+    user = graphene.Field(User, description="An user instance.")
+
+    class Arguments:
+        redirect_url = (
+            graphene.String(
+                required=True,
+                description=(
+                    "Base of frontend URL that will be needed to create confirmation "
+                    "URL."
+                ),
+            ),
+        )
+        channel = graphene.String(
+            description=(
+                "Slug of a channel which will be used for notify user. Optional when "
+                "only one channel exists."
+            )
+        )
+
+    class Meta:
+        description = "Sends an email with confirmation link."
+        doc_category = DOC_CATEGORY_USERS
+        error_type_class = SendConfirmationEmailError
+        permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+
+    @classmethod
+    def clean_user(cls, site, redirect_url, info: ResolveInfo):
+        if not site.settings.enable_account_confirmation_by_email:
+            raise ValidationError(
+                ValidationError(
+                    "Email confirmation is disabled",
+                    code=SendConfirmationEmailErrorCode.CONFIRMATION_DISABLED.value,
+                )
+            )
+
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error},
+                code=SendConfirmationEmailErrorCode.INVALID.value,
+            )
+
+        user = info.context.user
+        user = cast(models.User, user)
+
+        if user.is_confirmed:
+            raise ValidationError(
+                ValidationError(
+                    "User is already confirmed",
+                    code=SendConfirmationEmailErrorCode.ACCOUNT_CONFIRMED.value,
+                )
+            )
+
+        if confirm_email_time := user.last_confirm_email_request:
+            delta = timezone.now() - confirm_email_time
+            if delta.total_seconds() < settings.CONFIRMATION_EMAIL_LOCK_TIME:
+                raise ValidationError(
+                    ValidationError(
+                        "Confirmation email already requested",
+                        code=SendConfirmationEmailErrorCode.CONFIRMATION_ALREADY_REQUESTED.value,
+                    )
+                )
+
+        return user
+
+    @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        site = get_site_promise(info.context).get()
+        redirect_url = data["redirect_url"]
+        user = cls.clean_user(site, redirect_url, info)
+
+        channel = clean_channel(
+            data.get("channel"), error_class=SendConfirmationEmailErrorCode
+        ).slug
+        manager = get_plugin_manager_promise(info.context).get()
+
+        send_account_confirmation(
+            user,
+            redirect_url,
+            manager,
+            channel_slug=channel,
+        )
+        user.last_confirm_email_request = timezone.now()
+        user.save(update_fields=["last_confirm_email_request", "updated_at"])
+
+        return SendConfirmationEmail(user)
 
 
 class ConfirmAccount(BaseMutation):
@@ -283,7 +381,8 @@ class ConfirmAccount(BaseMutation):
             )
 
         user.is_active = True
-        user.save(update_fields=["is_active", "updated_at"])
+        user.is_confirmed = True
+        user.save(update_fields=["is_active", "is_confirmed", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)
@@ -494,6 +593,9 @@ class CustomerInput(UserInput, UserAddressInput):
     )
     external_reference = graphene.String(
         description="External ID of the customer." + ADDED_IN_310, required=False
+    )
+    is_confirmed = graphene.Boolean(
+        required=False, description="User account is confirmed." + ADDED_IN_315
     )
 
     class Meta:

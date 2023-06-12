@@ -67,6 +67,7 @@ from ..enums import (
     ProductBulkCreateErrorCode,
     ProductErrorCode,
     ProductVariantBulkErrorCode,
+    SendConfirmationEmailErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockBulkUpdateErrorCode,
@@ -170,12 +171,19 @@ class BulkError(BaseObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
     class Meta:
         description = "Represents errors in account mutations."
+        doc_category = DOC_CATEGORY_USERS
+
+
+class SendConfirmationEmailError(Error):
+    code = SendConfirmationEmailErrorCode(description="The error code.", required=True)
+
+    class Meta:
         doc_category = DOC_CATEGORY_USERS
 
 
@@ -248,7 +256,7 @@ class CheckoutError(Error):
         description="List of line Ids which cause the error.",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 
@@ -336,7 +344,7 @@ class OrderError(Error):
         description="List of product variants that are associated with the error",
         required=False,
     )
-    address_type = AddressTypeEnum(  # type: ignore[has-type]
+    address_type = AddressTypeEnum(
         description="A type of address that causes the error.", required=False
     )
 

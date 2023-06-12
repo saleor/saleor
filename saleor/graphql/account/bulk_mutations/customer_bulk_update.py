@@ -549,6 +549,9 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
             was_activated = not old_instance.is_active and updated_instance.is_active
             was_deactivated = old_instance.is_active and not updated_instance.is_active
             metadata_update = old_instance.metadata != updated_instance.metadata
+            was_confirmed = (
+                not old_instance.is_confirmed and updated_instance.is_confirmed
+            )
 
             # Generate the events accordingly
             if has_new_email:
@@ -561,6 +564,10 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"message": new_email},
                     )
                 )
+                assign_user_gift_cards(updated_instance)
+                match_orders_with_new_user(updated_instance)
+
+            if not has_new_email and was_confirmed:
                 assign_user_gift_cards(updated_instance)
                 match_orders_with_new_user(updated_instance)
 
