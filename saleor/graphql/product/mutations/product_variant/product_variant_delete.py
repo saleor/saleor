@@ -13,7 +13,7 @@ from .....order.tasks import recalculate_orders_task
 from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....app.dataloaders import get_app_promise
 from ....channel import ChannelContext
 from ....core import ResolveInfo
@@ -52,7 +52,9 @@ class ProductVariantDelete(ModelDeleteMutation, ModelWithExtRefMutation):
     @classmethod
     def success_response(cls, instance):
         # Update the "discounted_prices" of the parent product
-        update_product_discounted_price_task.delay(instance.product_id)
+        update_products_discounted_prices_for_promotion_task.delay(
+            [instance.product_id]
+        )
         product = models.Product.objects.get(id=instance.product_id)
         update_product_search_vector(product)
         # if the product default variant has been removed set the new one
