@@ -1,6 +1,6 @@
 import graphene
+from django.db import transaction
 
-from ....core.tracing import traced_atomic_transaction
 from ....order import events
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
@@ -46,7 +46,7 @@ class OrderNoteAdd(OrderNoteCommon):
         cleaned_input = cls.clean_input(info, order, input)
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-        with traced_atomic_transaction():
+        with transaction.atomic():
             event = events.order_note_added_event(
                 order=order,
                 user=info.context.user,
