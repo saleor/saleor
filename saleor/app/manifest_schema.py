@@ -1,8 +1,8 @@
 from enum import Enum
-from typing import Annotated, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Annotated, Dict, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from pydantic import AnyUrl, ConstrainedStr, Field, validator
+from pydantic import Field, constr, stricturl, validator
 from semantic_version import NpmSpec, Version
 from semantic_version.base import Range
 
@@ -10,6 +10,7 @@ from .. import __version__
 from ..core.json_schema import (
     CustomValueError,
     ErrorMapping,
+    StrFieldMixin,
     ValidationErrorConfig,
     ValidationErrorSchema,
 )
@@ -24,8 +25,25 @@ from .types import AppExtensionMount, AppExtensionTarget
 
 SALEOR_VERSION = Version(__version__)
 
+if TYPE_CHECKING:
+    AuthorStr = str
+    UrlPathStr = str
+    AnyHttpUrl = str
+    WebhookTargetUrl = str
+else:
+    AuthorStr = constr(strip_whitespace=True, min_length=1, max_length=60)
+    UrlPathStr = constr(regex=r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?")
+    AnyHttpUrl = stricturl(
+        tld_required=False, max_length=200, allowed_schemes={"http", "https"}
+    )
+    WebhookTargetUrl = stricturl(
+        tld_required=False,
+        max_length=255,
+        allowed_schemes={"http", "https", "awssqs", "gcpubsub"},
+    )
 
-class RequiredSaleorVersionSpec(NpmSpec, ConstrainedStr):
+
+class RequiredSaleorVersionSpec(NpmSpec, StrFieldMixin):
     raise_for_version = False
 
     class Parser(NpmSpec.Parser):
@@ -59,7 +77,7 @@ class RequiredSaleorVersionSpec(NpmSpec, ConstrainedStr):
         return self.match(SALEOR_VERSION)
 
 
-class SubscriptionQuery(SubscriptionQueryBase, ConstrainedStr):
+class SubscriptionQuery(SubscriptionQueryBase, StrFieldMixin):
     @classmethod
     def validate(cls, value: str):
         query = SubscriptionQuery(value)
@@ -101,17 +119,6 @@ PERMISSION_ERROR_MAPPING: ErrorMapping = {
 }
 
 
-class AnyHttpUrl(AnyUrl):
-    allowed_schemes = {"http", "https"}
-    max_length = 200
-
-
-class WebhookTargetUrl(AnyHttpUrl):
-    allowed_schemes = {"http", "https", "awssqs", "gcpubsub"}
-    tld_required = False
-    max_length = 255
-
-
 class Webhook(ValidationErrorSchema):
     name: Annotated[str, Field(max_length=255)]
     is_active: bool = True
@@ -138,10 +145,6 @@ class Webhook(ValidationErrorSchema):
             raise CustomValueError(cast(str, err.message), error_code=code)
 
 
-class UrlPathStr(ConstrainedStr):
-    regex = r"(/[^\s?#]*)(\?[^\s#]*)?(#[^\s#]*)?"
-
-
 class Extension(ValidationErrorSchema):
     label: Annotated[str, Field(max_length=256)]
     target: AppExtensionTargetEnum = AppExtensionTargetEnum[AppExtensionTarget.POPUP]
@@ -165,12 +168,6 @@ class Extension(ValidationErrorSchema):
             msg = "Url cannot start with protocol when target == APP_PAGE"
             raise CustomValueError(msg)
         return v
-
-
-class AuthorStr(ConstrainedStr):
-    strip_whitespace = True
-    min_length = 1
-    max_length = 60
 
 
 class ManifestBrandLogo(ValidationErrorSchema):

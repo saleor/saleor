@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import BaseConfig, BaseModel
 from pydantic import ValidationError as PydanticValidationError
 from pydantic.utils import ROOT_KEY
+from pydantic.validators import str_validator
 
 Loc = tuple[Union[int, str], ...]
 FALLBACK_ERROR_CODE = "invalid"
@@ -45,6 +46,21 @@ class CustomValueError(ValueError):
 
     def __str__(self):
         return self.message
+
+
+class StrFieldMixin:
+    @classmethod
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
+        field_schema.update(type="string")
+
+    @classmethod
+    def __get_validators__(cls):
+        yield str_validator
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value: str) -> str:
+        raise NotImplementedError
 
 
 class BaseSchema(BaseModel):
