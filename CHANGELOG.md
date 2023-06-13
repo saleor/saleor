@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+Shipping methods can be removed by user after it has been assigned to a checkout `shipping_method_id` is no longer a  required field. `remove_shipping_method` has been added - #13068 by @FremahA
 
 ### GraphQL API
 
