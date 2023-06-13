@@ -1,7 +1,9 @@
 from .product import create_product
 from .product_type import create_digital_product_type
+from .product_variant import create_product_variant
 
 __all__ = [
     "create_digital_product_type",
+    "create_product_variant",
     "create_product",
 ]
