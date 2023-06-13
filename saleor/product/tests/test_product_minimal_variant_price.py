@@ -93,8 +93,6 @@ def test_update_discounted_price_for_promotion_no_discount(product, channel_USD)
     variant = product.variants.first()
     variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
     product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
-    variant_channel_listing.price = Money("4.99", "USD")
-    variant_channel_listing.save()
     product_channel_listing.refresh_from_db()
 
     assert product_channel_listing.discounted_price == Money("10", "USD")
@@ -107,6 +105,7 @@ def test_update_discounted_price_for_promotion_no_discount(product, channel_USD)
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_channel_listing.price
     assert variant_channel_listing.discounted_price == variant_channel_listing.price
+    assert not variant_channel_listing.promotion_rules.all()
 
 
 def test_update_discounted_price_for_promotion_discount_on_variant(
@@ -148,6 +147,7 @@ def test_update_discounted_price_for_promotion_discount_on_variant(
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.promotion_rules.first() == rule
 
 
 def test_update_discounted_price_for_promotion_discount_on_product(
@@ -191,6 +191,7 @@ def test_update_discounted_price_for_promotion_discount_on_product(
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.promotion_rules.first() == rule
 
 
 def test_update_discounted_price_for_promotion_promotion_not_applicable_for_channel(
@@ -231,6 +232,7 @@ def test_update_discounted_price_for_promotion_promotion_not_applicable_for_chan
     variant_channel_listing.refresh_from_db()
     assert product_channel_listing.discounted_price == variant_price
     assert variant_channel_listing.discounted_price == variant_price
+    assert not variant_channel_listing.promotion_rules.all()
 
 
 def test_update_products_discounted_prices_of_catalogues_for_product(

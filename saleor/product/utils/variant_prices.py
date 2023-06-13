@@ -214,7 +214,7 @@ def _get_discounted_variants_prices_for_promotions(
     variants_listings_to_update: List[ProductVariantChannelListing] = []
     discounted_variants_price: List[Money] = []
     for variant_listing in variant_listings:
-        discounted_variant_price = calculate_discounted_price_for_promotions(
+        rule_id, discounted_variant_price = calculate_discounted_price_for_promotions(
             price=variant_listing.price,
             rules_info=rules_info,
             channel=channel,
@@ -222,6 +222,7 @@ def _get_discounted_variants_prices_for_promotions(
         )
         if variant_listing.discounted_price != discounted_variant_price:
             variant_listing.discounted_price_amount = discounted_variant_price.amount
+            variant_listing.promotion_rules.add(rule_id)
             variants_listings_to_update.append(variant_listing)
         discounted_variants_price.append(discounted_variant_price)
     return discounted_variants_price, variants_listings_to_update

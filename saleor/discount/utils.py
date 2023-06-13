@@ -209,16 +209,17 @@ def calculate_discounted_price_for_promotions(
     rules_info: List[PromotionRuleInfo],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Money:
+) -> Tuple[int, Money]:
     """Return minimum product's price of all prices with promotions applied."""
+    rule_id = None
     if rules_info:
-        _, price = get_rule_id_with_min_price(
+        rule_id, price = get_rule_id_with_min_price(
             price=price,
             rules_info=rules_info,
             channel=channel,
             variant_id=variant_id,
         )
-    return price
+    return rule_id, price
 
 
 def get_rule_id_with_min_price(
