@@ -1,5 +1,6 @@
 from ..channel.utils import create_channel
 from ..products.utils import (
+    create_digital_content,
     create_digital_product_type,
     create_product,
     create_product_variant,
@@ -12,6 +13,7 @@ def test_process_checkout_with_digital_product(
     permission_manage_product_types_and_attributes,
     permission_manage_channels,
     permission_manage_products,
+    media_root,
 ):
     channel_data = create_channel(staff_api_client, [permission_manage_channels])
     channel_id = channel_data["id"]
@@ -38,3 +40,7 @@ def test_process_checkout_with_digital_product(
     )
     product_variant_id = product_variant_data["id"]
     assert product_variant_id is not None
+
+    digital_content_data = create_digital_content(staff_api_client, product_variant_id)
+    digital_content_id = digital_content_data["id"]
+    assert digital_content_id is not None
