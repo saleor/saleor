@@ -486,6 +486,7 @@
     },
     "CheckoutCalculateTaxes": {
       "title": "CHECKOUT_CALCULATE_TAXES",
+      "description": "Response from webhook with calculated checkout taxes.\n\nAdded in Saleor 3.7.",
       "type": "object",
       "properties": {
         "shipping_tax_rate": {
@@ -526,6 +527,7 @@
     },
     "OrderCalculateTaxes": {
       "title": "ORDER_CALCULATE_TAXES",
+      "description": "Response from webhook with calculated order taxes.\n\nAdded in Saleor 3.7.",
       "type": "object",
       "properties": {
         "shipping_tax_rate": {
@@ -595,6 +597,7 @@
     },
     "ShippingListMethodsForCheckout": {
       "title": "SHIPPING_LIST_METHODS_FOR_CHECKOUT",
+      "description": "Response from webhook with shipping methods that can be used with checkout.\n\nAdded in Saleor 3.6.",
       "type": "array",
       "items": {
         "$ref": "#/definitions/ShippingMethodSchema"

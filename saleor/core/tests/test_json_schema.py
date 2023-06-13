@@ -1,6 +1,6 @@
 import json
 from enum import Enum
-from typing import Annotated, Optional
+from typing import Optional
 
 import pytest
 from django.core.exceptions import NON_FIELD_ERRORS
@@ -39,9 +39,9 @@ class ErrorCode(Enum):
 
 
 class SubConversionModel(ErrorConversionModel):
-    data_a: Annotated[str, Field(min_length=1)]
-    data_b: Annotated[str, Field(min_length=1)]
-    data_c: Annotated[str, Field(min_length=1)]
+    data_a: str = Field(min_length=1)
+    data_b: str = Field(min_length=1)
+    data_c: str = Field(min_length=1)
     data_d: Optional[str] = None
 
     class Config(ErrorConversionConfig):
@@ -67,8 +67,8 @@ class SubConversionModel(ErrorConversionModel):
 
 
 class ConversionModel(ErrorConversionModel):
-    data_a: Annotated[str, Field(min_length=1)]
-    data_b: Annotated[Optional[str], Field(min_length=1)] = None
+    data_a: str = Field(min_length=1)
+    data_b: Optional[str] = Field(None, min_length=1)
     data_c: Optional[str] = None
     sub_schema: Optional[SubConversionModel] = None
 
