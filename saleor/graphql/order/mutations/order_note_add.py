@@ -1,7 +1,7 @@
 import graphene
 from django.db import transaction
 
-from ....order import events
+from ....order import error_codes, events
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
@@ -12,12 +12,21 @@ from ...core.descriptions import (
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import DOC_CATEGORY_ORDERS
-from ...core.types import BaseInputObjectType, OrderError
-from ...core.types.common import OrderNoteError
+from ...core.types import BaseInputObjectType, Error, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order, OrderEvent
 from .order_note_common import OrderNoteCommon
 from .utils import get_webhook_handler_by_order_status
+
+OrderNoteAddErrorCode = graphene.Enum.from_enum(error_codes.OrderNoteAddErrorCode)
+OrderNoteAddErrorCode.doc_category = DOC_CATEGORY_ORDERS
+
+
+class OrderNoteAddError(Error):
+    code = OrderNoteAddErrorCode(description="The error code.", required=False)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderNoteAdd(OrderNoteCommon):
@@ -35,7 +44,7 @@ class OrderNoteAdd(OrderNoteCommon):
         description = "Adds note to the order." + ADDED_IN_315 + PREVIEW_FEATURE
         doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
-        error_type_class = OrderNoteError
+        error_type_class = OrderNoteAddError
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

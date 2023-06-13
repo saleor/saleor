@@ -56,7 +56,6 @@ from ..enums import (
     MetadataErrorCode,
     OrderBulkCreateErrorCode,
     OrderErrorCode,
-    OrderNoteErrorCode,
     OrderSettingsErrorCode,
     PageErrorCode,
     PaymentErrorCode,
@@ -347,13 +346,6 @@ class OrderError(Error):
 
 class OrderBulkCreateError(BulkError):
     code = OrderBulkCreateErrorCode(description="The error code.", required=False)
-
-    class Meta:
-        doc_category = DOC_CATEGORY_ORDERS
-
-
-class OrderNoteError(Error):
-    code = OrderNoteErrorCode(description="The error code.", required=False)
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS

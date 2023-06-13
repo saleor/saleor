@@ -68,7 +68,12 @@ class OrderBulkCreateErrorCode(Enum):
     INCORRECT_CURRENCY = "incorrect_currency"
 
 
-class OrderNoteErrorCode(Enum):
+class OrderNoteAddErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    REQUIRED = "required"
+
+
+class OrderNoteUpdateErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     NOT_FOUND = "not_found"
     REQUIRED = "required"

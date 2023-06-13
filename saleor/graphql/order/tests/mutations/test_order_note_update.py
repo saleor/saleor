@@ -5,7 +5,7 @@ import pytest
 
 from .....account.models import CustomerEvent
 from .....order import OrderEvents, OrderStatus
-from .....order.error_codes import OrderNoteErrorCode
+from .....order.error_codes import OrderNoteUpdateErrorCode
 from .....order.models import OrderEvent
 from ....tests.utils import assert_no_permission, get_graphql_content
 
@@ -159,7 +159,7 @@ def test_order_note_update_fail_on_empty_message(
     content = get_graphql_content(response)
     data = content["data"]["orderNoteUpdate"]
     assert data["errors"][0]["field"] == "message"
-    assert data["errors"][0]["code"] == OrderNoteErrorCode.REQUIRED.name
+    assert data["errors"][0]["code"] == OrderNoteUpdateErrorCode.REQUIRED.name
     order_updated_webhook_mock.assert_not_called()
 
 
@@ -187,7 +187,7 @@ def test_order_note_update_fail_on_wrong_id(
     content = get_graphql_content(response)
     data = content["data"]["orderNoteUpdate"]
     assert data["errors"][0]["field"] == "id"
-    assert data["errors"][0]["code"] == OrderNoteErrorCode.NOT_FOUND.name
+    assert data["errors"][0]["code"] == OrderNoteUpdateErrorCode.NOT_FOUND.name
     order_updated_webhook_mock.assert_not_called()
 
 

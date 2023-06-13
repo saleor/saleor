@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....order.error_codes import OrderNoteErrorCode
+from ....order.error_codes import OrderNoteAddErrorCode
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType
@@ -35,7 +35,7 @@ class OrderNoteCommon(BaseMutation):
                 {
                     "message": ValidationError(
                         "Message can't be empty.",
-                        code=OrderNoteErrorCode.REQUIRED.value,
+                        code=OrderNoteAddErrorCode.REQUIRED.value,
                     )
                 }
             )
