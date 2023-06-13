@@ -9,9 +9,8 @@ from pydantic import Field, validator
 
 from ..json_schema import (
     CustomValueError,
-    ValidationErrorConfig,
-    ValidationErrorSchema,
-    normalize_error_message,
+    ErrorConversionConfig,
+    ErrorConversionModel,
     to_camel,
 )
 
@@ -27,7 +26,7 @@ def test_to_camel(snake_str, camel_str):
     "message,expected", [("", ""), ("some error message", "Some error message.")]
 )
 def test_normalize_error_message(message, expected):
-    assert normalize_error_message(message) == expected
+    assert ErrorConversionModel.normalize_error_message(message) == expected
 
 
 class ErrorCode(Enum):
@@ -39,21 +38,21 @@ class ErrorCode(Enum):
     CUSTOM_VALUE_ERROR = "custom_value_error"
 
 
-class SubSchema(ValidationErrorSchema):
+class SubConversionModel(ErrorConversionModel):
     data_a: Annotated[str, Field(min_length=1)]
     data_b: Annotated[str, Field(min_length=1)]
     data_c: Annotated[str, Field(min_length=1)]
     data_d: Optional[str] = None
 
-    class Config(ValidationErrorConfig):
-        default_error = ErrorCode.SUBCLASS
-        errors_map = {
+    class Config(ErrorConversionConfig):
+        default_error_override = ErrorCode.SUBCLASS
+        error_type_overrides = {
             "value_error.missing": {
                 "code": ErrorCode.SUBCLASS,
                 "msg": "subclass mapping",
             }
         }
-        field_errors_map = {
+        field_error_overrides = {
             "data_c": {
                 "code": ErrorCode.SUBCLASS_FIELD,
                 "msg": "subclass field mapping",
@@ -67,18 +66,18 @@ class SubSchema(ValidationErrorSchema):
         )
 
 
-class Schema(ValidationErrorSchema):
+class ConversionModel(ErrorConversionModel):
     data_a: Annotated[str, Field(min_length=1)]
     data_b: Annotated[Optional[str], Field(min_length=1)] = None
     data_c: Optional[str] = None
-    sub_schema: Optional[SubSchema] = None
+    sub_schema: Optional[SubConversionModel] = None
 
-    class Config(ValidationErrorConfig):
-        default_error = {"code": ErrorCode.DEFAULT, "msg": "default mapping"}
-        errors_map = {
+    class Config(ErrorConversionConfig):
+        default_error_override = {"code": ErrorCode.DEFAULT, "msg": "default mapping"}
+        error_type_overrides = {
             "value_error.missing": {"code": ErrorCode.CLASS, "msg": "class mapping"}
         }
-        field_errors_map = {
+        field_error_overrides = {
             "data_b": {
                 "code": ErrorCode.FIELD,
                 "msg": "field mapping",
@@ -99,7 +98,7 @@ class Schema(ValidationErrorSchema):
 def test_root_validation_error(field_name, error_field):
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw("invalid format", root_error_field=field_name)
+        ConversionModel.parse_raw("invalid format", field_name=field_name)
     # then
     assert len(error.value.error_dict[error_field]) == 1
     validation_error = error.value.error_dict[error_field][0]
@@ -110,7 +109,7 @@ def test_root_validation_error(field_name, error_field):
 def test_default_error_mapping():
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw(json.dumps({"dataA": ""}))
+        ConversionModel.parse_raw(json.dumps({"dataA": ""}))
     # then
     validation_error = error.value.error_dict["dataA"][0]
     assert validation_error.code == ErrorCode.DEFAULT.value
@@ -120,7 +119,7 @@ def test_default_error_mapping():
 def test_error_mapping():
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw(json.dumps({}))
+        ConversionModel.parse_raw(json.dumps({}))
     # then
     validation_error = error.value.error_dict["dataA"][0]
     assert validation_error.code == ErrorCode.CLASS.value
@@ -130,7 +129,7 @@ def test_error_mapping():
 def test_field_error_mapping():
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw(json.dumps({"dataB": ""}))
+        ConversionModel.parse_raw(json.dumps({"dataB": ""}))
     # then
     validation_error = error.value.error_dict["dataB"][0]
     assert validation_error.code == ErrorCode.FIELD.value
@@ -140,7 +139,7 @@ def test_field_error_mapping():
 def test_custom_value_error_mapping():
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw(json.dumps({"dataC": ""}))
+        ConversionModel.parse_raw(json.dumps({"dataC": ""}))
     validation_error = error.value.error_dict["dataC"][0]
     assert validation_error.code == ErrorCode.CUSTOM_VALUE_ERROR.value
     assert validation_error.message == "Custom value error."
@@ -149,7 +148,7 @@ def test_custom_value_error_mapping():
 def test_error_mapping_with_sub_schema():
     # when
     with pytest.raises(DjangoValidationError) as error:
-        Schema.parse_raw(json.dumps({"subSchema": {"dataA": "", "dataC": ""}}))
+        ConversionModel.parse_raw(json.dumps({"subSchema": {"dataA": "", "dataC": ""}}))
 
     # Default error mapping from Schema not SubSchema is used
     validation_error = error.value.error_dict["subSchema.dataA"][0]

@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import TYPE_CHECKING, Annotated, Dict, Optional, Union, cast
+from typing import TYPE_CHECKING, Optional, Union, cast
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from pydantic import Field, constr, stricturl, validator
@@ -9,10 +9,10 @@ from semantic_version.base import Range
 from .. import __version__
 from ..core.json_schema import (
     CustomValueError,
-    ErrorMapping,
+    ErrorConversionConfig,
+    ErrorConversionModel,
+    ErrorOverride,
     StrFieldMixin,
-    ValidationErrorConfig,
-    ValidationErrorSchema,
 )
 from ..graphql.webhook.subscription_query import (
     SubscriptionQuery as SubscriptionQueryBase,
@@ -112,24 +112,24 @@ WebhookEventTypeSyncEnum.__doc__ = (
     "The synchronous events that webhook wants to subscribe."
 )
 
-URL_ERROR_MAPPING: ErrorMapping = {"code": AppErrorCode.INVALID_URL_FORMAT}
-PERMISSION_ERROR_MAPPING: ErrorMapping = {
+URL_ERROR_OVERRIDE: ErrorOverride = {"code": AppErrorCode.INVALID_URL_FORMAT}
+PERMISSION_ERROR_OVERRIDE: ErrorOverride = {
     "code": AppErrorCode.INVALID_PERMISSION,
     "msg": "Given permission doesn't exist.",
 }
 
 
-class Webhook(ValidationErrorSchema):
-    name: Annotated[str, Field(max_length=255)]
+class Webhook(ErrorConversionModel):
+    name: str = Field(max_length=255)
     is_active: bool = True
     target_url: WebhookTargetUrl
     query: SubscriptionQuery
     async_events: list[WebhookEventTypeAsyncEnum] = []
     sync_events: list[WebhookEventTypeSyncEnum] = []
-    custom_headers: Dict[str, str] = {}
+    custom_headers: dict[str, str] = {}
 
-    class Config(ValidationErrorConfig):
-        field_errors_map = {"target_url": URL_ERROR_MAPPING}
+    class Config(ErrorConversionConfig):
+        field_error_overrides = {"target_url": URL_ERROR_OVERRIDE}
 
     @property
     def events(self) -> list[str]:
@@ -145,17 +145,17 @@ class Webhook(ValidationErrorSchema):
             raise CustomValueError(cast(str, err.message), error_code=code)
 
 
-class Extension(ValidationErrorSchema):
-    label: Annotated[str, Field(max_length=256)]
+class Extension(ErrorConversionModel):
+    label: str = Field(max_length=256)
     target: AppExtensionTargetEnum = AppExtensionTargetEnum[AppExtensionTarget.POPUP]
     mount: AppExtensionMountEnum
     url: Union[AnyHttpUrl, UrlPathStr]
     permissions: list[Permission] = []
 
-    class Config(ValidationErrorConfig):
-        field_errors_map = {
-            "permissions": PERMISSION_ERROR_MAPPING,
-            "url": URL_ERROR_MAPPING,
+    class Config(ErrorConversionConfig):
+        field_error_overrides = {
+            "permissions": PERMISSION_ERROR_OVERRIDE,
+            "url": URL_ERROR_OVERRIDE,
         }
 
     @validator("url")
@@ -170,119 +170,95 @@ class Extension(ValidationErrorSchema):
         return v
 
 
-class ManifestBrandLogo(ValidationErrorSchema):
+class ManifestBrandLogo(ErrorConversionModel):
     default: AnyHttpUrl
 
-    class Config(ValidationErrorConfig):
-        field_errors_map = {"default": URL_ERROR_MAPPING}
+    class Config(ErrorConversionConfig):
+        field_error_overrides = {"default": URL_ERROR_OVERRIDE}
 
 
-class ManifestBrandData(ValidationErrorSchema):
+class ManifestBrandData(ErrorConversionModel):
     logo: ManifestBrandLogo
 
 
-class Manifest(ValidationErrorSchema):
-    id: Annotated[
-        str,
-        Field(
-            max_length=256, description="Id of application used internally by Saleor"
-        ),
-    ]
-    version: Annotated[str, Field(max_length=60, description="App version")]
-    name: Annotated[
-        str, Field(max_length=60, description="App name displayed in the dashboard")
-    ]
-    token_target_url: Annotated[
-        AnyHttpUrl,
-        Field(description="Endpoint used during process of app installation"),
-    ]
-    about: Annotated[
-        Optional[str],
-        Field(description="Description of the app displayed in the dashboard"),
-    ] = None
-    required_saleor_version: Annotated[
-        Optional[RequiredSaleorVersionSpec],
-        Field(
-            description="Version range, in the semver format, which specifies Saleor "
-            "version required by the app. The field will be respected starting from "
-            "Saleor 3.13"
-        ),
-    ] = None
-    author: Annotated[
-        Optional[AuthorStr],
-        Field(
-            description="App author name displayed in the dashboard "
-            "(starting from Saleor 3.13)"
-        ),
-    ] = None
-    app_url: Annotated[
-        Optional[AnyHttpUrl], Field(description="App website rendered in the dashboard")
-    ] = None
-    configuration_url: Annotated[
-        Optional[AnyHttpUrl],
-        Field(
-            description="Address to the app configuration page, which is rendered in "
-            "the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
-            deprecated=True,
-        ),
-    ] = None
-    data_privacy: Annotated[
-        Optional[str],
-        Field(
-            description="Short description of privacy policy displayed in the "
-            "dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
-            deprecated=True,
-        ),
-    ] = None
-    data_privacy_url: Annotated[
-        Optional[AnyHttpUrl], Field(description="URL to the full privacy policy")
-    ] = None
-    homepage_url: Annotated[
-        Optional[AnyHttpUrl], Field(description="External URL to the app homepage")
-    ] = None
-    support_url: Annotated[
-        Optional[AnyHttpUrl],
-        Field(
-            description="External URL to the page where " "app users can find support"
-        ),
-    ] = None
-    audience: Annotated[Optional[str], Field(max_length=256)] = None
-    permissions: Annotated[
-        list[Permission],
-        Field(description="Array of permissions requested by the app"),
-    ] = []
-    webhooks: Annotated[
-        list[Webhook], Field(description="List of webhooks that will be set")
-    ] = []
-    extensions: Annotated[
-        list[Extension],
-        Field(
-            description="List of extensions that will be mounted in Saleor's dashboard"
-        ),
-    ] = []
+class Manifest(ErrorConversionModel):
+    id: str = Field(
+        max_length=256, description="Id of application used internally by Saleor"
+    )
+    version: str = Field(max_length=60, description="App version")
+    name: str = Field(max_length=60, description="App name displayed in the dashboard")
+    token_target_url: AnyHttpUrl = Field(
+        description="Endpoint used during process of app installation"
+    )
+    about: Optional[str] = Field(
+        None, description="Description of the app displayed in the dashboard"
+    )
+    required_saleor_version: Optional[RequiredSaleorVersionSpec] = Field(
+        None,
+        description="Version range, in the semver format, which specifies Saleor "
+        "version required by the app. The field will be respected starting from "
+        "Saleor 3.13",
+    )
+    author: Optional[AuthorStr] = Field(
+        None,
+        description="App author name displayed in the dashboard "
+        "(starting from Saleor 3.13)",
+    )
+    app_url: Optional[AnyHttpUrl] = Field(
+        None, description="App website rendered in the dashboard"
+    )
+    configuration_url: Optional[AnyHttpUrl] = Field(
+        None,
+        description="Address to the app configuration page, which is rendered in "
+        "the dashboard (deprecated in Saleor 3.5, use appUrl instead)",
+        deprecated=True,
+    )
+    data_privacy: Optional[str] = Field(
+        None,
+        description="Short description of privacy policy displayed in the "
+        "dashboard (deprecated in Saleor 3.5, use dataPrivacyUrl instead)",
+        deprecated=True,
+    )
+    data_privacy_url: Optional[AnyHttpUrl] = Field(
+        None, description="URL to the full privacy policy"
+    )
+    homepage_url: Optional[AnyHttpUrl] = Field(
+        None, description="External URL to the app homepage"
+    )
+    support_url: Optional[AnyHttpUrl] = Field(
+        None, description="External URL to the page where " "app users can find support"
+    )
+    audience: Optional[str] = Field(None, max_length=256)
+    permissions: list[Permission] = Field(
+        [], description="Array of permissions requested by the app"
+    )
+    webhooks: list[Webhook] = Field([], description="List of webhooks that will be set")
+    extensions: list[Extension] = Field(
+        [], description="List of extensions that will be mounted in Saleor's dashboard"
+    )
     brand: Optional[ManifestBrandData] = None
 
-    class Config(ValidationErrorConfig):
-        default_error = {"code": AppErrorCode.INVALID}
-        root_error = {
+    class Config(ErrorConversionConfig):
+        default_error_override = {"code": AppErrorCode.INVALID}
+        root_error_override = {
             "code": AppErrorCode.INVALID_MANIFEST_FORMAT,
             "msg": "Incorrect structure of manifest.",
         }
-        errors_map = {
+        error_type_overrides = {
             "value_error.missing": {
                 "code": AppErrorCode.REQUIRED,
                 "msg": "Field required.",
             },
             "value_error.url*": {"code": AppErrorCode.INVALID_URL_FORMAT},
         }
-        field_errors_map = {
-            "permissions": PERMISSION_ERROR_MAPPING,
-            "token_target_url": URL_ERROR_MAPPING,
-            "app_url": URL_ERROR_MAPPING,
-            "configuration_url": URL_ERROR_MAPPING,
-            "data_privacy_url": URL_ERROR_MAPPING,
-            "homepage_url": URL_ERROR_MAPPING,
-            "support_url": URL_ERROR_MAPPING,
+        field_error_overrides = {
+            "permissions": PERMISSION_ERROR_OVERRIDE,
+            "token_target_url": URL_ERROR_OVERRIDE,
+            "app_url": URL_ERROR_OVERRIDE,
+            "configuration_url": URL_ERROR_OVERRIDE,
+            "data_privacy_url": URL_ERROR_OVERRIDE,
+            "homepage_url": URL_ERROR_OVERRIDE,
+            "support_url": URL_ERROR_OVERRIDE,
         }
 
     @validator("extensions", each_item=True)
@@ -308,9 +284,9 @@ class Manifest(ValidationErrorSchema):
         return v
 
 
-class RequiredSaleorVersionStrictSpec(RequiredSaleorVersionSpec):
+class StrictRequiredSaleorVersionSpec(RequiredSaleorVersionSpec):
     raise_for_version = True
 
 
-class ManifestStrict(Manifest):
-    required_saleor_version: Optional[RequiredSaleorVersionStrictSpec] = None
+class StrictManifest(Manifest):
+    required_saleor_version: Optional[StrictRequiredSaleorVersionSpec] = None

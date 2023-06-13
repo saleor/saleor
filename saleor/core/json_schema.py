@@ -17,12 +17,12 @@ Loc = tuple[Union[int, str], ...]
 FALLBACK_ERROR_CODE = "invalid"
 
 
-class ErrorMapping(TypedDict, total=False):
+class ErrorOverride(TypedDict, total=False):
     code: Enum
     msg: str
 
 
-ERRORS_MAP = dict[str, ErrorMapping]
+ErrorOverrideMap = dict[str, ErrorOverride]
 
 
 def to_camel(snake_str: str) -> str:
@@ -76,36 +76,36 @@ class JsonSchema(BaseSchema):
         alias_generator = to_camel
 
 
-def _match_error_mapping(error_type: str, mappings: ERRORS_MAP) -> ErrorMapping:
-    for pattern, error_mapping in mappings.items():
+def match_error_override(error_type: str, overrides: ErrorOverrideMap) -> ErrorOverride:
+    for pattern, override in overrides.items():
         if fnmatchcase(error_type, pattern):
-            return error_mapping
+            return override
     return {}
 
 
-class ValidationErrorConfig(BaseConfig):
-    default_error: ErrorMapping = {}
-    root_error: ErrorMapping = {}
-    errors_map: ERRORS_MAP = {}
-    field_errors_map: ERRORS_MAP = {}
+class ErrorConversionConfig(BaseConfig):
+    default_error_override: ErrorOverride = {}
+    root_error_override: ErrorOverride = {}
+    error_type_overrides: ErrorOverrideMap = {}
+    field_error_overrides: ErrorOverrideMap = {}
 
     @classmethod
-    def get_error_mapping(cls, field_name: str, error_type: str) -> ErrorMapping:
-        if mapping := _match_error_mapping(error_type, cls.errors_map):
-            return mapping
-        return cls.field_errors_map.get(field_name, {})
+    def get_error_override(cls, field_name: str, error_type: str) -> ErrorOverride:
+        if override := match_error_override(error_type, cls.error_type_overrides):
+            return override
+        return cls.field_error_overrides.get(field_name, {})
 
 
-ValidationErrorSchemaType = TypeVar(
-    "ValidationErrorSchemaType", bound="ValidationErrorSchema"
+ErrorConversionModelType = TypeVar(
+    "ErrorConversionModelType", bound="ErrorConversionModel"
 )
 
 
-class ValidationErrorSchema(JsonSchema):
+class ErrorConversionModel(JsonSchema):
     _alias_map: ClassVar[Optional[dict[str, str]]] = None
-    __config__: ClassVar[Type[ValidationErrorConfig]]
+    __config__: ClassVar[Type[ErrorConversionConfig]]
 
-    class Config(ValidationErrorConfig):
+    class Config(ErrorConversionConfig):
         pass
 
     @classmethod
@@ -117,70 +117,68 @@ class ValidationErrorSchema(JsonSchema):
         return cls._alias_map.get(alias)
 
     @classmethod
-    def get_error_mapping(cls, loc: tuple[str, ...], error_type: str) -> ErrorMapping:
+    def get_error_override(cls, loc: tuple[str, ...], error_type: str) -> ErrorOverride:
         if field_name := cls.get_field_name(loc[0]):
-            if mapping := cls.__config__.get_error_mapping(field_name, error_type):
-                return mapping
+            if override := cls.__config__.get_error_override(field_name, error_type):
+                return override
             field = cls.__fields__[field_name]
-            if loc[1:] and issubclass(field.type_, ValidationErrorSchema):
-                return field.type_.get_error_mapping(loc[1:], error_type)
+            if loc[1:] and issubclass(field.type_, ErrorConversionModel):
+                return field.type_.get_error_override(loc[1:], error_type)
         return {}
+
+    @staticmethod
+    def normalize_error_message(msg: str) -> str:
+        msg = f"{msg[:1].upper()}{msg[1:]}"
+        if msg and msg[-1:] != ".":
+            msg += "."
+        return msg
 
     @classmethod
     def convert_validation_error(
-        cls,
-        pydantic_error: PydanticValidationError,
-        root_error_field: Optional[str] = None,
+        cls, pydantic_error: PydanticValidationError, field_name: Optional[str] = None
     ) -> DjangoValidationError:
         validation_errors: dict[str, list[DjangoValidationError]] = defaultdict(list)
         for error in pydantic_error.errors():
-            mapping = cls.__config__.default_error.copy()
+            override = cls.__config__.default_error_override.copy()
             field_path = ".".join([str(loc) for loc in error["loc"]])
             loc = tuple([part for part in error["loc"] if isinstance(part, str)])
-            mapping.update(cls.get_error_mapping(loc, error["type"]))
+            override.update(cls.get_error_override(loc, error["type"]))
             if error["type"] == "value_error.custom":
                 if code := error["ctx"].get("error_code"):
-                    mapping["code"] = code
+                    override["code"] = code
                 if error["msg"]:
-                    mapping["msg"] = error["msg"]
+                    override["msg"] = error["msg"]
             elif error["loc"] == (ROOT_KEY,):
-                mapping.update(cls.__config__.root_error)
-                field_path = root_error_field or NON_FIELD_ERRORS
-            code = mapping["code"].value if "code" in mapping else FALLBACK_ERROR_CODE
-            msg = normalize_error_message(mapping.get("msg") or error["msg"])
+                override.update(cls.__config__.root_error_override)
+                field_path = field_name or NON_FIELD_ERRORS
+            code = override["code"].value if "code" in override else FALLBACK_ERROR_CODE
+            msg = cls.normalize_error_message(override.get("msg") or error["msg"])
             validation_errors[field_path].append(DjangoValidationError(msg, code=code))
         return DjangoValidationError(validation_errors)
 
     @classmethod
     def parse_obj(
-        cls: Type[ValidationErrorSchemaType],
+        cls: Type[ErrorConversionModelType],
         *args,
-        root_error_field: Optional[str] = None,
+        field_name: Optional[str] = None,
         **kwargs
-    ) -> ValidationErrorSchemaType:
+    ) -> ErrorConversionModelType:
         try:
             return super().parse_obj(*args, **kwargs)
         except PydanticValidationError as error:
-            raise cls.convert_validation_error(error, root_error_field)
+            raise cls.convert_validation_error(error, field_name)
 
     @classmethod
     def parse_raw(
-        cls: Type[ValidationErrorSchemaType],
+        cls: Type[ErrorConversionModelType],
         *args,
-        root_error_field: Optional[str] = None,
+        field_name: Optional[str] = None,
         **kwargs
-    ) -> ValidationErrorSchemaType:
+    ) -> ErrorConversionModelType:
         try:
             return super().parse_raw(*args, **kwargs)
         except PydanticValidationError as error:
-            raise cls.convert_validation_error(error, root_error_field)
-
-
-def normalize_error_message(msg: str) -> str:
-    msg = f"{msg[:1].upper()}{msg[1:]}"
-    if msg and msg[-1:] != ".":
-        msg += "."
-    return msg
+            raise cls.convert_validation_error(error, field_name)
 
 
 class DecimalType(Decimal):

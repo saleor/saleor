@@ -26,7 +26,7 @@ from ..thumbnail.utils import get_filename_from_url
 from ..thumbnail.validators import validate_icon_image
 from ..webhook.models import Webhook, WebhookEvent
 from .error_codes import AppErrorCode
-from .manifest_schema import ManifestStrict
+from .manifest_schema import StrictManifest
 from .models import App, AppExtension, AppInstallation
 from .types import AppType
 
@@ -178,7 +178,7 @@ def fetch_brand_data_task(
 
 
 def fetch_brand_data_async(
-    manifest_data: ManifestStrict,
+    manifest_data: StrictManifest,
     *,
     app_installation: Optional[AppInstallation] = None,
     app: Optional[App] = None
@@ -204,7 +204,7 @@ def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
 def install_app(app_installation: AppInstallation, activate: bool = False):
     manifest_data = fetch_manifest(app_installation.manifest_url)
     assigned_permissions = app_installation.permissions.all()
-    manifest = ManifestStrict.parse_obj(manifest_data)
+    manifest = StrictManifest.parse_obj(manifest_data)
 
     app = App.objects.create(
         name=app_installation.app_name,
