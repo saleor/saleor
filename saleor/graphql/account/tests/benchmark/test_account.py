@@ -41,6 +41,7 @@ def test_query_staff_user(
                 lastName
                 isStaff
                 isActive
+                isConfirmed
                 addresses {
                     id
                     isDefaultShippingAddress

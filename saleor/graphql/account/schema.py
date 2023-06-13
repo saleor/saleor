@@ -47,6 +47,7 @@ from .mutations.base import (
     ConfirmAccount,
     PasswordChange,
     RequestPasswordReset,
+    SendConfirmationEmail,
     SetPassword,
 )
 from .mutations.permission_group import (
@@ -269,6 +270,7 @@ class AccountMutations(graphene.ObjectType):
     external_verify = ExternalVerify.Field()
 
     request_password_reset = RequestPasswordReset.Field()
+    send_confirmation_email = SendConfirmationEmail.Field()
     confirm_account = ConfirmAccount.Field()
     set_password = SetPassword.Field()
     password_change = PasswordChange.Field()

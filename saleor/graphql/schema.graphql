@@ -16872,6 +16872,21 @@ type Mutation {
     redirectUrl: String!
   ): RequestPasswordReset @doc(category: "Users")
 
+  """
+  Sends an email with confirmation link. 
+  
+  Requires one of the following permissions: AUTHENTICATED_USER.
+  """
+  sendConfirmationEmail(
+    """
+    Slug of a channel which will be used for notify user. Optional when only one channel exists.
+    """
+    channel: String
+
+    """Base of frontend URL that will be needed to create confirmation URL."""
+    redirectUrl: String!
+  ): SendConfirmationEmail @doc(category: "Users")
+
   """Confirm user account with token sent by email during registration."""
   confirmAccount(
     """E-mail of the user performing account confirmation."""
@@ -26154,6 +26169,40 @@ type ExternalVerify @doc(category: "Authentication") {
 type RequestPasswordReset @doc(category: "Users") {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
+}
+
+"""
+Sends an email with confirmation link. 
+
+Requires one of the following permissions: AUTHENTICATED_USER.
+"""
+type SendConfirmationEmail @doc(category: "Users") {
+  """An user instance."""
+  user: User
+  errors: [SendConfirmationEmailError!]!
+}
+
+type SendConfirmationEmailError @doc(category: "Users") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: SendConfirmationEmailErrorCode!
+}
+
+"""An enumeration."""
+enum SendConfirmationEmailErrorCode @doc(category: "Users") {
+  INVALID
+  INVALID_PERMISSION
+  ACCOUNT_CONFIRMED
+  CONFIRMATION_DISABLED
+  CONFIRMATION_ALREADY_REQUESTED
+  MISSING_CHANNEL_SLUG
 }
 
 """Confirm user account with token sent by email during registration."""

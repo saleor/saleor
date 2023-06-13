@@ -250,13 +250,11 @@ class SendConfirmationEmail(BaseMutation):
     user = graphene.Field(User, description="An user instance.")
 
     class Arguments:
-        redirect_url = (
-            graphene.String(
-                required=True,
-                description=(
-                    "Base of frontend URL that will be needed to create confirmation "
-                    "URL."
-                ),
+        redirect_url = graphene.String(
+            required=True,
+            description=(
+                "Base of frontend URL that will be needed to create confirmation "
+                "URL."
             ),
         )
         channel = graphene.String(

@@ -19,7 +19,7 @@ from django.utils.functional import SimpleLazyObject
 from freezegun import freeze_time
 
 from ....account import events as account_events
-from ....account.error_codes import AccountErrorCode
+from ....account.error_codes import AccountErrorCode, SendConfirmationEmailErrorCode
 from ....account.models import Address, Group, User
 from ....account.notifications import get_default_user_payload
 from ....account.search import (
@@ -129,6 +129,7 @@ FULL_USER_QUERY = """
             lastName
             isStaff
             isActive
+            isConfirmed
             addresses {
                 id
                 isDefaultShippingAddress
@@ -263,6 +264,7 @@ def test_query_customer_user(
     assert data["lastName"] == user.last_name
     assert data["isStaff"] == user.is_staff
     assert data["isActive"] == user.is_active
+    assert data["isConfirmed"] == user.is_confirmed
     assert data["orders"]["totalCount"] == user.orders.count()
     assert data["avatar"]["url"]
     assert data["languageCode"] == settings.LANGUAGE_CODE.upper()
@@ -2533,6 +2535,66 @@ def test_customer_update_assign_gift_cards_and_orders(
     customer_user.refresh_from_db()
     assert gift_card.created_by == customer_user
     assert gift_card.created_by_email == customer_user.email
+    order.refresh_from_db()
+    assert order.user == customer_user
+
+
+UPDATE_CUSTOMER_IS_CONFIRMED_MUTATION = """
+    mutation UpdateCustomer(
+        $id: ID!, $isConfirmed: Boolean) {
+            customerUpdate(id: $id, input: {
+            isConfirmed: $isConfirmed,
+        }) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_customer_confirm_assign_gift_cards_and_orders(
+    staff_api_client,
+    staff_user,
+    customer_user,
+    address,
+    gift_card,
+    order,
+    permission_manage_users,
+):
+    # given
+    query = UPDATE_CUSTOMER_IS_CONFIRMED_MUTATION
+
+    customer_user.is_confirmed = False
+    customer_user.save()
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    gift_card.created_by = None
+    gift_card.created_by_email = customer_user.email
+    gift_card.save(update_fields=["created_by", "created_by_email"])
+
+    order.user = None
+    order.user_email = customer_user.email
+    order.save(update_fields=["user_email", "user"])
+
+    variables = {
+        "id": user_id,
+        "isConfirmed": True,
+    }
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+
+    # then
+    gift_card.refresh_from_db()
+    customer_user.refresh_from_db()
+    assert gift_card.created_by == customer_user
+    assert gift_card.created_by_email == customer_user.email
+
     order.refresh_from_db()
     assert order.user == customer_user
 
@@ -6014,6 +6076,181 @@ def test_account_reset_password_subdomain(
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
     )
+
+
+SEND_CONFIRMATION_EMAIL_MUTATION = """
+    mutation SendConfirmationEmail(
+        $redirectUrl: String!, $channel: String) {
+        sendConfirmationEmail(
+            redirectUrl: $redirectUrl, channel: $channel) {
+            errors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_confirmation_email(
+    mocked_notify,
+    user_api_client,
+    channel_PLN,
+    site_settings,
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    user = user_api_client.user
+    user.is_confirmed = False
+    user.save(update_fields=["is_confirmed"])
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    data = content["data"]["sendConfirmationEmail"]
+    assert not data["errors"]
+
+    token = default_token_generator.make_token(user)
+    params = urlencode({"email": user.email, "token": token})
+    confirm_url = prepare_url(params, redirect_url)
+    expected_payload = {
+        "user": get_default_user_payload(user),
+        "token": token,
+        "confirm_url": confirm_url,
+        "recipient_email": user.email,
+        "channel_slug": channel_PLN.slug,
+        **get_site_context_payload(site_settings.site),
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ACCOUNT_CONFIRMATION,
+        payload=expected_payload,
+        channel_slug=channel_PLN.slug,
+    )
+    user.refresh_from_db()
+    assert user.last_confirm_email_request == timezone.now()
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_confirmation_email_on_cooldown(
+    mocked_notify, user_api_client, channel_PLN
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    user = user_api_client.user
+    user.last_confirm_email_request = timezone.now()
+    user.is_confirmed = False
+    user.save(update_fields=["last_confirm_email_request", "is_confirmed"])
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["sendConfirmationEmail"]["errors"]
+    assert errors == [
+        {
+            "field": None,
+            "message": "Confirmation email already requested",
+            "code": SendConfirmationEmailErrorCode.CONFIRMATION_ALREADY_REQUESTED.name,
+        }
+    ]
+    mocked_notify.assert_not_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
+def test_send_confirmation_email_after_cooldown(user_api_client, channel_PLN, settings):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+
+    user = user_api_client.user
+    user.last_confirm_email_request = timezone.now() - datetime.timedelta(
+        seconds=settings.CONFIRMATION_EMAIL_LOCK_TIME
+    )
+    user.is_confirmed = False
+    user.save(update_fields=["last_confirm_email_request", "is_confirmed"])
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert len(content["data"]["sendConfirmationEmail"]["errors"]) == 0
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_confirmation_email_user_already_confirmed(
+    mocked_notify, user_api_client, channel_PLN
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["sendConfirmationEmail"]["errors"]
+    assert errors == [
+        {
+            "field": None,
+            "message": "User is already confirmed",
+            "code": SendConfirmationEmailErrorCode.ACCOUNT_CONFIRMED.name,
+        }
+    ]
+    mocked_notify.assert_not_called()
+
+
+@freeze_time("2018-05-31 12:00:01")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+def test_send_confirmation_email_confirmation_disabled(
+    mocked_notify, user_api_client, channel_PLN, site_settings
+):
+    # given
+    redirect_url = "https://www.example.com"
+    variables = {
+        "redirectUrl": redirect_url,
+        "channel": channel_PLN.slug,
+    }
+    site_settings.enable_account_confirmation_by_email = False
+    site_settings.save()
+
+    # when
+    response = user_api_client.post_graphql(SEND_CONFIRMATION_EMAIL_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    # then
+    errors = content["data"]["sendConfirmationEmail"]["errors"]
+    assert errors == [
+        {
+            "field": None,
+            "message": "Email confirmation is disabled",
+            "code": SendConfirmationEmailErrorCode.CONFIRMATION_DISABLED.name,
+        }
+    ]
+    mocked_notify.assert_not_called()
 
 
 ACCOUNT_ADDRESS_CREATE_MUTATION = """
