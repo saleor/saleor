@@ -522,9 +522,9 @@ def test_app_fetch_manifest_extensions_incorrect_url(
     errors = content["data"]["appFetchManifest"]["errors"]
 
     assert len(errors) >= 1
-    assert errors[0]["field"] in ["extensions.0", "extensions.0.url"]
-    assert errors[0]["code"] == "INVALID_URL_FORMAT"
-    # "message": "Invalid or missing URL scheme.",
+    for error in errors:
+        assert error["field"] in ["extensions.0", "extensions.0.url"]
+        assert error["code"] == "INVALID_URL_FORMAT"
 
 
 @pytest.mark.parametrize(
