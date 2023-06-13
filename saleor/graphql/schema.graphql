@@ -16361,7 +16361,7 @@ type Mutation {
     id: ID
 
     """Shipping method."""
-    shippingMethodId: ID!
+    shippingMethodId: ID
 
     """
     Checkout token.
