@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("product", "0185_productvariantchannellisting_promotion_rules"),
+        ("product", "0184_product_product_gin"),
     ]
 
     state_operations = [
