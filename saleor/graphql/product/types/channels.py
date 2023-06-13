@@ -89,7 +89,11 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         permissions=[ProductPermissions.MANAGE_PRODUCTS],
     )
     is_available_for_purchase = graphene.Boolean(
-        description="Whether the product is available for purchase."
+        description=(
+            "Refers to a state that can be set by admins to control whether a product "
+            "is available for purchase in storefronts in this channel. This does not "
+            "guarantee the availability of stock."
+        )
     )
     pricing = graphene.Field(
         "saleor.graphql.product.types.products.ProductPricingInfo",
