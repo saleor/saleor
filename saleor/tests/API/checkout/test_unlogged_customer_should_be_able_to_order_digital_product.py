@@ -1,5 +1,5 @@
 from ..channel.utils import create_channel
-from ..products.utils import create_digital_product_type
+from ..products.utils import create_digital_product_type, create_product
 from ..warehouse.utils import create_warehouse
 
 
@@ -22,3 +22,9 @@ def test_process_checkout_with_digital_product(
     )
     product_type_id = product_type_data["id"]
     assert product_type_id is not None
+
+    product_data = create_product(
+        staff_api_client, [permission_manage_products], product_type_id
+    )
+    product_id = product_data["id"]
+    assert product_id is not None
