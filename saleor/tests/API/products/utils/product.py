@@ -11,7 +11,10 @@ mutation createProduct($input: ProductCreateInput!) {
     product {
       id
       name
-      productType{
+      productType {
+        id
+      }
+      category {
         id
       }
     }
@@ -20,12 +23,13 @@ mutation createProduct($input: ProductCreateInput!) {
 """
 
 
-def create_product(staff_api_client, permissions, product_type_id):
+def create_product(staff_api_client, permissions, product_type_id, category_id):
     product_name = "Test product"
     variables = {
         "input": {
             "name": product_name,
             "productType": product_type_id,
+            "category": category_id,
         }
     }
     response = staff_api_client.post_graphql(
@@ -38,5 +42,6 @@ def create_product(staff_api_client, permissions, product_type_id):
     data = content["data"]["productCreate"]["product"]
     assert data["name"] == product_name
     assert data["productType"]["id"] == product_type_id
+    assert data["category"]["id"] == category_id
 
     return data
