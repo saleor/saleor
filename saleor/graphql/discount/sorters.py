@@ -3,7 +3,7 @@ from django.db.models import Min, Q, QuerySet
 
 from ..core.descriptions import CHANNEL_REQUIRED
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
-from ..core.types import BaseEnum, ChannelSortInputObjectType
+from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
 
 class SaleSortField(BaseEnum):
@@ -98,3 +98,28 @@ class VoucherSortingInput(ChannelSortInputObjectType):
         doc_category = DOC_CATEGORY_DISCOUNTS
         sort_enum = VoucherSortField
         type_name = "vouchers"
+
+
+class PromotionSortField(BaseEnum):
+    NAME = ["name", "pk"]
+    START_DATE = ["start_date", "name", "pk"]
+    END_DATE = ["end_date", "name", "pk"]
+    CREATED_AT = ["created_at", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+
+    @property
+    def description(self):
+        if self.name in PromotionSortField.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            description = f"Sort promotions by {sort_name}."
+            return description
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class PromotionSortingInput(SortInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        sort_enum = PromotionSortField
+        type_name = "promotions"

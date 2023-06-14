@@ -1185,6 +1185,39 @@ type Query {
   ): Promotion @doc(category: "Discounts")
 
   """
+  List of the promotions.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  promotions(
+    """Where filtering options."""
+    where: PromotionWhereInput
+
+    """Sort promotions."""
+    sortBy: PromotionSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): PromotionCountableConnection @doc(category: "Discounts")
+
+  """
   Look up a export file by ID.
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
@@ -12963,6 +12996,66 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
+}
+
+type PromotionCountableConnection @doc(category: "Discounts") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [PromotionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type PromotionCountableEdge @doc(category: "Discounts") {
+  """The item at the end of the edge."""
+  node: Promotion!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input PromotionWhereInput @doc(category: "Discounts") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """Filter by promotion name."""
+  name: StringFilterInput
+
+  """Filter promotions by end date."""
+  endDate: DateTimeRangeInput
+
+  """Filter promotions by start date."""
+  startDate: DateTimeRangeInput
+  isOldSale: Boolean
+
+  """List of conditions that must be met."""
+  AND: [PromotionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [PromotionWhereInput!]
+}
+
+input PromotionSortingInput @doc(category: "Discounts") {
+  """Specifies the direction in which to sort promotions."""
+  direction: OrderDirection!
+
+  """Sort promotions by the selected field."""
+  field: PromotionSortField!
+}
+
+enum PromotionSortField @doc(category: "Discounts") {
+  """Sort promotions by name."""
+  NAME
+
+  """Sort promotions by start date."""
+  START_DATE
+
+  """Sort promotions by end date."""
+  END_DATE
+
+  """Sort promotions by created at."""
+  CREATED_AT
 }
 
 """Represents a job data of exported file."""
