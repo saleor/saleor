@@ -25,7 +25,7 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
 """
 
 
-def create_channel(staff_api_client, permissions):
+def create_channel(staff_api_client, permissions, warehouses=[]):
     channel_name = "Test channel"
     slug = "test-slug"
     currency = "USD"
@@ -37,6 +37,7 @@ def create_channel(staff_api_client, permissions):
             "currencyCode": currency,
             "defaultCountry": country,
             "isActive": True,
+            "addWarehouses": warehouses,
         }
     }
     response = staff_api_client.post_graphql(

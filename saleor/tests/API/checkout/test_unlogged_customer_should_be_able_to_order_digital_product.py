@@ -8,6 +8,7 @@ from ..products.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
+from ..shipping_zone.utils import create_shipping_zone
 from ..warehouse.utils import create_warehouse
 
 
@@ -17,17 +18,28 @@ def test_process_checkout_with_digital_product(
     permission_manage_product_types_and_attributes,
     permission_manage_channels,
     permission_manage_products,
+    permission_manage_shipping,
     media_root,
 ):
-    channel_data = create_channel(staff_api_client, [permission_manage_channels])
+    warehouse_data = create_warehouse(staff_api_client, [permission_manage_products])
+    warehouse_id = warehouse_data["id"]
+    assert warehouse_id is not None
+
+    warehouse_ids = [warehouse_id]
+    channel_data = create_channel(
+        staff_api_client, [permission_manage_channels], warehouse_ids
+    )
     channel_id = channel_data["id"]
     channel_slug = channel_data["slug"]
     assert channel_id is not None
     assert channel_slug is not None
 
-    warehouse_data = create_warehouse(staff_api_client, [permission_manage_products])
-    warehouse_id = warehouse_data["id"]
-    assert warehouse_id is not None
+    channel_ids = [channel_id]
+    shipping_zone_data = create_shipping_zone(
+        staff_api_client, [permission_manage_shipping], warehouse_ids, channel_ids
+    )
+    shipping_zone_id = shipping_zone_data["id"]
+    assert shipping_zone_id is not None
 
     product_type_data = create_digital_product_type(
         staff_api_client, [permission_manage_product_types_and_attributes]
@@ -51,14 +63,26 @@ def test_process_checkout_with_digital_product(
     product_channel_listing_id = product_channel_listing_data["id"]
     assert product_channel_listing_id is not None
 
+    stocks = [
+        {
+            "warehouse": warehouse_id,
+            "quantity": 5,
+        }
+    ]
     product_variant_data = create_product_variant(
-        staff_api_client, [permission_manage_products], product_id
+        staff_api_client,
+        [permission_manage_products],
+        product_id,
+        stocks,
     )
     product_variant_id = product_variant_data["id"]
     assert product_variant_id is not None
 
     product_variant_channel_listing_data = create_product_variant_channel_listing(
-        staff_api_client, [permission_manage_products], product_variant_id, channel_id
+        staff_api_client,
+        [permission_manage_products],
+        product_variant_id,
+        channel_id,
     )
     product_variant_channel_listing_id = product_variant_channel_listing_data["id"]
     assert product_variant_channel_listing_id is not None

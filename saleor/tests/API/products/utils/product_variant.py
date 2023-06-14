@@ -20,13 +20,14 @@ mutation createVariant($input: ProductVariantCreateInput!) {
 """
 
 
-def create_product_variant(staff_api_client, permissions, product_id):
+def create_product_variant(staff_api_client, permissions, product_id, stocks=[]):
     variant_name = "Test product variant"
     variables = {
         "input": {
             "name": variant_name,
             "product": product_id,
             "attributes": [],
+            "stocks": stocks,
         }
     }
     response = staff_api_client.post_graphql(
