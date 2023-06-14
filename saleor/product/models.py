@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
@@ -66,8 +67,6 @@ from ..tax.models import TaxClass
 from . import ProductMediaTypes, ProductTypeKind
 
 if TYPE_CHECKING:
-    from decimal import Decimal
-
     from ..account.models import User
     from ..app.models import App
 
@@ -793,6 +792,7 @@ class ProductVariantChannelListing(models.Model):
     promotion_rules = models.ManyToManyField(
         PromotionRule,
         help_text=("Promotion rules that were included in the discounted price."),
+        through="VariantChannelListingPromotionRule",
         blank=True,
     )
 
@@ -803,6 +803,31 @@ class ProductVariantChannelListing(models.Model):
     class Meta:
         unique_together = [["variant", "channel"]]
         ordering = ("pk",)
+
+
+class VariantChannelListingPromotionRule(models.Model):
+    variant_channel_listing = models.ForeignKey(
+        ProductVariantChannelListing,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    promotion_rule = models.ForeignKey(
+        PromotionRule,
+        related_name="variantlistingpromotionrule",
+        on_delete=models.CASCADE,
+    )
+    discount_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0.0"),
+    )
+    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+
+    class Meta:
+        unique_together = [["variant_channel_listing", "promotion_rule"]]
 
 
 class DigitalContent(ModelWithMetadata):

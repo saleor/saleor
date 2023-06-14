@@ -7,6 +7,7 @@ from prices import Money
 
 from ...discount import RewardValueType
 from ...discount.models import Promotion, Sale, SaleChannelListing
+from ...product.models import VariantChannelListingPromotionRule
 from ..tasks import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_task,
@@ -148,6 +149,11 @@ def test_update_discounted_price_for_promotion_discount_on_variant(
     assert product_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.promotion_rules.first() == rule
+    assert variant_channel_listing.promotion_rules.first()
+    assert (
+        variant_channel_listing.variantlistingpromotionrule.first().discount_amount
+        == reward_value
+    )
 
 
 def test_update_discounted_price_for_promotion_discount_on_product(
@@ -192,6 +198,10 @@ def test_update_discounted_price_for_promotion_discount_on_product(
     assert product_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.discounted_price_amount == expected_price_amount
     assert variant_channel_listing.promotion_rules.first() == rule
+    assert (
+        variant_channel_listing.variantlistingpromotionrule.first().discount_amount
+        == variant_price.amount - expected_price_amount
+    )
 
 
 def test_update_discounted_price_for_promotion_promotion_not_applicable_for_channel(
@@ -233,6 +243,56 @@ def test_update_discounted_price_for_promotion_promotion_not_applicable_for_chan
     assert product_channel_listing.discounted_price == variant_price
     assert variant_channel_listing.discounted_price == variant_price
     assert not variant_channel_listing.promotion_rules.all()
+
+
+def test_update_discounted_price_for_promotion_discount_updated(product, channel_USD):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+
+    variant_price = Money("9.99", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = variant_price
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={
+            "variantPredicate": {
+                "ids": [graphene.Node.to_global_id("ProductVariant", variant.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=variant_channel_listing,
+        promotion_rule=rule,
+        discount_amount=Decimal("1"),
+        currency=channel_USD.currency_code,
+    )
+
+    # when
+    update_discounted_prices_for_promotion([product])
+
+    # then
+    expected_price_amount = variant_price.amount - reward_value
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.discounted_price_amount == expected_price_amount
+    assert variant_channel_listing.promotion_rules.count() == 1
+    listing_promotion_rule.refresh_from_db()
+    assert listing_promotion_rule.discount_amount == reward_value
 
 
 def test_update_products_discounted_prices_of_catalogues_for_product(
