@@ -54,10 +54,10 @@ def test_install_app_created_app(
 ):
     # given
     app_manifest["permissions"] = ["MANAGE_PRODUCTS"]
-    mocked_get_response = Mock()
-    mocked_get_response.json.return_value = app_manifest
+    mocked_get = Mock(return_value=Mock())
+    mocked_get.return_value.json = Mock(return_value=app_manifest)
 
-    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    monkeypatch.setattr(requests, "get", mocked_get)
     mocked_post = Mock()
     monkeypatch.setattr(requests, "post", mocked_post)
 
@@ -67,6 +67,12 @@ def test_install_app_created_app(
     app, _ = install_app(app_installation, activate=True)
 
     # then
+    mocked_get.assert_called_once_with(
+        app_installation.manifest_url,
+        headers={"Saleor-Version": __version__},
+        timeout=ANY,
+        allow_redirects=False,
+    )
     mocked_post.assert_called_once_with(
         app_manifest["tokenTargetUrl"],
         headers={
@@ -75,6 +81,7 @@ def test_install_app_created_app(
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
+            "Saleor-Version": __version__,
         },
         json={"auth_token": ANY},
         timeout=ANY,
