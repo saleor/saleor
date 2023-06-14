@@ -6,7 +6,7 @@ import pytest
 import requests
 from PIL import Image
 
-from ..... import __version__
+from ..... import schema_version
 from .....app.error_codes import AppErrorCode
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -122,7 +122,7 @@ def test_app_fetch_manifest_custom_saleor_headers(
     # then
     mocked_get.assert_called_once_with(
         manifest_url,
-        headers={"Saleor-Version": __version__},
+        headers={"Saleor-Version": schema_version},
         timeout=ANY,
         allow_redirects=False,
     )

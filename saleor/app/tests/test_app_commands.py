@@ -4,7 +4,7 @@ import pytest
 import requests
 from django.core.management import call_command
 
-from ... import __version__
+from ... import schema_version
 from ...core import JobStatus
 from ...permission.enums import get_permissions
 from ..models import App, AppInstallation
@@ -67,7 +67,7 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
-            "Saleor-Version": __version__,
+            "Saleor-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,
@@ -134,7 +134,7 @@ def test_sends_data_to_target_url(monkeypatch):
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
-            "Saleor-Version": __version__,
+            "Saleor-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,

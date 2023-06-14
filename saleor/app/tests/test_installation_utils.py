@@ -11,7 +11,7 @@ from django.core.files.base import ContentFile
 from django.db import DatabaseError
 from freezegun import freeze_time
 
-from ... import __version__
+from ... import __version__, schema_version
 from ...core.utils.json_serializer import CustomJsonEncoder
 from ...webhook.event_types import WebhookEventAsyncType
 from ...webhook.payloads import generate_meta, generate_requestor
@@ -69,7 +69,7 @@ def test_install_app_created_app(
     # then
     mocked_get.assert_called_once_with(
         app_installation.manifest_url,
-        headers={"Saleor-Version": __version__},
+        headers={"Saleor-Version": schema_version},
         timeout=ANY,
         allow_redirects=False,
     )
@@ -81,7 +81,7 @@ def test_install_app_created_app(
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
-            "Saleor-Version": __version__,
+            "Saleor-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,
