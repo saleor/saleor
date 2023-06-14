@@ -3,6 +3,7 @@ class AppHeaders:
     EVENT_TYPE = "Saleor-Event"
     SIGNATURE = "Saleor-Signature"
     API_URL = "Saleor-Api-Url"
+    VERSION = "Saleor-Version"
 
 
 class DeprecatedAppHeaders:
