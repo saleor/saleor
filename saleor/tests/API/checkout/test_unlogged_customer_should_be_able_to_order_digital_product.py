@@ -6,6 +6,7 @@ from ..products.utils import (
     create_product,
     create_product_channel_listing,
     create_product_variant,
+    create_product_variant_channel_listing,
 )
 from ..warehouse.utils import create_warehouse
 
@@ -55,6 +56,12 @@ def test_process_checkout_with_digital_product(
     )
     product_variant_id = product_variant_data["id"]
     assert product_variant_id is not None
+
+    product_variant_channel_listing_data = create_product_variant_channel_listing(
+        staff_api_client, [permission_manage_products], product_variant_id, channel_id
+    )
+    product_variant_channel_listing_id = product_variant_channel_listing_data["id"]
+    assert product_variant_channel_listing_id is not None
 
     digital_content_data = create_digital_content(staff_api_client, product_variant_id)
     digital_content_id = digital_content_data["id"]
