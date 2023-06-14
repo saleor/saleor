@@ -10,6 +10,7 @@ from ..products.utils import (
 )
 from ..shipping_zone.utils import create_shipping_zone
 from ..warehouse.utils import create_warehouse
+from .utils import checkout_create
 
 
 def test_process_checkout_with_digital_product(
@@ -90,3 +91,10 @@ def test_process_checkout_with_digital_product(
     digital_content_data = create_digital_content(staff_api_client, product_variant_id)
     digital_content_id = digital_content_data["id"]
     assert digital_content_id is not None
+
+    lines = [
+        {"variantId": product_variant_id, "quantity": 1},
+    ]
+    checkout_data = checkout_create(api_client, lines, channel_slug)
+    checkout_id = checkout_data["id"]
+    assert checkout_id is not None
