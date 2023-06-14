@@ -35,7 +35,11 @@ from ..shipping.dataloaders import (
     ShippingMethodChannelListingByChannelSlugLoader,
 )
 from ..tax.dataloaders import TaxClassByVariantIdLoader, TaxConfigurationByChannelId
-from ..warehouse.dataloaders import WarehouseByIdLoader
+from ..warehouse.dataloaders import (
+    StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
+    WarehouseByIdLoader,
+)
+from .problems import get_checkout_lines_problems, get_checkout_problems
 
 
 class CheckoutByTokenLoader(DataLoader[str, Checkout]):
@@ -459,3 +463,85 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
         return (
             CheckoutLineByIdLoader(self.context).load_many(keys).then(channel_by_lines)
         )
+
+
+class CheckoutLinesProblemsByCheckoutIdLoader(DataLoader[str, dict[str, list[dict]]]):
+    context_key = "checkout_lines_problems_by_checkout_id"
+
+    def batch_load(self, keys):
+        stock_dataloader = (
+            StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader(
+                self.context
+            )
+        )
+
+        def _resolve_problems(data):
+            checkout_infos, checkout_lines = data
+            checkout_lines_ids = []
+            checkout_lines_info_map = {}
+            checkout_lines_to_checkout_infos_map = {}
+            checkout_infos_map = {
+                checkout_info.checkout.pk: checkout_info
+                for checkout_info in checkout_infos
+            }
+            for lines in checkout_lines:
+                for line in lines:
+                    checkout_lines_ids.append(line.line.id)
+                    checkout_lines_info_map[line.line.id] = line
+                    checkout_lines_to_checkout_infos_map[
+                        line.line.id
+                    ] = checkout_infos_map[line.line.checkout_id]
+
+            def _prepare_problems(stocks):
+                lines_with_stock_per_checkout = defaultdict(list)
+                for line_id, variant_stocks in zip(checkout_lines_ids, stocks):
+                    checkout_id = checkout_lines_to_checkout_infos_map[
+                        line_id
+                    ].checkout.pk
+                    lines_with_stock_per_checkout[checkout_id].append(
+                        (checkout_lines_info_map[line_id], variant_stocks)
+                    )
+                problems = {}
+                for (
+                    checkout_pk,
+                    lines_with_stock,
+                ) in lines_with_stock_per_checkout.items():
+                    problems[checkout_pk] = get_checkout_lines_problems(
+                        lines_with_stock
+                    )
+                return [problems.get(key, []) for key in keys]
+
+            return stock_dataloader.load_many(
+                [
+                    (
+                        checkout_lines_info_map[line_id].variant.id,
+                        checkout_lines_to_checkout_infos_map[line_id].checkout.country,
+                        checkout_lines_to_checkout_infos_map[line_id].channel.slug,
+                    )
+                    for line_id in checkout_lines_ids
+                ]
+            ).then(_prepare_problems)
+
+        checkout_infos = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
+        lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
+        return Promise.all([checkout_infos, lines]).then(_resolve_problems)
+
+
+class CheckoutProblemsByCheckoutIdDataloader(DataLoader[str, dict[str, str]]):
+    context_key = "checkout_problems_by_checkout_id"
+
+    def batch_load(self, keys):
+        line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(self.context)
+
+        def _resolve_problems(checkouts_lines_problems: list[dict[str, list[dict]]]):
+            checkout_problems = defaultdict(list)
+            for checkout_pk, checkout_lines_problems in zip(
+                keys, checkouts_lines_problems
+            ):
+                checkout_problems[checkout_pk] = get_checkout_problems(
+                    checkout_lines_problems
+                )
+
+            return [checkout_problems.get(key, []) for key in keys]
+
+        return line_problems_dataloader.load_many(keys).then(_resolve_problems)

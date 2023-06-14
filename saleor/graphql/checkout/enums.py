@@ -1,6 +1,11 @@
 import graphene
 
-from ...checkout import CheckoutAuthorizeStatus, CheckoutChargeStatus, error_codes
+from ...checkout import (
+    CheckoutAuthorizeStatus,
+    CheckoutChargeStatus,
+    error_codes,
+    problem_codes,
+)
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_ORDERS
 from ..core.enums import to_enum
 
@@ -28,3 +33,13 @@ CheckoutCreateFromOrderUnavailableVariantErrorCode = graphene.Enum.from_enum(
     error_codes.CheckoutCreateFromOrderUnavailableVariantErrorCode
 )
 CheckoutCreateFromOrderUnavailableVariantErrorCode.doc_category = DOC_CATEGORY_CHECKOUT
+
+
+CheckoutProblemCode = graphene.Enum.from_enum(
+    problem_codes.CheckoutProblemCode,
+    description=problem_codes.CheckoutProblemCode.__doc__,
+)
+CheckoutLineProblemCode = graphene.Enum.from_enum(
+    problem_codes.CheckoutLineProblemCode,
+    description=problem_codes.CheckoutLineProblemCode.__doc__,
+)

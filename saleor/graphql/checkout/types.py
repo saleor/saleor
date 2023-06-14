@@ -24,8 +24,13 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
+from ..channel.dataloaders import ChannelByIdLoader
 from ..channel.types import Channel
-from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
+from ..checkout.dataloaders import (
+    ChannelByCheckoutLineIDLoader,
+    CheckoutLinesProblemsByCheckoutIdLoader,
+    CheckoutProblemsByCheckoutIdDataloader,
+)
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -35,6 +40,7 @@ from ..core.descriptions import (
     ADDED_IN_38,
     ADDED_IN_39,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
 )
@@ -75,7 +81,12 @@ from .dataloaders import (
     CheckoutMetadataByCheckoutIdLoader,
     TransactionItemsByCheckoutIDLoader,
 )
-from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
+from .enums import (
+    CheckoutAuthorizeStatusEnum,
+    CheckoutChargeStatusEnum,
+    CheckoutLineProblemCode,
+    CheckoutProblemCode,
+)
 from .utils import prevent_sync_event_circular_query
 
 if TYPE_CHECKING:
@@ -98,6 +109,42 @@ def get_dataloaders_for_fetching_checkout_data(
     checkout_info = CheckoutInfoByCheckoutTokenLoader(info.context).load(root.token)
     manager = get_plugin_manager_promise(info.context)
     return address, lines, checkout_info, manager
+
+
+class CheckoutLineProblem(BaseObjectType):
+    code = graphene.Field(
+        CheckoutLineProblemCode,
+        description="Code of the existing problem.",
+        required=True,
+    )
+    message = graphene.String(
+        required=True, description="Message describing the problem."
+    )
+    field = graphene.String(description="Field name related to the problem.")
+
+    class Meta:
+        description = (
+            "Represents an problem in the checkout line."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutProblem(BaseObjectType):
+    code = graphene.Field(
+        CheckoutProblemCode, description="Code of the existing problem.", required=True
+    )
+    message = graphene.String(
+        required=True, description="Message describing the problem."
+    )
+    field = graphene.String(description="Field name related to the problem.")
+
+    class Meta:
+        description = (
+            "Represents an problem in the checkout." + ADDED_IN_315 + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
 
 
 class GatewayConfigLine(BaseObjectType):
@@ -165,6 +212,12 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
     requires_shipping = graphene.Boolean(
         description="Indicates whether the item need to be delivered.",
         required=True,
+    )
+    problems = NonNullList(
+        CheckoutLineProblem,
+        description="List of problems with the checkout line."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
     )
 
     class Meta:
@@ -338,6 +391,18 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
             .load(root.variant_id)
             .then(is_shipping_required)
         )
+
+    @staticmethod
+    @traced_resolver
+    def resolve_problems(root: models.CheckoutLine, info: ResolveInfo):
+        problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(
+            info.context
+        ).load(root.checkout_id)
+
+        def get_problem_for_line(problems):
+            return problems.get(root.pk, [])
+
+        return problems_dataloader.then(get_problem_for_line)
 
 
 class CheckoutLineCountableConnection(CountableConnection):
@@ -542,6 +607,13 @@ class Checkout(ModelObjectType[models.Checkout]):
             "The charge status of the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
         required=True,
+    )
+
+    problems = NonNullList(
+        CheckoutProblem,
+        description=(
+            "List of problems with the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
     )
 
     class Meta:
@@ -963,6 +1035,14 @@ class Checkout(ModelObjectType[models.Checkout]):
             TransactionItemsByCheckoutIDLoader(info.context).load(root.pk)
         )
         return Promise.all(dataloaders).then(_calculate_total_balance_for_transactions)
+
+    @staticmethod
+    @traced_resolver
+    def resolve_problems(root: models.Checkout, info):
+        checkout_problems_dataloader = CheckoutProblemsByCheckoutIdDataloader(
+            info.context
+        )
+        return checkout_problems_dataloader.load(root.pk)
 
 
 class CheckoutCountableConnection(CountableConnection):

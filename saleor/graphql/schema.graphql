@@ -9869,6 +9869,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   chargeStatus: CheckoutChargeStatusEnum!
+
+  """
+  List of problems with the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutProblem!]
 }
 
 """
@@ -10204,6 +10213,43 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
+
+  """
+  List of problems with the checkout line.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutLineProblem!]
+}
+
+"""
+Represents an problem in the checkout line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblem @doc(category: "Checkout") {
+  """Code of the existing problem."""
+  code: CheckoutLineProblemCode!
+
+  """Message describing the problem."""
+  message: String!
+
+  """Field name related to the problem."""
+  field: String
+}
+
+"""
+Definition of all possible checkout line problem codes.
+
+    INSUFFICIENT_STOCK - indicates insufficient stock for a given checkout line.
+    Placing the order will not be possible until solving this problem.
+"""
+enum CheckoutLineProblemCode {
+  INSUFFICIENT_STOCK
 }
 
 """
@@ -11888,6 +11934,34 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   PARTIAL
   FULL
   OVERCHARGED
+}
+
+"""
+Represents an problem in the checkout.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutProblem @doc(category: "Checkout") {
+  """Code of the existing problem."""
+  code: CheckoutProblemCode!
+
+  """Message describing the problem."""
+  message: String!
+
+  """Field name related to the problem."""
+  field: String
+}
+
+"""
+Definition of all possible checkout problem codes.
+
+    INSUFFICIENT_STOCK - indicates insufficient stock for some variants in checkout
+    Placing the order will not be possible until solving this problem.
+"""
+enum CheckoutProblemCode {
+  INSUFFICIENT_STOCK
 }
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
