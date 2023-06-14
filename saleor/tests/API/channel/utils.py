@@ -36,6 +36,7 @@ def create_channel(staff_api_client, permissions):
             "slug": slug,
             "currencyCode": currency,
             "defaultCountry": country,
+            "isActive": True,
         }
     }
     response = staff_api_client.post_graphql(
