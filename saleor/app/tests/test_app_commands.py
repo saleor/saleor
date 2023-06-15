@@ -1,4 +1,4 @@
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, call
 
 import pytest
 import requests
@@ -59,6 +59,13 @@ def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
 
     call_command("install_app", manifest_url)
 
+    get_call = call(
+        manifest_url,
+        headers={"Saleor-Schema-Version": schema_version},
+        timeout=ANY,
+        allow_redirects=False,
+    )
+    mocked_get.assert_has_calls([get_call, get_call])
     mocked_post.assert_called_once_with(
         app_manifest["tokenTargetUrl"],
         headers={
