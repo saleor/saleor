@@ -3,10 +3,12 @@ from typing import Generic, Optional, Type, TypeVar
 from uuid import UUID
 
 from django.db.models import Model, Q
-from graphene.types.objecttype import ObjectType, ObjectTypeOptions
+from graphene.types.objecttype import ObjectTypeOptions
 
 from ..descriptions import ADDED_IN_33, PREVIEW_FEATURE
+from ..doc_category import DOC_CATEGORY_MAP
 from . import TYPES_WITH_DOUBLE_ID_AVAILABLE
+from .base import BaseObjectType
 
 
 class ModelObjectOptions(ObjectTypeOptions):
@@ -17,7 +19,7 @@ class ModelObjectOptions(ObjectTypeOptions):
 MT = TypeVar("MT", bound=Model)
 
 
-class ModelObjectType(Generic[MT], ObjectType):
+class ModelObjectType(Generic[MT], BaseObjectType):
     @classmethod
     def __init_subclass_with_meta__(
         cls,
@@ -25,6 +27,7 @@ class ModelObjectType(Generic[MT], ObjectType):
         possible_types=(),
         default_resolver=None,
         _meta=None,
+        doc_category=None,
         **options,
     ):
         if not _meta:
@@ -42,8 +45,15 @@ class ModelObjectType(Generic[MT], ObjectType):
                     f"received '{type(options['model'])}' type."
                 )
 
-            _meta.model = options.pop("model")
+            model = options.pop("model")
+            _meta.model = model
             _meta.metadata_since = options.pop("metadata_since", None)
+
+            doc_category_key = f"{model._meta.app_label}.{model.__name__}"
+            if doc_category not in options:
+                options["doc_category"] = doc_category
+            if not options["doc_category"] and doc_category_key in DOC_CATEGORY_MAP:
+                options["doc_category"] = DOC_CATEGORY_MAP[doc_category_key]
 
         super(ModelObjectType, cls).__init_subclass_with_meta__(
             interfaces=interfaces,

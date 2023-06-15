@@ -11,19 +11,23 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
-from ...core.types import OrderError
+from ...core.types import BaseInputObjectType, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...warehouse.types import Warehouse
 from ..types import Fulfillment, Order
 
 
-class FulfillmentCancelInput(graphene.InputObjectType):
+class FulfillmentCancelInput(BaseInputObjectType):
     warehouse_id = graphene.ID(
         description="ID of a warehouse where items will be restocked. Optional "
         "when fulfillment is in WAITING_FOR_APPROVAL state.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class FulfillmentCancel(BaseMutation):
@@ -38,6 +42,7 @@ class FulfillmentCancel(BaseMutation):
 
     class Meta:
         description = "Cancels existing fulfillment and optionally restocks items."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -88,6 +93,7 @@ class FulfillmentCancel(BaseMutation):
         user = cast(User, user)
         fulfillment = cls.get_node_or_error(info, id, only_type=Fulfillment)
         order = fulfillment.order
+        cls.check_channel_permissions(info, [order.channel_id])
 
         cls.validate_order(order)
 

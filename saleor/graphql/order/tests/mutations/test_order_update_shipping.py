@@ -7,7 +7,7 @@ from prices import TaxedMoney
 from .....core.taxes import zero_money, zero_taxed_money
 from .....order import OrderStatus
 from .....order.error_codes import OrderErrorCode
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_UPDATE_SHIPPING_QUERY = """
     mutation orderUpdateShipping($order: ID!, $shippingMethod: ID) {
@@ -35,11 +35,12 @@ ORDER_UPDATE_SHIPPING_QUERY = """
 def test_order_update_shipping(
     status,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.base_shipping_price = zero_money(order.currency)
     order.status = status
@@ -50,9 +51,7 @@ def test_order_update_shipping(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["id"] == order_id
@@ -79,15 +78,94 @@ def test_order_update_shipping(
     )
 
 
+def test_order_update_shipping_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    order_with_lines,
+    shipping_method,
+    channel_PLN,
+):
+    # given
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    order.base_shipping_price = zero_money(order.currency)
+    order.status = OrderStatus.UNCONFIRMED
+    order.channel = channel_PLN
+    order.save(update_fields=["channel", "status"])
+    assert order.shipping_method != shipping_method
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_order_update_shipping_by_app(
+    app_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    shipping_method,
+):
+    # given
+    order = order_with_lines
+    order.base_shipping_price = zero_money(order.currency)
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    assert order.shipping_method != shipping_method
+
+    query = ORDER_UPDATE_SHIPPING_QUERY
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {"order": order_id, "shippingMethod": method_id}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderUpdateShipping"]
+    assert data["order"]["id"] == order_id
+
+    order.refresh_from_db()
+    shipping_total = shipping_method.channel_listings.get(
+        channel_id=order.channel_id
+    ).get_total()
+    shipping_price = TaxedMoney(shipping_total, shipping_total)
+    assert order.status == OrderStatus.UNCONFIRMED
+    assert order.shipping_method == shipping_method
+    assert order.base_shipping_price == shipping_total
+    assert order.shipping_price_net == shipping_price.net
+    assert order.shipping_price_gross == shipping_price.gross
+    assert order.shipping_tax_rate == Decimal("0.0")
+    assert order.shipping_method_name == shipping_method.name
+
+    shipping_tax_class = shipping_method.tax_class
+    assert order.shipping_tax_rate is not None
+    assert order.shipping_tax_class == shipping_tax_class
+    assert order.shipping_tax_class_metadata == shipping_tax_class.metadata
+    assert (
+        order.shipping_tax_class_private_metadata == shipping_tax_class.private_metadata
+    )
+
+
 @pytest.mark.parametrize("status", [OrderStatus.UNCONFIRMED, OrderStatus.DRAFT])
 def test_order_update_shipping_no_shipping_method_channel_listings(
     status,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = status
     order.save()
@@ -97,9 +175,7 @@ def test_order_update_shipping_no_shipping_method_channel_listings(
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     shipping_method.channel_listings.all().delete()
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     errors = data["errors"]
@@ -110,12 +186,13 @@ def test_order_update_shipping_no_shipping_method_channel_listings(
 
 def test_order_update_shipping_tax_included(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -136,9 +213,7 @@ def test_order_update_shipping_tax_included(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -162,8 +237,9 @@ def test_order_update_shipping_tax_included(
 
 
 def test_order_update_shipping_clear_shipping_method(
-    staff_api_client, permission_manage_orders, order, staff_user, shipping_method
+    staff_api_client, permission_group_manage_orders, order, staff_user, shipping_method
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order.shipping_method = shipping_method
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -180,9 +256,7 @@ def test_order_update_shipping_clear_shipping_method(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["order"]["id"] == order_id
@@ -199,8 +273,9 @@ def test_order_update_shipping_clear_shipping_method(
 
 
 def test_order_update_shipping_shipping_required(
-    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+    staff_api_client, permission_group_manage_orders, order_with_lines, staff_user
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -208,9 +283,7 @@ def test_order_update_shipping_shipping_required(
     query = ORDER_UPDATE_SHIPPING_QUERY
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"order": order_id, "shippingMethod": None}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "shippingMethod"
@@ -227,16 +300,18 @@ def test_order_update_shipping_shipping_required(
         OrderStatus.PARTIALLY_RETURNED,
         OrderStatus.RETURNED,
         OrderStatus.CANCELED,
+        OrderStatus.EXPIRED,
     ],
 )
 def test_order_update_shipping_not_editable_order(
     status,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = status
     order.save()
@@ -245,9 +320,7 @@ def test_order_update_shipping_not_editable_order(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "id"
@@ -256,11 +329,12 @@ def test_order_update_shipping_not_editable_order(
 
 def test_order_update_shipping_no_shipping_address(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -271,9 +345,7 @@ def test_order_update_shipping_no_shipping_address(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "order"
@@ -284,11 +356,12 @@ def test_order_update_shipping_no_shipping_address(
 
 def test_order_update_shipping_incorrect_shipping_method(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -301,9 +374,7 @@ def test_order_update_shipping_incorrect_shipping_method(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "shippingMethod"
@@ -314,11 +385,12 @@ def test_order_update_shipping_incorrect_shipping_method(
 
 def test_order_update_shipping_shipping_zone_without_channels(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines,
     shipping_method,
     staff_user,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
@@ -327,9 +399,7 @@ def test_order_update_shipping_shipping_zone_without_channels(
     order_id = graphene.Node.to_global_id("Order", order.id)
     method_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     errors = data["errors"]
@@ -340,11 +410,12 @@ def test_order_update_shipping_shipping_zone_without_channels(
 
 def test_order_update_shipping_excluded_shipping_method_postal_code(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_unconfirmed,
     staff_user,
     shipping_method_excluded_by_postal_code,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_unconfirmed
     order.shipping_method = shipping_method_excluded_by_postal_code
     shipping_total = shipping_method_excluded_by_postal_code.channel_listings.get(
@@ -362,9 +433,7 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
         "ShippingMethod", shipping_method_excluded_by_postal_code.id
     )
     variables = {"order": order_id, "shippingMethod": method_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
     assert data["errors"][0]["field"] == "shippingMethod"
@@ -374,9 +443,10 @@ def test_order_update_shipping_excluded_shipping_method_postal_code(
 
 
 def test_draft_order_clear_shipping_method(
-    staff_api_client, draft_order, permission_manage_orders
+    staff_api_client, draft_order, permission_group_manage_orders
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert draft_order.shipping_method
     assert draft_order.base_shipping_price != zero_money(draft_order.currency)
     assert draft_order.shipping_price != zero_taxed_money(draft_order.currency)
@@ -385,9 +455,7 @@ def test_draft_order_clear_shipping_method(
     variables = {"order": order_id, "shippingMethod": None}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -429,17 +497,17 @@ mutation OrderUpdateShipping(
     ],
 )
 def test_order_shipping_update_mutation_return_error_for_empty_value(
-    draft_order, permission_manage_orders, staff_api_client, input, response_msg
+    draft_order, permission_group_manage_orders, staff_api_client, input, response_msg
 ):
     query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
 
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"orderId": order_id, "shippingMethod": input}
     response = staff_api_client.post_graphql(
         query,
         variables,
-        permissions=(permission_manage_orders,),
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]
@@ -449,18 +517,18 @@ def test_order_shipping_update_mutation_return_error_for_empty_value(
 
 def test_order_shipping_update_mutation_properly_recalculate_total(
     draft_order,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_UPDATE_SHIPPING_QUERY_WITH_TOTAL
 
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"orderId": order_id, "shippingMethod": {"shippingMethod": None}}
     response = staff_api_client.post_graphql(
         query,
         variables,
-        permissions=(permission_manage_orders,),
     )
     content = get_graphql_content(response)
     data = content["data"]["orderUpdateShipping"]

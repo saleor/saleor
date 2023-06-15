@@ -8,7 +8,8 @@ from ....channel.error_codes import ChannelErrorCode
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import ChannelPermissions
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_37, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_37
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.inputs import ReorderInput
 from ...core.mutations import BaseMutation
 from ...core.types import ChannelError, NonNullList
@@ -36,9 +37,8 @@ class ChannelReorderWarehouses(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "Reorder the warehouses of a channel." + ADDED_IN_37 + PREVIEW_FEATURE
-        )
+        description = "Reorder the warehouses of a channel." + ADDED_IN_37
+        doc_category = DOC_CATEGORY_CHANNELS
         permissions = (ChannelPermissions.MANAGE_CHANNELS,)
         error_type_class = ChannelError
 

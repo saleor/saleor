@@ -1,6 +1,7 @@
 import decimal
 
 import graphene
+from graphene.types.generic import GenericScalar
 from graphql.error import GraphQLError
 from graphql.language import ast
 from measurement.measures import Weight
@@ -53,10 +54,30 @@ class PositiveDecimal(Decimal):
         return value
 
 
+class JSON(GenericScalar):
+    @staticmethod
+    def parse_literal(node):
+        if isinstance(node, ast.ObjectValue):
+            return {
+                field.name.value: GenericScalar.parse_literal(field.value)
+                for field in node.fields
+            }
+        elif isinstance(node, ast.ListValue):
+            return [GenericScalar.parse_literal(value) for value in node.values]
+        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
+
+    @staticmethod
+    def parse_value(value):
+        if isinstance(value, dict):
+            return value
+        if isinstance(value, list):
+            return [GenericScalar.parse_value(v) for v in value]
+        raise GraphQLError("JSON scalar needs to receive a correct JSON structure.")
+
+
 class WeightScalar(graphene.Scalar):
     @staticmethod
     def parse_value(value):
-        weight = None
         if isinstance(value, dict):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
@@ -74,7 +95,6 @@ class WeightScalar(graphene.Scalar):
 
     @staticmethod
     def parse_literal(node):
-        weight = None
         if isinstance(node, ast.ObjectValue):
             weight = WeightScalar.parse_literal_object(node)
         else:
@@ -143,3 +163,11 @@ class Date(graphene.Date):
         if isinstance(value, string_types) and not value:
             return None
         return super(Date, Date).parse_value(value)
+
+
+class Minute(graphene.Int):
+    """The `Minute` scalar type represents number of minutes by integer value."""
+
+
+class Day(graphene.Int):
+    """The `Day` scalar type represents number of days by integer value."""

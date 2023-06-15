@@ -48,6 +48,7 @@ class WebhookEventAsyncType:
     GIFT_CARD_CREATED = "gift_card_created"
     GIFT_CARD_UPDATED = "gift_card_updated"
     GIFT_CARD_DELETED = "gift_card_deleted"
+    GIFT_CARD_SENT = "gift_card_sent"
     GIFT_CARD_STATUS_CHANGED = "gift_card_status_changed"
     GIFT_CARD_METADATA_UPDATED = "gift_card_metadata_updated"
 
@@ -60,11 +61,16 @@ class WebhookEventAsyncType:
 
     ORDER_CREATED = "order_created"
     ORDER_CONFIRMED = "order_confirmed"
+    ORDER_PAID = "order_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
+    ORDER_REFUNDED = "order_refunded"
+    ORDER_FULLY_REFUNDED = "order_fully_refunded"
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
+    ORDER_EXPIRED = "order_expired"
     ORDER_FULFILLED = "order_fulfilled"
     ORDER_METADATA_UPDATED = "order_metadata_updated"
+    ORDER_BULK_CREATED = "order_bulk_created"
 
     FULFILLMENT_CREATED = "fulfillment_created"
     FULFILLMENT_CANCELED = "fulfillment_canceled"
@@ -114,6 +120,7 @@ class WebhookEventAsyncType:
 
     CHECKOUT_CREATED = "checkout_created"
     CHECKOUT_UPDATED = "checkout_updated"
+    CHECKOUT_FULLY_PAID = "checkout_fully_paid"
     CHECKOUT_METADATA_UPDATED = "checkout_metadata_updated"
 
     NOTIFY_USER = "notify_user"
@@ -188,6 +195,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_CREATED: "Gift card created",
         GIFT_CARD_UPDATED: "Gift card updated",
         GIFT_CARD_DELETED: "Gift card deleted",
+        GIFT_CARD_SENT: "Gift card sent",
         GIFT_CARD_STATUS_CHANGED: "Gift card status changed",
         GIFT_CARD_METADATA_UPDATED: "Gift card metadata updated",
         MENU_CREATED: "Menu created",
@@ -198,11 +206,16 @@ class WebhookEventAsyncType:
         MENU_ITEM_DELETED: "Menu item deleted",
         ORDER_CREATED: "Order created",
         ORDER_CONFIRMED: "Order confirmed",
-        ORDER_FULLY_PAID: "Order paid",
+        ORDER_PAID: "Order paid",
+        ORDER_FULLY_PAID: "Order fully paid",
+        ORDER_REFUNDED: "Order refunded",
+        ORDER_FULLY_REFUNDED: "Order fully refunded",
         ORDER_UPDATED: "Order updated",
         ORDER_CANCELLED: "Order cancelled",
+        ORDER_EXPIRED: "Order expired",
         ORDER_FULFILLED: "Order fulfilled",
         ORDER_METADATA_UPDATED: "Order metadata updated",
+        ORDER_BULK_CREATED: "Order bulk created",
         DRAFT_ORDER_CREATED: "Draft order created",
         DRAFT_ORDER_UPDATED: "Draft order updated",
         DRAFT_ORDER_DELETED: "Draft order deleted",
@@ -237,6 +250,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: "Product variant stock updated",
         CHECKOUT_CREATED: "Checkout created",
         CHECKOUT_UPDATED: "Checkout updated",
+        CHECKOUT_FULLY_PAID: "Checkout fully paid",
         CHECKOUT_METADATA_UPDATED: "Checkout metadata updated",
         FULFILLMENT_CREATED: "Fulfillment created",
         FULFILLMENT_CANCELED: "Fulfillment cancelled",
@@ -303,6 +317,7 @@ class WebhookEventAsyncType:
         (GIFT_CARD_CREATED, DISPLAY_LABELS[GIFT_CARD_CREATED]),
         (GIFT_CARD_UPDATED, DISPLAY_LABELS[GIFT_CARD_UPDATED]),
         (GIFT_CARD_DELETED, DISPLAY_LABELS[GIFT_CARD_DELETED]),
+        (GIFT_CARD_SENT, DISPLAY_LABELS[GIFT_CARD_SENT]),
         (GIFT_CARD_STATUS_CHANGED, DISPLAY_LABELS[GIFT_CARD_STATUS_CHANGED]),
         (GIFT_CARD_METADATA_UPDATED, DISPLAY_LABELS[GIFT_CARD_METADATA_UPDATED]),
         (MENU_CREATED, DISPLAY_LABELS[MENU_CREATED]),
@@ -313,11 +328,16 @@ class WebhookEventAsyncType:
         (MENU_ITEM_DELETED, DISPLAY_LABELS[MENU_ITEM_DELETED]),
         (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
         (ORDER_CONFIRMED, DISPLAY_LABELS[ORDER_CONFIRMED]),
+        (ORDER_PAID, DISPLAY_LABELS[ORDER_PAID]),
         (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
+        (ORDER_REFUNDED, DISPLAY_LABELS[ORDER_REFUNDED]),
+        (ORDER_FULLY_REFUNDED, DISPLAY_LABELS[ORDER_FULLY_REFUNDED]),
         (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
         (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
+        (ORDER_EXPIRED, DISPLAY_LABELS[ORDER_EXPIRED]),
         (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
         (ORDER_METADATA_UPDATED, DISPLAY_LABELS[ORDER_METADATA_UPDATED]),
+        (ORDER_BULK_CREATED, DISPLAY_LABELS[ORDER_BULK_CREATED]),
         (DRAFT_ORDER_CREATED, DISPLAY_LABELS[DRAFT_ORDER_CREATED]),
         (DRAFT_ORDER_UPDATED, DISPLAY_LABELS[DRAFT_ORDER_UPDATED]),
         (DRAFT_ORDER_DELETED, DISPLAY_LABELS[DRAFT_ORDER_DELETED]),
@@ -355,6 +375,7 @@ class WebhookEventAsyncType:
         ),
         (CHECKOUT_CREATED, DISPLAY_LABELS[CHECKOUT_CREATED]),
         (CHECKOUT_UPDATED, DISPLAY_LABELS[CHECKOUT_UPDATED]),
+        (CHECKOUT_FULLY_PAID, DISPLAY_LABELS[CHECKOUT_FULLY_PAID]),
         (CHECKOUT_METADATA_UPDATED, DISPLAY_LABELS[CHECKOUT_METADATA_UPDATED]),
         (FULFILLMENT_CREATED, DISPLAY_LABELS[FULFILLMENT_CREATED]),
         (FULFILLMENT_CANCELED, DISPLAY_LABELS[FULFILLMENT_CANCELED]),
@@ -428,6 +449,7 @@ class WebhookEventAsyncType:
         GIFT_CARD_CREATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_DELETED: GiftcardPermissions.MANAGE_GIFT_CARD,
+        GIFT_CARD_SENT: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_STATUS_CHANGED: GiftcardPermissions.MANAGE_GIFT_CARD,
         GIFT_CARD_METADATA_UPDATED: GiftcardPermissions.MANAGE_GIFT_CARD,
         MENU_CREATED: MenuPermissions.MANAGE_MENUS,
@@ -438,11 +460,16 @@ class WebhookEventAsyncType:
         MENU_ITEM_DELETED: MenuPermissions.MANAGE_MENUS,
         ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CONFIRMED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_PAID: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULLY_PAID: OrderPermissions.MANAGE_ORDERS,
+        ORDER_REFUNDED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_FULLY_REFUNDED: OrderPermissions.MANAGE_ORDERS,
         ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
         ORDER_CANCELLED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_EXPIRED: OrderPermissions.MANAGE_ORDERS,
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
         ORDER_METADATA_UPDATED: OrderPermissions.MANAGE_ORDERS,
+        ORDER_BULK_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_CREATED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_DELETED: OrderPermissions.MANAGE_ORDERS,
         DRAFT_ORDER_UPDATED: OrderPermissions.MANAGE_ORDERS,
@@ -477,6 +504,7 @@ class WebhookEventAsyncType:
         PRODUCT_VARIANT_STOCK_UPDATED: ProductPermissions.MANAGE_PRODUCTS,
         CHECKOUT_CREATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
+        CHECKOUT_FULLY_PAID: CheckoutPermissions.MANAGE_CHECKOUTS,
         CHECKOUT_METADATA_UPDATED: CheckoutPermissions.MANAGE_CHECKOUTS,
         FULFILLMENT_CREATED: OrderPermissions.MANAGE_ORDERS,
         FULFILLMENT_CANCELED: OrderPermissions.MANAGE_ORDERS,
@@ -531,9 +559,17 @@ class WebhookEventSyncType:
     CHECKOUT_CALCULATE_TAXES = "checkout_calculate_taxes"
     ORDER_CALCULATE_TAXES = "order_calculate_taxes"
 
+    TRANSACTION_CHARGE_REQUESTED = "transaction_charge_requested"
+    TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
+    TRANSACTION_CANCELATION_REQUESTED = "transaction_cancelation_requested"
+
     SHIPPING_LIST_METHODS_FOR_CHECKOUT = "shipping_list_methods_for_checkout"
     CHECKOUT_FILTER_SHIPPING_METHODS = "checkout_filter_shipping_methods"
     ORDER_FILTER_SHIPPING_METHODS = "order_filter_shipping_methods"
+
+    PAYMENT_GATEWAY_INITIALIZE_SESSION = "payment_gateway_initialize_session"
+    TRANSACTION_INITIALIZE_SESSION = "transaction_initialize_session"
+    TRANSACTION_PROCESS_SESSION = "transaction_process_session"
 
     DISPLAY_LABELS = {
         PAYMENT_AUTHORIZE: "Authorize payment",
@@ -543,11 +579,17 @@ class WebhookEventSyncType:
         PAYMENT_PROCESS: "Process payment",
         PAYMENT_REFUND: "Refund payment",
         PAYMENT_VOID: "Void payment",
+        TRANSACTION_CHARGE_REQUESTED: "Transaction charge requested",
+        TRANSACTION_CANCELATION_REQUESTED: "Transaction cancelation requested",
+        TRANSACTION_REFUND_REQUESTED: "Transaction refund requested",
         CHECKOUT_CALCULATE_TAXES: "Checkout calculate taxes",
         ORDER_CALCULATE_TAXES: "Order calculate taxes",
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: "Shipping list methods for checkout",
         ORDER_FILTER_SHIPPING_METHODS: "Filter order shipping methods",
         CHECKOUT_FILTER_SHIPPING_METHODS: "Filter checkout shipping methods",
+        PAYMENT_GATEWAY_INITIALIZE_SESSION: "Initialize payment gateway session",
+        TRANSACTION_INITIALIZE_SESSION: "Initialize transaction session",
+        TRANSACTION_PROCESS_SESSION: "Process transaction session",
     }
 
     CHOICES = [
@@ -558,6 +600,12 @@ class WebhookEventSyncType:
         (PAYMENT_PROCESS, DISPLAY_LABELS[PAYMENT_PROCESS]),
         (PAYMENT_REFUND, DISPLAY_LABELS[PAYMENT_REFUND]),
         (PAYMENT_VOID, DISPLAY_LABELS[PAYMENT_VOID]),
+        (TRANSACTION_CHARGE_REQUESTED, DISPLAY_LABELS[TRANSACTION_CHARGE_REQUESTED]),
+        (TRANSACTION_REFUND_REQUESTED, DISPLAY_LABELS[TRANSACTION_REFUND_REQUESTED]),
+        (
+            TRANSACTION_CANCELATION_REQUESTED,
+            DISPLAY_LABELS[TRANSACTION_CANCELATION_REQUESTED],
+        ),
         (CHECKOUT_CALCULATE_TAXES, DISPLAY_LABELS[CHECKOUT_CALCULATE_TAXES]),
         (ORDER_CALCULATE_TAXES, DISPLAY_LABELS[ORDER_CALCULATE_TAXES]),
         (
@@ -569,6 +617,15 @@ class WebhookEventSyncType:
             CHECKOUT_FILTER_SHIPPING_METHODS,
             DISPLAY_LABELS[CHECKOUT_FILTER_SHIPPING_METHODS],
         ),
+        (
+            PAYMENT_GATEWAY_INITIALIZE_SESSION,
+            DISPLAY_LABELS[PAYMENT_GATEWAY_INITIALIZE_SESSION],
+        ),
+        (
+            TRANSACTION_INITIALIZE_SESSION,
+            DISPLAY_LABELS[TRANSACTION_INITIALIZE_SESSION],
+        ),
+        (TRANSACTION_PROCESS_SESSION, DISPLAY_LABELS[TRANSACTION_PROCESS_SESSION]),
     ]
 
     ALL = [event[0] for event in CHOICES]
@@ -583,6 +640,12 @@ class WebhookEventSyncType:
         PAYMENT_VOID,
     ]
 
+    ALLOWED_IN_CIRCULAR_QUERY = [
+        PAYMENT_GATEWAY_INITIALIZE_SESSION,
+        TRANSACTION_INITIALIZE_SESSION,
+        TRANSACTION_PROCESS_SESSION,
+    ]
+
     PERMISSIONS = {
         PAYMENT_AUTHORIZE: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_CAPTURE: PaymentPermissions.HANDLE_PAYMENTS,
@@ -591,9 +654,15 @@ class WebhookEventSyncType:
         PAYMENT_PROCESS: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_REFUND: PaymentPermissions.HANDLE_PAYMENTS,
         PAYMENT_VOID: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_REFUND_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_CANCELATION_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_CHARGE_REQUESTED: PaymentPermissions.HANDLE_PAYMENTS,
         CHECKOUT_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         ORDER_CALCULATE_TAXES: CheckoutPermissions.HANDLE_TAXES,
         SHIPPING_LIST_METHODS_FOR_CHECKOUT: ShippingPermissions.MANAGE_SHIPPING,
         ORDER_FILTER_SHIPPING_METHODS: OrderPermissions.MANAGE_ORDERS,
         CHECKOUT_FILTER_SHIPPING_METHODS: CheckoutPermissions.MANAGE_CHECKOUTS,
+        PAYMENT_GATEWAY_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_INITIALIZE_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
+        TRANSACTION_PROCESS_SESSION: PaymentPermissions.HANDLE_PAYMENTS,
     }

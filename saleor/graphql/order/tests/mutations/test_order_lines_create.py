@@ -17,14 +17,19 @@ from ..utils import assert_proper_webhook_called_once
 
 ORDER_LINES_CREATE_MUTATION = """
     mutation OrderLinesCreate(
-            $orderId: ID!, $variantId: ID!, $quantity: Int!, $forceNewLine: Boolean
+            $orderId: ID!,
+            $variantId: ID!,
+            $quantity: Int!,
+            $forceNewLine: Boolean,
+            $price: PositiveDecimal,
         ) {
         orderLinesCreate(id: $orderId,
                 input: [
                     {
                         variantId: $variantId,
                         quantity: $quantity,
-                        forceNewLine: $forceNewLine
+                        forceNewLine: $forceNewLine,
+                        price: $price
                     }
                 ]) {
 
@@ -66,7 +71,7 @@ ORDER_LINES_CREATE_MUTATION = """
 def test_order_lines_create_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINES_CREATE_MUTATION
@@ -80,7 +85,7 @@ def test_order_lines_create_with_out_of_stock_webhook(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.post_graphql(query, variables)
 
     quantity_allocated = Allocation.objects.aggregate(Sum("quantity_allocated"))[
@@ -99,7 +104,7 @@ def test_order_lines_create_with_out_of_stock_webhook(
 def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webhook(
     product_variant_out_of_stock_webhook_mock,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
 ):
@@ -113,7 +118,7 @@ def test_order_lines_create_for_variant_with_many_stocks_with_out_of_stock_webho
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     staff_api_client.post_graphql(query, variables)
     product_variant_out_of_stock_webhook_mock.assert_called_once_with(
         Stock.objects.all()[3]
@@ -130,7 +135,7 @@ def test_order_lines_create(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
 ):
@@ -152,7 +157,7 @@ def test_order_lines_create(
     assert not OrderEvent.objects.exists()
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     assert_proper_webhook_called_once(
         order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
@@ -183,6 +188,86 @@ def test_order_lines_create(
     product_variant_out_of_stock_webhook_mock.assert_not_called()
 
 
+def test_order_lines_create_by_user_no_channel_access(
+    order_with_lines,
+    permission_group_all_perms_channel_USD_only,
+    staff_api_client,
+    variant_with_many_stocks,
+    channel_PLN,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    order = order_with_lines
+    order.channel = channel_PLN
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status", "channel"])
+
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+def test_order_lines_create_by_app(
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    order_with_lines,
+    permission_manage_orders,
+    app_api_client,
+    variant_with_many_stocks,
+    channel_PLN,
+):
+    # given
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = OrderStatus.UNCONFIRMED
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity
+
+    assert OrderEvent.objects.count() == 1
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    line = OrderLine.objects.last()
+    assert event.parameters["lines"] == [
+        {"item": str(line), "line_pk": str(line.pk), "quantity": quantity}
+    ]
+    assert_proper_webhook_called_once(
+        order,
+        OrderStatus.UNCONFIRMED,
+        draft_order_updated_webhook_mock,
+        order_updated_webhook_mock,
+    )
+
+
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
@@ -193,7 +278,7 @@ def test_order_lines_create_for_just_published_product(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
 ):
@@ -210,7 +295,7 @@ def test_order_lines_create_for_just_published_product(
     quantity = 1
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
 
     # when
@@ -235,10 +320,11 @@ def test_order_lines_create_with_unavailable_variant(
     order_updated_webhook_mock,
     draft_order_updated_webhoook_mock,
     draft_order,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     channel = order.channel
     line = order.lines.first()
@@ -249,9 +335,7 @@ def test_order_lines_create_with_unavailable_variant(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -262,6 +346,38 @@ def test_order_lines_create_with_unavailable_variant(
 
 
 @pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
+def test_order_lines_create_when_some_line_has_deleted_product(
+    status,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+):
+    query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+    order = order_with_lines
+    line = order.lines.first()
+    line2 = order.lines.last()
+    assert line.variant != line2.variant
+    line2.variant = None
+    line2.save(update_fields=["variant"])
+    order.status = status
+    order.save(update_fields=["status"])
+
+    variant = line.variant
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == line.quantity + quantity
+
+
+@pytest.mark.parametrize("status", (OrderStatus.DRAFT, OrderStatus.UNCONFIRMED))
 @patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
 @patch("saleor.plugins.manager.PluginsManager.order_updated")
 def test_order_lines_create_with_existing_variant(
@@ -269,7 +385,7 @@ def test_order_lines_create_with_existing_variant(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINES_CREATE_MUTATION
@@ -292,7 +408,7 @@ def test_order_lines_create_with_existing_variant(
     draft_order_updated_webhook_mock.assert_not_called()
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     assert OrderEvent.objects.count() == 1
     assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
@@ -314,7 +430,7 @@ def test_order_lines_create_with_same_variant_and_force_new_line(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     query = ORDER_LINES_CREATE_MUTATION
@@ -344,7 +460,7 @@ def test_order_lines_create_with_same_variant_and_force_new_line(
     draft_order_updated_webhook_mock.assert_not_called()
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(query, variables)
     assert order.lines.count() == 3
@@ -368,7 +484,7 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
 ):
     order = order_with_lines
@@ -395,7 +511,7 @@ def test_order_lines_create_when_variant_already_in_multiple_lines(
     }
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(ORDER_LINES_CREATE_MUTATION, variables)
 
@@ -420,7 +536,7 @@ def test_order_lines_create_variant_on_sale(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
     sale,
@@ -440,7 +556,7 @@ def test_order_lines_create_variant_on_sale(
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": quantity}
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # when
     response = staff_api_client.post_graphql(query, variables)
@@ -486,11 +602,12 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     draft_order_updated_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant,
 ):
     query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = status
     order.save(update_fields=["status"])
@@ -502,9 +619,7 @@ def test_order_lines_create_with_product_and_variant_not_assigned_to_channel(
     variant.product.channel_listings.all().delete()
     variant.channel_listings.all().delete()
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
@@ -523,7 +638,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     status,
     order_with_lines,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     shipping_method,
     variant,
@@ -531,6 +646,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     graphql_address_data,
 ):
     query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     order.status = status
     order.save(update_fields=["status"])
@@ -541,9 +657,7 @@ def test_order_lines_create_with_variant_not_assigned_to_channel(
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": 1}
     variant.channel_listings.all().delete()
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["orderLinesCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -559,7 +673,7 @@ def test_order_lines_create_without_sku(
     product_variant_out_of_stock_webhook_mock,
     status,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_api_client,
     variant_with_many_stocks,
 ):
@@ -582,7 +696,7 @@ def test_order_lines_create_without_sku(
     assert not OrderEvent.objects.exists()
 
     # assign permissions
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(query, variables)
     assert OrderEvent.objects.count() == 1
     assert OrderEvent.objects.last().type == order_events.OrderEvents.ADDED_PRODUCTS
@@ -610,20 +724,81 @@ def test_invalid_order_when_creating_lines(
     draft_order_updated_webhook_mock,
     order_with_lines,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     query = ORDER_LINES_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = order_with_lines
     line = order.lines.first()
     variant = line.variant
     order_id = graphene.Node.to_global_id("Order", order.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"orderId": order_id, "variantId": variant_id, "quantity": 1}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["orderLinesCreate"]
     assert data["errors"]
     order_updated_webhook_mock.assert_not_called()
     draft_order_updated_webhook_mock.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "status,force_new_line",
+    [(OrderStatus.DRAFT, False), (OrderStatus.UNCONFIRMED, True)],
+)
+@patch("saleor.plugins.manager.PluginsManager.draft_order_updated")
+@patch("saleor.plugins.manager.PluginsManager.order_updated")
+@patch("saleor.plugins.manager.PluginsManager.product_variant_out_of_stock")
+def test_order_lines_create_with_custom_price(
+    product_variant_out_of_stock_webhook_mock,
+    order_updated_webhook_mock,
+    draft_order_updated_webhook_mock,
+    status,
+    force_new_line,
+    order_with_lines,
+    permission_group_manage_orders,
+    staff_api_client,
+    variant_with_many_stocks,
+):
+    # give
+    query = ORDER_LINES_CREATE_MUTATION
+    order = order_with_lines
+    order.status = status
+    order.save(update_fields=["status"])
+    variant = variant_with_many_stocks
+    quantity = 1
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    custom_price = 18
+    variables = {
+        "orderId": order_id,
+        "variantId": variant_id,
+        "quantity": quantity,
+        "price": custom_price,
+        "forceNewLine": force_new_line,
+    }
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_proper_webhook_called_once(
+        order, status, draft_order_updated_webhook_mock, order_updated_webhook_mock
+    )
+    assert OrderEvent.objects.count() == 1
+    event = OrderEvent.objects.last()
+    assert event.type == order_events.OrderEvents.ADDED_PRODUCTS
+    assert len(event.parameters["lines"]) == 1
+    line = OrderLine.objects.last()
+    assert line.undiscounted_base_unit_price_amount == custom_price
+    assert line.base_unit_price_amount == custom_price
+    assert event.parameters["lines"] == [
+        {"item": str(line), "line_pk": str(line.pk), "quantity": quantity}
+    ]
+
+    content = get_graphql_content(response)
+    data = content["data"]["orderLinesCreate"]
+    assert data["orderLines"][0]["productSku"] == variant.sku
+    assert data["orderLines"][0]["productVariantId"] == variant.get_global_id()
+    assert data["orderLines"][0]["quantity"] == quantity

@@ -10,7 +10,6 @@ from promise import Promise
 
 from ...app.models import App
 from ...core.exceptions import PermissionDenied
-from ...plugins.manager import PluginsManager
 from ...settings import get_host
 from ..core import SaleorContext
 from ..utils import format_error
@@ -19,7 +18,10 @@ logger = get_task_logger(__name__)
 
 
 def initialize_request(
-    requestor=None, sync_event=False, allow_replica=True
+    requestor=None,
+    sync_event=False,
+    allow_replica=True,
+    event_type: Optional[str] = None,
 ) -> SaleorContext:
     """Prepare a request object for webhook subscription.
 
@@ -27,9 +29,6 @@ def initialize_request(
 
     return: HttpRequest
     """
-
-    def _get_plugins(requestor_getter):
-        return PluginsManager(settings.PLUGINS, requestor_getter)
 
     request_time = timezone.now()
     request = SaleorContext()
@@ -42,6 +41,7 @@ def initialize_request(
         request.META["SERVER_PORT"] = "443"
 
     setattr(request, "sync_event", sync_event)
+    setattr(request, "event_type", event_type)
     request.requestor = requestor
     request.request_time = request_time
     request.allow_replica = allow_replica

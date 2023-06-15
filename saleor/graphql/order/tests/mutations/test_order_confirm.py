@@ -10,9 +10,10 @@ from .....order.error_codes import OrderErrorCode
 from .....order.fetch import fetch_order_info
 from .....order.models import OrderEvent
 from .....order.notifications import get_default_order_payload
+from .....order.utils import updates_amounts_for_order
 from .....product.models import ProductVariant
 from ....core.utils import to_global_id_or_none
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 ORDER_CONFIRM_MUTATION = """
     mutation orderConfirm($id: ID!) {
@@ -38,7 +39,7 @@ def test_order_confirm(
     handle_fully_paid_order_mock,
     staff_api_client,
     order_unconfirmed,
-    permission_manage_orders,
+    permission_group_manage_orders,
     payment_txn_preauth,
     site_settings,
 ):
@@ -50,8 +51,9 @@ def test_order_confirm(
 
     order_unconfirmed.total_charged = order_unconfirmed.total.gross
     order_unconfirmed.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order_unconfirmed)
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
 
     # when
@@ -108,7 +110,7 @@ def test_order_confirm_without_sku(
     mocked_notify,
     staff_api_client,
     order_unconfirmed,
-    permission_manage_orders,
+    permission_group_manage_orders,
     payment_txn_preauth,
     site_settings,
 ):
@@ -117,7 +119,7 @@ def test_order_confirm_without_sku(
 
     payment_txn_preauth.order = order_unconfirmed
     payment_txn_preauth.save()
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
@@ -159,8 +161,10 @@ def test_order_confirm_without_sku(
     )
 
 
-def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_orders):
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+def test_order_confirm_unfulfilled(
+    staff_api_client, order, permission_group_manage_orders
+):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION, {"id": graphene.Node.to_global_id("Order", order.id)}
     )
@@ -176,9 +180,9 @@ def test_order_confirm_unfulfilled(staff_api_client, order, permission_manage_or
 
 
 def test_order_confirm_no_products_in_order(
-    staff_api_client, order_unconfirmed, permission_manage_orders
+    staff_api_client, order_unconfirmed, permission_group_manage_orders
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order_unconfirmed.lines.set([])
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
@@ -200,13 +204,13 @@ def test_order_confirm_wont_call_capture_for_non_active_payment(
     capture_mock,
     staff_api_client,
     order_unconfirmed,
-    permission_manage_orders,
+    permission_group_manage_orders,
     payment_txn_preauth,
 ):
     payment_txn_preauth.order = order_unconfirmed
     payment_txn_preauth.is_active = False
     payment_txn_preauth.save()
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     assert not OrderEvent.objects.exists()
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
@@ -229,7 +233,7 @@ def test_order_confirm_wont_call_capture_for_non_active_payment(
 def test_order_confirm_update_display_gross_prices(
     staff_api_client,
     order_with_lines,
-    permission_manage_orders,
+    permission_group_manage_orders,
 ):
     # given
     order = order_with_lines
@@ -247,7 +251,7 @@ def test_order_confirm_update_display_gross_prices(
     tax_config.country_exceptions.all().delete()
 
     # when
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     response = staff_api_client.post_graphql(
         ORDER_CONFIRM_MUTATION,
@@ -259,3 +263,106 @@ def test_order_confirm_update_display_gross_prices(
     assert not content["data"]["orderConfirm"]["errors"]
     order.refresh_from_db()
     assert order.display_gross_prices == new_display_gross_prices
+
+
+def test_order_confirm_by_user_no_channel_access(
+    staff_api_client,
+    order_unconfirmed,
+    permission_group_all_perms_channel_USD_only,
+    payment_txn_preauth,
+    channel_PLN,
+):
+    # given
+    order_unconfirmed.total_charged = order_unconfirmed.total.gross
+    order_unconfirmed.channel = channel_PLN
+    order_unconfirmed.save(update_fields=["total_charged_amount", "channel"])
+
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.captured_amount = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.total = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.save(update_fields=["order", "captured_amount", "total"])
+
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+    assert not OrderEvent.objects.exists()
+
+    # when
+    response = staff_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+@patch("saleor.order.actions.handle_fully_paid_order")
+@patch("saleor.plugins.manager.PluginsManager.notify")
+@patch("saleor.payment.gateway.capture")
+def test_order_confirm_by_app(
+    capture_mock,
+    mocked_notify,
+    handle_fully_paid_order_mock,
+    app_api_client,
+    order_unconfirmed,
+    permission_manage_orders,
+    payment_txn_preauth,
+    site_settings,
+):
+    # given
+    payment_txn_preauth.order = order_unconfirmed
+    payment_txn_preauth.captured_amount = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.total = order_unconfirmed.total.gross.amount
+    payment_txn_preauth.save(update_fields=["order", "captured_amount", "total"])
+
+    order_unconfirmed.total_charged = order_unconfirmed.total.gross
+    order_unconfirmed.save(update_fields=["total_charged_amount"])
+    updates_amounts_for_order(order_unconfirmed)
+
+    assert not OrderEvent.objects.exists()
+
+    # when
+    response = app_api_client.post_graphql(
+        ORDER_CONFIRM_MUTATION,
+        {"id": graphene.Node.to_global_id("Order", order_unconfirmed.id)},
+        permissions=(permission_manage_orders,),
+    )
+
+    # then
+    order_data = get_graphql_content(response)["data"]["orderConfirm"]["order"]
+
+    assert order_data["status"] == OrderStatus.UNFULFILLED.upper()
+    order_unconfirmed.refresh_from_db()
+    assert order_unconfirmed.status == OrderStatus.UNFULFILLED
+    assert OrderEvent.objects.count() == 2
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        app=app_api_client.app,
+        type=order_events.OrderEvents.CONFIRMED,
+    ).exists()
+
+    assert OrderEvent.objects.filter(
+        order=order_unconfirmed,
+        app=app_api_client.app,
+        type=order_events.OrderEvents.PAYMENT_CAPTURED,
+        parameters__amount=payment_txn_preauth.get_total().amount,
+    ).exists()
+
+    capture_mock.assert_called_once_with(
+        payment_txn_preauth, ANY, channel_slug=order_unconfirmed.channel.slug
+    )
+    expected_payload = {
+        "order": get_default_order_payload(order_unconfirmed, ""),
+        "recipient_email": order_unconfirmed.user.email,
+        "requester_user_id": None,
+        "requester_app_id": to_global_id_or_none(app_api_client.app),
+        **get_site_context_payload(site_settings.site),
+    }
+    mocked_notify.assert_called_once_with(
+        NotifyEventType.ORDER_CONFIRMED,
+        expected_payload,
+        channel_slug=order_unconfirmed.channel.slug,
+    )
+    order_info = fetch_order_info(order_unconfirmed)
+    handle_fully_paid_order_mock.assert_called_once_with(
+        ANY, order_info, None, app_api_client.app, site_settings
+    )

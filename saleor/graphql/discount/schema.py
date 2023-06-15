@@ -4,24 +4,27 @@ from ...permission.enums import DiscountPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import DEPRECATED_IN_3X_INPUT
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .filters import SaleFilter, VoucherFilter
+from .mutations import (
+    SaleAddCatalogues,
+    SaleChannelListingUpdate,
+    SaleCreate,
+    SaleDelete,
+    SaleRemoveCatalogues,
+    SaleUpdate,
+    VoucherAddCatalogues,
+    VoucherChannelListingUpdate,
+    VoucherCreate,
+    VoucherDelete,
+    VoucherRemoveCatalogues,
+    VoucherUpdate,
+)
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
-from .mutations.sale_add_catalogues import SaleAddCatalogues
-from .mutations.sale_channel_listing_update import SaleChannelListingUpdate
-from .mutations.sale_create import SaleCreate
-from .mutations.sale_delete import SaleDelete
-from .mutations.sale_remove_catalogues import SaleRemoveCatalogues
-from .mutations.sale_update import SaleUpdate
-from .mutations.voucher_add_catalogues import VoucherAddCatalogues
-from .mutations.voucher_channel_listing_update import VoucherChannelListingUpdate
-from .mutations.voucher_create import VoucherCreate
-from .mutations.voucher_delete import VoucherDelete
-from .mutations.voucher_remove_catalogues import VoucherRemoveCatalogues
-from .mutations.voucher_update import VoucherUpdate
 from .resolvers import resolve_sale, resolve_sales, resolve_voucher, resolve_vouchers
 from .sorters import SaleSortingInput, VoucherSortingInput
 from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConnection
@@ -29,11 +32,13 @@ from .types import Sale, SaleCountableConnection, Voucher, VoucherCountableConne
 
 class VoucherFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = VoucherFilter
 
 
 class SaleFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
         filterset_class = SaleFilter
 
 
@@ -48,6 +53,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     sales = FilterConnectionField(
         SaleCountableConnection,
@@ -66,6 +72,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     voucher = PermissionsField(
         Voucher,
@@ -79,6 +86,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
     vouchers = FilterConnectionField(
         VoucherCountableConnection,
@@ -97,6 +105,7 @@ class DiscountQueries(graphene.ObjectType):
         permissions=[
             DiscountPermissions.MANAGE_DISCOUNTS,
         ],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
     )
 
     @staticmethod

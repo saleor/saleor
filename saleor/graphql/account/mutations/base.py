@@ -32,7 +32,8 @@ from ...app.dataloaders import get_app_promise
 from ...channel.utils import clean_channel, validate_channel
 from ...core import ResolveInfo
 from ...core.context import disallow_replica_in_context
-from ...core.descriptions import ADDED_IN_310
+from ...core.descriptions import ADDED_IN_310, ADDED_IN_314
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import (
     BaseMutation,
@@ -40,7 +41,8 @@ from ...core.mutations import (
     ModelMutation,
     validation_error_to_error_type,
 )
-from ...core.types import AccountError
+from ...core.types import AccountError, BaseInputObjectType, NonNullList
+from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
 
@@ -83,6 +85,7 @@ class SetPassword(CreateToken):
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -159,6 +162,7 @@ class RequestPasswordReset(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -251,6 +255,7 @@ class ConfirmAccount(BaseMutation):
         description = (
             "Confirm user account with token sent by email during registration."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -297,6 +302,7 @@ class PasswordChange(BaseMutation):
 
     class Meta:
         description = "Change the password of the logged in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -447,21 +453,39 @@ class BaseAddressDelete(ModelDeleteMutation):
         return response
 
 
-class UserInput(graphene.InputObjectType):
+class UserInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     email = graphene.String(description="The unique email address of the user.")
     is_active = graphene.Boolean(required=False, description="User account is active.")
     note = graphene.String(description="A note about the user.")
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the user metadata." + ADDED_IN_314,
+        required=False,
+    )
+    private_metadata = NonNullList(
+        MetadataInput,
+        description=(
+            "Fields required to update the user private metadata." + ADDED_IN_314
+        ),
+        required=False,
+    )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
-class UserAddressInput(graphene.InputObjectType):
+class UserAddressInput(BaseInputObjectType):
     default_billing_address = AddressInput(
         description="Billing address of the customer."
     )
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class CustomerInput(UserInput, UserAddressInput):
@@ -471,6 +495,9 @@ class CustomerInput(UserInput, UserAddressInput):
     external_reference = graphene.String(
         description="External ID of the customer." + ADDED_IN_310, required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class UserCreateInput(CustomerInput):
@@ -486,6 +513,9 @@ class UserCreateInput(CustomerInput):
             "only one channel exists."
         )
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_USERS
 
 
 class BaseCustomerCreate(ModelMutation, I18nMixin):
@@ -589,3 +619,9 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 manager,
                 channel_slug,
             )
+
+    @classmethod
+    def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):
+        if cleaned_input.get("metadata"):
+            manager = get_plugin_manager_promise(info.context).get()
+            cls.call_event(manager.customer_metadata_updated, instance)

@@ -10,6 +10,7 @@ from django.db.models import F, Q
 from ..celeryconf import app
 from ..graphql.discount.mutations.utils import CATALOGUE_FIELD_TO_TYPE_NAME
 from ..plugins.manager import get_plugins_manager
+from ..product.tasks import update_products_discounted_prices_of_catalogues_task
 from .models import Sale
 from .utils import CATALOGUE_FIELDS, CatalogueInfo
 
@@ -17,20 +18,33 @@ task_logger = get_task_logger(__name__)
 
 
 @app.task
-def send_sale_toggle_notifications():
-    """Send the notification about starting or ending sales."""
+def handle_sale_toggle():
+    """Send the notification about sales toggle and recalculate discounted prcies.
+
+    Send the notifications about starting or ending sales and call recalculation
+    of product discounted prices.
+    """
     manager = get_plugins_manager()
 
     sales = get_sales_to_notify_about()
 
-    catalogue_infos = fetch_catalogue_infos(sales)
+    sale_id_to_catalogue_infos, catalogue_infos = fetch_catalogue_infos(sales)
 
     if not sales:
         return
 
     for sale in sales:
-        catalogues = catalogue_infos.get(sale.id)
+        catalogues = sale_id_to_catalogue_infos.get(sale.id)
         manager.sale_toggle(sale, catalogues)
+
+    if catalogue_infos:
+        # Recalculate discounts of affected products
+        update_products_discounted_prices_of_catalogues_task.delay(
+            product_ids=list(catalogue_infos["products"]),
+            category_ids=list(catalogue_infos["categories"]),
+            collection_ids=list(catalogue_infos["collections"]),
+            variant_ids=list(catalogue_infos["variants"]),
+        )
 
     sale_ids = ", ".join([str(sale.id) for sale in sales])
     sales.update(notification_sent_datetime=datetime.now(pytz.UTC))
@@ -39,19 +53,20 @@ def send_sale_toggle_notifications():
 
 
 def fetch_catalogue_infos(sales):
-    catalogue_info: Dict[int, CatalogueInfo] = {}
+    catalogue_info = defaultdict(set)
+    sale_id_to_catalogue_info: Dict[int, CatalogueInfo] = defaultdict(
+        lambda: defaultdict(set)
+    )
     for sale_data in sales.values("id", *CATALOGUE_FIELDS):
         sale_id = sale_data["id"]
-        if sale_id not in catalogue_info:
-            catalogue_info[sale_data["id"]] = defaultdict(set)
-
         for field in CATALOGUE_FIELDS:
             if id := sale_data.get(field):
                 type_name = CATALOGUE_FIELD_TO_TYPE_NAME[field]
                 global_id = graphene.Node.to_global_id(type_name, id)
-                catalogue_info[sale_data["id"]][field].add(global_id)
+                sale_id_to_catalogue_info[sale_id][field].add(global_id)
+                catalogue_info[field].add(id)
 
-    return catalogue_info
+    return sale_id_to_catalogue_info, catalogue_info
 
 
 def get_sales_to_notify_about():

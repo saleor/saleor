@@ -23,7 +23,7 @@ ORDERS_QUERY_SHIPPING_METHODS = """
 
 def test_order_query_without_available_shipping_methods(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order,
     shipping_method_channel_PLN,
     channel_USD,
@@ -32,7 +32,7 @@ def test_order_query_without_available_shipping_methods(
     order.shipping_method = shipping_method_channel_PLN
     order.save()
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -44,7 +44,7 @@ def test_order_available_shipping_methods_with_weight_based_shipping_method(
     staff_api_client,
     order_line,
     shipping_method_weight_based,
-    permission_manage_orders,
+    permission_group_manage_orders,
     minimum_order_weight_value,
 ):
     shipping_method = shipping_method_weight_based
@@ -59,7 +59,7 @@ def test_order_available_shipping_methods_with_weight_based_shipping_method(
 
     shipping_method.save(update_fields=["minimum_order_weight"])
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -71,7 +71,10 @@ def test_order_available_shipping_methods_with_weight_based_shipping_method(
 
 
 def test_order_available_shipping_methods_weight_method_with_higher_minimal_weigh(
-    staff_api_client, order_line, shipping_method_weight_based, permission_manage_orders
+    staff_api_client,
+    order_line,
+    shipping_method_weight_based,
+    permission_group_manage_orders,
 ):
     order = order_line.order
 
@@ -83,7 +86,7 @@ def test_order_available_shipping_methods_weight_method_with_higher_minimal_weig
     order.weight = Weight(kg=1)
     order.save(update_fields=["weight"])
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -96,11 +99,11 @@ def test_order_available_shipping_methods_weight_method_with_higher_minimal_weig
 
 def test_order_query_shipping_zones_with_available_shipping_methods(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     shipping_zone,
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -109,13 +112,13 @@ def test_order_query_shipping_zones_with_available_shipping_methods(
 
 def test_order_query_shipping_zones_without_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     shipping_zone,
     channel_USD,
 ):
     channel_USD.shipping_zones.clear()
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -125,7 +128,7 @@ def test_order_query_shipping_zones_without_channel(
 
 def test_order_query_shipping_methods_excluded_postal_codes(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     order_with_lines_channel_PLN,
     channel_PLN,
 ):
@@ -134,7 +137,7 @@ def test_order_query_shipping_methods_excluded_postal_codes(
     order.shipping_address.postal_code = "HB5"
     order.shipping_address.save(update_fields=["postal_code"])
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
@@ -143,7 +146,7 @@ def test_order_query_shipping_methods_excluded_postal_codes(
 
 def test_order_available_shipping_methods_query(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     fulfilled_order,
     shipping_zone,
 ):
@@ -152,7 +155,7 @@ def test_order_available_shipping_methods_query(
         channel_id=fulfilled_order.channel_id
     ).price
 
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(ORDERS_QUERY_SHIPPING_METHODS)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]

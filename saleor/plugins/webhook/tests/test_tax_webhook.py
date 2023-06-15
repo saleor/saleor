@@ -25,7 +25,7 @@ def test_get_taxes_for_checkout_no_permission(
     # given
     plugin = webhook_plugin()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], plugin)
+    checkout_info = fetch_checkout_info(checkout, lines, plugin)
 
     # when
     tax_data = plugin.get_taxes_for_checkout(checkout_info, lines, None)
@@ -187,7 +187,7 @@ def test_get_taxes_for_order_with_sync_subscription(
 
 
 @freeze_time()
-@mock.patch("saleor.checkout.calculations.fetch_checkout_prices_if_expired")
+@mock.patch("saleor.checkout.calculations.fetch_checkout_data")
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
 def test_get_taxes_for_checkout_with_sync_subscription(
     mock_request,
@@ -198,7 +198,7 @@ def test_get_taxes_for_checkout_with_sync_subscription(
     tax_app,
 ):
     # given
-    checkout_info = fetch_checkout_info(checkout, [], [], get_plugins_manager())
+    checkout_info = fetch_checkout_info(checkout, [], get_plugins_manager())
     mock_request.return_value = tax_data_response
     plugin = webhook_plugin()
     webhook = Webhook.objects.create(

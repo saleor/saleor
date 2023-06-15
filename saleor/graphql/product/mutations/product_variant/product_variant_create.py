@@ -18,15 +18,11 @@ from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
 from ....channel import ChannelContext
 from ....core import ResolveInfo
-from ....core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_38,
-    ADDED_IN_310,
-    PREVIEW_FEATURE,
-)
+from ....core.descriptions import ADDED_IN_31, ADDED_IN_38, ADDED_IN_310
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError
+from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
 from ....meta.mutations import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -42,14 +38,17 @@ from ..product.product_create import StockInput
 T_INPUT_MAP = List[Tuple[attribute_models.Attribute, AttrValuesInput]]
 
 
-class PreorderSettingsInput(graphene.InputObjectType):
+class PreorderSettingsInput(BaseInputObjectType):
     global_threshold = graphene.Int(
         description="The global threshold for preorder variant."
     )
     end_date = graphene.DateTime(description="The end date for preorder.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
-class ProductVariantInput(graphene.InputObjectType):
+
+class ProductVariantInput(BaseInputObjectType):
     attributes = NonNullList(
         AttributeValueInput,
         required=False,
@@ -65,15 +64,13 @@ class ProductVariantInput(graphene.InputObjectType):
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
     preorder = PreorderSettingsInput(
-        description=(
-            "Determines if variant is in preorder." + ADDED_IN_31 + PREVIEW_FEATURE
-        )
+        description=("Determines if variant is in preorder." + ADDED_IN_31)
     )
     quantity_limit_per_customer = graphene.Int(
         required=False,
         description=(
             "Determines maximum quantity of `ProductVariant`,"
-            "that can be bought in a single checkout." + ADDED_IN_31 + PREVIEW_FEATURE
+            "that can be bought in a single checkout." + ADDED_IN_31
         ),
     )
     metadata = NonNullList(
@@ -96,6 +93,9 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+
 
 class ProductVariantCreateInput(ProductVariantInput):
     attributes = NonNullList(
@@ -113,6 +113,9 @@ class ProductVariantCreateInput(ProductVariantInput):
         description="Stocks of a product available for sale.",
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductVariantCreate(ModelMutation):

@@ -9,6 +9,7 @@ from ....order.utils import invalidate_order_prices, remove_order_discount_from_
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...discount.types import OrderDiscount
 from ..types import Order
@@ -25,6 +26,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
 
     class Meta:
         description = "Remove discount from the order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -47,6 +49,7 @@ class OrderDiscountDelete(OrderDiscountCommon):
                     )
                 }
             )
+        cls.check_channel_permissions(info, [order.channel_id])
         app = get_app_promise(info.context).get()
 
         order = cls.validate_order(info, order)

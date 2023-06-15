@@ -695,6 +695,85 @@ def test_create_gift_card_trigger_webhook(
     )
 
 
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_create_gift_card_with_email_triggers_gift_card_sent_webhook(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    app_api_client,
+    channel_USD,
+    customer_user,
+    permission_manage_gift_card,
+    permission_manage_users,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    initial_balance = 100
+    currency = "USD"
+    tag = "gift-card-tag"
+    note = "This is gift card note that will be save in gift card event."
+    variables = {
+        "input": {
+            "balance": {
+                "amount": initial_balance,
+                "currency": currency,
+            },
+            "addTags": [tag],
+            "note": note,
+            "expiryDate": None,
+            "isActive": False,
+            "channel": channel_USD.slug,
+            "userEmail": customer_user.email,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        CREATE_GIFT_CARD_MUTATION,
+        variables,
+        permissions=[permission_manage_gift_card, permission_manage_users],
+    )
+    gift_card = GiftCard.objects.last()
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["giftCardCreate"]["errors"]
+    data = content["data"]["giftCardCreate"]["giftCard"]
+
+    assert not errors
+    assert data["code"]
+
+    mocked_webhook_trigger.assert_any_call(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+                "is_active": gift_card.is_active,
+                "channel_slug": channel_USD.slug,
+                "sent_to_email": customer_user.email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: app_api_client.app)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.GIFT_CARD_SENT,
+        [any_webhook],
+        {
+            "gift_card": gift_card,
+            "channel_slug": channel_USD.slug,
+            "sent_to_email": customer_user.email,
+        },
+        SimpleLazyObject(lambda: app_api_client.app),
+    )
+
+
 def test_create_gift_card_with_code(
     staff_api_client,
     permission_manage_gift_card,

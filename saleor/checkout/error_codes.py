@@ -47,3 +47,20 @@ class OrderCreateFromCheckoutErrorCode(Enum):
     NO_LINES = "no_lines"
     EMAIL_NOT_SET = "email_not_set"
     UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
+
+
+class CheckoutCreateFromOrderErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    INVALID = "invalid"
+    ORDER_NOT_FOUND = "order_not_found"
+    CHANNEL_INACTIVE = "channel_inactive"
+    TAX_ERROR = "tax_error"
+
+
+class CheckoutCreateFromOrderUnavailableVariantErrorCode(Enum):
+    NOT_FOUND = "not_found"
+    PRODUCT_UNAVAILABLE_FOR_PURCHASE = "product_unavailable_for_purchase"
+    UNAVAILABLE_VARIANT_IN_CHANNEL = "unavailable_variant_in_channel"
+    PRODUCT_NOT_PUBLISHED = "product_not_published"
+    QUANTITY_GREATER_THAN_LIMIT = "quantity_greater_than_limit"
+    INSUFFICIENT_STOCK = "insufficient_stock"

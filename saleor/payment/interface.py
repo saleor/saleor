@@ -1,12 +1,18 @@
 from dataclasses import InitVar, dataclass, field
+from datetime import datetime
 from decimal import Decimal
 from enum import Enum
 from functools import cached_property
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from ..order import FulfillmentLineData
 from ..order.fetch import OrderLineInfo
-from ..payment.models import TransactionItem
+from ..payment.models import TransactionEvent, TransactionItem
+
+if TYPE_CHECKING:
+    from ..app.models import App
+    from ..checkout.models import Checkout
+    from ..order.models import Order
 
 JSONValue = Union[str, int, float, bool, None, Dict[str, Any], List[Any]]
 JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
@@ -16,7 +22,26 @@ JSONType = Union[Dict[str, JSONValue], List[JSONValue]]
 class TransactionActionData:
     action_type: str
     transaction: TransactionItem
+    event: "TransactionEvent"
+    transaction_app_owner: Optional["App"]
     action_value: Optional[Decimal] = None
+
+
+@dataclass
+class TransactionRequestEventResponse:
+    psp_reference: Optional[str]
+    type: str
+    amount: Decimal
+    time: Optional[datetime] = None
+    external_url: Optional[str] = ""
+    message: Optional[str] = ""
+
+
+@dataclass
+class TransactionRequestResponse:
+    psp_reference: Optional[str]
+    available_actions: Optional[List[str]] = None
+    event: Optional["TransactionRequestEventResponse"] = None
 
 
 @dataclass
@@ -26,6 +51,28 @@ class TransactionData:
     kind: str
     gateway_response: JSONType
     amount: Dict[str, str]
+
+
+@dataclass
+class PaymentGatewayData:
+    app_identifier: str
+    data: Optional[Dict[Any, Any]] = None
+    error: Optional[str] = None
+
+
+@dataclass
+class TransactionProcessActionData:
+    action_type: str
+    amount: Decimal
+    currency: str
+
+
+@dataclass
+class TransactionSessionData:
+    transaction: "TransactionItem"
+    source_object: Union["Checkout", "Order"]
+    action: TransactionProcessActionData
+    payment_gateway: PaymentGatewayData
 
 
 @dataclass

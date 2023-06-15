@@ -2,9 +2,10 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....product.tasks import update_products_discounted_prices_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import BaseMutation
 from ....core.types import CollectionError, NonNullList
 from ....plugins.dataloaders import get_plugin_manager_promise
@@ -26,6 +27,7 @@ class CollectionRemoveProducts(BaseMutation):
 
     class Meta:
         description = "Remove products from a collection."
+        doc_category = DOC_CATEGORY_PRODUCTS
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = CollectionError
         error_type_field = "collection_errors"
@@ -49,9 +51,7 @@ class CollectionRemoveProducts(BaseMutation):
             cls.call_event(manager.product_updated, product)
         if collection.sale_set.exists():
             # Updated the db entries, recalculating discounts of affected products
-            update_products_discounted_prices_of_catalogues_task.delay(
-                product_ids=[p.pk for p in products]
-            )
+            update_products_discounted_prices_task.delay([p.pk for p in products])
         return CollectionRemoveProducts(
             collection=ChannelContext(node=collection, channel_slug=None)
         )

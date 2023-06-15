@@ -13,8 +13,7 @@ from ....checkout.complete_checkout import complete_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ....checkout.models import Checkout
 from ....core.transactions import transaction_with_commit_on_errors
-from ....discount.utils import fetch_active_discounts
-from ....order.actions import order_captured, order_refunded, order_voided
+from ....order.actions import order_charged, order_refunded, order_voided
 from ....order.fetch import fetch_order_info
 from ....order.models import Order
 from ....plugins.manager import get_plugins_manager
@@ -177,17 +176,15 @@ def _finalize_checkout(
     checkout.refresh_from_db()
 
     manager = get_plugins_manager()
-    discounts = fetch_active_discounts()
     lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
     if unavailable_variant_pks:
         raise ValidationError("Some of the checkout lines variants are unavailable.")
-    checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     checkout_total = calculate_checkout_total_with_gift_cards(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
         address=checkout.shipping_address or checkout.billing_address,
-        discounts=discounts,
     )
 
     try:
@@ -200,12 +197,11 @@ def _finalize_checkout(
             )
 
         order, _, _ = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data={},
             store_source=False,
-            discounts=discounts,
             user=checkout.user or None,
             app=None,
         )
@@ -442,7 +438,7 @@ def handle_successful_payment_intent(
                 payment_intent.currency,
             )
             order_info = fetch_order_info(payment.order)
-            order_captured(
+            order_charged(
                 order_info,
                 None,
                 None,

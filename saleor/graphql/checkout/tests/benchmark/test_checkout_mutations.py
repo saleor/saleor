@@ -361,6 +361,7 @@ def test_create_checkout_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )
@@ -390,7 +391,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(65):
+    with django_assert_num_queries(67):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -408,7 +409,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(65):
+    with django_assert_num_queries(67):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -627,6 +628,7 @@ def test_update_checkout_lines_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )
@@ -658,7 +660,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(70):
+    with django_assert_num_queries(75):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -672,7 +674,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(70):
+    with django_assert_num_queries(75):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -865,11 +867,11 @@ def test_add_checkout_lines_with_external_shipping(
         api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     )
     assert not response["data"]["checkoutLinesAdd"]["errors"]
-    # Three api calls:
+    # Two api calls :
     # - post-mutate() logic used to validate currently selected method
     # - fetch_checkout_prices_if_expired - calculating all prices for checkout
-    # - in check_stock_quantity_bulk to check if the shipping method is set
-    assert mock_send_request.call_count == 3
+    # - (cached) in check_stock_quantity_bulk to check if the shipping method is set
+    assert mock_send_request.call_count == 2
 
 
 @pytest.mark.django_db
@@ -897,6 +899,7 @@ def test_add_checkout_lines_with_reservations(
                 variant=variant,
                 channel=channel_USD,
                 price_amount=Decimal(10),
+                discounted_price_amount=Decimal(10),
                 cost_price_amount=Decimal(1),
                 currency=channel_USD.currency_code,
             )
@@ -916,7 +919,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(69):
+    with django_assert_num_queries(74):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -929,7 +932,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(69):
+    with django_assert_num_queries(74):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,
@@ -1055,9 +1058,7 @@ def test_checkout_payment_charge(
 
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout_with_billing_address)
-    checkout_info = fetch_checkout_info(
-        checkout_with_billing_address, lines, [], manager
-    )
+    checkout_info = fetch_checkout_info(checkout_with_billing_address, lines, manager)
     manager = get_plugins_manager()
     total = calculations.checkout_total(
         manager=manager,
@@ -1355,3 +1356,47 @@ def test_complete_checkout_preorder(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+MUTATION_CHECKOUT_CREATE_FROM_ORDER = (
+    FRAGMENT_CHECKOUT
+    + """
+mutation CheckoutCreateFromOrder($id: ID!) {
+  checkoutCreateFromOrder(id:$id){
+    errors{
+      field
+      message
+      code
+    }
+    unavailableVariants{
+      message
+      code
+      variantId
+      lineId
+    }
+    checkout{
+      ...Checkout
+    }
+  }
+}
+"""
+)
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_create_from_order(user_api_client, order_with_lines):
+    # given
+    order_with_lines.user = user_api_client.user
+    order_with_lines.save()
+    Stock.objects.update(quantity=10)
+
+    variables = {"id": graphene.Node.to_global_id("Order", order_with_lines.pk)}
+    # when
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CREATE_FROM_ORDER, variables
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["checkoutCreateFromOrder"]["errors"]

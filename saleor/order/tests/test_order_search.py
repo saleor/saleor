@@ -54,6 +54,9 @@ def test_prepare_order_search_vector_value(
     payment_dummy.psp_reference = psp_reference
     payment_dummy.save(update_fields=["psp_reference"])
 
+    transaction = order.payment_transactions.create(psp_reference="ABC")
+    transaction.events.create(psp_reference="event-psp-reference")
+
     # when
     search_vector = prepare_order_search_vector_value(order)
 

@@ -5,9 +5,10 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
 from ..enums import TaxCalculationStrategy
 from ..types import TaxConfiguration
@@ -15,9 +16,10 @@ from ..types import TaxConfiguration
 TaxConfigurationUpdateErrorCode = graphene.Enum.from_enum(
     error_codes.TaxConfigurationUpdateErrorCode
 )
+TaxConfigurationUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
-class TaxConfigurationPerCountryInput(graphene.InputObjectType):
+class TaxConfigurationPerCountryInput(BaseInputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this configuration applies.", required=True
     )
@@ -42,8 +44,11 @@ class TaxConfigurationPerCountryInput(graphene.InputObjectType):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class TaxConfigurationUpdateInput(graphene.InputObjectType):
+
+class TaxConfigurationUpdateInput(BaseInputObjectType):
     charge_taxes = graphene.Boolean(
         description="Determines whether taxes are charged in the given channel."
     )
@@ -77,6 +82,9 @@ class TaxConfigurationUpdateInput(graphene.InputObjectType):
         description="List of country codes for which to remove the tax configuration.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+
 
 class TaxConfigurationUpdateError(Error):
     code = TaxConfigurationUpdateErrorCode(description="The error code.", required=True)
@@ -85,6 +93,9 @@ class TaxConfigurationUpdateError(Error):
         description="List of country codes for which the configuration is invalid.",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxConfigurationUpdate(ModelMutation):
@@ -96,9 +107,7 @@ class TaxConfigurationUpdate(ModelMutation):
         )
 
     class Meta:
-        description = (
-            "Update tax configuration for a channel." + ADDED_IN_39 + PREVIEW_FEATURE
-        )
+        description = "Update tax configuration for a channel." + ADDED_IN_39
         error_type_class = TaxConfigurationUpdateError
         model = models.TaxConfiguration
         object_type = TaxConfiguration

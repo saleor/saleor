@@ -12,6 +12,7 @@ from ....app.models import App
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....payment import PaymentError, TransactionKind
+from ....payment.interface import PaymentGateway
 from ....payment.utils import create_payment_information
 from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ....webhook.models import Webhook, WebhookEvent
@@ -76,15 +77,6 @@ def test_trigger_webhook_sync_with_subscription(
         payment,
     )
     mock_request.assert_called_once_with(payment_app.name, fake_delivery)
-
-
-def test_trigger_webhook_sync_no_webhook_available():
-    app = App.objects.create(name="Dummy app", is_active=True)
-    # should raise an error for app with no payment webhooks
-    with pytest.raises(PaymentError):
-        trigger_webhook_sync(
-            WebhookEventSyncType.PAYMENT_REFUND, {}, app.webhooks.first()
-        )
 
 
 @mock.patch("saleor.plugins.webhook.tasks.observability.report_event_delivery_attempt")
@@ -304,6 +296,64 @@ def test_get_payment_gateways(
     assert len(response_data) == 2
     assert response_data[0] == expected_response_1[0]
     assert response_data[1] == expected_response_2[0]
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_payment_gateways_with_transactions(
+    mock_send_request, permission_manage_payments, webhook_plugin
+):
+    # given
+    app_name = "Payment App 2"
+    app_identifier = "app2"
+    app = App.objects.create(name=app_name, is_active=True, identifier=app_identifier)
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="payment-webhook-2",
+        app=app,
+        target_url="https://payment-gateway-2.com/api/",
+    )
+    WebhookEvent.objects.create(
+        event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION, webhook=webhook
+    )
+
+    plugin = webhook_plugin()
+
+    # when
+    response_data = plugin.get_payment_gateways("USD", None, None)
+
+    # then
+    assert len(response_data) == 1
+    assert response_data[0] == PaymentGateway(
+        id=app_identifier, name=app_name, currencies=["USD"], config=[]
+    )
+    assert not mock_send_request.called
+
+
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")
+def test_get_payment_gateways_with_transactions_and_app_without_identifier(
+    mock_send_request, permission_manage_payments, webhook_plugin
+):
+    # given
+    app_name = "Payment App 2"
+    app_identifier = None
+    app = App.objects.create(name=app_name, is_active=True, identifier=app_identifier)
+    app.permissions.add(permission_manage_payments)
+    webhook = Webhook.objects.create(
+        name="payment-webhook-2",
+        app=app,
+        target_url="https://payment-gateway-2.com/api/",
+    )
+    WebhookEvent.objects.create(
+        event_type=WebhookEventSyncType.TRANSACTION_INITIALIZE_SESSION, webhook=webhook
+    )
+
+    plugin = webhook_plugin()
+
+    # when
+    response_data = plugin.get_payment_gateways("USD", None, None)
+
+    # then
+    assert len(response_data) == 0
 
 
 @mock.patch("saleor.plugins.webhook.tasks.send_webhook_request_sync")

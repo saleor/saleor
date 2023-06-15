@@ -10,6 +10,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ...discount.types import OrderDiscount
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -31,6 +32,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
 
     class Meta:
         description = "Update discount for the order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -41,7 +43,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
         input["value"] = input.get("value") or order_discount.value
         input["value_type"] = input.get("value_type") or order_discount.value_type
 
-        cls.validate_order_discount_input(info, order.undiscounted_total.gross, input)
+        cls.validate_order_discount_input(order.undiscounted_total.gross, input)
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -62,6 +64,7 @@ class OrderDiscountUpdate(OrderDiscountCommon):
                     )
                 }
             )
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_discount, input)
 
         reason = input.get("reason", order_discount.reason)

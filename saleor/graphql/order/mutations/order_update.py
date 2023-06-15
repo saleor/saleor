@@ -12,20 +12,24 @@ from ....permission.enums import OrderPermissions
 from ...account.types import AddressInput
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import ModelWithExtRefMutation
-from ...core.types import OrderError
+from ...core.types import BaseInputObjectType, OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Order
 from .draft_order_create import DraftOrderCreate
 
 
-class OrderUpdateInput(graphene.InputObjectType):
+class OrderUpdateInput(BaseInputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user_email = graphene.String(description="Email address of the customer.")
     shipping_address = AddressInput(description="Shipping address of the customer.")
     external_reference = graphene.String(
         description="External ID of this order." + ADDED_IN_310, required=False
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):

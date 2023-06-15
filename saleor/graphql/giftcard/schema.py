@@ -5,7 +5,8 @@ from ...giftcard import models
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
@@ -40,39 +41,39 @@ class GiftCardQueries(graphene.ObjectType):
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_cards = FilterConnectionField(
         GiftCardCountableConnection,
-        sort_by=GiftCardSortingInput(
-            description="Sort gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
-        ),
+        sort_by=GiftCardSortingInput(description="Sort gift cards." + ADDED_IN_31),
         filter=GiftCardFilterInput(
-            description=(
-                "Filtering options for gift cards." + ADDED_IN_31 + PREVIEW_FEATURE
-            )
+            description=("Filtering options for gift cards." + ADDED_IN_31)
         ),
         description="List of gift cards.",
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_card_currencies = PermissionsField(
         NonNullList(graphene.String),
-        description="List of gift card currencies." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="List of gift card currencies." + ADDED_IN_31,
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
     gift_card_tags = FilterConnectionField(
         GiftCardTagCountableConnection,
         filter=GiftCardTagFilterInput(
             description="Filtering options for gift card tags."
         ),
-        description="List of gift card tags." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="List of gift card tags." + ADDED_IN_31,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
         ],
+        doc_category=DOC_CATEGORY_GIFT_CARDS,
     )
 
     @staticmethod

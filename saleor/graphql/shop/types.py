@@ -18,14 +18,20 @@ from ..checkout.types import PaymentGateway
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
+    ADDED_IN_314,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
+)
+from ..core.doc_category import (
+    DOC_CATEGORY_AUTH,
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
 )
 from ..core.enums import LanguageCodeEnum, WeightUnitsEnum
 from ..core.fields import PermissionsField
 from ..core.tracing import traced_resolver
 from ..core.types import (
+    BaseObjectType,
     CountryDisplay,
     LanguageDisplay,
     ModelObjectType,
@@ -63,6 +69,7 @@ class OrderSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Order related settings from site settings."
+        doc_category = DOC_CATEGORY_ORDERS
         model = site_models.SiteSettings
 
 
@@ -76,6 +83,7 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
 
     class Meta:
         description = "Gift card related settings from site settings."
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         model = site_models.SiteSettings
 
     def resolve_expiry_type(root, info):
@@ -89,11 +97,14 @@ class GiftCardSettings(ModelObjectType[site_models.SiteSettings]):
         )
 
 
-class ExternalAuthentication(graphene.ObjectType):
+class ExternalAuthentication(BaseObjectType):
     id = graphene.String(
         description="ID of external authentication plugin.", required=True
     )
     name = graphene.String(description="Name of external authentication plugin.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_AUTH
 
 
 class Limits(graphene.ObjectType):
@@ -253,7 +264,7 @@ class Shop(graphene.ObjectType):
         graphene.Int,
         description=(
             "Default number of maximum line quantity in single checkout "
-            "(per single checkout line)." + ADDED_IN_31 + PREVIEW_FEATURE
+            "(per single checkout line)." + ADDED_IN_31
         ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
@@ -278,6 +289,13 @@ class Shop(graphene.ObjectType):
         NonNullList(StaffNotificationRecipient),
         description="List of staff notification recipients.",
         required=False,
+        permissions=[SitePermissions.MANAGE_SETTINGS],
+    )
+    enable_account_confirmation_by_email = PermissionsField(
+        graphene.Boolean,
+        description=(
+            "Determines if account confirmation by email is enabled." + ADDED_IN_314
+        ),
         permissions=[SitePermissions.MANAGE_SETTINGS],
     )
     limits = PermissionsField(
@@ -503,6 +521,11 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_staff_notification_recipients(_, _info):
         return account_models.StaffNotificationRecipient.objects.all()
+
+    @staticmethod
+    @load_site_callback
+    def resolve_enable_account_confirmation_by_email(_, _info, site):
+        return site.settings.enable_account_confirmation_by_email
 
     @staticmethod
     def resolve_limits(_, _info):

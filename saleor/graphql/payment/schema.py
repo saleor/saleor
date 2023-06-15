@@ -4,16 +4,21 @@ from ...permission.enums import OrderPermissions, PaymentPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.descriptions import ADDED_IN_36, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.utils import from_global_id_or_error
 from .filters import PaymentFilterInput
 from .mutations import (
     PaymentCapture,
     PaymentCheckBalance,
+    PaymentGatewayInitialize,
     PaymentInitialize,
     PaymentRefund,
     PaymentVoid,
     TransactionCreate,
+    TransactionEventReport,
+    TransactionInitialize,
+    TransactionProcess,
     TransactionRequestAction,
     TransactionUpdate,
 )
@@ -31,6 +36,7 @@ class PaymentQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
     )
     payments = FilterConnectionField(
         PaymentCountableConnection,
@@ -39,6 +45,7 @@ class PaymentQueries(graphene.ObjectType):
         permissions=[
             OrderPermissions.MANAGE_ORDERS,
         ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
     )
     transaction = PermissionsField(
         TransactionItem,
@@ -49,6 +56,7 @@ class PaymentQueries(graphene.ObjectType):
         permissions=[
             PaymentPermissions.HANDLE_PAYMENTS,
         ],
+        doc_category=DOC_CATEGORY_PAYMENTS,
     )
 
     @staticmethod
@@ -65,6 +73,8 @@ class PaymentQueries(graphene.ObjectType):
     @staticmethod
     def resolve_transaction(_root, info: ResolveInfo, **kwargs):
         _, id = from_global_id_or_error(kwargs["id"], TransactionItem)
+        if not id:
+            return None
         return resolve_transaction(id)
 
 
@@ -78,3 +88,8 @@ class PaymentMutations(graphene.ObjectType):
     transaction_create = TransactionCreate.Field()
     transaction_update = TransactionUpdate.Field()
     transaction_request_action = TransactionRequestAction.Field()
+    transaction_event_report = TransactionEventReport.Field()
+
+    payment_gateway_initialize = PaymentGatewayInitialize.Field()
+    transaction_initialize = TransactionInitialize.Field()
+    transaction_process = TransactionProcess.Field()

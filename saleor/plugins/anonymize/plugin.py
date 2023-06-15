@@ -39,12 +39,14 @@ class AnonymizePlugin(BasePlugin):
         address: "Address",
         address_type: Optional[str],
         user: Optional["User"],
+        save: bool,
         previous_value: "Address",
     ) -> "Address":
         if address.phone:
             address.phone = ""  # type: ignore
         address = obfuscate_address(address)
-        address.save()
+        if save:
+            address.save()
         return address
 
     def order_created(self, order: "Order", previous_value: Any):

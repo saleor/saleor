@@ -20,11 +20,14 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_314
+from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types import AccountError, NonNullList
+from ...core.types import AccountError, BaseInputObjectType, NonNullList
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ...site.dataloaders import get_site_promise
 from ..enums import AddressTypeEnum
 from ..i18n import I18nMixin
 from ..types import Address, AddressInput, User
@@ -36,7 +39,7 @@ from .base import (
 )
 
 
-class AccountBaseInput(graphene.InputObjectType):
+class AccountBaseInput(BaseInputObjectType):
     first_name = graphene.String(description="Given name.")
     last_name = graphene.String(description="Family name.")
     language_code = graphene.Argument(
@@ -70,6 +73,10 @@ class AccountRegisterInput(AccountBaseInput):
         )
     )
 
+    class Meta:
+        description = "Fields required to create a user."
+        doc_category = DOC_CATEGORY_USERS
+
 
 class AccountRegister(ModelMutation):
     class Arguments:
@@ -83,6 +90,7 @@ class AccountRegister(ModelMutation):
 
     class Meta:
         description = "Register a new user."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
@@ -92,13 +100,18 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
+        site = get_site_promise(info.context).get()
         response = super().mutate(root, info, **data)
-        response.requires_confirmation = settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+        response.requires_confirmation = (
+            site.settings.enable_account_confirmation_by_email
+        )
         return response
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
-        if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+        site = get_site_promise(info.context).get()
+
+        if not site.settings.enable_account_confirmation_by_email:
             return super().clean_input(info, instance, data, **kwargs)
         elif not data.get("redirect_url"):
             raise ValidationError(
@@ -143,8 +156,10 @@ class AccountRegister(ModelMutation):
             user, attach_addresses_data=False
         )
         manager = get_plugin_manager_promise(info.context).get()
+        site = get_site_promise(info.context).get()
+
         with traced_atomic_transaction():
-            if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+            if site.settings.enable_account_confirmation_by_email:
                 user.is_active = False
                 user.save()
                 notifications.send_account_confirmation(
@@ -166,6 +181,15 @@ class AccountInput(AccountBaseInput):
     default_shipping_address = AddressInput(
         description="Shipping address of the customer."
     )
+    metadata = NonNullList(
+        MetadataInput,
+        description="Fields required to update the user metadata." + ADDED_IN_314,
+        required=False,
+    )
+
+    class Meta:
+        description = "Fields required to update the user."
+        doc_category = DOC_CATEGORY_USERS
 
 
 class AccountUpdate(BaseCustomerCreate):
@@ -177,12 +201,14 @@ class AccountUpdate(BaseCustomerCreate):
 
     class Meta:
         description = "Updates the account of the logged-in user."
+        doc_category = DOC_CATEGORY_USERS
         exclude = ["password"]
         model = models.User
         object_type = User
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        support_meta_field = True
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -212,6 +238,7 @@ class AccountRequestDeletion(BaseMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        doc_category = DOC_CATEGORY_USERS
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -247,6 +274,7 @@ class AccountDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Remove user account."
+        doc_category = DOC_CATEGORY_USERS
         model = models.User
         object_type = User
         error_type_class = AccountError
@@ -308,6 +336,7 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
     class Meta:
         description = "Create a new address for the customer."
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -353,6 +382,7 @@ class AccountAddressUpdate(BaseAddressUpdate):
             "Updates an address of the logged-in user. Requires one of the following "
             "permissions: MANAGE_USERS, IS_OWNER."
         )
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         model = models.Address
@@ -366,6 +396,7 @@ class AccountAddressDelete(BaseAddressDelete):
             "Delete an address of the logged-in user. Requires one of the following "
             "permissions: MANAGE_USERS, IS_OWNER."
         )
+        doc_category = DOC_CATEGORY_USERS
         model = models.Address
         object_type = Address
         error_type_class = AccountError
@@ -383,6 +414,7 @@ class AccountSetDefaultAddress(BaseMutation):
 
     class Meta:
         description = "Sets a default address for the authenticated user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -437,6 +469,7 @@ class RequestEmailChange(BaseMutation):
 
     class Meta:
         description = "Request email change of the logged in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -517,6 +550,7 @@ class ConfirmEmailChange(BaseMutation):
 
     class Meta:
         description = "Confirm the email change of the logged-in user."
+        doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)

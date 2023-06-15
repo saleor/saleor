@@ -7,6 +7,7 @@ from ....permission.auth_filters import AuthorizationFilters
 from ....webhook.error_codes import WebhookTriggerErrorCode
 from ....webhook.event_types import WebhookEventAsyncType
 from ...core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
+from ...core.doc_category import DOC_CATEGORY_WEBHOOKS
 from ...core.mutations import BaseMutation
 from ...core.types.common import WebhookTriggerError
 from ...core.utils import raise_validation_error
@@ -33,6 +34,7 @@ class WebhookTrigger(BaseMutation):
             + ADDED_IN_311
             + PREVIEW_FEATURE
         )
+        doc_category = DOC_CATEGORY_WEBHOOKS
         permissions = (AuthorizationFilters.AUTHENTICATED_STAFF_USER,)
         error_type_class = WebhookTriggerError
 

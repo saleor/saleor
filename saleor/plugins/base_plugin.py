@@ -46,13 +46,13 @@ if TYPE_CHECKING:
     from ..core.middleware import Requestor
     from ..core.notify_events import NotifyEventType
     from ..core.taxes import TaxData, TaxType
-    from ..discount import DiscountInfo
     from ..discount.models import Sale, Voucher
     from ..giftcard.models import GiftCard
     from ..invoice.models import Invoice
     from ..menu.models import Menu, MenuItem
     from ..order.models import Fulfillment, Order, OrderLine
     from ..page.models import Page, PageType
+    from ..payment.interface import PaymentGatewayData, TransactionSessionData
     from ..payment.models import TransactionItem
     from ..product.models import (
         Category,
@@ -247,7 +247,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -260,7 +259,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Any,
         ],
         TaxedMoney,
@@ -275,7 +273,6 @@ class BasePlugin:
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             Union["Address", None],
-            List["DiscountInfo"],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -290,7 +287,20 @@ class BasePlugin:
             "CheckoutInfo",
             List["CheckoutLineInfo"],
             Union["Address", None],
-            List["DiscountInfo"],
+            TaxedMoney,
+        ],
+        TaxedMoney,
+    ]
+
+    # Calculate the subtotal for checkout.
+    #
+    # Overwrite this method if you need to apply specific logic for the calculation
+    # of a checkout subtotal. Return TaxedMoney.
+    calculate_checkout_subtotal: Callable[
+        [
+            "CheckoutInfo",
+            List["CheckoutLineInfo"],
+            Union["Address", None],
             TaxedMoney,
         ],
         TaxedMoney,
@@ -373,7 +383,7 @@ class BasePlugin:
     channel_status_changed: Callable[["Channel", None], None]
 
     change_user_address: Callable[
-        ["Address", Union[str, None], Union["User", None], "Address"], "Address"
+        ["Address", Union[str, None], Union["User", None], bool, "Address"], "Address"
     ]
 
     # Retrieves the balance remaining on a shopper's gift card
@@ -390,6 +400,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic when a checkout is
     # updated.
     checkout_updated: Callable[["Checkout", Any], Any]
+
+    # Trigger when checkout is fully paid with transactions.
+    #
+    # Overwrite this method if you need to trigger specific logic when a checkout is
+    # updated.
+    checkout_fully_paid: Callable[["Checkout", Any], Any]
 
     # Trigger when checkout metadata is updated.
     #
@@ -510,7 +526,6 @@ class BasePlugin:
             List["CheckoutLineInfo"],
             "CheckoutLineInfo",
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Decimal,
         ],
         Decimal,
@@ -521,7 +536,6 @@ class BasePlugin:
             "CheckoutInfo",
             Iterable["CheckoutLineInfo"],
             Union["Address", None],
-            Iterable["DiscountInfo"],
             Any,
         ],
         Any,
@@ -662,6 +676,12 @@ class BasePlugin:
     # canceled.
     order_cancelled: Callable[["Order", Any], Any]
 
+    # Trigger when order is expired.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # expired.
+    order_expired: Callable[["Order", Any], Any]
+
     # Trigger when order is confirmed by staff.
     #
     # Overwrite this method if you need to trigger specific logic after an order is
@@ -686,6 +706,24 @@ class BasePlugin:
     # fully paid.
     order_fully_paid: Callable[["Order", Any], Any]
 
+    # Trigger when order is paid.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # received the payment.
+    order_paid: Callable[["Order", Any], Any]
+
+    # Trigger when order is refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # refunded.
+    order_refunded: Callable[["Order", Any], Any]
+
+    # Trigger when order is fully refunded.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order is
+    # fully refunded.
+    order_fully_refunded: Callable[["Order", Any], Any]
+
     # Trigger when order is updated.
     #
     # Overwrite this method if you need to trigger specific logic when an order is
@@ -697,6 +735,12 @@ class BasePlugin:
     # Overwrite this method if you need to trigger specific logic when an order
     # metadata is changed.
     order_metadata_updated: Callable[["Order", Any], Any]
+
+    # Trigger when orders are imported.
+    #
+    # Overwrite this method if you need to trigger specific logic when an order
+    # is imported.
+    order_bulk_created: Callable[[List["Order"], Any], Any]
 
     # Trigger when page is created.
     #
@@ -759,7 +803,6 @@ class BasePlugin:
     preprocess_order_creation: Callable[
         [
             "CheckoutInfo",
-            List["DiscountInfo"],
             Union[Iterable["CheckoutLineInfo"], None],
             Any,
         ],
@@ -769,6 +812,30 @@ class BasePlugin:
     process_payment: Callable[["PaymentData", Any], Any]
 
     transaction_action_request: Callable[["TransactionActionData", None], None]
+
+    transaction_charge_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_cancelation_requested: Callable[["TransactionActionData", None], None]
+
+    transaction_refund_requested: Callable[["TransactionActionData", None], None]
+
+    payment_gateway_initialize_session: Callable[
+        [
+            Decimal,
+            Optional[list["PaymentGatewayData"]],
+            Union["Checkout", "Order"],
+            None,
+        ],
+        list["PaymentGatewayData"],
+    ]
+
+    transaction_initialize_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
+    ]
+
+    transaction_process_session: Callable[
+        ["TransactionSessionData", None], "PaymentGatewayData"
+    ]
 
     # Trigger when transaction item metadata is updated.
     #

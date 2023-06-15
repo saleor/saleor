@@ -4,7 +4,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ...discount import DiscountValueType, OrderDiscountType
+from ...discount import DiscountType, DiscountValueType
 from ...giftcard import GiftCardEvents
 from ...giftcard.models import GiftCardEvent
 from ...graphql.order.utils import OrderLineData
@@ -302,7 +302,7 @@ def test_add_gift_cards_to_order(
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     add_gift_cards_to_order(
@@ -359,7 +359,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
     checkout.gift_cards.add(gift_card, gift_card_expiry_date)
     manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, [], manager)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     # when
     add_gift_cards_to_order(
@@ -407,7 +407,7 @@ def test_add_gift_cards_to_order_no_checkout_user(
 def test_get_total_order_discount_excluding_shipping(order, voucher_shipping_type):
     # given
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher_shipping_type.code,
@@ -415,7 +415,7 @@ def test_get_total_order_discount_excluding_shipping(order, voucher_shipping_typ
         amount_value=Decimal("10.0"),
     )
     manual_discount = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher_shipping_type.code,
@@ -441,7 +441,7 @@ def test_get_total_order_discount_excluding_shipping_no_shipping_discounts(
 ):
     # given
     discount_1 = order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher.code,
@@ -449,7 +449,7 @@ def test_get_total_order_discount_excluding_shipping_no_shipping_discounts(
         amount_value=Decimal("10.0"),
     )
     discount_2 = order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=Decimal("10.0"),
         name=voucher.code,

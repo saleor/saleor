@@ -9,6 +9,7 @@ from ...product import models
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
 from ..channel.filters import get_channel_slug_from_filter_data
 from ..core.descriptions import ADDED_IN_311, PREVIEW_FEATURE
+from ..core.doc_category import DOC_CATEGORY_ATTRIBUTES
 from ..core.enums import MeasurementUnitsEnum
 from ..core.filters import (
     EnumFilter,
@@ -20,6 +21,7 @@ from ..core.filters import (
     filter_slug_list,
 )
 from ..core.types import (
+    BaseInputObjectType,
     ChannelFilterInputObjectType,
     FilterInputObjectType,
     NonNullList,
@@ -132,15 +134,17 @@ class AttributeFilter(MetadataFilterBase):
 
 class AttributeFilterInput(ChannelFilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         filterset_class = AttributeFilter
 
 
 class AttributeValueFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
         filterset_class = AttributeValueFilter
 
 
-class AttributeInputTypeEnumFilterInput(graphene.InputObjectType):
+class AttributeInputTypeEnumFilterInput(BaseInputObjectType):
     eq = AttributeInputTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeInputTypeEnum,
@@ -148,8 +152,11 @@ class AttributeInputTypeEnumFilterInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeEntityTypeEnumFilterInput(graphene.InputObjectType):
+
+class AttributeEntityTypeEnumFilterInput(BaseInputObjectType):
     eq = AttributeEntityTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeEntityTypeEnum,
@@ -157,8 +164,11 @@ class AttributeEntityTypeEnumFilterInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class AttributeTypeEnumFilterInput(graphene.InputObjectType):
+
+class AttributeTypeEnumFilterInput(BaseInputObjectType):
     eq = AttributeTypeEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         AttributeTypeEnum,
@@ -166,14 +176,20 @@ class AttributeTypeEnumFilterInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
-class MeasurementUnitsEnumFilterInput(graphene.InputObjectType):
+
+class MeasurementUnitsEnumFilterInput(BaseInputObjectType):
     eq = MeasurementUnitsEnum(description=FilterInputDescriptions.EQ, required=False)
     one_of = NonNullList(
         MeasurementUnitsEnum,
         description=FilterInputDescriptions.ONE_OF,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ATTRIBUTES
 
 
 def filter_attribute_name(qs, _, value):
@@ -260,3 +276,4 @@ class AttributeWhereInput(WhereInputObjectType):
     class Meta:
         filterset_class = AttributeWhere
         description = "Where filtering options." + ADDED_IN_311 + PREVIEW_FEATURE
+        doc_category = DOC_CATEGORY_ATTRIBUTES

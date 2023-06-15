@@ -183,6 +183,13 @@ def subscription_gift_card_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_gift_card_sent_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.GIFT_CARD_SENT, WebhookEventAsyncType.GIFT_CARD_SENT
+    )
+
+
+@pytest.fixture
 def subscription_gift_card_status_changed_webhook(subscription_webhook):
     return subscription_webhook(
         queries.GIFT_CARD_STATUS_CHANGED,
@@ -430,9 +437,35 @@ def subscription_order_fully_paid_webhook(subscription_webhook):
 
 
 @pytest.fixture
+def subscription_order_paid_webhook(subscription_webhook):
+    return subscription_webhook(queries.ORDER_PAID, WebhookEventAsyncType.ORDER_PAID)
+
+
+@pytest.fixture
+def subscription_order_fully_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_FULLY_REFUNDED, WebhookEventAsyncType.ORDER_FULLY_REFUNDED
+    )
+
+
+@pytest.fixture
+def subscription_order_refunded_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_REFUNDED, WebhookEventAsyncType.ORDER_REFUNDED
+    )
+
+
+@pytest.fixture
 def subscription_order_cancelled_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_CANCELLED, WebhookEventAsyncType.ORDER_CANCELLED
+    )
+
+
+@pytest.fixture
+def subscription_order_expired_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_EXPIRED, WebhookEventAsyncType.ORDER_EXPIRED
     )
 
 
@@ -447,6 +480,13 @@ def subscription_order_fulfilled_webhook(subscription_webhook):
 def subscription_order_metadata_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.ORDER_METADATA_UPDATED, WebhookEventAsyncType.ORDER_METADATA_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_order_bulk_created_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.ORDER_BULK_CREATED, WebhookEventAsyncType.ORDER_BULK_CREATED
     )
 
 
@@ -625,6 +665,13 @@ def subscription_checkout_created_webhook(subscription_webhook):
 def subscription_checkout_updated_webhook(subscription_webhook):
     return subscription_webhook(
         queries.CHECKOUT_UPDATED, WebhookEventAsyncType.CHECKOUT_UPDATED
+    )
+
+
+@pytest.fixture
+def subscription_checkout_fully_paid_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.CHECKOUT_FULLY_PAID, WebhookEventAsyncType.CHECKOUT_FULLY_PAID
     )
 
 

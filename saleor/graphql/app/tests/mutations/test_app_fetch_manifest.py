@@ -1,13 +1,23 @@
+import base64
+from io import BytesIO
 from unittest.mock import Mock
 
 import pytest
 import requests
+from PIL import Image
 
+from .....app.error_codes import AppErrorCode
+from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
 from ...enums import AppExtensionMountEnum, AppExtensionTargetEnum
+from ...mutations.app_fetch_manifest import FETCH_BRAND_DATA_TIMEOUT
 
 APP_FETCH_MANIFEST_MUTATION = """
-mutation AppFetchManifest($manifest_url: String!){
+mutation AppFetchManifest(
+  $manifest_url: String!
+  $size: Int
+  $format: IconThumbnailFormatEnum
+) {
   appFetchManifest(manifestUrl:$manifest_url){
     manifest{
       identifier
@@ -25,6 +35,11 @@ mutation AppFetchManifest($manifest_url: String!){
         code
       }
       audience
+      requiredSaleorVersion{
+        constraint
+        satisfied
+      }
+      author
       extensions{
         label
         url
@@ -33,6 +48,11 @@ mutation AppFetchManifest($manifest_url: String!){
         permissions{
           code
           name
+        }
+      }
+      brand{
+        logo{
+          default(size: $size, format: $format)
         }
       }
     }
@@ -67,7 +87,7 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
     assert manifest["about"] == "Lorem ipsum"
     assert manifest["name"] == "app"
     assert manifest["appUrl"] == "http://localhost:8888/app"
-    assert manifest["configurationUrl"] == "htpp://localhost:8888/configuration"
+    assert manifest["configurationUrl"] == "http://localhost:8888/configuration"
     assert manifest["tokenTargetUrl"] == "http://localhost:3000/register"
     assert manifest["dataPrivacy"] == "Lorem ipsum"
     assert manifest["dataPrivacyUrl"] == "http://localhost:8888/app-data-privacy"
@@ -77,6 +97,8 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
         "MANAGE_ORDERS",
         "MANAGE_USERS",
     }
+    assert manifest["requiredSaleorVersion"] is None
+    assert manifest["brand"] is None
 
 
 @pytest.mark.vcr
@@ -627,3 +649,181 @@ def test_app_fetch_manifest_with_extensions(
     assert extension["url"] == "http://127.0.0.1:8080/app"
     assert extension["mount"] == AppExtensionMountEnum.PRODUCT_OVERVIEW_CREATE.name
     assert extension["target"] == AppExtensionTargetEnum.POPUP.name
+
+
+def test_app_fetch_manifest_with_required_saleor_version(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    required_saleor_version = "<3.11"
+    app_manifest["requiredSaleorVersion"] = required_saleor_version
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    assert len(content["data"]["appFetchManifest"]["errors"]) == 0
+    assert manifest["requiredSaleorVersion"] == {
+        "constraint": required_saleor_version,
+        "satisfied": False,
+    }
+
+
+def test_app_fetch_manifest_with_invalid_required_saleor_version(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    required_saleor_version = "3.wrong.1"
+    app_manifest["requiredSaleorVersion"] = required_saleor_version
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "requiredSaleorVersion"
+    assert errors[0]["code"] == AppErrorCode.INVALID.name
+
+
+def test_app_fetch_manifest_with_author(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["author"] = "Acme Ltd"
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    assert len(content["data"]["appFetchManifest"]["errors"]) == 0
+    assert manifest["author"] == app_manifest["author"]
+
+
+def test_app_fetch_manifest_with_empty_author(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["author"] = " "
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "author"
+    assert errors[0]["code"] == AppErrorCode.INVALID.name
+
+
+@pytest.mark.parametrize(
+    "format,expected_format,size",
+    [
+        (None, "png", None),
+        (IconThumbnailFormat.WEBP, "webp", 120),
+        (IconThumbnailFormat.ORIGINAL, "png", 0),
+    ],
+)
+def test_app_fetch_manifest_with_brand_data(
+    format,
+    expected_format,
+    size,
+    staff_api_client,
+    app_manifest,
+    permission_manage_apps,
+    icon_image,
+    monkeypatch,
+):
+    # given
+    logo_url = "http://localhost:3000/logo.png"
+    app_manifest["brand"] = {"logo": {"default": logo_url}}
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+    mock_fetch_icon_image = Mock(return_value=icon_image)
+    monkeypatch.setattr(
+        "saleor.app.installation_utils.fetch_icon_image", mock_fetch_icon_image
+    )
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={
+            "manifest_url": "http://localhost:3000/manifest",
+            "size": size,
+            "format": format.upper() if format else None,
+        },
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    mock_fetch_icon_image.assert_called_once_with(
+        logo_url, timeout=FETCH_BRAND_DATA_TIMEOUT
+    )
+    content = get_graphql_content(response)
+    manifest = content["data"]["appFetchManifest"]["manifest"]
+    assert len(content["data"]["appFetchManifest"]["errors"]) == 0
+    # decode and check icon thumbnail from data url
+    data_url_prefix, base64_icon = manifest["brand"]["logo"]["default"].split(",", 1)
+    assert data_url_prefix == f"data:image/{expected_format};base64"
+    icon_thumbnail = BytesIO(base64.b64decode(base64_icon.encode()))
+    with Image.open(icon_thumbnail) as image:
+        assert image.format == expected_format.upper()
+
+
+def test_app_fetch_manifest_with_invalid_brand_data(
+    staff_api_client, app_manifest, permission_manage_apps, monkeypatch
+):
+    # given
+    app_manifest["brand"] = {"logo": {"default": "wrong-url.png"}}
+    mocked_get_response = Mock()
+    mocked_get_response.json.return_value = app_manifest
+    monkeypatch.setattr(requests, "get", Mock(return_value=mocked_get_response))
+
+    # when
+    response = staff_api_client.post_graphql(
+        APP_FETCH_MANIFEST_MUTATION,
+        variables={"manifest_url": "http://localhost:3000/manifest"},
+        permissions=[permission_manage_apps],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    errors = content["data"]["appFetchManifest"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "brand"
+    assert errors[0]["code"] == AppErrorCode.INVALID_URL_FORMAT.name

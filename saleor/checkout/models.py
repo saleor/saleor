@@ -21,6 +21,7 @@ from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..permission.enums import CheckoutPermissions
 from ..shipping.models import ShippingMethod
+from . import CheckoutAuthorizeStatus, CheckoutChargeStatus
 
 if TYPE_CHECKING:
     from django_measurement import Weight
@@ -39,7 +40,7 @@ class Checkout(models.Model):
     """A shopping checkout."""
 
     created_at = models.DateTimeField(auto_now_add=True)
-    last_change = models.DateTimeField(auto_now=True)
+    last_change = models.DateTimeField(auto_now=True, db_index=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -135,6 +136,20 @@ class Checkout(models.Model):
     )
     shipping_tax_rate = models.DecimalField(
         max_digits=5, decimal_places=4, default=Decimal("0.0")
+    )
+
+    authorize_status = models.CharField(
+        max_length=32,
+        default=CheckoutAuthorizeStatus.NONE,
+        choices=CheckoutAuthorizeStatus.CHOICES,
+        db_index=True,
+    )
+
+    charge_status = models.CharField(
+        max_length=32,
+        default=CheckoutChargeStatus.NONE,
+        choices=CheckoutChargeStatus.CHOICES,
+        db_index=True,
     )
 
     price_expiration = models.DateTimeField(default=timezone.now)

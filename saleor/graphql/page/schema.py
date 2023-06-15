@@ -2,22 +2,21 @@ import graphene
 
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.fields import FilterConnectionField
+from ..core.doc_category import DOC_CATEGORY_PAGES
+from ..core.fields import BaseField, FilterConnectionField
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish, PageTypeBulkDelete
 from .filters import PageFilterInput, PageTypeFilterInput
-from .mutations.attributes import (
+from .mutations import (
     PageAttributeAssign,
     PageAttributeUnassign,
-    PageReorderAttributeValues,
-    PageTypeReorderAttributes,
-)
-from .mutations.pages import (
     PageCreate,
     PageDelete,
+    PageReorderAttributeValues,
     PageTypeCreate,
     PageTypeDelete,
+    PageTypeReorderAttributes,
     PageTypeUpdate,
     PageUpdate,
 )
@@ -32,30 +31,34 @@ from .types import Page, PageCountableConnection, PageType, PageTypeCountableCon
 
 
 class PageQueries(graphene.ObjectType):
-    page = graphene.Field(
+    page = BaseField(
         Page,
         id=graphene.Argument(graphene.ID, description="ID of the page."),
         slug=graphene.String(description="The slug of the page."),
         description="Look up a page by ID or slug.",
+        doc_category=DOC_CATEGORY_PAGES,
     )
     pages = FilterConnectionField(
         PageCountableConnection,
         sort_by=PageSortingInput(description="Sort pages."),
         filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
+        doc_category=DOC_CATEGORY_PAGES,
     )
-    page_type = graphene.Field(
+    page_type = BaseField(
         PageType,
         id=graphene.Argument(
             graphene.ID, description="ID of the page type.", required=True
         ),
         description="Look up a page type by ID.",
+        doc_category=DOC_CATEGORY_PAGES,
     )
     page_types = FilterConnectionField(
         PageTypeCountableConnection,
         sort_by=PageTypeSortingInput(description="Sort page types."),
         filter=PageTypeFilterInput(description="Filtering options for page types."),
         description="List of the page types.",
+        doc_category=DOC_CATEGORY_PAGES,
     )
 
     @staticmethod

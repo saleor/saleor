@@ -21,10 +21,11 @@ from ....shipping.utils import (
 )
 from ...channel.types import ChannelContext
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_SHIPPING
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import WeightScalar
-from ...core.types import NonNullList, ShippingError
+from ...core.types import BaseInputObjectType, NonNullList, ShippingError
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product import types as product_types
 from ...shipping import types as shipping_types
@@ -34,14 +35,17 @@ from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
 from ..types import ShippingMethodPostalCodeRule, ShippingMethodType, ShippingZone
 
 
-class ShippingPostalCodeRulesCreateInputRange(graphene.InputObjectType):
+class ShippingPostalCodeRulesCreateInputRange(BaseInputObjectType):
     start = graphene.String(
         required=True, description="Start range of the postal code."
     )
     end = graphene.String(required=False, description="End range of the postal code.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
 
-class ShippingPriceInput(graphene.InputObjectType):
+
+class ShippingPriceInput(BaseInputObjectType):
     name = graphene.String(description="Name of the shipping method.")
     description = JSONString(description="Shipping method description.")
     minimum_order_weight = WeightScalar(
@@ -79,8 +83,11 @@ class ShippingPriceInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
 
-class ShippingZoneCreateInput(graphene.InputObjectType):
+
+class ShippingZoneCreateInput(BaseInputObjectType):
     name = graphene.String(
         description="Shipping zone's name. Visible only to the staff."
     )
@@ -103,6 +110,9 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
         description="List of channels to assign to the shipping zone.",
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
+
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
     remove_warehouses = NonNullList(
@@ -113,6 +123,9 @@ class ShippingZoneUpdateInput(ShippingZoneCreateInput):
         graphene.ID,
         description="List of channels to unassign from the shipping zone.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingZoneMixin:
@@ -266,8 +279,7 @@ class ShippingZoneMixin:
                     }
                 )
             else:
-                countries = get_countries_without_shipping_zone()
-                data["countries"].extend([country for country in countries])
+                cls._extend_shipping_zone_countries(data)
         else:
             data["default"] = False
         return data
@@ -358,6 +370,14 @@ class ShippingZoneMixin:
         WarehouseShippingZone.objects.filter(
             id__in=shipping_zone_warehouses_to_delete
         ).delete()
+
+    @classmethod
+    def _extend_shipping_zone_countries(cls, data):
+        countries = get_countries_without_shipping_zone()
+        try:
+            data["countries"].extend([country for country in countries])
+        except (KeyError, AttributeError):
+            data["countries"] = [country for country in countries]
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
@@ -709,6 +729,7 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -734,12 +755,15 @@ class ShippingPriceDelete(BaseMutation):
         )
 
 
-class ShippingPriceExcludeProductsInput(graphene.InputObjectType):
+class ShippingPriceExcludeProductsInput(BaseInputObjectType):
     products = NonNullList(
         graphene.ID,
         description="List of products which will be excluded.",
         required=True,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_SHIPPING
 
 
 class ShippingPriceExcludeProducts(BaseMutation):
@@ -750,13 +774,13 @@ class ShippingPriceExcludeProducts(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping price.")
-
         input = ShippingPriceExcludeProductsInput(
             description="Exclude products input.", required=True
         )
 
     class Meta:
         description = "Exclude products from shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
@@ -806,6 +830,7 @@ class ShippingPriceRemoveProductFromExclude(BaseMutation):
 
     class Meta:
         description = "Remove product from excluded list for shipping price."
+        doc_category = DOC_CATEGORY_SHIPPING
         permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"

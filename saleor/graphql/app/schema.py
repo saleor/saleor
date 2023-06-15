@@ -5,7 +5,8 @@ from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import AppPermission
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31
+from ..core.doc_category import DOC_CATEGORY_APPS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType, NonNullList
 from ..core.utils import from_global_id_or_error
@@ -43,11 +44,13 @@ from .types import (
 
 class AppFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_APPS
         filterset_class = AppFilter
 
 
 class AppExtensionFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_APPS
         filterset_class = AppExtensionFilter
 
 
@@ -59,6 +62,7 @@ class AppQueries(graphene.ObjectType):
         permissions=[
             AppPermission.MANAGE_APPS,
         ],
+        doc_category=DOC_CATEGORY_APPS,
     )
     apps = FilterConnectionField(
         AppCountableConnection,
@@ -69,6 +73,7 @@ class AppQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AppPermission.MANAGE_APPS,
         ],
+        doc_category=DOC_CATEGORY_APPS,
     )
     app = PermissionsField(
         App,
@@ -86,28 +91,31 @@ class AppQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
         auto_permission_message=False,
+        doc_category=DOC_CATEGORY_APPS,
     )
     app_extensions = FilterConnectionField(
         AppExtensionCountableConnection,
         filter=AppExtensionFilterInput(
             description="Filtering options for apps extensions."
         ),
-        description="List of all extensions." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="List of all extensions." + ADDED_IN_31,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_APPS,
     )
     app_extension = PermissionsField(
         AppExtension,
         id=graphene.Argument(
             graphene.ID, description="ID of the app extension.", required=True
         ),
-        description="Look up an app extension by ID." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Look up an app extension by ID." + ADDED_IN_31,
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_APPS,
     )
 
     @staticmethod

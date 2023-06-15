@@ -3,7 +3,6 @@ from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
-from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....checkout import AddressType
@@ -27,10 +26,17 @@ from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
 from ...channel.types import Channel
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_36, ADDED_IN_310, PREVIEW_FEATURE
-from ...core.mutations import ModelMutation
+from ...core.descriptions import (
+    ADDED_IN_36,
+    ADDED_IN_310,
+    ADDED_IN_314,
+    PREVIEW_FEATURE,
+)
+from ...core.doc_category import DOC_CATEGORY_ORDERS
+from ...core.mutations import ModelWithRestrictedChannelAccessMutation
 from ...core.scalars import PositiveDecimal
-from ...core.types import NonNullList, OrderError
+from ...core.types import BaseInputObjectType, NonNullList, OrderError
+from ...core.utils import from_global_id_or_error
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
 from ...shipping.utils import get_shipping_model_by_object_id
@@ -43,10 +49,13 @@ from ..utils import (
 )
 
 
-class OrderLineInput(graphene.InputObjectType):
+class OrderLineInput(BaseInputObjectType):
     quantity = graphene.Int(
         description="Number of variant items ordered.", required=True
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderLineCreateInput(OrderLineInput):
@@ -58,12 +67,25 @@ class OrderLineCreateInput(OrderLineInput):
         default_value=False,
         description=(
             "Flag that allow force splitting the same variant into multiple lines "
-            "by skipping the matching logic. " + ADDED_IN_36 + PREVIEW_FEATURE
+            "by skipping the matching logic. " + ADDED_IN_36
+        ),
+    )
+    price = PositiveDecimal(
+        required=False,
+        description=(
+            "Custom price of the item."
+            "When the line with the same variant "
+            "will be provided multiple times, the last price will be used."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class DraftOrderInput(InputObjectType):
+
+class DraftOrderInput(BaseInputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
     user = graphene.ID(
         description="Customer associated with the draft order.", name="user"
@@ -92,6 +114,9 @@ class DraftOrderInput(InputObjectType):
         description="External ID of this order." + ADDED_IN_310, required=False
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
+
 
 class DraftOrderCreateInput(DraftOrderInput):
     lines = NonNullList(
@@ -101,8 +126,11 @@ class DraftOrderCreateInput(DraftOrderInput):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
-class DraftOrderCreate(ModelMutation, I18nMixin):
+
+class DraftOrderCreate(ModelWithRestrictedChannelAccessMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -115,6 +143,26 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
+
+    @classmethod
+    def get_instance_channel_id(cls, instance, **data):
+        if channel_id := instance.channel_id:
+            return channel_id
+
+        channel_id = data["input"].get("channel_id")
+        if not channel_id:
+            raise ValidationError(
+                {
+                    "channel": ValidationError(
+                        "Channel id is required.", code=OrderErrorCode.REQUIRED.value
+                    )
+                }
+            )
+        _, channel_id = from_global_id_or_error(
+            channel_id, "Channel", raise_error=False
+        )
+
+        return channel_id
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -221,14 +269,20 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
                 variant = list(
                     filter(lambda x: (x.pk == int(variant_db_id)), variants)
                 )[0]
+                custom_price = line.get("price", None)
 
                 if line.get("force_new_line"):
-                    line_data = OrderLineData(variant_id=variant_db_id, variant=variant)
+                    line_data = OrderLineData(
+                        variant_id=variant_db_id,
+                        variant=variant,
+                        price_override=custom_price,
+                    )
                     grouped_lines_data.append(line_data)
                 else:
                     line_data = lines_data_map[variant_db_id]
                     line_data.variant_id = variant_db_id
                     line_data.variant = variant
+                    line_data.price_override = custom_price
 
                 if (quantity := line.get("quantity")) is not None:
                     line_data.quantity += quantity

@@ -8,6 +8,7 @@ from ....order.utils import invalidate_order_prices, update_discount_for_order_l
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.types import OrderError
 from ..types import Order, OrderLine
 from .order_discount_common import OrderDiscountCommon, OrderDiscountCommonInput
@@ -32,6 +33,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
 
     class Meta:
         description = "Update discount for the order line."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -43,7 +45,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
         input["value_type"] = input.get("value_type") or order_line.unit_discount_type
 
         cls.validate_order_discount_input(
-            info, order_line.undiscounted_unit_price.gross, input
+            order_line.undiscounted_unit_price.gross, input
         )
 
     @classmethod
@@ -52,6 +54,7 @@ class OrderLineDiscountUpdate(OrderDiscountCommon):
     ):
         order_line = cls.get_node_or_error(info, order_line_id, only_type=OrderLine)
         order = order_line.order
+        cls.check_channel_permissions(info, [order.channel_id])
         cls.validate(info, order, order_line, input)
         reason = input.get("reason")
         value_type = input.get("value_type")

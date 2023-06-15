@@ -1,29 +1,49 @@
-import graphene
-
 from ...payment import (
     ChargeStatus,
     StorePaymentMethod,
     TransactionAction,
+    TransactionEventStatus,
+    TransactionEventType,
     TransactionKind,
-    TransactionStatus,
 )
+from ..core.doc_category import DOC_CATEGORY_PAYMENTS
 from ..core.enums import to_enum
+from ..core.types import BaseEnum
 
 TransactionKindEnum = to_enum(TransactionKind, type_name="TransactionKind")
+TransactionKindEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
 PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
+PaymentChargeStatusEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
 TransactionActionEnum = to_enum(
     TransactionAction,
     type_name="TransactionActionEnum",
     description=TransactionAction.__doc__,
 )
-TransactionStatusEnum = to_enum(TransactionStatus, type_name="TransactionStatus")
+TransactionActionEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+TransactionEventTypeEnum = to_enum(
+    TransactionEventType, description=TransactionEventType.__doc__
+)
+TransactionEventTypeEnum.doc_category = DOC_CATEGORY_PAYMENTS
+
+TransactionEventStatusEnum = to_enum(
+    TransactionEventStatus,
+    type_name="TransactionStatus",
+    description=TransactionEventStatus.__doc__,
+)
+TransactionEventStatusEnum.doc_category = DOC_CATEGORY_PAYMENTS
 
 
-class OrderAction(graphene.Enum):
+class OrderAction(BaseEnum):
     CAPTURE = "CAPTURE"
     MARK_AS_PAID = "MARK_AS_PAID"
     REFUND = "REFUND"
     VOID = "VOID"
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PAYMENTS
 
     @property
     def description(self):
@@ -60,3 +80,4 @@ def description(enum):
 StorePaymentMethodEnum = to_enum(
     StorePaymentMethod, type_name="StorePaymentMethodEnum", description=description
 )
+StorePaymentMethodEnum.doc_category = DOC_CATEGORY_PAYMENTS

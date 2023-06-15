@@ -5,7 +5,7 @@ from prices import Money, TaxedMoney
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...order import base_calculations
 from ...order.utils import (
     get_order_country,
@@ -51,10 +51,13 @@ def update_order_prices_with_flat_rates(
             default_tax_rate,
             country_code,
         )
-    elif order.shipping_tax_rate is not None:
-        # Use order.shipping_tax_rate if it was ever set before (it's non-null now).
-        # This is a valid case when recalculating shipping price and the tax class is
-        # null, because it was removed from the system.
+    elif (
+        order.shipping_tax_class_name is not None
+        and order.shipping_tax_rate is not None
+    ):
+        # Use order.shipping_tax_rate if it was ever set before (it's non-null now and
+        # the name is non-null). This is a valid case when recalculating shipping price
+        # and the tax class is null, because it was removed from the system.
         shipping_tax_rate = denormalize_tax_rate_from_db(order.shipping_tax_rate)
     else:
         shipping_tax_rate = default_tax_rate
@@ -87,7 +90,7 @@ def _calculate_order_total(
         undiscounted_subtotal += line.undiscounted_total_price
     total += order.shipping_price
 
-    order_discount = order.discounts.filter(type=OrderDiscountType.MANUAL).first()
+    order_discount = order.discounts.filter(type=DiscountType.MANUAL).first()
     if order_discount and order_discount.amount > undiscounted_subtotal.gross:
         remaining_amount = order_discount.amount - undiscounted_subtotal.gross
         total -= remaining_amount
@@ -135,10 +138,11 @@ def update_taxes_for_order_lines(
                 default_tax_rate,
                 country_code,
             )
-        elif line.tax_rate is not None:
-            # line.tax_class can be None when the tax class was removed from DB. In
-            # this case try to use line.tax_rate which stores the denormalized tax rate
-            # value that was originally used.
+        elif line.tax_class_name is not None and line.tax_rate is not None:
+            # If tax_class is None but tax_class_name is set, the tax class was set
+            # for this line before, but is now removed from the system. In this case
+            # try to use line.tax_rate which stores the denormalized tax rate value
+            # that was originally provided by the tax class.
             tax_rate = denormalize_tax_rate_from_db(line.tax_rate)
         else:
             tax_rate = default_tax_rate

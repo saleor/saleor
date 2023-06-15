@@ -6,8 +6,11 @@ from saleor.tax.models import TaxClassCountryRate
 
 from ...core.prices import quantize_price
 from ...core.taxes import zero_money, zero_taxed_money
-from ...discount import DiscountValueType, OrderDiscountType
+from ...discount import DiscountType, DiscountValueType
+from ...order import OrderStatus
+from ...order.calculations import fetch_order_prices_if_expired
 from ...order.utils import get_order_country
+from ...plugins.manager import get_plugins_manager
 from .. import TaxCalculationStrategy
 from ..calculations.order import (
     update_order_prices_with_flat_rates,
@@ -49,7 +52,7 @@ def test_calculations_calculate_order_undiscounted_total(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -58,7 +61,7 @@ def test_calculations_calculate_order_undiscounted_total(
         amount_value=10,
     )
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=Decimal(5.0),
         name=voucher_shipping_type.code,
@@ -146,7 +149,7 @@ def test_calculations_calculate_order_total_voucher(order_with_lines):
 
     discount_amount = 10
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
         name="Voucher",
@@ -172,7 +175,7 @@ def test_calculations_calculate_order_total_with_manual_discount(order_with_line
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -200,7 +203,7 @@ def test_calculations_calculate_order_total_with_discount_for_order_total(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=80,
         name="StaffDiscount",
@@ -226,7 +229,7 @@ def test_calculations_calculate_order_total_with_discount_for_subtotal_and_shipp
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=75,
         name="StaffDiscount",
@@ -254,7 +257,7 @@ def test_calculations_calculate_order_total_with_discount_for_more_than_order_to
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=100,
         name="StaffDiscount",
@@ -280,7 +283,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
     lines = order.lines.all()
 
     order.discounts.create(
-        type=OrderDiscountType.MANUAL,
+        type=DiscountType.MANUAL,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="StaffDiscount",
@@ -289,7 +292,7 @@ def test_calculations_calculate_order_total_with_manual_discount_and_voucher(
         amount_value=10,
     )
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=10,
         name="Voucher",
@@ -370,7 +373,7 @@ def test_calculate_order_shipping_voucher_on_shipping(
     order.save()
 
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=discount_amount,
         name=voucher_shipping_type.code,
@@ -419,7 +422,7 @@ def test_calculate_order_shipping_free_shipping_voucher(
     shipping_price = shipping_channel_listings.price
 
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.PERCENTAGE,
         value=Decimal("100.0"),
         name=voucher_shipping_type.code,
@@ -494,7 +497,7 @@ def test_update_taxes_for_order_lines_voucher_on_entire_order(
 
     order_discount_amount = Decimal("5.0")
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
         name=voucher.code,
@@ -566,7 +569,7 @@ def test_update_taxes_for_order_lines_voucher_on_shipping(
 
     order_discount_amount = Decimal("5.0")
     order.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=order_discount_amount,
         name=voucher_shipping_type.code,
@@ -627,3 +630,59 @@ def test_use_original_tax_rate_when_tax_class_is_removed_from_order_line(
     assert order.total == TaxedMoney(
         net=Money("65.04", "USD"), gross=Money("80.00", "USD")
     )
+
+
+def test_use_default_country_rate_when_no_tax_class_was_set_before(
+    order_with_lines,
+):
+    # given
+    manager = get_plugins_manager()
+    order = order_with_lines
+    country = get_order_country(order)
+    TaxClassCountryRate.objects.create(country=country, rate=20)
+
+    prices_entered_with_tax = True
+    _enable_flat_rates(order, prices_entered_with_tax)
+    lines = order.lines.all()
+
+    # drop tax classes from lines and shipping, so that default country rate is used
+    for line in lines:
+        line.tax_class = None
+        line.tax_rate = Decimal("0")
+        line.tax_class_name = None
+        line.save(
+            update_fields=[
+                "tax_rate",
+                "tax_class",
+                "tax_class_name",
+            ]
+        )
+
+    order.shipping_method.tax_class.delete()
+    order.shipping_tax_class = None
+    order.shipping_tax_class_name = None
+    order.shipping_tax_rate = Decimal("0")
+    order.status = OrderStatus.DRAFT
+    order.save(
+        update_fields=[
+            "status",
+            "shipping_tax_class_name",
+            "shipping_tax_class",
+            "shipping_tax_rate",
+        ]
+    )
+    order.refresh_from_db()
+
+    # when
+    fetch_order_prices_if_expired(order, manager, force_update=True)
+    order.refresh_from_db()
+
+    # then
+    line = order.lines.first()
+    assert line.tax_rate == Decimal("0.20")
+    assert not line.tax_class
+    assert not line.tax_class_name
+
+    assert order.shipping_tax_rate == Decimal("0.20")
+    assert not order.shipping_tax_class
+    assert not order.shipping_tax_class_name

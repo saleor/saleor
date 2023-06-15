@@ -9,26 +9,10 @@ from PIL import Image
 from ....product.error_codes import ProductErrorCode
 from ..validators.file import (
     clean_image_file,
-    get_filename_from_url,
     is_image_mimetype,
     is_supported_image_mimetype,
     validate_image_url,
 )
-
-
-def test_get_filename_from_url_unique():
-    # given
-    file_format = "jpg"
-    file_name = "lenna"
-    url = f"http://example.com/{file_name}.{file_format}"
-
-    # when
-    result = get_filename_from_url(url)
-
-    # then
-    assert result.startswith(file_name)
-    assert result.endswith(file_format)
-    assert result != f"{file_name}.{file_format}"
 
 
 def test_is_image_mimetype_valid_mimetype():

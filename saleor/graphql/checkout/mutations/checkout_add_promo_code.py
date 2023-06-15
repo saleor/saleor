@@ -10,10 +10,10 @@ from ....checkout.fetch import (
 from ....checkout.utils import add_promo_code_to_checkout, invalidate_checkout_prices
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Checkout
 from .utils import get_checkout, update_checkout_shipping_method_if_invalid
@@ -45,6 +45,7 @@ class CheckoutAddPromoCode(BaseMutation):
 
     class Meta:
         description = "Adds a gift card or a voucher to a checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -58,12 +59,11 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout_id=None,
         id=None,
         promo_code,
-        token=None
+        token=None,
     ):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
 
         if unavailable_variant_pks:
@@ -83,7 +83,7 @@ class CheckoutAddPromoCode(BaseMutation):
 
         shipping_channel_listings = checkout.channel.shipping_method_listings.all()
         checkout_info = fetch_checkout_info(
-            checkout, lines, discounts, manager, shipping_channel_listings
+            checkout, lines, manager, shipping_channel_listings
         )
 
         add_promo_code_to_checkout(
@@ -91,7 +91,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             promo_code,
-            discounts,
         )
 
         update_delivery_method_lists_for_checkout_info(
@@ -100,7 +99,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info.checkout.collection_point,
             checkout_info.shipping_address,
             lines,
-            discounts,
             manager,
             shipping_channel_listings,
         )
@@ -110,7 +108,6 @@ class CheckoutAddPromoCode(BaseMutation):
             checkout_info,
             lines,
             manager,
-            discounts,
             recalculate_discount=False,
             save=True,
         )

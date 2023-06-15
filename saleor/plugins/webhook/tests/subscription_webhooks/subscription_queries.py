@@ -253,6 +253,24 @@ GIFT_CARD_DELETED = (
 )
 
 
+GIFT_CARD_SENT = (
+    fragments.GIFT_CARD_DETAILS
+    + """
+    subscription{
+      event{
+        ...on GiftCardSent {
+          giftCard{
+            ...GiftCardDetails
+          }
+          channel
+          sentToEmail
+        }
+      }
+    }
+"""
+)
+
+
 GIFT_CARD_STATUS_CHANGED = (
     fragments.GIFT_CARD_DETAILS
     + """
@@ -866,6 +884,42 @@ ORDER_FULLY_PAID = """
     }
 """
 
+ORDER_PAID = """
+    subscription{
+      event{
+        ...on OrderPaid{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_FULLY_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderFullyRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_REFUNDED = """
+    subscription{
+      event{
+        ...on OrderRefunded{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
 ORDER_CANCELLED = """
     subscription{
       event{
@@ -877,6 +931,20 @@ ORDER_CANCELLED = """
       }
     }
 """
+
+
+ORDER_EXPIRED = """
+    subscription{
+      event{
+        ...on OrderExpired{
+          order{
+            id
+          }
+        }
+      }
+    }
+"""
+
 
 ORDER_FULFILLED = """
     subscription{
@@ -895,6 +963,18 @@ ORDER_METADATA_UPDATED = """
       event{
         ...on OrderMetadataUpdated{
           order{
+            id
+          }
+        }
+      }
+    }
+"""
+
+ORDER_BULK_CREATED = """
+    subscription{
+      event{
+        ...on OrderBulkCreated{
+          orders{
             id
           }
         }
@@ -1275,6 +1355,18 @@ CHECKOUT_UPDATED = """
     subscription{
       event{
         ...on CheckoutUpdated{
+          checkout{
+            id
+          }
+        }
+      }
+    }
+"""
+
+CHECKOUT_FULLY_PAID = """
+    subscription{
+      event{
+        ...on CheckoutFullyPaid{
           checkout{
             id
           }

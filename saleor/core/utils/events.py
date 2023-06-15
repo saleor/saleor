@@ -1,13 +1,13 @@
 from django.db import transaction
 
 
-def call_event(func_obj, *func_args):
+def call_event(func_obj, *func_args, **func_kwargs):
     """Call webhook event with given args.
 
     Ensures that in atomic transaction event is called on_commit.
     """
     connection = transaction.get_connection()
     if connection.in_atomic_block:
-        transaction.on_commit(lambda: func_obj(*func_args))
+        transaction.on_commit(lambda: func_obj(*func_args, **func_kwargs))
     else:
-        func_obj(*func_args)
+        func_obj(*func_args, **func_kwargs)

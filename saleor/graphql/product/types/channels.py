@@ -22,17 +22,12 @@ from ....tax.utils import (
 from ...account import types as account_types
 from ...channel.dataloaders import ChannelByIdLoader
 from ...channel.types import Channel
-from ...core.descriptions import (
-    ADDED_IN_31,
-    ADDED_IN_33,
-    DEPRECATED_IN_3X_FIELD,
-    PREVIEW_FEATURE,
-)
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_33, DEPRECATED_IN_3X_FIELD
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.fields import PermissionsField
 from ...core.scalars import Date
 from ...core.tracing import traced_resolver
-from ...core.types import ModelObjectType
-from ...discount.dataloaders import DiscountsByDateTimeLoader
+from ...core.types import BaseObjectType, ModelObjectType
 from ...tax.dataloaders import (
     TaxClassByProductIdLoader,
     TaxClassCountryRateByTaxClassIDLoader,
@@ -41,7 +36,6 @@ from ...tax.dataloaders import (
     TaxConfigurationPerCountryByTaxConfigurationIDLoader,
 )
 from ..dataloaders import (
-    CollectionsByProductIdLoader,
     ProductByIdLoader,
     ProductVariantsByProductIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
@@ -49,9 +43,12 @@ from ..dataloaders import (
 )
 
 
-class Margin(graphene.ObjectType):
+class Margin(BaseObjectType):
     start = graphene.Int()
     stop = graphene.Int()
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
@@ -217,12 +214,9 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
 
         channel = ChannelByIdLoader(context).load(root.channel_id)
         product = ProductByIdLoader(context).load(root.product_id)
-        variants = ProductVariantsByProductIdLoader(context).load(root.product_id)
-        collections = CollectionsByProductIdLoader(context).load(root.product_id)
-        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
 
         def load_tax_configuration(data):
-            channel, product, variants, collections, discounts = data
+            channel, product = data
             country_code = address_country or channel.default_country.code
 
             def load_tax_country_exceptions(tax_config):
@@ -270,13 +264,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                             prices_entered_with_tax = tax_config.prices_entered_with_tax
 
                             availability = get_product_availability(
-                                product=product,
                                 product_channel_listing=root,
-                                variants=variants,
                                 variants_channel_listing=variants_channel_listing,
-                                collections=collections,
-                                discounts=discounts,
-                                channel=channel,
                                 local_currency=local_currency,
                                 prices_entered_with_tax=prices_entered_with_tax,
                                 tax_calculation_strategy=tax_calculation_strategy,
@@ -318,12 +307,10 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                 .then(load_tax_country_exceptions)
             )
 
-        return Promise.all([channel, product, variants, collections, discounts]).then(
-            load_tax_configuration
-        )
+        return Promise.all([channel, product]).then(load_tax_configuration)
 
 
-class PreorderThreshold(graphene.ObjectType):
+class PreorderThreshold(BaseObjectType):
     quantity = graphene.Int(
         required=False,
         description="Preorder threshold for product variant in this channel.",
@@ -334,6 +321,7 @@ class PreorderThreshold(graphene.ObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder variant data for channel."
 
 
@@ -352,11 +340,11 @@ class ProductVariantChannelListing(
     preorder_threshold = graphene.Field(
         PreorderThreshold,
         required=False,
-        description="Preorder variant data." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Preorder variant data." + ADDED_IN_31,
     )
 
     class Meta:
-        description = "Represents product varaint channel listing."
+        description = "Represents product variant channel listing."
         model = models.ProductVariantChannelListing
         interfaces = [graphene.relay.Node]
 

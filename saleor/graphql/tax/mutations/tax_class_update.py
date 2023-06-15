@@ -5,16 +5,18 @@ from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes, models
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_39
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.mutations import ModelMutation
-from ...core.types import Error, NonNullList
+from ...core.types import BaseInputObjectType, Error, NonNullList
 from ...core.utils import get_duplicates_items
 from ..types import TaxClass
 
 TaxClassUpdateErrorCode = graphene.Enum.from_enum(error_codes.TaxClassUpdateErrorCode)
+TaxClassUpdateErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
-class CountryRateUpdateInput(graphene.InputObjectType):
+class CountryRateUpdateInput(BaseInputObjectType):
     country_code = CountryCodeEnum(
         description="Country in which this rate applies.", required=True
     )
@@ -26,6 +28,9 @@ class CountryRateUpdateInput(graphene.InputObjectType):
         required=False,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+
 
 class TaxClassUpdateError(Error):
     code = TaxClassUpdateErrorCode(description="The error code.", required=True)
@@ -35,8 +40,11 @@ class TaxClassUpdateError(Error):
         required=True,
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
-class TaxClassUpdateInput(graphene.InputObjectType):
+
+class TaxClassUpdateInput(BaseInputObjectType):
     name = graphene.String(description="Name of the tax class.")
     update_country_rates = NonNullList(
         CountryRateUpdateInput,
@@ -52,6 +60,9 @@ class TaxClassUpdateInput(graphene.InputObjectType):
         ),
     )
 
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
+
 
 class TaxClassUpdate(ModelMutation):
     class Arguments:
@@ -61,7 +72,7 @@ class TaxClassUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Update a tax class." + ADDED_IN_39 + PREVIEW_FEATURE
+        description = "Update a tax class." + ADDED_IN_39
         error_type_class = TaxClassUpdateError
         model = models.TaxClass
         object_type = TaxClass
@@ -98,7 +109,7 @@ class TaxClassUpdate(ModelMutation):
         for obj in to_update:
             data = input_data_by_country[obj.country]
             rate = data.get("rate")
-            if rate:
+            if rate is not None:
                 obj.rate = rate
                 updated_countries.append(obj.country.code)
         models.TaxClassCountryRate.objects.bulk_update(to_update, fields=("rate",))

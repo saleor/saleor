@@ -21,6 +21,7 @@ class OrderErrorCode(Enum):
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"
     PAYMENT_MISSING = "payment_missing"
+    TRANSACTION_ERROR = "transaction_error"
     REQUIRED = "required"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"
@@ -33,6 +34,35 @@ class OrderErrorCode(Enum):
     DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     NOT_AVAILABLE_IN_CHANNEL = "not_available_in_channel"
     CHANNEL_INACTIVE = "channel_inactive"
-    MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK = (
-        "missing_transaction_action_request_webhook"
-    )
+
+
+class OrderGrantRefundCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+
+
+class OrderGrantRefundUpdateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    NOT_FOUND = "not_found"
+    REQUIRED = "required"
+
+
+class OrderBulkCreateErrorCode(Enum):
+    GRAPHQL_ERROR = "graphql_error"
+    REQUIRED = "required"
+    INVALID = "invalid"
+    NOT_FOUND = "not_found"
+    UNIQUE = "unique"
+    BULK_LIMIT = "bulk_limit"
+    TOO_MANY_IDENTIFIERS = "too_many_identifiers"
+    FUTURE_DATE = "future_date"
+    INVALID_QUANTITY = "invalid_quantity"
+    PRICE_ERROR = "price_error"
+    NOTE_LENGTH = "note_length"
+    INSUFFICIENT_STOCK = "insufficient_stock"
+    NON_EXISTING_STOCK = "non_existing_stock"
+    NO_RELATED_ORDER_LINE = "no_related_order_line"
+    NEGATIVE_INDEX = "negative_index"
+    ORDER_LINE_FULFILLMENT_LINE_MISMATCH = "order_line_fulfillment_line_mismatch"
+    METADATA_KEY_REQUIRED = "metadata_key_required"
+    INCORRECT_CURRENCY = "incorrect_currency"

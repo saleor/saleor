@@ -21,6 +21,7 @@ class OrderStatus:
     )
     RETURNED = "returned"  # order with all items marked as returned
     CANCELED = "canceled"  # permanently canceled order
+    EXPIRED = "expired"  # order marked as expired
 
     CHOICES = [
         (DRAFT, "Draft"),
@@ -31,6 +32,7 @@ class OrderStatus:
         (RETURNED, "Returned"),
         (FULFILLED, "Fulfilled"),
         (CANCELED, "Canceled"),
+        (EXPIRED, "Expired"),
     ]
 
 
@@ -41,11 +43,13 @@ class OrderOrigin:
     CHECKOUT = "checkout"  # order created from checkout
     DRAFT = "draft"  # order created from draft order
     REISSUE = "reissue"  # order created from reissue existing one
+    BULK_CREATE = "bulk_create"  # order created from bulk upload
 
     CHOICES = [
         (CHECKOUT, "Checkout"),
         (DRAFT, "Draft"),
         (REISSUE, "Reissue"),
+        (BULK_CREATE, "Bulk create"),
     ]
 
 
@@ -88,6 +92,7 @@ class OrderEvents:
 
     OVERSOLD_ITEMS = "oversold_items"
     CANCELED = "canceled"
+    EXPIRED = "expired"
 
     ORDER_MARKED_AS_PAID = "order_marked_as_paid"
     ORDER_FULLY_PAID = "order_fully_paid"
@@ -115,8 +120,11 @@ class OrderEvents:
 
     TRANSACTION_EVENT = "transaction_event"
     TRANSACTION_CAPTURE_REQUESTED = "transaction_capture_requested"
+    TRANSACTION_CHARGE_REQUESTED = "transaction_charge_requested"
     TRANSACTION_REFUND_REQUESTED = "transaction_refund_requested"
     TRANSACTION_VOID_REQUESTED = "transaction_void_requested"
+    TRANSACTION_CANCEL_REQUESTED = "transaction_cancel_requested"
+    TRANSACTION_MARK_AS_PAID_FAILED = "transaction_mark_as_paid_failed"
 
     EXTERNAL_SERVICE_NOTIFICATION = "external_service_notification"
 
@@ -147,6 +155,7 @@ class OrderEvents:
         (PLACED_FROM_DRAFT, "The draft order was placed"),
         (OVERSOLD_ITEMS, "The draft order was placed with oversold items"),
         (CANCELED, "The order was canceled"),
+        (EXPIRED, "The order was automatically expired"),
         (ORDER_MARKED_AS_PAID, "The order was manually marked as fully paid"),
         (ORDER_FULLY_PAID, "The order was fully paid"),
         (ORDER_REPLACEMENT_CREATED, "The draft order was created based on this order."),
@@ -171,9 +180,12 @@ class OrderEvents:
         (PAYMENT_VOIDED, "The payment was voided"),
         (PAYMENT_FAILED, "The payment was failed"),
         (TRANSACTION_EVENT, "The transaction event"),
-        (TRANSACTION_CAPTURE_REQUESTED, "The capture on transaction requested"),
-        (TRANSACTION_REFUND_REQUESTED, "The refund on transaction requested"),
-        (TRANSACTION_VOID_REQUESTED, "The void on transaction requested"),
+        (TRANSACTION_CHARGE_REQUESTED, "The charge requested for transaction"),
+        (TRANSACTION_CAPTURE_REQUESTED, "The capture requested for transaction"),
+        (TRANSACTION_REFUND_REQUESTED, "The refund requested for transaction"),
+        (TRANSACTION_VOID_REQUESTED, "The void requested for transaction"),
+        (TRANSACTION_CANCEL_REQUESTED, "The cancel requested for transaction"),
+        (TRANSACTION_MARK_AS_PAID_FAILED, "The mark as paid failed for transaction"),
         (INVOICE_REQUESTED, "An invoice was requested"),
         (INVOICE_GENERATED, "An invoice was generated"),
         (INVOICE_UPDATED, "An invoice was updated"),
@@ -221,16 +233,17 @@ class OrderAuthorizeStatus:
     """Determine a current authorize status for order.
 
     We treat the order as fully authorized when the sum of authorized and charged funds
-    cover the order.total.
+    cover the `order.total`-`order.totalGrantedRefund`.
     We treat the order as partially authorized when the sum of authorized and charged
-    funds covers only part of the order.total
+    funds covers only part of the `order.total`-`order.totalGrantedRefund`.
     We treat the order as not authorized when the sum of authorized and charged funds is
     0.
 
     NONE - the funds are not authorized
-    PARTIAL - the funds that are authorized or charged don't cover fully the order's
-    total
-    FULL - the funds that are authorized or charged fully cover the order's total
+    PARTIAL - the funds that are authorized and charged don't cover fully the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are authorized and charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
     """
 
     NONE = "none"
@@ -241,12 +254,12 @@ class OrderAuthorizeStatus:
         (NONE, "The funds are not authorized"),
         (
             PARTIAL,
-            "The funds that are authorized or charged don't cover fully the order's "
+            "The funds that are authorized and charged don't cover fully the order's "
             "total",
         ),
         (
             FULL,
-            "The funds that are authorized or charged fully cover the order's total",
+            "The funds that are authorized and charged fully cover the order's total",
         ),
     ]
 
@@ -254,15 +267,22 @@ class OrderAuthorizeStatus:
 class OrderChargeStatus:
     """Determine the current charge status for the order.
 
-    We treat the order as overcharged when the charged amount is bigger that order.total
-    We treat the order as fully charged when the charged amount is equal to order.total.
-    We treat the order as partially charged when the charged amount covers only part of
-    the order.total
+    An order is considered overcharged when the sum of the
+    transactionItem's charge amounts exceeds the value of
+    `order.total` - `order.totalGrantedRefund`.
+    If the sum of the transactionItem's charge amounts equals
+    `order.total` - `order.totalGrantedRefund`, we consider the order to be fully
+    charged.
+    If the sum of the transactionItem's charge amounts covers a part of the
+    `order.total` - `order.totalGrantedRefund`, we treat the order as partially charged.
 
     NONE - the funds are not charged.
-    PARTIAL - the funds that are charged don't cover the order's total
-    FULL - the funds that are charged fully cover the order's total
-    OVERCHARGED - the charged funds are bigger than order's total
+    PARTIAL - the funds that are charged don't cover the
+    `order.total`-`order.totalGrantedRefund`
+    FULL - the funds that are charged fully cover the
+    `order.total`-`order.totalGrantedRefund`
+    OVERCHARGED - the charged funds are bigger than the
+    `order.total`-`order.totalGrantedRefund`
     """
 
     NONE = "none"
@@ -271,10 +291,10 @@ class OrderChargeStatus:
     OVERCHARGED = "overcharged"
 
     CHOICES = [
-        (NONE, "The funds are not charged."),
-        (PARTIAL, "The funds that are charged, don't cover the order's total"),
-        (FULL, "The funds that are charged fully cover the order's total"),
-        (OVERCHARGED, "The charged funds are bigger than order's total"),
+        (NONE, "The order is not charged."),
+        (PARTIAL, "The order is partially charged"),
+        (FULL, "The order is fully charged"),
+        (OVERCHARGED, "The order is overcharged"),
     ]
 
 
@@ -283,3 +303,22 @@ class FulfillmentLineData:
     line: "FulfillmentLine"
     quantity: int
     replace: bool = False
+
+
+class StockUpdatePolicy:
+    """Determine how stocks should be updated, while processing an order.
+
+    SKIP - stocks are not checked and not updated.
+    UPDATE - only do update, if there is enough stock.
+    FORCE - force update, if there is not enough stock.
+    """
+
+    SKIP = "skip"
+    UPDATE = "update"
+    FORCE = "force"
+
+    CHOICES = [
+        (SKIP, "Stocks are not checked and not updated."),
+        (UPDATE, "Only do update, if there is enough stocks."),
+        (FORCE, "Force update, if there is not enough stocks."),
+    ]

@@ -1,10 +1,16 @@
+import json
 from datetime import date, timedelta
 from unittest import mock
 
 import graphene
+from django.utils.functional import SimpleLazyObject
+from freezegun import freeze_time
 
+from .....core.utils.json_serializer import CustomJsonEncoder
 from .....giftcard.error_codes import GiftCardErrorCode
 from .....giftcard.models import GiftCardEvent
+from .....webhook.event_types import WebhookEventAsyncType
+from .....webhook.payloads import generate_meta, generate_requestor
 from ....tests.utils import assert_no_permission, get_graphql_content
 
 GIFT_CARD_RESEND_MUTATION = """
@@ -214,6 +220,79 @@ def test_resend_gift_card_malformed_email(
     assert error["code"] == GiftCardErrorCode.INVALID.name
 
     send_notification_mock.assert_not_called()
+
+
+@freeze_time("2022-05-12 12:00:00")
+@mock.patch("saleor.plugins.webhook.plugin.get_webhooks_for_event")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_async")
+def test_resend_gift_card_triggers_gift_card_sent_event(
+    mocked_webhook_trigger,
+    mocked_get_webhooks_for_event,
+    any_webhook,
+    staff_api_client,
+    gift_card,
+    channel_USD,
+    permission_manage_gift_card,
+    permission_manage_users,
+    permission_manage_apps,
+    settings,
+):
+    # given
+    mocked_get_webhooks_for_event.return_value = [any_webhook]
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+
+    email = "gift_card_receiver@example.com"
+    variables = {
+        "input": {
+            "id": graphene.Node.to_global_id("GiftCard", gift_card.pk),
+            "email": email,
+            "channel": channel_USD.slug,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        GIFT_CARD_RESEND_MUTATION,
+        variables,
+        permissions=[
+            permission_manage_gift_card,
+            permission_manage_users,
+            permission_manage_apps,
+        ],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["giftCardResend"]["giftCard"]
+    errors = content["data"]["giftCardResend"]["errors"]
+
+    assert not errors
+    assert data
+
+    mocked_webhook_trigger.assert_any_call(
+        json.dumps(
+            {
+                "id": graphene.Node.to_global_id("GiftCard", gift_card.id),
+                "is_active": gift_card.is_active,
+                "channel_slug": channel_USD.slug,
+                "sent_to_email": email,
+                "meta": generate_meta(
+                    requestor_data=generate_requestor(
+                        SimpleLazyObject(lambda: staff_api_client.user)
+                    )
+                ),
+            },
+            cls=CustomJsonEncoder,
+        ),
+        WebhookEventAsyncType.GIFT_CARD_SENT,
+        [any_webhook],
+        {
+            "gift_card": gift_card,
+            "channel_slug": channel_USD.slug,
+            "sent_to_email": email,
+        },
+        SimpleLazyObject(lambda: staff_api_client.user),
+    )
 
 
 def test_resend_gift_card_expired_card(

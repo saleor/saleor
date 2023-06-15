@@ -3,14 +3,17 @@ import requests
 from django.core.exceptions import ValidationError
 
 from ....app.error_codes import AppErrorCode
-from ....app.installation_utils import REQUEST_TIMEOUT
+from ....app.installation_utils import REQUEST_TIMEOUT, fetch_brand_data
 from ....app.manifest_validations import clean_manifest_data, clean_manifest_url
 from ....permission.enums import AppPermission
 from ...core import types as grapqhl_types
+from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation
 from ...core.types import AppError
 from ..types import Manifest
+
+FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 class AppFetchManifest(BaseMutation):
@@ -21,6 +24,7 @@ class AppFetchManifest(BaseMutation):
 
     class Meta:
         description = "Fetch and validate manifest."
+        doc_category = DOC_CATEGORY_APPS
         permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AppError
         error_type_field = "app_errors"
@@ -33,7 +37,9 @@ class AppFetchManifest(BaseMutation):
     @classmethod
     def fetch_manifest(cls, manifest_url):
         try:
-            response = requests.get(manifest_url, timeout=REQUEST_TIMEOUT)
+            response = requests.get(
+                manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+            )
             response.raise_for_status()
             return response.json()
         except requests.Timeout:
@@ -71,11 +77,17 @@ class AppFetchManifest(BaseMutation):
             extensions=cleaned_data.get("extensions", []),
             webhooks=cleaned_data.get("webhooks", []),
             audience=cleaned_data.get("audience"),
+            required_saleor_version=cleaned_data.get("requiredSaleorVersion"),
+            author=cleaned_data.get("author"),
+            brand=cleaned_data.get("brand"),
         )
 
     @classmethod
     def clean_manifest_data(cls, info, manifest_data):
         clean_manifest_data(manifest_data)
+        manifest_data["brand"] = fetch_brand_data(
+            manifest_data, timeout=FETCH_BRAND_DATA_TIMEOUT
+        )
 
         manifest_data["permissions"] = [
             grapqhl_types.Permission(

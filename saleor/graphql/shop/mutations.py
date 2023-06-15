@@ -13,10 +13,16 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_INPUT, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_314, DEPRECATED_IN_3X_INPUT
+from ..core.doc_category import (
+    DOC_CATEGORY_GIFT_CARDS,
+    DOC_CATEGORY_ORDERS,
+    DOC_CATEGORY_SHOP,
+)
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types import (
+    BaseInputObjectType,
     GiftCardSettingsError,
     OrderSettingsError,
     ShopError,
@@ -76,10 +82,12 @@ class ShopSettingsInput(graphene.InputObjectType):
         description=(
             "Default number of maximum line quantity "
             "in single checkout. Minimum possible value is 1, default "
-            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            f"value is {DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT}." + ADDED_IN_31
         )
+    )
+
+    enable_account_confirmation_by_email = graphene.Boolean(
+        description="Enable automatic account confirmation by email." + ADDED_IN_314
     )
 
     # deprecated
@@ -110,6 +118,9 @@ class SiteDomainInput(graphene.InputObjectType):
     domain = graphene.String(description="Domain name for shop.")
     name = graphene.String(description="Shop site name.")
 
+    class Meta:
+        doc_category = DOC_CATEGORY_SHOP
+
 
 class ShopSettingsUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated shop.")
@@ -121,6 +132,7 @@ class ShopSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Updates shop settings."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -191,6 +203,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
             "Update the shop's address. If the `null` value is passed, the currently "
             "selected address will be deleted."
         )
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -225,6 +238,7 @@ class ShopDomainUpdate(BaseMutation):
 
     class Meta:
         description = "Updates site domain of the shop."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -250,6 +264,7 @@ class ShopFetchTaxRates(BaseMutation):
 
     class Meta:
         description = "Fetch tax rates."
+        doc_category = DOC_CATEGORY_SHOP
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -369,7 +384,7 @@ class StaffNotificationRecipientDelete(ModelDeleteMutation):
         error_type_field = "shop_errors"
 
 
-class OrderSettingsUpdateInput(graphene.InputObjectType):
+class OrderSettingsUpdateInput(BaseInputObjectType):
     automatically_confirm_all_new_orders = graphene.Boolean(
         required=False,
         description="When disabled, all new orders from checkout "
@@ -381,6 +396,9 @@ class OrderSettingsUpdateInput(graphene.InputObjectType):
         description="When enabled, all non-shippable gift card orders "
         "will be fulfilled automatically. By defualt set to True.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderSettingsUpdate(BaseMutation):
@@ -396,6 +414,7 @@ class OrderSettingsUpdate(BaseMutation):
             "Update shop order settings across all channels. "
             "Returns `orderSettings` for the first `channel` in alphabetical order. "
         )
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderSettingsError
         error_type_field = "order_settings_errors"
@@ -419,6 +438,8 @@ class OrderSettingsUpdate(BaseMutation):
                 code=OrderSettingsErrorCode.INVALID.value,
             )
 
+        cls.check_channel_permissions(info, [channel.id])
+
         update_fields = {}
         for field in FIELDS:
             if field in data["input"]:
@@ -436,15 +457,22 @@ class OrderSettingsUpdate(BaseMutation):
             automatically_fulfill_non_shippable_gift_card=(
                 channel.automatically_fulfill_non_shippable_gift_card
             ),
+            mark_as_paid_strategy=channel.order_mark_as_paid_strategy,
+            default_transaction_flow_strategy=(
+                channel.default_transaction_flow_strategy
+            ),
         )
         return OrderSettingsUpdate(order_settings=order_settings)
 
 
-class GiftCardSettingsUpdateInput(graphene.InputObjectType):
+class GiftCardSettingsUpdateInput(BaseInputObjectType):
     expiry_type = GiftCardSettingsExpiryTypeEnum(
         description="Defines gift card default expiry settings."
     )
     expiry_period = TimePeriodInputType(description="Defines gift card expiry period.")
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardSettingsUpdate(BaseMutation):
@@ -459,6 +487,7 @@ class GiftCardSettingsUpdate(BaseMutation):
 
     class Meta:
         description = "Update gift card settings."
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardSettingsError
 

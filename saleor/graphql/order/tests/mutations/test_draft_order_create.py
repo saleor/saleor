@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import ANY, Mock, patch
 
 import graphene
+import pytest
 import pytz
 from prices import Money
 
@@ -13,26 +14,14 @@ from .....order import events as order_events
 from .....order.error_codes import OrderErrorCode
 from .....order.models import Order, OrderEvent
 from .....product.models import ProductVariant
-from ....tests.utils import get_graphql_content
+from ....tests.utils import assert_no_permission, get_graphql_content
 
 DRAFT_ORDER_CREATE_MUTATION = """
     mutation draftCreate(
-        $user: ID, $discount: PositiveDecimal, $lines: [OrderLineCreateInput!],
-        $shippingAddress: AddressInput, $billingAddress: AddressInput,
-        $shippingMethod: ID, $voucher: ID, $customerNote: String, $channel: ID,
-        $redirectUrl: String, $externalReference: String
+            $input: DraftOrderCreateInput!
         ) {
             draftOrderCreate(
-                input: {
-                    user: $user, discount: $discount,
-                    lines: $lines, shippingAddress: $shippingAddress,
-                    billingAddress: $billingAddress,
-                    shippingMethod: $shippingMethod, voucher: $voucher,
-                    channelId: $channel,
-                    redirectUrl: $redirectUrl,
-                    customerNote: $customerNote,
-                    externalReference: $externalReference
-                }
+                input: $input
             ) {
                 errors {
                     field
@@ -83,7 +72,7 @@ DRAFT_ORDER_CREATE_MUTATION = """
 
 def test_draft_order_create(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -95,6 +84,7 @@ def test_draft_order_create(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -119,21 +109,21 @@ def test_draft_order_create(
     external_reference = "test-ext-ref"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
-        "externalReference": external_reference,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+            "externalReference": external_reference,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -189,9 +179,110 @@ def test_draft_order_create(
     assert event_parameters["lines"][1]["quantity"] == 1
 
 
+def test_draft_order_create_by_user_no_channel_access(
+    staff_api_client,
+    permission_group_all_perms_channel_USD_only,
+    staff_user,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    product_available_in_many_channels,
+    voucher,
+    channel_PLN,
+    graphql_address_data,
+    warehouse,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_all_perms_channel_USD_only.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+
+    # then
+    assert_no_permission(response)
+
+
+def test_draft_order_create_by_app(
+    app_api_client,
+    permission_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method_channel_PLN,
+    product_available_in_many_channels,
+    voucher,
+    channel_PLN,
+    graphql_address_data,
+    warehouse,
+):
+    # given
+    variant = product_available_in_many_channels.variants.first()
+    query = DRAFT_ORDER_CREATE_MUTATION
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+
+    variant_list = [
+        {"variantId": variant_id, "quantity": 2},
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method_channel_PLN.id
+    )
+    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
+    redirect_url = "https://www.example.com"
+
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_orders,)
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+
+
 def test_draft_order_create_with_same_variant_and_force_new_line(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     shipping_method,
@@ -202,6 +293,7 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -222,20 +314,20 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -290,7 +382,7 @@ def test_draft_order_create_with_same_variant_and_force_new_line(
 
 def test_draft_order_create_with_inactive_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -302,6 +394,7 @@ def test_draft_order_create_with_inactive_channel(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -325,18 +418,18 @@ def test_draft_order_create_with_inactive_channel(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -365,7 +458,7 @@ def test_draft_order_create_with_inactive_channel(
 
 def test_draft_order_create_without_sku(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -377,6 +470,7 @@ def test_draft_order_create_without_sku(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -402,20 +496,20 @@ def test_draft_order_create_without_sku(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": shipping_address,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": shipping_address,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -456,7 +550,7 @@ def test_draft_order_create_without_sku(
 
 def test_draft_order_create_variant_with_0_price(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -468,6 +562,7 @@ def test_draft_order_create_variant_with_0_price(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
 
@@ -486,15 +581,15 @@ def test_draft_order_create_variant_with_0_price(
     shipping_address = graphql_address_data
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -524,7 +619,7 @@ def test_draft_order_create_variant_with_0_price(
 def test_draft_order_create_tax_error(
     create_order_line_mock,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -534,6 +629,7 @@ def test_draft_order_create_tax_error(
     graphql_address_data,
     channel_USD,
 ):
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     variant_0 = variant
     err_msg = "Test error"
     create_order_line_mock.side_effect = TaxError(err_msg)
@@ -558,18 +654,18 @@ def test_draft_order_create_tax_error(
     shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderCreate"]
     errors = data["errors"]
@@ -584,7 +680,7 @@ def test_draft_order_create_tax_error(
 
 def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     shipping_method,
@@ -594,6 +690,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     graphql_address_data,
 ):
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
@@ -609,18 +706,18 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -629,7 +726,7 @@ def test_draft_order_create_with_voucher_not_assigned_to_order_channel(
 
 def test_draft_order_create_with_product_and_variant_not_assigned_to_order_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     shipping_method,
     variant,
@@ -637,6 +734,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     graphql_address_data,
 ):
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     discount = "10"
@@ -650,17 +748,17 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
     variant.product.channel_listings.all().delete()
     variant.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.PRODUCT_NOT_PUBLISHED.name
@@ -670,7 +768,7 @@ def test_draft_order_create_with_product_and_variant_not_assigned_to_order_chann
 
 def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     shipping_method,
     variant,
@@ -678,6 +776,7 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     graphql_address_data,
 ):
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -691,17 +790,17 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     variant.channel_listings.all().delete()
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.NOT_AVAILABLE_IN_CHANNEL.name
@@ -711,7 +810,7 @@ def test_draft_order_create_with_variant_not_assigned_to_order_channel(
 
 def test_draft_order_create_without_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -722,6 +821,7 @@ def test_draft_order_create_without_channel(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
@@ -734,12 +834,12 @@ def test_draft_order_create_without_channel(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     variables = {
-        "user": user_id,
-        "lines": variant_list,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.REQUIRED.name
@@ -748,7 +848,7 @@ def test_draft_order_create_without_channel(
 
 def test_draft_order_create_with_negative_quantity_line(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -760,6 +860,7 @@ def test_draft_order_create_with_negative_quantity_line(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     user_id = graphene.Node.to_global_id("User", customer_user.id)
     variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
@@ -774,13 +875,13 @@ def test_draft_order_create_with_negative_quantity_line(
         {"variantId": variant_1_id, "quantity": 1},
     ]
     variables = {
-        "user": user_id,
-        "lines": variant_list,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "channelId": channel_id,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
     assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
@@ -789,7 +890,7 @@ def test_draft_order_create_with_negative_quantity_line(
 
 def test_draft_order_create_with_channel_with_unpublished_product(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -801,6 +902,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -826,19 +928,19 @@ def test_draft_order_create_with_channel_with_unpublished_product(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
 
@@ -849,7 +951,7 @@ def test_draft_order_create_with_channel_with_unpublished_product(
 
 def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -861,6 +963,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -886,19 +989,19 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     error = content["data"]["draftOrderCreate"]["errors"][0]
 
@@ -909,7 +1012,7 @@ def test_draft_order_create_with_channel_with_unpublished_product_by_date(
 
 def test_draft_order_create_with_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -921,6 +1024,7 @@ def test_draft_order_create_with_channel(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -943,18 +1047,18 @@ def test_draft_order_create_with_channel(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert not content["data"]["draftOrderCreate"]["errors"]
     data = content["data"]["draftOrderCreate"]["order"]
@@ -984,7 +1088,7 @@ def test_draft_order_create_with_channel(
 
 def test_draft_order_create_product_without_shipping(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -995,6 +1099,7 @@ def test_draft_order_create_product_without_shipping(
 ):
     # given
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -1015,20 +1120,20 @@ def test_draft_order_create_product_without_shipping(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "channel": channel_id,
-        "lines": variant_list,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "channelId": channel_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+        }
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -1057,7 +1162,7 @@ def test_draft_order_create_product_without_shipping(
 
 def test_draft_order_create_invalid_billing_address(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -1069,6 +1174,7 @@ def test_draft_order_create_invalid_billing_address(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -1093,20 +1199,20 @@ def test_draft_order_create_invalid_billing_address(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": billing_address,
-        "shippingAddress": graphql_address_data,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": billing_address,
+            "shippingAddress": graphql_address_data,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content["data"]["draftOrderCreate"]["errors"]
     assert len(errors) == 1
@@ -1117,7 +1223,7 @@ def test_draft_order_create_invalid_billing_address(
 
 def test_draft_order_create_invalid_shipping_address(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     staff_user,
     customer_user,
     product_without_shipping,
@@ -1129,6 +1235,7 @@ def test_draft_order_create_invalid_shipping_address(
 ):
     variant_0 = variant
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     # Ensure no events were created yet
     assert not OrderEvent.objects.exists()
@@ -1153,20 +1260,20 @@ def test_draft_order_create_invalid_shipping_address(
     redirect_url = "https://www.example.com"
 
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": variant_list,
-        "billingAddress": graphql_address_data,
-        "shippingAddress": shipping_address,
-        "shippingMethod": shipping_id,
-        "voucher": voucher_id,
-        "customerNote": customer_note,
-        "channel": channel_id,
-        "redirectUrl": redirect_url,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "voucher": voucher_id,
+            "customerNote": customer_note,
+            "channelId": channel_id,
+            "redirectUrl": redirect_url,
+        }
     }
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content["data"]["draftOrderCreate"]["errors"]
     assert len(errors) == 1
@@ -1179,7 +1286,7 @@ def test_draft_order_create_invalid_shipping_address(
 def test_draft_order_create_price_recalculation(
     mock_fetch_order_prices_if_expired,
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     customer_user,
     product_available_in_many_channels,
     product_variant_list,
@@ -1188,6 +1295,7 @@ def test_draft_order_create_price_recalculation(
     voucher,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     fake_order = Mock()
     fake_order.total = zero_taxed_money(channel_PLN.currency_code)
     response = Mock(return_value=(fake_order, None))
@@ -1215,19 +1323,19 @@ def test_draft_order_create_price_recalculation(
     voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
     variables = {
-        "user": user_id,
-        "discount": discount,
-        "lines": lines,
-        "billingAddress": address,
-        "shippingAddress": address,
-        "voucher": voucher_id,
-        "channel": channel_id,
+        "input": {
+            "user": user_id,
+            "discount": discount,
+            "lines": lines,
+            "billingAddress": address,
+            "shippingAddress": address,
+            "voucher": voucher_id,
+            "channelId": channel_id,
+        }
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -1240,7 +1348,7 @@ def test_draft_order_create_price_recalculation(
 
 def test_draft_order_create_update_display_gross_prices(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     variant,
     channel_USD,
     graphql_address_data,
@@ -1248,6 +1356,7 @@ def test_draft_order_create_update_display_gross_prices(
     # given
     # display_gross_prices is disabled and there is no country-specific configuration
     # order.display_gross_prices should be also disabled as a result
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     tax_config = channel_USD.tax_configuration
     tax_config.display_gross_prices = False
@@ -1262,16 +1371,16 @@ def test_draft_order_create_update_display_gross_prices(
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
 
     variables = {
-        "lines": variant_list,
-        "billingAddress": graphql_address_data,
-        "shippingAddress": graphql_address_data,
-        "channel": channel_id,
+        "input": {
+            "lines": variant_list,
+            "billingAddress": graphql_address_data,
+            "shippingAddress": graphql_address_data,
+            "channelId": channel_id,
+        }
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     # then
     content = get_graphql_content(response)
@@ -1285,24 +1394,23 @@ def test_draft_order_create_update_display_gross_prices(
 
 def test_draft_order_create_with_non_unique_external_reference(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     channel_USD,
     order,
 ):
     # given
     query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
 
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     ext_ref = "test-ext-ref"
     order.external_reference = ext_ref
     order.save(update_fields=["external_reference"])
 
-    variables = {"channel": channel_id, "externalReference": ext_ref}
+    variables = {"input": {"channelId": channel_id, "externalReference": ext_ref}}
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
 
     # then
@@ -1310,3 +1418,75 @@ def test_draft_order_create_with_non_unique_external_reference(
     assert error["field"] == "externalReference"
     assert error["code"] == OrderErrorCode.UNIQUE.name
     assert error["message"] == "Order with this External reference already exists."
+
+
+@pytest.mark.parametrize("force_new_line", (True, False))
+def test_draft_order_create_with_custom_price_in_order_line(
+    force_new_line,
+    staff_api_client,
+    permission_group_manage_orders,
+    customer_user,
+    product_without_shipping,
+    shipping_method,
+    variant,
+    graphql_address_data,
+    channel_USD,
+):
+    # given
+    variant_0 = variant
+    query = DRAFT_ORDER_CREATE_MUTATION
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variant_0_id = graphene.Node.to_global_id("ProductVariant", variant_0.id)
+    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
+    variant_1 = product_without_shipping.variants.first()
+    variant_1.quantity = 2
+    variant_1.save()
+    variant_1_id = graphene.Node.to_global_id("ProductVariant", variant_1.id)
+    expected_price_variant_0 = 10
+    expected_price_variant_1 = 20
+    variant_list = [
+        {
+            "variantId": variant_0_id,
+            "quantity": 2,
+            "price": expected_price_variant_0,
+            "forceNewLine": force_new_line,
+        },
+        {
+            "variantId": variant_1_id,
+            "quantity": 1,
+            "price": expected_price_variant_1,
+            "forceNewLine": force_new_line,
+        },
+    ]
+    shipping_address = graphql_address_data
+    shipping_id = graphene.Node.to_global_id("ShippingMethod", shipping_method.id)
+    variables = {
+        "input": {
+            "user": user_id,
+            "lines": variant_list,
+            "shippingAddress": shipping_address,
+            "shippingMethod": shipping_id,
+            "channelId": channel_id,
+        }
+    }
+
+    # when
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    # then
+    assert not content["data"]["draftOrderCreate"]["errors"]
+    data = content["data"]["draftOrderCreate"]["order"]
+    assert data["status"] == OrderStatus.DRAFT.upper()
+
+    order = Order.objects.first()
+
+    order_line_0 = order.lines.get(variant=variant_0)
+    assert order_line_0.base_unit_price_amount == expected_price_variant_0
+    assert order_line_0.undiscounted_base_unit_price_amount == expected_price_variant_0
+
+    order_line_1 = order.lines.get(variant=variant_1)
+    assert order_line_1.base_unit_price_amount == expected_price_variant_1
+    assert order_line_1.undiscounted_base_unit_price_amount == expected_price_variant_1

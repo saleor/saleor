@@ -16,7 +16,7 @@ from ...account.models import Address
 from ...checkout import base_calculations
 from ...checkout.utils import is_shipping_required
 from ...core.taxes import TaxError
-from ...discount import OrderDiscountType, VoucherType
+from ...discount import DiscountType, VoucherType
 from ...order import base_calculations as base_order_calculations
 from ...order.utils import get_total_order_discount_excluding_shipping
 from ...shipping.models import ShippingMethod
@@ -97,7 +97,13 @@ def api_post_request(
     response = None
     try:
         auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
-        response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
+        response = requests.post(
+            url,
+            auth=auth,
+            data=json.dumps(data),
+            timeout=TIMEOUT,
+            allow_redirects=False,
+        )
         logger.debug("Hit to Avatax to calculate taxes %s", url)
         json_response = response.json()
         if "error" in response:  # type: ignore
@@ -123,7 +129,7 @@ def api_get_request(
     response = None
     try:
         auth = HTTPBasicAuth(username_or_account, password_or_license)
-        response = requests.get(url, auth=auth, timeout=TIMEOUT)
+        response = requests.get(url, auth=auth, timeout=TIMEOUT, allow_redirects=False)
         json_response = response.json()
         logger.debug("[GET] Hit to %s", url)
         if "error" in json_response:
@@ -274,7 +280,6 @@ def generate_request_data_from_checkout_lines(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
     config: AvataxConfiguration,
-    discounts=None,
 ) -> List[Dict[str, Union[str, int, bool, None]]]:
     data: List[Dict[str, Union[str, int, bool, None]]] = []
     channel = checkout_info.channel
@@ -293,10 +298,9 @@ def generate_request_data_from_checkout_lines(
         product = line_info.product
         product_type = line_info.product_type
         tax_code = _get_product_tax_code(product, product_type)
-        is_non_taxable_product = tax_code == TAX_CODE_NON_TAXABLE_PRODUCT
 
         tax_override_data = {}
-        if not charge_taxes or is_non_taxable_product:
+        if not charge_taxes:
             if not is_entire_order_discount:
                 continue
             # if there is a voucher for the entire order we need to attach this line
@@ -310,7 +314,6 @@ def generate_request_data_from_checkout_lines(
         checkout_line_total = base_calculations.calculate_base_line_total_price(
             line_info,
             channel,
-            discounts,
         )
 
         # This is a workaround for Avatax and sending a lines with amount 0. Like
@@ -371,7 +374,7 @@ def get_order_lines_data(
         "variant__product__category",
         "variant__product__collections",
         "variant__product__product_type",
-    ).filter(variant__product__charge_taxes=True)
+    )
 
     tax_configuration = order.channel.tax_configuration
     prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -419,9 +422,7 @@ def get_order_lines_data(
         )
 
     if shipping_price := order.base_shipping_price_amount:
-        shipping_discounted = order.discounts.filter(
-            type=OrderDiscountType.MANUAL
-        ).exists()
+        shipping_discounted = order.discounts.filter(type=DiscountType.MANUAL).exists()
 
         append_shipping_to_data(
             data=data,
@@ -502,13 +503,10 @@ def generate_request_data_from_checkout(
     config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
-    discounts=None,
 ):
     shipping_address = checkout_info.delivery_method_info.shipping_address
     address = shipping_address or checkout_info.billing_address
-    lines = generate_request_data_from_checkout_lines(
-        checkout_info, lines_info, config, discounts
-    )
+    lines = generate_request_data_from_checkout_lines(checkout_info, lines_info, config)
     if not lines:
         return {}
 
@@ -594,12 +592,9 @@ def get_cached_response_or_fetch(
 def get_checkout_tax_data(
     checkout_info: "CheckoutInfo",
     lines_info: Iterable["CheckoutLineInfo"],
-    discounts,
     config: AvataxConfiguration,
 ) -> Dict[str, Any]:
-    data = generate_request_data_from_checkout(
-        checkout_info, lines_info, config, discounts=discounts
-    )
+    data = generate_request_data_from_checkout(checkout_info, lines_info, config)
     return get_cached_response_or_fetch(data, str(checkout_info.checkout.token), config)
 
 

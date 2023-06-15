@@ -1,0 +1,64 @@
+version: "3.4"
+
+services:
+  saleor:
+    image: saleor
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: uvicorn --reload saleor.asgi:application --host 0.0.0.0 --port 8000
+    env_file:
+      - common.env
+      - backend.env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ..:/app
+
+  dashboard:
+    image: ghcr.io/saleor/saleor-dashboard:3.12.3
+    restart: unless-stopped
+    ports:
+      - 9000:80
+
+  db:
+    image: library/postgres:13-alpine
+    restart: unless-stopped
+    volumes:
+      - saleor-db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=saleor
+      - POSTGRES_PASSWORD=saleor
+
+  redis:
+    image: library/redis:5.0-alpine
+    restart: unless-stopped
+    volumes:
+      - saleor-redis:/data
+
+  worker:
+    image: saleor
+    command: celery -A saleor --app=saleor.celeryconf:app worker --loglevel=info -B
+    restart: unless-stopped
+    env_file:
+      - common.env
+      - backend.env
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ..:/app
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "1025" # SMTP Server
+      - "8025" # Mailpit UI
+    restart: unless-stopped
+
+volumes:
+  saleor-db:
+    driver: local
+  saleor-redis:
+    driver: local

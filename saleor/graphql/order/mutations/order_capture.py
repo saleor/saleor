@@ -3,15 +3,15 @@ from typing import Optional
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....order.actions import order_captured
+from ....order.actions import order_charged
 from ....order.error_codes import OrderErrorCode
 from ....order.fetch import fetch_order_info
-from ....payment import PaymentError, TransactionKind, gateway
+from ....payment import TransactionKind, gateway
 from ....payment import models as payment_models
-from ....payment.gateway import request_charge_action
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import OrderError
@@ -48,6 +48,7 @@ class OrderCapture(BaseMutation):
 
     class Meta:
         description = "Capture an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -67,54 +68,36 @@ class OrderCapture(BaseMutation):
             )
 
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
 
         app = get_app_promise(info.context).get()
         manager = get_plugin_manager_promise(info.context).get()
-        if payment_transactions := list(order.payment_transactions.all()):
-            try:
-                # We use the last transaction as we don't have a possibility to
-                # provide way of handling multiple transaction here
-                payment_transaction = payment_transactions[-1]
-                request_charge_action(
-                    transaction=payment_transaction,
-                    manager=manager,
-                    charge_value=amount,
-                    channel_slug=order.channel.slug,
-                    user=info.context.user,
-                    app=app,
-                )
-            except PaymentError as e:
-                raise ValidationError(
-                    str(e),
-                    code=OrderErrorCode.MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK.value,
-                )
-        else:
-            order_info = fetch_order_info(order)
-            payment = order_info.payment
-            payment = clean_order_capture(payment)
-            transaction = try_payment_action(
-                order,
+        order_info = fetch_order_info(order)
+        payment = order_info.payment
+        payment = clean_order_capture(payment)
+        transaction = try_payment_action(
+            order,
+            info.context.user,
+            app,
+            payment,
+            gateway.capture,
+            payment,
+            manager,
+            amount=amount,
+            channel_slug=order.channel.slug,
+        )
+        payment.refresh_from_db()
+        # Confirm that we changed the status to capture. Some payment can receive
+        # asynchronous webhook with update status
+        if transaction.kind == TransactionKind.CAPTURE:
+            site = get_site_promise(info.context).get()
+            order_charged(
+                order_info,
                 info.context.user,
                 app,
-                payment,
-                gateway.capture,
+                amount,
                 payment,
                 manager,
-                amount=amount,
-                channel_slug=order.channel.slug,
+                site.settings,
             )
-            payment.refresh_from_db()
-            # Confirm that we changed the status to capture. Some payment can receive
-            # asynchronous webhook with update status
-            if transaction.kind == TransactionKind.CAPTURE:
-                site = get_site_promise(info.context).get()
-                order_captured(
-                    order_info,
-                    info.context.user,
-                    app,
-                    amount,
-                    payment,
-                    manager,
-                    site.settings,
-                )
         return OrderCapture(order=order)

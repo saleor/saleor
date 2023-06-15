@@ -7,9 +7,10 @@ from .....product import ProductTypeKind, models
 from .....product.error_codes import ProductErrorCode
 from ....core import ResolveInfo
 from ....core.descriptions import DEPRECATED_IN_3X_INPUT
+from ....core.doc_category import DOC_CATEGORY_PRODUCTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
-from ....core.types import NonNullList, ProductError
+from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.validators import validate_slug_and_generate_if_needed
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import ProductTypeKindEnum
@@ -17,7 +18,7 @@ from ...types import ProductType
 from ..utils import clean_tax_code
 
 
-class ProductTypeInput(graphene.InputObjectType):
+class ProductTypeInput(BaseInputObjectType):
     name = graphene.String(description="Name of the product type.")
     slug = graphene.String(description="Product type slug.")
     kind = ProductTypeKindEnum(description="The product type kind.")
@@ -65,6 +66,9 @@ class ProductTypeInput(graphene.InputObjectType):
         ),
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class ProductTypeCreate(ModelMutation):

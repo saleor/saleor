@@ -19,13 +19,13 @@ from ..payment import (
     ChargeStatus,
     CustomPaymentChoices,
     PaymentError,
+    TransactionAction,
     TransactionKind,
     gateway,
 )
-from ..payment.gateway import request_refund_action
 from ..payment.interface import RefundData
 from ..payment.models import Payment, Transaction, TransactionItem
-from ..payment.utils import create_payment
+from ..payment.utils import create_payment, create_transaction_for_order
 from ..warehouse.management import (
     deallocate_stock,
     deallocate_stock_for_order,
@@ -36,6 +36,7 @@ from ..warehouse.models import Stock
 from . import (
     FulfillmentLineData,
     FulfillmentStatus,
+    OrderChargeStatus,
     OrderOrigin,
     OrderStatus,
     events,
@@ -63,6 +64,7 @@ from .utils import (
     update_order_authorize_data,
     update_order_charge_data,
     update_order_status,
+    updates_amounts_for_order,
 )
 
 if TYPE_CHECKING:
@@ -77,6 +79,7 @@ logger = logging.getLogger(__name__)
 
 OrderLineIDType = UUID
 QuantityType = int
+MARK_AS_PAID_TRANSACTION_NAME = "Mark-as-paid transaction"
 
 
 class OrderFulfillmentLineInfo(TypedDict):
@@ -86,7 +89,7 @@ class OrderFulfillmentLineInfo(TypedDict):
 
 def order_created(
     order_info: "OrderInfo",
-    user: User,
+    user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
     from_draft: bool = False,
@@ -96,26 +99,26 @@ def order_created(
     events.order_created_event(order=order, user=user, app=app, from_draft=from_draft)
     call_event(manager.order_created, order)
     payment = order_info.payment
-    if payment:
-        if order.is_captured():
-            order_captured(
-                order_info=order_info,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-                site_settings=site_settings,
-            )
-        elif order.is_pre_authorized():
-            order_authorized(
-                order=order,
-                user=user,
-                app=app,
-                amount=payment.total,
-                payment=payment,
-                manager=manager,
-            )
+    if payment and order.is_pre_authorized():
+        order_authorized(
+            order=order,
+            user=user,
+            app=app,
+            amount=payment.total,
+            payment=payment,
+            manager=manager,
+        )
+    if order.charge_status in [OrderChargeStatus.FULL, OrderChargeStatus.OVERCHARGED]:
+        order_charged(
+            order_info=order_info,
+            user=user,
+            app=app,
+            amount=payment.total if payment else None,
+            payment=payment,
+            manager=manager,
+            site_settings=site_settings,
+        )
+
     channel = order_info.channel
     if channel.automatically_confirm_all_new_orders or from_draft:
         order_confirmed(order, user, app, manager)
@@ -123,7 +126,7 @@ def order_created(
 
 def order_confirmed(
     order: "Order",
-    user: User,
+    user: Optional[User],
     app: Optional["App"],
     manager: "PluginsManager",
     send_confirmation_email: bool = False,
@@ -200,17 +203,54 @@ def order_refunded(
     user: Optional[User],
     app: Optional["App"],
     amount: "Decimal",
-    payment: "Payment",
+    payment: Optional["Payment"],
     manager: "PluginsManager",
+    trigger_order_updated: bool = True,
 ):
-    events.payment_refunded_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
-    call_event(manager.order_updated, order)
+    if payment:
+        call_event(
+            events.payment_refunded_event,
+            order=order,
+            user=user,
+            app=app,
+            amount=amount,
+            payment=payment,
+        )
 
-    send_order_refunded_confirmation(
-        order, user, app, amount, payment.currency, manager
+    call_event(
+        send_order_refunded_confirmation,
+        order,
+        user,
+        app,
+        amount,
+        order.currency,
+        manager,
     )
+
+    call_event(manager.order_refunded, order)
+    if trigger_order_updated:
+        call_event(manager.order_updated, order)
+
+    total_refunded = Decimal(0)
+    last_payment = payment if payment else order.get_last_payment()
+    if last_payment and last_payment.charge_status in [
+        ChargeStatus.PARTIALLY_REFUNDED,
+        ChargeStatus.FULLY_REFUNDED,
+    ]:
+        total_refunded += sum(
+            last_payment.transactions.filter(
+                kind=TransactionKind.REFUND, is_success=True
+            ).values_list("amount", flat=True),
+            Decimal(0),
+        )
+
+    total_refunded += sum(
+        order.payment_transactions.all().values_list("refunded_value", flat=True),
+        Decimal(0),
+    )
+
+    if total_refunded >= order.total.gross.amount:
+        call_event(manager.order_fully_refunded, order)
 
 
 def order_voided(
@@ -310,22 +350,70 @@ def order_authorized(
     call_event(manager.order_updated, order)
 
 
-def order_captured(
+def order_charged(
     order_info: "OrderInfo",
     user: Optional[User],
     app: Optional["App"],
-    amount: "Decimal",
-    payment: "Payment",
+    amount: Optional["Decimal"],
+    payment: Optional["Payment"],
     manager: "PluginsManager",
     site_settings: Optional["SiteSettings"] = None,
 ):
     order = order_info.order
-    events.payment_captured_event(
-        order=order, user=user, app=app, amount=amount, payment=payment
-    )
-    call_event(manager.order_updated, order)
-    if order.is_fully_paid():
+    if payment and amount is not None:
+        events.payment_captured_event(
+            order=order, user=user, app=app, amount=amount, payment=payment
+        )
+    call_event(manager.order_paid, order)
+    if order.charge_status in [OrderChargeStatus.FULL, OrderChargeStatus.OVERCHARGED]:
         handle_fully_paid_order(manager, order_info, user, app, site_settings)
+    else:
+        call_event(manager.order_updated, order)
+
+
+def order_transaction_updated(
+    order_info: "OrderInfo",
+    transaction_item: "TransactionItem",
+    manager: "PluginsManager",
+    user: Optional[User],
+    app: Optional["App"],
+    previous_authorized_value: Decimal,
+    previous_charged_value: Decimal,
+    previous_refunded_value: Decimal,
+    site_settings: Optional["SiteSettings"] = None,
+):
+    order_updated = False
+    if transaction_item.authorized_value != previous_authorized_value:
+        order_updated = True
+    if transaction_item.charged_value > previous_charged_value:
+        # order_updated False as order_charged triggers order_updated
+        order_updated = False
+        order_charged(
+            order_info,
+            user,
+            app,
+            amount=order_info.payment.total if order_info.payment else None,
+            payment=order_info.payment,
+            site_settings=site_settings,
+            manager=manager,
+        )
+    elif transaction_item.charged_value != previous_charged_value:
+        order_updated = True
+
+    if transaction_item.refunded_value > previous_refunded_value:
+        # order_updated False as order_refunded triggers order_updated
+        order_updated = False
+        order_refunded(
+            order=order_info.order,
+            user=user,
+            app=app,
+            amount=transaction_item.refunded_value - previous_refunded_value,
+            payment=None,
+            manager=manager,
+        )
+
+    if order_updated:
+        call_event(manager.order_updated, order_info.order)
 
 
 def fulfillment_tracking_updated(
@@ -499,7 +587,39 @@ def approve_fulfillment(
     return fulfillment
 
 
-def mark_order_as_paid(
+def mark_order_as_paid_with_transaction(
+    order: "Order",
+    request_user: User,
+    app: Optional["App"],
+    manager: "PluginsManager",
+    external_reference: Optional[str] = None,
+):
+    """Mark order as paid.
+
+    Allows to create a transaction for an order.
+    """
+    with transaction.atomic():
+        create_transaction_for_order(
+            order=order,
+            user=request_user,
+            app=app,
+            psp_reference=external_reference,
+            charged_value=order.total.gross.amount,
+            available_actions=[TransactionAction.REFUND],
+            name=MARK_AS_PAID_TRANSACTION_NAME,
+        )
+        updates_amounts_for_order(order)
+        events.order_manually_marked_as_paid_event(
+            order=order,
+            user=request_user,
+            app=app,
+            transaction_reference=external_reference,
+        )
+        call_event(manager.order_fully_paid, order)
+        call_event(manager.order_updated, order)
+
+
+def mark_order_as_paid_with_payment(
     order: "Order",
     request_user: User,
     app: Optional["App"],
@@ -560,6 +680,10 @@ def clean_mark_order_as_paid(order: "Order"):
     if order.payments.exists():
         raise PaymentError(
             "Orders with payments can not be manually marked as paid.",
+        )
+    if order.payment_transactions.exists():
+        raise PaymentError(
+            "Orders with transactions can not be manually marked as paid.",
         )
 
 
@@ -685,11 +809,11 @@ def _create_fulfillment_lines(
             Default value is set to `False`.
 
     Return:
-        List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
+        List[FulfillmentLine]: Unsaved fulfillment lines created for this fulfillment
             based on information form `lines`
 
     Raise:
-        InsufficientStock: If system hasn't containt enough item in stock for any line.
+        InsufficientStock: If system hasn't contained enough item in stock for any line.
 
     """
     lines = [line_data["order_line"] for line_data in lines_data]
@@ -1034,7 +1158,6 @@ def create_refund_fulfillment(
     app: Optional["App"],
     order,
     payment,
-    transactions: List[TransactionItem],
     order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     manager: "PluginsManager",
@@ -1059,7 +1182,6 @@ def create_refund_fulfillment(
             app=app,
             order=order,
             payment=payment,
-            transactions=transactions,
             order_lines_to_refund=order_lines_to_refund,
             fulfillment_lines_to_refund=fulfillment_lines_to_refund,
             amount=amount,
@@ -1376,7 +1498,6 @@ def create_fulfillments_for_returned_products(
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],
-    transactions: Optional[List[TransactionItem]],
     order_lines: List[OrderLineInfo],
     fulfillment_lines: List[FulfillmentLineData],
     manager: "PluginsManager",
@@ -1413,13 +1534,12 @@ def create_fulfillments_for_returned_products(
     )
     total_refund_amount = None
     with traced_atomic_transaction():
-        if refund and (payment or transactions):
+        if refund and payment:
             total_refund_amount = _process_refund(
                 user=user,
                 app=app,
                 order=order,
                 payment=payment,
-                transactions=transactions,
                 order_lines_to_refund=return_order_lines,
                 fulfillment_lines_to_refund=return_fulfillment_lines,
                 amount=amount,
@@ -1502,7 +1622,6 @@ def _process_refund(
     app: Optional["App"],
     order: "Order",
     payment: Optional[Payment],
-    transactions: Optional[List[TransactionItem]],
     order_lines_to_refund: List[OrderLineInfo],
     fulfillment_lines_to_refund: List[FulfillmentLineData],
     amount: Optional[Decimal],
@@ -1524,45 +1643,28 @@ def _process_refund(
         # provided.
         if refund_shipping_costs:
             amount += order.shipping_price_gross_amount
-    if amount:
-        if transactions:
-            # With current mutation's inputs, we are able to process only single
-            # transaction. This can be changed when we will provide an interface
-            # to provide list of transactions.
-            transaction_item = transactions[-1]
-            amount = min(transaction_item.charged_value, amount)
-            request_refund_action(
-                transaction_item,
-                manager,
-                refund_value=amount,
-                channel_slug=order.channel.slug,
-                user=user,
-                app=app,
-            )
-        elif payment:
-            amount = min(payment.captured_amount, amount)
-            gateway.refund(
-                payment,
-                manager,
-                amount=amount,
-                channel_slug=order.channel.slug,
-                refund_data=refund_data,
-            )
-
-            transaction.on_commit(
-                lambda: events.payment_refunded_event(
-                    order=order,
-                    user=user,
-                    app=app,
-                    amount=amount,  # type: ignore
-                    payment=payment,  # type: ignore
-                )
-            )
-            transaction.on_commit(
-                lambda: send_order_refunded_confirmation(
-                    order, user, app, amount, payment.currency, manager  # type: ignore
-                )
-            )
+    if amount and payment:
+        amount = min(payment.captured_amount, amount)
+        gateway.refund(
+            payment,
+            manager,
+            amount=amount,
+            channel_slug=order.channel.slug,
+            refund_data=refund_data,
+        )
+        payment.refresh_from_db()
+        order_refunded(
+            order=order,
+            user=user,
+            app=app,
+            amount=amount,
+            payment=payment,
+            manager=manager,
+            # The mutations that use this function, always trigger order_updated at the
+            # end of the block. In that case we don't want to duplicate the webhooks
+            # triggered by single mutation.
+            trigger_order_updated=False,
+        )
 
     transaction.on_commit(
         lambda: fulfillment_refunded_event(

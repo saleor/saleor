@@ -24,12 +24,12 @@ from ...account.i18n import I18nMixin
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, ADDED_IN_38, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError, NonNullList
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...discount.dataloaders import load_discounts
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -108,6 +108,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             "confirmationNeeded flag will be set to True and no order created "
             "until payment is confirmed with second call of this mutation."
         )
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -249,8 +250,7 @@ class CheckoutComplete(BaseMutation, I18nMixin):
                     )
                 }
             )
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
 
         cls.validate_checkout_addresses(checkout_info, lines)
 
@@ -265,12 +265,11 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         site = get_site_promise(info.context).get()
 
         order, action_required, action_data = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data=payment_data or {},
             store_source=store_source,
-            discounts=discounts,
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,

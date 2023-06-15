@@ -56,12 +56,20 @@ query ($channel: String, $address: AddressInput) {
 
 
 def test_get_variant_pricing_on_sale(api_client, sale, product, channel_USD):
-    price = product.variants.first().channel_listings.get().price
+    # given
+    variant_listing = product.variants.first().channel_listings.get()
+    price = variant_listing.price
     sale_discounted_value = sale.channel_listings.get().discount_value
     discounted_price = price.amount - sale_discounted_value
+    variant_listing.discounted_price_amount = discounted_price
+    variant_listing.save(update_fields=["discounted_price_amount"])
 
     variables = {"channel": channel_USD.slug, "address": {"country": "US"}}
+
+    # when
     response = api_client.post_graphql(QUERY_GET_VARIANT_PRICING, variables)
+
+    # then
     content = get_graphql_content(response)
 
     pricing = content["data"]["products"]["edges"][0]["node"]["variants"][0]["pricing"]
@@ -133,13 +141,8 @@ def test_variant_pricing(
     variant_channel_listing = variant.channel_listings.get()
 
     pricing = get_variant_availability(
-        variant=variant,
         variant_channel_listing=variant_channel_listing,
-        product=product,
         product_channel_listing=product_channel_listing,
-        collections=[],
-        discounts=[],
-        channel=channel_USD,
         tax_rate=tax_rate,
         tax_calculation_strategy=tc.tax_calculation_strategy,
         prices_entered_with_tax=tc.prices_entered_with_tax,
@@ -155,13 +158,8 @@ def test_variant_pricing(
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
     pricing = get_variant_availability(
-        variant=variant,
         variant_channel_listing=variant_channel_listing,
-        product=product,
         product_channel_listing=product_channel_listing,
-        collections=[],
-        discounts=[],
-        channel=channel_USD,
         local_currency="PLN",
         tax_rate=tax_rate,
         tax_calculation_strategy=tc.tax_calculation_strategy,
@@ -170,13 +168,8 @@ def test_variant_pricing(
     assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
     pricing = get_variant_availability(
-        variant=variant,
         variant_channel_listing=variant_channel_listing,
-        product=product,
         product_channel_listing=product_channel_listing,
-        collections=[],
-        discounts=[],
-        channel=channel_USD,
         tax_rate=tax_rate,
         tax_calculation_strategy=tc.tax_calculation_strategy,
         prices_entered_with_tax=tc.prices_entered_with_tax,
@@ -184,6 +177,43 @@ def test_variant_pricing(
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount
     assert pricing.price_undiscounted.tax.amount
+
+
+def test_variant_pricing_no_prices(variant, channel_USD):
+    # given
+    product = variant.product
+    tax_class = product.tax_class or product.product_type.tax_class
+
+    tc = channel_USD.tax_configuration
+    tc.tax_calculation_strategy = TaxCalculationStrategy.FLAT_RATES
+    tc.charge_taxes = True
+    tc.prices_entered_with_tax = False
+    tc.save()
+
+    tax_rate = Decimal(TAX_RATE_PL)
+    country = "PL"
+    tax_class.country_rates.update_or_create(rate=tax_rate, country=country)
+
+    product_channel_listing = product.channel_listings.get()
+    variant_channel_listing = variant.channel_listings.get()
+
+    variant_channel_listing.price_amount = None
+    variant_channel_listing.discounted_price_amount = None
+    variant_channel_listing.save(
+        update_fields=["price_amount", "discounted_price_amount"]
+    )
+
+    # when
+    pricing = get_variant_availability(
+        variant_channel_listing=variant_channel_listing,
+        product_channel_listing=product_channel_listing,
+        tax_rate=tax_rate,
+        tax_calculation_strategy=tc.tax_calculation_strategy,
+        prices_entered_with_tax=tc.prices_entered_with_tax,
+    )
+
+    # then
+    assert pricing is None
 
 
 QUERY_GET_PRODUCT_VARIANTS_PRICING = """
@@ -249,6 +279,7 @@ def test_product_variant_without_price_as_user(
     stock,
     channel_USD,
 ):
+    # given
     variant.channel_listings.filter(channel=channel_USD).update(price_amount=None)
     product_id = graphene.Node.to_global_id("Product", variant.product.id)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -258,9 +289,12 @@ def test_product_variant_without_price_as_user(
         "address": {"country": "US"},
     }
 
+    # when
     response = user_api_client.post_graphql(
         QUERY_GET_PRODUCT_VARIANTS_PRICING, variables
     )
+
+    # then
     content = get_graphql_content(response)
 
     variants_data = content["data"]["product"]["variants"]

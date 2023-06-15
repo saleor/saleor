@@ -85,7 +85,9 @@ class OrderQueryset(models.QuerySet["Order"]):
             is_active=True, charge_status=ChargeStatus.NOT_CHARGED
         ).values("id")
         qs = self.filter(Exists(payments.filter(order_id=OuterRef("id"))))
-        return qs.exclude(status={OrderStatus.DRAFT, OrderStatus.CANCELED})
+        return qs.exclude(
+            status={OrderStatus.DRAFT, OrderStatus.CANCELED, OrderStatus.EXPIRED}
+        )
 
     def ready_to_confirm(self):
         """Return unconfirmed orders."""
@@ -106,9 +108,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     id = models.UUIDField(primary_key=True, editable=False, unique=True, default=uuid4)
     number = models.IntegerField(unique=True, default=get_order_number, editable=False)
     use_old_id = models.BooleanField(default=False)
-
     created_at = models.DateTimeField(default=now, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
+    expired_at = models.DateTimeField(blank=True, null=True)
+
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
     )
@@ -322,7 +325,10 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
 
     class Meta:
         ordering = ("-number",)
-        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
+        permissions = (
+            (OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),
+            (OrderPermissions.MANAGE_ORDERS_IMPORT.codename, "Manage orders import."),
+        )
         indexes = [
             *ModelWithMetadata.Meta.indexes,
             GinIndex(
@@ -407,6 +413,9 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
     def is_unconfirmed(self):
         return self.status == OrderStatus.UNCONFIRMED
 
+    def is_expired(self):
+        return self.status == OrderStatus.EXPIRED
+
     def is_open(self):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         return self.status in statuses
@@ -423,14 +432,22 @@ class Order(ModelWithMetadata, ModelWithExternalReference):
             not self.fulfillments.exclude(
                 status__in=statuses_allowed_to_cancel
             ).exists()
-        ) and self.status not in {OrderStatus.CANCELED, OrderStatus.DRAFT}
+        ) and self.status not in {
+            OrderStatus.CANCELED,
+            OrderStatus.DRAFT,
+            OrderStatus.EXPIRED,
+        }
 
     def can_capture(self, payment=None):
         if not payment:
             payment = self.get_last_payment()
         if not payment:
             return False
-        order_status_ok = self.status not in {OrderStatus.DRAFT, OrderStatus.CANCELED}
+        order_status_ok = self.status not in {
+            OrderStatus.DRAFT,
+            OrderStatus.CANCELED,
+            OrderStatus.EXPIRED,
+        }
         return payment.can_capture() and order_status_ok
 
     def can_void(self, payment=None):
@@ -792,3 +809,37 @@ class OrderEvent(models.Model):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
+
+
+class OrderGrantedRefund(models.Model):
+    """Model used to store granted refund for the order."""
+
+    created_at = models.DateTimeField(default=now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False, db_index=True)
+
+    amount_value = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=Decimal("0"),
+    )
+    amount = MoneyField(amount_field="amount_value", currency_field="currency")
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+    )
+    reason = models.TextField(blank=True, default="")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    app = models.ForeignKey(
+        App, related_name="+", on_delete=models.SET_NULL, null=True, blank=True
+    )
+    order = models.ForeignKey(
+        Order, related_name="granted_refunds", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ("created_at", "id")

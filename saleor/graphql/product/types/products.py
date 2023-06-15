@@ -59,9 +59,9 @@ from ...core.descriptions import (
     ADDED_IN_312,
     DEPRECATED_IN_3X_FIELD,
     DEPRECATED_IN_3X_INPUT,
-    PREVIEW_FEATURE,
     RICH_CONTENT,
 )
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.enums import ReportingPeriod
 from ...core.federation import federated_entity, resolve_federation_references
 from ...core.fields import (
@@ -73,6 +73,7 @@ from ...core.fields import (
 from ...core.scalars import Date
 from ...core.tracing import traced_resolver
 from ...core.types import (
+    BaseObjectType,
     Image,
     ModelObjectType,
     NonNullList,
@@ -84,7 +85,6 @@ from ...core.types import (
 )
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_query
-from ...discount.dataloaders import DiscountsByDateTimeLoader
 from ...meta.types import ObjectWithMetadata
 from ...order.dataloaders import (
     OrderByIdLoader,
@@ -157,12 +157,7 @@ destination_address_argument = graphene.Argument(
 )
 
 
-class Margin(graphene.ObjectType):
-    start = graphene.Int()
-    stop = graphene.Int()
-
-
-class BasePricingInfo(graphene.ObjectType):
+class BasePricingInfo(BaseObjectType):
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
@@ -170,6 +165,9 @@ class BasePricingInfo(graphene.ObjectType):
     discount_local_currency = graphene.Field(
         TaxedMoney, description="The discount amount in the local currency."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
 
 class VariantPricingInfo(BasePricingInfo):
@@ -187,6 +185,7 @@ class VariantPricingInfo(BasePricingInfo):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a variant in the storefront."
 
 
@@ -209,16 +208,17 @@ class ProductPricingInfo(BasePricingInfo):
     display_gross_prices = graphene.Boolean(
         description=(
             "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39 + PREVIEW_FEATURE
+            "should include taxes." + ADDED_IN_39
         ),
         required=True,
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents availability of a product in the storefront."
 
 
-class PreorderData(graphene.ObjectType):
+class PreorderData(BaseObjectType):
     global_threshold = PermissionsField(
         graphene.Int,
         required=False,
@@ -234,6 +234,7 @@ class PreorderData(graphene.ObjectType):
     end_date = graphene.DateTime(required=False, description="Preorder end date.")
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents preorder settings for product variant."
 
     @staticmethod
@@ -359,9 +360,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
     preorder = graphene.Field(
         PreorderData,
         required=False,
-        description=(
-            "Preorder data for product variant." + ADDED_IN_31 + PREVIEW_FEATURE
-        ),
+        description=("Preorder data for product variant." + ADDED_IN_31),
     )
     created = graphene.DateTime(required=True)
     updated_at = graphene.DateTime(required=True)
@@ -567,31 +566,23 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         channel_slug = str(root.channel_slug)
         context = info.context
 
-        product = ProductByIdLoader(context).load(root.node.product_id)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.product_id, channel_slug))
         variant_channel_listing = VariantChannelListingByVariantIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
-        collections = CollectionsByProductIdLoader(context).load(root.node.product_id)
         channel = ChannelBySlugLoader(context).load(channel_slug)
-        discounts = DiscountsByDateTimeLoader(context).load(info.context.request_time)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
-        manager = get_plugin_manager_promise(info.context)
 
         address_country = address.country if address is not None else None
 
         def load_tax_configuration(data):
             (
-                product,
                 product_channel_listing,
                 variant_channel_listing,
-                collections,
                 channel,
                 tax_class,
-                discounts,
-                manager,
             ) = data
 
             if not variant_channel_listing or not product_channel_listing:
@@ -627,19 +618,18 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
                         )
 
                         availability = get_variant_availability(
-                            variant=root.node,
                             variant_channel_listing=variant_channel_listing,
-                            product=product,
                             product_channel_listing=product_channel_listing,
-                            collections=collections,
-                            discounts=discounts,
-                            channel=channel,
                             local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
                         )
-                        return VariantPricingInfo(**asdict(availability))
+                        return (
+                            VariantPricingInfo(**asdict(availability))
+                            if availability
+                            else None
+                        )
 
                     country_rates = (
                         TaxClassCountryRateByTaxClassIDLoader(context).load(
@@ -669,14 +659,10 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
         return Promise.all(
             [
-                product,
                 product_channel_listing,
                 variant_channel_listing,
-                collections,
                 channel,
                 tax_class,
-                discounts,
-                manager,
             ]
         ).then(load_tax_configuration)
 
@@ -805,6 +791,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
 class ProductVariantCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductVariant
 
 
@@ -1078,24 +1065,18 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
             context
         ).load((root.node.id, channel_slug))
-        variants = ProductVariantsByProductIdLoader(context).load(root.node.id)
         variants_channel_listing = (
             VariantsChannelListingByProductIdAndChannelSlugLoader(context).load(
                 (root.node.id, channel_slug)
             )
         )
-        collections = CollectionsByProductIdLoader(context).load(root.node.id)
-        discounts = DiscountsByDateTimeLoader(context).load(context.request_time)
         tax_class = TaxClassByProductIdLoader(context).load(root.node.id)
 
         def load_tax_configuration(data):
             (
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ) = data
 
@@ -1135,13 +1116,8 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                         )
 
                         availability = get_product_availability(
-                            product=root.node,
                             product_channel_listing=product_channel_listing,
-                            variants=variants,
                             variants_channel_listing=variants_channel_listing,
-                            collections=collections,
-                            discounts=discounts,
-                            channel=channel,
                             local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
@@ -1182,10 +1158,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             [
                 channel,
                 product_channel_listing,
-                variants,
                 variants_channel_listing,
-                collections,
-                discounts,
                 tax_class,
             ]
         ).then(load_tax_configuration)
@@ -1559,6 +1532,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
 class ProductCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Product
 
 
@@ -1762,6 +1736,7 @@ class ProductType(ModelObjectType[models.ProductType]):
 
 class ProductTypeCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = ProductType
 
 
@@ -1826,7 +1801,7 @@ class ProductMedia(ModelObjectType[models.ProductMedia]):
         return graphene.Node.to_global_id("Product", root.product_id)
 
 
-class ProductImage(graphene.ObjectType):
+class ProductImage(BaseObjectType):
     id = graphene.ID(required=True, description="The ID of the image.")
     alt = graphene.String(description="The alt text of the image.")
     sort_order = graphene.Int(
@@ -1840,6 +1815,7 @@ class ProductImage(graphene.ObjectType):
     url = ThumbnailField(graphene.String, required=True)
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         description = "Represents a product image."
 
     @staticmethod

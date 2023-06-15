@@ -5,12 +5,14 @@ from prices import Money
 from ....order import models
 from ....order.error_codes import OrderErrorCode
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.scalars import PositiveDecimal
+from ...core.types import BaseInputObjectType
 from ...discount.enums import DiscountValueTypeEnum
 
 
-class OrderDiscountCommonInput(graphene.InputObjectType):
+class OrderDiscountCommonInput(BaseInputObjectType):
     value_type = graphene.Field(
         DiscountValueTypeEnum,
         required=True,
@@ -23,6 +25,9 @@ class OrderDiscountCommonInput(graphene.InputObjectType):
     reason = graphene.String(
         required=False, description="Explanation for the applied discount."
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_ORDERS
 
 
 class OrderDiscountCommon(BaseMutation):
@@ -49,7 +54,7 @@ class OrderDiscountCommon(BaseMutation):
         return ValidationError({"value": ValidationError(error_msg, code=code)})
 
     @classmethod
-    def validate_order_discount_input(cls, _info, max_total: Money, input: dict):
+    def validate_order_discount_input(cls, max_total: Money, input: dict):
         value_type = input["value_type"]
         value = input["value"]
         if value_type == DiscountValueTypeEnum.FIXED:

@@ -7,6 +7,7 @@ from ...account.models import User
 from ...checkout.models import Checkout
 from ...payment.models import Payment
 from ..channel.types import Channel
+from ..core.doc_category import DOC_CATEGORY_CHECKOUT
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
@@ -18,6 +19,7 @@ from ..core.types import DateRangeInput, FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..utils import resolve_global_ids_to_primary_keys
 from ..utils.filters import filter_range_field
+from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 
 
 def get_checkout_token_from_query(value):
@@ -52,6 +54,22 @@ def filter_checkout_by_payment(qs, payment_id):
 
 def filter_created_range(qs, _, value):
     return filter_range_field(qs, "created_at__date", value)
+
+
+def filter_authorize_status(qs, _, value):
+    if value:
+        qs = qs.filter(authorize_status__in=value)
+    return qs
+
+
+def filter_charge_status(qs, _, value):
+    if value:
+        qs = qs.filter(charge_status__in=value)
+    return qs
+
+
+def filter_updated_at_range(qs, _, value):
+    return filter_range_field(qs, "last_change__date", value)
 
 
 def filter_customer(qs, _, value):
@@ -111,6 +129,15 @@ class CheckoutFilter(MetadataFilterBase):
     metadata = ListObjectTypeFilter(
         input_class=MetadataFilter, method=filter_checkout_metadata
     )
+    updated_at = ObjectTypeFilter(
+        input_class=DateRangeInput, method=filter_updated_at_range
+    )
+    authorize_status = ListObjectTypeFilter(
+        input_class=CheckoutAuthorizeStatusEnum, method=filter_authorize_status
+    )
+    charge_status = ListObjectTypeFilter(
+        input_class=CheckoutChargeStatusEnum, method=filter_charge_status
+    )
 
     class Meta:
         model = Checkout
@@ -119,4 +146,5 @@ class CheckoutFilter(MetadataFilterBase):
 
 class CheckoutFilterInput(FilterInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_CHECKOUT
         filterset_class = CheckoutFilter

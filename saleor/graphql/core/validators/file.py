@@ -1,6 +1,5 @@
 import mimetypes
 import os
-import secrets
 
 import requests
 from django.core.exceptions import ValidationError
@@ -41,21 +40,13 @@ def validate_image_url(url: str, field_name: str, error_code: str) -> None:
 
     Instead of the whole file, only the headers are fetched.
     """
-    head = requests.head(url)
+    head = requests.head(url, timeout=30, allow_redirects=False)
     header = head.headers
     content_type = header.get("content-type")
     if content_type is None or not is_supported_image_mimetype(content_type):
         raise ValidationError(
             {field_name: ValidationError("Invalid file type.", code=error_code)}
         )
-
-
-def get_filename_from_url(url: str) -> str:
-    """Prepare unique filename for file from URL to avoid overwritting."""
-    file_name = os.path.basename(url)
-    name, format = os.path.splitext(file_name)
-    hash = secrets.token_hex(nbytes=4)
-    return f"{name}_{hash}{format}"
 
 
 def clean_image_file(cleaned_input, img_field_name, error_class):

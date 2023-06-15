@@ -55,7 +55,6 @@ ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 # (see saleor.demo.management.commands.populatedb).
 INSTALLED_APPS.remove("saleor.core")  # noqa: F405
 INSTALLED_APPS += ["saleor.demo", "saleor.core"]  # noqa: F405
-ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = False
 
 
 def _get_project_name_from_url(url: str) -> str:

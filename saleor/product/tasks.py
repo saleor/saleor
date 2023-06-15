@@ -14,10 +14,10 @@ from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
-    update_product_discounted_price,
+    update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
-    update_products_discounted_prices_of_discount,
+    update_products_discounted_prices_of_sale,
 )
 from .utils.variants import generate_and_set_variant_name
 
@@ -25,6 +25,20 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
+
+
+def _variants_in_batches(variants_qs):
+    """Slice a variants queryset into batches."""
+    start_pk = 0
+
+    while True:
+        variants = list(
+            variants_qs.order_by("pk").filter(pk__gt=start_pk)[:VARIANTS_UPDATE_BATCH]
+        )
+        if not variants:
+            break
+        yield variants
+        start_pk = variants[-1].pk
 
 
 def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
@@ -43,17 +57,12 @@ def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
         product__product_type__variant_attributes__in=attributes_changed,
     )
 
-    variants_to_update = []
-    for variant in variants:
-        variants_to_update.append(
+    for variants_batch in _variants_in_batches(variants):
+        variants_to_update = [
             generate_and_set_variant_name(variant, variant.sku, save=False)
-        )
-        if len(variants_to_update) > VARIANTS_UPDATE_BATCH:
-            ProductVariant.objects.bulk_update(
-                variants_to_update, ["name", "updated_at"]
-            )
-            variants_to_update = []
-    ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
+            for variant in variants_batch
+        ]
+        ProductVariant.objects.bulk_update(variants_to_update, ["name", "updated_at"])
 
 
 @app.task
@@ -74,7 +83,7 @@ def update_product_discounted_price_task(product_pk: int):
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find product with id: {product_pk}.")
         return
-    update_product_discounted_price(product)
+    update_products_discounted_price([product])
 
 
 @app.task
@@ -90,13 +99,13 @@ def update_products_discounted_prices_of_catalogues_task(
 
 
 @app.task
-def update_products_discounted_prices_of_discount_task(discount_pk: int):
+def update_products_discounted_prices_of_sale_task(discount_pk: int):
     try:
         discount = Sale.objects.get(pk=discount_pk)
     except ObjectDoesNotExist:
         logging.warning(f"Cannot find discount with id: {discount_pk}.")
         return
-    update_products_discounted_prices_of_discount(discount)
+    update_products_discounted_prices_of_sale(discount)
 
 
 @app.task

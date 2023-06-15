@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 import logging
 from collections import defaultdict
@@ -17,9 +18,9 @@ from ...order.models import Order
 from ...shipping.interface import ShippingMethodData
 from ...webhook.utils import get_webhooks_for_event
 from ..base_plugin import ExcludedShippingMethod
+from ..const import APP_ID_PREFIX
 from .const import CACHE_EXCLUDED_SHIPPING_TIME, EXCLUDED_SHIPPING_REQUEST_TIMEOUT
 from .tasks import trigger_webhook_sync
-from .utils import APP_ID_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,8 @@ def get_excluded_shipping_methods_or_fetch(
     excluded_methods = []
     # Gather responses from webhooks
     for webhook in webhooks:
+        if not webhook:
+            continue
         response_data = trigger_webhook_sync(
             event_type,
             payload,
@@ -201,3 +204,18 @@ def parse_excluded_shipping_methods(
             )
         )
     return excluded_methods_map
+
+
+def generate_cache_key_for_shipping_list_methods_for_checkout(
+    payload: str, target_url: str
+) -> str:
+    key_data = json.loads(payload)
+
+    # drop fields that change between requests but are not relevant for cache key
+    key_data[0].pop("last_change")
+    key_data[0]["meta"].pop("issued_at")
+
+    # make cache key
+    key = json.dumps(key_data)
+    key = f"{target_url}-{hashlib.sha256(key.encode('utf-8')).hexdigest()}"
+    return key

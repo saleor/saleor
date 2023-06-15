@@ -11,6 +11,7 @@ from ....order.error_codes import OrderErrorCode
 from ....permission.enums import OrderPermissions
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
+from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import OrderError
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -38,6 +39,7 @@ class OrderCancel(BaseMutation):
 
     class Meta:
         description = "Cancel an order."
+        doc_category = DOC_CATEGORY_ORDERS
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -47,6 +49,7 @@ class OrderCancel(BaseMutation):
         cls, _root, info: ResolveInfo, /, *, id: str
     ):
         order = cls.get_node_or_error(info, id, only_type=Order)
+        cls.check_channel_permissions(info, [order.channel_id])
         order = clean_order_cancel(order)
         user = info.context.user
         app = get_app_promise(info.context).get()

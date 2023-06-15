@@ -8,7 +8,8 @@ from django.core.exceptions import ValidationError
 from graphene import ObjectType
 from graphql.error import GraphQLError
 
-from ....plugins.webhook.utils import APP_ID_PREFIX
+from ....plugins.const import APP_ID_PREFIX
+from ....thumbnail import FILE_NAME_MAX_LENGTH
 from ..validators import validate_if_int_or_uuid
 
 
@@ -108,6 +109,7 @@ def to_global_id_or_none(instance):
 def add_hash_to_file_name(file):
     """Add unique text fragment to the file name to prevent file overriding."""
     file_name, format = os.path.splitext(file._name)
+    file_name = file_name[:FILE_NAME_MAX_LENGTH]
     hash = secrets.token_hex(nbytes=4)
     new_name = f"{file_name}_{hash}{format}"
     file._name = new_name

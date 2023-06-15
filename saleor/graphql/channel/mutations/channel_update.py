@@ -11,7 +11,8 @@ from ....shipping.tasks import (
 )
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_35
+from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -19,6 +20,7 @@ from ...utils.validators import check_for_duplicates
 from ..types import Channel
 from ..utils import delete_invalid_warehouse_to_shipping_zone_relations
 from .channel_create import ChannelInput
+from .utils import clean_delete_expired_orders_after, clean_expire_orders_after
 
 
 class ChannelUpdateInput(ChannelInput):
@@ -38,11 +40,12 @@ class ChannelUpdateInput(ChannelInput):
     )
     remove_warehouses = NonNullList(
         graphene.ID,
-        description="List of warehouses to unassign from the channel."
-        + ADDED_IN_35
-        + PREVIEW_FEATURE,
+        description="List of warehouses to unassign from the channel." + ADDED_IN_35,
         required=False,
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_CHANNELS
 
 
 class ChannelUpdate(ModelMutation):
@@ -106,6 +109,29 @@ class ChannelUpdate(ModelMutation):
                     "automatically_fulfill_non_shippable_gift_card"
                 ] = automatically_fulfill_non_shippable_gift_card
 
+            if "expire_orders_after" in order_settings:
+                expire_orders_after = order_settings["expire_orders_after"]
+                cleaned_input["expire_orders_after"] = clean_expire_orders_after(
+                    expire_orders_after
+                )
+
+            if "delete_expired_orders_after" in order_settings:
+                delete_expired_orders_after = order_settings[
+                    "delete_expired_orders_after"
+                ]
+                cleaned_input[
+                    "delete_expired_orders_after"
+                ] = clean_delete_expired_orders_after(delete_expired_orders_after)
+
+            if mark_as_paid_strategy := order_settings.get("mark_as_paid_strategy"):
+                cleaned_input["order_mark_as_paid_strategy"] = mark_as_paid_strategy
+
+            if default_transaction_strategy := order_settings.get(
+                "default_transaction_flow_strategy"
+            ):
+                cleaned_input[
+                    "default_transaction_flow_strategy"
+                ] = default_transaction_strategy
         return cleaned_input
 
     @classmethod

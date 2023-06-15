@@ -11,9 +11,11 @@ def flush_post_commit_hooks():
     for alias in connections:
         connection = transaction.get_connection(alias)
         was_atomic = connection.in_atomic_block
+        was_commit_on_exit = connection.commit_on_exit
         connection.in_atomic_block = False
         connection.run_and_clear_commit_hooks()
         connection.in_atomic_block = was_atomic
+        connection.commit_on_exit = was_commit_on_exit
 
 
 def dummy_editorjs(text, json_format=False):

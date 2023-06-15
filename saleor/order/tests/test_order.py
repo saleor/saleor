@@ -6,7 +6,7 @@ import pytest
 from prices import Money, TaxedMoney
 
 from ...core.weight import zero_weight
-from ...discount import OrderDiscountType
+from ...discount import DiscountType
 from ...discount.models import (
     DiscountValueType,
     NotApplicable,
@@ -67,7 +67,7 @@ def test_total_setter():
 
 def test_order_get_subtotal(order_with_lines):
     order_with_lines.discounts.create(
-        type=OrderDiscountType.VOUCHER,
+        type=DiscountType.VOUCHER,
         value_type=DiscountValueType.FIXED,
         value=order_with_lines.total.gross.amount * Decimal("0.5"),
         amount_value=order_with_lines.total.gross.amount * Decimal("0.5"),
@@ -1339,3 +1339,108 @@ def test_order_update_charge_data_with_transaction_item_and_payment(
     assert order_with_lines.total_charged == Money(
         first_charged_amount + second_charged_amount, order_with_lines.currency
     )
+
+
+def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_price(
+    order_with_lines,
+    product,
+    product_translation_fr,
+    sale,
+    discount_info,
+    settings,
+    anonymous_plugins,
+):
+    # given
+    order = order_with_lines
+    variant = product.variants.first()
+    discount_info.variants_ids.add(variant.id)
+    sale.variants.add(variant)
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+    price_override = Decimal(15)
+    line_data = OrderLineData(
+        variant_id=str(variant.id),
+        variant=variant,
+        quantity=1,
+        price_override=price_override,
+    )
+
+    # when
+    add_variant_to_order(
+        order=order,
+        line_data=line_data,
+        user=None,
+        app=None,
+        manager=anonymous_plugins,
+        discounts=[discount_info],
+    )
+
+    # then
+    line = order.lines.last()
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    sale_channel_listing = sale.channel_listings.first()
+    assert order.lines.count() == lines_before + 1
+    assert line.product_sku == variant.sku
+    assert line.quantity == 1
+    assert variant_channel_listing.price_amount != price_override
+    unit_amount = price_override - sale_channel_listing.discount_value
+    assert line.unit_price == TaxedMoney(
+        net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
+    )
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+
+    assert line.unit_discount_amount == sale_channel_listing.discount_value
+    assert line.unit_discount_value == sale_channel_listing.discount_value
+    assert line.unit_discount_reason
+
+
+def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
+    order_with_lines,
+    product,
+    product_translation_fr,
+    settings,
+    anonymous_plugins,
+):
+    # given
+    order = order_with_lines
+    variant = product.variants.get()
+    lines_before = order.lines.count()
+    settings.LANGUAGE_CODE = "fr"
+    price_override = Decimal(18)
+    line_data = OrderLineData(
+        variant_id=str(variant.id),
+        variant=variant,
+        quantity=1,
+        price_override=price_override,
+    )
+
+    # when
+    add_variant_to_order(
+        order=order,
+        line_data=line_data,
+        user=None,
+        app=None,
+        manager=anonymous_plugins,
+    )
+
+    # then
+    variant_channel_listing = variant.channel_listings.get(channel=order.channel)
+    line = order.lines.last()
+    assert order.lines.count() == lines_before + 1
+    assert variant_channel_listing.price_amount != price_override
+    assert line.product_sku == variant.sku
+    assert line.product_variant_id == variant.get_global_id()
+    assert line.quantity == 1
+    assert line.unit_price == TaxedMoney(
+        net=Money(price_override, "USD"), gross=Money(price_override, "USD")
+    )
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
+    assert line.base_unit_price_amount == price_override
+    assert line.undiscounted_base_unit_price_amount == price_override
+    assert not line.unit_discount_amount
+    assert not line.unit_discount_value
+    assert not line.unit_discount_reason

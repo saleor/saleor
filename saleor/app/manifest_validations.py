@@ -1,11 +1,14 @@
 import logging
 from collections import defaultdict
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
+from semantic_version import NpmSpec, Version
+from semantic_version.base import Range
 
+from .. import __version__
 from ..graphql.core.utils import str_to_enum
 from ..graphql.webhook.subscription_query import SubscriptionQuery
 from ..permission.enums import (
@@ -18,11 +21,19 @@ from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ..webhook.validators import custom_headers_validator
 from .error_codes import AppErrorCode
 from .types import AppExtensionMount, AppExtensionTarget
-from .validators import AppURLValidator
+from .validators import AppURLValidator, brand_validator
 
 logger = logging.getLogger(__name__)
 
 T_ERRORS = Dict[str, List[ValidationError]]
+
+
+class RequiredSaleorVersionSpec(NpmSpec):
+    class Parser(NpmSpec.Parser):
+        @classmethod
+        def range(cls, operator, target):
+            # change prerelease policy from `same-patch` to `natural`
+            return Range(operator, target, prerelease_policy=Range.PRERELEASE_NATURAL)
 
 
 def _clean_app_url(url):
@@ -95,7 +106,7 @@ def clean_permissions(
     return [p for p in saleor_permissions if p.codename in permissions]
 
 
-def clean_manifest_data(manifest_data):
+def clean_manifest_data(manifest_data, raise_for_saleor_version=False):
     errors: T_ERRORS = defaultdict(list)
 
     validate_required_fields(manifest_data, errors)
@@ -109,6 +120,23 @@ def clean_manifest_data(manifest_data):
                 code=AppErrorCode.INVALID_URL_FORMAT.value,
             )
         )
+
+    try:
+        manifest_data["requiredSaleorVersion"] = clean_required_saleor_version(
+            manifest_data.get("requiredSaleorVersion"), raise_for_saleor_version
+        )
+    except ValidationError as e:
+        errors["requiredSaleorVersion"].append(e)
+
+    try:
+        manifest_data["author"] = clean_author(manifest_data.get("author"))
+    except ValidationError as e:
+        errors["author"].append(e)
+
+    try:
+        brand_validator(manifest_data.get("brand"))
+    except ValidationError as e:
+        errors["brand"].append(e)
 
     saleor_permissions = get_permissions().annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
@@ -201,6 +229,15 @@ def clean_webhooks(manifest_data, errors):
     )
 
     for webhook in webhooks:
+        webhook["isActive"] = webhook.get("isActive", True)
+        if not isinstance(webhook["isActive"], bool):
+            errors["webhooks"].append(
+                ValidationError(
+                    "Incorrect value for field: isActive.",
+                    code=AppErrorCode.INVALID.value,
+                )
+            )
+
         webhook["events"] = []
         for e_type in webhook.get("asyncEvents", []):
             try:
@@ -291,3 +328,38 @@ def validate_required_fields(manifest_data, errors):
                     code=AppErrorCode.REQUIRED.value,
                 )
             )
+
+
+def parse_version(version_str: str) -> Version:
+    return Version(version_str)
+
+
+def clean_required_saleor_version(
+    required_version,
+    raise_for_saleor_version: bool,
+    saleor_version=__version__,
+) -> Optional[Dict]:
+    if not required_version:
+        return None
+    try:
+        spec = RequiredSaleorVersionSpec(required_version)
+    except Exception:
+        msg = "Incorrect value for required Saleor version."
+        raise ValidationError(msg, code=AppErrorCode.INVALID.value)
+    version = parse_version(saleor_version)
+    satisfied = spec.match(version)
+    if raise_for_saleor_version and not satisfied:
+        msg = f"Saleor version {saleor_version} is not supported by the app."
+        raise ValidationError(msg, code=AppErrorCode.UNSUPPORTED_SALEOR_VERSION.value)
+    return {"constraint": required_version, "satisfied": satisfied}
+
+
+def clean_author(author) -> Optional[str]:
+    if author is None:
+        return None
+    if isinstance(author, str):
+        if clean := author.strip():
+            return clean
+    raise ValidationError(
+        "Incorrect value for field: author", code=AppErrorCode.INVALID.value
+    )

@@ -22,13 +22,17 @@ from ...product.models import (
     ProductChannelListing,
 )
 from ..core.descriptions import ADDED_IN_38, CHANNEL_REQUIRED, DEPRECATED_IN_3X_INPUT
-from ..core.types import ChannelSortInputObjectType, SortInputObjectType
+from ..core.doc_category import DOC_CATEGORY_PRODUCTS
+from ..core.types import BaseEnum, ChannelSortInputObjectType, SortInputObjectType
 
 
-class CategorySortField(graphene.Enum):
+class CategorySortField(BaseEnum):
     NAME = ["name", "slug"]
     PRODUCT_COUNT = ["product_count", "name", "slug"]
     SUBCATEGORY_COUNT = ["subcategory_count", "name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -65,16 +69,20 @@ class CategorySortField(graphene.Enum):
 
 class CategorySortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CategorySortField
         type_name = "categories"
 
 
-class CollectionSortField(graphene.Enum):
+class CollectionSortField(BaseEnum):
     NAME = ["name", "slug"]
     AVAILABILITY = ["is_published", "slug"]
     PRODUCT_COUNT = ["product_count", "slug"]
     PUBLICATION_DATE = ["published_at", "slug"]
     PUBLISHED_AT = ["published_at", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -127,11 +135,12 @@ class CollectionSortField(graphene.Enum):
 
 class CollectionSortingInput(ChannelSortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = CollectionSortField
         type_name = "collections"
 
 
-class ProductOrderField(graphene.Enum):
+class ProductOrderField(BaseEnum):
     NAME = ["name", "slug"]
     RANK = ["search_rank", "id"]
     PRICE = ["min_variants_price_amount", "name", "slug"]
@@ -146,6 +155,9 @@ class ProductOrderField(graphene.Enum):
     COLLECTION = ["collectionproduct__sort_order", "pk"]
     RATING = ["rating", "name", "slug"]
     CREATED_AT = ["created_at", "name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -257,11 +269,16 @@ class ProductOrder(ChannelSortInputObjectType):
     )
 
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductOrderField
+        type_name = "products"
 
 
-class ProductVariantSortField(graphene.Enum):
+class ProductVariantSortField(BaseEnum):
     LAST_MODIFIED_AT = ["updated_at", "name", "pk"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -275,14 +292,18 @@ class ProductVariantSortField(graphene.Enum):
 
 class ProductVariantSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductVariantSortField
         type_name = "productVariants"
 
 
-class ProductTypeSortField(graphene.Enum):
+class ProductTypeSortField(BaseEnum):
     NAME = ["name", "slug"]
     DIGITAL = ["is_digital", "name", "slug"]
     SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -299,12 +320,16 @@ class ProductTypeSortField(graphene.Enum):
 
 class ProductTypeSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = ProductTypeSortField
         type_name = "product types"
 
 
-class MediaChoicesSortField(graphene.Enum):
+class MediaChoicesSortField(BaseEnum):
     ID = ["id"]
+
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
 
     @property
     def description(self):
@@ -318,5 +343,6 @@ class MediaChoicesSortField(graphene.Enum):
 
 class MediaSortingInput(SortInputObjectType):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         sort_enum = MediaChoicesSortField
         type_name = "media"

@@ -27,7 +27,8 @@ from ....core.jwt import (
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import get_permissions_from_names
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_38
+from ...core.doc_category import DOC_CATEGORY_AUTH
 from ...core.fields import JSONString
 from ...core.mutations import BaseMutation
 from ...core.types import AccountError
@@ -89,12 +90,13 @@ class CreateToken(BaseMutation):
             required=False,
             description=(
                 "The audience that will be included to JWT tokens with "
-                "prefix `custom:`." + ADDED_IN_38 + PREVIEW_FEATURE
+                "prefix `custom:`." + ADDED_IN_38
             ),
         )
 
     class Meta:
         description = "Create JWT token."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -193,17 +195,18 @@ class RefreshToken(BaseMutation):
             required=False,
             description=(
                 "CSRF token required to refresh token. This argument is "
-                "required when refreshToken is provided as a cookie."
+                "required when `refreshToken` is provided as a cookie."
             ),
         )
 
     class Meta:
         description = (
-            "Refresh JWT token. Mutation tries to take refreshToken from the input."
-            "If it fails it will try to take refreshToken from the http-only cookie -"
-            f"{JWT_REFRESH_TOKEN_COOKIE_NAME}. csrfToken is required when refreshToken "
-            "is provided as a cookie."
+            "Refresh JWT token. Mutation tries to take refreshToken from the input. "
+            "If it fails it will try to take `refreshToken` from the http-only cookie "
+            f"`{JWT_REFRESH_TOKEN_COOKIE_NAME}`. "
+            "`csrfToken` is required when `refreshToken` is provided as a cookie."
         )
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -315,6 +318,7 @@ class VerifyToken(BaseMutation):
 
     class Meta:
         description = "Verify JWT token."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -346,6 +350,7 @@ class VerifyToken(BaseMutation):
 class DeactivateAllUserTokens(BaseMutation):
     class Meta:
         description = "Deactivate all JWT tokens of the currently authenticated user."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -378,7 +383,8 @@ class ExternalAuthenticationUrl(BaseMutation):
         )
 
     class Meta:
-        description = "Prepare external authentication url for user by custom plugin."
+        description = "Prepare external authentication URL for user by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -418,6 +424,7 @@ class ExternalObtainAccessTokens(BaseMutation):
 
     class Meta:
         description = "Obtain external access tokens for user by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -468,6 +475,7 @@ class ExternalRefresh(BaseMutation):
 
     class Meta:
         description = "Refresh user's access by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -507,6 +515,7 @@ class ExternalLogout(BaseMutation):
 
     class Meta:
         description = "Logout user by custom plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -539,6 +548,7 @@ class ExternalVerify(BaseMutation):
 
     class Meta:
         description = "Verify external authentication data by plugin."
+        doc_category = DOC_CATEGORY_AUTH
         error_type_class = AccountError
         error_type_field = "account_errors"
 

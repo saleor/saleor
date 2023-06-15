@@ -32,12 +32,11 @@ from ....checkout.models import Checkout
 from ....core.prices import quantize_price
 from ....core.transactions import transaction_with_commit_on_errors
 from ....core.utils.url import prepare_url
-from ....discount.utils import fetch_active_discounts
 from ....graphql.core.utils import from_global_id_or_error
 from ....order.actions import (
     cancel_order,
     order_authorized,
-    order_captured,
+    order_charged,
     order_refunded,
 )
 from ....order.events import external_notification_event
@@ -182,20 +181,18 @@ def create_payment_notification_for_order(
 
 def create_order(payment, checkout, manager):
     try:
-        discounts = fetch_active_discounts()
         lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         if unavailable_variant_pks:
             payment_refund_or_void(payment, manager, checkout.channel.slug)
             raise ValidationError(
                 "Some of the checkout lines variants are unavailable."
             )
-        checkout_info = fetch_checkout_info(checkout, lines, discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, lines, manager)
         checkout_total = calculate_checkout_total_with_gift_cards(
             manager=manager,
             checkout_info=checkout_info,
             lines=lines,
             address=checkout.shipping_address or checkout.billing_address,
-            discounts=discounts,
         )
         # when checkout total value is different than total amount from payments
         # it means that some products has been removed during the payment was completed
@@ -205,12 +202,11 @@ def create_order(payment, checkout, manager):
                 "Cannot create order - some products do not exist anymore."
             )
         order, _, _ = complete_checkout(
-            manager=manager,
             checkout_info=checkout_info,
             lines=lines,
+            manager=manager,
             payment_data={},
             store_source=False,
-            discounts=discounts,
             user=checkout.user or None,
             app=None,
         )
@@ -326,7 +322,7 @@ def handle_authorization(notification: Dict[str, Any], gateway_config: GatewayCo
                 gateway_postprocess(new_transaction, payment)
                 if adyen_auto_capture:
                     order_info = fetch_order_info(payment.order)
-                    order_captured(
+                    order_charged(
                         order_info,
                         None,
                         None,
@@ -440,7 +436,7 @@ def handle_capture(notification: Dict[str, Any], _gateway_config: GatewayConfig)
             if new_transaction.is_success:
                 gateway_postprocess(new_transaction, payment)
                 order_info = fetch_order_info(payment.order)
-                order_captured(
+                order_charged(
                     order_info, None, None, new_transaction.amount, payment, manager
                 )
 
@@ -913,7 +909,7 @@ def validate_hmac_signature(
     if not hmac_key:
         return not hmac_signature
 
-    if not hmac_signature and hmac_key:
+    if not hmac_signature:
         return False
 
     hmac_key = hmac_key.encode()
@@ -937,7 +933,7 @@ def validate_hmac_signature(
     hmac_key = binascii.a2b_hex(hmac_key)
     hm = hmac.new(hmac_key, payload.encode("utf-8"), hashlib.sha256)
     expected_merchant_sign = base64.b64encode(hm.digest())
-    return hmac_signature == expected_merchant_sign.decode("utf-8")
+    return hmac.compare_digest(hmac_signature, expected_merchant_sign.decode("utf-8"))
 
 
 def validate_auth_user(headers: HttpHeaders, gateway_config: "GatewayConfig") -> bool:

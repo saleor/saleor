@@ -8,7 +8,8 @@ from ...tax import models
 from ..account.enums import CountryCodeEnum
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_39, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_39
+from ..core.doc_category import DOC_CATEGORY_TAXES
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
 from ..core.utils import from_global_id_or_error
@@ -35,7 +36,7 @@ from .types import (
 class TaxQueries(graphene.ObjectType):
     tax_configuration = PermissionsField(
         TaxConfiguration,
-        description="Look up a tax configuration." + ADDED_IN_39 + PREVIEW_FEATURE,
+        description="Look up a tax configuration." + ADDED_IN_39,
         id=graphene.Argument(
             graphene.ID, description="ID of a tax configuration.", required=True
         ),
@@ -43,10 +44,11 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_configurations = FilterConnectionField(
         TaxConfigurationCountableConnection,
-        description="List of tax configurations." + ADDED_IN_39 + PREVIEW_FEATURE,
+        description="List of tax configurations." + ADDED_IN_39,
         filter=TaxConfigurationFilterInput(
             description="Filtering options for tax configurations."
         ),
@@ -54,10 +56,11 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_class = PermissionsField(
         TaxClass,
-        description="Look up a tax class." + ADDED_IN_39 + PREVIEW_FEATURE,
+        description="Look up a tax class." + ADDED_IN_39,
         id=graphene.Argument(
             graphene.ID, description="ID of a tax class.", required=True
         ),
@@ -65,16 +68,18 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_classes = FilterConnectionField(
         TaxClassCountableConnection,
-        description="List of tax classes." + ADDED_IN_39 + PREVIEW_FEATURE,
+        description="List of tax classes." + ADDED_IN_39,
         sort_by=TaxClassSortingInput(description="Sort tax classes."),
         filter=TaxClassFilterInput(description="Filtering options for tax classes."),
         permissions=[
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_country_configuration = PermissionsField(
         TaxCountryConfiguration,
@@ -88,6 +93,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
     tax_country_configurations = PermissionsField(
         NonNullList(
@@ -99,6 +105,7 @@ class TaxQueries(graphene.ObjectType):
             AuthorizationFilters.AUTHENTICATED_STAFF_USER,
             AuthorizationFilters.AUTHENTICATED_APP,
         ],
+        doc_category=DOC_CATEGORY_TAXES,
     )
 
     @staticmethod

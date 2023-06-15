@@ -19,9 +19,9 @@ ORDERS_WITH_INVOICES_QUERY = """
 
 
 def test_order_query_invoices(
-    user_api_client, permission_manage_orders, fulfilled_order
+    user_api_client, permission_group_manage_orders, fulfilled_order
 ):
-    user_api_client.user.user_permissions.add(permission_manage_orders)
+    permission_group_manage_orders.user_set.add(user_api_client.user)
     response = user_api_client.post_graphql(ORDERS_WITH_INVOICES_QUERY)
     content = get_graphql_content(response)
     edges = content["data"]["orders"]["edges"]

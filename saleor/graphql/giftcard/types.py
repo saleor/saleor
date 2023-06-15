@@ -19,11 +19,12 @@ from ..app.types import App
 from ..channel import ChannelContext
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.connection import CountableConnection
-from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD, PREVIEW_FEATURE
+from ..core.descriptions import ADDED_IN_31, DEPRECATED_IN_3X_FIELD
+from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import PermissionsField
 from ..core.scalars import Date
 from ..core.tracing import traced_resolver
-from ..core.types import ModelObjectType, Money, NonNullList
+from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList
 from ..meta.types import ObjectWithMetadata
 from ..order.dataloaders import OrderByIdLoader
 from ..product.dataloaders.products import ProductByIdLoader
@@ -40,7 +41,7 @@ from .filters import (
 )
 
 
-class GiftCardEventBalance(graphene.ObjectType):
+class GiftCardEventBalance(BaseObjectType):
     initial_balance = graphene.Field(
         Money,
         description="Initial balance of the gift card.",
@@ -58,6 +59,9 @@ class GiftCardEventBalance(graphene.ObjectType):
         Money,
         description="Previous current balance of the gift card.",
     )
+
+    class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
 
 
 class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
@@ -105,7 +109,7 @@ class GiftCardEvent(ModelObjectType[models.GiftCardEvent]):
     old_expiry_date = Date(description="Previous gift card expiry date.")
 
     class Meta:
-        description = "History log of the gift card." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "History log of the gift card." + ADDED_IN_31
         model = models.GiftCardEvent
         interfaces = [graphene.relay.Node]
 
@@ -215,7 +219,7 @@ class GiftCardTag(ModelObjectType[models.GiftCardTag]):
     name = graphene.String(required=True)
 
     class Meta:
-        description = "The gift card tag." + ADDED_IN_31 + PREVIEW_FEATURE
+        description = "The gift card tag." + ADDED_IN_31
         model = models.GiftCardTag
         interfaces = [graphene.relay.Node]
 
@@ -241,22 +245,18 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     created = graphene.DateTime(required=True)
     created_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=(
-            "The user who bought or issued a gift card." + ADDED_IN_31 + PREVIEW_FEATURE
-        ),
+        description=("The user who bought or issued a gift card." + ADDED_IN_31),
     )
     used_by = graphene.Field(
         "saleor.graphql.account.types.User",
-        description=(
-            "The customer who used a gift card." + ADDED_IN_31 + PREVIEW_FEATURE
-        ),
+        description=("The customer who used a gift card." + ADDED_IN_31),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     created_by_email = graphene.String(
         required=False,
         description=(
             "Email address of the user who bought or issued gift card."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
             f"{AccountPermissions.MANAGE_USERS.name}, "
             f"{AuthorizationFilters.OWNER.name}."
@@ -265,10 +265,9 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     used_by_email = graphene.String(
         required=False,
         description=(
-            "Email address of the customer who used a gift card."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Email address of the customer who used a gift card." + ADDED_IN_31
         ),
+        deprecation_reason=DEPRECATED_IN_3X_FIELD,
     )
     last_used_on = graphene.DateTime()
     expiry_date = Date()
@@ -277,25 +276,20 @@ class GiftCard(ModelObjectType[models.GiftCard]):
         description=(
             "App which created the gift card."
             + ADDED_IN_31
-            + PREVIEW_FEATURE
             + "\n\nRequires one of the following permissions: "
             f"{AppPermission.MANAGE_APPS.name}, {AuthorizationFilters.OWNER.name}."
         ),
     )
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
-        description="Related gift card product." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="Related gift card product." + ADDED_IN_31,
     )
     events = PermissionsField(
         NonNullList(GiftCardEvent),
         filter=GiftCardEventFilterInput(
             description="Filtering options for gift card events."
         ),
-        description=(
-            "List of events associated with the gift card."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
-        ),
+        description=("List of events associated with the gift card." + ADDED_IN_31),
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -303,7 +297,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     tags = PermissionsField(
         NonNullList(GiftCardTag),
-        description="The gift card tag." + ADDED_IN_31 + PREVIEW_FEATURE,
+        description="The gift card tag." + ADDED_IN_31,
         required=True,
         permissions=[
             GiftcardPermissions.MANAGE_GIFT_CARD,
@@ -311,9 +305,7 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     )
     bought_in_channel = graphene.String(
         description=(
-            "Slug of the channel where the gift card was bought."
-            + ADDED_IN_31
-            + PREVIEW_FEATURE
+            "Slug of the channel where the gift card was bought." + ADDED_IN_31
         ),
         required=False,
     )
@@ -355,15 +347,12 @@ class GiftCard(ModelObjectType[models.GiftCard]):
     @staticmethod
     def resolve_code(root: models.GiftCard, info):
         def _resolve_code(user):
-            requestor = get_user_or_app_from_context(info.context)
             # Gift card code can be fetched by the staff user and app
             # with manage gift card permission and by the card owner.
-            if requestor:
+            if requestor := get_user_or_app_from_context(info.context):
                 requestor_is_an_owner = user and requestor == user
-                card_already_used = bool(root.used_by_email)
-                if requestor_is_an_owner or (
-                    not card_already_used
-                    and requestor.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD)
+                if requestor_is_an_owner or requestor.has_perm(
+                    GiftcardPermissions.MANAGE_GIFT_CARD
                 ):
                     return root.code
 
@@ -562,9 +551,11 @@ class GiftCard(ModelObjectType[models.GiftCard]):
 
 class GiftCardCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCard
 
 
 class GiftCardTagCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_GIFT_CARDS
         node = GiftCardTag

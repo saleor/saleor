@@ -10,19 +10,23 @@ from ....order.models import Order
 from ....permission.enums import CheckoutPermissions
 from ....tax import error_codes
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_38, PREVIEW_FEATURE
+from ...core.descriptions import ADDED_IN_38
+from ...core.doc_category import DOC_CATEGORY_TAXES
 from ...core.types import Error
 from ...core.types.taxes import TaxSourceObject
-from ...discount.dataloaders import load_discounts
 from ...plugins.dataloaders import get_plugin_manager_promise
 
 TaxExemptionManageErrorCode = graphene.Enum.from_enum(
     error_codes.TaxExemptionManageErrorCode
 )
+TaxExemptionManageErrorCode.doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManageError(Error):
     code = TaxExemptionManageErrorCode(description="The error code.", required=True)
+
+    class Meta:
+        doc_category = DOC_CATEGORY_TAXES
 
 
 class TaxExemptionManage(BaseMutation):
@@ -41,10 +45,9 @@ class TaxExemptionManage(BaseMutation):
             "Exempt checkout or order from charging the taxes. When tax exemption is "
             "enabled, taxes won't be charged for the checkout or order. Taxes may "
             "still be calculated in cases when product prices are entered with the "
-            "tax included and the net price needs to be known."
-            + ADDED_IN_38
-            + PREVIEW_FEATURE
+            "tax included and the net price needs to be known." + ADDED_IN_38
         )
+        doc_category = DOC_CATEGORY_TAXES
         error_type_class = TaxExemptionManageError
         permissions = (CheckoutPermissions.MANAGE_TAXES,)
 
@@ -74,15 +77,13 @@ class TaxExemptionManage(BaseMutation):
     @classmethod
     def _invalidate_checkout_prices(cls, info: ResolveInfo, checkout):
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
 
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, [], manager)
         lines_info, _ = fetch_checkout_lines(checkout)
         invalidate_checkout_prices(
             checkout_info,
             lines_info,
             manager,
-            discounts,
             save=False,
         )
 

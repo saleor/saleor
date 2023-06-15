@@ -10,7 +10,7 @@ RUN apt-get -y update --no-install-recommends \
 # Install Python dependencies
 COPY poetry-docker.toml /app/poetry.toml
 COPY pyproject.toml /app/
-COPY poetry.lock /app/
+COPY poetry_.lock /app/
 RUN pip install poetry
 WORKDIR /app
 RUN poetry install

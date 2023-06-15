@@ -14,12 +14,12 @@ from ....checkout.utils import (
 )
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
+from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
 from ...core.utils import from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
-from ...discount.dataloaders import load_discounts
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -57,6 +57,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 
     class Meta:
         description = "Remove a gift card or a voucher from a checkout."
+        doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -81,8 +82,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         checkout = get_checkout(cls, info, checkout_id=checkout_id, token=token, id=id)
 
         manager = get_plugin_manager_promise(info.context).get()
-        discounts = load_discounts(info.context)
-        checkout_info = fetch_checkout_info(checkout, [], discounts, manager)
+        checkout_info = fetch_checkout_info(checkout, [], manager)
 
         removed = False
         if promo_code:
@@ -98,7 +98,6 @@ class CheckoutRemovePromoCode(BaseMutation):
                 checkout_info,
                 lines,
                 manager,
-                discounts,
                 recalculate_discount=False,
                 save=True,
             )

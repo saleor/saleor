@@ -19,7 +19,13 @@ from ...core.connection import (
     create_connection_slice,
     filter_connection_queryset,
 )
-from ...core.descriptions import DEPRECATED_IN_3X_FIELD, RICH_CONTENT
+from ...core.descriptions import (
+    ADDED_IN_314,
+    DEPRECATED_IN_3X_FIELD,
+    PREVIEW_FEATURE,
+    RICH_CONTENT,
+)
+from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.federation import federated_entity
 from ...core.fields import FilterConnectionField, JSONString, PermissionsField
 from ...core.types import Image, NonNullList, ThumbnailField
@@ -32,7 +38,7 @@ from ..dataloaders import (
     CollectionChannelListingByCollectionIdLoader,
     ThumbnailByCollectionIdSizeAndFormatLoader,
 )
-from ..filters import ProductFilterInput
+from ..filters import ProductFilterInput, ProductWhereInput
 from ..sorters import ProductOrder
 from .channels import CollectionChannelListing
 from .products import ProductCountableConnection
@@ -63,6 +69,11 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
+        where=ProductWhereInput(
+            description="Filtering options for products."
+            + ADDED_IN_314
+            + PREVIEW_FEATURE
+        ),
         sort_by=ProductOrder(description="Sort products."),
         description="List of products in this collection.",
     )
@@ -170,4 +181,5 @@ class Collection(ChannelContextTypeWithMetadata[models.Collection]):
 
 class CollectionCountableConnection(CountableConnection):
     class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
         node = Collection

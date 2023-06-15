@@ -2,8 +2,10 @@
   "github": {
     "release": true,
     "draft": true,
-    "releaseName": "${version}"
+    "releaseName": "${version}",
+    "assets": ["saleor/graphql/schema.graphql"]
   },
+
   "npm": {
     "publish": false
   },
