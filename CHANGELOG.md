@@ -12,6 +12,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Expand metric units to support more types of products. - #13043 by @FremahA
+- Introduce `Saleor-Schema-Version` HTTP header in App manifest fetching and app installation handshake requests. - #13075 by @przlada
+
 
 # 3.14.0
 
