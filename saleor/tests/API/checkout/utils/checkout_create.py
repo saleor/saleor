@@ -10,8 +10,13 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
     }
     checkout {
       id
-      channel{
+      channel {
         slug
+      }
+      totalPrice {
+        gross {
+          amount
+        }
       }
     }
   }
@@ -23,6 +28,7 @@ def checkout_create(api_client, lines, channel_slug):
     variables = {
         "input": {
             "channel": channel_slug,
+            "email": "testEmail@example.com",
             "lines": lines,
         }
     }

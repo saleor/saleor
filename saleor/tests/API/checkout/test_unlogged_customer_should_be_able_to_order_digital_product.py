@@ -10,7 +10,11 @@ from ..products.utils import (
 )
 from ..shipping_zone.utils import create_shipping_zone
 from ..warehouse.utils import create_warehouse
-from .utils import checkout_billing_address_update, checkout_create
+from .utils import (
+    checkout_billing_address_update,
+    checkout_create,
+    checkout_payment_create,
+)
 
 
 def test_process_checkout_with_digital_product(
@@ -97,6 +101,11 @@ def test_process_checkout_with_digital_product(
     ]
     checkout_data = checkout_create(api_client, lines, channel_slug)
     checkout_id = checkout_data["id"]
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert checkout_id is not None
 
     checkout_billing_address_update(api_client, checkout_id)
+
+    payment_data = checkout_payment_create(api_client, checkout_id, total_gross_amount)
+    payment_id = payment_data["id"]
+    assert payment_id is not None
