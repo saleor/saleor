@@ -1,5 +1,5 @@
 from ..channel.utils import create_channel
-from ..products.utils import (
+from ..product.utils import (
     create_category,
     create_digital_content,
     create_digital_product_type,
