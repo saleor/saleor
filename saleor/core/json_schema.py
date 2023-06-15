@@ -1,9 +1,6 @@
-import json
 from collections import defaultdict
-from decimal import Decimal
 from enum import Enum
 from fnmatch import fnmatchcase
-from functools import partial
 from typing import Any, ClassVar, Optional, Type, TypedDict, TypeVar, Union
 
 from django.core.exceptions import NON_FIELD_ERRORS
@@ -181,13 +178,6 @@ class ErrorConversionModel(JsonSchema):
             raise cls.convert_validation_error(error, field_name)
 
 
-class DecimalType(Decimal):
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
-        field_schema["type"] = ["number", "string"]
-
-
 class WebhookResponseBase(BaseSchema):
     class Config:
         allow_mutation = False
-        json_loads = partial(json.loads, parse_float=Decimal)

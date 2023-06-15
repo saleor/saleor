@@ -3,6 +3,7 @@ import hashlib
 import json
 import logging
 from collections import defaultdict
+from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from django.core.cache import cache
@@ -12,7 +13,7 @@ from prices import Money
 
 from ...app.models import App
 from ...checkout.models import Checkout
-from ...core.json_schema import DecimalType, WebhookResponseBase
+from ...core.json_schema import WebhookResponseBase
 from ...graphql.core.utils import from_global_id_or_error
 from ...graphql.shipping.types import ShippingMethod
 from ...order.models import Order
@@ -56,7 +57,7 @@ def convert_to_app_id_with_identifier(shipping_app_id: str):
 
 class ShippingMethodSchema(WebhookResponseBase):
     id: str
-    amount: DecimalType
+    amount: Decimal
     currency: str
     name: Optional[str] = None
     maximum_delivery_days: Optional[int] = None

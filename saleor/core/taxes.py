@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 from prices import Money, TaxedMoney
 from pydantic import Field
 
-from ..core.json_schema import DecimalType, WebhookResponseBase
+from ..core.json_schema import WebhookResponseBase
 
 
 class TaxError(Exception):
@@ -32,20 +33,20 @@ class TaxType:
 
 
 class TaxLineData(WebhookResponseBase):
-    tax_rate: DecimalType = Field(
+    tax_rate: Decimal = Field(
         description="Tax rate value provided as percentage. "
         "Example: provide 23 to represent the 23% tax rate."
     )
-    total_gross_amount: DecimalType = Field(description="Gross price of the line.")
-    total_net_amount: DecimalType = Field(description="Net price of the line.")
+    total_gross_amount: Decimal = Field(description="Gross price of the line.")
+    total_net_amount: Decimal = Field(description="Net price of the line.")
 
 
 class TaxData(WebhookResponseBase):
-    shipping_tax_rate: DecimalType = Field(description="Tax rate of shipping.")
-    shipping_price_gross_amount: DecimalType = Field(
+    shipping_tax_rate: Decimal = Field(description="Tax rate of shipping.")
+    shipping_price_gross_amount: Decimal = Field(
         description="The gross price of shipping."
     )
-    shipping_price_net_amount: DecimalType = Field(description="Net price of shipping.")
+    shipping_price_net_amount: Decimal = Field(description="Net price of shipping.")
     lines: list[TaxLineData] = Field(
         description="List of lines tax assigned to checkout. Lines should be "
         "returned in the same order in which they were sent to the App."

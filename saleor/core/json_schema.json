@@ -458,24 +458,15 @@
       "properties": {
         "tax_rate": {
           "description": "Tax rate value provided as percentage. Example: provide 23 to represent the 23% tax rate.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "total_gross_amount": {
           "description": "Gross price of the line.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "total_net_amount": {
           "description": "Net price of the line.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         }
       },
       "required": [
@@ -491,24 +482,15 @@
       "properties": {
         "shipping_tax_rate": {
           "description": "Tax rate of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "shipping_price_gross_amount": {
           "description": "The gross price of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "shipping_price_net_amount": {
           "description": "Net price of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "lines": {
           "description": "List of lines tax assigned to checkout. Lines should be returned in the same order in which they were sent to the App.",
@@ -532,24 +514,15 @@
       "properties": {
         "shipping_tax_rate": {
           "description": "Tax rate of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "shipping_price_gross_amount": {
           "description": "The gross price of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "shipping_price_net_amount": {
           "description": "Net price of shipping.",
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "lines": {
           "description": "List of lines tax assigned to checkout. Lines should be returned in the same order in which they were sent to the App.",
@@ -574,10 +547,7 @@
           "type": "string"
         },
         "amount": {
-          "type": [
-            "number",
-            "string"
-          ]
+          "type": "number"
         },
         "currency": {
           "type": "string"
