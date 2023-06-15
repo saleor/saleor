@@ -12,6 +12,7 @@ from ..shipping_zone.utils import create_shipping_zone
 from ..warehouse.utils import create_warehouse
 from .utils import (
     checkout_billing_address_update,
+    checkout_complete,
     checkout_create,
     checkout_payment_create,
 )
@@ -109,3 +110,8 @@ def test_process_checkout_with_digital_product(
     payment_data = checkout_payment_create(api_client, checkout_id, total_gross_amount)
     payment_id = payment_data["id"]
     assert payment_id is not None
+
+    order_data = checkout_complete(api_client, checkout_id)
+    assert order_data["isShippingRequired"] is False
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
