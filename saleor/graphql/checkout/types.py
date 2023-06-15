@@ -400,7 +400,7 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         ).load(root.checkout_id)
 
         def get_problem_for_line(problems):
-            return problems.get(root.pk, [])
+            return problems.get(str(root.pk), [])
 
         return problems_dataloader.then(get_problem_for_line)
 
