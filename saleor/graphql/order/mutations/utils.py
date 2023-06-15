@@ -76,8 +76,6 @@ class ShippingMethodUpdateMixin:
             order.shipping_tax_class_name = tax_class.name
             order.shipping_tax_class_private_metadata = tax_class.private_metadata
             order.shipping_tax_class_metadata = tax_class.metadata
-
-        order.base_shipping_price = shipping_method_data.price
         invalidate_order_prices(order)
 
     @classmethod
@@ -95,6 +93,25 @@ class ShippingMethodUpdateMixin:
                 }
             )
         return shipping_channel_listing
+
+    @classmethod
+    def _update_shipping_price(
+        cls,
+        order,
+        shipping_channel_listing,
+    ):
+        if not shipping_channel_listing:
+            order.base_shipping_price = zero_money(order.currency)
+            return
+
+        if (
+            order.shipping_method
+            and order.shipping_address
+            and order.is_shipping_required()
+        ):
+            order.base_shipping_price = shipping_channel_listing.price
+        else:
+            order.base_shipping_price = zero_money(order.currency)
 
 
 def clean_order_update_shipping(

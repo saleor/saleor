@@ -288,6 +288,12 @@ class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
             instance.billing_address = billing_address.get_copy()
 
     @staticmethod
+    def _parse_shipping_method_name(instance: models.Order, cleaned_input):
+        shipping_method = cleaned_input.get("shipping_method")
+        if shipping_method:
+            instance.shipping_method_name = shipping_method.name
+
+    @staticmethod
     def _save_lines(info, instance, lines_data, app, manager):
         if lines_data:
             lines = []
@@ -350,6 +356,7 @@ class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
     ):
         updated_fields = []
         with traced_atomic_transaction():
+            shipping_channel_listing = None
             # Process addresses
             cls._save_addresses(instance, cleaned_input)
 
@@ -404,6 +411,7 @@ class DraftOrderCreate(ModelMutation, ShippingMethodUpdateMixin, I18nMixin):
             )
             if cls.should_invalidate_prices(instance, cleaned_input, is_new_instance):
                 invalidate_order_prices(instance)
+                cls._update_shipping_price(instance, shipping_channel_listing)
                 updated_fields.append("should_refresh_prices")
             recalculate_order_weight(instance)
             update_order_search_vector(instance, save=False)
