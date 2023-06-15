@@ -28,6 +28,7 @@ def checkout_payment_create(api_client, checkout_id, total_gross_amount):
             "token": "fully_charged",
         },
     }
+
     response = api_client.post_graphql(
         CHECKOUT_PAYMENT_CREATE_MUTATION,
         variables=variables,
@@ -38,7 +39,7 @@ def checkout_payment_create(api_client, checkout_id, total_gross_amount):
 
     checkout_data = content["data"]["checkoutPaymentCreate"]["checkout"]
     assert checkout_data["id"] == checkout_id
-
     payment_data = content["data"]["checkoutPaymentCreate"]["payment"]
+    assert payment_data["id"] is not None
 
     return payment_data

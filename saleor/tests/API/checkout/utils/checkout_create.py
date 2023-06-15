@@ -32,6 +32,7 @@ def checkout_create(api_client, lines, channel_slug):
             "lines": lines,
         }
     }
+
     response = api_client.post_graphql(
         CHECKOUT_CREATE_MUTATION,
         variables=variables,
@@ -41,6 +42,7 @@ def checkout_create(api_client, lines, channel_slug):
     assert content["data"]["checkoutCreate"]["errors"] == []
 
     data = content["data"]["checkoutCreate"]["checkout"]
+    assert data["id"] is not None
     assert data["channel"]["slug"] == channel_slug
 
     return data

@@ -35,11 +35,14 @@ def create_warehouse(staff_api_client, permissions):
     }
 
     variables = {"input": {"name": name, "slug": slug, "address": address}}
+
     response = staff_api_client.post_graphql(
         WAREHOUSE_CREATE_MUTATION, variables, permissions=permissions
     )
     content = get_graphql_content(response)
+
     data = content["data"]["createWarehouse"]["warehouse"]
+    assert data["id"] is not None
     assert data["name"] == name
     assert data["slug"] == slug
 

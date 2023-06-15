@@ -32,11 +32,14 @@ def create_digital_product_type(staff_api_client, permissions):
             "isDigital": True,
         }
     }
+
     response = staff_api_client.post_graphql(
         PRODUCT_TYPE_CREATE_MUTATION, variables, permissions=permissions
     )
     content = get_graphql_content(response)
+
     data = content["data"]["productTypeCreate"]["productType"]
+    assert data["id"] is not None
     assert data["name"] == product_type_name
     assert data["slug"] == slug
     assert data["isShippingRequired"] is False

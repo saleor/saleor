@@ -46,6 +46,7 @@ def create_product_channel_listing(
             ]
         },
     }
+
     response = staff_api_client.post_graphql(
         PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
         variables,
@@ -53,6 +54,7 @@ def create_product_channel_listing(
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
+
     data = content["data"]["productChannelListingUpdate"]["product"]
     assert data["id"] == product_id
     assert data["channelListings"][0]["channel"]["id"] == channel_id

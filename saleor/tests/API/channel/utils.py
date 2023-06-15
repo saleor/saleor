@@ -40,11 +40,14 @@ def create_channel(staff_api_client, permissions, warehouses=[]):
             "addWarehouses": warehouses,
         }
     }
+
     response = staff_api_client.post_graphql(
         CHANNEL_CREATE_MUTATION, variables, permissions=permissions
     )
     content = get_graphql_content(response)
+
     data = content["data"]["channelCreate"]["channel"]
+    assert data["id"] is not None
     assert data["name"] == channel_name
     assert data["slug"] == slug
     assert data["currencyCode"] == currency

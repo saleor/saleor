@@ -32,6 +32,7 @@ def create_product(staff_api_client, permissions, product_type_id, category_id):
             "category": category_id,
         }
     }
+
     response = staff_api_client.post_graphql(
         PRODUCT_CREATE_MUTATION,
         variables,
@@ -39,7 +40,9 @@ def create_product(staff_api_client, permissions, product_type_id, category_id):
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
+
     data = content["data"]["productCreate"]["product"]
+    assert data["id"] is not None
     assert data["name"] == product_name
     assert data["productType"]["id"] == product_type_id
     assert data["category"]["id"] == category_id

@@ -34,6 +34,7 @@ def create_shipping_zone(staff_api_client, permissions, warehouse_ids, channel_i
             "addChannels": channel_ids,
         }
     }
+
     response = staff_api_client.post_graphql(
         SHIPPING_ZONE_CREATE_MUTATION,
         variables,
@@ -41,7 +42,9 @@ def create_shipping_zone(staff_api_client, permissions, warehouse_ids, channel_i
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
+
     data = content["data"]["shippingZoneCreate"]["shippingZone"]
+    assert data["id"] is not None
     assert data["name"] == name
 
     return data

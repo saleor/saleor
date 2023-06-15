@@ -24,6 +24,7 @@ def create_category(staff_api_client, permissions):
             "name": name,
         }
     }
+
     response = staff_api_client.post_graphql(
         CATEGORY_CREATE_MUTATION,
         variables,
@@ -31,7 +32,9 @@ def create_category(staff_api_client, permissions):
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
+
     data = content["data"]["categoryCreate"]["category"]
+    assert data["id"] is not None
     assert data["name"] == name
 
     return data

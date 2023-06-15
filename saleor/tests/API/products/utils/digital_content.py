@@ -43,6 +43,7 @@ def create_digital_content(staff_api_client, product_variant_id):
         },
         "variantId": product_variant_id,
     }
+
     request_body = get_multipart_request_body(
         DIGITAL_CONTENT_CREATE_MUTATION, variables, image_file, image_name
     )
@@ -51,8 +52,8 @@ def create_digital_content(staff_api_client, product_variant_id):
 
     variant_data = content["data"]["digitalContentCreate"]["variant"]
     assert variant_data["id"] == product_variant_id
-
     digital_content_data = content["data"]["digitalContentCreate"]["content"]
+    assert digital_content_data["id"] is not None
     assert image_name in digital_content_data["contentFile"]
 
     return digital_content_data
