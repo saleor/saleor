@@ -12,7 +12,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Expand metric units to support more types of products. - #13043 by @FremahA
-- Added error handling for invalid input fields in the `AccountAddressCreate` mutation. - by @FremahA
+- Added error handling for invalid input fields in the `AccountAddressCreate` mutation. - #13086 by @FremahA
 
 # 3.14.0
 
