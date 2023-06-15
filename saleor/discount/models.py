@@ -463,8 +463,8 @@ class BaseDiscount(models.Model):
     sale = models.ForeignKey(
         Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
     )
-    promotions = models.ManyToManyField(
-        Promotion, related_name="+", blank=True, null=True
+    promotion = models.ForeignKey(
+        Promotion, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
     )
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
