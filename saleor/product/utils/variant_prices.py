@@ -294,22 +294,27 @@ def _get_discounted_variants_prices_for_promotions(
         if variant_listing.discounted_price != discounted_variant_price:
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
-            listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
-                variant_listing.id
-            ].get(rule_id)
-            discount_amount = (variant_listing.price - discounted_variant_price).amount
-            if listing_promotion_rule:
-                listing_promotion_rule.discount_amount = discount_amount
-                variant_listing_promotion_rule_to_update.append(listing_promotion_rule)
-            else:
-                variant_listing_promotion_rule_to_create.append(
-                    VariantChannelListingPromotionRule(
-                        variant_channel_listing=variant_listing,
-                        promotion_rule_id=rule_id,
-                        discount_amount=discount_amount,
-                        currency=channel.currency_code,
+            if rule_id:
+                listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
+                    variant_listing.id
+                ].get(rule_id)
+                discount_amount = (
+                    variant_listing.price - discounted_variant_price
+                ).amount
+                if listing_promotion_rule:
+                    listing_promotion_rule.discount_amount = discount_amount
+                    variant_listing_promotion_rule_to_update.append(
+                        listing_promotion_rule
                     )
-                )
+                else:
+                    variant_listing_promotion_rule_to_create.append(
+                        VariantChannelListingPromotionRule(
+                            variant_channel_listing=variant_listing,
+                            promotion_rule_id=rule_id,
+                            discount_amount=discount_amount,
+                            currency=channel.currency_code,
+                        )
+                    )
         discounted_variants_price.append(discounted_variant_price)
     return (
         discounted_variants_price,
