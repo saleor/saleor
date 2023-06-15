@@ -1,6 +1,6 @@
 import datetime
 
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION = """
 mutation UpdateProductChannelListing(

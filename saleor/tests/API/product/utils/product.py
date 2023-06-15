@@ -1,4 +1,4 @@
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 PRODUCT_CREATE_MUTATION = """
 mutation createProduct($input: ProductCreateInput!) {

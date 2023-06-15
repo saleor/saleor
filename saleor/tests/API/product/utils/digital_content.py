@@ -3,7 +3,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
-from .....graphql.tests.utils import get_graphql_content, get_multipart_request_body
+from ...utils import get_graphql_content, get_multipart_request_body
 
 DIGITAL_CONTENT_CREATE_MUTATION = """
 mutation createDigitalContent($variantId: ID!, $input: DigitalContentUploadInput!) {

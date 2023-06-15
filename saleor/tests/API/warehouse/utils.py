@@ -1,4 +1,4 @@
-from ....graphql.tests.utils import get_graphql_content
+from ..utils import get_graphql_content
 
 WAREHOUSE_CREATE_MUTATION = """
 mutation createWarehouse($input: WarehouseCreateInput!) {

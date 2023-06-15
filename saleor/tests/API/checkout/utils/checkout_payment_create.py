@@ -1,4 +1,4 @@
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 CHECKOUT_PAYMENT_CREATE_MUTATION = """
 mutation createPayment($checkoutId: ID, $input: PaymentInput!) {

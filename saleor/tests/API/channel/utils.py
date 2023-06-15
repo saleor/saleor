@@ -1,4 +1,4 @@
-from ....graphql.tests.utils import get_graphql_content
+from ..utils import get_graphql_content
 
 CHANNEL_CREATE_MUTATION = """
 mutation ChannelCreate($input: ChannelCreateInput!) {

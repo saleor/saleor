@@ -1,4 +1,4 @@
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 CHECKOUT_COMPLETE_MUTATION = """
 mutation CheckoutComplete($checkoutId: ID!){

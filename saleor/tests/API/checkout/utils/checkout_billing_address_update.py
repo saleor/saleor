@@ -1,4 +1,4 @@
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 CHECKOUT_BILLING_ADDRESS_UPDATE_MUTATION = """
 mutation CheckoutBillingAddressUpdate(

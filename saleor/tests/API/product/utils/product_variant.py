@@ -1,4 +1,4 @@
-from .....graphql.tests.utils import get_graphql_content
+from ...utils import get_graphql_content
 
 PRODUCT_VARIANT_CREATE_MUTATION = """
 mutation createVariant($input: ProductVariantCreateInput!) {
