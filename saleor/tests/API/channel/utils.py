@@ -46,6 +46,8 @@ def create_channel(staff_api_client, permissions, warehouses=[]):
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["channelCreate"]["errors"] == []
+
     data = content["data"]["channelCreate"]["channel"]
     assert data["id"] is not None
     assert data["name"] == channel_name

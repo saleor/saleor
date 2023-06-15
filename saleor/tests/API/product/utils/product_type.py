@@ -38,6 +38,8 @@ def create_digital_product_type(staff_api_client, permissions):
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["productTypeCreate"]["errors"] == []
+
     data = content["data"]["productTypeCreate"]["productType"]
     assert data["id"] is not None
     assert data["name"] == product_type_name

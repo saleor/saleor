@@ -50,6 +50,8 @@ def create_digital_content(staff_api_client, product_variant_id):
     response = staff_api_client.post_multipart(request_body)
     content = get_graphql_content(response)
 
+    assert content["data"]["digitalContentCreate"]["errors"] == []
+
     variant_data = content["data"]["digitalContentCreate"]["variant"]
     assert variant_data["id"] == product_variant_id
     digital_content_data = content["data"]["digitalContentCreate"]["content"]

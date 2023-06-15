@@ -43,6 +43,8 @@ def create_shipping_zone(staff_api_client, permissions, warehouse_ids, channel_i
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["shippingZoneCreate"]["errors"] == []
+
     data = content["data"]["shippingZoneCreate"]["shippingZone"]
     assert data["id"] is not None
     assert data["name"] == name

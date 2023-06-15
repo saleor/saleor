@@ -39,6 +39,8 @@ def create_product_variant(staff_api_client, permissions, product_id, stocks=[])
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["productVariantCreate"]["errors"] == []
+
     data = content["data"]["productVariantCreate"]["productVariant"]
     assert data["id"] is not None
     assert data["name"] == variant_name

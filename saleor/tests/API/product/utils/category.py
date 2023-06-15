@@ -33,6 +33,8 @@ def create_category(staff_api_client, permissions):
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["categoryCreate"]["errors"] == []
+
     data = content["data"]["categoryCreate"]["category"]
     assert data["id"] is not None
     assert data["name"] == name

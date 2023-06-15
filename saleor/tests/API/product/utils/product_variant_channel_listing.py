@@ -45,6 +45,8 @@ def create_product_variant_channel_listing(
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["productVariantChannelListingUpdate"]["errors"] == []
+
     data = content["data"]["productVariantChannelListingUpdate"]["variant"]
     assert data["id"] == product_variant_id
     assert data["channelListings"][0]["channel"]["id"] == channel_id

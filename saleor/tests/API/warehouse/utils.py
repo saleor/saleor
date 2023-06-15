@@ -41,6 +41,8 @@ def create_warehouse(staff_api_client, permissions):
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["createWarehouse"]["errors"] == []
+
     data = content["data"]["createWarehouse"]["warehouse"]
     assert data["id"] is not None
     assert data["name"] == name

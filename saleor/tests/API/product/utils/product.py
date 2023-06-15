@@ -41,6 +41,8 @@ def create_product(staff_api_client, permissions, product_type_id, category_id):
     )
     content = get_graphql_content(response)
 
+    assert content["data"]["productCreate"]["errors"] == []
+
     data = content["data"]["productCreate"]["product"]
     assert data["id"] is not None
     assert data["name"] == product_name
