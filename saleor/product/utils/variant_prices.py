@@ -92,6 +92,20 @@ def update_discounted_prices_for_promotion(
             )
             changed_products_listings_to_update.append(product_channel_listing)
 
+        _update_or_create_listings(
+            changed_products_listings_to_update,
+            changed_variants_listings_to_update,
+            changed_variant_listing_promotion_rule_to_create,
+            changed_variant_listing_promotion_rule_to_update,
+        )
+
+
+def _update_or_create_listings(
+    changed_products_listings_to_update,
+    changed_variants_listings_to_update,
+    changed_variant_listing_promotion_rule_to_create,
+    changed_variant_listing_promotion_rule_to_update,
+):
     if changed_products_listings_to_update:
         ProductChannelListing.objects.bulk_update(
             changed_products_listings_to_update, ["discounted_price_amount"]
@@ -215,7 +229,7 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(product_ids: Iterable[
     """
     variant_listing_rule_data: Dict[
         int, Dict[int, VariantChannelListingPromotionRule]
-    ] = defaultdict(lambda: defaultdict(list))
+    ] = defaultdict(dict)
     variants = _get_variants_for_product_ids(product_ids)
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
@@ -295,33 +309,52 @@ def _get_discounted_variants_prices_for_promotions(
             variant_listing.discounted_price_amount = discounted_variant_price.amount
             variants_listings_to_update.append(variant_listing)
             if rule_id:
-                listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
-                    variant_listing.id
-                ].get(rule_id)
                 discount_amount = (
                     variant_listing.price - discounted_variant_price
                 ).amount
-                if listing_promotion_rule:
-                    listing_promotion_rule.discount_amount = discount_amount
-                    variant_listing_promotion_rule_to_update.append(
-                        listing_promotion_rule
-                    )
-                else:
-                    variant_listing_promotion_rule_to_create.append(
-                        VariantChannelListingPromotionRule(
-                            variant_channel_listing=variant_listing,
-                            promotion_rule_id=rule_id,
-                            discount_amount=discount_amount,
-                            currency=channel.currency_code,
-                        )
-                    )
+                _handle_discount_rule_id(
+                    variant_listing,
+                    rule_id,
+                    variant_listing_to_listing_rule_per_rule_map,
+                    discount_amount,
+                    channel.currency_code,
+                    variant_listing_promotion_rule_to_update,
+                    variant_listing_promotion_rule_to_create,
+                )
         discounted_variants_price.append(discounted_variant_price)
+
     return (
         discounted_variants_price,
         variants_listings_to_update,
         variant_listing_promotion_rule_to_create,
         variant_listing_promotion_rule_to_update,
     )
+
+
+def _handle_discount_rule_id(
+    variant_listing,
+    rule_id,
+    variant_listing_to_listing_rule_per_rule_map,
+    discount_amount,
+    currency,
+    variant_listing_promotion_rule_to_update,
+    variant_listing_promotion_rule_to_create,
+):
+    listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
+        variant_listing.id
+    ].get(rule_id)
+    if listing_promotion_rule:
+        listing_promotion_rule.discount_amount = discount_amount
+        variant_listing_promotion_rule_to_update.append(listing_promotion_rule)
+    else:
+        variant_listing_promotion_rule_to_create.append(
+            VariantChannelListingPromotionRule(
+                variant_channel_listing=variant_listing,
+                promotion_rule_id=rule_id,
+                discount_amount=discount_amount,
+                currency=currency,
+            )
+        )
 
 
 def _products_in_batches(products_qs):
