@@ -21,15 +21,20 @@ mutation createProductType($input: ProductTypeInput!) {
 """
 
 
-def create_digital_product_type(staff_api_client, permissions):
-    product_type_name = "test type"
-    slug = "test-type"
+def create_digital_product_type(
+    staff_api_client,
+    permissions,
+    product_type_name="Test type",
+    slug="test-type",
+    is_shipping_required=True,
+    is_digital=False,
+):
     variables = {
         "input": {
             "name": product_type_name,
             "slug": slug,
-            "isShippingRequired": False,
-            "isDigital": True,
+            "isShippingRequired": is_shipping_required,
+            "isDigital": is_digital,
         }
     }
 
@@ -44,7 +49,7 @@ def create_digital_product_type(staff_api_client, permissions):
     assert data["id"] is not None
     assert data["name"] == product_type_name
     assert data["slug"] == slug
-    assert data["isShippingRequired"] is False
-    assert data["isDigital"] is True
+    assert data["isShippingRequired"] is is_shipping_required
+    assert data["isDigital"] is is_digital
 
     return data

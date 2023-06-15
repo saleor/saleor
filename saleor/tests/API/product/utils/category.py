@@ -17,8 +17,11 @@ mutation CreateCategory($input: CategoryInput!) {
 """
 
 
-def create_category(staff_api_client, permissions):
-    name = "Test category"
+def create_category(
+    staff_api_client,
+    permissions,
+    name="Test category",
+):
     variables = {
         "input": {
             "name": name,

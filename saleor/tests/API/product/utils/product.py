@@ -23,8 +23,13 @@ mutation createProduct($input: ProductCreateInput!) {
 """
 
 
-def create_product(staff_api_client, permissions, product_type_id, category_id):
-    product_name = "Test product"
+def create_product(
+    staff_api_client,
+    permissions,
+    product_type_id,
+    category_id,
+    product_name="Test product",
+):
     variables = {
         "input": {
             "name": product_name,

@@ -19,7 +19,7 @@ mutation createPayment($checkoutId: ID, $input: PaymentInput!) {
 """
 
 
-def checkout_payment_create(api_client, checkout_id, total_gross_amount):
+def checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
     variables = {
         "checkoutId": checkout_id,
         "input": {

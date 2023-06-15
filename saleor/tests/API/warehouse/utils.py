@@ -18,23 +18,34 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
 """
 
 
-def create_warehouse(staff_api_client, permissions):
-    name = "Test warehouse"
-    slug = "test-slug"
-    address = {
-        "firstName": "John Saleor",
-        "lastName": "Doe Mirumee",
-        "companyName": "Saleor Commerce",
-        "streetAddress1": "	14208 Hawthorne Blvd",
-        "streetAddress2": "",
-        "postalCode": "90250",
-        "country": "US",
-        "city": "Hawthorne",
-        "countryArea": "CA",
-        "phone": "+12025550163",
-    }
+DEFAULT_ADDRESS = {
+    "firstName": "John Saleor",
+    "lastName": "Doe Mirumee",
+    "companyName": "Saleor Commerce",
+    "streetAddress1": "	14208 Hawthorne Blvd",
+    "streetAddress2": "",
+    "postalCode": "90250",
+    "country": "US",
+    "city": "Hawthorne",
+    "countryArea": "CA",
+    "phone": "+12025550163",
+}
 
-    variables = {"input": {"name": name, "slug": slug, "address": address}}
+
+def create_warehouse(
+    staff_api_client,
+    permissions,
+    name="Test warehouse",
+    slug="test-slug",
+    address=DEFAULT_ADDRESS,
+):
+    variables = {
+        "input": {
+            "name": name,
+            "slug": slug,
+            "address": address,
+        }
+    }
 
     response = staff_api_client.post_graphql(
         WAREHOUSE_CREATE_MUTATION, variables, permissions=permissions

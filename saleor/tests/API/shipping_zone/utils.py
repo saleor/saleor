@@ -24,8 +24,18 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
 """
 
 
-def create_shipping_zone(staff_api_client, permissions, warehouse_ids, channel_ids):
-    name = "Test shipping zone"
+def create_shipping_zone(
+    staff_api_client,
+    permissions,
+    name="Test shipping zone",
+    warehouse_ids=None,
+    channel_ids=None,
+):
+    if not warehouse_ids:
+        warehouse_ids = []
+    if not channel_ids:
+        channel_ids = []
+
     variables = {
         "input": {
             "name": name,

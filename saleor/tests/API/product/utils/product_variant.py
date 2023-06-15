@@ -20,8 +20,16 @@ mutation createVariant($input: ProductVariantCreateInput!) {
 """
 
 
-def create_product_variant(staff_api_client, permissions, product_id, stocks=[]):
-    variant_name = "Test product variant"
+def create_product_variant(
+    staff_api_client,
+    permissions,
+    product_id,
+    variant_name="Test product variant",
+    stocks=None,
+):
+    if not stocks:
+        stocks = []
+
     variables = {
         "input": {
             "name": variant_name,

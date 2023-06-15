@@ -16,6 +16,7 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
       defaultCountry {
         code
       }
+      isActive
       orderSettings {
         automaticallyConfirmAllNewOrders
       }
@@ -25,19 +26,27 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
 """
 
 
-def create_channel(staff_api_client, permissions, warehouses=[]):
-    channel_name = "Test channel"
-    slug = "test-slug"
-    currency = "USD"
-    country = "US"
+def create_channel(
+    staff_api_client,
+    permissions,
+    warehouse_ids=None,
+    channel_name="Test channel",
+    slug="test-slug",
+    currency="USD",
+    country="US",
+    is_active=True,
+):
+    if not warehouse_ids:
+        warehouse_ids = []
+
     variables = {
         "input": {
             "name": channel_name,
             "slug": slug,
             "currencyCode": currency,
             "defaultCountry": country,
-            "isActive": True,
-            "addWarehouses": warehouses,
+            "isActive": is_active,
+            "addWarehouses": warehouse_ids,
         }
     }
 
@@ -55,5 +64,6 @@ def create_channel(staff_api_client, permissions, warehouses=[]):
     assert data["currencyCode"] == currency
     assert data["defaultCountry"]["code"] == country
     assert data["orderSettings"]["automaticallyConfirmAllNewOrders"] is True
+    assert data["isActive"] is is_active
 
     return data

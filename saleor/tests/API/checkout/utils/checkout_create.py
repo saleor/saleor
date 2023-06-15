@@ -10,6 +10,7 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
     }
     checkout {
       id
+      email
       channel {
         slug
       }
@@ -24,11 +25,11 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
 """
 
 
-def checkout_create(api_client, lines, channel_slug):
+def checkout_create(api_client, lines, channel_slug, email="testEmail@example.com"):
     variables = {
         "input": {
             "channel": channel_slug,
-            "email": "testEmail@example.com",
+            "email": email,
             "lines": lines,
         }
     }
@@ -44,5 +45,6 @@ def checkout_create(api_client, lines, channel_slug):
     data = content["data"]["checkoutCreate"]["checkout"]
     assert data["id"] is not None
     assert data["channel"]["slug"] == channel_slug
+    assert data["email"] == email
 
     return data

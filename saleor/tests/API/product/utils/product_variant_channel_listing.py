@@ -14,6 +14,9 @@ mutation UpdateProductVariantChannelListing(
       id
       channelListings {
         id
+        price {
+          amount
+        }
         channel {
           id
         }
@@ -25,14 +28,14 @@ mutation UpdateProductVariantChannelListing(
 
 
 def create_product_variant_channel_listing(
-    staff_api_client, permissions, product_variant_id, channel_id
+    staff_api_client, permissions, product_variant_id, channel_id, price="9.99"
 ):
     variables = {
         "productVariantId": product_variant_id,
         "input": [
             {
                 "channelId": channel_id,
-                "price": "9.99",
+                "price": price,
             },
         ],
     }
@@ -49,6 +52,8 @@ def create_product_variant_channel_listing(
 
     data = content["data"]["productVariantChannelListingUpdate"]["variant"]
     assert data["id"] == product_variant_id
-    assert data["channelListings"][0]["channel"]["id"] == channel_id
+    channel_listing_data = data["channelListings"][0]
+    assert channel_listing_data["channel"]["id"] == channel_id
+    assert channel_listing_data["price"]["amount"] == float(price)
 
     return data

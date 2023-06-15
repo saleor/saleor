@@ -14,7 +14,7 @@ from .utils import (
     checkout_billing_address_update,
     checkout_complete,
     checkout_create,
-    checkout_payment_create,
+    checkout_dummy_payment_create,
 )
 
 
@@ -33,18 +33,24 @@ def test_process_checkout_with_digital_product(
 
     warehouse_ids = [warehouse_id]
     channel_data = create_channel(
-        staff_api_client, [permission_manage_channels], warehouse_ids
+        staff_api_client, [permission_manage_channels], warehouse_ids=warehouse_ids
     )
     channel_id = channel_data["id"]
     channel_slug = channel_data["slug"]
 
     channel_ids = [channel_id]
     create_shipping_zone(
-        staff_api_client, [permission_manage_shipping], warehouse_ids, channel_ids
+        staff_api_client,
+        [permission_manage_shipping],
+        warehouse_ids=warehouse_ids,
+        channel_ids=channel_ids,
     )
 
     product_type_data = create_digital_product_type(
-        staff_api_client, [permission_manage_product_types_and_attributes]
+        staff_api_client,
+        [permission_manage_product_types_and_attributes],
+        is_shipping_required=False,
+        is_digital=True,
     )
     product_type_id = product_type_data["id"]
 
@@ -70,7 +76,7 @@ def test_process_checkout_with_digital_product(
         staff_api_client,
         [permission_manage_products],
         product_id,
-        stocks,
+        stocks=stocks,
     )
     product_variant_id = product_variant_data["id"]
 
@@ -93,7 +99,7 @@ def test_process_checkout_with_digital_product(
 
     checkout_billing_address_update(api_client, checkout_id)
 
-    checkout_payment_create(api_client, checkout_id, total_gross_amount)
+    checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount)
 
     order_data = checkout_complete(api_client, checkout_id)
 
