@@ -122,7 +122,7 @@ def test_app_fetch_manifest_custom_saleor_headers(
     # then
     mocked_get.assert_called_once_with(
         manifest_url,
-        headers={"Saleor-Version": schema_version},
+        headers={"Saleor-Schema-Version": schema_version},
         timeout=ANY,
         allow_redirects=False,
     )

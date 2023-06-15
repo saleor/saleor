@@ -60,7 +60,7 @@ def send_app_token(target_url: str, token: str):
         DeprecatedAppHeaders.DOMAIN: domain,
         AppHeaders.DOMAIN: domain,
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
-        AppHeaders.VERSION: schema_version,
+        AppHeaders.SCHEMA_VERSION: schema_version,
     }
     json_data = {"auth_token": token}
     response = requests.post(
@@ -188,7 +188,7 @@ def fetch_brand_data_async(
 
 
 def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
-    headers = {AppHeaders.VERSION: schema_version}
+    headers = {AppHeaders.SCHEMA_VERSION: schema_version}
     response = requests.get(
         manifest_url, headers=headers, timeout=timeout, allow_redirects=False
     )

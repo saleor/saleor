@@ -69,7 +69,7 @@ def test_install_app_created_app(
     # then
     mocked_get.assert_called_once_with(
         app_installation.manifest_url,
-        headers={"Saleor-Version": schema_version},
+        headers={"Saleor-Schema-Version": schema_version},
         timeout=ANY,
         allow_redirects=False,
     )
@@ -81,7 +81,7 @@ def test_install_app_created_app(
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
-            "Saleor-Version": schema_version,
+            "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,

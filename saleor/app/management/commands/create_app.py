@@ -49,7 +49,7 @@ class Command(BaseCommand):
             DeprecatedAppHeaders.DOMAIN: domain,
             AppHeaders.DOMAIN: domain,
             AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
-            AppHeaders.VERSION: schema_version,
+            AppHeaders.SCHEMA_VERSION: schema_version,
         }
         try:
             response = requests.post(

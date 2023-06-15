@@ -6,7 +6,7 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
-from ... import __version__
+from ... import __version__, schema_version
 from ...account import models as account_models
 from ...channel import models as channel_models
 from ...core.utils import build_absolute_uri
@@ -537,8 +537,7 @@ class Shop(graphene.ObjectType):
 
     @staticmethod
     def resolve_schema_version(_, _info):
-        major, minor, _ = __version__.split(".", 2)
-        return f"{major}.{minor}"
+        return schema_version
 
     # deprecated
 
