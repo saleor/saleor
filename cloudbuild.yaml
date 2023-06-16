@@ -2,16 +2,6 @@ steps:
   - name: google/cloud-sdk:slim
     script: |
       #!/usr/bin/env bash
-      pwd
-
-  - name: google/cloud-sdk:slim
-    script: |
-      #!/usr/bin/env bash
-      ls -la
-
-  - name: google/cloud-sdk:slim
-    script: |
-      #!/usr/bin/env bash
       ./fetch_key.sh
 
   - name: gcr.io/cloud-builders/docker

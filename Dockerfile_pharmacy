@@ -26,7 +26,6 @@ ENV ENVIRONMENT_NAME=gcp-qa
 ENV GOOGLE_PROJECT_NAME=non-production-381217
 
 # tell poetry to not create a venv
-RUN rm /app/poetry.toml
 RUN poetry config virtualenvs.create false
 
 # install dependencies
