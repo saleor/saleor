@@ -568,12 +568,13 @@ DRAFT_ORDER_UPDATE_SHIPPING_METHOD_MUTATION = """
 
 def test_draft_order_update_shipping_method_from_different_channel(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
     address_usa,
     shipping_method_channel_PLN,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.shipping_address = address_usa
     order.save(update_fields=["shipping_address"])
@@ -584,9 +585,7 @@ def test_draft_order_update_shipping_method_from_different_channel(
     )
     variables = {"id": order_id, "shippingMethod": shipping_method_id}
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
@@ -601,13 +600,14 @@ def test_draft_order_update_shipping_method_from_different_channel(
 
 def test_draft_order_update_shipping_method_prices_updates(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
     address_usa,
     shipping_method,
     shipping_method_weight_based,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.shipping_address = address_usa
     order.shipping_method = shipping_method
@@ -622,9 +622,7 @@ def test_draft_order_update_shipping_method_prices_updates(
     shipping_method_id = graphene.Node.to_global_id("ShippingMethod", method_2.id)
     variables = {"id": order_id, "shippingMethod": shipping_method_id}
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
@@ -638,12 +636,13 @@ def test_draft_order_update_shipping_method_prices_updates(
 
 def test_draft_order_update_shipping_method_clear_with_none(
     staff_api_client,
-    permission_manage_orders,
+    permission_group_manage_orders,
     draft_order,
     address_usa,
     shipping_method,
 ):
     # given
+    permission_group_manage_orders.user_set.add(staff_api_client.user)
     order = draft_order
     order.shipping_address = address_usa
     order.shipping_method = shipping_method
@@ -658,9 +657,7 @@ def test_draft_order_update_shipping_method_clear_with_none(
     }
 
     # when
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["draftOrderUpdate"]
     order.refresh_from_db()
