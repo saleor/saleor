@@ -7,7 +7,7 @@ from prices import Money
 
 from ...discount import RewardValueType
 from ...discount.models import Promotion, Sale, SaleChannelListing
-from ...product.models import VariantChannelListingPromotionRule
+from ...product.models import Product, VariantChannelListingPromotionRule
 from ..tasks import (
     update_products_discounted_prices_of_catalogues,
     update_products_discounted_prices_task,
@@ -99,7 +99,7 @@ def test_update_discounted_price_for_promotion_no_discount(product, channel_USD)
     assert product_channel_listing.discounted_price == Money("10", "USD")
 
     # when
-    update_discounted_prices_for_promotion([product])
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
     product_channel_listing.refresh_from_db()
@@ -140,7 +140,7 @@ def test_update_discounted_price_for_promotion_discount_on_variant(
     rule.channels.add(variant_channel_listing.channel)
 
     # when
-    update_discounted_prices_for_promotion([product])
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
     expected_price_amount = variant_price.amount - reward_value
@@ -187,7 +187,7 @@ def test_update_discounted_price_for_promotion_discount_on_product(
     rule.channels.add(variant_channel_listing.channel)
 
     # when
-    update_discounted_prices_for_promotion([product])
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
     expected_price_amount = round(
@@ -235,7 +235,7 @@ def test_update_discounted_price_for_promotion_promotion_not_applicable_for_chan
     rule.channels.add(channel_PLN)
 
     # when
-    update_discounted_prices_for_promotion([product])
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
     product_channel_listing.refresh_from_db()
@@ -282,7 +282,7 @@ def test_update_discounted_price_for_promotion_discount_updated(product, channel
     )
 
     # when
-    update_discounted_prices_for_promotion([product])
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
 
     # then
     expected_price_amount = variant_price.amount - reward_value

@@ -127,7 +127,7 @@ def get_variants_for_predicate(
 ) -> ProductVariantQueryset:
     """Get variants that met the predicate conditions."""
     if queryset is None:
-        queryset = ProductVariant.objects.none()
+        queryset = ProductVariant.objects.all()
     and_data: Optional[List[dict]] = predicate.pop("AND", None)
     or_data: Optional[List[dict]] = predicate.pop("OR", None)
 
@@ -138,9 +138,7 @@ def get_variants_for_predicate(
         queryset = _handle_or_data(queryset, or_data)
 
     if predicate:
-        queryset = _handle_catalogue_predicate(
-            ProductVariant.objects.all(), predicate, Operators.AND
-        )
+        queryset = _handle_catalogue_predicate(queryset, predicate, Operators.AND)
 
     return queryset
 
@@ -148,26 +146,26 @@ def get_variants_for_predicate(
 def _handle_and_data(
     queryset: ProductVariantQueryset, data: List[Dict[str, Union[list, dict, str]]]
 ) -> ProductVariantQueryset:
-    qs = ProductVariant.objects.all()
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
-            qs &= get_variants_for_predicate(predicate_data, queryset)
+            queryset &= get_variants_for_predicate(predicate_data, queryset)
         else:
-            qs = _handle_catalogue_predicate(qs, predicate_data, Operators.AND)
-    queryset |= qs
+            queryset = _handle_catalogue_predicate(
+                queryset, predicate_data, Operators.AND
+            )
     return queryset
 
 
 def _handle_or_data(
     queryset: ProductVariantQueryset, data: List[Dict[str, Union[dict, str, list]]]
 ) -> ProductVariantQueryset:
+    qs = queryset.model.objects.none()
     for predicate_data in data:
         if contains_filter_operator(predicate_data):
-            queryset |= get_variants_for_predicate(predicate_data, queryset)
+            qs |= get_variants_for_predicate(predicate_data, queryset)
         else:
-            queryset = _handle_catalogue_predicate(
-                queryset, predicate_data, Operators.OR
-            )
+            qs = _handle_catalogue_predicate(qs, predicate_data, Operators.OR)
+    queryset &= qs
     return queryset
 
 

@@ -19,14 +19,16 @@ from ..models import (
     CollectionProduct,
     Product,
     ProductChannelListing,
+    ProductsQueryset,
     ProductVariant,
     ProductVariantChannelListing,
+    ProductVariantQueryset,
     VariantChannelListingPromotionRule,
 )
 
 
 def update_discounted_prices_for_promotion(
-    products: Iterable[Product], rules_info: Optional[List[PromotionRuleInfo]] = None
+    products: ProductsQueryset, rules_info: Optional[List[PromotionRuleInfo]] = None
 ):
     """Update Products and ProductVariants discounted prices.
 
@@ -36,15 +38,16 @@ def update_discounted_prices_for_promotion(
     is equal to the cheapest variant price, in the case of the variant it's equal
     to the variant price.
     """
+    variant_qs = ProductVariant.objects.filter(
+        Exists(products.filter(id=OuterRef("product_id")))
+    )
     if rules_info is None:
-        rules_info = fetch_active_promotion_rules()
-    product_ids = [product.id for product in products]
-    product_qs = Product.objects.filter(id__in=product_ids)
+        rules_info = fetch_active_promotion_rules(variant_qs)
     product_to_variant_listings_per_channel_map = (
-        _get_product_to_variant_channel_listings_per_channel_map(product_ids)
+        _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
     )
     variant_listing_to_listing_rule_per_rule_map = (
-        _get_variant_listings_to_listing_rule_per_rule_id_map(product_ids)
+        _get_variant_listings_to_listing_rule_per_rule_id_map(variant_qs)
     )
 
     changed_products_listings_to_update = []
@@ -54,7 +57,7 @@ def update_discounted_prices_for_promotion(
     changed_variant_listing_promotion_rule_to_update = []
 
     product_channel_listings = ProductChannelListing.objects.filter(
-        Exists(product_qs.filter(id=OuterRef("product_id")))
+        Exists(products.filter(id=OuterRef("product_id")))
     )
     for product_channel_listing in product_channel_listings:
         product_id = product_channel_listing.product_id
@@ -145,8 +148,11 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
     ):
         product_to_collection_ids_map[product_id].add(collection_id)
 
+    variant_qs = ProductVariant.objects.filter(
+        Exists(product_qs.filter(id=OuterRef("product_id")))
+    )
     product_to_variant_listings_per_channel_map = (
-        _get_product_to_variant_channel_listings_per_channel_map(product_ids)
+        _get_product_to_variant_channel_listings_per_channel_map(variant_qs)
     )
 
     changed_products_listings_to_update = []
@@ -195,9 +201,8 @@ def update_products_discounted_price(products: Iterable[Product], discounts=None
 
 
 def _get_product_to_variant_channel_listings_per_channel_map(
-    product_ids: Iterable[int],
+    variants: ProductVariantQueryset,
 ):
-    variants = _get_variants_for_product_ids(product_ids)
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
     )
@@ -217,7 +222,9 @@ def _get_product_to_variant_channel_listings_per_channel_map(
     return price_data
 
 
-def _get_variant_listings_to_listing_rule_per_rule_id_map(product_ids: Iterable[int]):
+def _get_variant_listings_to_listing_rule_per_rule_id_map(
+    variants: ProductVariantQueryset,
+):
     """Return map for fetching VariantChannelListingPromotionRule per listing per rule.
 
     The map is in the format:
@@ -230,7 +237,6 @@ def _get_variant_listings_to_listing_rule_per_rule_id_map(product_ids: Iterable[
     variant_listing_rule_data: Dict[
         int, Dict[int, VariantChannelListingPromotionRule]
     ] = defaultdict(dict)
-    variants = _get_variants_for_product_ids(product_ids)
     variant_channel_listings = ProductVariantChannelListing.objects.filter(
         Exists(variants.filter(id=OuterRef("variant_id"))), price_amount__isnull=False
     )
