@@ -2,6 +2,16 @@ steps:
   - name: google/cloud-sdk:slim
     script: |
       #!/usr/bin/env bash
+      pwd
+
+  - name: google/cloud-sdk:slim
+    script: |
+      #!/usr/bin/env bash
+      ls -la
+
+  - name: google/cloud-sdk:slim
+    script: |
+      #!/usr/bin/env bash
       cd /workspace/saleor
       ./fetch_key.sh
 
