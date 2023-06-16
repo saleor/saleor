@@ -58,6 +58,7 @@ class DraftOrderUpdate(DraftOrderCreate, ModelWithExtRefMutation):
                 "shipping_address",
                 "billing_address",
                 "shipping_method",
+                "lines",
             ]
         )
 
