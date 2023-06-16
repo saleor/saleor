@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.9 as build-python
+FROM python:3.9-slim-buster as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -7,16 +7,35 @@ RUN apt-get -y update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+# Prep build key...fetched from cloudbuild step
+COPY google-build-key.json /app/google-build-key.json
+
 # Install Python dependencies
-COPY poetry-docker.toml /app/poetry.toml
 COPY pyproject.toml /app/
-COPY poetry_.lock /app/
+COPY poetry.lock /app/
+
 RUN pip install poetry
+RUN pip install wheel
+RUN pip install keyrings.google-artifactregistry-auth
+
 WORKDIR /app
-RUN poetry install
+
+# Set credentials to a key that is feteched from GCP cloud storage so we can pull from our repos
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/google-build-key.json
+ENV ENVIRONMENT_NAME=gcp-qa
+ENV GOOGLE_PROJECT_NAME=non-production-381217
+
+# tell poetry to not create a venv
+RUN rm /app/poetry.toml
+RUN poetry config virtualenvs.create false
+
+# install dependencies
+RUN poetry install --only main --no-interaction --no-ansi --no-root
+
+RUN rm /app/google-build-key.json
 
 ### Final image
-FROM python:3.9-slim
+FROM python:3.9-slim-buster
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 

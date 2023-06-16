@@ -1,0 +1,1 @@
+gcloud storage cp gs://wellstand/non-production-381217-b20c06b17263.json google-build-key.json
