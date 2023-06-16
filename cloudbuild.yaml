@@ -12,7 +12,6 @@ steps:
   - name: google/cloud-sdk:slim
     script: |
       #!/usr/bin/env bash
-      cd /workspace/saleor
       ./fetch_key.sh
 
   - name: gcr.io/cloud-builders/docker
