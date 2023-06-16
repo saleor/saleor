@@ -197,7 +197,7 @@ class CheckoutSettings(ObjectType):
 
     class Meta:
         description = (
-            "Represents the channel-specific order settings."
+            "Represents the channel-specific checkout settings."
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )

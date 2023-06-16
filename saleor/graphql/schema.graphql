@@ -5317,7 +5317,7 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
 scalar Day
 
 """
-Represents the channel-specific order settings.
+Represents the channel-specific checkout settings.
 
 Added in Saleor 3.15.
 

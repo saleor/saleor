@@ -111,21 +111,31 @@ class ChannelUpdate(ModelMutation):
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
         permissions = [ChannelPermissions.MANAGE_CHANNELS]
-
+        all_perm_required = False
         # Permission MANAGE_ORDERS or MANAGE_CHANNELS is required to update
         # orderSettings. MANAGE_ORDERS can be used only when
         # channelUpdate mutation will get OrderSettingsInput and
         # not any other fields. Otherwise needed permission is MANAGE_CHANNELS.
         input = data["data"]["input"]
-        if "order_settings" in input and len(input) == 1:
+
+        if ["order_settings"] == list(input.keys()):
             permissions.append(OrderPermissions.MANAGE_ORDERS)
 
         # Permission MANAGE_CHECKOUTS or MANAGE_CHANNELS is required to update
         # checkoutSettings.
-        if "checkout_settings" in input and len(input) == 1:
+        if ["checkout_settings"] == list(input.keys()):
             permissions.append(CheckoutPermissions.MANAGE_CHECKOUTS)
 
-        return super().check_permissions(context, permissions, **data)
+        if set(["order_settings", "checkout_settings"]) == set(input.keys()):
+            permissions = [
+                OrderPermissions.MANAGE_ORDERS,
+                CheckoutPermissions.MANAGE_CHECKOUTS,
+            ]
+            all_perm_required = True
+
+        return super().check_permissions(
+            context, permissions, require_all_permissions=all_perm_required, **data
+        )
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
