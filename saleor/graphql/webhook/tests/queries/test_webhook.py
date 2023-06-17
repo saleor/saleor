@@ -170,10 +170,13 @@ def test_webhook_with_invalid_object_type(
     assert content["data"]["webhook"] is None
 
 
-def test_webhook_without_name(staff_api_client, webhook_without_name):
+def test_webhook_without_name(
+    staff_api_client, webhook_without_name, permission_manage_apps
+):
     query = QUERY_WEBHOOK
     webhook_id = graphene.Node.to_global_id("Webhook", webhook_without_name.pk)
     variables = {"id": webhook_id}
+    staff_api_client.user.user_permissions.add(permission_manage_apps)
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     webhook_response = content["data"]["webhook"]
