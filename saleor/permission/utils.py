@@ -32,9 +32,7 @@ def one_of_permissions_or_auth_filter_required(
     requestor = get_user_or_app_from_context(context)
 
     if requestor and permissions:
-        perm_checks_results = []
-        for permission in permissions:
-            perm_checks_results.append(requestor.has_perm(permission))
+        perm_checks_results = [requestor.has_perm(perm) for perm in permissions]
         granted_by_permissions = any(perm_checks_results)
 
     if authorization_filters:
