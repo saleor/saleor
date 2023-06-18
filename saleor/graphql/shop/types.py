@@ -9,12 +9,14 @@ from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 from ... import __version__
 from ...account import models as account_models
 from ...channel import models as channel_models
+from ...core.models import ModelWithMetadata
 from ...core.utils import build_absolute_uri
 from ...permission.auth_filters import AuthorizationFilters
 from ...permission.enums import SitePermissions, get_permissions
 from ...site import models as site_models
 from ..account.types import Address, AddressInput, StaffNotificationRecipient
 from ..checkout.types import PaymentGateway
+from ..core import ResolveInfo
 from ..core.descriptions import (
     ADDED_IN_31,
     ADDED_IN_35,
@@ -40,6 +42,7 @@ from ..core.types import (
     TimePeriod,
 )
 from ..core.utils import str_to_enum
+from ..meta.types import ObjectWithMetadata
 from ..plugins.dataloaders import plugin_manager_promise_callback
 from ..shipping.types import ShippingMethod
 from ..site.dataloaders import load_site_callback
@@ -350,6 +353,7 @@ class Shop(graphene.ObjectType):
         description = (
             "Represents a shop resource containing general shop data and configuration."
         )
+        interfaces = [ObjectWithMetadata]
 
     @staticmethod
     @traced_resolver
@@ -551,3 +555,13 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_display_gross_prices(_, _info, site):
         return site.settings.display_gross_prices
+
+    @staticmethod
+    @load_site_callback
+    def resolve_metadata(root: ModelWithMetadata, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_metadata(site.settings, info)
+
+    @staticmethod
+    @load_site_callback
+    def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo, site):
+        return ObjectWithMetadata.resolve_private_metadata(site.settings, info)

@@ -16,6 +16,7 @@ from ...permission.utils import one_of_permissions_or_auth_filter_required
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ...shipping.interface import ShippingMethodData
+from ...site import models as site_models
 from ...tax import models as tax_models
 from ...warehouse import models as warehouse_models
 from ..core import ResolveInfo
@@ -40,6 +41,7 @@ def resolve_object_with_metadata_type(instance):
     from ..payment import types as payment_types
     from ..product import types as product_types
     from ..shipping import types as shipping_types
+    from ..shop import types as shop_types
     from ..tax import types as tax_types
     from ..warehouse import types as warehouse_types
 
@@ -74,6 +76,7 @@ def resolve_object_with_metadata_type(instance):
             product_models.ProductVariant: product_types.ProductVariant,
             shipping_models.ShippingMethod: shipping_types.ShippingMethodType,
             shipping_models.ShippingZone: shipping_types.ShippingZone,
+            site_models.SiteSettings: shop_types.Shop,
             tax_models.TaxClass: tax_types.TaxClass,
             tax_models.TaxConfiguration: tax_types.TaxConfiguration,
             warehouse_models.Warehouse: warehouse_types.Warehouse,
@@ -101,6 +104,7 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo)
             "Make sure that model exists inside MODEL_TO_TYPE_MAP."
         )
 
+    # print("107",item_type.__name__)
     get_required_permission = PRIVATE_META_PERMISSION_MAP.get(item_type.__name__)
     if not get_required_permission:
         raise PermissionDenied()

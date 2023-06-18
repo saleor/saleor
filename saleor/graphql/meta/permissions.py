@@ -25,6 +25,7 @@ from ...permission.enums import (
     ProductPermissions,
     ProductTypePermissions,
     ShippingPermissions,
+    SitePermissions,
 )
 from ...site import models as site_models
 from ...warehouse import models as warehouse_models
@@ -265,6 +266,10 @@ def tax_permissions(_info: ResolveInfo, _object_pk: int) -> List[BasePermissionE
     ]
 
 
+def site_permissions(_info: ResolveInfo, _object_pk: Any) -> List[BasePermissionEnum]:
+    return [SitePermissions.MANAGE_SETTINGS]
+
+
 PUBLIC_META_PERMISSION_MAP: Dict[
     str, Callable[[ResolveInfo, Any], List[BasePermissionEnum]]
 ] = {
@@ -294,6 +299,7 @@ PUBLIC_META_PERMISSION_MAP: Dict[
     "Sale": discount_permissions,
     "ShippingMethodType": shipping_permissions,
     "ShippingZone": shipping_permissions,
+    "Shop": site_permissions,
     "TaxConfiguration": tax_permissions,
     "TaxClass": tax_permissions,
     "User": public_user_permissions,
@@ -332,6 +338,7 @@ PRIVATE_META_PERMISSION_MAP: Dict[
     "ShippingMethod": shipping_permissions,
     "ShippingMethodType": shipping_permissions,
     "ShippingZone": shipping_permissions,
+    "Shop": site_permissions,
     "TaxConfiguration": tax_permissions,
     "TaxClass": tax_permissions,
     "User": private_user_permissions,

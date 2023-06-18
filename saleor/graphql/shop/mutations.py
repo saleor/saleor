@@ -13,7 +13,12 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, StaffNotificationRecipient
 from ..channel.types import OrderSettings
 from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_314, DEPRECATED_IN_3X_INPUT
+from ..core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_314,
+    ADDED_IN_315,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ..core.doc_category import (
     DOC_CATEGORY_GIFT_CARDS,
     DOC_CATEGORY_ORDERS,
@@ -28,6 +33,8 @@ from ..core.types import (
     ShopError,
     TimePeriodInputType,
 )
+from ..core.types import common as common_types
+from ..meta.mutations import MetadataInput
 from ..site.dataloaders import get_site_promise
 from .enums import GiftCardSettingsExpiryTypeEnum
 from .types import GiftCardSettings, Shop
@@ -112,6 +119,16 @@ class ShopSettingsInput(graphene.InputObjectType):
             "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
         ),
     )
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Shop public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description=("Shop private metadata." + ADDED_IN_315),
+        required=False,
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -169,6 +186,17 @@ class ShopSettingsUpdate(BaseMutation):
                 )
             if not new_value:
                 data["limit_quantity_per_checkout"] = None
+        if "metadata" in data:
+            metadata = data.pop("metadata", [])
+            metadata_dict = {item["key"]: item["value"] for item in metadata}
+            data["metadata"] = metadata_dict
+
+        if "private_metadata" in data:
+            private_metadata = data.pop("private_metadata", [])
+            private_metadata_dict = {
+                item["key"]: item["value"] for item in private_metadata
+            }
+            data["private_metadata"] = private_metadata_dict
 
         return data
 
