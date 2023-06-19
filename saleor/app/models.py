@@ -1,6 +1,7 @@
 from typing import Iterable, Set, Tuple, Union
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.db import models
 from django.utils.text import Truncator
@@ -10,7 +11,13 @@ from ..core.models import Job, ModelWithMetadata
 from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
-from .types import AppExtensionMount, AppExtensionTarget, AppType
+from .types import (
+    AppEventRequestorType,
+    AppEventType,
+    AppExtensionMount,
+    AppExtensionTarget,
+    AppType,
+)
 
 
 class AppQueryset(models.QuerySet["App"]):
@@ -184,3 +191,26 @@ class AppInstallation(Job):
                 raise ValueError("Cannot truncate message without max_length")
             message = Truncator(message).chars(max_length)
         self.message = message
+
+
+class AppEvent(models.Model):
+    app = models.ForeignKey(App, related_name="events", on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    type = models.CharField(max_length=255, choices=AppEventType.CHOICES, db_index=True)
+    requestor_type = models.CharField(
+        max_length=60,
+        choices=AppEventRequestorType.CHOICES,
+        default=AppEventRequestorType.SALEOR,
+    )
+    requestor_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="+"
+    )
+    requestor_app = models.ForeignKey(
+        App, null=True, related_name="+", on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        ordering = ("created_at",)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(type={self.type!r}, app={self.app!r})"

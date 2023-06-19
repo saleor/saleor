@@ -22,3 +22,20 @@ class AppSortingInput(SortInputObjectType):
         doc_category = DOC_CATEGORY_APPS
         sort_enum = AppSortField
         type_name = "apps"
+
+
+class AppEventSortField(BaseEnum):
+    CREATED_AT = ["created_at", "pk"]
+
+    @property
+    def description(self):
+        if self.name in AppEventSortField.__enum__._member_names_:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort app events by {sort_name}."
+        raise ValueError(f"Unsupported enum value: {self.value}")
+
+
+class AppEventSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = AppEventSortField
+        type_name = "events"
