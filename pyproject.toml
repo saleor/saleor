@@ -54,7 +54,7 @@ documentation = "https://docs.saleor.io/"
   pyjwt = "2.5.0" # Version 2.6.0 changed iat validation which causes tests to fail: https://github.com/saleor/saleor/issues/11047
   python-json-logger = ">=0.1.11,<2.1.0"
   pytimeparse = "^1.1.8"
-  django-redis = "^5.0.0"
+  django-redis = "^5.3.0"
   Adyen = "^4.0.0"
   google-cloud-pubsub = ">=1.7,<3.0"
   gunicorn = "^20.0.4"
