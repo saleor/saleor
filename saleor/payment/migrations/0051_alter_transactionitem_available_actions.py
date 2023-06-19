@@ -37,7 +37,7 @@ def convert_void_to_cancel(apps, schema_editor):
             if "void" in current_available_actions:
                 current_available_actions.remove("void")
                 current_available_actions.append("cancel")
-            TransactionItem.objects.bulk_update(transactions, ["available_actions"])
+        TransactionItem.objects.bulk_update(transactions, ["available_actions"])
 
 
 class Migration(migrations.Migration):
