@@ -399,7 +399,10 @@ def test_transaction_update_available_actions_by_app(
 ):
     # given
     transaction = transaction_item_created_by_app
-    available_actions = [TransactionActionEnum.REFUND.name]
+    available_actions = [
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.VOID.name,
+    ]
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -417,8 +420,11 @@ def test_transaction_update_available_actions_by_app(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["actions"] == available_actions
-    assert transaction.available_actions == ["refund"]
+    assert data["actions"] == [
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.CANCEL.name,
+    ]
+    assert transaction.available_actions == ["refund", "cancel"]
 
 
 @pytest.mark.parametrize(
@@ -1373,7 +1379,10 @@ def test_transaction_update_available_actions_by_staff(
 ):
     # given
     transaction = transaction_item_created_by_user
-    available_actions = [TransactionActionEnum.REFUND.name]
+    available_actions = [
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.VOID.name,
+    ]
 
     variables = {
         "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
@@ -1391,8 +1400,11 @@ def test_transaction_update_available_actions_by_staff(
     transaction.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["transactionUpdate"]["transaction"]
-    assert data["actions"] == available_actions
-    assert transaction.available_actions == ["refund"]
+    assert data["actions"] == [
+        TransactionActionEnum.REFUND.name,
+        TransactionActionEnum.CANCEL.name,
+    ]
+    assert transaction.available_actions == ["refund", "cancel"]
 
 
 @pytest.mark.parametrize(

@@ -111,7 +111,7 @@ def test_transaction_create_updates_order_authorize_amounts(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -157,7 +157,7 @@ def test_transaction_create_for_order_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -313,7 +313,7 @@ def test_transaction_create_for_checkout_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -429,7 +429,7 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
@@ -494,7 +494,7 @@ def test_transaction_create_create_event_for_order_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     transaction_reference = "transaction reference"
@@ -542,7 +542,7 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -631,7 +631,7 @@ def test_transaction_create_empty_metadata_key_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
@@ -675,7 +675,7 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -784,7 +784,7 @@ def test_creates_transaction_event_for_checkout_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("0")
     metadata = {"key": "test-1", "value": "123"}
@@ -849,7 +849,7 @@ def test_transaction_create_for_order_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1001,7 +1001,7 @@ def test_transaction_create_for_checkout_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1068,7 +1068,7 @@ def test_transaction_create_for_checkout_fully_paid(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
@@ -1165,7 +1165,7 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
@@ -1231,7 +1231,7 @@ def test_transaction_create_create_event_for_order_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     transaction_status = "PENDING"
@@ -1282,7 +1282,7 @@ def test_transaction_create_missing_permission_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1371,7 +1371,7 @@ def test_transaction_create_empty_metadata_key_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
@@ -1415,7 +1415,7 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1526,7 +1526,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1653,7 +1653,7 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
+        TransactionActionEnum.CANCEL.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1975,3 +1975,55 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     assert not mock_order_fully_refunded.called
     mock_order_updated.assert_called_once_with(order_with_lines)
     mock_order_refunded.assert_called_once_with(order_with_lines)
+
+
+def test_transaction_create_set_void_action_to_cancel(
+    order_with_lines, permission_manage_payments, app_api_client
+):
+    # given
+    status = "Authorized for 10$"
+    type = "Credit Card"
+    psp_reference = "PSP reference - 123"
+    expceted_available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.CANCEL.name,
+    ]
+    available_actions = [
+        TransactionActionEnum.CHARGE.name,
+        TransactionActionEnum.VOID.name,
+    ]
+    authorized_value = Decimal("10")
+    metadata = {"key": "test-1", "value": "123"}
+    private_metadata = {"key": "test-2", "value": "321"}
+    external_url = f"http://{TEST_SERVER_DOMAIN}/external-url"
+
+    variables = {
+        "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
+        "transaction": {
+            "status": status,
+            "type": type,
+            "pspReference": psp_reference,
+            "availableActions": available_actions,
+            "amountAuthorized": {
+                "amount": authorized_value,
+                "currency": "USD",
+            },
+            "metadata": [metadata],
+            "privateMetadata": [private_metadata],
+            "externalUrl": external_url,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_CREATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction = order_with_lines.payment_transactions.first()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionCreate"]["transaction"]
+    assert data["actions"] == expceted_available_actions
+    assert expceted_available_actions == list(
+        map(str.upper, transaction.available_actions)
+    )

@@ -38,7 +38,12 @@ class TransactionItem(ModelWithMetadata):
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
     available_actions = ArrayField(
-        models.CharField(max_length=128, choices=TransactionAction.CHOICES),
+        models.CharField(
+            max_length=128,
+            choices=[
+                choice for choice in TransactionAction.CHOICES if choice[0] != "void"
+            ],
+        ),
         default=list,
     )
 
