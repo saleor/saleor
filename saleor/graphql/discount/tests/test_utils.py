@@ -198,6 +198,19 @@ def test_get_variants_for_predicate_with_nested_conditions(
         assert product_variant in variants
 
 
+def test_get_variants_for_variant_predicate_empty_predicate_data(
+    product_with_two_variants,
+):
+    # given
+    catalogue_predicate = {}
+
+    # when
+    variants = get_variants_for_predicate(catalogue_predicate)
+
+    # then
+    assert len(variants) == 0
+
+
 def test_get_variants_for_promotion(
     variant, product_with_two_variants, product_variant_list
 ):

@@ -126,6 +126,9 @@ def get_variants_for_predicate(
     predicate: dict, queryset: Optional[ProductVariantQueryset] = None
 ) -> ProductVariantQueryset:
     """Get variants that met the predicate conditions."""
+    if not predicate:
+        return ProductVariant.objects.none()
+
     if queryset is None:
         queryset = ProductVariant.objects.all()
     and_data: Optional[List[dict]] = predicate.pop("AND", None)

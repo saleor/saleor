@@ -2,6 +2,7 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import graphene
+import pytest
 from django.core.management import call_command
 from prices import Money
 
@@ -293,6 +294,55 @@ def test_update_discounted_price_for_promotion_discount_updated(product, channel
     assert variant_channel_listing.promotion_rules.count() == 1
     listing_promotion_rule.refresh_from_db()
     assert listing_promotion_rule.discount_amount == reward_value
+
+
+def test_update_discounted_price_for_promotion_discount_not_valid_anymore(
+    product, channel_USD
+):
+    # given
+    variant = product.variants.first()
+    variant_channel_listing = variant.channel_listings.get(channel_id=channel_USD.id)
+    product_channel_listing = product.channel_listings.get(channel_id=channel_USD.id)
+
+    variant_price = Money("9.99", "USD")
+    discounted_price = Money("5.00", "USD")
+    variant_channel_listing.price = variant_price
+    variant_channel_listing.discounted_price = discounted_price
+    variant_channel_listing.save()
+    product_channel_listing.refresh_from_db()
+
+    reward_value = Decimal("2")
+    promotion = Promotion.objects.create(
+        name="Promotion",
+    )
+    rule = promotion.rules.create(
+        name="Percentage promotion rule",
+        promotion=promotion,
+        catalogue_predicate={},
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
+    )
+    rule.channels.add(variant_channel_listing.channel)
+
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
+        variant_channel_listing=variant_channel_listing,
+        promotion_rule=rule,
+        discount_amount=Decimal("1"),
+        currency=channel_USD.currency_code,
+    )
+
+    # when
+    update_discounted_prices_for_promotion(Product.objects.filter(id__in=[product.id]))
+
+    # then
+    product_channel_listing.refresh_from_db()
+    variant_channel_listing.refresh_from_db()
+    assert product_channel_listing.discounted_price_amount == variant_price.amount
+    assert variant_channel_listing.discounted_price_amount == variant_price.amount
+    assert variant_channel_listing.promotion_rules.count() == 0
+
+    with pytest.raises(listing_promotion_rule._meta.model.DoesNotExist):
+        listing_promotion_rule.refresh_from_db()
 
 
 def test_update_products_discounted_prices_of_catalogues_for_product(
