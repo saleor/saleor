@@ -25,9 +25,9 @@ RUN apt-get update \
   libopenjp2-7 \
   libpango-1.0-0 \
   libpangocairo-1.0-0 \
-  libssl1.1 \
-  libtiff5 \
-  libwebp6 \
+  libssl3 \
+  libtiff6 \
+  libwebp7 \
   libxml2 \
   libpq5 \
   shared-mime-info \
