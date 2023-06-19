@@ -74,6 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
@@ -142,6 +143,7 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderByNumberLoader,
+    OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -340,6 +342,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     related_order = graphene.Field(
         lambda: Order, description="The order which is related to this order."
     )
+    related = graphene.Field(
+        lambda: OrderEvent,
+        description="The order event which is related to this event."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
@@ -519,6 +527,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
             return OrderByNumberLoader(info.context).load(order_pk_or_number)
 
         return OrderByIdLoader(info.context).load(order_pk)
+
+    @staticmethod
+    def resolve_related(root: models.OrderEvent, info):
+        if not root.related_id:
+            return None
+        return OrderEventsByIdLoader(info.context).load(root.related_id)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):

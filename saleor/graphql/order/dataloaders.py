@@ -115,6 +115,18 @@ class OrderEventsByOrderIdLoader(DataLoader):
         return [events_map.get(order_id, []) for order_id in keys]
 
 
+class OrderEventsByIdLoader(DataLoader):
+    context_key = "orderevents_by_id"
+
+    def batch_load(self, keys):
+        events = (
+            OrderEvent.objects.using(self.database_connection_name)
+            .filter(id__in=keys)
+            .in_bulk()
+        )
+        return [events.get(event_id) for event_id in keys]
+
+
 class OrderGrantedRefundsByOrderIdLoader(DataLoader):
     context_key = "order_granted_refunds_by_order_id"
 
