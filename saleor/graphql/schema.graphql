@@ -1609,7 +1609,7 @@ type Query {
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
   id: ID!
-  name: String!
+  name: String
 
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
