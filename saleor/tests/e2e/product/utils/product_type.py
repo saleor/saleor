@@ -23,7 +23,6 @@ mutation createProductType($input: ProductTypeInput!) {
 
 def create_digital_product_type(
     staff_api_client,
-    permissions,
     product_type_name="Test type",
     slug="test-type",
     is_shipping_required=True,
@@ -38,9 +37,7 @@ def create_digital_product_type(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        PRODUCT_TYPE_CREATE_MUTATION, variables, permissions=permissions
-    )
+    response = staff_api_client.post_graphql(PRODUCT_TYPE_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert content["data"]["productTypeCreate"]["errors"] == []

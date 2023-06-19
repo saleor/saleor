@@ -35,7 +35,6 @@ mutation UpdateProductChannelListing(
 
 def create_product_channel_listing(
     staff_api_client,
-    permissions,
     product_id,
     channel_id,
     publication_date=datetime.date(2007, 1, 1),
@@ -63,7 +62,6 @@ def create_product_channel_listing(
     response = staff_api_client.post_graphql(
         PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

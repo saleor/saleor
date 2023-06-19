@@ -28,7 +28,10 @@ mutation UpdateProductVariantChannelListing(
 
 
 def create_product_variant_channel_listing(
-    staff_api_client, permissions, product_variant_id, channel_id, price="9.99"
+    staff_api_client,
+    product_variant_id,
+    channel_id,
+    price="9.99",
 ):
     variables = {
         "productVariantId": product_variant_id,
@@ -43,7 +46,6 @@ def create_product_variant_channel_listing(
     response = staff_api_client.post_graphql(
         PRODUCT_CHANNEL_LISTING_UPDATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)
