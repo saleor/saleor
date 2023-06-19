@@ -1,11 +1,12 @@
 import base64
 from io import BytesIO
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 import requests
 from PIL import Image
 
+from ..... import schema_version
 from .....app.error_codes import AppErrorCode
 from .....thumbnail import IconThumbnailFormat
 from ....tests.utils import assert_no_permission, get_graphql_content
@@ -99,6 +100,32 @@ def test_app_fetch_manifest(staff_api_client, staff_user, permission_manage_apps
     }
     assert manifest["requiredSaleorVersion"] is None
     assert manifest["brand"] is None
+
+
+def test_app_fetch_manifest_custom_saleor_headers(
+    app_manifest, monkeypatch, staff_api_client, permission_manage_apps
+):
+    # given
+    mocked_get = Mock(return_value=Mock())
+    mocked_get.return_value.json = Mock(return_value=app_manifest)
+
+    monkeypatch.setattr(requests, "get", mocked_get)
+    query = APP_FETCH_MANIFEST_MUTATION
+    manifest_url = "http://localhost:3000/configuration/manifest"
+    variables = {"manifest_url": manifest_url}
+
+    # when
+    staff_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_apps]
+    )
+
+    # then
+    mocked_get.assert_called_once_with(
+        manifest_url,
+        headers={"Saleor-Schema-Version": schema_version},
+        timeout=ANY,
+        allow_redirects=False,
+    )
 
 
 @pytest.mark.vcr
