@@ -1857,17 +1857,21 @@ testing = ["pytest"]
 
 [[package]]
 name = "google-i18n-address"
-version = "2.5.2"
+version = "3.1.0"
 description = "Address validation helpers for Google's i18n address database"
 optional = false
 python-versions = "*"
 files = [
-    {file = "google-i18n-address-2.5.2.tar.gz", hash = "sha256:44ef2ba987b4258ed5248ff0ce818e99807bda2599db99f97a4d549aae83e739"},
-    {file = "google_i18n_address-2.5.2-py3-none-any.whl", hash = "sha256:97c5a40e96cdd6000a1cf29ed45903557aece3a91755cfcb5dced14005fbd93c"},
+    {file = "google_i18n_address-3.1.0-py2.py3-none-any.whl", hash = "sha256:86ce6f07eb8471b7e034de56c424602d2b4323ec0d6f0b27e69adceaf62fca47"},
+    {file = "google_i18n_address-3.1.0.tar.gz", hash = "sha256:8aa28072690e66cd36d7e40878d9daf0e55bc7a0263c31f576e629f8b94ff672"},
 ]
 
 [package.dependencies]
 requests = ">=2.7.0"
+
+[package.extras]
+dev = ["black", "ruff"]
+test = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "google-measurement-protocol"
@@ -4947,4 +4951,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "1944578115897949f731a017c8102d8e3ed3b68dbe21c3178a0bb016c82541f7"
+content-hash = "fe1a5d37c2696465eadd45fc4aa715be22d2f8bd2f6b77f977b7589fc1fac974"
