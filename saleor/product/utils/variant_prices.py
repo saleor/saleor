@@ -1,4 +1,5 @@
 from collections import defaultdict
+from decimal import Decimal
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from django.db.models import Exists, OuterRef
@@ -104,10 +105,14 @@ def update_discounted_prices_for_promotion(
 
 
 def _update_or_create_listings(
-    changed_products_listings_to_update,
-    changed_variants_listings_to_update,
-    changed_variant_listing_promotion_rule_to_create,
-    changed_variant_listing_promotion_rule_to_update,
+    changed_products_listings_to_update: List[ProductChannelListing],
+    changed_variants_listings_to_update: List[ProductVariantChannelListing],
+    changed_variant_listing_promotion_rule_to_create: List[
+        VariantChannelListingPromotionRule
+    ],
+    changed_variant_listing_promotion_rule_to_update: List[
+        VariantChannelListingPromotionRule
+    ],
 ):
     if changed_products_listings_to_update:
         ProductChannelListing.objects.bulk_update(
@@ -289,7 +294,7 @@ def _get_discounted_variants_prices_for_promotions(
     variant_listings: List[ProductVariantChannelListing],
     rules_info: List[PromotionRuleInfo],
     channel: Channel,
-    variant_listing_to_listing_rule_per_rule_map,
+    variant_listing_to_listing_rule_per_rule_map: dict,
 ) -> Tuple[
     Money,
     List[ProductVariantChannelListing],
@@ -338,13 +343,13 @@ def _get_discounted_variants_prices_for_promotions(
 
 
 def _handle_discount_rule_id(
-    variant_listing,
-    rule_id,
-    variant_listing_to_listing_rule_per_rule_map,
-    discount_amount,
-    currency,
-    variant_listing_promotion_rule_to_update,
-    variant_listing_promotion_rule_to_create,
+    variant_listing: ProductVariantChannelListing,
+    rule_id: int,
+    variant_listing_to_listing_rule_per_rule_map: dict,
+    discount_amount: Decimal,
+    currency: str,
+    variant_listing_promotion_rule_to_update: List[VariantChannelListingPromotionRule],
+    variant_listing_promotion_rule_to_create: List[VariantChannelListingPromotionRule],
 ):
     listing_promotion_rule = variant_listing_to_listing_rule_per_rule_map[
         variant_listing.id
