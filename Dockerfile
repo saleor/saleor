@@ -18,6 +18,7 @@ FROM python:3.9-slim
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
 RUN apt-get update \
+  && apt-get upgrade \
   && apt-get install -y \
   libcairo2 \
   libgdk-pixbuf2.0-0 \
@@ -25,9 +26,9 @@ RUN apt-get update \
   libopenjp2-7 \
   libpango-1.0-0 \
   libpangocairo-1.0-0 \
-  libssl1.1 \
-  libtiff5 \
-  libwebp6 \
+  libssl3 \
+  libtiff6 \
+  libwebp7 \
   libxml2 \
   libpq5 \
   shared-mime-info \
