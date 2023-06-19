@@ -95,12 +95,12 @@ def update_discounted_prices_for_promotion(
             )
             changed_products_listings_to_update.append(product_channel_listing)
 
-        _update_or_create_listings(
-            changed_products_listings_to_update,
-            changed_variants_listings_to_update,
-            changed_variant_listing_promotion_rule_to_create,
-            changed_variant_listing_promotion_rule_to_update,
-        )
+    _update_or_create_listings(
+        changed_products_listings_to_update,
+        changed_variants_listings_to_update,
+        changed_variant_listing_promotion_rule_to_create,
+        changed_variant_listing_promotion_rule_to_update,
+    )
 
 
 def _update_or_create_listings(

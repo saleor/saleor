@@ -812,7 +812,7 @@ def fetch_active_promotion_rules(
                 rule=rule,
                 variants=variants,
                 variant_ids=list(variants.values_list("id", flat=True)),
-                channel_ids=rule_to_channel_ids_map.get(rule.id),
+                channel_ids=rule_to_channel_ids_map.get(rule.id, []),
             )
         )
     return infos

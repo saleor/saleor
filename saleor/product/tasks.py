@@ -26,8 +26,7 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
-# TODO: to check
-# Results in memory usage of ~40MB for 500 products
+# Results in update time ~2s for 500 promotions
 DISCOUNTED_PRODUCT_BATCH = 500
 
 
@@ -130,8 +129,7 @@ def update_products_discounted_prices_of_promotion_task(promotion_pk: int):
 @app.task
 def update_products_discounted_prices_for_promotion_task(product_ids):
     """Update the product discounted prices for given product ids."""
-    products = Product.objects.filter(id__in=product_ids).order_by("-pk")
-    ids = products.values_list("pk", flat=True)[:DISCOUNTED_PRODUCT_BATCH]
+    ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
     qs = Product.objects.filter(pk__in=ids)
     if ids:
         update_discounted_prices_for_promotion(qs)
