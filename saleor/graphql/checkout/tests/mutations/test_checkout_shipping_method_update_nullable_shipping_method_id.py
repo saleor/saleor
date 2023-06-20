@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+import graphene
 import pytest
 
 from ....core.utils import to_global_id_or_none
@@ -20,8 +21,17 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
             checkout {
                 id
                 token
+                voucherCode
                 shippingMethod {
                     id
+                }
+                shippingPrice {
+                    net {
+                        amount
+                    }
+                    gross {
+                        amount
+                    }
                 }
             }
         }
@@ -30,7 +40,6 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 
 
 @pytest.mark.django_db
-@pytest.mark.count_queries(autouse=False)
 @patch(
     "saleor.graphql.checkout.mutations.checkout_shipping_method_update."
     "clean_delivery_method"
@@ -38,11 +47,11 @@ MUTATION_UPDATE_SHIPPING_METHOD = """
 def test_checkout_shipping_method_update_nullable_shipping_method_id(
     mock_clean_delivery_method,
     staff_api_client,
-    checkout_with_item_and_shipping_method,
-    count_queries,
+    shipping_method,
+    checkout_with_item_and_voucher_and_shipping_method,
 ):
     # Set up the initial state of the checkout
-    checkout = checkout_with_item_and_shipping_method
+    checkout = checkout_with_item_and_voucher_and_shipping_method
 
     # Mock the clean_delivery_method function
     mock_clean_delivery_method.return_value = True
@@ -63,5 +72,29 @@ def test_checkout_shipping_method_update_nullable_shipping_method_id(
     checkout.refresh_from_db(fields=["shipping_method"])
     assert checkout.shipping_method is None
 
-    # Ensure that the clean_delivery_method function was not called
-    mock_clean_delivery_method.assert_not_called()
+    # Assert that the shipping price is cleared
+    assert checkout.shipping_price.net.amount == 0
+    assert checkout.shipping_price.gross.amount == 0
+
+    # Assert that the voucher is still assigned to the checkout
+    assert checkout.voucher_code is not None
+
+    # Add the shipping method back to the checkout
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_SHIPPING_METHOD,
+        variables={
+            "id": to_global_id_or_none(checkout),
+            "shippingMethodId": graphene.Node.to_global_id(
+                "ShippingMethod", shipping_method.pk
+            ),
+        },
+    )
+
+    # Assert that the mutation was successful
+    data = get_graphql_content(response)["data"]["checkoutShippingMethodUpdate"]
+    errors = data["errors"]
+    assert not errors
+
+    # Ensure the shipping method was added back to the checkout
+    checkout.refresh_from_db(fields=["shipping_method"])
+    assert checkout.shipping_method is not None
