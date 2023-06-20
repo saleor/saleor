@@ -429,7 +429,10 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     shipping_price = graphene.Field(
         TaxedMoney,
-        description="The price of the shipping, with all the taxes included.",
+        description=(
+            "The price of the shipping, with all the taxes included. Set to 0 when no "
+            "delivery method is selected."
+        ),
         required=True,
     )
     shipping_method = graphene.Field(

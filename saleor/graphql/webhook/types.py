@@ -147,7 +147,7 @@ class EventDeliveryCountableConnection(CountableConnection):
 
 class Webhook(ModelObjectType[models.Webhook]):
     id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
+    name = graphene.String(required=False)
     events = NonNullList(
         WebhookEvent,
         description="List of webhook events.",
