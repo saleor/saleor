@@ -14,8 +14,6 @@ from typing import (
 )
 from uuid import UUID
 
-from prices import Money
-
 from ..core.utils.lazyobjects import lazy_no_retry
 from ..discount import DiscountType, VoucherType
 from ..discount.interface import fetch_voucher_info
@@ -64,6 +62,13 @@ class CheckoutLineInfo:
             if discount.type == DiscountType.SALE:
                 return discount
         return None
+
+    def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
+        discounts = []
+        for discount in self.discounts:
+            if discount.type == DiscountType.PROMOTION:
+                discounts.append(discount)
+        return discounts
 
 
 @dataclass
@@ -381,7 +386,7 @@ def apply_voucher_to_checkout_line(
         )
         lines_included_in_discount = discounted_lines_by_voucher
     if voucher.apply_once_per_order:
-        cheapest_line = _get_the_cheapest_line(checkout, lines_included_in_discount)
+        cheapest_line = _get_the_cheapest_line(lines_included_in_discount)
         if cheapest_line:
             discounted_lines_by_voucher = [cheapest_line]
     for line_info in lines_info:
@@ -390,30 +395,9 @@ def apply_voucher_to_checkout_line(
 
 
 def _get_the_cheapest_line(
-    checkout: "Checkout",
     lines_info: Iterable[CheckoutLineInfo],
 ):
-    channel = checkout.channel
-
-    def variant_price(line_info):
-        variant_price = line_info.variant.get_price(
-            product=line_info.product,
-            collections=line_info.collections,
-            channel=channel,
-            channel_listing=line_info.channel_listing,
-            discounts=[],
-            price_override=line_info.line.price_override,
-        )
-        for discount in line_info.discounts:
-            total_discount_amount_for_line = discount.amount_value
-            unit_discount_amount = (
-                total_discount_amount_for_line / line_info.line.quantity
-            )
-            unit_discount = Money(unit_discount_amount, variant_price.currency)
-            variant_price -= unit_discount
-        return variant_price
-
-    return min(lines_info, default=None, key=variant_price)
+    return min([line_info.channel_listing.discounted_price for line_info in lines_info])
 
 
 def fetch_checkout_info(
