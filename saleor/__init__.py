@@ -18,3 +18,7 @@ class PatchedSubscriberExecutionContext(object):
 
     def __getattr__(self, name):
         return getattr(self.exe_context, name)
+
+
+_major, _minor, _ = __version__.split(".", 2)
+schema_version = f"{_major}.{_minor}"

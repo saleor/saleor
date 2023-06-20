@@ -1609,7 +1609,7 @@ type Query {
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
   id: ID!
-  name: String!
+  name: String
 
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
@@ -11323,6 +11323,15 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The order which is related to this order."""
   relatedOrder: Order
 
+  """
+  The order event which is related to this event.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  related: OrderEvent
+
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
 
@@ -11392,6 +11401,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
+  NOTE_UPDATED
   OTHER
 }
 
@@ -14942,7 +14952,9 @@ type Mutation {
   ): DraftOrderUpdate @doc(category: "Orders")
 
   """
-  Adds note to the order. 
+  Adds note to the order.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14952,7 +14964,7 @@ type Mutation {
 
     """Fields required to create a note for the order."""
     input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders")
+  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `orderNoteAdd` instead.")
 
   """
   Cancel an order. 
@@ -15198,6 +15210,40 @@ type Mutation {
     """ID of a order line to remove its discount"""
     orderLineId: ID!
   ): OrderLineDiscountRemove @doc(category: "Orders")
+
+  """
+  Adds note to the order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteAdd(
+    """ID of the order to add a note for."""
+    order: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteAdd @doc(category: "Orders")
+
+  """
+  Updates note of an order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteUpdate(
+    """ID of the note."""
+    note: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteUpdate @doc(category: "Orders")
 
   """
   Mark order as manually paid. 
@@ -22156,7 +22202,9 @@ input DraftOrderInput @doc(category: "Orders") {
 }
 
 """
-Adds note to the order. 
+Adds note to the order.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -22171,7 +22219,11 @@ type OrderAddNote @doc(category: "Orders") {
 }
 
 input OrderAddNoteInput @doc(category: "Orders") {
-  """Note message."""
+  """
+  Note message.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   message: String!
 }
 
@@ -22645,6 +22697,86 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Adds note to the order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteAdd @doc(category: "Orders") {
+  """Order with the note added."""
+  order: Order
+
+  """Order note created."""
+  event: OrderEvent
+  errors: [OrderNoteAddError!]!
+}
+
+type OrderNoteAddError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteAddErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteAddErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  REQUIRED
+}
+
+input OrderNoteInput @doc(category: "Orders") {
+  """Note message."""
+  message: String!
+}
+
+"""
+Updates note of an order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteUpdate @doc(category: "Orders") {
+  """Order with the note updated."""
+  order: Order
+
+  """Order note updated."""
+  event: OrderEvent
+  errors: [OrderNoteUpdateError!]!
+}
+
+type OrderNoteUpdateError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteUpdateErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteUpdateErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
 }
 
 """
