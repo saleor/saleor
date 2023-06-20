@@ -6,7 +6,7 @@ BATCH_SIZE = 5000
 
 
 @app.task
-def drop_status_field_from_transaction_event():
+def drop_status_field_from_transaction_event_task():
     qs = OrderEvent.objects.filter(type="transaction_event")
     event_ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
     if event_ids:
@@ -17,4 +17,4 @@ def drop_status_field_from_transaction_event():
                 del event.parameters["status"]
                 events_to_update.append(event)
         OrderEvent.objects.bulk_update(events_to_update, ["parameters"])
-        drop_status_field_from_transaction_event.delay()
+        drop_status_field_from_transaction_event_task.delay()
