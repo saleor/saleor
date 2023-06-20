@@ -8,6 +8,7 @@ from django.core.management.base import CommandParser
 from django.urls import reverse
 from requests.exceptions import RequestException
 
+from .... import schema_version
 from ....app.headers import AppHeaders, DeprecatedAppHeaders
 from ....core.utils import build_absolute_uri
 from ...models import App
@@ -48,6 +49,7 @@ class Command(BaseCommand):
             DeprecatedAppHeaders.DOMAIN: domain,
             AppHeaders.DOMAIN: domain,
             AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+            AppHeaders.SCHEMA_VERSION: schema_version,
         }
         try:
             response = requests.post(

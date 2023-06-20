@@ -68,6 +68,14 @@ mutation TransactionUpdate(
                     key
                     value
                 }
+                createdBy{
+                    ... on User {
+                        id
+                    }
+                    ... on App {
+                        id
+                    }
+                }
                 events{
                     status
                     pspReference
@@ -2902,3 +2910,32 @@ def test_transaction_update_for_order_triggers_webhook_when_partially_refunded(
     assert not mock_order_fully_refunded.called
     mock_order_updated.assert_called_once_with(order_with_lines)
     mock_order_refunded.assert_called_once_with(order_with_lines)
+
+
+def test_transaction_update_by_app_assign_app_owner(
+    transaction_item_generator, permission_manage_payments, app_api_client
+):
+    # given
+    transaction = transaction_item_generator()
+    status = "Captured for 10$"
+
+    variables = {
+        "id": graphene.Node.to_global_id("TransactionItem", transaction.token),
+        "transaction": {
+            "status": status,
+        },
+    }
+
+    # when
+    response = app_api_client.post_graphql(
+        MUTATION_TRANSACTION_UPDATE, variables, permissions=[permission_manage_payments]
+    )
+
+    # then
+    transaction.refresh_from_db()
+    content = get_graphql_content(response)
+    data = content["data"]["transactionUpdate"]["transaction"]
+    assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
+    assert transaction.app_identifier == app_api_client.app.identifier
+    assert transaction.app == app_api_client.app
+    assert transaction.user is None

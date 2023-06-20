@@ -1037,6 +1037,14 @@ class ProductVariantFilter(MetadataFilterBase):
         return queryset.filter(qs)
 
 
+class ProductVariantWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("ProductVariant"))
+
+    class Meta:
+        model = ProductVariant
+        fields = []
+
+
 class CollectionFilter(MetadataFilterBase):
     published = EnumFilter(
         input_class=CollectionPublished, method="filter_is_published"
@@ -1064,6 +1072,14 @@ class CollectionFilter(MetadataFilterBase):
         return queryset
 
 
+class CollectionWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Collection"))
+
+    class Meta:
+        model = Collection
+        fields = []
+
+
 class CategoryFilter(MetadataFilterBase):
     search = django_filters.CharFilter(method="category_filter_search")
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
@@ -1084,6 +1100,14 @@ class CategoryFilter(MetadataFilterBase):
         )
 
         return queryset.filter(name_slug_desc_qs)
+
+
+class CategoryWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Category"))
+
+    class Meta:
+        model = Category
+        fields = []
 
 
 class ProductTypeFilter(MetadataFilterBase):
@@ -1128,16 +1152,34 @@ class ProductVariantFilterInput(FilterInputObjectType):
         filterset_class = ProductVariantFilter
 
 
+class ProductVariantWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = ProductVariantWhere
+
+
 class CollectionFilterInput(ChannelFilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CollectionFilter
 
 
+class CollectionWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = CollectionWhere
+
+
 class CategoryFilterInput(FilterInputObjectType):
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
         filterset_class = CategoryFilter
+
+
+class CategoryWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_PRODUCTS
+        filterset_class = CategoryWhere
 
 
 class ProductTypeFilterInput(FilterInputObjectType):

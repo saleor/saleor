@@ -143,6 +143,7 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderByNumberLoader,
+    OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
     OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
@@ -381,6 +382,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     related_order = graphene.Field(
         lambda: Order, description="The order which is related to this order."
     )
+    related = graphene.Field(
+        lambda: OrderEvent,
+        description="The order event which is related to this event."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
@@ -560,6 +567,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
             return OrderByNumberLoader(info.context).load(order_pk_or_number)
 
         return OrderByIdLoader(info.context).load(order_pk)
+
+    @staticmethod
+    def resolve_related(root: models.OrderEvent, info):
+        if not root.related_id:
+            return None
+        return OrderEventsByIdLoader(info.context).load(root.related_id)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -1497,7 +1510,7 @@ class Order(ModelObjectType[models.Order]):
                 root, manager, lines
             ) or Decimal(0)
 
-        lines = OrderLinesByOrderIdLoader(info.context)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 

@@ -1,9 +1,10 @@
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, Mock, call
 
 import pytest
 import requests
 from django.core.management import call_command
 
+from ... import schema_version
 from ...core import JobStatus
 from ...permission.enums import get_permissions
 from ..models import App, AppInstallation
@@ -45,25 +46,35 @@ def test_creates_app_from_manifest_app_has_all_required_permissions():
     assert set(app.permissions.all()) == set(expected_permission)
 
 
-@pytest.mark.vcr
-def test_creates_app_from_manifest_sends_token(monkeypatch):
-    mocked_response = Mock()
-    mocked_response.status_code = 200
-    mocked_post = Mock(return_value=mocked_response)
+def test_creates_app_from_manifest_sends_token(monkeypatch, app_manifest):
+    mocked_get = Mock(return_value=Mock())
+    mocked_get.return_value.json = Mock(return_value=app_manifest)
 
+    mocked_post = Mock(return_value=Mock())
+    mocked_post.return_value.status_code = 200
+
+    monkeypatch.setattr(requests, "get", mocked_get)
     monkeypatch.setattr(requests, "post", mocked_post)
     manifest_url = "http://localhost:3000/manifest"
 
     call_command("install_app", manifest_url)
 
+    get_call = call(
+        manifest_url,
+        headers={"Saleor-Schema-Version": schema_version},
+        timeout=ANY,
+        allow_redirects=False,
+    )
+    mocked_get.assert_has_calls([get_call, get_call])
     mocked_post.assert_called_once_with(
-        "http://localhost:3000/register",
+        app_manifest["tokenTargetUrl"],
         headers={
             "Content-Type": "application/json",
             # X- headers will be deprecated in Saleor 4.0, proper headers are without X-
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
+            "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,
@@ -130,6 +141,7 @@ def test_sends_data_to_target_url(monkeypatch):
             "X-Saleor-Domain": "mirumee.com",
             "Saleor-Domain": "mirumee.com",
             "Saleor-Api-Url": "http://mirumee.com/graphql/",
+            "Saleor-Schema-Version": schema_version,
         },
         json={"auth_token": ANY},
         timeout=ANY,

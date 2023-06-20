@@ -6295,6 +6295,13 @@ def webhook(app):
 
 
 @pytest.fixture
+def webhook_without_name(app):
+    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
 def any_webhook(app):
     webhook = Webhook.objects.create(
         name="Any webhook", app=app, target_url="http://www.example.com/any"

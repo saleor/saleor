@@ -344,6 +344,15 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CategoryWhereInput
+
     """Sort categories."""
     sortBy: CategorySortingInput
 
@@ -396,6 +405,15 @@ type Query {
   collections(
     """Filtering options for collections."""
     filter: CollectionFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CollectionWhereInput
 
     """Sort collections."""
     sortBy: CollectionSortingInput
@@ -551,6 +569,15 @@ type Query {
 
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductVariantWhereInput
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -1582,7 +1609,7 @@ type Query {
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
   id: ID!
-  name: String!
+  name: String
 
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
@@ -5386,7 +5413,9 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
     address: AddressInput
   ): ProductPricingInfo
 
-  """Whether the product is in stock and visible or not."""
+  """
+  Whether the product is in stock, set as available for purchase in the given channel, and published.
+  """
   isAvailable(
     """
     Destination address used to find warehouses where stock availability for this product is checked. If address is empty, uses `Shop.companyAddress` or fallbacks to server's `settings.DEFAULT_COUNTRY` configuration.
@@ -5477,7 +5506,9 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   """Date when product is available for purchase."""
   availableForPurchaseAt: DateTime
 
-  """Whether the product is available for purchase."""
+  """
+  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
+  """
   isAvailableForPurchase: Boolean
 
   """
@@ -5933,13 +5964,17 @@ enum AttributeTypeEnum @doc(category: "Attributes") {
 
 """An enumeration."""
 enum MeasurementUnitsEnum {
+  MM
   CM
+  DM
   M
   KM
   FT
   YD
   INCH
+  SQ_MM
   SQ_CM
+  SQ_DM
   SQ_M
   SQ_KM
   SQ_FT
@@ -7463,7 +7498,9 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   """
   margin: Margin
 
-  """Whether the product is available for purchase."""
+  """
+  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
+  """
   isAvailableForPurchase: Boolean
 
   """
@@ -9630,7 +9667,9 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   lines: [CheckoutLine!]!
 
-  """The price of the shipping, with all the taxes included."""
+  """
+  The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
+  """
   shippingPrice: TaxedMoney!
 
   """The shipping method related with checkout."""
@@ -9784,7 +9823,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedBy: User
+  usedBy: User @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Email address of the user who bought or issued gift card.
@@ -9800,7 +9839,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedByEmail: String
+  usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
   lastUsedOn: DateTime
   expiryDate: Date
 
@@ -11292,6 +11331,15 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The order which is related to this order."""
   relatedOrder: Order
 
+  """
+  The order event which is related to this event.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  related: OrderEvent
+
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
 
@@ -11361,6 +11409,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
+  NOTE_UPDATED
   OTHER
 }
 
@@ -11995,6 +12044,17 @@ input CategoryFilterInput @doc(category: "Products") {
   slugs: [String!]
 }
 
+input CategoryWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CategoryWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CategoryWhereInput!]
+}
+
 input CategorySortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort categories."""
   direction: OrderDirection!
@@ -12039,6 +12099,17 @@ input CollectionFilterInput @doc(category: "Products") {
 enum CollectionPublished @doc(category: "Products") {
   PUBLISHED
   HIDDEN
+}
+
+input CollectionWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CollectionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CollectionWhereInput!]
 }
 
 input CollectionSortingInput @doc(category: "Products") {
@@ -12130,6 +12201,17 @@ input ProductVariantFilterInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   isPreorder: Boolean
   updatedAt: DateTimeRangeInput
+}
+
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [ProductVariantWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductVariantWhereInput!]
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {
@@ -14930,7 +15012,9 @@ type Mutation {
   ): DraftOrderUpdate @doc(category: "Orders")
 
   """
-  Adds note to the order. 
+  Adds note to the order.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14940,7 +15024,7 @@ type Mutation {
 
     """Fields required to create a note for the order."""
     input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders")
+  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `orderNoteAdd` instead.")
 
   """
   Cancel an order. 
@@ -15186,6 +15270,40 @@ type Mutation {
     """ID of a order line to remove its discount"""
     orderLineId: ID!
   ): OrderLineDiscountRemove @doc(category: "Orders")
+
+  """
+  Adds note to the order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteAdd(
+    """ID of the order to add a note for."""
+    order: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteAdd @doc(category: "Orders")
+
+  """
+  Updates note of an order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteUpdate(
+    """ID of the note."""
+    note: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteUpdate @doc(category: "Orders")
 
   """
   Mark order as manually paid. 
@@ -19686,7 +19804,9 @@ input ProductChannelListingCreateInput @doc(category: "Products") {
   """
   visibleInListings: Boolean
 
-  """Determine if product should be available for purchase."""
+  """
+  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
+  """
   isAvailableForPurchase: Boolean
 
   """
@@ -20066,7 +20186,9 @@ input ProductChannelListingAddInput @doc(category: "Products") {
   """
   visibleInListings: Boolean
 
-  """Determine if product should be available for purchase."""
+  """
+  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
+  """
   isAvailableForPurchase: Boolean
 
   """
@@ -22179,7 +22301,9 @@ input DraftOrderInput @doc(category: "Orders") {
 }
 
 """
-Adds note to the order. 
+Adds note to the order.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -22194,7 +22318,11 @@ type OrderAddNote @doc(category: "Orders") {
 }
 
 input OrderAddNoteInput @doc(category: "Orders") {
-  """Note message."""
+  """
+  Note message.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   message: String!
 }
 
@@ -22810,6 +22938,86 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Adds note to the order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteAdd @doc(category: "Orders") {
+  """Order with the note added."""
+  order: Order
+
+  """Order note created."""
+  event: OrderEvent
+  errors: [OrderNoteAddError!]!
+}
+
+type OrderNoteAddError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteAddErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteAddErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  REQUIRED
+}
+
+input OrderNoteInput @doc(category: "Orders") {
+  """Note message."""
+  message: String!
+}
+
+"""
+Updates note of an order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteUpdate @doc(category: "Orders") {
+  """Order with the note updated."""
+  order: Order
+
+  """Order note updated."""
+  event: OrderEvent
+  errors: [OrderNoteUpdateError!]!
+}
+
+type OrderNoteUpdateError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteUpdateErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteUpdateErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
 }
 
 """
@@ -27197,7 +27405,9 @@ union IssuingPrincipal = App | User
 
 """An enumeration."""
 enum DistanceUnitsEnum {
+  MM
   CM
+  DM
   M
   KM
   FT
@@ -27207,7 +27417,9 @@ enum DistanceUnitsEnum {
 
 """An enumeration."""
 enum AreaUnitsEnum {
+  SQ_MM
   SQ_CM
+  SQ_DM
   SQ_M
   SQ_KM
   SQ_FT
