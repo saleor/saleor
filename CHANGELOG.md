@@ -15,7 +15,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Expand metric units to support more types of products. - #13043 by @FremahA
-- Added error handling for invalid input fields in the `AccountAddressCreate` mutation. - #13086 by @FremahA
+- Add error handling for invalid input fields in the `AccountAddressCreate` mutation. - #13086 by @FremahA
 - Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
 
 
