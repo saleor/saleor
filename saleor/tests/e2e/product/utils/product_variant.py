@@ -22,7 +22,6 @@ mutation createVariant($input: ProductVariantCreateInput!) {
 
 def create_product_variant(
     staff_api_client,
-    permissions,
     product_id,
     variant_name="Test product variant",
     stocks=None,
@@ -42,7 +41,6 @@ def create_product_variant(
     response = staff_api_client.post_graphql(
         PRODUCT_VARIANT_CREATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

@@ -25,7 +25,6 @@ mutation createProduct($input: ProductCreateInput!) {
 
 def create_product(
     staff_api_client,
-    permissions,
     product_type_id,
     category_id,
     product_name="Test product",
@@ -41,7 +40,6 @@ def create_product(
     response = staff_api_client.post_graphql(
         PRODUCT_CREATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

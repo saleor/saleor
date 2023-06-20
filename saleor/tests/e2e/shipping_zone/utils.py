@@ -26,7 +26,6 @@ mutation createShipping($input: ShippingZoneCreateInput!) {
 
 def create_shipping_zone(
     staff_api_client,
-    permissions,
     name="Test shipping zone",
     warehouse_ids=None,
     channel_ids=None,
@@ -48,7 +47,6 @@ def create_shipping_zone(
     response = staff_api_client.post_graphql(
         SHIPPING_ZONE_CREATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

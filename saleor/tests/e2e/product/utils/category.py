@@ -19,7 +19,6 @@ mutation CreateCategory($input: CategoryInput!) {
 
 def create_category(
     staff_api_client,
-    permissions,
     name="Test category",
 ):
     variables = {
@@ -31,7 +30,6 @@ def create_category(
     response = staff_api_client.post_graphql(
         CATEGORY_CREATE_MUTATION,
         variables,
-        permissions=permissions,
         check_no_permissions=False,
     )
     content = get_graphql_content(response)

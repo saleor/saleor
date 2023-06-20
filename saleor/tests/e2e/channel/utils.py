@@ -28,7 +28,6 @@ mutation ChannelCreate($input: ChannelCreateInput!) {
 
 def create_channel(
     staff_api_client,
-    permissions,
     warehouse_ids=None,
     channel_name="Test channel",
     slug="test-slug",
@@ -50,9 +49,7 @@ def create_channel(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        CHANNEL_CREATE_MUTATION, variables, permissions=permissions
-    )
+    response = staff_api_client.post_graphql(CHANNEL_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert content["data"]["channelCreate"]["errors"] == []
