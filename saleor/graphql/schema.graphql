@@ -5414,7 +5414,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   ): ProductPricingInfo
 
   """
-  Whether the product is in stock, set as available for purchase in the given channel, and visible.
+  Whether the product is in stock, set as available for purchase in the given channel, and published.
   """
   isAvailable(
     """
@@ -5507,7 +5507,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   availableForPurchaseAt: DateTime
 
   """
-  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock.
+  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
   """
   isAvailableForPurchase: Boolean
 
@@ -7495,7 +7495,7 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   margin: Margin
 
   """
-  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts in this channel. This does not guarantee the availability of stock.
+  Refers to a state that can be set by admins to control whether a product is available for purchase in storefronts in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
   """
   isAvailableForPurchase: Boolean
 
@@ -19703,7 +19703,7 @@ input ProductChannelListingCreateInput @doc(category: "Products") {
   visibleInListings: Boolean
 
   """
-  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock.
+  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
   """
   isAvailableForPurchase: Boolean
 
@@ -20085,7 +20085,7 @@ input ProductChannelListingAddInput @doc(category: "Products") {
   visibleInListings: Boolean
 
   """
-  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock.
+  Determines if product should be available for purchase in this channel. This does not guarantee the availability of stock. When set to `False`, this product is still visible to customers, but it cannot be purchased.
   """
   isAvailableForPurchase: Boolean
 

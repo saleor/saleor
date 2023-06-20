@@ -92,7 +92,8 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
         description=(
             "Refers to a state that can be set by admins to control whether a product "
             "is available for purchase in storefronts in this channel. This does not "
-            "guarantee the availability of stock."
+            "guarantee the availability of stock. When set to `False`, this product is "
+            "still visible to customers, but it cannot be purchased."
         )
     )
     pricing = graphene.Field(

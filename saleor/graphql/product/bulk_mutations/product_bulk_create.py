@@ -85,7 +85,8 @@ class ProductChannelListingCreateInput(BaseInputObjectType):
     is_available_for_purchase = graphene.Boolean(
         description=(
             "Determines if product should be available for purchase in this channel. "
-            "This does not guarantee the availability of stock."
+            "This does not guarantee the availability of stock. When set to `False`, "
+            "this product is still visible to customers, but it cannot be purchased."
         ),
     )
     available_for_purchase_at = graphene.DateTime(

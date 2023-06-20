@@ -842,7 +842,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         address=destination_address_argument,
         description=(
             "Whether the product is in stock, set as available for purchase in the "
-            "given channel, and visible."
+            "given channel, and published."
         ),
     )
     tax_type = graphene.Field(
@@ -940,7 +940,8 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
         description=(
             "Refers to a state that can be set by admins to control whether a product "
             "is available for purchase in storefronts. This does not guarantee the "
-            "availability of stock."
+            "availability of stock. When set to `False`, this product is still visible "
+            "to customers, but it cannot be purchased."
         )
     )
     tax_class = PermissionsField(
