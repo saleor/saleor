@@ -67,6 +67,7 @@ class Migration(migrations.Migration):
                     ("FULFILLMENT_AWAITS_APPROVAL", "fulfillment_awaits_approval"),
                     ("TRACKING_UPDATED", "tracking_updated"),
                     ("NOTE_ADDED", "note_added"),
+                    ("NOTE_UPDATED", "note_updated"),
                     ("OTHER", "other"),
                 ],
                 max_length=255,
