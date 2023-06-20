@@ -34,7 +34,6 @@ DEFAULT_ADDRESS = {
 
 def create_warehouse(
     staff_api_client,
-    permissions,
     name="Test warehouse",
     slug="test-slug",
     address=DEFAULT_ADDRESS,
@@ -47,9 +46,7 @@ def create_warehouse(
         }
     }
 
-    response = staff_api_client.post_graphql(
-        WAREHOUSE_CREATE_MUTATION, variables, permissions=permissions
-    )
+    response = staff_api_client.post_graphql(WAREHOUSE_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
 
     assert content["data"]["createWarehouse"]["errors"] == []
