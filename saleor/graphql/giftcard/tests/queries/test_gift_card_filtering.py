@@ -500,13 +500,13 @@ def test_query_filter_gift_cards_by_metadata(
 
 def test_query_filter_gift_cards_by_created_by_email(
     staff_api_client,
-    gift_card2,
+    gift_card,
     permission_manage_gift_card,
 ):
     # given
     query = QUERY_GIFT_CARDS
 
-    variables = {"filter": {"createdByEmail": gift_card2.created_by_email}}
+    variables = {"filter": {"createdByEmail": gift_card.created_by_email}}
 
     # when
     response = staff_api_client.post_graphql(
