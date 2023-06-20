@@ -1170,6 +1170,23 @@ class TransactionUpdate(TransactionCreate):
             recalculate_transaction_amounts(instance)
 
     @classmethod
+    def assign_app_to_transaction_data_if_missing(
+        cls,
+        transaction: payment_models.TransactionItem,
+        transaction_data: dict,
+        app: Optional["App"],
+    ):
+        """Assign app to transaction if missing.
+
+        TransactionItem created before 3.13, doesn't have a relation to the owner app.
+        When app updates a transaction, we need to assign the app to the transaction.
+        """
+        transaction_has_assigned_app = transaction.app_id or transaction.app_identifier
+        if app and not transaction.user_id and not transaction_has_assigned_app:
+            transaction_data["app"] = app
+            transaction_data["app_identifier"] = app.identifier
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         _root,
@@ -1198,6 +1215,7 @@ class TransactionUpdate(TransactionCreate):
 
         if transaction:
             cls.validate_transaction_input(instance, transaction)
+            cls.assign_app_to_transaction_data_if_missing(instance, transaction, app)
             cls.cleanup_metadata_data(transaction)
             money_data = cls.get_money_data_from_input(transaction)
             cls.update_transaction(instance, transaction, money_data, user, app)
@@ -1456,6 +1474,36 @@ class TransactionEventReport(ModelMutation):
         cls._meta.arguments.update(arguments)
 
     @classmethod
+    def update_transaction(
+        cls,
+        transaction: payment_models.TransactionItem,
+        available_actions: Optional[list[str]] = None,
+        app: Optional["App"] = None,
+    ):
+        fields_to_update = [
+            "authorized_value",
+            "charged_value",
+            "refunded_value",
+            "canceled_value",
+            "authorize_pending_value",
+            "charge_pending_value",
+            "refund_pending_value",
+            "cancel_pending_value",
+        ]
+        if available_actions is not None:
+            transaction.available_actions = available_actions
+            fields_to_update.append("available_actions")
+
+        recalculate_transaction_amounts(transaction, save=False)
+        transaction_has_assigned_app = transaction.app_id or transaction.app_identifier
+        if app and not transaction.user_id and not transaction_has_assigned_app:
+            transaction.app_id = app.pk
+            transaction.app_identifier = app.identifier
+            fields_to_update.append("app")
+            fields_to_update.append("app_identifier")
+        transaction.save(update_fields=fields_to_update)
+
+    @classmethod
     def perform_mutation(  # type: ignore[override]
         cls,
         root,
@@ -1553,10 +1601,11 @@ class TransactionEventReport(ModelMutation):
             previous_authorized_value = transaction.authorized_value
             previous_charged_value = transaction.charged_value
             previous_refunded_value = transaction.refunded_value
-            if available_actions is not None:
-                transaction.available_actions = available_actions
-                transaction.save(update_fields=["available_actions"])
-            recalculate_transaction_amounts(transaction)
+            cls.update_transaction(
+                transaction,
+                available_actions=available_actions,
+                app=app,
+            )
             if transaction.order_id:
                 order = cast(order_models.Order, transaction.order)
                 update_order_search_vector(order, save=False)

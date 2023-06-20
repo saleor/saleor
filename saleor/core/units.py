@@ -1,5 +1,7 @@
 class DistanceUnits:
+    MM = "mm"
     CM = "cm"
+    DM = "dm"
     M = "m"
     KM = "km"
     FT = "ft"
@@ -7,7 +9,9 @@ class DistanceUnits:
     INCH = "inch"
 
     CHOICES = [
+        (MM, "Millimeter"),
         (CM, "Centimeter"),
+        (DM, "Decimeter"),
         (M, "Meter"),
         (KM, "Kilometers"),
         (FT, "Feet"),
@@ -17,7 +21,9 @@ class DistanceUnits:
 
 
 class AreaUnits:
+    SQ_MM = "sq_mm"
     SQ_CM = "sq_cm"
+    SQ_DM = "sq_dm"
     SQ_M = "sq_m"
     SQ_KM = "sq_km"
     SQ_FT = "sq_ft"
@@ -25,7 +31,9 @@ class AreaUnits:
     SQ_INCH = "sq_inch"
 
     CHOICES = [
+        (SQ_MM, "Square millimeter"),
         (SQ_CM, "Square centimeters"),
+        (SQ_DM, "Square decimeter"),
         (SQ_M, "Square meters"),
         (SQ_KM, "Square kilometers"),
         (SQ_FT, "Square feet"),

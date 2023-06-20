@@ -1359,6 +1359,7 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 @pytest.fixture
 def color_attribute(db):
     attribute = Attribute.objects.create(
+        external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
         type=AttributeType.PRODUCT_TYPE,
@@ -1366,8 +1367,38 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue1ExternalReference",
+        attribute=attribute,
+        name="Red",
+        slug="red",
+    )
+    AttributeValue.objects.create(
+        external_reference="colorAttributeValue2ExternalReference",
+        attribute=attribute,
+        name="Blue",
+        slug="blue",
+    )
+    return attribute
+
+
+@pytest.fixture
+def color_attribute_with_translations(db):
+    attribute = Attribute.objects.create(
+        slug="color",
+        name="Color",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    )
+    value1 = AttributeValue.objects.create(attribute=attribute, name="Red", slug="red")
     AttributeValue.objects.create(attribute=attribute, name="Blue", slug="blue")
+    attribute.translations.create(language_code="pl", name="Czerwony")
+    attribute.translations.create(language_code="de", name="Rot")
+    value1.translations.create(language_code="pl", plain_text="Old Kolor")
+    value1.translations.create(language_code="de", name="Rot", plain_text="Old Kolor")
+
     return attribute
 
 
@@ -1663,6 +1694,7 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 @pytest.fixture
 def size_attribute(db):  # pylint: disable=W0613
     attribute = Attribute.objects.create(
+        external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
         type=AttributeType.PRODUCT_TYPE,
@@ -2007,6 +2039,14 @@ def categories(db):
 
 
 @pytest.fixture
+def category_list():
+    category_1 = Category.objects.create(name="Category 1", slug="category-1")
+    category_2 = Category.objects.create(name="Category 2", slug="category-2")
+    category_3 = Category.objects.create(name="Category 3", slug="category-3")
+    return category_1, category_2, category_3
+
+
+@pytest.fixture
 def categories_tree(db, product_type, channel_USD):  # pylint: disable=W0613
     parent = Category.objects.create(name="Parent", slug="parent")
     parent.children.create(name="Child", slug="child")
@@ -2144,6 +2184,20 @@ def product_type(color_attribute, size_attribute, default_tax_class):
         size_attribute, through_defaults={"variant_selection": True}
     )
     return product_type
+
+
+@pytest.fixture
+def product_type_list():
+    product_type_1 = ProductType.objects.create(
+        name="Type 1", slug="type-1", kind=ProductTypeKind.NORMAL
+    )
+    product_type_2 = ProductType.objects.create(
+        name="Type 2", slug="type-2", kind=ProductTypeKind.NORMAL
+    )
+    product_type_3 = ProductType.objects.create(
+        name="Type 3", slug="type-3", kind=ProductTypeKind.NORMAL
+    )
+    return product_type_1, product_type_2, product_type_3
 
 
 @pytest.fixture
@@ -6235,6 +6289,13 @@ def webhook(app):
     webhook = Webhook.objects.create(
         name="Simple webhook", app=app, target_url="http://www.example.com/test"
     )
+    webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def webhook_without_name(app):
+    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
     webhook.events.create(event_type=WebhookEventAsyncType.ORDER_CREATED)
     return webhook
 

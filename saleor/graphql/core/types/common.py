@@ -25,6 +25,7 @@ from ...core.doc_category import (
     DOC_CATEGORY_USERS,
     DOC_CATEGORY_WEBHOOKS,
 )
+from ...core.scalars import Decimal
 from ..descriptions import (
     ADDED_IN_36,
     ADDED_IN_312,
@@ -36,6 +37,8 @@ from ..enums import (
     AccountErrorCode,
     AppErrorCode,
     AttributeErrorCode,
+    AttributeTranslateErrorCode,
+    AttributeValueTranslateErrorCode,
     ChannelErrorCode,
     CheckoutErrorCode,
     CollectionErrorCode,
@@ -711,9 +714,23 @@ class TranslationError(Error):
     code = TranslationErrorCode(description="The error code.", required=True)
 
 
+class TranslationBulkError(BulkError):
+    code = TranslationErrorCode(description="The error code.", required=True)
+
+
 class SeoInput(graphene.InputObjectType):
     title = graphene.String(description="SEO title.")
     description = graphene.String(description="SEO description.")
+
+
+class AttributeBulkTranslateError(BulkError):
+    code = AttributeTranslateErrorCode(description="The error code.", required=True)
+
+
+class AttributeValueBulkTranslateError(BulkError):
+    code = AttributeValueTranslateErrorCode(
+        description="The error code.", required=True
+    )
 
 
 class Weight(graphene.ObjectType):
@@ -760,6 +777,11 @@ class PriceInput(graphene.InputObjectType):
 class PriceRangeInput(graphene.InputObjectType):
     gte = graphene.Float(description="Price greater than or equal to.", required=False)
     lte = graphene.Float(description="Price less than or equal to.", required=False)
+
+
+class DecimalRangeInput(graphene.InputObjectType):
+    gte = Decimal(description="Decimal value greater than or equal to.", required=False)
+    lte = Decimal(description="Decimal value less than or equal to.", required=False)
 
 
 class DateRangeInput(graphene.InputObjectType):

@@ -2,12 +2,30 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-3.14.0 [Unreleased]
+# 3.15.0 [Unreleased]
 
 ### Breaking changes
 
-- `path` field for errors related with product variants input in `ProductBulkCreate` will return more detailed paths: `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
+### GraphQL API
+
+- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+
+### Saleor Apps
+- Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
+
+### Other changes
+- Expand metric units to support more types of products. - #13043 by @FremahA
+- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
+
+
+# 3.14.0
+
+### Breaking changes
+
+- Gift cards can now be applied on a checkout without an email, fields `used_by` and `used_by_email` on GiftCard model are deprecated and will be removed in 4.0. - #13019 by @tomaszszymanski129
+- The `ProductBulkCreateError.path` field for errors related to product variants input in the `productBulkCreate` mutation will now return more detailed error paths, e.g. `variants.1.stocks.0.warehouse` instead of `variants.1.warehouses` - #12534 by @SzymJ
 - The `discounts` field has been removed from the listed plugin manager methods. Instead of the `discounts` argument, an applied `discount` is now assigned to each line in the `CheckoutLineInfo` inside the `CheckoutInfo` object. - #11934 by @fowczarek
+
   - `calculate_checkout_total`
   - `calculate_checkout_subtotal`
   - `calculate_checkout_shipping`
@@ -17,9 +35,13 @@ All notable, unreleased changes to this project will be documented in this file.
   - `get_checkout_line_tax_rate`
   - `preprocess_order_creation`
 
+  This breaking change affect any custom plugins in open-source Saleor, if they override any of the above mentioned methods.
+
 ### GraphQL API
 
-- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
+- [Preview] Add `orderBulkCreate` mutation - #12269 by @zedzior
+- [Preview] Add `attributeBulkTranslate` and `attributeValueBulkTranslate` mutations - #12965 by @SzymJ
+- [Preview] Add `where` and `search` filtering option on `products` query - #12960 by @zedzior
 - Allow setting metadata during user creating and updating - #12577 by @IKarbowiak
   - The following mutations have been updated:
     - `customerCreate`
@@ -28,34 +50,37 @@ All notable, unreleased changes to this project will be documented in this file.
     - `staffUpdate`
     - `accountUpdate`
     - `customerBulkUpdate`
-- Add mutation to create checkout from order - #12628 by @korycins
+- Add `checkoutCreateFromOrder` mutation to create checkout from order - #12628 by @korycins
 - Allow setting metadata during invoice creating and updating - #12641 by @IKarbowiak
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Limit staff users to access only certain channels. Granted permissions only apply to channels that the user has already been given access to.
+- Add `enableAccountConfirmationByEmail` option in the `shopSettingsUpdate` mutation, which allows controlling whether account confirmation should be sent on new account registrations (before it was controlled by env variable `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL`) - #12781 by @SzymJ
+- Add `path` field to `ProductVariantBulkError` - #12534 by @SzymJ
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
-- [Preview] Add `OrderBulkCreate` mutation - #12269 by @zedzior
-- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
+- Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
+- [Preview] Add `where` filtering option with `ids` filter for `product_variants`, `collections` and `categories` query - #13004 by @zedzior
 
 ### Saleor Apps
 
 - Introduce channel permissions - #10423 by @IKarbowiak
   - Extend the OpenID connect configuration with `Staff user domains` and `Default permission group name for new staff users`.
-  - When the OpenID plugin is active, the default staff permission group is created and all staff users are assigned to it.
+  - When the OpenID plugin is active, the default staff permission group is created, and all staff users are assigned to it.
   - To ensure the proper functioning of OAuth permissions, ensure that the
-  `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
+    `Default permission group name for new staff users` is set to a permission group with no channel restrictions.
+- [Preview] Add `ORDER_BULK_CREATED` event, which is sent for successfully imported orders - #12536 by @zedzior
 
 ### Other changes
 
 - Fix saving `description_plaintext` for product - #12586 by @SzymJ
-- Remove default `EMAIL_URL` value pointing to console output; from now on EMAIL_URL has to be set explicitly - #12580 by @maarcingebala
 - Fix sending `product_created` event in `ProductBulkCreate` mutation - #12605 by @SzymJ
 - Add `ORDER_REFUNDED`, `ORDER_FULLY_REFUNDED`, `ORDER_PAID` webhooks - #12533 by @korycins
-- Add functionality to automatically delete expired orders - #12710 by @korycins
+- Add functionality to delete expired orders automatically - #12710 by @korycins
 - Handle error raised by 0Auth when fetching token - #12672 by @IKarbowiakg
-- Fix adding new lines to draft order when existing line has deleted product - #12711 by @SzymJ
-- Upgrade checkout `complete_checkout` to assign guest checkout to account if exists - #12758 by @FremahA
-- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @SzymJ
+- Fix adding new lines to draft order when the existing line has deleted product - #12711 by @SzymJ
+- Upgrade checkout `complete_checkout` to assign guest checkout to account if it exists - #12758 by @FremahA
+- Remove `ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL` env variable from settings - ##12781 by @Szym
+- Remove default `EMAIL_URL` value pointing to console output; from now on `EMAIL_URL` has to be set explicitly - #12580 by @maarcingebala
 - Match `Orders` to `User` when creating user using OIDC plugin. - #12863 by @kadewu
 - Allow defining a custom price in draft orders - #12855 by @KirillPlaksin
 - Update price resolvers - use `discounted_price` on `ProductChannelListing` and `ProductVariantChannelListing` channel listings to return the pricing - #12713 by @IKarbowiak

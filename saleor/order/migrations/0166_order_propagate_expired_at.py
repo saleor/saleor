@@ -1,16 +1,34 @@
-from django.apps import apps as registry
 from django.db import migrations
-from django.db.models.signals import post_migrate
+from django.utils import timezone
 
-from .tasks.saleor3_14 import order_propagate_expired_at_task
+# Batch size of size 5000 is about 5MB memory usage in task
+BATCH_SIZE = 5000
+
+
+def queryset_in_batches(queryset):
+    """Slice a queryset into batches.
+
+    Input queryset should be sorted be pk.
+    """
+    start_pk = 0
+
+    while True:
+        qs = queryset.filter(pk__gt=start_pk)[:BATCH_SIZE]
+        pks = list(qs.values_list("pk", flat=True))
+
+        if not pks:
+            break
+
+        yield pks
+
+        start_pk = pks[-1]
 
 
 def propagate_order_expired_at(apps, _schema_editor):
-    def on_migrations_complete(sender=None, **kwargs):
-        order_propagate_expired_at_task.delay()
-
-    sender = registry.get_app_config("order")
-    post_migrate.connect(on_migrations_complete, weak=False, sender=sender)
+    Order = apps.get_model("order", "Order")
+    qs = Order.objects.filter(status="expired", expired_at__isnull=True).order_by("pk")
+    for order_ids in queryset_in_batches(qs):
+        Order.objects.filter(id__in=order_ids).update(expired_at=timezone.now())
 
 
 class Migration(migrations.Migration):

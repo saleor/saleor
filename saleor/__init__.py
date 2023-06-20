@@ -3,7 +3,7 @@ import pillow_avif  # noqa: F401 # imported for side effects
 from .celeryconf import app as celery_app
 
 __all__ = ["celery_app"]
-__version__ = "3.14.0-a"
+__version__ = "3.15.0-a.0"
 
 
 class PatchedSubscriberExecutionContext(object):
@@ -18,3 +18,7 @@ class PatchedSubscriberExecutionContext(object):
 
     def __getattr__(self, name):
         return getattr(self.exe_context, name)
+
+
+_major, _minor, _ = __version__.split(".", 2)
+schema_version = f"{_major}.{_minor}"

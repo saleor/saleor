@@ -344,6 +344,15 @@ type Query {
     """Filtering options for categories."""
     filter: CategoryFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CategoryWhereInput
+
     """Sort categories."""
     sortBy: CategorySortingInput
 
@@ -397,6 +406,15 @@ type Query {
     """Filtering options for collections."""
     filter: CollectionFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: CollectionWhereInput
+
     """Sort collections."""
     sortBy: CollectionSortingInput
 
@@ -448,8 +466,24 @@ type Query {
     """Filtering options for products."""
     filter: ProductFilterInput
 
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
     """Sort products."""
     sortBy: ProductOrder
+
+    """
+    Search products.
+    
+    Added in Saleor 3.14.
+    """
+    search: String
 
     """Slug of a channel for which the data should be returned."""
     channel: String
@@ -535,6 +569,15 @@ type Query {
 
     """Filtering options for product variant."""
     filter: ProductVariantFilterInput
+
+    """
+    Where filtering options.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductVariantWhereInput
 
     """Sort products variants."""
     sortBy: ProductVariantSortingInput
@@ -1566,7 +1609,7 @@ type Query {
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
   id: ID!
-  name: String!
+  name: String
 
   """List of webhook events."""
   events: [WebhookEvent!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `asyncEvents` or `syncEvents` instead.")
@@ -5902,13 +5945,17 @@ enum AttributeTypeEnum @doc(category: "Attributes") {
 
 """An enumeration."""
 enum MeasurementUnitsEnum {
+  MM
   CM
+  DM
   M
   KM
   FT
   YD
   INCH
+  SQ_MM
   SQ_CM
+  SQ_DM
   SQ_M
   SQ_KM
   SQ_FT
@@ -6338,6 +6385,15 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     filter: ProductFilterInput
 
     """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
+
+    """
     Sort products.
     
     Added in Saleor 3.10.
@@ -6545,6 +6601,123 @@ input PriceRangeInput {
 
   """Price less than or equal to."""
   lte: Float
+}
+
+input ProductWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """Filter by product name."""
+  name: StringFilterInput
+
+  """Filter by product slug."""
+  slug: StringFilterInput
+
+  """Filter by product type."""
+  productType: GlobalIDFilterInput
+
+  """Filter by product category."""
+  category: GlobalIDFilterInput
+
+  """Filter by collection."""
+  collection: GlobalIDFilterInput
+
+  """Filter by availability for purchase."""
+  isAvailable: Boolean
+
+  """Filter by public visibility."""
+  isPublished: Boolean
+
+  """Filter by visibility on the channel."""
+  isVisibleInListing: Boolean
+
+  """Filter by the publication date."""
+  publishedFrom: DateTime
+
+  """Filter by the date of availability for purchase."""
+  availableFrom: DateTime
+
+  """Filter by product with category assigned."""
+  hasCategory: Boolean
+
+  """Filter by product variant price."""
+  price: DecimalFilterInput
+
+  """Filter by the lowest variant price after discounts."""
+  minimalPrice: DecimalFilterInput
+
+  """Filter by attributes associated with the product."""
+  attributes: [AttributeInput!]
+
+  """Filter by variants having specific stock status."""
+  stockAvailability: StockAvailability
+
+  """Filter by stock of the product variant."""
+  stocks: ProductStockFilterInput
+
+  """Filter on whether product is a gift card or not."""
+  giftCard: Boolean
+
+  """Filter by product with preordered variants."""
+  hasPreorderedVariants: Boolean
+
+  """Filter by when was the most recent update."""
+  updatedAt: DateTimeRangeInput
+
+  """List of conditions that must be met."""
+  AND: [ProductWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductWhereInput!]
+}
+
+"""
+Define the filtering options for foreign key fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input GlobalIDFilterInput {
+  """The value equal to."""
+  eq: ID
+
+  """The value included in."""
+  oneOf: [ID!]
+}
+
+"""
+Define the filtering options for decimal fields.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+input DecimalFilterInput {
+  """The value equal to."""
+  eq: Decimal
+
+  """The value included in."""
+  oneOf: [Decimal!]
+
+  """The value in range."""
+  range: DecimalRangeInput
+}
+
+"""
+Custom Decimal implementation.
+
+Returns Decimal as a float in the API,
+parses float to the Decimal on the way back.
+"""
+scalar Decimal
+
+input DecimalRangeInput {
+  """Decimal value greater than or equal to."""
+  gte: Decimal
+
+  """Decimal value less than or equal to."""
+  lte: Decimal
 }
 
 input ProductOrder @doc(category: "Products") {
@@ -7415,6 +7588,15 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   products(
     """Filtering options for products."""
     filter: ProductFilterInput
+
+    """
+    Filtering options for products.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    where: ProductWhereInput
 
     """Sort products."""
     sortBy: ProductOrder
@@ -9618,7 +9800,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedBy: User
+  usedBy: User @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """
   Email address of the user who bought or issued gift card.
@@ -9634,7 +9816,7 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   
   Added in Saleor 3.1.
   """
-  usedByEmail: String
+  usedByEmail: String @deprecated(reason: "This field will be removed in Saleor 4.0.")
   lastUsedOn: DateTime
   expiryDate: Date
 
@@ -11111,6 +11293,15 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The order which is related to this order."""
   relatedOrder: Order
 
+  """
+  The order event which is related to this event.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  related: OrderEvent
+
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
 
@@ -11167,6 +11358,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   FULFILLMENT_AWAITS_APPROVAL
   TRACKING_UPDATED
   NOTE_ADDED
+  NOTE_UPDATED
   OTHER
 }
 
@@ -11743,6 +11935,17 @@ input CategoryFilterInput @doc(category: "Products") {
   slugs: [String!]
 }
 
+input CategoryWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CategoryWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CategoryWhereInput!]
+}
+
 input CategorySortingInput @doc(category: "Products") {
   """Specifies the direction in which to sort categories."""
   direction: OrderDirection!
@@ -11787,6 +11990,17 @@ input CollectionFilterInput @doc(category: "Products") {
 enum CollectionPublished @doc(category: "Products") {
   PUBLISHED
   HIDDEN
+}
+
+input CollectionWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [CollectionWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [CollectionWhereInput!]
 }
 
 input CollectionSortingInput @doc(category: "Products") {
@@ -11878,6 +12092,17 @@ input ProductVariantFilterInput @doc(category: "Products") {
   metadata: [MetadataFilter!]
   isPreorder: Boolean
   updatedAt: DateTimeRangeInput
+}
+
+input ProductVariantWhereInput @doc(category: "Products") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+
+  """List of conditions that must be met."""
+  AND: [ProductVariantWhereInput!]
+
+  """A list of conditions of which at least one must be met."""
+  OR: [ProductVariantWhereInput!]
 }
 
 input ProductVariantSortingInput @doc(category: "Products") {
@@ -14661,7 +14886,9 @@ type Mutation {
   ): DraftOrderUpdate @doc(category: "Orders")
 
   """
-  Adds note to the order. 
+  Adds note to the order.
+  
+  DEPRECATED: this mutation will be removed in Saleor 4.0. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
   """
@@ -14671,7 +14898,7 @@ type Mutation {
 
     """Fields required to create a note for the order."""
     input: OrderAddNoteInput!
-  ): OrderAddNote @doc(category: "Orders")
+  ): OrderAddNote @doc(category: "Orders") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `orderNoteAdd` instead.")
 
   """
   Cancel an order. 
@@ -14917,6 +15144,40 @@ type Mutation {
     """ID of a order line to remove its discount"""
     orderLineId: ID!
   ): OrderLineDiscountRemove @doc(category: "Orders")
+
+  """
+  Adds note to the order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteAdd(
+    """ID of the order to add a note for."""
+    order: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteAdd @doc(category: "Orders")
+
+  """
+  Updates note of an order.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_ORDERS.
+  """
+  orderNoteUpdate(
+    """ID of the note."""
+    note: ID!
+
+    """Fields required to create a note for the order."""
+    input: OrderNoteInput!
+  ): OrderNoteUpdate @doc(category: "Orders")
 
   """
   Mark order as manually paid. 
@@ -16168,7 +16429,7 @@ type Mutation {
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
-  ): OrderCreateFromCheckout @doc(category: "Checkout")
+  ): OrderCreateFromCheckout @doc(category: "Orders")
 
   """
   Creates new channel. 
@@ -16300,6 +16561,23 @@ type Mutation {
   ): AttributeTranslate @doc(category: "Attributes")
 
   """
+  Creates/updates translations for attributes.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attributes translations."""
+    translations: [AttributeBulkTranslateInput!]!
+  ): AttributeBulkTranslate @doc(category: "Attributes")
+
+  """
   Deletes attributes. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -16368,6 +16646,23 @@ type Mutation {
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
   ): AttributeValueUpdate @doc(category: "Attributes")
+
+  """
+  Creates/updates translations for attributes values.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  attributeValueBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of attribute values translations."""
+    translations: [AttributeValueBulkTranslateInput!]!
+  ): AttributeValueBulkTranslate @doc(category: "Attributes")
 
   """
   Creates/updates translations for an attribute value. 
@@ -19113,26 +19408,33 @@ input AttributeValueInput @doc(category: "Attributes") {
   id: ID
 
   """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
+
+  """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created. This field will be removed in Saleor 4.0.
   """
   values: [String!]
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   dropdown: AttributeValueSelectableTypeInput
 
   """
-  Attribute value ID.
+  Attribute value ID or external reference.
   
   Added in Saleor 3.9.
   """
   swatch: AttributeValueSelectableTypeInput
 
   """
-  List of attribute value IDs.
+  List of attribute value IDs or external references.
   
   Added in Saleor 3.9.
   """
@@ -19171,13 +19473,24 @@ input AttributeValueInput @doc(category: "Attributes") {
 }
 
 """
-Represents attribute value. If no ID provided, value will be resolved. 
+Represents attribute value.
+1. If ID is provided, then attribute value will be resolved by ID.
+2. If externalReference is provided, then attribute value will be resolved by external reference.
+3. If value is provided, then attribute value will be resolved by value. If this attribute value doesn't exist, then it will be created.
+4. If externalReference and value is provided then new attribute value will be created.
 
 Added in Saleor 3.9.
 """
 input AttributeValueSelectableTypeInput @doc(category: "Attributes") {
   """ID of an attribute value."""
   id: ID
+
+  """
+  External reference of an attribute value.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.
@@ -19437,6 +19750,13 @@ input ProductVariantBulkCreateInput @doc(category: "Products") {
 input BulkAttributeValueInput @doc(category: "Products") {
   """ID of the selected attribute."""
   id: ID
+
+  """
+  External ID of this attribute.
+  
+  Added in Saleor 3.14.
+  """
+  externalReference: String
 
   """
   The value or slug of an attribute to resolve. If the passed value is non-existent, it will be created.This field will be removed in Saleor 4.0.
@@ -21739,7 +22059,9 @@ input DraftOrderInput @doc(category: "Orders") {
 }
 
 """
-Adds note to the order. 
+Adds note to the order.
+
+DEPRECATED: this mutation will be removed in Saleor 4.0. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
 """
@@ -21754,7 +22076,11 @@ type OrderAddNote @doc(category: "Orders") {
 }
 
 input OrderAddNoteInput @doc(category: "Orders") {
-  """Note message."""
+  """
+  Note message.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
   message: String!
 }
 
@@ -22059,14 +22385,6 @@ input OrderGrantRefundCreateInput @doc(category: "Orders") {
 }
 
 """
-Custom Decimal implementation.
-
-Returns Decimal as a float in the API,
-parses float to the Decimal on the way back.
-"""
-scalar Decimal
-
-"""
 Updates granted refund.
 
 Added in Saleor 3.13.
@@ -22236,6 +22554,86 @@ type OrderLineDiscountRemove @doc(category: "Orders") {
   order: Order
   orderErrors: [OrderError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [OrderError!]!
+}
+
+"""
+Adds note to the order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteAdd @doc(category: "Orders") {
+  """Order with the note added."""
+  order: Order
+
+  """Order note created."""
+  event: OrderEvent
+  errors: [OrderNoteAddError!]!
+}
+
+type OrderNoteAddError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteAddErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteAddErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  REQUIRED
+}
+
+input OrderNoteInput @doc(category: "Orders") {
+  """Note message."""
+  message: String!
+}
+
+"""
+Updates note of an order.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_ORDERS.
+"""
+type OrderNoteUpdate @doc(category: "Orders") {
+  """Order with the note updated."""
+  order: Order
+
+  """Order note updated."""
+  event: OrderEvent
+  errors: [OrderNoteUpdateError!]!
+}
+
+type OrderNoteUpdateError @doc(category: "Orders") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderNoteUpdateErrorCode
+}
+
+"""An enumeration."""
+enum OrderNoteUpdateErrorCode @doc(category: "Orders") {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
 }
 
 """
@@ -24470,13 +24868,13 @@ Create new order from existing checkout. Requires the following permissions: AUT
 
 Added in Saleor 3.2.
 """
-type OrderCreateFromCheckout @doc(category: "Checkout") {
+type OrderCreateFromCheckout @doc(category: "Orders") {
   """Placed order."""
   order: Order
   errors: [OrderCreateFromCheckoutError!]!
 }
 
-type OrderCreateFromCheckoutError @doc(category: "Checkout") {
+type OrderCreateFromCheckoutError @doc(category: "Orders") {
   """
   Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
   """
@@ -25037,6 +25435,67 @@ type AttributeTranslate @doc(category: "Attributes") {
 }
 
 """
+Creates/updates translations for attributes.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeBulkTranslateResult!]!
+  errors: [AttributeBulkTranslateError!]!
+}
+
+type AttributeBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute translation data."""
+  translation: AttributeTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [AttributeBulkTranslateError!]
+}
+
+type AttributeBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input AttributeBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute ID."""
+  id: ID
+
+  """External reference of an attribute."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: NameTranslationInput!
+}
+
+"""
 Deletes attributes. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
@@ -25100,14 +25559,64 @@ type AttributeValueUpdate @doc(category: "Attributes") {
 }
 
 """
-Creates/updates translations for an attribute value. 
+Creates/updates translations for attributes values.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
 """
-type AttributeValueTranslate @doc(category: "Attributes") {
-  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
-  errors: [TranslationError!]!
-  attributeValue: AttributeValue
+type AttributeValueBulkTranslate @doc(category: "Attributes") {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [AttributeValueBulkTranslateResult!]!
+  errors: [AttributeValueBulkTranslateError!]!
+}
+
+type AttributeValueBulkTranslateResult @doc(category: "Attributes") {
+  """Attribute value translation data."""
+  translation: AttributeValueTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [AttributeValueBulkTranslateError!]
+}
+
+type AttributeValueBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: AttributeValueTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum AttributeValueTranslateErrorCode @doc(category: "Attributes") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input AttributeValueBulkTranslateInput @doc(category: "Attributes") {
+  """Attribute value ID."""
+  id: ID
+
+  """External reference of an attribute value."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: AttributeValueTranslationInput!
 }
 
 input AttributeValueTranslationInput {
@@ -25122,6 +25631,17 @@ input AttributeValueTranslationInput {
 
   """Translated text."""
   plainText: String
+}
+
+"""
+Creates/updates translations for an attribute value. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type AttributeValueTranslate @doc(category: "Attributes") {
+  translationErrors: [TranslationError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
+  errors: [TranslationError!]!
+  attributeValue: AttributeValue
 }
 
 """
@@ -26501,7 +27021,9 @@ union IssuingPrincipal = App | User
 
 """An enumeration."""
 enum DistanceUnitsEnum {
+  MM
   CM
+  DM
   M
   KM
   FT
@@ -26511,7 +27033,9 @@ enum DistanceUnitsEnum {
 
 """An enumeration."""
 enum AreaUnitsEnum {
+  SQ_MM
   SQ_CM
+  SQ_DM
   SQ_M
   SQ_KM
   SQ_FT

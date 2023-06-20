@@ -6,11 +6,12 @@ from graphql import GraphQLError
 from ...permission.enums import ProductPermissions
 from ...permission.utils import has_one_of_permissions
 from ...product.models import ALL_PRODUCTS_PERMISSIONS
-from ..channel import ChannelContext
+from ...product.search import search_products
+from ..channel import ChannelContext, ChannelQsContext
 from ..channel.utils import get_default_channel_slug_or_graphql_error
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_310
+from ..core.descriptions import ADDED_IN_310, ADDED_IN_314, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_PRODUCTS
 from ..core.enums import ReportingPeriod
 from ..core.fields import (
@@ -46,10 +47,14 @@ from .bulk_mutations import (
 )
 from .filters import (
     CategoryFilterInput,
+    CategoryWhereInput,
     CollectionFilterInput,
+    CollectionWhereInput,
     ProductFilterInput,
     ProductTypeFilterInput,
     ProductVariantFilterInput,
+    ProductVariantWhereInput,
+    ProductWhereInput,
 )
 from .mutations import (
     CategoryCreate,
@@ -171,6 +176,9 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterConnectionField(
         CategoryCountableConnection,
         filter=CategoryFilterInput(description="Filtering options for categories."),
+        where=CategoryWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,
@@ -206,6 +214,9 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterConnectionField(
         CollectionCountableConnection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
+        where=CollectionWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=CollectionSortingInput(description="Sort collections."),
         description=(
             "List of the shop's collections. Requires one of the following permissions "
@@ -240,7 +251,11 @@ class ProductQueries(graphene.ObjectType):
     products = FilterConnectionField(
         ProductCountableConnection,
         filter=ProductFilterInput(description="Filtering options for products."),
+        where=ProductWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
+        ),
         sort_by=ProductOrder(description="Sort products."),
+        search=graphene.String(description="Search products." + ADDED_IN_314),
         channel=graphene.String(
             description="Slug of a channel for which the data should be returned."
         ),
@@ -300,6 +315,9 @@ class ProductQueries(graphene.ObjectType):
         ),
         filter=ProductVariantFilterInput(
             description="Filtering options for product variant."
+        ),
+        where=ProductVariantWhereInput(
+            description="Where filtering options." + ADDED_IN_314 + PREVIEW_FEATURE
         ),
         sort_by=ProductVariantSortingInput(description="Sort products variants."),
         description=(
@@ -428,7 +446,9 @@ class ProductQueries(graphene.ObjectType):
 
     @staticmethod
     @traced_resolver
-    def resolve_products(_root, info: ResolveInfo, *, channel=None, **kwargs):
+    def resolve_products(
+        _root, info: ResolveInfo, *, channel=None, search=None, **kwargs
+    ):
         if sort_field_from_kwargs(kwargs) == ProductOrderField.RANK:
             # sort by RANK can be used only with search filter
             if not search_string_in_kwargs(kwargs):
@@ -450,6 +470,10 @@ class ProductQueries(graphene.ObjectType):
         if channel is None and not has_required_permissions:
             channel = get_default_channel_slug_or_graphql_error()
         qs = resolve_products(info, requestor, channel_slug=channel)
+        if search:
+            qs = ChannelQsContext(
+                qs=search_products(qs.qs, search), channel_slug=channel
+            )
         kwargs["channel"] = channel
         qs = filter_connection_queryset(qs, kwargs)
         return create_connection_slice(qs, info, kwargs, ProductCountableConnection)

@@ -513,13 +513,22 @@ def test_category_filter_products_by_ids(
 
 
 GET_SORTED_PRODUCTS_CATEGORY_QUERY = """
-query ($id: ID!, $channel: String, $filters: ProductFilterInput, $sortBy: ProductOrder){
+query (
+    $id: ID!,
+    $channel: String,
+    $filters: ProductFilterInput,
+    $sortBy: ProductOrder,
+    $where: ProductWhereInput,
+){
   category(id: $id) {
     id
-    products(first: 10, channel: $channel, sortBy: $sortBy, filter: $filters) {
+    products(
+        first: 10, channel: $channel, sortBy: $sortBy, filter: $filters, where: $where
+    ) {
       edges {
         node {
           id
+          slug
         }
       }
     }
@@ -556,3 +565,70 @@ def test_category_sort_products_by_name(
         graphene.Node.to_global_id("Product", product.pk)
         for product in Product.objects.order_by("-name")
     ]
+
+
+def test_category_products_where_filter(
+    user_api_client,
+    category,
+    product_list,
+    channel_USD,
+):
+    # given
+    variables = {
+        "id": graphene.Node.to_global_id("Category", category.pk),
+        "channel": channel_USD.slug,
+        "where": {
+            "AND": [
+                {"slug": {"oneOf": ["test-product-a", "test-product-b"]}},
+                {"price": {"range": {"gte": 15}}},
+            ]
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        GET_SORTED_PRODUCTS_CATEGORY_QUERY,
+        variables,
+    )
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["category"]["products"]["edges"]
+    assert len(products) == 1
+    assert products[0]["node"]["slug"] == "test-product-b"
+
+
+CATEGORY_WHERE_QUERY = """
+    query($where: CategoryWhereInput!) {
+      categories(first: 10, where: $where) {
+        edges {
+          node {
+            id
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+def test_categories_where_by_ids(api_client, category_list):
+    # given
+    ids = [
+        graphene.Node.to_global_id("Category", category.pk)
+        for category in category_list[:2]
+    ]
+    variables = {"where": {"AND": [{"ids": ids}]}}
+
+    # when
+    response = api_client.post_graphql(CATEGORY_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    categories = data["data"]["categories"]["edges"]
+    assert len(categories) == 2
+    returned_slugs = {node["node"]["slug"] for node in categories}
+    assert returned_slugs == {
+        category_list[0].slug,
+        category_list[1].slug,
+    }

@@ -293,9 +293,14 @@ def test_collections_query_as_staff_without_channel(
 
 
 GET_FILTERED_PRODUCTS_COLLECTION_QUERY = """
-query CollectionProducts($id: ID!,$channel: String, $filters: ProductFilterInput) {
+query CollectionProducts(
+    $id: ID!,
+    $channel: String,
+    $filters: ProductFilterInput,
+    $where: ProductWhereInput,
+) {
   collection(id: $id, channel: $channel) {
-    products(first: 10, filter: $filters) {
+    products(first: 10, filter: $filters, where: $where) {
       edges {
         node {
           id
@@ -428,6 +433,38 @@ def test_filter_collection_products_by_multiple_attributes(
             }
         }
     ]
+
+
+def test_filter_where_collection_products(
+    user_api_client, product_list, published_collection, channel_USD, channel_PLN
+):
+    # given
+    query = GET_FILTERED_PRODUCTS_COLLECTION_QUERY
+
+    for product in product_list:
+        published_collection.products.add(product)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Collection", published_collection.pk),
+        "channel": channel_USD.slug,
+        "where": {
+            "AND": [
+                {"slug": {"oneOf": ["test-product-a", "test-product-b"]}},
+                {"price": {"range": {"gte": 15}}},
+            ]
+        },
+    }
+
+    # when
+    response = user_api_client.post_graphql(query, variables)
+
+    # then
+    content = get_graphql_content(response)
+    products = content["data"]["collection"]["products"]["edges"]
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == graphene.Node.to_global_id(
+        "Product", product_list[1].pk
+    )
 
 
 CREATE_COLLECTION_MUTATION = """

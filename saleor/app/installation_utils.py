@@ -15,6 +15,7 @@ from django.db import DatabaseError
 from django.urls import reverse
 from requests import HTTPError, Response
 
+from .. import schema_version
 from ..app.headers import AppHeaders, DeprecatedAppHeaders
 from ..celeryconf import app
 from ..core.utils import build_absolute_uri
@@ -59,6 +60,7 @@ def send_app_token(target_url: str, token: str):
         DeprecatedAppHeaders.DOMAIN: domain,
         AppHeaders.DOMAIN: domain,
         AppHeaders.API_URL: build_absolute_uri(reverse("api"), domain),
+        AppHeaders.SCHEMA_VERSION: schema_version,
     }
     json_data = {"auth_token": token}
     response = requests.post(
@@ -185,13 +187,18 @@ def fetch_brand_data_async(
         )
 
 
-def install_app(app_installation: AppInstallation, activate: bool = False):
+def fetch_manifest(manifest_url: str, timeout=REQUEST_TIMEOUT):
+    headers = {AppHeaders.SCHEMA_VERSION: schema_version}
     response = requests.get(
-        app_installation.manifest_url, timeout=REQUEST_TIMEOUT, allow_redirects=False
+        manifest_url, headers=headers, timeout=timeout, allow_redirects=False
     )
     response.raise_for_status()
+    return response.json()
+
+
+def install_app(app_installation: AppInstallation, activate: bool = False):
+    manifest_data = fetch_manifest(app_installation.manifest_url)
     assigned_permissions = app_installation.permissions.all()
-    manifest_data = response.json()
 
     manifest_data["permissions"] = get_permission_names(assigned_permissions)
 
