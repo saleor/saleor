@@ -8,6 +8,8 @@ from .menu_item_translate import MenuItemTranslate
 from .page_translate import PageTranslate
 from .product_translate import ProductTranslate
 from .product_variant_translate import ProductVariantTranslate
+from .promotion_rule_translate import PromotionRuleTranslate
+from .promotion_translate import PromotionTranslate
 from .sale_translate import SaleTranslate
 from .shipping_price_translate import ShippingPriceTranslate
 from .shop_settings_translate import ShopSettingsTranslate
@@ -24,6 +26,8 @@ __all__ = [
     "PageTranslate",
     "ProductTranslate",
     "ProductVariantTranslate",
+    "PromotionTranslate",
+    "PromotionRuleTranslate",
     "SaleTranslate",
     "ShippingPriceTranslate",
     "ShopSettingsTranslate",

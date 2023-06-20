@@ -12,6 +12,8 @@ from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
 from ...meta.types import ObjectWithMetadata
+from ...translations.fields import TranslationField
+from ...translations.types import PromotionRuleTranslation, PromotionTranslation
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
     PromotionByIdLoader,
@@ -37,6 +39,7 @@ class Promotion(ModelObjectType[models.Promotion]):
     rules = NonNullList(
         lambda: PromotionRule, description="The list of promotion rules."
     )
+    translation = TranslationField(PromotionTranslation, type_name="promotion")
 
     class Meta:
         description = (
@@ -83,6 +86,7 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
             "applied when the rule conditions are met."
         )
     )
+    translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
 
     class Meta:
         description = (

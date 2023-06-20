@@ -627,3 +627,53 @@ class ShippingMethodTranslatableContent(
     @staticmethod
     def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
         return ChannelContext(node=root, channel_slug=None)
+
+
+class PromotionTranslation(BaseTranslationType[discount_models.PromotionTranslation]):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String()
+    description = JSONString(
+        description="Translated description of the promotion." + RICH_CONTENT
+    )
+
+    class Meta:
+        model = discount_models.Promotion
+        interfaces = [graphene.relay.Node]
+
+
+class PromotionTranslatableContent(ModelObjectType[discount_models.Promotion]):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    description = JSONString(description="Description of the promotion." + RICH_CONTENT)
+    translation = TranslationField(PromotionTranslation, type_name="promotion")
+
+    class Meta:
+        model = discount_models.Promotion
+        interfaces = [graphene.relay.Node]
+
+
+class PromotionRuleTranslation(
+    BaseTranslationType[discount_models.PromotionTranslation]
+):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String()
+    description = JSONString(
+        description="Translated description of the promotion rule." + RICH_CONTENT
+    )
+
+    class Meta:
+        model = discount_models.PromotionRule
+        interfaces = [graphene.relay.Node]
+
+
+class PromotionRuleTranslatableContent(ModelObjectType[discount_models.Promotion]):
+    id = graphene.GlobalID(required=True)
+    name = graphene.String(required=True)
+    description = JSONString(
+        description="Description of the promotion rule." + RICH_CONTENT
+    )
+    translation = TranslationField(PromotionRuleTranslation, type_name="promotion rule")
+
+    class Meta:
+        model = discount_models.PromotionRule
+        interfaces = [graphene.relay.Node]

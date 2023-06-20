@@ -7901,7 +7901,7 @@ type TranslatableItemEdge {
   cursor: String!
 }
 
-union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent
 
 type ProductTranslatableContent implements Node @doc(category: "Products") {
   id: ID!
@@ -8953,6 +8953,72 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   items: [MenuItem!]
 }
 
+type PromotionTranslatableContent implements Node {
+  id: ID!
+  name: String!
+
+  """
+  Description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslation
+}
+
+type PromotionTranslation implements Node {
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+  name: String
+
+  """
+  Translated description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
+type PromotionRuleTranslatableContent implements Node {
+  id: ID!
+  name: String!
+
+  """
+  Description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion rule fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion rule."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslation
+}
+
+type PromotionRuleTranslation implements Node {
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+  name: String
+
+  """
+  Translated description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
 enum TranslatableKinds {
   ATTRIBUTE
   ATTRIBUTE_VALUE
@@ -8961,6 +9027,8 @@ enum TranslatableKinds {
   MENU_ITEM
   PAGE
   PRODUCT
+  PROMOTION
+  PROMOTION_RULE
   SALE
   SHIPPING_METHOD
   VARIANT
@@ -13075,6 +13143,12 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
 
   """The list of promotion rules."""
   rules: [PromotionRule!]
+
+  """Returns translated promotion fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslation
 }
 
 scalar JSON
@@ -13115,6 +13189,12 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
   """
   rewardValue: PositiveDecimal
+
+  """Returns translated promotion rule fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion rule."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslation
 }
 
 """An enumeration."""
@@ -16294,6 +16374,38 @@ type Mutation {
     """The ID of the promotion to remove."""
     id: ID!
   ): PromotionRuleDelete @doc(category: "Discounts")
+
+  """
+  Creates/updates translations for a promotion.
+  
+  Added in Saleor 3.15. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  promotionTranslate(
+    """Promotion ID."""
+    id: ID!
+    input: PromotionTranslationInput!
+
+    """Translation language code."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslate
+
+  """
+  Creates/updates translations for a promotion rule.
+  
+  Added in Saleor 3.15. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  promotionRuleTranslate(
+    """Promotion rule ID"""
+    id: ID!
+    input: PromotionRuleTranslationInput!
+
+    """Translation language code."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslate
 
   """
   Creates a new sale. 
@@ -24943,6 +25055,52 @@ type PromotionRuleDeleteError {
 enum PromotionRuleDeleteErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+}
+
+"""
+Creates/updates translations for a promotion.
+
+Added in Saleor 3.15. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type PromotionTranslate {
+  errors: [TranslationError!]!
+  promotion: Promotion
+}
+
+input PromotionTranslationInput {
+  name: String
+
+  """
+  Translated promotion description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSON
+}
+
+"""
+Creates/updates translations for a promotion rule.
+
+Added in Saleor 3.15. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type PromotionRuleTranslate {
+  errors: [TranslationError!]!
+  promotionRule: PromotionRule
+}
+
+input PromotionRuleTranslationInput {
+  name: String
+
+  """
+  Translated promotion description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSON
 }
 
 """
