@@ -15,7 +15,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Other changes
 - Expand metric units to support more types of products. - #13043 by @FremahA
-- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
+- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @Smit-Parmar
+- Added createdByEmail filter in GiftCard and Test case. - #13132 by @Smit-Parmar
 
 
 # 3.14.0
