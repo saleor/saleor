@@ -30,12 +30,17 @@ QUERY_SHIPPING_ZONES_WITH_FILTER = """
 def test_query_shipping_zone_search_by_name(
     staff_api_client, shipping_zones, permission_manage_shipping, lookup, expected_zones
 ):
+    # given
     variables = {"filter": {"search": lookup}}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SHIPPING_ZONES_WITH_FILTER,
         variables=variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZones"]["edges"]
 
@@ -46,17 +51,22 @@ def test_query_shipping_zone_search_by_name(
 def test_query_shipping_zone_search_by_channels(
     staff_api_client, shipping_zones, permission_manage_shipping, channel_USD
 ):
+    # given
     channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
     shipping_zone_usd = shipping_zones[0]
     shipping_zone_usd_id = graphene.Node.to_global_id(
         "ShippingZone", shipping_zone_usd.id
     )
     variables = {"filter": {"channels": [channel_id]}}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_SHIPPING_ZONES_WITH_FILTER,
         variables=variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shippingZones"]["edges"]
 
