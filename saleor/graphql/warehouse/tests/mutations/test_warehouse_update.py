@@ -42,6 +42,7 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
 def test_mutation_update_warehouse(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     warehouse_old_name = warehouse.name
     warehouse_slug = warehouse.slug
@@ -50,11 +51,15 @@ def test_mutation_update_warehouse(
         "id": warehouse_id,
         "input": {"name": "New name", "externalReference": external_reference},
     }
+
+    # when
     staff_api_client.post_graphql(
         MUTATION_UPDATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     warehouse.refresh_from_db()
     assert not (warehouse.name == warehouse_old_name)
     assert warehouse.name == "New name"
@@ -141,6 +146,7 @@ def test_mutation_update_warehouse_trigger_webhook(
 def test_mutation_update_warehouse_can_update_address(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     address_id = graphene.Node.to_global_id("Address", warehouse.address.pk)
     address = warehouse.address
@@ -158,11 +164,15 @@ def test_mutation_update_warehouse_can_update_address(
             },
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_UPDATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     content_address = content["data"]["updateWarehouse"]["warehouse"]["address"]
     assert content_address["id"] == address_id
@@ -223,6 +233,7 @@ def test_update_warehouse_slug(
     expected_slug,
     error_message,
 ):
+    # given
     query = MUTATION_UPDATE_WAREHOUSE
     old_slug = warehouse.slug
 
@@ -230,9 +241,13 @@ def test_update_warehouse_slug(
 
     node_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {"id": node_id, "input": {"slug": input_slug}}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["updateWarehouse"]
     errors = data["errors"]
@@ -248,6 +263,7 @@ def test_update_warehouse_slug(
 def test_update_warehouse_slug_exists(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     query = MUTATION_UPDATE_WAREHOUSE
     input_slug = "test-slug"
 
@@ -260,9 +276,13 @@ def test_update_warehouse_slug_exists(
 
     node_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {"id": node_id, "input": {"slug": input_slug}}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["updateWarehouse"]
     errors = data["errors"]
@@ -302,6 +322,7 @@ def test_update_warehouse_slug_and_name(
     error_message,
     error_field,
 ):
+    # given
     query = MUTATION_UPDATE_WAREHOUSE
 
     old_name = warehouse.name
@@ -312,9 +333,13 @@ def test_update_warehouse_slug_and_name(
 
     node_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {"input": {"slug": input_slug, "name": input_name}, "id": node_id}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouse.refresh_from_db()
     data = content["data"]["updateWarehouse"]
@@ -349,6 +374,7 @@ def test_update_click_and_collect_option(
     expected_private,
     expected_cc_option,
 ):
+    # given
     query = MUTATION_UPDATE_WAREHOUSE
 
     assert warehouse.is_private
@@ -362,9 +388,13 @@ def test_update_click_and_collect_option(
         },
         "id": node_id,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouse.refresh_from_db()
     data = content["data"]["updateWarehouse"]
@@ -382,6 +412,7 @@ def test_update_click_and_collect_option(
 def test_update_click_and_collect_option_invalid_input(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     query = MUTATION_UPDATE_WAREHOUSE
 
     warehouse_is_private = warehouse.is_private
@@ -397,9 +428,13 @@ def test_update_click_and_collect_option_invalid_input(
         },
         "id": node_id,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouse.refresh_from_db()
     data = content["data"]["updateWarehouse"]

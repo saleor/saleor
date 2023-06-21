@@ -41,9 +41,12 @@ query {
 def test_query_warehouses_as_staff_with_manage_orders(
     staff_api_client, warehouse, permission_manage_orders
 ):
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)["data"]
     assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
     warehouses = content["warehouses"]["edges"]
@@ -60,9 +63,12 @@ def test_query_warehouses_as_staff_with_manage_orders(
 def test_query_warehouses_as_staff_with_manage_shipping(
     staff_api_client, warehouse, permission_manage_shipping
 ):
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)["data"]
     assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
     warehouses = content["warehouses"]["edges"]
@@ -79,23 +85,32 @@ def test_query_warehouses_as_staff_with_manage_shipping(
 def test_query_warehouses_as_staff_with_manage_apps(
     staff_api_client, warehouse, permission_manage_apps
 ):
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_apps]
     )
+
+    # then
     assert_no_permission(response)
 
 
 def test_query_warehouses_as_customer(
     user_api_client, warehouse, permission_manage_apps
 ):
+    # when
     response = user_api_client.post_graphql(QUERY_WAREHOUSES)
+
+    # then
     assert_no_permission(response)
 
 
 def test_query_warehouses(staff_api_client, warehouse, permission_manage_products):
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)["data"]
     assert content["warehouses"]["totalCount"] == Warehouse.objects.count()
     warehouses = content["warehouses"]["edges"]

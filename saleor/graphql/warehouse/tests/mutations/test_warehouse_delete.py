@@ -26,13 +26,18 @@ mutation deleteWarehouse($id: ID!) {
 def test_delete_warehouse_mutation(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Warehouse.objects.count() == 1
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
@@ -55,6 +60,8 @@ def test_delete_warehouse_mutation_trigger_webhook(
     settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
 
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE,
         variables={"id": warehouse_id},
@@ -87,15 +94,20 @@ def test_delete_warehouse_mutation_with_webhooks(
     permission_manage_products,
     variant_with_many_stocks,
 ):
+    # given
     old_first_stock = Stock.objects.first()
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Warehouse.objects.count() == 3
     assert Stock.objects.count() == 3
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
@@ -112,14 +124,19 @@ def test_delete_warehouse_mutation_with_webhooks_for_many_product_variants(
     permission_manage_products,
     product_with_two_variants,
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Warehouse.objects.count() == 1
     assert Stock.objects.count() == 2
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
@@ -131,13 +148,18 @@ def test_delete_warehouse_mutation_with_webhooks_for_many_product_variants(
 def test_delete_warehouse_deletes_associated_address(
     staff_api_client, warehouse, permission_manage_products
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     assert Address.objects.count() == 1
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0

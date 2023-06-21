@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 import graphene
 
-from ....warehouse.error_codes import StockBulkUpdateErrorCode
-from ...tests.utils import get_graphql_content
+from .....warehouse.error_codes import StockBulkUpdateErrorCode
+from ....tests.utils import get_graphql_content
 
 STOCKS_BULK_UPDATE_MUTATION = """
     mutation StockBulkUpdate($stocks: [StockBulkUpdateInput!]!){

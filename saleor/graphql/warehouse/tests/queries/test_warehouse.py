@@ -36,13 +36,17 @@ query warehouse($id: ID!){
 
 
 def test_warehouse_query(staff_api_client, warehouse, permission_manage_products):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
 
     queried_warehouse = content["data"]["warehouse"]
@@ -65,13 +69,17 @@ def test_warehouse_query(staff_api_client, warehouse, permission_manage_products
 def test_warehouse_query_as_staff_with_manage_orders(
     staff_api_client, warehouse, permission_manage_orders
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_orders],
     )
+
+    # then
     content = get_graphql_content(response)
 
     queried_warehouse = content["data"]["warehouse"]
@@ -94,13 +102,17 @@ def test_warehouse_query_as_staff_with_manage_orders(
 def test_warehouse_query_as_staff_with_manage_shipping(
     staff_api_client, warehouse, permission_manage_shipping
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
 
     queried_warehouse = content["data"]["warehouse"]
@@ -123,36 +135,47 @@ def test_warehouse_query_as_staff_with_manage_shipping(
 def test_warehouse_query_as_staff_with_manage_apps(
     staff_api_client, warehouse, permission_manage_apps
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE,
         variables={"id": warehouse_id},
         permissions=[permission_manage_apps],
     )
 
+    # then
     assert_no_permission(response)
 
 
 def test_warehouse_query_as_customer(user_api_client, warehouse):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
+    # when
     response = user_api_client.post_graphql(
         QUERY_WAREHOUSE,
         variables={"id": warehouse_id},
     )
 
+    # then
     assert_no_permission(response)
 
 
 def test_staff_query_warehouse_by_invalid_id(
     staff_api_client, warehouse, permission_manage_shipping
 ):
+    # given
     id = "bh/"
     variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
@@ -162,10 +185,13 @@ def test_staff_query_warehouse_by_invalid_id(
 def test_staff_query_warehouse_with_invalid_object_type(
     staff_api_client, permission_manage_shipping, warehouse
 ):
+    # given
     variables = {"id": graphene.Node.to_global_id("Order", warehouse.pk)}
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSE, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["warehouse"] is None
 

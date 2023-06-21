@@ -56,6 +56,7 @@ def test_shipping_zone_assign_to_warehouse(
     shipping_zone,
     permission_manage_products,
 ):
+    # given
     assert not warehouse_no_shipping_zone.shipping_zones.all()
     staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
@@ -65,9 +66,12 @@ def test_shipping_zone_assign_to_warehouse(
         ],
     }
 
+    # when
     staff_api_client.post_graphql(
         MUTATION_ASSIGN_SHIPPING_ZONE_WAREHOUSE, variables=variables
     )
+
+    # then
     warehouse_no_shipping_zone.refresh_from_db()
     shipping_zone.refresh_from_db()
     assert warehouse_no_shipping_zone.shipping_zones.first().pk == shipping_zone.pk
@@ -155,6 +159,7 @@ def test_empty_shipping_zone_assign_to_warehouse(
     shipping_zone,
     permission_manage_products,
 ):
+    # given
     assert not warehouse_no_shipping_zone.shipping_zones.all()
     staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
@@ -162,9 +167,12 @@ def test_empty_shipping_zone_assign_to_warehouse(
         "shippingZoneIds": [],
     }
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_ASSIGN_SHIPPING_ZONE_WAREHOUSE, variables=variables
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["assignWarehouseShippingZone"]["errors"]
     warehouse_no_shipping_zone.refresh_from_db()

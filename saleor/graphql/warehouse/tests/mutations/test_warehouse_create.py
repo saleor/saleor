@@ -45,6 +45,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
+    # given
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -61,11 +62,14 @@ def test_mutation_create_warehouse(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     assert Warehouse.objects.count() == 1
     warehouse = Warehouse.objects.first()
@@ -82,6 +86,7 @@ def test_mutation_create_warehouse(
 def test_mutation_create_warehouse_shipping_zone_provided(
     staff_api_client, permission_manage_products, shipping_zone
 ):
+    # given
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -101,11 +106,14 @@ def test_mutation_create_warehouse_shipping_zone_provided(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["createWarehouse"]
     errors = data["errors"]
@@ -173,6 +181,7 @@ def test_mutation_create_warehouse_trigger_webhook(
 def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
     staff_api_client, permission_manage_products, shipping_zone
 ):
+    # given
     variables = {
         "input": {
             "name": "  ",
@@ -191,11 +200,14 @@ def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
         }
     }
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["createWarehouse"]
     errors = data["errors"]
@@ -208,6 +220,7 @@ def test_mutation_create_warehouse_does_not_create_when_name_is_empty_string(
 def test_create_warehouse_creates_address(
     staff_api_client, permission_manage_products, shipping_zone
 ):
+    # given
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -222,11 +235,15 @@ def test_create_warehouse_creates_address(
         }
     }
     assert not Address.objects.exists()
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE,
         variables=variables,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["createWarehouse"]["errors"]
     assert len(errors) == 0
@@ -251,6 +268,7 @@ def test_create_warehouse_creates_address(
 def test_create_warehouse_with_given_slug(
     staff_api_client, permission_manage_products, input_slug, expected_slug
 ):
+    # given
     query = MUTATION_CREATE_WAREHOUSE
     name = "Test warehouse"
     variables = {"name": name, "slug": input_slug}
@@ -266,9 +284,13 @@ def test_create_warehouse_with_given_slug(
             },
         }
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["createWarehouse"]
     assert not data["errors"]

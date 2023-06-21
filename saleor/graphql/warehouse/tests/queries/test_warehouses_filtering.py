@@ -40,12 +40,17 @@ query Warehouses($filters: WarehouseFilterInput) {
 def test_query_warehouses_with_filters_name(
     staff_api_client, permission_manage_products, warehouse
 ):
+    # given
     variables_exists = {"filters": {"search": "warehouse"}}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content = get_graphql_content(response)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     content_warehouse = content["data"]["warehouses"]["edges"][0]["node"]
@@ -62,12 +67,17 @@ def test_query_warehouses_with_filters_name(
 def test_query_warehouse_with_filters_email(
     staff_api_client, permission_manage_products, warehouse
 ):
+    # given
     variables_exists = {"filters": {"search": "test"}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     content_warehouse = content_exists["data"]["warehouses"]["edges"][0]["node"]
@@ -85,16 +95,21 @@ def test_query_warehouse_with_filters_email(
 def test_query_warehouse_with_filters_by_ids(
     staff_api_client, permission_manage_products, warehouse, warehouse_no_shipping_zone
 ):
+    # given
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", warehouse.id),
         graphene.Node.to_global_id("Warehouse", warehouse_no_shipping_zone.id),
     ]
     variables_exists = {"filters": {"ids": warehouse_ids}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
 
     content_warehouses = content_exists["data"]["warehouses"]["edges"]
@@ -106,13 +121,18 @@ def test_query_warehouse_with_filters_by_ids(
 def test_query_warehouse_with_filters_by_id(
     staff_api_client, permission_manage_products, warehouse, warehouse_no_shipping_zone
 ):
+    # given
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables_exists = {"filters": {"ids": [warehouse_id]}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
 
     content_warehouses = content_exists["data"]["warehouses"]["edges"]
@@ -130,13 +150,18 @@ def test_query_warehouse_with_filters_by_is_private(
     graphql_filter,
     db_filter,
 ):
+    # given
     db_count = Warehouse.objects.filter(is_private=db_filter).count()
     variables_exists = {"filters": {"isPrivate": graphql_filter}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
 
     assert content_exists["data"]["warehouses"]["totalCount"] == db_count
@@ -157,13 +182,18 @@ def test_query_warehouse_with_filters_by_click_and_collect_option(
     db_option,
     graphql_option,
 ):
+    # given
     db_count = Warehouse.objects.filter(click_and_collect_option=db_option).count()
     variables_exists = {"filters": {"clickAndCollectOption": graphql_option}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
     assert content_exists["data"]["warehouses"]["totalCount"] == db_count
 
@@ -171,12 +201,17 @@ def test_query_warehouse_with_filters_by_click_and_collect_option(
 def test_query_warehouses_with_filters_and_no_id(
     staff_api_client, permission_manage_products, warehouse
 ):
+    # given
     variables_exists = {"filters": {"search": "test"}}
+
+    # when
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS,
         variables=variables_exists,
         permissions=[permission_manage_products],
     )
+
+    # then
     content_exists = get_graphql_content(response_exists)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     content_warehouse = content_exists["data"]["warehouses"]["edges"][0]["node"]
