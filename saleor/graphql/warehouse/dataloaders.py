@@ -576,6 +576,7 @@ class WarehousesByShippingZoneIdLoader(DataLoader):
         warehouse_and_shipping_zone_in_pairs = (
             ShippingZone.objects.using(self.database_connection_name)
             .filter(id__in=keys)
+            .exclude(warehouses__id__isnull=True)
             .values_list("warehouses__id", "id")
         )
         shipping_zone_warehouse_map = defaultdict(list)

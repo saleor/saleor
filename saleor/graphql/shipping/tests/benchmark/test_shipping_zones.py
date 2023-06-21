@@ -27,13 +27,11 @@ def test_shipping_zones_query(
     count_queries,
 ):
     variables = {"channel": channel_USD.slug}
-    print(
-        get_graphql_content(
-            staff_api_client.post_graphql(
-                SHIPPING_ZONES_QUERY,
-                variables,
-                permissions=[permission_manage_shipping],
-                check_no_permissions=False,
-            )
+    get_graphql_content(
+        staff_api_client.post_graphql(
+            SHIPPING_ZONES_QUERY,
+            variables,
+            permissions=[permission_manage_shipping],
+            check_no_permissions=False,
         )
     )
