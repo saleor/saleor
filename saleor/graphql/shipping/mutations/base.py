@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, List, cast
+from typing import Dict, List
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -8,8 +8,6 @@ from django.db.utils import IntegrityError
 
 from ....channel import models as channel_models
 from ....core.tracing import traced_atomic_transaction
-from ....permission.enums import ShippingPermissions
-from ....product import models as product_models
 from ....shipping import models
 from ....shipping.error_codes import ShippingErrorCode
 from ....shipping.tasks import (
@@ -19,113 +17,11 @@ from ....shipping.utils import (
     default_shipping_zone_exists,
     get_countries_without_shipping_zone,
 )
-from ...channel.types import ChannelContext
 from ...core import ResolveInfo
-from ...core.doc_category import DOC_CATEGORY_SHIPPING
-from ...core.fields import JSONString
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.scalars import WeightScalar
-from ...core.types import BaseInputObjectType, NonNullList, ShippingError
-from ...plugins.dataloaders import get_plugin_manager_promise
-from ...product import types as product_types
 from ...shipping import types as shipping_types
 from ...utils import resolve_global_ids_to_primary_keys
 from ...utils.validators import check_for_duplicates
-from ..enums import PostalCodeRuleInclusionTypeEnum, ShippingMethodTypeEnum
-from ..types import ShippingMethodPostalCodeRule, ShippingMethodType, ShippingZone
-
-
-class ShippingPostalCodeRulesCreateInputRange(BaseInputObjectType):
-    start = graphene.String(
-        required=True, description="Start range of the postal code."
-    )
-    end = graphene.String(required=False, description="End range of the postal code.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
-
-
-class ShippingPriceInput(BaseInputObjectType):
-    name = graphene.String(description="Name of the shipping method.")
-    description = JSONString(description="Shipping method description.")
-    minimum_order_weight = WeightScalar(
-        description="Minimum order weight to use this shipping method."
-    )
-    maximum_order_weight = WeightScalar(
-        description="Maximum order weight to use this shipping method."
-    )
-    maximum_delivery_days = graphene.Int(
-        description="Maximum number of days for delivery."
-    )
-    minimum_delivery_days = graphene.Int(
-        description="Minimal number of days for delivery."
-    )
-    type = ShippingMethodTypeEnum(description="Shipping type: price or weight based.")
-    shipping_zone = graphene.ID(
-        description="Shipping zone this method belongs to.", name="shippingZone"
-    )
-    add_postal_code_rules = NonNullList(
-        ShippingPostalCodeRulesCreateInputRange,
-        description="Postal code rules to add.",
-    )
-    delete_postal_code_rules = NonNullList(
-        graphene.ID,
-        description="Postal code rules to delete.",
-    )
-    inclusion_type = PostalCodeRuleInclusionTypeEnum(
-        description="Inclusion type for currently assigned postal code rules.",
-    )
-    tax_class = graphene.ID(
-        description=(
-            "ID of a tax class to assign to this shipping method. If not provided, "
-            "the default tax class will be used."
-        ),
-        required=False,
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
-
-
-class ShippingZoneCreateInput(BaseInputObjectType):
-    name = graphene.String(
-        description="Shipping zone's name. Visible only to the staff."
-    )
-    description = graphene.String(description="Description of the shipping zone.")
-    countries = NonNullList(
-        graphene.String, description="List of countries in this shipping zone."
-    )
-    default = graphene.Boolean(
-        description=(
-            "Default shipping zone will be used for countries not covered by other "
-            "zones."
-        )
-    )
-    add_warehouses = NonNullList(
-        graphene.ID,
-        description="List of warehouses to assign to a shipping zone",
-    )
-    add_channels = NonNullList(
-        graphene.ID,
-        description="List of channels to assign to the shipping zone.",
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
-
-
-class ShippingZoneUpdateInput(ShippingZoneCreateInput):
-    remove_warehouses = NonNullList(
-        graphene.ID,
-        description="List of warehouses to unassign from a shipping zone",
-    )
-    remove_channels = NonNullList(
-        graphene.ID,
-        description="List of channels to unassign from the shipping zone.",
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
+from ..types import ShippingMethodPostalCodeRule, ShippingMethodType
 
 
 class ShippingZoneMixin:
@@ -380,103 +276,6 @@ class ShippingZoneMixin:
             data["countries"] = [country for country in countries]
 
 
-class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
-    class Arguments:
-        input = ShippingZoneCreateInput(
-            description="Fields required to create a shipping zone.", required=True
-        )
-
-    class Meta:
-        description = "Creates a new shipping zone."
-        model = models.ShippingZone
-        object_type = ShippingZone
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_zone_created, instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(instance)
-
-        return response
-
-
-class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
-    class Arguments:
-        id = graphene.ID(description="ID of a shipping zone to update.", required=True)
-        input = ShippingZoneUpdateInput(
-            description="Fields required to update a shipping zone.", required=True
-        )
-
-    class Meta:
-        description = "Updates a new shipping zone."
-        model = models.ShippingZone
-        object_type = ShippingZone
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_zone_updated, instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(instance)
-
-        return response
-
-
-class ShippingZoneDelete(ModelDeleteMutation):
-    class Arguments:
-        id = graphene.ID(required=True, description="ID of a shipping zone to delete.")
-
-    class Meta:
-        description = "Deletes a shipping zone."
-        model = models.ShippingZone
-        object_type = ShippingZone
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_zone_deleted, instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        instance = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(instance)
-
-        return response
-
-
-class ShippingMethodTypeMixin:
-    @classmethod
-    def get_type_for_model(cls):
-        return shipping_types.ShippingMethodType
-
-    @classmethod
-    def get_instance(cls, info: ResolveInfo, **data):
-        object_id = data.get("id")
-        if object_id:
-            instance = cls.get_node_or_error(  # type: ignore[attr-defined] # mixin
-                info, object_id, qs=models.ShippingMethod.objects
-            )
-        else:
-            instance = cls._meta.model()  # type: ignore[attr-defined] # mixin
-        return instance
-
-
 class ShippingPriceMixin:
     @classmethod
     def get_type_for_model(cls):
@@ -637,223 +436,18 @@ class ShippingPriceMixin:
                         )
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
-    shipping_zone = graphene.Field(
-        ShippingZone,
-        description="A shipping zone to which the shipping method belongs.",
-    )
-    shipping_method = graphene.Field(
-        ShippingMethodType, description="A shipping method to create."
-    )
-
-    class Arguments:
-        input = ShippingPriceInput(
-            description="Fields required to create a shipping price.", required=True
-        )
-
-    class Meta:
-        description = "Creates a new shipping price."
-        model = models.ShippingMethod
-        object_type = ShippingMethodType
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-        errors_mapping = {"price_amount": "price"}
+class ShippingMethodTypeMixin:
+    @classmethod
+    def get_type_for_model(cls):
+        return shipping_types.ShippingMethodType
 
     @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_price_created, instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        shipping_method = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(shipping_method)
-        response.shipping_zone = ChannelContext(
-            node=instance.shipping_zone, channel_slug=None
-        )
-        return response
-
-
-class ShippingPriceUpdate(ShippingPriceMixin, ShippingMethodTypeMixin, ModelMutation):
-    shipping_zone = graphene.Field(
-        ShippingZone,
-        description="A shipping zone to which the shipping method belongs.",
-    )
-    shipping_method = graphene.Field(
-        ShippingMethodType, description="A shipping method."
-    )
-
-    class Arguments:
-        id = graphene.ID(description="ID of a shipping price to update.", required=True)
-        input = ShippingPriceInput(
-            description="Fields required to update a shipping price.", required=True
-        )
-
-    class Meta:
-        description = "Updates a new shipping price."
-        model = models.ShippingMethod
-        object_type = ShippingMethodType
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-        errors_mapping = {"price_amount": "price"}
-
-    @classmethod
-    def post_save_action(cls, info: ResolveInfo, instance, _cleaned_input):
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_price_updated, instance)
-
-    @classmethod
-    def success_response(cls, instance):
-        shipping_method = ChannelContext(node=instance, channel_slug=None)
-        response = super().success_response(shipping_method)
-
-        response.shipping_zone = ChannelContext(
-            node=instance.shipping_zone, channel_slug=None
-        )
-        return response
-
-
-class ShippingPriceDelete(BaseMutation):
-    shipping_method = graphene.Field(
-        ShippingMethodType, description="A shipping method to delete."
-    )
-    shipping_zone = graphene.Field(
-        ShippingZone,
-        description="A shipping zone to which the shipping method belongs.",
-    )
-
-    class Arguments:
-        id = graphene.ID(required=True, description="ID of a shipping price to delete.")
-
-    class Meta:
-        description = "Deletes a shipping price."
-        doc_category = DOC_CATEGORY_SHIPPING
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str
-    ):
-        shipping_method = cast(
-            models.ShippingMethod,
-            cls.get_node_or_error(info, id, qs=models.ShippingMethod.objects),
-        )
-        shipping_method_id = shipping_method.id
-        shipping_zone = shipping_method.shipping_zone
-        shipping_method.delete()
-        shipping_method.id = shipping_method_id
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_price_deleted, shipping_method)
-
-        return ShippingPriceDelete(
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None),
-            shipping_zone=ChannelContext(node=shipping_zone, channel_slug=None),
-        )
-
-
-class ShippingPriceExcludeProductsInput(BaseInputObjectType):
-    products = NonNullList(
-        graphene.ID,
-        description="List of products which will be excluded.",
-        required=True,
-    )
-
-    class Meta:
-        doc_category = DOC_CATEGORY_SHIPPING
-
-
-class ShippingPriceExcludeProducts(BaseMutation):
-    shipping_method = graphene.Field(
-        ShippingMethodType,
-        description="A shipping method with new list of excluded products.",
-    )
-
-    class Arguments:
-        id = graphene.ID(required=True, description="ID of a shipping price.")
-        input = ShippingPriceExcludeProductsInput(
-            description="Exclude products input.", required=True
-        )
-
-    class Meta:
-        description = "Exclude products from shipping price."
-        doc_category = DOC_CATEGORY_SHIPPING
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id, input
-    ):
-        shipping_method = cls.get_node_or_error(
-            info, id, qs=models.ShippingMethod.objects
-        )
-        product_ids = input.get("products", [])
-
-        product_db_ids = cls.get_global_ids_or_error(
-            product_ids, product_types.Product, field="products"
-        )
-
-        product_to_exclude = product_models.Product.objects.filter(
-            id__in=product_db_ids
-        )
-
-        current_excluded_products = shipping_method.excluded_products.all()
-        shipping_method.excluded_products.set(
-            (current_excluded_products | product_to_exclude).distinct()
-        )
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_price_updated, shipping_method)
-
-        return ShippingPriceExcludeProducts(
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
-        )
-
-
-class ShippingPriceRemoveProductFromExclude(BaseMutation):
-    shipping_method = graphene.Field(
-        ShippingMethodType,
-        description="A shipping method with new list of excluded products.",
-    )
-
-    class Arguments:
-        id = graphene.ID(required=True, description="ID of a shipping price.")
-        products = NonNullList(
-            graphene.ID,
-            required=True,
-            description="List of products which will be removed from excluded list.",
-        )
-
-    class Meta:
-        description = "Remove product from excluded list for shipping price."
-        doc_category = DOC_CATEGORY_SHIPPING
-        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
-        error_type_class = ShippingError
-        error_type_field = "shipping_errors"
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, products: list
-    ):
-        shipping_method = cast(
-            models.ShippingMethod,
-            cls.get_node_or_error(info, id, qs=models.ShippingMethod.objects),
-        )
-
-        if products:
-            product_db_ids = cls.get_global_ids_or_error(
-                products, product_types.Product, field="products"
+    def get_instance(cls, info: ResolveInfo, **data):
+        object_id = data.get("id")
+        if object_id:
+            instance = cls.get_node_or_error(  # type: ignore[attr-defined] # mixin
+                info, object_id, qs=models.ShippingMethod.objects
             )
-            shipping_method.excluded_products.set(
-                shipping_method.excluded_products.exclude(id__in=product_db_ids)
-            )
-        manager = get_plugin_manager_promise(info.context).get()
-        cls.call_event(manager.shipping_price_updated, shipping_method)
-
-        return ShippingPriceExcludeProducts(
-            shipping_method=ChannelContext(node=shipping_method, channel_slug=None)
-        )
+        else:
+            instance = cls._meta.model()  # type: ignore[attr-defined] # mixin
+        return instance

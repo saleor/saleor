@@ -387,7 +387,7 @@ def test_update_shipping_zone_add_channels(
 
 
 @mock.patch(
-    "saleor.graphql.shipping.mutations.shippings."
+    "saleor.graphql.shipping.mutations.base."
     "drop_invalid_shipping_methods_relations_for_given_channels.delay"
 )
 def test_update_shipping_zone_remove_channels(
