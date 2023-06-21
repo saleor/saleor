@@ -1144,18 +1144,6 @@ python-versions = "*"
 requests = ">=2.7.0"
 
 [[package]]
-name = "google-measurement-protocol"
-version = "1.1.0"
-description = "A Python implementation of Google Analytics Measurement Protocol"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-prices = ">=1.0.0"
-requests = ">=2.0,<3.0a0"
-
-[[package]]
 name = "google-resumable-media"
 version = "2.5.0"
 description = "Utilities for Google Media Downloads and Resumable Uploads"
@@ -2947,7 +2935,7 @@ test = ["pytest"]
 [metadata]
 lock-version = "1.1"
   python-versions = "~3.9"
-content-hash = "7b0b06ce08ddd53f84ac1964624237ae86a6c7faecce4c5577c85c50caa1cc5b"
+content-hash = "689b36fece06d96111c2cac81db73be0defec7a5d0f81341732099a2d87760a2"
 
 [metadata.files]
 adyen = [
@@ -3722,10 +3710,6 @@ google-crc32c = [
 google-i18n-address = [
     {file = "google-i18n-address-2.5.2.tar.gz", hash = "sha256:44ef2ba987b4258ed5248ff0ce818e99807bda2599db99f97a4d549aae83e739"},
     {file = "google_i18n_address-2.5.2-py3-none-any.whl", hash = "sha256:97c5a40e96cdd6000a1cf29ed45903557aece3a91755cfcb5dced14005fbd93c"},
-]
-google-measurement-protocol = [
-    {file = "google-measurement-protocol-1.1.0.tar.gz", hash = "sha256:aba4a80d956a4b47974d26adc578ab48c363f21f61e8097250c6ef560f3b3416"},
-    {file = "google_measurement_protocol-1.1.0-py2.py3-none-any.whl", hash = "sha256:387800809d143bf490353e19d78bf856066875fdad80817d9f148219c483f087"},
 ]
 google-resumable-media = [
     {file = "google-resumable-media-2.5.0.tar.gz", hash = "sha256:218931e8e2b2a73a58eb354a288e03a0fd5fb1c4583261ac6e4c078666468c93"},
