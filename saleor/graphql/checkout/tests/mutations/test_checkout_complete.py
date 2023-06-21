@@ -620,7 +620,6 @@ def test_checkout_complete_by_app(
         user=checkout.user,
         app=ANY,
         site_settings=ANY,
-        tracking_code=ANY,
         redirect_url=ANY,
         metadata_list=ANY,
     )
@@ -684,7 +683,6 @@ def test_checkout_complete_by_app_with_missing_permission(
         user=None,
         app=ANY,
         site_settings=ANY,
-        tracking_code=ANY,
         redirect_url=ANY,
         metadata_list=ANY,
     )

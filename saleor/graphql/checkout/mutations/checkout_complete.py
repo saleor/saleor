@@ -17,7 +17,6 @@ from ....checkout.fetch import (
     fetch_checkout_lines,
 )
 from ....checkout.utils import is_shipping_required
-from ....core import analytics
 from ....order import models as order_models
 from ....permission.enums import AccountPermissions
 from ...account.i18n import I18nMixin
@@ -184,7 +183,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
         validate_one_of_args_is_in_mutation(
             "checkout_id", checkout_id, "token", token, "id", id
         )
-        tracking_code = analytics.get_client_id(info.context)
 
         try:
             checkout = get_checkout(
@@ -273,7 +271,6 @@ class CheckoutComplete(BaseMutation, I18nMixin):
             user=customer,
             app=get_app_promise(info.context).get(),
             site_settings=site.settings,
-            tracking_code=tracking_code,
             redirect_url=redirect_url,
             metadata_list=metadata,
         )
