@@ -16,7 +16,7 @@ def get_attributes_display_map(obj, attributes):
     for attribute in attributes:
         attribute_values = obj.attributes.get(str(attribute.pk))  # type: List
         if attribute_values:
-            choices = {str(a.pk): a.translated for a in attribute.values.all()}
+            choices = {str(a.pk): a.get_translation() for a in attribute.values.all()}
             for value in attribute_values:
                 current_display_value = display_map[attribute.pk]
                 if not current_display_value:

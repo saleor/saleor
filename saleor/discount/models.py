@@ -17,7 +17,7 @@ from prices import Money, fixed_discount, percentage_discount
 
 from ..channel.models import Channel
 from ..core.models import ModelWithMetadata
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation, get_translation
 from ..permission.enums import DiscountPermissions
 from . import DiscountType, DiscountValueType, VoucherType
 
@@ -95,7 +95,6 @@ class Voucher(ModelWithMetadata):
     categories = models.ManyToManyField("product.Category", blank=True)
 
     objects = VoucherManager()
-    translated = TranslationProxy()
 
     class Meta:
         ordering = ("code",)
@@ -170,6 +169,9 @@ class Voucher(ModelWithMetadata):
         if not customer or not customer.is_staff:
             msg = "This offer is valid only for staff customers."
             raise NotApplicable(msg)
+
+    def get_translation(self, language_code=None):
+        return get_translation(self, language_code)
 
 
 class VoucherChannelListing(models.Model):
@@ -272,7 +274,6 @@ class Sale(ModelWithMetadata):
     notification_sent_datetime = models.DateTimeField(null=True, blank=True)
 
     objects = SaleManager()
-    translated = TranslationProxy()
 
     class Meta:
         ordering = ("name", "pk")

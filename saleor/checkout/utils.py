@@ -621,8 +621,8 @@ def recalculate_checkout_discount(
             )
             checkout.discount_name = voucher.name
             checkout.translated_discount_name = (
-                voucher.translated.name
-                if voucher.translated.name != voucher.name
+                voucher.get_translation().name
+                if voucher.get_translation().name != voucher.name
                 else ""
             )
             checkout.save(
@@ -723,7 +723,9 @@ def add_voucher_to_checkout(
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (
-        voucher.translated.name if voucher.translated.name != voucher.name else ""
+        voucher.get_translation().name
+        if voucher.get_translation().name != voucher.name
+        else ""
     )
     checkout.discount = discount
     checkout.save(

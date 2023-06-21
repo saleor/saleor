@@ -116,7 +116,7 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
-    assert line.translated_product_name == str(variant.product.translated)
+    assert line.translated_product_name == str(variant.product.get_translation())
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
     assert not line.unit_discount_amount
@@ -162,7 +162,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
+    assert line.translated_product_name == str(variant.product.get_translation())
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
 
@@ -202,7 +202,7 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
-    assert line.translated_product_name == str(variant.product.translated)
+    assert line.translated_product_name == str(variant.product.get_translation())
     assert line.product_name == variant.product.name
 
 
@@ -1387,7 +1387,7 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
+    assert line.translated_product_name == str(variant.product.get_translation())
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
 
@@ -1436,7 +1436,7 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert line.unit_price == TaxedMoney(
         net=Money(price_override, "USD"), gross=Money(price_override, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
+    assert line.translated_product_name == str(variant.product.get_translation())
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
     assert line.base_unit_price_amount == price_override

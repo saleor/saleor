@@ -8,7 +8,7 @@ from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
-from ...core.utils.translations import Translation, TranslationProxy
+from ...core.utils.translations import Translation, get_translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
 from ...permission.utils import has_one_of_permissions
@@ -165,7 +165,6 @@ class Attribute(ModelWithMetadata, ModelWithExternalReference):
     available_in_grid = models.BooleanField(default=False, blank=True)
 
     objects = AttributeManager()
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("storefront_search_position", "slug")
@@ -252,8 +251,6 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
         Page, related_name="references", on_delete=models.CASCADE, null=True, blank=True
     )
 
-    translated = TranslationProxy()
-
     class Meta:
         ordering = ("sort_order", "pk")
         unique_together = ("slug", "attribute")
@@ -275,6 +272,9 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()
+
+    def get_translation(self, language_code=None):
+        return get_translation(self, language_code)
 
 
 class AttributeValueTranslation(Translation):

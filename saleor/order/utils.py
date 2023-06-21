@@ -256,8 +256,8 @@ def create_order_line(
 
     product_name = str(product)
     variant_name = str(variant)
-    translated_product_name = str(product.translated)
-    translated_variant_name = str(variant.translated)
+    translated_product_name = str(product.get_translation())
+    translated_variant_name = str(variant.get_translation())
     if translated_product_name == product_name:
         translated_product_name = ""
     if translated_variant_name == variant_name:

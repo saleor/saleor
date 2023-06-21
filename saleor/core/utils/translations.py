@@ -2,7 +2,6 @@ from typing import Any, Dict, Tuple, Union
 
 from django.conf import settings
 from django.db import models
-from django.utils.translation import get_language
 
 
 class TranslationWrapper:
@@ -28,12 +27,6 @@ class TranslationWrapper:
         return str(instance)
 
 
-class TranslationProxy:
-    def __get__(self, instance, owner):
-        locale = get_language()
-        return TranslationWrapper(instance, locale)
-
-
 class Translation(models.Model):
     language_code = models.CharField(max_length=35)
 
@@ -54,15 +47,7 @@ class Translation(models.Model):
         return {}
 
 
-# def get_translations(instance, language_code):
-#     if not language_code:
-#         language_code = settings.LANGUAGE_CODE
-#     if qs := instance.translations.filter(language_code=language_code):
-#         return qs.first()
-#     return instance
-
-
-def get_translations(instance, language_code) -> TranslationWrapper:
+def get_translation(instance, language_code) -> TranslationWrapper:
     if not language_code:
         language_code = settings.LANGUAGE_CODE
     return TranslationWrapper(instance, language_code)
