@@ -1,8 +1,8 @@
 import graphene
 import pytest
 
-from ....warehouse.models import Warehouse
-from ...tests.utils import get_graphql_content
+from .....warehouse.models import Warehouse
+from ....tests.utils import get_graphql_content
 
 
 @pytest.fixture
@@ -83,12 +83,17 @@ def test_warehouses_pagination_with_sorting(
     permission_manage_products,
     warehouses_for_pagination,
 ):
+    # given
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_PAGINATION, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouses_nodes = content["data"]["warehouses"]["edges"]
     assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]
@@ -114,12 +119,17 @@ def test_warehouses_pagination_with_filtering(
     permission_manage_products,
     warehouses_for_pagination,
 ):
+    # given
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_PAGINATION, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouses_nodes = content["data"]["warehouses"]["edges"]
     assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]
@@ -132,6 +142,7 @@ def test_warehouses_pagination_with_filtering_by_id(
     permission_manage_products,
     warehouses_for_pagination,
 ):
+    # given
     page_size = 2
     warehouses_order = ["WarehouseWarehouse2", "WarehouseWarehouse1"]
     warehouses_ids = [
@@ -141,9 +152,13 @@ def test_warehouses_pagination_with_filtering_by_id(
     filter_by = {"ids": warehouses_ids}
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_PAGINATION, variables, permissions=[permission_manage_products]
     )
+
+    # then
     content = get_graphql_content(response)
     warehouses_nodes = content["data"]["warehouses"]["edges"]
     assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]

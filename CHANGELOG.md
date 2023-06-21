@@ -5,12 +5,14 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
 
 
 ### GraphQL API
 Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+- Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
 
 ### Saleor Apps
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
@@ -18,7 +20,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 ### Other changes
 - Expand metric units to support more types of products. - #13043 by @FremahA
 - Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
-
+- Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
+- Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
 
 # 3.14.0
 

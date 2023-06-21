@@ -486,7 +486,6 @@ class OrderBulkCreateInput(BaseInputObjectType):
         required=True,
         description="Customer associated with the order.",
     )
-    tracking_client_id = graphene.String(description="Tracking ID of the customer.")
     billing_address = graphene.Field(
         AddressInput, required=True, description="Billing address of the customer."
     )
@@ -1910,9 +1909,6 @@ class OrderBulkCreate(BaseMutation, I18nMixin):
         order_data.order.redirect_url = order_input.get("redirect_url")
         order_data.order.origin = OrderOrigin.BULK_CREATE
         order_data.order.weight = order_input.get("weight") or zero_weight()
-        order_data.order.tracking_client_id = (
-            order_input.get("tracking_client_id") or ""
-        )
         order_data.order.currency = order_input["currency"]
         order_data.order.should_refresh_prices = False
         order_data.order.voucher = order_data.voucher
