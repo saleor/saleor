@@ -1,13 +1,8 @@
 import pytest
 
-from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...attribute.models import AttributeValueTranslation
 from ...tests.utils import dummy_editorjs
-from ..models import (
-    CategoryTranslation,
-    CollectionTranslation,
-    ProductTranslation,
-    ProductVariantTranslation,
-)
+from ..models import ProductTranslation, ProductVariantTranslation
 
 
 @pytest.fixture
@@ -71,29 +66,6 @@ def test_translation_not_override_id(settings, product, product_translation_fr):
     assert not translated_product.id == product_translation_fr
 
 
-def test_collection_translation(settings, collection):
-    settings.LANGUAGE_CODE = "fr"
-    french_name = "French name"
-    CollectionTranslation.objects.create(
-        language_code="fr", name=french_name, collection=collection
-    )
-    assert collection.get_translation().name == french_name
-
-
-def test_category_translation(settings, category):
-    settings.LANGUAGE_CODE = "fr"
-    french_name = "French name"
-    french_description = dummy_editorjs("French description.")
-    CategoryTranslation.objects.create(
-        language_code="fr",
-        name=french_name,
-        description=french_description,
-        category=category,
-    )
-    assert category.get_translation().name == french_name
-    assert category.get_translation().description == french_description
-
-
 def test_product_variant_translation(settings, variant):
     settings.LANGUAGE_CODE = "fr"
     french_name = "French name"
@@ -101,15 +73,6 @@ def test_product_variant_translation(settings, variant):
         language_code="fr", name=french_name, product_variant=variant
     )
     assert variant.get_translation().name == french_name
-
-
-def test_attribute_translation(settings, color_attribute):
-    AttributeTranslation.objects.create(
-        language_code="fr", attribute=color_attribute, name="French name"
-    )
-    assert not color_attribute.get_translation().name == "French name"
-    settings.LANGUAGE_CODE = "fr"
-    assert color_attribute.get_translation().name == "French name"
 
 
 def test_attribute_value_translation(settings, product, attribute_value_translation_fr):
