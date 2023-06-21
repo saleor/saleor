@@ -1023,7 +1023,7 @@ def orders_from_checkout(customer_user, checkout):
 
 
 @pytest.fixture
-def order(customer_user, channel_USD):
+def order_generator(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
 
     def create_order(
@@ -1039,6 +1039,7 @@ def order(customer_user, channel_USD):
         private_metadata={"secret_key": "secret_value"},
         checkout_token="",
         status=OrderStatus.UNFULFILLED,
+        search_vector_class=None,
     ):
         order = Order.objects.create(
             billing_address=billing_address,
@@ -1054,19 +1055,20 @@ def order(customer_user, channel_USD):
             checkout_token=checkout_token,
             status=status,
         )
+        if search_vector_class:
+            search_vector = search_vector_class(
+                *prepare_order_search_vector_value(order)
+            )
+            order.search_vector = search_vector
+            order.save(update_fields=["search_vector"])
         return order
 
     return create_order
 
 
 @pytest.fixture
-def order_with_search_vector_value(order):
-    order = order()
-    order.search_vector = FlatConcatSearchVector(
-        *prepare_order_search_vector_value(order)
-    )
-    order.save(update_fields=["search_vector"])
-    return order
+def order(order_generator):
+    return order_generator()
 
 
 @pytest.fixture
@@ -3644,7 +3646,6 @@ def voucher_customer(voucher, customer_user):
 
 @pytest.fixture
 def order_line(order, variant):
-    order = order()
     product = variant.product
     channel = order.channel
     channel_listing = variant.channel_listings.get(channel=channel)
@@ -3677,7 +3678,6 @@ def order_line(order, variant):
 def gift_card_non_shippable_order_line(
     order, gift_card_non_shippable_variant, warehouse
 ):
-    order = order()
     variant = gift_card_non_shippable_variant
     product = variant.product
     channel = order.channel
@@ -3711,7 +3711,6 @@ def gift_card_non_shippable_order_line(
 
 @pytest.fixture
 def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse):
-    order = order()
     variant = gift_card_shippable_variant
     product = variant.product
     channel = order.channel
@@ -4044,7 +4043,6 @@ def gift_card_created_by_staff(staff_user):
 
 @pytest.fixture
 def gift_card_event(gift_card, order, app, staff_user):
-    order = order()
     parameters = {
         "message": "test message",
         "email": "testemail@email.com",
@@ -4134,7 +4132,6 @@ def order_with_lines(
     channel_USD,
     default_tax_class,
 ):
-    order = order()
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
@@ -4554,7 +4551,6 @@ def order_with_lines_channel_PLN(
 def order_with_line_without_inventory_tracking(
     order, variant_without_inventory_tracking
 ):
-    order = order()
     variant = variant_without_inventory_tracking
     product = variant.product
     channel = order.channel
@@ -4593,7 +4589,6 @@ def order_with_line_without_inventory_tracking(
 def order_with_preorder_lines(
     order, product_type, category, shipping_zone, warehouse, channel_USD
 ):
-    order = order()
     product = Product.objects.create(
         name="Test product",
         slug="test-product-8",
@@ -5899,7 +5894,6 @@ def transaction_events_generator() -> (
 
 @pytest.fixture
 def transaction_item_created_by_app(order, app, transaction_item_generator):
-    order = order()
     charged_amount = Decimal("10.0")
     return transaction_item_generator(
         order_id=order.pk,
@@ -5912,7 +5906,6 @@ def transaction_item_created_by_app(order, app, transaction_item_generator):
 
 @pytest.fixture
 def transaction_item_created_by_user(order, staff_user, transaction_item_generator):
-    order = order()
     charged_amount = Decimal("10.0")
     return transaction_item_generator(
         order_id=order.pk,
@@ -5925,7 +5918,6 @@ def transaction_item_created_by_user(order, staff_user, transaction_item_generat
 
 @pytest.fixture
 def transaction_item(order, transaction_item_generator):
-    order = order()
     return transaction_item_generator(
         order_id=order.pk,
     )
