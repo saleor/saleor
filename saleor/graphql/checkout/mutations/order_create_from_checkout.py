@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from ....checkout.checkout_cleaner import validate_checkout
 from ....checkout.complete_checkout import create_order_from_checkout
 from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
-from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....discount.models import NotApplicable
 from ....permission.enums import CheckoutPermissions
@@ -122,8 +121,6 @@ class OrderCreateFromCheckout(BaseMutation):
             cls.check_metadata_permissions(info, id, private=True)
             cls.validate_metadata_keys(private_metadata)
 
-        tracking_code = analytics.get_client_id(info.context)
-
         manager = get_plugin_manager_promise(info.context).get()
         checkout_lines, unavailable_variant_pks = fetch_checkout_lines(checkout)
         checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
@@ -141,7 +138,6 @@ class OrderCreateFromCheckout(BaseMutation):
                 manager=manager,
                 user=user,
                 app=app,
-                tracking_code=tracking_code,
                 delete_checkout=remove_checkout,
                 metadata_list=metadata,
                 private_metadata_list=private_metadata,

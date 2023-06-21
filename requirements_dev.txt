@@ -87,7 +87,6 @@ google-cloud-pubsub==2.17.1 ; python_version >= "3.9" and python_version < "3.10
 google-cloud-storage==2.9.0 ; python_version >= "3.9" and python_version < "3.10"
 google-crc32c==1.5.0 ; python_version >= "3.9" and python_version < "3.10"
 google-i18n-address==2.5.2 ; python_version >= "3.9" and python_version < "3.10"
-google-measurement-protocol==1.1.0 ; python_version >= "3.9" and python_version < "3.10"
 google-resumable-media==2.5.0 ; python_version >= "3.9" and python_version < "3.10"
 googleapis-common-protos==1.59.1 ; python_version >= "3.9" and python_version < "3.10"
 googleapis-common-protos[grpc]==1.59.1 ; python_version >= "3.9" and python_version < "3.10"
