@@ -417,17 +417,14 @@ def test_order_query_with_filter_status(
     order,
     channel_USD,
 ):
-    order.status = status
-    order.save()
-
-    Order.objects.create(channel=channel_USD)
+    order1 = order(status=status)
 
     variables = {"filter": orders_filter}
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     response = staff_api_client.post_graphql(orders_query_with_filter, variables)
     content = get_graphql_content(response)
     orders = content["data"]["orders"]["edges"]
-    order_id = graphene.Node.to_global_id("Order", order.pk)
+    order_id = graphene.Node.to_global_id("Order", order1.pk)
 
     orders_ids_from_response = [o["node"]["id"] for o in orders]
     assert len(orders) == count
@@ -969,6 +966,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
     channel_USD,
     order,
 ):
+    order = order()
     variants = ProductVariant.objects.bulk_create(
         [
             ProductVariant(product=product, sku="Var1"),
@@ -1302,13 +1300,18 @@ def test_order_query_with_filter_by_multiple_checkout_tokens(
     orders_query_with_filter,
     staff_api_client,
     permission_group_manage_orders,
+    order,
     orders_from_checkout,
-    order_from_checkout_JPY,
     orders,
     checkout,
     checkout_JPY,
 ):
     # given
+    order_from_checkout_JPY = order(
+        status=OrderStatus.CANCELED,
+        channel=checkout_JPY.channel,
+        checkout_token=checkout_JPY.token,
+    )
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "filter": {
