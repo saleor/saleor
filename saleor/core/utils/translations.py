@@ -30,7 +30,6 @@ class TranslationWrapper:
 
 class TranslationProxy:
     def __get__(self, instance, owner):
-        breakpoint()
         locale = get_language()
         return TranslationWrapper(instance, locale)
 
@@ -55,9 +54,15 @@ class Translation(models.Model):
         return {}
 
 
-def get_translations(instance, language_code):
+# def get_translations(instance, language_code):
+#     if not language_code:
+#         language_code = settings.LANGUAGE_CODE
+#     if qs := instance.translations.filter(language_code=language_code):
+#         return qs.first()
+#     return instance
+
+
+def get_translations(instance, language_code) -> TranslationWrapper:
     if not language_code:
         language_code = settings.LANGUAGE_CODE
-    if qs := instance.translations.filter(language_code=language_code):
-        return qs.first()
-    return instance
+    return TranslationWrapper(instance, language_code)
