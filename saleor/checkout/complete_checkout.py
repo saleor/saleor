@@ -1247,7 +1247,6 @@ def create_order_from_checkout(
                 manager=manager,
                 user=user,
                 app=app,
-                # tracking_code=tracking_code,
                 metadata_list=metadata_list,
                 private_metadata_list=private_metadata_list,
             )

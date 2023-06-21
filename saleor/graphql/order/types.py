@@ -969,7 +969,7 @@ class Order(ModelObjectType[models.Order]):
     )
     tracking_client_id = graphene.String(
         required=True,
-        description="Google Analytics tracking client ID" + DEPRECATED_IN_3X_FIELD,
+        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_FIELD,
     )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
