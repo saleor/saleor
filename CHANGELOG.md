@@ -5,6 +5,7 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
 
 ### GraphQL API
 

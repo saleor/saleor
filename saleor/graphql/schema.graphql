@@ -22968,9 +22968,6 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
 
-  """Tracking ID of the customer."""
-  trackingClientId: String
-
   """Billing address of the customer."""
   billingAddress: AddressInput!
 

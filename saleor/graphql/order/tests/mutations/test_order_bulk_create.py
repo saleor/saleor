@@ -383,7 +383,6 @@ def order_bulk_input(
         "notes": [note],
         "fulfillments": [fulfillment],
         "weight": "10.15",
-        "trackingClientId": "tracking-id-123",
         "redirectUrl": "https://www.example.com",
         "transactions": [transaction],
         "invoices": [invoice],
@@ -532,7 +531,6 @@ def test_order_bulk_create(
     assert order["redirectUrl"] == "https://www.example.com"
     assert order["origin"] == OrderOrigin.BULK_CREATE.upper()
     assert order["weight"]["value"] == 10.15
-    assert order["trackingClientId"] == "tracking-id-123"
     assert order["displayGrossPrices"]
     assert order["metadata"][0]["key"] == "md key"
     assert order["metadata"][0]["value"] == "md value"
@@ -564,7 +562,6 @@ def test_order_bulk_create(
     assert db_order.redirect_url == "https://www.example.com"
     assert db_order.origin == OrderOrigin.BULK_CREATE
     assert db_order.weight.g == 10.15 * 1000
-    assert db_order.tracking_client_id == "tracking-id-123"
     assert db_order.display_gross_prices
     assert db_order.currency == "PLN"
     assert db_order.gift_cards.first().code == "never_expiry"
@@ -3238,7 +3235,6 @@ def test_order_bulk_create_optional_fields_set_to_none(
     order["invoices"] = None
     order["discounts"] = None
     order["customerNote"] = None
-    order["trackingClientId"] = None
     order["weight"] = None
     order["lines"][0]["isShippingRequired"] = False
     order["deliveryMethod"] = None
