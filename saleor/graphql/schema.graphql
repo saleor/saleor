@@ -10324,6 +10324,10 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   User who placed the order. This field is set only for orders placed by authenticated users. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
   """
   user: User
+
+  """
+  Google Analytics tracking client IDThis field will be removed in Saleor 4.0.
+  """
   trackingClientId: String!
 
   """
