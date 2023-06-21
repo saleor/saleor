@@ -1,9 +1,9 @@
-from ....core import TimePeriodType
-from ....site import GiftCardSettingsExpiryType
-from ....site.error_codes import GiftCardSettingsErrorCode
-from ...core.enums import TimePeriodTypeEnum
-from ...tests.utils import assert_no_permission, get_graphql_content
-from ..enums import GiftCardSettingsExpiryTypeEnum
+from .....core import TimePeriodType
+from .....site import GiftCardSettingsExpiryType
+from .....site.error_codes import GiftCardSettingsErrorCode
+from ....core.enums import TimePeriodTypeEnum
+from ....tests.utils import assert_no_permission, get_graphql_content
+from ...enums import GiftCardSettingsExpiryTypeEnum
 
 GIFT_CARD_SETTINGS_UPDATE_MUTATION = """
     mutation giftCardSettingsUpdate($input: GiftCardSettingsUpdateInput!) {
