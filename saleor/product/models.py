@@ -49,7 +49,7 @@ from ..core.models import (
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation, TranslationProxy, get_translations
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
@@ -442,7 +442,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     )
 
     objects = ProductManager()
-    translated = TranslationProxy()
 
     class Meta:
         app_label = "product"
@@ -493,6 +492,10 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     @staticmethod
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
+
+    @property
+    def translated(self):
+        return get_translations(self, None)
 
 
 class ProductTranslation(SeoModelTranslation):
