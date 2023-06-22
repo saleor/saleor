@@ -27451,13 +27451,13 @@ type AccountConfirmationRequested implements Event @doc(category: "Users") {
   """The URL to redirect the user after he accepts the request."""
   redirectUrl: String
 
-  """The user assigned to the webhook."""
+  """The user the event relates to."""
   user: User
 
-  """The channel assigned to the webhook."""
+  """The channel data."""
   channel: Channel
 
-  """The token required to confirm the user."""
+  """The token required to confirm request."""
   token: String
 
   """Shop data."""

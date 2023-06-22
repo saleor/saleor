@@ -140,13 +140,13 @@ class AccountOperationBase(AbstractType):
     )
     user = graphene.Field(
         UserType,
-        description="The user assigned to the webhook.",
+        description="The user the event relates to.",
     )
     channel = graphene.Field(
         "saleor.graphql.channel.types.Channel",
-        description="The channel assigned to the webhook.",
+        description="The channel data.",
     )
-    token = graphene.String(description="The token required to confirm the user.")
+    token = graphene.String(description="The token required to confirm request.")
     shop = graphene.Field(Shop, description="Shop data.")
 
     @staticmethod

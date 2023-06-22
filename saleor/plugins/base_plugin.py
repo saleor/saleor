@@ -153,7 +153,7 @@ class BasePlugin:
     #
     # Overwrite this method if you need to trigger specific logic after an account
     # confirmation is requested.
-    account_confirmation_requested: Callable[["User", None], None]
+    account_confirmation_requested: Callable[["User", str, str, str, None], None]
 
     # Trigger when address is created.
     #
