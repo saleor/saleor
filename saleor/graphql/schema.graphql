@@ -1687,6 +1687,7 @@ type WebhookEvent @doc(category: "Webhooks") {
 enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
+  ACCOUNT_CONFIRMATION_REQUESTED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -2318,6 +2319,7 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
+  ACCOUNT_CONFIRMATION_REQUESTED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -3317,6 +3319,7 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
+  ACCOUNT_CONFIRMATION_REQUESTED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -27425,6 +27428,40 @@ enum VolumeUnitsEnum {
   FL_OZ
   ACRE_IN
   ACRE_FT
+}
+
+"""
+Event sent when account confirmation requested.
+
+Added in Saleor 3.15.
+"""
+type AccountConfirmationRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user assigned to the webhook."""
+  user: User
+
+  """The channel assigned to the webhook."""
+  channel: Channel
+
+  """The token required to confirm the user."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
 }
 
 """

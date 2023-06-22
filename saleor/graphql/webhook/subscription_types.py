@@ -6,8 +6,10 @@ from rx import Observable
 from ... import __version__
 from ...account.models import User
 from ...attribute.models import AttributeTranslation, AttributeValueTranslation
+from ...channel.models import Channel
 from ...core.prices import quantize_price
 from ...discount.models import SaleTranslation, VoucherTranslation
+from ...graphql.shop.types import Shop
 from ...menu.models import MenuItemTranslation
 from ...order.utils import get_all_shipping_methods_for_order
 from ...page.models import PageTranslation
@@ -39,6 +41,7 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import (
@@ -129,6 +132,54 @@ class Event(graphene.Interface):
         if not info.context.requestor:
             return None
         return info.context.requestor
+
+
+class AccountOperationBase(AbstractType):
+    redirect_url = graphene.String(
+        description="The URL to redirect the user after he accepts the request."
+    )
+    user = graphene.Field(
+        UserType,
+        description="The user assigned to the webhook.",
+    )
+    channel = graphene.Field(
+        "saleor.graphql.channel.types.Channel",
+        description="The channel assigned to the webhook.",
+    )
+    token = graphene.String(description="The token required to confirm the user.")
+    shop = graphene.Field(Shop, description="Shop data.")
+
+    @staticmethod
+    def resolve_user(root, _info: ResolveInfo):
+        _, data = root
+        return data["user"]
+
+    @staticmethod
+    def resolve_redirect_url(root, _info: ResolveInfo):
+        _, data = root
+        return data["redirect_url"]
+
+    @staticmethod
+    def resolve_channel(root, _info: ResolveInfo):
+        _, data = root
+        return Channel.objects.get(slug=data["channel_slug"])
+
+    @staticmethod
+    def resolve_token(root, _info: ResolveInfo):
+        _, data = root
+        return data["token"]
+
+    @staticmethod
+    def resolve_shop(root, _info: ResolveInfo):
+        return Shop()
+
+
+class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account confirmation requested." + ADDED_IN_315
 
 
 class AddressBase(AbstractType):
@@ -2028,6 +2079,7 @@ class ThumbnailCreated(SubscriptionObjectType):
 
 
 WEBHOOK_TYPES_MAP = {
+    WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,

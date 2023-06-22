@@ -1,8 +1,10 @@
 from collections import defaultdict
 from typing import List
+from urllib.parse import urlencode
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.contrib.auth.tokens import default_token_generator
 
 from ....account import events as account_events
 from ....account.error_codes import AccountErrorCode
@@ -11,6 +13,7 @@ from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.url import prepare_url
 from ....core.utils.url import validate_storefront_url
 from ....graphql.utils import get_user_or_app_from_context
 from ....permission.auth_filters import AuthorizationFilters
@@ -310,7 +313,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
-            manager.customer_created(customer=instance)
+            cls.call_event(manager.customer_created, instance)
             account_events.customer_account_created_event(user=instance)
         else:
             manager.customer_updated(instance)
@@ -325,6 +328,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 channel_slug = validate_channel(
                     channel_slug, error_class=AccountErrorCode
                 ).slug
+
+            token = default_token_generator.make_token(instance)
+            params = urlencode({"email": instance.email, "token": token})
+            confirm_url = prepare_url(params, cleaned_input["redirect_url"])
+
+            manager.account_confirmation_requested(
+                instance, channel_slug, token, confirm_url
+            )
             send_set_password_notification(
                 cleaned_input.get("redirect_url"),
                 instance,

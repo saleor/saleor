@@ -1061,6 +1061,19 @@ class PluginsManager(PaymentInterface):
             "transaction_item_metadata_updated", default_value, transaction_item
         )
 
+    def account_confirmation_requested(
+        self, user: "User", channel_slug: str, token: str, redirect_url: str
+    ):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "account_confirmation_requested",
+            default_value,
+            user,
+            channel_slug,
+            token=token,
+            redirect_url=redirect_url,
+        )
+
     def address_created(self, address: "Address"):
         default_value = None
         return self.__run_method_on_plugins("address_created", default_value, address)

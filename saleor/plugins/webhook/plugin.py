@@ -168,6 +168,39 @@ class WebhookPlugin(BasePlugin):
                 payload, event_type, webhooks, address, self.requestor
             )
 
+    def account_confirmation_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        if webhooks := get_webhooks_for_event(
+            WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+        ):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("User", user.id),
+                    "token": token,
+                    "redirect_url": redirect_url,
+                }
+            )
+            trigger_webhooks_async(
+                payload,
+                WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+                webhooks,
+                {
+                    "user": user,
+                    "channel_slug": channel_slug,
+                    "token": token,
+                    "redirect_url": redirect_url,
+                },
+                self.requestor,
+            )
+
     def address_created(self, address: "Address", previous_value: None) -> None:
         if not self.active:
             return previous_value
