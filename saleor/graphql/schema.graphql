@@ -16872,7 +16872,10 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  appFetchManifest(manifestUrl: String!): AppFetchManifest @doc(category: "Apps")
+  appFetchManifest(
+    """URL to app's manifest in JSON format."""
+    manifestUrl: String!
+  ): AppFetchManifest @doc(category: "Apps")
 
   """
   Activate the app. 
@@ -25951,7 +25954,7 @@ input AppInstallInput @doc(category: "Apps") {
   """Name of the app to install."""
   appName: String
 
-  """Url to app's manifest in JSON format."""
+  """URL to app's manifest in JSON format."""
   manifestUrl: String
 
   """Determine if app will be set active or not."""
@@ -25989,6 +25992,7 @@ Fetch and validate manifest.
 Requires one of the following permissions: MANAGE_APPS.
 """
 type AppFetchManifest @doc(category: "Apps") {
+  """The validated manifest."""
   manifest: Manifest
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!

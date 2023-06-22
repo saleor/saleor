@@ -37,7 +37,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--target-url",
             dest="target_url",
-            help="Url which will receive newly created data of app object. "
+            help="URL which will receive newly created data of app object. "
             "Command doesn't return app data to stdout when this "
             "argument is provided.",
         )
