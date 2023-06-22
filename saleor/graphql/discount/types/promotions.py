@@ -5,6 +5,7 @@ from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
 from ...channel.types import Channel
 from ...core import ResolveInfo
+from ...core.connection import CountableConnection
 from ...core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
@@ -99,3 +100,9 @@ class PromotionRule(ModelObjectType[models.PromotionRule]):
     @staticmethod
     def resolve_channels(root: models.PromotionRule, info: ResolveInfo):
         return ChannelsByPromotionRuleIdLoader(info.context).load(root.id)
+
+
+class PromotionCountableConnection(CountableConnection):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        node = Promotion
