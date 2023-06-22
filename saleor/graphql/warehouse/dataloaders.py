@@ -574,11 +574,11 @@ class WarehousesByShippingZoneIdLoader(DataLoader):
 
     def batch_load(self, keys):
         warehouse_and_shipping_zone_in_pairs = (
-            ShippingZone.objects.using(self.database_connection_name)
-            .filter(id__in=keys)
-            .exclude(warehouses__id__isnull=True)
-            .values_list("warehouses__id", "id")
+            ShippingZone.warehouses.through.objects.using(self.database_connection_name)
+            .filter(shippingzone_id__in=keys)
+            .values_list("warehouse_id", "shippingzone_id")
         )
+
         shipping_zone_warehouse_map = defaultdict(list)
         for warehouse_id, shipping_zone_id in warehouse_and_shipping_zone_in_pairs:
             shipping_zone_warehouse_map[shipping_zone_id].append(warehouse_id)
