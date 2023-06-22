@@ -9,7 +9,7 @@ from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
 from ..translations.mutations import SaleTranslate, VoucherTranslate
-from .filters import SaleFilter, VoucherFilter
+from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
 from .mutations import (
     PromotionCreate,
     PromotionDelete,
@@ -33,12 +33,13 @@ from .mutations import (
 from .mutations.bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .resolvers import (
     resolve_promotion,
+    resolve_promotions,
     resolve_sale,
     resolve_sales,
     resolve_voucher,
     resolve_vouchers,
 )
-from .sorters import SaleSortingInput, VoucherSortingInput
+from .sorters import PromotionSortingInput, SaleSortingInput, VoucherSortingInput
 from .types import (
     Promotion,
     Sale,
@@ -46,6 +47,7 @@ from .types import (
     Voucher,
     VoucherCountableConnection,
 )
+from .types.promotions import PromotionCountableConnection
 
 
 class VoucherFilterInput(FilterInputObjectType):
@@ -136,6 +138,14 @@ class DiscountQueries(graphene.ObjectType):
         ],
         doc_category=DOC_CATEGORY_DISCOUNTS,
     )
+    promotions = FilterConnectionField(
+        PromotionCountableConnection,
+        where=PromotionWhereInput(description="Where filtering options."),
+        sort_by=PromotionSortingInput(description="Sort promotions."),
+        description="List of the promotions." + ADDED_IN_315 + PREVIEW_FEATURE,
+        permissions=[DiscountPermissions.MANAGE_DISCOUNTS],
+        doc_category=DOC_CATEGORY_DISCOUNTS,
+    )
 
     @staticmethod
     def resolve_sale(_root, _info, *, id, channel=None):
@@ -165,6 +175,12 @@ class DiscountQueries(graphene.ObjectType):
     def resolve_promotion(_root, _info, *, id, channel=None):
         _, id = from_global_id_or_error(id, Promotion)
         return resolve_promotion(id)
+
+    @staticmethod
+    def resolve_promotions(_root, info: ResolveInfo, **kwargs):
+        qs = resolve_promotions()
+        qs = filter_connection_queryset(qs, kwargs)
+        return create_connection_slice(qs, info, kwargs, PromotionCountableConnection)
 
 
 class DiscountMutations(graphene.ObjectType):
