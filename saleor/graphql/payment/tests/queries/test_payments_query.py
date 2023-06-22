@@ -65,8 +65,13 @@ PAYMENT_QUERY = """ query Payments($filter: PaymentFilterInput){
 def test_payments_query(
     payment_txn_captured, permission_group_manage_orders, staff_api_client
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
     response = staff_api_client.post_graphql(PAYMENT_QUERY)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["payments"]["edges"][0]["node"]
     pay = payment_txn_captured
@@ -92,10 +97,15 @@ def test_payments_query(
 def test_query_payments(
     payment_dummy, permission_group_manage_orders, staff_api_client
 ):
+    # given
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     permission_group_manage_orders.user_set.add(staff_api_client.user)
+
+    # when
     response = staff_api_client.post_graphql(PAYMENT_QUERY, {})
+
+    # then
     content = get_graphql_content(response)
     edges = content["data"]["payments"]["edges"]
     payment_ids = [edge["node"]["id"] for edge in edges]
@@ -225,13 +235,18 @@ QUERY_PAYMENT_BY_ID = """
 
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
+    # given
     query = QUERY_PAYMENT_BY_ID
     payment = payment_dummy
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"id": payment_id}
+
+    # when
     response = user_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     payment_data = content["data"]["payment"]
     received_id = payment_data["id"]
@@ -242,6 +257,7 @@ def test_query_payment(payment_dummy, user_api_client, permission_manage_orders)
 def test_query_payment_with_checkout(
     payment_dummy, user_api_client, permission_manage_orders, checkout
 ):
+    # given
     query = QUERY_PAYMENT_BY_ID
     payment = payment_dummy
     payment.order = None
@@ -249,9 +265,13 @@ def test_query_payment_with_checkout(
     payment.save()
     payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"id": payment_id}
+
+    # when
     response = user_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     payment_data = content["data"]["payment"]
     received_id = payment_data["id"]
@@ -262,11 +282,16 @@ def test_query_payment_with_checkout(
 def test_staff_query_payment_by_invalid_id(
     staff_api_client, payment_dummy, permission_manage_orders
 ):
+    # given
     id = "bh/"
     variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_PAYMENT_BY_ID, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
@@ -276,9 +301,14 @@ def test_staff_query_payment_by_invalid_id(
 def test_staff_query_payment_with_invalid_object_type(
     staff_api_client, payment_dummy, permission_manage_orders
 ):
+    # given
     variables = {"id": graphene.Node.to_global_id("Order", payment_dummy.pk)}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_PAYMENT_BY_ID, variables, permissions=[permission_manage_orders]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["payment"] is None

@@ -5,6 +5,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
+from ...core.utils.translations import get_translation
 from ...core.weight import zero_weight
 from ...discount import DiscountType
 from ...discount.models import (
@@ -92,14 +93,11 @@ def test_recalculate_order_keeps_weight_unit(order_with_lines):
 def test_add_variant_to_order_adds_line_for_new_variant(
     order_with_lines,
     product,
-    product_translation_fr,
-    settings,
     anonymous_plugins,
 ):
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
 
     add_variant_to_order(
@@ -116,7 +114,6 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
-    assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
     assert not line.unit_discount_amount
@@ -127,10 +124,8 @@ def test_add_variant_to_order_adds_line_for_new_variant(
 def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     order_with_lines,
     product,
-    product_translation_fr,
     sale,
     discount_info,
-    settings,
     anonymous_plugins,
 ):
     order = order_with_lines
@@ -138,7 +133,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     discount_info.variants_ids.add(variant.id)
     sale.variants.add(variant)
     lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
 
     add_variant_to_order(
@@ -162,7 +156,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
 
@@ -174,8 +167,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale(
 def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     order_with_lines,
     product,
-    product_translation_fr,
-    settings,
     anonymous_plugins,
 ):
     order = order_with_lines
@@ -185,7 +176,6 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     variant_channel_listing.save(update_fields=["price_amount", "currency"])
 
     lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
     line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
 
     add_variant_to_order(
@@ -202,7 +192,6 @@ def test_add_variant_to_draft_order_adds_line_for_variant_with_price_0(
     assert line.product_variant_id == variant.get_global_id()
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
-    assert line.translated_product_name == str(variant.product.translated)
     assert line.product_name == variant.product.name
 
 
@@ -1344,10 +1333,8 @@ def test_order_update_charge_data_with_transaction_item_and_payment(
 def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_price(
     order_with_lines,
     product,
-    product_translation_fr,
     sale,
     discount_info,
-    settings,
     anonymous_plugins,
 ):
     # given
@@ -1356,7 +1343,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     discount_info.variants_ids.add(variant.id)
     sale.variants.add(variant)
     lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
     price_override = Decimal(15)
     line_data = OrderLineData(
         variant_id=str(variant.id),
@@ -1387,7 +1373,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
     assert line.unit_price == TaxedMoney(
         net=Money(unit_amount, "USD"), gross=Money(unit_amount, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
 
@@ -1399,15 +1384,12 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
 def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     order_with_lines,
     product,
-    product_translation_fr,
-    settings,
     anonymous_plugins,
 ):
     # given
     order = order_with_lines
     variant = product.variants.get()
     lines_before = order.lines.count()
-    settings.LANGUAGE_CODE = "fr"
     price_override = Decimal(18)
     line_data = OrderLineData(
         variant_id=str(variant.id),
@@ -1436,7 +1418,6 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert line.unit_price == TaxedMoney(
         net=Money(price_override, "USD"), gross=Money(price_override, "USD")
     )
-    assert line.translated_product_name == str(variant.product.translated)
     assert line.variant_name == str(variant)
     assert line.product_name == str(variant.product)
     assert line.base_unit_price_amount == price_override
@@ -1444,3 +1425,40 @@ def test_add_variant_to_order_adds_line_with_custom_price_for_new_variant(
     assert not line.unit_discount_amount
     assert not line.unit_discount_value
     assert not line.unit_discount_reason
+
+
+def test_add_variant_to_order_adds_translations_in_order_language(
+    order_with_lines,
+    product,
+    product_translation_fr,
+    variant_translation_fr,
+    settings,
+    anonymous_plugins,
+):
+    # given
+    language_code = "fr"
+    settings.LANGUAGE_CODE = "es"
+
+    order = order_with_lines
+    order.language_code = language_code
+    order.save(update_fields=["language_code"])
+    variant = variant_translation_fr.product_variant
+    line_data = OrderLineData(variant_id=str(variant.id), variant=variant, quantity=1)
+
+    # when
+    add_variant_to_order(
+        order=order,
+        line_data=line_data,
+        user=None,
+        app=None,
+        manager=anonymous_plugins,
+    )
+
+    # then
+    line = order.lines.last()
+    assert line.quantity == 1
+    assert (
+        line.translated_product_name
+        == get_translation(variant.product, language_code).name
+    )
+    assert line.translated_variant_name == get_translation(variant, language_code).name

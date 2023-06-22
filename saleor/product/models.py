@@ -49,7 +49,7 @@ from ..core.models import (
 from ..core.units import WeightUnits
 from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
@@ -94,7 +94,6 @@ class Category(ModelWithMetadata, MPTTModel, SeoModel):
 
     objects = models.Manager()
     tree = TreeManager()  # type: ignore[django-manager-missing]
-    translated = TranslationProxy()
 
     class Meta:
         indexes = [
@@ -442,7 +441,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     )
 
     objects = ProductManager()
-    translated = TranslationProxy()
 
     class Meta:
         app_label = "product"
@@ -625,7 +623,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
     )
 
     objects = ProductVariantManager()
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "sku")
@@ -683,8 +680,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def display_product(self, translated: bool = False) -> str:
         if translated:
-            product = self.product.translated
-            variant_display = str(self.translated)
+            product = get_translation(self.product).name
+            variant_display = get_translation(self).name
         else:
             variant_display = str(self)
             product = self.product
@@ -707,8 +704,6 @@ class ProductVariantTranslation(Translation):
         ProductVariant, related_name="translations", on_delete=models.CASCADE
     )
     name = models.CharField(max_length=255, blank=True)
-
-    translated = TranslationProxy()
 
     class Meta:
         unique_together = (("language_code", "product_variant"),)
@@ -945,8 +940,6 @@ class Collection(SeoModel, ModelWithMetadata):
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
 
     objects = CollectionManager()
-
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
