@@ -576,8 +576,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         channel = ChannelBySlugLoader(context).load(channel_slug)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
 
-        # address_country = address.country if address is not None else None
-
         def load_tax_configuration(data):
             (
                 product_channel_listing,
@@ -588,8 +586,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
 
             if not variant_channel_listing or not product_channel_listing:
                 return None
-
-            # country_code = address_country or channel.default_country.code
             country_code = get_active_country(channel, address_data=address)
 
             def load_tax_country_exceptions(tax_config):
@@ -1069,7 +1065,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         channel_slug = str(root.channel_slug)
         context = info.context
-        # address_country = address.country if address is not None else None
 
         channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
@@ -1093,7 +1088,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
             if not variants_channel_listing:
                 return None
             country_code = get_active_country(channel, address_data=address)
-            # country_code = address_country or channel.default_country.code
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
