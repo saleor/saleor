@@ -1,3 +1,5 @@
+from django.db.models import QuerySet
+
 from ...discount import models
 from ..channel import ChannelContext, ChannelQsContext
 from .filters import filter_sale_search, filter_voucher_search
@@ -39,3 +41,7 @@ def resolve_sales(info, channel_slug, **kwargs) -> ChannelQsContext:
 
 def resolve_promotion(id):
     return models.Promotion.objects.filter(id=id).first()
+
+
+def resolve_promotions() -> QuerySet:
+    return models.Promotion.objects.all()
