@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinLengthValidator
 from django.db import models
 from django.db.models import JSONField, Q
@@ -110,6 +111,8 @@ class GiftCard(ModelWithMetadata):
     current_balance = MoneyField(
         amount_field="current_balance_amount", currency_field="currency"
     )
+    search_vector = SearchVectorField(blank=True, null=True)
+    search_index_dirty = models.BooleanField(default=False, db_index=True)
 
     objects = GiftCardManager()
 
