@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
-from saleor.account.models import Address
-from saleor.channel.models import Channel
+from ...account.models import Address
+from ...channel.models import Channel
 
 
 def get_active_country(
