@@ -13,7 +13,7 @@ GIFTCARD_FIELDS_TO_PREFETCH = [
     "created_by__first_name",
     "created_by__last_name",
 ]
-PRODUCTS_BATCH_SIZE = 100
+GIFT_CARD_BATCH_SIZE = 100
 
 
 def prepare_gift_card_search_vector_value(
@@ -81,7 +81,9 @@ def _prep_gift_cards_search_vector_index(gift_cards: List[GiftCard]):
 def update_gift_cards_search_vector(gift_cards: QuerySet):
     last_id = 0
     while True:
-        gift_cards_batch = list(gift_cards.filter(id__gt=last_id)[:PRODUCTS_BATCH_SIZE])
+        gift_cards_batch = list(
+            gift_cards.filter(id__gt=last_id)[:GIFT_CARD_BATCH_SIZE]
+        )
         if not gift_cards_batch:
             break
         last_id = gift_cards_batch[-1].id

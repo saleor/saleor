@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="giftcard",
             name="search_index_dirty",
-            field=models.BooleanField(db_index=True, default=False),
+            field=models.BooleanField(db_index=True, default=True),
         ),
         migrations.AddField(
             model_name="giftcard",

@@ -973,6 +973,13 @@ type Query {
     """
     filter: GiftCardFilterInput
 
+    """
+    Look up gift cards by multiple fields.
+    
+    Added in Saleor 3.15.
+    """
+    search: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
