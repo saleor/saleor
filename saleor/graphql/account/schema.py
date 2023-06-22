@@ -201,7 +201,7 @@ class AccountQueries(graphene.ObjectType):
         country_code,
         country_area=None,
         city=None,
-        city_area=None
+        city_area=None,
     ):
         return resolve_address_validation_rules(
             info,
