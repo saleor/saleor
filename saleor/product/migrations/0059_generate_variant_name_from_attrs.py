@@ -3,6 +3,8 @@ from collections import defaultdict
 
 from django.db import migrations
 
+from saleor.core.utils.translations import get_translation
+
 
 def get_attributes_display_map(obj, attributes):
     """Return attributes associated with an object, as dict of AttrPK: AttributeValue.
@@ -16,7 +18,9 @@ def get_attributes_display_map(obj, attributes):
     for attribute in attributes:
         attribute_values = obj.attributes.get(str(attribute.pk))  # type: List
         if attribute_values:
-            choices = {str(a.pk): a.translated for a in attribute.values.all()}
+            choices = {
+                str(a.pk): get_translation(a).name for a in attribute.values.all()
+            }
             for value in attribute_values:
                 current_display_value = display_map[attribute.pk]
                 if not current_display_value:
