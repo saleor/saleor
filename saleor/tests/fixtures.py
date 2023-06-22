@@ -5089,6 +5089,79 @@ def promotion(channel_USD, product, collection):
 
 
 @pytest.fixture
+def promotion_list(channel_USD, product, collection):
+    promotions = Promotion.objects.bulk_create(
+        [
+            Promotion(
+                name="Promotion 1",
+                description=dummy_editorjs("Promotion 1 description."),
+                start_date=timezone.now() + timedelta(days=1),
+                end_date=timezone.now() + timedelta(days=10),
+            ),
+            Promotion(
+                name="Promotion 2",
+                description=dummy_editorjs("Promotion 2 description."),
+                start_date=timezone.now() + timedelta(days=5),
+                end_date=timezone.now() + timedelta(days=20),
+            ),
+            Promotion(
+                name="Promotion 3",
+                description=dummy_editorjs("TePromotion 3 description."),
+                start_date=timezone.now() + timedelta(days=15),
+                end_date=timezone.now() + timedelta(days=30),
+            ),
+        ]
+    )
+    rules = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                name="Promotion 1 percentage rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 percentage rule."
+                ),
+                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 1 fixed rule",
+                promotion=promotions[0],
+                description=dummy_editorjs(
+                    "Test description for promotion 1 fixed rule."
+                ),
+                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+            PromotionRule(
+                name="Promotion 2 percentage rule",
+                promotion=promotions[1],
+                description=dummy_editorjs(
+                    "Test description for promotion 2 percentage rule."
+                ),
+                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=Decimal("10"),
+            ),
+            PromotionRule(
+                name="Promotion 3 fixed rule",
+                promotion=promotions[2],
+                description=dummy_editorjs(
+                    "Test description for promotion 3 fixed rule."
+                ),
+                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=Decimal("5"),
+            ),
+        ]
+    )
+    for rule in rules:
+        rule.channels.add(channel_USD)
+    return promotions
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
