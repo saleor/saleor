@@ -77,7 +77,13 @@ class AddressInput(BaseInputObjectType):
     postal_code = graphene.String(description="Postal code.")
     country = CountryCodeEnum(description="Country.")
     country_area = graphene.String(description="State or province.")
-    phone = graphene.String(description="Phone number.")
+    phone = graphene.String(
+        description=(
+            "Phone number.\n\n"
+            "Phone numbers are validated with Google's "
+            "[libphonenumber](https://github.com/google/libphonenumber) library."
+        )
+    )
 
 
 @federated_entity("id")
@@ -90,7 +96,7 @@ class Address(ModelObjectType[models.Address]):
         required=True, description="The family name of the address."
     )
     company_name = graphene.String(
-        required=True, description="Company or organization."
+        required=True, description="Company or organization name."
     )
     street_address_1 = graphene.String(
         required=True, description="The first line of the address."
@@ -100,18 +106,18 @@ class Address(ModelObjectType[models.Address]):
     )
     city = graphene.String(required=True, description="The city of the address.")
     city_area = graphene.String(
-        required=True, description="The district of the address"
+        required=True, description="The district of the address."
     )
     postal_code = graphene.String(
         required=True, description="The postal code of the address."
     )
     country = graphene.Field(
-        CountryDisplay, required=True, description="The count of the address."
+        CountryDisplay, required=True, description="The country of the address."
     )
     country_area = graphene.String(
-        required=True, description="The country area of the address,"
+        required=True, description="The country area of the address."
     )
-    phone = graphene.String()
+    phone = graphene.String(description="The phone number assigned the address.")
     is_default_shipping_address = graphene.Boolean(
         required=False, description="Address is user's default shipping address."
     )

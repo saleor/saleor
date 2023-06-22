@@ -3591,7 +3591,7 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The family name of the address."""
   lastName: String!
 
-  """Company or organization."""
+  """Company or organization name."""
   companyName: String!
 
   """The first line of the address."""
@@ -3603,17 +3603,19 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   """The city of the address."""
   city: String!
 
-  """The district of the address"""
+  """The district of the address."""
   cityArea: String!
 
   """The postal code of the address."""
   postalCode: String!
 
-  """The count of the address."""
+  """The country of the address."""
   country: CountryDisplay!
 
-  """The country area of the address,"""
+  """The country area of the address."""
   countryArea: String!
+
+  """The phone number assigned the address."""
   phone: String
 
   """Address is user's default shipping address."""
@@ -7168,7 +7170,11 @@ input AddressInput {
   """State or province."""
   countryArea: String
 
-  """Phone number."""
+  """
+  Phone number.
+  
+  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
+  """
   phone: String
 }
 
