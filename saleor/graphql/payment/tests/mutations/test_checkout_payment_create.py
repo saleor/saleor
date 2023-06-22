@@ -693,7 +693,8 @@ def test_checkout_add_payment_run_multiple_times(
 
     # when
     with before_after.before(
-        "saleor.graphql.payment.mutations.cancel_active_payments",
+        "saleor.graphql.payment.mutations.payment."
+        "checkout_payment_create.cancel_active_payments",
         call_payment_create_mutation,
     ):
         response = user_api_client.post_graphql(CREATE_PAYMENT_MUTATION, variables)

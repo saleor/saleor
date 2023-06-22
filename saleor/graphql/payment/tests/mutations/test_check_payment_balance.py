@@ -123,7 +123,9 @@ def test_payment_check_balance_validate_channel_inactive(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch("saleor.graphql.payment.mutations.validate_channel")
+@patch(
+    "saleor.graphql.payment.mutations.payment.payment_check_balance.validate_channel"
+)
 def test_payment_check_balance_payment(
     _,
     __,
@@ -153,7 +155,9 @@ def test_payment_check_balance_payment(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch("saleor.graphql.payment.mutations.validate_channel")
+@patch(
+    "saleor.graphql.payment.mutations.payment.payment_check_balance.validate_channel"
+)
 def test_payment_check_balance_balance_raises_error(
     _,
     __,
