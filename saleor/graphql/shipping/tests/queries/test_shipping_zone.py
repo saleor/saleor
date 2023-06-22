@@ -1,11 +1,10 @@
 import graphene
-import pytest
 from django.contrib.sites.models import Site
 from measurement.measures import Weight
 
-from ....core.units import WeightUnits
-from ...shipping.resolvers import resolve_price_range
-from ...tests.utils import get_graphql_content, get_graphql_content_from_response
+from .....core.units import WeightUnits
+from ....shipping.resolvers import resolve_price_range
+from ....tests.utils import get_graphql_content, get_graphql_content_from_response
 
 SHIPPING_ZONE_QUERY = """
     query ShippingQuery($id: ID!, $channel: String,) {
@@ -134,11 +133,16 @@ def test_shipping_zone_query_weights_returned_in_default_unit(
 def test_staff_query_shipping_zone_by_invalid_id(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
+    # given
     id = "bh/"
     variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(
         SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
+
+    # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
@@ -148,197 +152,17 @@ def test_staff_query_shipping_zone_by_invalid_id(
 def test_staff_query_shipping_zone_object_given_id_does_not_exists(
     staff_api_client, permission_manage_shipping
 ):
+    # given
     variables = {"id": graphene.Node.to_global_id("Order", -1)}
+
+    # when
     response = staff_api_client.post_graphql(
         SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
-    content = get_graphql_content(response)
-    assert content["data"]["shippingZone"] is None
 
-
-MULTIPLE_SHIPPING_QUERY = """
-    query MultipleShippings($channel: String) {
-        shippingZones(first: 100, channel: $channel) {
-            edges {
-                node {
-                    id
-                    name
-                    priceRange {
-                        start {
-                            amount
-                        }
-                        stop {
-                            amount
-                        }
-                    }
-                    shippingMethods {
-                        channelListings {
-                            price {
-                                amount
-                            }
-                        }
-                    }
-                    warehouses {
-                        id
-                        name
-                    }
-                }
-            }
-            totalCount
-        }
-    }
-"""
-
-
-def test_shipping_zones_query(
-    staff_api_client,
-    shipping_zone,
-    permission_manage_shipping,
-    permission_manage_products,
-    channel_USD,
-):
-    num_of_shippings = shipping_zone._meta.model.objects.count()
-    variables = {"channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(
-        MULTIPLE_SHIPPING_QUERY,
-        variables,
-        permissions=[permission_manage_shipping, permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["shippingZones"]["totalCount"] == num_of_shippings
-
-
-def test_shipping_methods_query_with_channel(
-    staff_api_client,
-    shipping_zone,
-    shipping_method_channel_PLN,
-    permission_manage_shipping,
-    permission_manage_products,
-    channel_USD,
-):
-    shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
-    variables = {"channel": channel_USD.slug}
-    response = staff_api_client.post_graphql(
-        MULTIPLE_SHIPPING_QUERY,
-        variables,
-        permissions=[permission_manage_shipping, permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    assert (
-        len(content["data"]["shippingZones"]["edges"][0]["node"]["shippingMethods"])
-        == 1
-    )
-
-
-def test_shipping_methods_query(
-    staff_api_client,
-    shipping_zone,
-    shipping_method_channel_PLN,
-    permission_manage_shipping,
-    permission_manage_products,
-    channel_USD,
-):
-    shipping_zone.shipping_methods.add(shipping_method_channel_PLN)
-    response = staff_api_client.post_graphql(
-        MULTIPLE_SHIPPING_QUERY,
-        permissions=[permission_manage_shipping, permission_manage_products],
-    )
-    content = get_graphql_content(response)
-    assert (
-        len(content["data"]["shippingZones"]["edges"][0]["node"]["shippingMethods"])
-        == 2
-    )
-
-
-QUERY_SHIPPING_ZONES_WITH_FILTER = """
-    query ShippingZones($filter: ShippingZoneFilterInput) {
-        shippingZones(filter: $filter, first: 100) {
-            edges {
-                node {
-                    id
-                    name
-                }
-            }
-        }
-    }
-"""
-
-
-@pytest.mark.parametrize(
-    "lookup, expected_zones",
-    [
-        ("Poland", {"Poland"}),
-        ("pol", {"Poland"}),
-        ("USA", {"USA"}),
-        ("us", {"USA"}),
-        ("", {"Poland", "USA"}),
-    ],
-)
-def test_query_shipping_zone_search_by_name(
-    staff_api_client, shipping_zones, permission_manage_shipping, lookup, expected_zones
-):
-    variables = {"filter": {"search": lookup}}
-    response = staff_api_client.post_graphql(
-        QUERY_SHIPPING_ZONES_WITH_FILTER,
-        variables=variables,
-        permissions=[permission_manage_shipping],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingZones"]["edges"]
-
-    assert len(data) == len(expected_zones)
-    assert {zone["node"]["name"] for zone in data} == expected_zones
-
-
-def test_query_shipping_zone_search_by_channels(
-    staff_api_client, shipping_zones, permission_manage_shipping, channel_USD
-):
-    channel_id = graphene.Node.to_global_id("Channel", channel_USD.id)
-    shipping_zone_usd = shipping_zones[0]
-    shipping_zone_usd_id = graphene.Node.to_global_id(
-        "ShippingZone", shipping_zone_usd.id
-    )
-    variables = {"filter": {"channels": [channel_id]}}
-    response = staff_api_client.post_graphql(
-        QUERY_SHIPPING_ZONES_WITH_FILTER,
-        variables=variables,
-        permissions=[permission_manage_shipping],
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["shippingZones"]["edges"]
-
-    assert data[0]["node"]["name"] == shipping_zone_usd.name
-    assert data[0]["node"]["id"] == shipping_zone_usd_id
-
-
-def test_query_shipping_zone_search_by_channels_no_matter_of_input(
-    staff_api_client,
-    shipping_zones_with_different_channels,
-    permission_manage_shipping,
-    channel_USD,
-    channel_PLN,
-):
-    # given
-    shipping_zones = shipping_zones_with_different_channels
-    channel_id = graphene.Node.to_global_id("Channel", channel_PLN.id)
-    shipping_zone_pln = shipping_zones[0]
-    shipping_zone_pln_id = graphene.Node.to_global_id(
-        "ShippingZone", shipping_zone_pln.id
-    )
-    variables = {"filter": {"channels": [channel_id]}}
-    # when
-    response = staff_api_client.post_graphql(
-        QUERY_SHIPPING_ZONES_WITH_FILTER,
-        variables=variables,
-        permissions=[permission_manage_shipping],
-    )
     # then
     content = get_graphql_content(response)
-    data = content["data"]["shippingZones"]["edges"]
-
-    assert len(data) == 1
-    assert data[0]["node"]["name"] == shipping_zone_pln.name
-    assert data[0]["node"]["id"] == shipping_zone_pln_id
+    assert content["data"]["shippingZone"] is None
 
 
 SHIPPING_METHOD_TAX_CLASS_QUERY = """
