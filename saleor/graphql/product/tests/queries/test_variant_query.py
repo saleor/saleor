@@ -6,6 +6,7 @@ from .....attribute.utils import (
     _associate_attribute_to_instance,
     associate_attribute_values_to_instance,
 )
+from .....warehouse.models import Stock, Warehouse
 from ....tests.utils import (
     assert_graphql_error_with_message,
     get_graphql_content,
@@ -923,3 +924,116 @@ def test_variant_query_with_invalid_object_type(user_api_client, variant, channe
     response = user_api_client.post_graphql(QUERY_PRODUCT_VARIANT_BY_ID, variables)
     content = get_graphql_content(response)
     assert content["data"]["productVariant"] is None
+
+
+def test_stock_quantities_in_different_warehouses(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    query = """
+    query ProductVariant(
+        $id: ID!, $channel: String!, $country1: CountryCode, $country2: CountryCode
+    ) {
+        productVariant(id: $id, channel: $channel) {
+            quantityPL: quantityAvailable(address: { country: $country1 })
+            quantityUS: quantityAvailable(address: { country: $country2 })
+            quantityNoAddress: quantityAvailable
+        }
+    }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    stock_map = {}
+    for stock in variant.stocks.all():
+        country = stock.warehouse.shipping_zones.get().countries[0]
+        stock_map[country.code] = stock.quantity
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "country1": "PL",
+        "country2": "US",
+    }
+    response = api_client.post_graphql(
+        query,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariant"]["quantityPL"] == stock_map["PL"]
+    assert content["data"]["productVariant"]["quantityUS"] == stock_map["US"]
+
+    # when country is not provided, should return max value of all available stock
+    # quantities
+    assert content["data"]["productVariant"]["quantityNoAddress"] == max(
+        stock_map.values()
+    )
+
+
+def test_stock_quantity_is_max_from_all_warehouses_without_provided_country(
+    api_client, channel_USD, variant_with_many_stocks_different_shipping_zones
+):
+    query = """
+    query ProductVariant($id: ID!, $channel: String!) {
+        productVariant(id: $id, channel: $channel) {
+            quantityAvailable
+        }
+    }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+    max_warehouse_quantity = max([stock.quantity for stock in variant.stocks.all()])
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    assert (
+        content["data"]["productVariant"]["quantityAvailable"] == max_warehouse_quantity
+    )
+
+
+def test_stock_quantity_is_sum_of_quantities_from_warehouses_that_support_country(
+    api_client,
+    address,
+    channel_USD,
+    shipping_zone,
+    variant_with_many_stocks_different_shipping_zones,
+):
+    query = """
+    query ProductVariant($id: ID!, $channel: String!, $country: CountryCode) {
+        productVariant(id: $id, channel: $channel) {
+            quantityAvailable(address: { country: $country })
+        }
+    }
+    """
+
+    variant = variant_with_many_stocks_different_shipping_zones
+
+    # Create another warehouse with a different shipping zone that supports PL. As
+    # a result there should be two shipping zones and two warehouses that support PL.
+    stocks = variant.stocks.for_channel_and_country(channel_USD.slug, "PL")
+    warehouse = Warehouse.objects.create(
+        address=address.get_copy(),
+        name="WarehousePL",
+        slug="warehousePL",
+        email="warehousePL@example.com",
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.channels.add(channel_USD)
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
+
+    stocks = variant.stocks.for_channel_and_country(channel_USD.slug, "PL")
+    sum_quantities = sum([stock.quantity for stock in stocks])
+
+    variables = {
+        "id": graphene.Node.to_global_id("ProductVariant", variant.pk),
+        "channel": channel_USD.slug,
+        "country": "PL",
+    }
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+
+    assert content["data"]["productVariant"]["quantityAvailable"] == sum_quantities

@@ -694,7 +694,7 @@ def test_shipping_method_channel_listing_create_channel_not_valid(
 
 
 @patch(
-    "saleor.graphql.shipping.mutations.channels."
+    "saleor.graphql.shipping.mutations.shipping_method_channel_listing_update."
     "drop_invalid_shipping_methods_relations_for_given_channels.delay"
 )
 def test_shipping_method_channel_listing_update_remove_channels(

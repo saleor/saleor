@@ -587,7 +587,8 @@ def test_transaction_event_report_incorrect_amount_for_already_existing(
 
 
 @patch(
-    "saleor.graphql.payment.mutations.recalculate_transaction_amounts",
+    "saleor.graphql.payment.mutations.transaction.transaction_event_report."
+    "recalculate_transaction_amounts",
     wraps=recalculate_transaction_amounts,
 )
 def test_transaction_event_report_calls_amount_recalculations(
