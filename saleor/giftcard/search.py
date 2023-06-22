@@ -54,9 +54,10 @@ def prepare_gift_card_search_vector_value(
     return search_vector
 
 
-def mark_gift_card_search_index_as_dirty(gift_card: GiftCard):
-    gift_card.search_index_dirty = True
-    gift_card.save(update_fields=["search_index_dirty", "updated_at"])
+def mark_gift_cards_search_index_as_dirty(gift_cards: List[GiftCard]):
+    for gift_card in gift_cards:
+        gift_card.search_index_dirty = True
+    GiftCard.objects.bulk_update(gift_cards, ["search_index_dirty", "updated_at"])
 
 
 def update_gift_cards_search_vector(gift_cards: List[GiftCard]):
