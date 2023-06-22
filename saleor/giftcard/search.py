@@ -1,7 +1,7 @@
 from typing import List
 
 from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F, Q, QuerySet, Value, prefetch_related_objects
+from django.db.models import F, Q, Value, prefetch_related_objects
 
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from .models import GiftCard
@@ -13,15 +13,11 @@ GIFTCARD_FIELDS_TO_PREFETCH = [
     "created_by__first_name",
     "created_by__last_name",
 ]
-GIFT_CARD_BATCH_SIZE = 100
 
 
 def prepare_gift_card_search_vector_value(
-    gift_card: GiftCard, *, already_prefetched=False
+    gift_card: GiftCard,
 ) -> List[NoValidationSearchVector]:
-    if not already_prefetched:
-        prefetch_related_objects([gift_card], *GIFTCARD_FIELDS_TO_PREFETCH)
-
     search_vector = [
         NoValidationSearchVector(Value(gift_card.code), config="simple"),
         NoValidationSearchVector(Value(gift_card.used_by_email), config="simple"),
@@ -58,36 +54,22 @@ def prepare_gift_card_search_vector_value(
     return search_vector
 
 
-def update_gift_card_search_vector(gift_card: GiftCard):
-    gift_card.search_vector = FlatConcatSearchVector(
-        *prepare_gift_card_search_vector_value(gift_card)
-    )
-    gift_card.save(update_fields=["search_vector", "updated_at"])
+def mark_gift_card_search_index_as_dirty(gift_card: GiftCard):
+    gift_card.search_index_dirty = True
+    gift_card.save(update_fields=["search_index_dirty", "updated_at"])
 
 
-def _prep_gift_cards_search_vector_index(gift_cards: List[GiftCard]):
+def update_gift_cards_search_vector(gift_cards: List[GiftCard]):
     prefetch_related_objects(gift_cards, *GIFTCARD_FIELDS_TO_PREFETCH)
     for gift_card in gift_cards:
         gift_card.search_vector = FlatConcatSearchVector(
-            *prepare_gift_card_search_vector_value(gift_card, already_prefetched=True)
+            *prepare_gift_card_search_vector_value(gift_card)
         )
         gift_card.search_index_dirty = False
 
     GiftCard.objects.bulk_update(
         gift_cards, ["search_vector", "updated_at", "search_index_dirty"]
     )
-
-
-def update_gift_cards_search_vector(gift_cards: QuerySet):
-    last_id = 0
-    while True:
-        gift_cards_batch = list(
-            gift_cards.filter(id__gt=last_id)[:GIFT_CARD_BATCH_SIZE]
-        )
-        if not gift_cards_batch:
-            break
-        last_id = gift_cards_batch[-1].id
-        _prep_gift_cards_search_vector_index(gift_cards_batch)
 
 
 def search_gift_cards(qs, value):

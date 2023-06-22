@@ -8,6 +8,7 @@ from .models import GiftCard
 from .search import update_gift_cards_search_vector
 
 task_logger = get_task_logger(__name__)
+GIFT_CARD_BATCH_SIZE = 100
 
 
 @app.task
@@ -28,4 +29,8 @@ def deactivate_expired_cards_task():
 )
 def update_gift_cards_search_vector_task():
     gift_cards = GiftCard.objects.filter(search_index_dirty=True)
-    update_gift_cards_search_vector(gift_cards)
+    if not gift_cards:
+        return
+    gift_cards_batch = list(gift_cards[:GIFT_CARD_BATCH_SIZE])
+    update_gift_cards_search_vector(gift_cards_batch)
+    update_gift_cards_search_vector_task.delay()
