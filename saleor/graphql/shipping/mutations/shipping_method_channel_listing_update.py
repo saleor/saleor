@@ -19,8 +19,8 @@ from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, NonNullList, ShippingError
 from ...core.validators import validate_decimal_max_value, validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
-from ...shipping.utils import get_shipping_model_by_object_id
 from ..types import ShippingMethodType
+from ..utils import get_shipping_model_by_object_id
 
 if TYPE_CHECKING:
     from ....shipping.models import ShippingMethod as ShippingMethodModel

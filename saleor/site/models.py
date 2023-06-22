@@ -10,7 +10,7 @@ from django.db import models
 
 from ..core import TimePeriodType
 from ..core.units import WeightUnits
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation
 from ..permission.enums import SitePermissions
 from . import GiftCardSettingsExpiryType
 from .error_codes import SiteErrorCode
@@ -97,8 +97,6 @@ class SiteSettings(models.Model):
     charge_taxes_on_shipping = models.BooleanField(default=True)
     include_taxes_in_prices = models.BooleanField(default=True)
     display_gross_prices = models.BooleanField(default=True)
-
-    translated = TranslationProxy()
 
     class Meta:
         permissions = (

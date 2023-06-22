@@ -22,6 +22,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
 - Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
+- Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
+
 
 # 3.14.0
 
