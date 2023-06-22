@@ -21,9 +21,14 @@ def dummy_customer_id():
 
 
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
+    # given
     gateway_name = "braintree"
     meta_key = "BRAINTREE.customer_id"
+
+    # when
     store_customer_id(customer_user, gateway_name, braintree_customer_id)
+
+    # then
     assert customer_user.private_metadata[meta_key] == braintree_customer_id
     customer_user.refresh_from_db()
     assert fetch_customer_id(customer_user, gateway_name) == braintree_customer_id
@@ -51,6 +56,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client, channel_USD
 ):
+    # given
     metadata = {f"key_{i}": f"value_{i}" for i in range(5)}
     gateway = DUMMY_GATEWAY
     query = """
@@ -91,8 +97,11 @@ def test_list_payment_sources(
         return_value=[source],
         autospec=True,
     )
+
+    # when
     response = user_api_client.post_graphql(query)
 
+    # then
     mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id, ANY, None)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
@@ -112,6 +121,7 @@ def test_stored_payment_sources_restriction(
     mocker, staff_api_client, customer_user, permission_manage_users
 ):
     # Only owner of storedPaymentSources can fetch it.
+    # given
     card = PaymentMethodInfo(last_4="5678", exp_year=2020, exp_month=12, name="JohnDoe")
     source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mocker.patch(
@@ -133,7 +143,11 @@ def test_stored_payment_sources_restriction(
         }
     """
     variables = {"id": customer_user_id}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_users]
     )
+
+    # then
     assert_no_permission(response)

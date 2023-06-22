@@ -57,7 +57,10 @@ from ...core.types import BaseInputObjectType, BaseObjectType, NonNullList
 from ...core.types.common import OrderBulkCreateError
 from ...core.utils import from_global_id_or_error
 from ...meta.mutations import MetadataInput
-from ...payment.mutations import TransactionCreate, TransactionCreateInput
+from ...payment.mutations.transaction.transaction_create import (
+    TransactionCreate,
+    TransactionCreateInput,
+)
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..enums import OrderStatusEnum, StockUpdatePolicyEnum
