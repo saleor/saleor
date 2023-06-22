@@ -10,6 +10,7 @@ from promise import Promise
 
 from ....attribute import models as attribute_models
 from ....core.utils import build_absolute_uri, get_currency_for_country
+from ....core.utils.country import get_active_country
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
@@ -575,7 +576,7 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
         channel = ChannelBySlugLoader(context).load(channel_slug)
         tax_class = TaxClassByVariantIdLoader(context).load(root.node.id)
 
-        address_country = address.country if address is not None else None
+        # address_country = address.country if address is not None else None
 
         def load_tax_configuration(data):
             (
@@ -588,7 +589,8 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
             if not variant_channel_listing or not product_channel_listing:
                 return None
 
-            country_code = address_country or channel.default_country.code
+            # country_code = address_country or channel.default_country.code
+            country_code = get_active_country(channel, address_data=address)
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):
@@ -1067,7 +1069,7 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
         channel_slug = str(root.channel_slug)
         context = info.context
-        address_country = address.country if address is not None else None
+        # address_country = address.country if address is not None else None
 
         channel = ChannelBySlugLoader(context).load(channel_slug)
         product_channel_listing = ProductChannelListingByProductIdAndChannelSlugLoader(
@@ -1090,8 +1092,8 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
 
             if not variants_channel_listing:
                 return None
-
-            country_code = address_country or channel.default_country.code
+            country_code = get_active_country(channel, address_data=address)
+            # country_code = address_country or channel.default_country.code
 
             def load_tax_country_exceptions(tax_config):
                 def load_default_tax_rate(tax_configs_per_country):

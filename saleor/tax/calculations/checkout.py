@@ -6,6 +6,7 @@ from prices import TaxedMoney
 from ...checkout import base_calculations
 from ...core.prices import quantize_price
 from ...core.taxes import zero_taxed_money
+from ...core.utils.country import get_active_country
 from ..models import TaxClassCountryRate
 from ..utils import get_tax_rate_for_tax_class, normalize_tax_rate_for_db
 from . import calculate_flat_rate_tax
@@ -23,9 +24,7 @@ def update_checkout_prices_with_flat_rates(
     prices_entered_with_tax: bool,
     address: Optional["Address"] = None,
 ):
-    country_code = (
-        address.country.code if address else checkout_info.channel.default_country.code
-    )
+    country_code = get_active_country(checkout_info.channel, address)
     default_country_rate_obj = TaxClassCountryRate.objects.filter(
         country=country_code, tax_class=None
     ).first()
