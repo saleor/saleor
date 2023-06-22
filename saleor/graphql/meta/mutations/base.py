@@ -1,54 +1,27 @@
-import logging
-from typing import List, cast
+from typing import List
 
 import graphene
-from django.core.exceptions import FieldDoesNotExist, ValidationError
-from django.db import DatabaseError
+from django.core.exceptions import ValidationError
 from graphql.error.base import GraphQLError
 
-from ...checkout import models as checkout_models
-from ...checkout.models import Checkout
-from ...core import models
-from ...core.error_codes import MetadataErrorCode
-from ...core.exceptions import PermissionDenied
-from ...discount import models as discount_models
-from ...menu import models as menu_models
-from ...order import models as order_models
-from ...product import models as product_models
-from ...shipping import models as shipping_models
-from ..channel import ChannelContext
-from ..core import ResolveInfo
-from ..core.mutations import BaseMutation
-from ..core.types import MetadataError, NonNullList
-from ..core.utils import from_global_id_or_error
-from ..payment.utils import metadata_contains_empty_key
-from .extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
-from .permissions import (
-    PRIVATE_META_PERMISSION_MAP,
-    PUBLIC_META_PERMISSION_MAP,
-    AccountPermissions,
-)
-from .types import ObjectWithMetadata, get_valid_metadata_instance
-
-logger = logging.getLogger(__name__)
-
-
-def _save_instance(instance, metadata_field: str):
-    fields = [metadata_field]
-
-    try:
-        if bool(instance._meta.get_field("updated_at")):
-            fields.append("updated_at")
-    except FieldDoesNotExist:
-        pass
-
-    try:
-        instance.save(update_fields=fields)
-    except DatabaseError:
-        msg = "Cannot update metadata for instance. Updating not existing object."
-        raise ValidationError(
-            {"metadata": ValidationError(msg, code=MetadataErrorCode.NOT_FOUND.value)}
-        )
+from ....checkout import models as checkout_models
+from ....checkout.models import Checkout
+from ....core import models
+from ....core.error_codes import MetadataErrorCode
+from ....core.exceptions import PermissionDenied
+from ....discount import models as discount_models
+from ....menu import models as menu_models
+from ....order import models as order_models
+from ....product import models as product_models
+from ....shipping import models as shipping_models
+from ...channel import ChannelContext
+from ...core import ResolveInfo
+from ...core.mutations import BaseMutation
+from ...core.utils import from_global_id_or_error
+from ...payment.utils import metadata_contains_empty_key
+from ..extra_methods import MODEL_EXTRA_METHODS, MODEL_EXTRA_PREFETCH
+from ..permissions import AccountPermissions
+from ..types import ObjectWithMetadata
 
 
 class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -251,147 +224,3 @@ class BaseMetadataMutation(BaseMutation):
         if use_channel_context:
             instance = ChannelContext(node=instance, channel_slug=None)
         return cls(**{"item": instance, "errors": []})
-
-
-class MetadataInput(graphene.InputObjectType):
-    key = graphene.String(required=True, description="Key of a metadata item.")
-    value = graphene.String(required=True, description="Value of a metadata item.")
-
-
-class UpdateMetadata(BaseMetadataMutation):
-    class Meta:
-        description = (
-            "Updates metadata of an object. To use it, you need to have access to the "
-            "modified object."
-        )
-        permission_map = PUBLIC_META_PERMISSION_MAP
-        error_type_class = MetadataError
-        error_type_field = "metadata_errors"
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
-        input = NonNullList(
-            MetadataInput,
-            description="Fields required to update the object's metadata.",
-            required=True,
-        )
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, input: List
-    ):
-        instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
-        if instance:
-            meta_instance = get_valid_metadata_instance(instance)
-            cls.validate_metadata_keys(input)
-            items = {data.key: data.value for data in input}
-            meta_instance.store_value_in_metadata(items=items)
-            _save_instance(meta_instance, "metadata")
-
-        return cls.success_response(instance)
-
-
-class DeleteMetadata(BaseMetadataMutation):
-    class Meta:
-        description = (
-            "Delete metadata of an object. To use it, you need to have access to the "
-            "modified object."
-        )
-        permission_map = PUBLIC_META_PERMISSION_MAP
-        error_type_class = MetadataError
-        error_type_field = "metadata_errors"
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
-        keys = NonNullList(
-            graphene.String,
-            description="Metadata keys to delete.",
-            required=True,
-        )
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
-    ):
-        instance = cast(models.ModelWithMetadata, cls.get_instance(info, id=id))
-        if instance:
-            meta_instance = get_valid_metadata_instance(instance)
-            for key in keys:
-                meta_instance.delete_value_from_metadata(key)
-            _save_instance(meta_instance, "metadata")
-        return cls.success_response(instance)
-
-
-class UpdatePrivateMetadata(BaseMetadataMutation):
-    class Meta:
-        description = (
-            "Updates private metadata of an object. To use it, you need to be an "
-            "authenticated staff user or an app and have access to the modified object."
-        )
-        permission_map = PRIVATE_META_PERMISSION_MAP
-        error_type_class = MetadataError
-        error_type_field = "metadata_errors"
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
-        input = NonNullList(
-            MetadataInput,
-            description="Fields required to update the object's metadata.",
-            required=True,
-        )
-
-    @classmethod
-    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
-        instance = cls.get_instance(info, **data)
-        if instance:
-            meta_instance = get_valid_metadata_instance(instance)
-            metadata_list = data.pop("input")
-            cls.validate_metadata_keys(metadata_list)
-            items = {data.key: data.value for data in metadata_list}
-            meta_instance.store_value_in_private_metadata(items=items)
-            _save_instance(meta_instance, "private_metadata")
-        return cls.success_response(instance)
-
-
-class DeletePrivateMetadata(BaseMetadataMutation):
-    class Meta:
-        description = (
-            "Delete object's private metadata. To use it, you need to be an "
-            "authenticated staff user or an app and have access to the modified object."
-        )
-        permission_map = PRIVATE_META_PERMISSION_MAP
-        error_type_class = MetadataError
-        error_type_field = "metadata_errors"
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID or token (for Order and Checkout) of an object to update.",
-            required=True,
-        )
-        keys = NonNullList(
-            graphene.String,
-            description="Metadata keys to delete.",
-            required=True,
-        )
-
-    @classmethod
-    def perform_mutation(  # type: ignore[override]
-        cls, _root, info: ResolveInfo, /, *, id: str, keys: List[str]
-    ):
-        instance = cls.get_instance(info, id=id)
-
-        if instance:
-            meta_instance = get_valid_metadata_instance(instance)
-            for key in keys:
-                meta_instance.delete_value_from_private_metadata(key)
-            _save_instance(meta_instance, "private_metadata")
-        return cls.success_response(instance)

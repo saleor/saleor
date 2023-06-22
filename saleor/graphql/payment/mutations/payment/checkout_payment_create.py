@@ -28,7 +28,7 @@ from ....core.mutations import BaseMutation
 from ....core.scalars import UUID, PositiveDecimal
 from ....core.types import BaseInputObjectType
 from ....core.types import common as common_types
-from ....meta.mutations import MetadataInput
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import StorePaymentMethodEnum
 from ...types import Payment

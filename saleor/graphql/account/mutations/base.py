@@ -42,7 +42,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types import AccountError, BaseInputObjectType, NonNullList
-from ...meta.mutations import MetadataInput
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
 

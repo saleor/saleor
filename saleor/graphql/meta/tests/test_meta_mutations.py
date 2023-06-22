@@ -1004,7 +1004,8 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
             Checkout.objects.filter(pk=checkout.pk).delete()
 
     with before_after.before(
-        "saleor.graphql.meta.mutations._save_instance", delete_checkout_object
+        "saleor.graphql.meta.mutations.update_metadata.save_instance",
+        delete_checkout_object,
     ):
         response = execute_update_public_metadata_for_item(
             api_client,
