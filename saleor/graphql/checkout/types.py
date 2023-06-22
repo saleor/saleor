@@ -132,11 +132,16 @@ class PaymentGateway(BaseObjectType):
 
 
 class CheckoutLine(ModelObjectType[models.CheckoutLine]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the checkout line.")
     variant = graphene.Field(
-        "saleor.graphql.product.types.ProductVariant", required=True
+        "saleor.graphql.product.types.ProductVariant",
+        required=True,
+        description="The product variant from which the checkout line was created.",
     )
-    quantity = graphene.Int(required=True)
+    quantity = graphene.Int(
+        required=True,
+        description="The quantity of product variant assigned to the checkout line.",
+    )
     unit_price = graphene.Field(
         TaxedMoney,
         description="The unit price of the checkout line, with taxes and discounts.",
@@ -361,8 +366,10 @@ class DeliveryMethod(graphene.Union):
 
 
 class Checkout(ModelObjectType[models.Checkout]):
-    id = graphene.ID(required=True)
-    created = graphene.DateTime(required=True)
+    id = graphene.ID(required=True, description="The ID of the checkout.")
+    created = graphene.DateTime(
+        required=True, description="The date and time when the checkout was created."
+    )
     updated_at = graphene.DateTime(
         required=True,
         description=("Time of last modification of the given checkout." + ADDED_IN_313),
@@ -371,15 +378,42 @@ class Checkout(ModelObjectType[models.Checkout]):
         required=True,
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `updatedAt` instead."),
     )
-    user = graphene.Field("saleor.graphql.account.types.User")
-    channel = graphene.Field(Channel, required=True)
-    billing_address = graphene.Field("saleor.graphql.account.types.Address")
-    shipping_address = graphene.Field("saleor.graphql.account.types.Address")
-    note = graphene.String(required=True)
-    discount = graphene.Field(Money)
-    discount_name = graphene.String()
-    translated_discount_name = graphene.String()
-    voucher_code = graphene.String()
+    user = graphene.Field(
+        "saleor.graphql.account.types.User",
+        description="The user assigned to the checkout.",
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel for which checkout was created.",
+    )
+    billing_address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        description="The billing address of the checkout.",
+    )
+    shipping_address = graphene.Field(
+        "saleor.graphql.account.types.Address",
+        description="The shipping address of the checkout.",
+    )
+    note = graphene.String(required=True, description="The note for the checkout.")
+    discount = graphene.Field(
+        Money,
+        description=(
+            "The total discount is applied to the checkout. "
+            "Note: Only discount created via voucher are included in this field."
+        ),
+    )
+    discount_name = graphene.String(
+        description="The name of voucher assigned to the checkout."
+    )
+    translated_discount_name = graphene.String(
+        description=(
+            "The name of voucher assigned to the checkout in the customer's language."
+        )
+    )
+    voucher_code = graphene.String(
+        description="The code of voucher assigned to the checkout."
+    )
     available_shipping_methods = NonNullList(
         ShippingMethod,
         required=True,
