@@ -21,7 +21,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
 - Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
 - Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
-
+- Add missing descriptions to channel module. - #13166 by @fowczarek
 
 # 3.14.0
 
