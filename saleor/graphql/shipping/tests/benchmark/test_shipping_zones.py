@@ -27,7 +27,7 @@ def test_shipping_zones_query(
     count_queries,
 ):
     variables = {"channel": channel_USD.slug}
-    get_graphql_content(
+    response = get_graphql_content(
         staff_api_client.post_graphql(
             SHIPPING_ZONES_QUERY,
             variables,
@@ -35,3 +35,7 @@ def test_shipping_zones_query(
             check_no_permissions=False,
         )
     )
+    data = response["data"]["shippingZones"]["edges"]
+    assert len(data) == 10
+    for zone in data:
+        assert len(zone["node"]["warehouses"]) == 2
