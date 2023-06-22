@@ -492,9 +492,6 @@ class Product(SeoModel, ModelWithMetadata, ModelWithExternalReference):
     def sort_by_attribute_fields() -> list:
         return ["concatenated_values_order", "concatenated_values", "name"]
 
-    def get_translation(self, language_code=None):
-        return get_translation(self, language_code)
-
 
 class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
@@ -683,8 +680,8 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def display_product(self, translated: bool = False) -> str:
         if translated:
-            product = self.product.get_translation()
-            variant_display = str(self.get_translation())
+            product = get_translation(self.product).name
+            variant_display = get_translation(self).name
         else:
             variant_display = str(self)
             product = self.product
@@ -700,9 +697,6 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         return self.is_preorder and (
             self.preorder_end_date is None or timezone.now() <= self.preorder_end_date
         )
-
-    def get_translation(self, language_code=None):
-        return get_translation(self, language_code)
 
 
 class ProductVariantTranslation(Translation):

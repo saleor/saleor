@@ -11,6 +11,7 @@ from ..account.models import User
 from ..core.prices import quantize_price
 from ..core.taxes import zero_money
 from ..core.tracing import traced_atomic_transaction
+from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
 from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
@@ -257,8 +258,8 @@ def create_order_line(
     product_name = str(product)
     variant_name = str(variant)
     language_code = order.language_code
-    translated_product_name = str(product.get_translation(language_code))
-    translated_variant_name = str(variant.get_translation(language_code))
+    translated_product_name = get_translation(product, language_code).name
+    translated_variant_name = get_translation(variant, language_code).name
     if translated_product_name == product_name:
         translated_product_name = ""
     if translated_variant_name == variant_name:

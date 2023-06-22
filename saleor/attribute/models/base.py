@@ -8,7 +8,7 @@ from ...core.db.fields import SanitizedJSONField
 from ...core.models import ModelWithExternalReference, ModelWithMetadata, SortableModel
 from ...core.units import MeasurementUnits
 from ...core.utils.editorjs import clean_editor_js
-from ...core.utils.translations import Translation, get_translation
+from ...core.utils.translations import Translation
 from ...page.models import Page, PageType
 from ...permission.enums import PageTypePermissions, ProductTypePermissions
 from ...permission.utils import has_one_of_permissions
@@ -272,9 +272,6 @@ class AttributeValue(SortableModel, ModelWithExternalReference):
 
     def get_ordering_queryset(self):
         return self.attribute.values.all()
-
-    def get_translation(self, language_code=None):
-        return get_translation(self, language_code)
 
 
 class AttributeValueTranslation(Translation):

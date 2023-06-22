@@ -5,6 +5,7 @@ import graphene
 import pytest
 from prices import Money, TaxedMoney
 
+from ...core.utils.translations import get_translation
 from ...core.weight import zero_weight
 from ...discount import DiscountType
 from ...discount.models import (
@@ -1456,7 +1457,8 @@ def test_add_variant_to_order_adds_translations_in_order_language(
     # then
     line = order.lines.last()
     assert line.quantity == 1
-    assert line.translated_product_name == str(
-        variant.product.get_translation(language_code)
+    assert (
+        line.translated_product_name
+        == get_translation(variant.product, language_code).name
     )
-    assert line.translated_variant_name == str(variant.get_translation(language_code))
+    assert line.translated_variant_name == get_translation(variant, language_code).name

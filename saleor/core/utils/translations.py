@@ -47,7 +47,7 @@ class Translation(models.Model):
         return {}
 
 
-def get_translation(instance, language_code) -> TranslationWrapper:
+def get_translation(instance, language_code=None) -> TranslationWrapper:
     if not language_code:
         language_code = settings.LANGUAGE_CODE
     return TranslationWrapper(instance, language_code)
