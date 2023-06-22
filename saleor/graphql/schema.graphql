@@ -2778,6 +2778,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
 """Represents app data."""
 type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
+  """The ID of the app."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3027,6 +3028,7 @@ enum AppTypeEnum @doc(category: "Apps") {
 
 """Represents token data."""
 type AppToken implements Node @doc(category: "Apps") {
+  """The ID of the app token."""
   id: ID!
 
   """Name of the authenticated token."""
@@ -3038,6 +3040,7 @@ type AppToken implements Node @doc(category: "Apps") {
 
 """Represents app data."""
 type AppExtension implements Node @doc(category: "Apps") {
+  """The ID of the app extension."""
   id: ID!
 
   """List of the app extension's permissions."""
@@ -3054,9 +3057,11 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum!
+
+  """The app assigned to app extension."""
   app: App!
 
-  """JWT token used to authenticate by thridparty app extension."""
+  """JWT token used to authenticate by third-party app extension."""
   accessToken: String
 }
 
@@ -13013,6 +13018,7 @@ enum AttributeSortField @doc(category: "Attributes") {
 
 """Represents ongoing installation of app."""
 type AppInstallation implements Node & Job @doc(category: "Apps") {
+  """The ID of the app installation."""
   id: ID!
 
   """Job status."""
@@ -13026,7 +13032,11 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
 
   """Job message."""
   message: String
+
+  """The name of the app installation."""
   appName: String!
+
+  """The URL address of manifest for the app installation."""
   manifestUrl: String!
 
   """
@@ -25986,22 +25996,47 @@ type AppFetchManifest @doc(category: "Apps") {
 
 """The manifest definition."""
 type Manifest @doc(category: "Apps") {
+  """The identifier of the manifest for the app."""
   identifier: String!
+
+  """The version of the manifest for the app."""
   version: String!
+
+  """The name of the manifest for the app ."""
   name: String!
+
+  """Description of the app displayed in the dashboard."""
   about: String
+
+  """The array permissions required for the app."""
   permissions: [Permission!]
+
+  """App website rendered in the dashboard."""
   appUrl: String
 
   """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
+
+  """
+  Endpoint used during process of app installation, [see installing an app.](https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)
+  """
   tokenTargetUrl: String
 
   """Description of the data privacy defined for this app."""
   dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
+
+  """URL to the full privacy policy."""
   dataPrivacyUrl: String
+
+  """External URL to the app homepage."""
   homepageUrl: String
+
+  """External URL to the page where app users can find support."""
   supportUrl: String
+
+  """
+  List of extensions that will be mounted in Saleor's dashboard. For details, please [see the extension section.](https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)
+  """
   extensions: [AppManifestExtension!]!
 
   """
