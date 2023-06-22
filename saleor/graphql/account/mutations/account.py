@@ -383,16 +383,10 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
             error = AccountError(
                 field=field,
                 code=AccountErrorCode.INVALID.value,
-                message="Invalid value for the field.",
+                message=f"Invalid value for field '{field}'.",
             )
             errors.append(error)
-
-        error_type = cls._meta.error_type_class(
-            field=cls._meta.error_type_field,
-            code=AccountErrorCode.INVALID.value,
-            errors=errors,
-        )
-        return cls(errors=[error_type])
+        raise ValueError(errors)
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
