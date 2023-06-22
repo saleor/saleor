@@ -7,14 +7,17 @@ from django.utils import timezone
 
 from ...discount import DiscountValueType
 from ...discount.models import Sale, SaleChannelListing, Voucher, VoucherQueryset
+from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.filters import (
     GlobalIDMultipleChoiceFilter,
     ListObjectTypeFilter,
     MetadataFilterBase,
     ObjectTypeFilter,
+    OperationObjectTypeFilter,
 )
-from ..core.types import DateTimeRangeInput, IntRangeInput
-from ..utils.filters import filter_by_id, filter_range_field
+from ..core.types import DateTimeRangeInput, IntRangeInput, StringFilterInput
+from ..core.types.filter_input import WhereInputObjectType
+from ..utils.filters import filter_by_id, filter_by_string_field, filter_range_field
 from .enums import DiscountStatusEnum, DiscountValueTypeEnum, VoucherDiscountType
 
 
@@ -116,3 +119,45 @@ class SaleFilter(MetadataFilterBase):
     class Meta:
         model = Sale
         fields = ["status", "sale_type", "started", "search"]
+
+
+class PromotionWhere(MetadataFilterBase):
+    ids = GlobalIDMultipleChoiceFilter(method=filter_by_id("Promotion"))
+    name = OperationObjectTypeFilter(
+        input_class=StringFilterInput,
+        method="filter_promotion_name",
+        help_text="Filter by promotion name.",
+    )
+    end_date = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_end_date_range",
+        help_text="Filter promotions by end date.",
+    )
+    start_date = ObjectTypeFilter(
+        input_class=DateTimeRangeInput,
+        method="filter_start_date_range",
+        help_text="Filter promotions by start date.",
+    )
+    is_old_sale = django_filters.BooleanFilter(method="filter_is_old_sale")
+
+    @staticmethod
+    def filter_promotion_name(qs, _, value):
+        return filter_by_string_field(qs, "name", value)
+
+    @staticmethod
+    def filter_end_date_range(qs, _, value):
+        return filter_range_field(qs, "end_date", value)
+
+    @staticmethod
+    def filter_start_date_range(qs, _, value):
+        return filter_range_field(qs, "start_date", value)
+
+    @staticmethod
+    def filter_is_old_sale(qs, _, value):
+        return qs.filter(old_sale=value)
+
+
+class PromotionWhereInput(WhereInputObjectType):
+    class Meta:
+        doc_category = DOC_CATEGORY_DISCOUNTS
+        filterset_class = PromotionWhere
