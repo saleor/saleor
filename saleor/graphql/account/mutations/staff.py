@@ -23,6 +23,7 @@ from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
 from ....thumbnail import models as thumbnail_models
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
@@ -36,6 +37,7 @@ from ...core.mutations import (
     ModelWithExtRefMutation,
 )
 from ...core.types import AccountError, NonNullList, StaffError, Upload
+from ...core.utils import WebhookEventInfo
 from ...core.validators.file import clean_image_file
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
@@ -104,6 +106,16 @@ class CustomerCreate(BaseCustomerCreate):
         support_private_meta_field = True
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_CREATED,
+                description="A new customer account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for setting the password.",
+            ),
+        ]
 
 
 class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
@@ -128,6 +140,16 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         error_type_field = "account_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_CREATED,
+                description="A new customer account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def generate_events(
@@ -220,6 +242,12 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_DELETED,
+                description="A customer account was deleted.",
+            )
+        ]
 
     class Arguments:
         id = graphene.ID(required=False, description="ID of a customer to delete.")
@@ -260,6 +288,16 @@ class StaffCreate(ModelMutation):
         error_type_field = "staff_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_CREATED,
+                description="A new staff account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for setting the password.",
+            ),
+        ]
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):
@@ -419,6 +457,12 @@ class StaffUpdate(StaffCreate):
         error_type_field = "staff_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_UPDATED,
+                description="A staff account was updated.",
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
@@ -559,6 +603,12 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_DELETED,
+                description="A staff account was deleted.",
+            ),
+        ]
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a staff user to delete.")
@@ -604,6 +654,12 @@ class AddressCreate(ModelMutation, I18nMixin):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_CREATED,
+                description="A new address was created.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -643,6 +699,12 @@ class AddressUpdate(BaseAddressUpdate):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_UPDATED,
+                description="An address was updated.",
+            ),
+        ]
 
 
 class AddressDelete(BaseAddressDelete):
@@ -654,6 +716,12 @@ class AddressDelete(BaseAddressDelete):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_DELETED,
+                description="An address was deleted.",
+            ),
+        ]
 
 
 class AddressSetDefault(BaseMutation):
@@ -672,6 +740,12 @@ class AddressSetDefault(BaseMutation):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

@@ -8,12 +8,14 @@ from ....core import analytics
 from ....core.exceptions import GiftCardNotApplicable, InsufficientStock
 from ....discount.models import NotApplicable
 from ....permission.enums import CheckoutPermissions
+from ....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_32, ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_ORDERS
 from ...core.mutations import BaseMutation
 from ...core.types import Error, NonNullList
+from ...core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo
 from ...meta.mutations import MetadataInput
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -84,6 +86,56 @@ class OrderCreateFromCheckout(BaseMutation):
         error_type_class = OrderCreateFromCheckoutError
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=(CHECKOUT_CALCULATE_TAXES_MESSAGE),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CREATED,
+                description=("Triggered when order is created."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description=("A notification for order confirmation."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description=("A notification for order confirmed."),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_UPDATED,
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_PAID,
+                description="Triggered when newly created order is paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_FULLY_PAID,
+                description="Triggered when newly created order is fully paid.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ORDER_CONFIRMED,
+                description=(
+                    "Triggered when newly created order are automatically "
+                    "marked as confirmed."
+                ),
+            ),
+        ]
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):

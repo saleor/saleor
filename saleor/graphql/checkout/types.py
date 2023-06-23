@@ -21,6 +21,7 @@ from ...shipping.interface import ShippingMethodData
 from ...tax.utils import get_display_gross_prices
 from ...warehouse import models as warehouse_models
 from ...warehouse.reservations import is_reservation_enabled
+from ...webhook.event_types import WebhookEventSyncType
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
@@ -40,10 +41,11 @@ from ..core.descriptions import (
 )
 from ..core.doc_category import DOC_CATEGORY_CHECKOUT, DOC_CATEGORY_PAYMENTS
 from ..core.enums import LanguageCodeEnum
+from ..core.fields import BaseField
 from ..core.scalars import UUID
 from ..core.tracing import traced_resolver
 from ..core.types import BaseObjectType, ModelObjectType, Money, NonNullList, TaxedMoney
-from ..core.utils import str_to_enum
+from ..core.utils import CHECKOUT_CALCULATE_TAXES_MESSAGE, WebhookEventInfo, str_to_enum
 from ..decorators import one_of_permissions_required
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
@@ -137,20 +139,32 @@ class CheckoutLine(ModelObjectType[models.CheckoutLine]):
         "saleor.graphql.product.types.ProductVariant", required=True
     )
     quantity = graphene.Int(required=True)
-    unit_price = graphene.Field(
+    unit_price = BaseField(
         TaxedMoney,
         description="The unit price of the checkout line, with taxes and discounts.",
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
     undiscounted_unit_price = graphene.Field(
         Money,
         description="The unit price of the checkout line, without discounts.",
         required=True,
     )
-    total_price = graphene.Field(
+    total_price = BaseField(
         TaxedMoney,
         description="The sum of the checkout line price, taxes and discounts.",
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
     undiscounted_total_price = graphene.Field(
         Money,
@@ -380,16 +394,48 @@ class Checkout(ModelObjectType[models.Checkout]):
     discount_name = graphene.String()
     translated_discount_name = graphene.String()
     voucher_code = graphene.String()
-    available_shipping_methods = NonNullList(
-        ShippingMethod,
+    available_shipping_methods = BaseField(
+        NonNullList(ShippingMethod),
         required=True,
         description="Shipping methods that can be used with this checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `shippingMethods` instead."),
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+        ],
     )
-    shipping_methods = NonNullList(
-        ShippingMethod,
+    shipping_methods = BaseField(
+        NonNullList(ShippingMethod),
         required=True,
         description="Shipping methods that can be used with this checkout.",
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+        ],
     )
     available_collection_points = NonNullList(
         Warehouse,
@@ -398,10 +444,16 @@ class Checkout(ModelObjectType[models.Checkout]):
             "Collection points that can be used for this order." + ADDED_IN_31
         ),
     )
-    available_payment_gateways = NonNullList(
-        PaymentGateway,
+    available_payment_gateways = BaseField(
+        NonNullList(PaymentGateway),
         description="List of available payment gateways.",
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
+                description=("Fetch payment gateways available for checkout. "),
+            ),
+        ],
     )
     email = graphene.String(description="Email of a customer.", required=False)
     gift_cards = NonNullList(
@@ -427,27 +479,71 @@ class Checkout(ModelObjectType[models.Checkout]):
         ),
         required=True,
     )
-    shipping_price = graphene.Field(
+    shipping_price = BaseField(
         TaxedMoney,
         description=(
             "The price of the shipping, with all the taxes included. Set to 0 when no "
             "delivery method is selected."
         ),
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
-    shipping_method = graphene.Field(
+    shipping_method = BaseField(
         ShippingMethod,
         description="The shipping method related with checkout.",
         deprecation_reason=(f"{DEPRECATED_IN_3X_FIELD} Use `deliveryMethod` instead."),
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+        ],
     )
-    delivery_method = graphene.Field(
+    delivery_method = BaseField(
         DeliveryMethod,
         description=("The delivery method selected for this checkout." + ADDED_IN_31),
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
+                description=(
+                    "Optionally triggered when cached external shipping methods are "
+                    "invalid."
+                ),
+            ),
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_FILTER_SHIPPING_METHODS,
+                description=(
+                    "Optionally triggered when cached filtered shipping methods are "
+                    "invalid."
+                ),
+            ),
+        ],
     )
-    subtotal_price = graphene.Field(
+    subtotal_price = BaseField(
         TaxedMoney,
         description="The price of the checkout before shipping, with taxes included.",
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
     tax_exemption = graphene.Boolean(
         description=(
@@ -456,16 +552,22 @@ class Checkout(ModelObjectType[models.Checkout]):
         required=True,
     )
     token = graphene.Field(UUID, description="The checkout's token.", required=True)
-    total_price = graphene.Field(
+    total_price = BaseField(
         TaxedMoney,
         description=(
             "The sum of the the checkout line prices, with all the taxes,"
             "shipping costs, and discounts included."
         ),
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
 
-    total_balance = graphene.Field(
+    total_balance = BaseField(
         Money,
         description=(
             "The difference between the paid and the checkout total amount."
@@ -473,6 +575,12 @@ class Checkout(ModelObjectType[models.Checkout]):
             + PREVIEW_FEATURE
         ),
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
 
     language_code = graphene.Field(
@@ -494,17 +602,31 @@ class Checkout(ModelObjectType[models.Checkout]):
         ),
         required=True,
     )
-    authorize_status = CheckoutAuthorizeStatusEnum(
+    authorize_status = BaseField(
+        CheckoutAuthorizeStatusEnum,
         description=(
             "The authorize status of the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
-    charge_status = CheckoutChargeStatusEnum(
+    charge_status = BaseField(
+        CheckoutChargeStatusEnum,
         description=(
             "The charge status of the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
         ),
         required=True,
+        webhook_events_info=[
+            WebhookEventInfo(
+                type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
+            ),
+        ],
     )
 
     class Meta:
@@ -546,8 +668,8 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_email(root: models.Checkout, _info: ResolveInfo):
         return root.get_customer_email()
 
-    @classmethod
-    def resolve_shipping_method(cls, root: models.Checkout, info):
+    @staticmethod
+    def resolve_shipping_method(root: models.Checkout, info):
         def with_checkout_info(checkout_info):
             delivery_method = checkout_info.delivery_method_info.delivery_method
             if not delivery_method or not isinstance(
@@ -562,10 +684,10 @@ class Checkout(ModelObjectType[models.Checkout]):
             .then(with_checkout_info)
         )
 
-    @classmethod
+    @staticmethod
     @traced_resolver
     @prevent_sync_event_circular_query
-    def resolve_shipping_methods(cls, root: models.Checkout, info: ResolveInfo):
+    def resolve_shipping_methods(root: models.Checkout, info: ResolveInfo):
         return (
             CheckoutInfoByCheckoutTokenLoader(info.context)
             .load(root.token)
@@ -862,8 +984,8 @@ class Checkout(ModelObjectType[models.Checkout]):
     def resolve_updated_at(cls, root: models.Checkout, _info):
         return root.last_change
 
-    @classmethod
-    def resolve_authorize_status(cls, root: models.Checkout, info):
+    @staticmethod
+    def resolve_authorize_status(root: models.Checkout, info):
         def _resolve_authorize_status(data):
             address, lines, checkout_info, manager, transactions = data
             fetch_checkout_data(
@@ -881,8 +1003,8 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
         return Promise.all(dataloaders).then(_resolve_authorize_status)
 
-    @classmethod
-    def resolve_charge_status(cls, root: models.Checkout, info):
+    @staticmethod
+    def resolve_charge_status(root: models.Checkout, info):
         def _resolve_charge_status(data):
             address, lines, checkout_info, manager, transactions = data
             fetch_checkout_data(
@@ -900,8 +1022,8 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
         return Promise.all(dataloaders).then(_resolve_charge_status)
 
-    @classmethod
-    def resolve_total_balance(cls, root: models.Checkout, info):
+    @staticmethod
+    def resolve_total_balance(root: models.Checkout, info):
         def _calculate_total_balance_for_transactions(data):
             address, lines, checkout_info, manager, transactions = data
             taxed_total = calculations.calculate_checkout_total_with_gift_cards(

@@ -11,6 +11,7 @@ from ....channel.models import Channel
 from ....core.exceptions import PermissionDenied
 from ....core.tracing import traced_atomic_transaction
 from ....permission.enums import AccountPermissions, get_permissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.utils import (
     can_user_manage_group_channels,
     can_user_manage_group_permissions,
@@ -28,6 +29,7 @@ from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, PermissionGroupError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..dataloaders import AccessibleChannelsByGroupIdLoader
@@ -89,6 +91,11 @@ class PermissionGroupCreate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+            )
+        ]
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
@@ -326,6 +333,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PERMISSION_GROUP_UPDATED,
+            )
+        ]
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):
@@ -593,6 +605,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
+            )
+        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

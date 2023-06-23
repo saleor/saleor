@@ -18,6 +18,7 @@ from ....core.utils.url import validate_storefront_url
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
+from ....webhook.event_types import WebhookEventAsyncType
 from ...channel.utils import clean_channel
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_314
@@ -25,6 +26,7 @@ from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.enums import LanguageCodeEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import AccountError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...site.dataloaders import get_site_promise
@@ -97,6 +99,16 @@ class AccountRegister(ModelMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_CREATED,
+                description="A new customer account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for account confirmation.",
+            ),
+        ]
 
     @classmethod
     def mutate(cls, root, info: ResolveInfo, **data):
@@ -209,6 +221,16 @@ class AccountUpdate(BaseCustomerCreate):
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
@@ -242,6 +264,12 @@ class AccountRequestDeletion(BaseMutation):
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for account delete request.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -342,6 +370,16 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_CREATED,
+                description="An address was created.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -387,6 +425,12 @@ class AccountAddressUpdate(BaseAddressUpdate):
         error_type_field = "account_errors"
         model = models.Address
         object_type = Address
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_UPDATED,
+                description="An address was updated.",
+            )
+        ]
 
 
 class AccountAddressDelete(BaseAddressDelete):
@@ -401,6 +445,12 @@ class AccountAddressDelete(BaseAddressDelete):
         object_type = Address
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_DELETED,
+                description="An address was deleted.",
+            )
+        ]
 
 
 class AccountSetDefaultAddress(BaseMutation):
@@ -418,6 +468,12 @@ class AccountSetDefaultAddress(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer's address was updated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -473,6 +529,12 @@ class RequestEmailChange(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for account email change.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
@@ -554,6 +616,16 @@ class ConfirmEmailChange(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification that account email change was confirmed.",
+            ),
+        ]
 
     @classmethod
     def get_token_payload(cls, token):

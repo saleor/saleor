@@ -4,10 +4,12 @@ from ....app import models
 from ....app.manifest_validations import clean_manifest_url
 from ....app.tasks import install_app_task
 from ....permission.enums import AppPermission, get_permissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core.doc_category import DOC_CATEGORY_APPS
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelMutation
 from ...core.types import AppError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...decorators import staff_member_required
 from ...utils import get_user_or_app_from_context
 from ..types import AppInstallation
@@ -29,6 +31,12 @@ class AppInstallInput(BaseInputObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_APPS
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.APP_INSTALLED,
+                description="An app was installed.",
+            ),
+        ]
 
 
 class AppInstall(ModelMutation):

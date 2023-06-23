@@ -26,6 +26,7 @@ from ....graphql.utils import get_user_or_app_from_context
 from ....order.utils import match_orders_with_new_user
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...app.dataloaders import get_app_promise
@@ -42,6 +43,7 @@ from ...core.mutations import (
     validation_error_to_error_type,
 )
 from ...core.types import AccountError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...meta.mutations import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from .authentication import CreateToken
@@ -165,6 +167,12 @@ class RequestPasswordReset(BaseMutation):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for password reset.",
+            )
+        ]
 
     @classmethod
     def clean_user(cls, email, redirect_url):
