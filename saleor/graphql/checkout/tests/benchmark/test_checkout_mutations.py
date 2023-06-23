@@ -16,6 +16,27 @@ from ....core.utils import to_global_id_or_none
 from ....tests.utils import get_graphql_content
 from ...mutations.utils import CheckoutLineData
 
+CHECKOUT_GIFT_CARD_QUERY = """
+    query CheckoutGiftCard {
+      checkouts(first: 100) {
+        edges {
+          node {
+            id
+            giftCards {
+              id
+              isActive
+              code
+              last4CodeChars
+              currentBalance {
+                amount
+              }
+            }
+          }
+        }
+      }
+    }
+"""
+
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
       gross {
@@ -1354,3 +1375,28 @@ def test_complete_checkout_preorder(
 
     response = get_graphql_content(api_client.post_graphql(query, variables))
     assert not response["data"]["checkoutComplete"]["errors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_checkout_gift_cards(
+    staff_api_client,
+    checkout_with_gift_card,
+    gift_card_created_by_staff,
+    permission_manage_gift_card,
+    permission_manage_checkouts,
+):
+    # given
+    checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card.save()
+
+    # when
+    response = staff_api_client.post_graphql(
+        CHECKOUT_GIFT_CARD_QUERY,
+        {},
+        permissions=[permission_manage_gift_card, permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+
+    # then
+    assert response.status_code == 200
