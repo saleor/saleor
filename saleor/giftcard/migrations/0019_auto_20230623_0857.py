@@ -3,6 +3,7 @@
 import django.contrib.postgres.indexes
 import django.contrib.postgres.search
 from django.db import migrations, models
+from django.contrib.postgres.operations import AddIndexConcurrently
 
 
 class Migration(migrations.Migration):
@@ -23,10 +24,12 @@ class Migration(migrations.Migration):
                 blank=True, null=True
             ),
         ),
-        migrations.AddIndex(
+        AddIndexConcurrently(
             model_name="giftcard",
             index=django.contrib.postgres.indexes.GinIndex(
-                fields=["search_vector"], name="giftcard_tsearch"
+                fields=["search_vector"],
+                name="giftcard_tsearch",
+                opclasses=["gin_trgm_ops"],
             ),
         ),
     ]
