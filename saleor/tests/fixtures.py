@@ -1079,6 +1079,147 @@ def order_unconfirmed(order):
 
 
 @pytest.fixture
+def product_generator(product_type_generator, category_generator, default_tax_class):
+    def create_product(
+        name="Test product",
+        slug="test-product-11",
+        product_type=None,
+        category=None,
+        tax_class=default_tax_class,
+        associate_attribute_values_to_product=True,
+    ):
+        if product_type is None:
+            product_type = product_type_generator()
+
+        if category is None:
+            category = category_generator()
+
+        product, _ = Product.objects.get_or_create(
+            name=name,
+            slug=slug,
+            product_type=product_type,
+            category=category,
+            tax_class=tax_class,
+        )
+
+        if associate_attribute_values_to_product:
+            for product_attr in product_type.product_attributes.all():
+                associate_attribute_values_to_instance(
+                    product, product_attr, *product_attr.values.all()
+                )
+
+        return product
+
+    return create_product
+
+
+@pytest.fixture
+def product_channel_listing_generator(product_generator, channel_USD):
+    def create_product_channel_listing(
+        product=None,
+        channel=channel_USD,
+        is_published=True,
+        discounted_price_amount=Decimal(10),
+        currency=channel_USD.currency_code,
+        visible_in_listings=True,
+        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
+    ):
+        if product is None:
+            product = product_generator()
+
+        channel_listing, _ = ProductChannelListing.objects.get_or_create(
+            product=product,
+            channel=channel,
+            is_published=is_published,
+            discounted_price_amount=discounted_price_amount,
+            currency=currency,
+            visible_in_listings=visible_in_listings,
+            available_for_purchase_at=available_for_purchase_at,
+        )
+
+        return channel_listing
+
+    return create_product_channel_listing
+
+
+@pytest.fixture
+def variant_generator(product_generator):
+    def create_variant(
+        sku=123,
+        name="",
+        product=None,
+        associate_attribute_values_to_variant=True,
+    ):
+        if product is None:
+            product = product_generator()
+
+        variant, _ = ProductVariant.objects.get_or_create(
+            sku=sku,
+            name=name,
+            product=product,
+        )
+
+        if associate_attribute_values_to_variant:
+            product_type = product.product_type
+            for product_attr in product_type.variant_attributes.all():
+                associate_attribute_values_to_instance(
+                    variant, product_attr, *product_attr.values.all()
+                )
+
+        return variant
+
+    return create_variant
+
+
+@pytest.fixture
+def product_variant_channel_listing_generator(variant_generator, channel_USD):
+    def create_product_variant_channel_listing(
+        variant=None,
+        channel=channel_USD,
+        price_amount=Decimal(10),
+        discounted_price_amount=Decimal(10),
+        cost_price_amount=Decimal(1),
+        currency=channel_USD.currency_code,
+    ):
+        if variant is None:
+            variant = variant_generator()
+
+        channel_listing, _ = ProductVariantChannelListing.objects.get_or_create(
+            variant=variant,
+            channel=channel,
+            price_amount=price_amount,
+            discounted_price_amount=discounted_price_amount,
+            cost_price_amount=cost_price_amount,
+            currency=currency,
+        )
+
+        return channel_listing
+
+    return create_product_variant_channel_listing
+
+
+@pytest.fixture
+def stock_generator(warehouse, variant_generator):
+    def create_stock(
+        warehouse=warehouse,
+        product_variant=None,
+        quantity=10,
+    ):
+        if product_variant is None:
+            product_variant = variant_generator()
+
+        stock, _ = Stock.objects.get_or_create(
+            warehouse=warehouse,
+            product_variant=product_variant,
+            quantity=quantity,
+        )
+
+        return stock
+
+    return create_stock
+
+
+@pytest.fixture
 def product_type_generator(
     attribute_generator, attribute_value_generator, default_tax_class
 ):
@@ -1092,7 +1233,7 @@ def product_type_generator(
         product_attributes=None,
         variant_attributes=None,
     ):
-        product_type = ProductType.objects.create(
+        product_type, _ = ProductType.objects.get_or_create(
             name=name,
             slug=slug,
             kind=kind,
@@ -2197,7 +2338,7 @@ def category_generator():
         name="Default",
         slug="default",
     ):
-        category = Category.objects.create(
+        category, _ = Category.objects.get_or_create(
             name=name,
             slug=slug,
         )
@@ -2426,44 +2567,18 @@ def product_type_without_variant():
 
 
 @pytest.fixture
-def product(product_type, category, warehouse, channel_USD, default_tax_class):
-    product_attr = product_type.product_attributes.first()
-    product_attr_value = product_attr.values.first()
-
-    product = Product.objects.create(
-        name="Test product",
-        slug="test-product-11",
-        product_type=product_type,
-        category=category,
-        tax_class=default_tax_class,
-    )
-    ProductChannelListing.objects.create(
-        product=product,
-        channel=channel_USD,
-        is_published=True,
-        discounted_price_amount="10.00",
-        currency=channel_USD.currency_code,
-        visible_in_listings=True,
-        available_for_purchase_at=datetime.datetime(1999, 1, 1, tzinfo=pytz.UTC),
-    )
-
-    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
-
-    variant_attr = product_type.variant_attributes.first()
-    variant_attr_value = variant_attr.values.first()
-
-    variant = ProductVariant.objects.create(product=product, sku="123")
-    ProductVariantChannelListing.objects.create(
-        variant=variant,
-        channel=channel_USD,
-        price_amount=Decimal(10),
-        discounted_price_amount=Decimal(10),
-        cost_price_amount=Decimal(1),
-        currency=channel_USD.currency_code,
-    )
-    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
-
-    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+def product(
+    product_generator,
+    variant_generator,
+    product_channel_listing_generator,
+    product_variant_channel_listing_generator,
+    stock_generator,
+):
+    product = product_generator()
+    variant = variant_generator(product=product)
+    product_channel_listing_generator(product=product)
+    product_variant_channel_listing_generator(variant=variant)
+    stock_generator(product_variant=variant)
 
     return product
 
