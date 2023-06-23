@@ -410,7 +410,13 @@ def test_attribute_translation(user_api_client, color_attribute):
     assert attribute["translation"]["language"]["code"] == "PL"
 
 
-def test_attribute_value_translation(user_api_client, pink_attribute_value):
+def test_attribute_value_translation(user_api_client, attribute_value_generator):
+    # given
+    pink_attribute_value = attribute_value_generator(
+        slug="pink",
+        name="Pink",
+        value="#FF69B4",
+    )
     pink_attribute_value.translations.create(
         language_code="pl", name="Różowy", rich_text=dummy_editorjs("Pink")
     )
@@ -442,11 +448,14 @@ def test_attribute_value_translation(user_api_client, pink_attribute_value):
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", pink_attribute_value.id
     )
+
+    # when
     response = user_api_client.post_graphql(
         query, {"attributeValueId": attribute_value_id}
     )
     data = get_graphql_content(response)["data"]
 
+    # then
     attribute_value = data["attributes"]["edges"][0]["node"]["choices"]["edges"][-1][
         "node"
     ]
