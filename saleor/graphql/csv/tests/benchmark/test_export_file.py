@@ -23,6 +23,7 @@ def test_export_file_events(
     export_file_with_events,
     staff_api_client,
     permission_manage_products,
+    count_queries,
 ):
     # when
     response = staff_api_client.post_graphql(
