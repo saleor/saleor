@@ -15857,11 +15857,14 @@ type Mutation {
   Deletes sales. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - SALE_DELETED (async): A sale was deleted.
   """
   saleBulkDelete(
     """List of sale IDs to delete."""
     ids: [ID!]!
-  ): SaleBulkDelete @doc(category: "Discounts")
+  ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
 
   """
   Updates a sale. 
@@ -15943,36 +15946,48 @@ type Mutation {
   Creates a new voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_CREATED (async): A voucher was created.
   """
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
-  ): VoucherCreate @doc(category: "Discounts")
+  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: [])
 
   """
   Deletes a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherDelete(
     """ID of a voucher to delete."""
     id: ID!
-  ): VoucherDelete @doc(category: "Discounts")
+  ): VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
   Deletes vouchers. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherBulkDelete(
     """List of voucher IDs to delete."""
     ids: [ID!]!
-  ): VoucherBulkDelete @doc(category: "Discounts")
+  ): VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
   Updates a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherUpdate(
     """ID of a voucher to update."""
@@ -15980,12 +15995,15 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate @doc(category: "Discounts")
+  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesAdd(
     """ID of a voucher."""
@@ -15993,12 +16011,15 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherAddCatalogues @doc(category: "Discounts")
+  ): VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Removes products, categories, collections from a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesRemove(
     """ID of a voucher."""
@@ -16006,7 +16027,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherRemoveCatalogues @doc(category: "Discounts")
+  ): VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for a voucher. 
@@ -16026,6 +16047,9 @@ type Mutation {
   Manage voucher's availability in channels. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers below webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherChannelListingUpdate(
     """ID of a voucher to update."""
@@ -16033,7 +16057,7 @@ type Mutation {
 
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
-  ): VoucherChannelListingUpdate @doc(category: "Discounts")
+  ): VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Export products to csv file. 
@@ -24484,8 +24508,11 @@ type SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SAL
 Deletes sales. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- SALE_DELETED (async): A sale was deleted.
 """
-type SaleBulkDelete @doc(category: "Discounts") {
+type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24598,8 +24625,11 @@ input SaleChannelListingAddInput @doc(category: "Discounts") {
 Creates a new voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_CREATED (async): A voucher was created.
 """
-type VoucherCreate @doc(category: "Discounts") {
+type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24663,8 +24693,11 @@ input VoucherInput @doc(category: "Discounts") {
 Deletes a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_DELETED (async): A voucher was deleted.
 """
-type VoucherDelete @doc(category: "Discounts") {
+type VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24674,8 +24707,11 @@ type VoucherDelete @doc(category: "Discounts") {
 Deletes vouchers. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_DELETED (async): A voucher was deleted.
 """
-type VoucherBulkDelete @doc(category: "Discounts") {
+type VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24686,8 +24722,11 @@ type VoucherBulkDelete @doc(category: "Discounts") {
 Updates a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherUpdate @doc(category: "Discounts") {
+type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24697,8 +24736,11 @@ type VoucherUpdate @doc(category: "Discounts") {
 Adds products, categories, collections to a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherAddCatalogues @doc(category: "Discounts") {
+type VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24709,8 +24751,11 @@ type VoucherAddCatalogues @doc(category: "Discounts") {
 Removes products, categories, collections from a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherRemoveCatalogues @doc(category: "Discounts") {
+type VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24732,8 +24777,11 @@ type VoucherTranslate @doc(category: "Discounts") {
 Manage voucher's availability in channels. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers below webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherChannelListingUpdate @doc(category: "Discounts") {
+type VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """An updated voucher instance."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")

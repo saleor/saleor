@@ -1,11 +1,13 @@
 import graphene
 
 from .....permission.enums import DiscountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Voucher
 from ..sale.sale_base_discount_catalogue import BaseDiscountCatalogueMutation
@@ -65,6 +67,12 @@ class VoucherAddCatalogues(VoucherBaseCatalogueMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_UPDATED,
+                description="A voucher was updated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
