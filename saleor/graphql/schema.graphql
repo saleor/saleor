@@ -5789,6 +5789,7 @@ type TaxClassCountryRate @doc(category: "Taxes") {
 Custom attribute of a product. Attributes can be assigned to products and variants at the product type level.
 """
 type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5918,6 +5919,10 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
 
   """Flag indicating that attribute has predefined choices."""
   withChoices: Boolean!
+
+  """
+  A list of product types that use this attribute as a product attribute.
+  """
   productTypes(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5935,6 +5940,10 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """
     last: Int
   ): ProductTypeCountableConnection!
+
+  """
+  A list of product types that use this attribute as a product variant attribute.
+  """
   productVariantTypes(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -6046,6 +6055,7 @@ type AttributeValueCountableEdge @doc(category: "Attributes") {
 
 """Represents a value of an attribute."""
 type AttributeValue implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value."""
   id: ID!
 
   """Name of a value displayed in the interface."""

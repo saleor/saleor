@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing descriptions to account module. - #13155 by @fowczarek
 - Add missing descriptions to channel module. - #13166 by @fowczarek
 - Add missing descriptions to checkout module. - #13167 by @fowczarek
+- Add missing descriptions to attribute module. - #13165 by @fowczarek
 
 # 3.14.0
 
