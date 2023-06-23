@@ -13,7 +13,8 @@ from ....menu.models import Menu, MenuItem
 from ....product.models import Category
 from ....webhook.event_types import WebhookEventAsyncType
 from ....webhook.payloads import generate_meta, generate_requestor
-from ...menu.mutations import NavigationType, _validate_menu_item_instance
+from ...menu.enums import NavigationType
+from ...menu.mutations.menu_item_create import _validate_menu_item_instance
 from ...tests.utils import (
     assert_no_permission,
     get_graphql_content,
