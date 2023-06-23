@@ -1382,13 +1382,19 @@ def test_complete_checkout_preorder(
 def test_checkout_gift_cards(
     staff_api_client,
     checkout_with_gift_card,
+    checkout_with_gift_card_items,
     gift_card_created_by_staff,
+    gift_card,
     permission_manage_gift_card,
     permission_manage_checkouts,
 ):
     # given
     checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card.gift_cards.add(gift_card)
     checkout_with_gift_card.save()
+    checkout_with_gift_card_items.gift_cards.add(gift_card_created_by_staff)
+    checkout_with_gift_card_items.gift_cards.add(gift_card)
+    checkout_with_gift_card_items.save()
 
     # when
     response = staff_api_client.post_graphql(

@@ -671,7 +671,6 @@ class Checkout(ModelObjectType):
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, info):
-        # return root.gift_cards.all()
         return GirtCardsByCheckoutIdLoader(info.context).load(root.pk)
 
     @staticmethod
