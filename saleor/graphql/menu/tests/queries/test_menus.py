@@ -56,13 +56,18 @@ def test_menus_pagination_with_sorting(
     staff_api_client,
     menus_for_pagination,
 ):
+    # given
     page_size = 3
 
     variables = {"first": page_size, "after": None, "sortBy": sort_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_MENUS_PAGINATION,
         variables,
     )
+
+    # then
     content = get_graphql_content(response)
     menus_nodes = content["data"]["menus"]["edges"]
     assert menus_order[0] == menus_nodes[0]["node"]["name"]
@@ -84,13 +89,18 @@ def test_menus_pagination_with_filtering(
     staff_api_client,
     menus_for_pagination,
 ):
+    # given
     page_size = 2
 
     variables = {"first": page_size, "after": None, "filter": filter_by}
+
+    # when
     response = staff_api_client.post_graphql(
         QUERY_MENUS_PAGINATION,
         variables,
     )
+
+    # then
     content = get_graphql_content(response)
     menus_nodes = content["data"]["menus"]["edges"]
     assert menus_order[0] == menus_nodes[0]["node"]["name"]

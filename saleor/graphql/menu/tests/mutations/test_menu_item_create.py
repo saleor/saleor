@@ -27,13 +27,18 @@ CREATE_MENU_ITEM_MUTATION = """
 
 
 def test_create_menu_item(staff_api_client, menu, permission_manage_menus):
+    # given
     name = "item menu"
     url = "http://www.example.com"
     menu_id = graphene.Node.to_global_id("Menu", menu.pk)
     variables = {"name": name, "url": url, "menu_id": menu_id}
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["menuItemCreate"]["menuItem"]
     assert data["name"] == name

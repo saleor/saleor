@@ -22,9 +22,13 @@ def test_menu_query_by_id(
     user_api_client,
     menu,
 ):
+    # given
     variables = {"id": graphene.Node.to_global_id("Menu", menu.pk)}
 
+    # when
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+
+    # then
     content = get_graphql_content(response)
     menu_data = content["data"]["menu"]
     assert menu_data is not None
@@ -32,9 +36,14 @@ def test_menu_query_by_id(
 
 
 def test_staff_query_menu_by_invalid_id(staff_api_client, menu):
+    # given
     id = "bh/"
     variables = {"id": id}
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU, variables)
+
+    # then
     content = get_graphql_content_from_response(response)
     assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == f"Couldn't resolve id: {id}."
@@ -42,8 +51,13 @@ def test_staff_query_menu_by_invalid_id(staff_api_client, menu):
 
 
 def test_staff_query_menu_with_invalid_object_type(staff_api_client, menu):
+    # given
     variables = {"id": graphene.Node.to_global_id("Order", menu.pk)}
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menu"] is None
 
@@ -52,8 +66,13 @@ def test_menu_query_by_name(
     user_api_client,
     menu,
 ):
+    # given
     variables = {"name": menu.name}
+
+    # when
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+
+    # then
     content = get_graphql_content(response)
     menu_data = content["data"]["menu"]
     assert menu_data is not None
@@ -61,9 +80,14 @@ def test_menu_query_by_name(
 
 
 def test_menu_query_by_slug(user_api_client):
+    # given
     menu = Menu.objects.create(name="test_menu_name", slug="test_menu_name")
     variables = {"slug": menu.slug}
+
+    # when
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+
+    # then
     content = get_graphql_content(response)
     menu_data = content["data"]["menu"]
     assert menu_data is not None
@@ -76,11 +100,16 @@ def test_menu_query_error_when_id_and_name_provided(
     menu,
     graphql_log_handler,
 ):
+    # given
     variables = {
         "id": graphene.Node.to_global_id("Menu", menu.pk),
         "name": menu.name,
     }
+
+    # when
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
         "saleor.graphql.errors.handled[INFO].GraphQLError"
     ]
@@ -93,8 +122,13 @@ def test_menu_query_error_when_no_param(
     menu,
     graphql_log_handler,
 ):
+    # given
     variables = {}
+
+    # when
     response = user_api_client.post_graphql(QUERY_MENU, variables=variables)
+
+    # then
     assert graphql_log_handler.messages == [
         "saleor.graphql.errors.handled[INFO].GraphQLError"
     ]
@@ -134,6 +168,7 @@ def test_menu_query(user_api_client, menu):
 def test_menu_items_query(
     user_api_client, menu_with_items, published_collection, channel_USD, category
 ):
+    # given
     query = """
     fragment SecondaryMenuSubItem on MenuItem {
         id
@@ -166,8 +201,11 @@ def test_menu_items_query(
         "id": graphene.Node.to_global_id("Menu", menu_with_items.pk),
         "channel": channel_USD.slug,
     }
+
+    # when
     response = user_api_client.post_graphql(query, variables)
 
+    # then
     content = get_graphql_content(response)
 
     items = content["data"]["menu"]["items"]

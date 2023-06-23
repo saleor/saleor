@@ -31,22 +31,31 @@ QUERY_MENU_WITH_FILTER = """
 def test_menus_query_with_filter(
     menu_filter, count, staff_api_client, permission_manage_menus
 ):
+    # given
     Menu.objects.create(name="Menu1", slug="Menu1")
     Menu.objects.create(name="Menu2", slug="Menu2")
     variables = {"filter": menu_filter}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menus"]["totalCount"] == count
 
 
 def test_menus_query_with_slug_filter(staff_api_client, permission_manage_menus):
+    # given
     Menu.objects.create(name="Menu1", slug="Menu1")
     Menu.objects.create(name="Menu2", slug="Menu2")
     Menu.objects.create(name="Menu3", slug="menu3-slug")
     variables = {"filter": {"search": "menu3-slug"}}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     menus = content["data"]["menus"]["edges"]
     assert len(menus) == 1
@@ -54,12 +63,17 @@ def test_menus_query_with_slug_filter(staff_api_client, permission_manage_menus)
 
 
 def test_menus_query_with_slug_list_filter(staff_api_client, permission_manage_menus):
+    # given
     Menu.objects.create(name="Menu1", slug="Menu1")
     Menu.objects.create(name="Menu2", slug="Menu2")
     Menu.objects.create(name="Menu3", slug="Menu3")
     variables = {"filter": {"slug": ["Menu2", "Menu3"]}}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU_WITH_FILTER, variables)
+
+    # then
     content = get_graphql_content(response)
     menus = content["data"]["menus"]["edges"]
     slugs = [node["node"]["slug"] for node in menus]
@@ -75,6 +89,7 @@ def test_menus_query_with_slug_list_filter(staff_api_client, permission_manage_m
 def test_menu_items_query_with_filter(
     menu_item_filter, count, staff_api_client, permission_manage_menus
 ):
+    # given
     query = """
         query ($filter: MenuItemFilterInput) {
             menuItems(first: 5, filter:$filter) {
@@ -93,6 +108,10 @@ def test_menu_items_query_with_filter(
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     variables = {"filter": menu_item_filter}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+
+    # when
     response = staff_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuItems"]["totalCount"] == count

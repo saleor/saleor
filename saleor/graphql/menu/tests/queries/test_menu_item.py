@@ -158,11 +158,16 @@ query menuitem($id: ID!) {
 
 
 def test_menu_item_query_static_url(user_api_client, menu_item):
+    # given
     query = QUERY_MENU_ITEM
     menu_item.url = "http://example.com"
     menu_item.save()
     variables = {"id": graphene.Node.to_global_id("MenuItem", menu_item.pk)}
+
+    # when
     response = user_api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["menuItem"]
     assert data["name"] == menu_item.name

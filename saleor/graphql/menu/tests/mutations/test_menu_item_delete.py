@@ -23,11 +23,16 @@ DELETE_MENU_ITEM_MUTATION = """
 
 
 def test_delete_menu_item(staff_api_client, menu_item, permission_manage_menus):
+    # given
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     variables = {"id": menu_item_id}
+
+    # when
     response = staff_api_client.post_graphql(
         DELETE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["menuItemDelete"]["menuItem"]
     assert data["name"] == menu_item.name

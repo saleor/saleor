@@ -29,6 +29,7 @@ QUERY_MENU_WITH_SORT = """
 def test_query_menus_with_sort(
     menu_sort, result_order, staff_api_client, permission_manage_menus
 ):
+    # given
     menu = Menu.objects.create(name="menu1", slug="menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
@@ -36,7 +37,11 @@ def test_query_menus_with_sort(
     MenuItem.objects.create(name="NavbarMenuItem", menu=navbar)
     variables = {"sort_by": menu_sort}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU_WITH_SORT, variables)
+
+    # then
     content = get_graphql_content(response)
     menus = content["data"]["menus"]["edges"]
 
@@ -67,12 +72,17 @@ QUERY_MENU_ITEMS_WITH_SORT = """
 def test_query_menu_items_with_sort(
     menu_item_sort, result_order, staff_api_client, permission_manage_menus
 ):
+    # given
     menu = Menu.objects.create(name="Menu1", slug="Menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     variables = {"sort_by": menu_item_sort}
     staff_api_client.user.user_permissions.add(permission_manage_menus)
+
+    # when
     response = staff_api_client.post_graphql(QUERY_MENU_ITEMS_WITH_SORT, variables)
+
+    # then
     content = get_graphql_content(response)
     menu_items = content["data"]["menuItems"]["edges"]
 

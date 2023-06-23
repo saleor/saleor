@@ -29,6 +29,7 @@ UPDATE_MENU_WITH_SLUG_MUTATION = """
 
 
 def test_update_menu(staff_api_client, menu, permission_manage_menus):
+    # given
     query = """
         mutation updatemenu($id: ID!, $name: String!) {
             menuUpdate(id: $id, input: {name: $name}) {
@@ -45,24 +46,33 @@ def test_update_menu(staff_api_client, menu, permission_manage_menus):
     """
     name = "Blue oyster menu"
     variables = {"id": graphene.Node.to_global_id("Menu", menu.pk), "name": name}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuUpdate"]["menu"]["name"] == name
     assert content["data"]["menuUpdate"]["menu"]["slug"] == menu.slug
 
 
 def test_update_menu_with_slug(staff_api_client, menu, permission_manage_menus):
+    # given
     name = "Blue oyster menu"
     variables = {
         "id": graphene.Node.to_global_id("Menu", menu.pk),
         "name": name,
         "slug": "new-slug",
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_MENU_WITH_SLUG_MUTATION, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuUpdate"]["menu"]["name"] == name
     assert content["data"]["menuUpdate"]["menu"]["slug"] == "new-slug"
@@ -122,15 +132,20 @@ def test_update_menu_trigger_webhook(
 def test_update_menu_with_slug_already_exists(
     staff_api_client, menu, permission_manage_menus
 ):
+    # given
     existing_menu = Menu.objects.create(name="test-slug-menu", slug="test-slug-menu")
     variables = {
         "id": graphene.Node.to_global_id("Menu", menu.pk),
         "name": "Blue oyster menu",
         "slug": existing_menu.slug,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_MENU_WITH_SLUG_MUTATION, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     error = content["data"]["menuUpdate"]["errors"][0]
     assert error["field"] == "slug"

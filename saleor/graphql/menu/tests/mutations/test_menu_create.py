@@ -53,6 +53,7 @@ CREATE_MENU_QUERY = """
 def test_create_menu(
     staff_api_client, published_collection, category, page, permission_manage_menus
 ):
+    # given
     category_id = graphene.Node.to_global_id("Category", category.pk)
     collection_id = graphene.Node.to_global_id("Collection", published_collection.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
@@ -65,9 +66,13 @@ def test_create_menu(
         "page": page_id,
         "url": url,
     }
+
+    # when
     response = staff_api_client.post_graphql(
         CREATE_MENU_QUERY, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuCreate"]["menu"]["name"] == "test-menu"
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-menu"
@@ -136,6 +141,7 @@ def test_create_menu_trigger_webhook(
 def test_create_menu_slug_already_exists(
     staff_api_client, collection, category, page, permission_manage_menus
 ):
+    # given
     query = """
         mutation MenuCreate(
             $name: String!
@@ -153,9 +159,13 @@ def test_create_menu_slug_already_exists(
     variables = {
         "name": "test-menu",
     }
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuCreate"]["menu"]["name"] == existing_menu.name
     assert content["data"]["menuCreate"]["menu"]["slug"] == f"{existing_menu.slug}-2"
@@ -164,6 +174,7 @@ def test_create_menu_slug_already_exists(
 def test_create_menu_provided_slug(
     staff_api_client, collection, category, page, permission_manage_menus
 ):
+    # given
     query = """
         mutation MenuCreate(
             $name: String!
@@ -179,9 +190,13 @@ def test_create_menu_provided_slug(
     """
 
     variables = {"name": "test-menu", "slug": "test-slug"}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["menuCreate"]["menu"]["name"] == "test-menu"
     assert content["data"]["menuCreate"]["menu"]["slug"] == "test-slug"

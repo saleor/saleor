@@ -26,15 +26,20 @@ UPDATE_MENU_ITEM_MUTATION = """
 def test_update_menu_item(
     staff_api_client, menu, menu_item, page, permission_manage_menus
 ):
+    # given
     # Menu item before update has url, but no page
     assert menu_item.url
     assert not menu_item.page
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
     variables = {"id": menu_item_id, "page": page_id}
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_MENU_ITEM_MUTATION, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["menuItemUpdate"]["menuItem"]
     assert data["page"]["id"] == page_id
@@ -97,6 +102,7 @@ def test_update_menu_item_trigger_webhook(
 def test_add_more_than_one_item(
     staff_api_client, menu, menu_item, page, permission_manage_menus
 ):
+    # given
     query = """
     mutation updateMenuItem($id: ID!, $page: ID, $url: String) {
         menuItemUpdate(id: $id,
@@ -115,9 +121,13 @@ def test_add_more_than_one_item(
     menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.pk)
     page_id = graphene.Node.to_global_id("Page", page.pk)
     variables = {"id": menu_item_id, "page": page_id, "url": url}
+
+    # when
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_menus]
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["menuItemUpdate"]["errors"][0]
     assert data["message"] == "More than one item provided."
