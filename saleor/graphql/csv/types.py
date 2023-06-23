@@ -71,14 +71,14 @@ class ExportEvent(ModelObjectType[models.ExportEvent]):
 
 
 class ExportFile(ModelObjectType[models.ExportFile]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the export file.")
     url = graphene.String(description="The URL of field to download.")
     events = NonNullList(
         ExportEvent,
         description="List of events associated with the export.",
     )
-    user = graphene.Field(User)
-    app = graphene.Field(App)
+    user = graphene.Field(User, description="The user who requests file export.")
+    app = graphene.Field(App, description="The app which requests file export.")
 
     class Meta:
         description = "Represents a job data of exported file."

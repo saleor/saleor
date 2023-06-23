@@ -12926,6 +12926,7 @@ enum VoucherSortField {
 
 """Represents a job data of exported file."""
 type ExportFile implements Node & Job {
+  """The ID of the export file."""
   id: ID!
 
   """Job status."""
@@ -12945,7 +12946,11 @@ type ExportFile implements Node & Job {
 
   """List of events associated with the export."""
   events: [ExportEvent!]
+
+  """The user who requests file export."""
   user: User
+
+  """The app which requests file export."""
   app: App
 }
 
