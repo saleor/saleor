@@ -16,7 +16,7 @@ from ..utils import ensure_can_manage_permissions
 
 class AppInstallInput(BaseInputObjectType):
     app_name = graphene.String(description="Name of the app to install.")
-    manifest_url = graphene.String(description="Url to app's manifest in JSON format.")
+    manifest_url = graphene.String(description="URL to app's manifest in JSON format.")
     activate_after_installation = graphene.Boolean(
         default_value=True,
         required=False,
