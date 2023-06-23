@@ -121,6 +121,8 @@ class GiftCard(ModelWithMetadata):
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
+        indexes = [GinIndex(name="giftcard_tsearch", fields=["search_vector"])]
+        indexes.extend(ModelWithMetadata.Meta.indexes)
 
     @property
     def display_code(self):
