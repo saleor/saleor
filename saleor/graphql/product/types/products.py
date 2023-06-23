@@ -9,7 +9,7 @@ from graphene import relay
 from promise import Promise
 
 from ....attribute import models as attribute_models
-from ....core.utils import build_absolute_uri, get_currency_for_country
+from ....core.utils import build_absolute_uri
 from ....core.weight import convert_weight_to_default_weight_unit
 from ....permission.auth_filters import AuthorizationFilters
 from ....permission.enums import OrderPermissions, ProductPermissions
@@ -162,8 +162,12 @@ class BasePricingInfo(BaseObjectType):
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
     )
+
+    # deprecated
     discount_local_currency = graphene.Field(
-        TaxedMoney, description="The discount amount in the local currency."
+        TaxedMoney,
+        description="The discount amount in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
@@ -171,17 +175,23 @@ class BasePricingInfo(BaseObjectType):
 
 
 class VariantPricingInfo(BasePricingInfo):
-    discount_local_currency = graphene.Field(
-        TaxedMoney, description="The discount amount in the local currency."
-    )
     price = graphene.Field(
         TaxedMoney, description="The price, with any discount subtracted."
     )
     price_undiscounted = graphene.Field(
         TaxedMoney, description="The price without any discount."
     )
+
+    # deprecated
+    discount_local_currency = graphene.Field(
+        TaxedMoney,
+        description="The discount amount in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
+    )
     price_local_currency = graphene.Field(
-        TaxedMoney, description="The discounted price in the local currency."
+        TaxedMoney,
+        description="The discounted price in the local currency.",
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
@@ -190,6 +200,13 @@ class VariantPricingInfo(BasePricingInfo):
 
 
 class ProductPricingInfo(BasePricingInfo):
+    display_gross_prices = graphene.Boolean(
+        description=(
+            "Determines whether this product's price displayed in a storefront "
+            "should include taxes." + ADDED_IN_39
+        ),
+        required=True,
+    )
     price_range = graphene.Field(
         TaxedMoneyRange,
         description="The discounted price range of the product variants.",
@@ -198,19 +215,15 @@ class ProductPricingInfo(BasePricingInfo):
         TaxedMoneyRange,
         description="The undiscounted price range of the product variants.",
     )
+
+    # deprecated
     price_range_local_currency = graphene.Field(
         TaxedMoneyRange,
         description=(
             "The discounted price range of the product variants "
             "in the local currency."
         ),
-    )
-    display_gross_prices = graphene.Boolean(
-        description=(
-            "Determines whether this product's price displayed in a storefront "
-            "should include taxes." + ADDED_IN_39
-        ),
-        required=True,
+        deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Always returns `null`.",
     )
 
     class Meta:
@@ -594,7 +607,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
                         country_rates, default_country_rate_obj = data
-                        local_currency = get_currency_for_country(country_code)
 
                         tax_config_country = next(
                             (
@@ -620,7 +632,6 @@ class ProductVariant(ChannelContextTypeWithMetadata[models.ProductVariant]):
                         availability = get_variant_availability(
                             variant_channel_listing=variant_channel_listing,
                             product_channel_listing=product_channel_listing,
-                            local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
@@ -1097,7 +1108,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                 def load_default_tax_rate(tax_configs_per_country):
                     def calculate_pricing_info(data):
                         country_rates, default_country_rate_obj = data
-                        local_currency = get_currency_for_country(country_code)
                         tax_config_country = next(
                             (
                                 tc
@@ -1126,7 +1136,6 @@ class Product(ChannelContextTypeWithMetadata[models.Product]):
                         availability = get_product_availability(
                             product_channel_listing=product_channel_listing,
                             variants_channel_listing=variants_channel_listing,
-                            local_currency=local_currency,
                             prices_entered_with_tax=tax_config.prices_entered_with_tax,
                             tax_calculation_strategy=tax_calculation_strategy,
                             tax_rate=tax_rate,
