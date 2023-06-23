@@ -22,8 +22,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
 - Add missing descriptions to App module. - #13163 by @fowczarek
 - Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
-- Add missing descriptions to Account module. - #13155 by @fowczarek
+- Add missing descriptions to account module. - #13155 by @fowczarek
 - Add missing descriptions to channel module. - #13166 by @fowczarek
+- Add missing descriptions to checkout module. - #13167 by @fowczarek
 - Add missing descriptions to attribute module. - #13165 by @fowczarek
 
 # 3.14.0
