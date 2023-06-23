@@ -4735,6 +4735,7 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
 
 """Represents channel."""
 type Channel implements Node @doc(category: "Channels") {
+  """The ID of the channel."""
   id: ID!
 
   """Slug of the channel."""
@@ -25249,7 +25250,7 @@ enum ChannelErrorCode @doc(category: "Channels") {
 }
 
 input ChannelCreateInput @doc(category: "Channels") {
-  """isActive flag."""
+  """Determine if channel will be set active or not."""
   isActive: Boolean
 
   """
@@ -25363,7 +25364,7 @@ type ChannelUpdate @doc(category: "Channels") {
 }
 
 input ChannelUpdateInput @doc(category: "Channels") {
-  """isActive flag."""
+  """Determine if channel will be set active or not."""
   isActive: Boolean
 
   """
