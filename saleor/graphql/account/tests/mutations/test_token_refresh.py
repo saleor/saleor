@@ -14,7 +14,7 @@ from .....core.jwt import (
 )
 from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
-from ...mutations.authentication import _get_new_csrf_token
+from ...mutations.authentication.utils import _get_new_csrf_token
 
 MUTATION_TOKEN_REFRESH = """
     mutation tokenRefresh($token: String, $csrf_token: String){

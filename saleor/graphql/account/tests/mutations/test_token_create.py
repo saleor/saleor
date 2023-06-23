@@ -13,7 +13,7 @@ from .....core.jwt import (
 )
 from .....core.utils import build_absolute_uri
 from ....tests.utils import get_graphql_content
-from ...mutations.authentication import _get_new_csrf_token
+from ...mutations.authentication.utils import _get_new_csrf_token
 
 MUTATION_CREATE_TOKEN = """
     mutation tokenCreate($email: String!, $password: String!, $audience: String){
@@ -114,7 +114,7 @@ def test_create_token_with_audience(api_client, customer_user, settings):
 def test_create_token_sets_cookie(api_client, customer_user, settings, monkeypatch):
     csrf_token = _get_new_csrf_token()
     monkeypatch.setattr(
-        "saleor.graphql.account.mutations.authentication._get_new_csrf_token",
+        "saleor.graphql.account.mutations.authentication.create_token._get_new_csrf_token",
         lambda: csrf_token,
     )
     variables = {"email": customer_user.email, "password": customer_user._password}
