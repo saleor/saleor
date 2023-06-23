@@ -187,6 +187,14 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
         )
 
 
+class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = "Event sent when account delete requested." + ADDED_IN_315
+
+
 class AddressBase(AbstractType):
     address = graphene.Field(
         "saleor.graphql.account.types.Address",
@@ -2085,6 +2093,7 @@ class ThumbnailCreated(SubscriptionObjectType):
 
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
     WebhookEventAsyncType.ADDRESS_DELETED: AddressDeleted,

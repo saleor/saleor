@@ -15,6 +15,7 @@ from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
+    generate_account_events_payload,
     generate_address_payload,
     generate_app_payload,
     generate_attribute_payload,
@@ -98,22 +99,34 @@ def test_account_confirmation_requested(
     )
 
     # then
-    expected_payload = json.dumps(
+    expected_payload = generate_account_events_payload(customer_user, channel_USD)
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_delete_requested(
+    customer_user, channel_USD, subscription_account_delete_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_delete_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
         {
-            **generate_customer_payload(customer_user),
-            **{
-                "token": "token",
-                "redirectUrl": "http://www.example.com?token=token",
-                "channel": {
-                    "slug": channel_USD.slug,
-                    "id": graphene.Node.to_global_id("Channel", channel_USD.id),
-                },
-                "shop": {
-                    "domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}
-                },
-            },
-        }
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.example.com?token=token",
+        },
+        webhooks,
     )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user, channel_USD)
 
     assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
