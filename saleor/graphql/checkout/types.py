@@ -399,7 +399,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     discount = graphene.Field(
         Money,
         description=(
-            "The total discount is applied to the checkout. "
+            "The total discount applied to the checkout. "
             "Note: Only discount created via voucher are included in this field."
         ),
     )
@@ -408,7 +408,10 @@ class Checkout(ModelObjectType[models.Checkout]):
     )
     translated_discount_name = graphene.String(
         description=(
-            "The name of voucher assigned to the checkout in the customer's language."
+            "Translation of the discountName field in the language "
+            "set in Checkout.languageCode field."
+            "Note: this field is set automatically when "
+            "Checkout.languageCode is defined; otherwise it's null"
         )
     )
     voucher_code = graphene.String(
