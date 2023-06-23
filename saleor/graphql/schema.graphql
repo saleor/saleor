@@ -5921,7 +5921,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   withChoices: Boolean!
 
   """
-  A list of the product's type uses this attribute as a product attribute.
+  A list of product types that use this attribute as a product attribute.
   """
   productTypes(
     """Return the elements in the list that come before the specified cursor."""
@@ -5942,7 +5942,7 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   ): ProductTypeCountableConnection!
 
   """
-  A list of the product's type uses this attribute as a product variant attribute.
+  A list of product types that use this attribute as a product variant attribute.
   """
   productVariantTypes(
     """Return the elements in the list that come before the specified cursor."""

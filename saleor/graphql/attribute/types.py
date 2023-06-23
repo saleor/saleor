@@ -245,15 +245,15 @@ class Attribute(ModelObjectType[models.Attribute]):
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
         description=(
-            "A list of the product's type uses this attribute as a product attribute."
+            "A list of product types that use this attribute as a product attribute."
         ),
     )
     product_variant_types = ConnectionField(
         "saleor.graphql.product.types.ProductTypeCountableConnection",
         required=True,
         description=(
-            "A list of the product's type uses this attribute as "
-            "a product variant attribute."
+            "A list of product types that use this attribute "
+            "as a product variant attribute."
         ),
     )
     external_reference = graphene.String(
