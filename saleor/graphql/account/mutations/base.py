@@ -72,6 +72,14 @@ def check_can_edit_address(context, address):
     )
 
 
+class AccountBaseInput(BaseInputObjectType):
+    first_name = graphene.String(description="Given name.")
+    last_name = graphene.String(description="Family name.")
+    language_code = graphene.Argument(
+        LanguageCodeEnum, required=False, description="User language code."
+    )
+
+
 class SetPassword(CreateToken):
     class Arguments:
         token = graphene.String(

@@ -7382,8 +7382,12 @@ mutation emailUpdate($token: String!, $channel: String) {
 """
 
 
-@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
-@patch("saleor.graphql.account.mutations.account.assign_user_gift_cards")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_email_change.match_orders_with_new_user"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_email_change.assign_user_gift_cards"
+)
 def test_email_update(
     assign_gift_cards_mock,
     assign_orders_mock,
