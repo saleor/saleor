@@ -119,14 +119,19 @@ def item_contains_multiple_proper_public_metadata(
 
 
 def test_meta_mutations_handle_validation_errors(staff_api_client):
+    # given
     invalid_id = "6QjoLs5LIqb3At7hVKKcUlqXceKkFK"
     variables = {
         "id": invalid_id,
         "input": [{"key": "year", "value": "of-saleor"}],
     }
+
+    # when
     response = staff_api_client.post_graphql(
         UPDATE_PUBLIC_METADATA_MUTATION % "Checkout", variables
     )
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["updateMetadata"]["errors"]
     assert errors
@@ -176,6 +181,7 @@ def test_update_public_metadata_for_item(api_client, checkout):
 
 @pytest.mark.django_db(transaction=True)
 def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkout):
+    # given
     checkout.metadata_storage.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     checkout.metadata_storage.save(update_fields=["metadata"])
 
@@ -183,6 +189,7 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
         with transaction.atomic():
             Checkout.objects.filter(pk=checkout.pk).delete()
 
+    # when
     with before_after.before(
         "saleor.graphql.meta.mutations.update_metadata.save_instance",
         delete_checkout_object,
@@ -196,6 +203,7 @@ def test_update_public_metadata_for_item_on_deleted_instance(api_client, checkou
             ignore_errors=True,
         )
 
+    # then
     assert not Checkout.objects.filter(pk=checkout.pk).first()
     assert (
         response["data"]["updateMetadata"]["errors"][0]["code"]
