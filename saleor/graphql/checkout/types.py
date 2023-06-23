@@ -22,7 +22,7 @@ from ...warehouse.reservations import is_reservation_enabled
 from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
-from ..channel.dataloaders import ChannelByCheckoutLineIDLoader
+from ..channel.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..channel.types import Channel
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -468,6 +468,9 @@ class Checkout(ModelObjectType):
     @staticmethod
     def resolve_created(root: models.Checkout, _info):
         return root.created_at
+
+    def resolve_channel(root: models.Checkout, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     def resolve_id(root: models.Checkout, _):
