@@ -53,6 +53,7 @@ def test_invoice_request(
     permission_group_manage_orders,
     order,
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     dummy_invoice = Invoice.objects.create(order=order)
     plugin_mock.return_value = dummy_invoice
@@ -62,7 +63,11 @@ def test_invoice_request(
         "orderId": graphene_order_id,
         "number": number,
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     invoice = Invoice.objects.filter(
         number=number, order=order.pk, status=JobStatus.PENDING
@@ -172,6 +177,7 @@ def test_invoice_request_by_app(
 def test_invoice_request_invalid_order_status(
     status, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order.status = status
     order.save()
@@ -180,7 +186,11 @@ def test_invoice_request_invalid_order_status(
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "number": number,
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
     error = content["data"]["invoiceRequest"]["errors"][0]
@@ -192,6 +202,7 @@ def test_invoice_request_invalid_order_status(
 def test_invoice_request_no_billing_address(
     staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order.billing_address = None
     order.save()
@@ -200,7 +211,11 @@ def test_invoice_request_no_billing_address(
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "number": number,
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
     error = content["data"]["invoiceRequest"]["errors"][0]
@@ -216,21 +231,31 @@ def test_invoice_request_no_billing_address(
 def test_invoice_request_no_number(
     active_event_check_mock, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"orderId": graphene.Node.to_global_id("Order", order.pk)}
+
+    # when
     staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     invoice = Invoice.objects.get(order=order.pk)
     assert invoice.number is None
     assert OrderEvent.objects.filter(type=OrderEvents.INVOICE_REQUESTED).exists()
 
 
 def test_invoice_request_invalid_id(staff_api_client, permission_group_manage_orders):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "orderId": "T3JkZXI6ZmZmMTVjYjItZTc1OC00MGJhLThkYTktNjE3ZTIwNDhlMGQ2",
         "number": "01/12/2020/TEST",
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     error = content["data"]["invoiceRequest"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
@@ -244,13 +269,18 @@ def test_invoice_request_invalid_id(staff_api_client, permission_group_manage_or
 def test_invoice_request_no_invoice_plugin(
     active_event_check_mock, order, permission_group_manage_orders, staff_api_client
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     number = "01/12/2020/TEST"
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order.pk),
         "number": number,
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_REQUEST_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(number=number, order=order.pk).exists()
     error = content["data"]["invoiceRequest"]["errors"][0]
