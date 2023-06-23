@@ -1,7 +1,7 @@
 import pytest
 
-from ....product.models import Product
-from ...tests.utils import get_graphql_content
+from .....product.models import Product
+from ....tests.utils import get_graphql_content
 
 FILTER_BY_META_QUERY = """
 query filterProductsByMetadata ($filter:ProductFilterInput, $channel: String){
@@ -97,6 +97,7 @@ query filterProductsByMetadata ($filter:ProductFilterInput, $channel: String){
 def test_filter_by_meta_total_returned_objects(
     metadata, total_count, api_client, product_list, channel_USD
 ):
+    # given
     product1, product2, product3 = product_list
     variables = {
         "channel": channel_USD.slug,
@@ -108,7 +109,10 @@ def test_filter_by_meta_total_returned_objects(
     product2.store_value_in_metadata({"C": "3", "Z": "4"})
     Product.objects.bulk_update([product1, product2], ["metadata"])
 
+    # when
     response = api_client.post_graphql(FILTER_BY_META_QUERY, variables)
+
+    # then
     content = get_graphql_content(response)
     assert len(content["data"]["products"]["edges"]) == total_count
 
@@ -116,6 +120,7 @@ def test_filter_by_meta_total_returned_objects(
 def test_filter_by_meta_expected_product_for_key_and_value(
     api_client, product_list, channel_USD
 ):
+    # given
     product = product_list[0]
     variables = {
         "channel": channel_USD.slug,
@@ -139,6 +144,7 @@ def test_filter_by_meta_expected_product_for_key_and_value(
 def test_filter_by_meta_expected_product_for_only_key(
     api_client, product_list, channel_USD
 ):
+    # given
     product = product_list[0]
     variables = {
         "channel": channel_USD.slug,

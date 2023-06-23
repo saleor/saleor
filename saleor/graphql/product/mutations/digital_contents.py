@@ -12,7 +12,7 @@ from ...core.descriptions import ADDED_IN_38
 from ...core.doc_category import DOC_CATEGORY_PRODUCTS
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import BaseInputObjectType, NonNullList, ProductError, Upload
-from ...meta.mutations import MetadataInput
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import DigitalContent, DigitalContentUrl, ProductVariant
 
