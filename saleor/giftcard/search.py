@@ -1,7 +1,7 @@
 from typing import List
 
-from django.contrib.postgres.search import SearchQuery, SearchRank
-from django.db.models import F, Q, Value, prefetch_related_objects
+from django.contrib.postgres.search import SearchQuery
+from django.db.models import Value, prefetch_related_objects
 
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from .models import GiftCard
@@ -59,8 +59,5 @@ def update_gift_cards_search_vector(gift_cards: List[GiftCard]):
 def search_gift_cards(qs, value):
     if value:
         query = SearchQuery(value, search_type="websearch", config="simple")
-        lookup = Q(search_vector=query)
-        qs = qs.filter(lookup).annotate(
-            search_rank=SearchRank(F("search_vector"), query)
-        )
+        qs = qs.filter(search_vector=query)
     return qs
