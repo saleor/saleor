@@ -1,5 +1,7 @@
 import pytest
 
+from saleor.giftcard.search import update_gift_cards_search_vector
+
 from ....tests.utils import get_graphql_content
 
 QUERY_GIFT_CARDS = """
@@ -21,8 +23,11 @@ QUERY_GIFT_CARDS = """
 """
 
 
-@pytest.mark.parametrize("search,indexes", [("expiry", [0, 1]), ("staff", [2])])
-def test_sorting_gift_cards_by_current_balance(
+@pytest.mark.parametrize(
+    "search,indexes",
+    [("expiry", [0, 1]), ("staff_test@example.com", [2]), ("banana", [])],
+)
+def test_query_gift_cards_with_search(
     search,
     indexes,
     staff_api_client,
@@ -33,6 +38,7 @@ def test_sorting_gift_cards_by_current_balance(
 ):
     # given
     gift_card_list = [gift_card, gift_card_expiry_date, gift_card_used]
+    update_gift_cards_search_vector(gift_card_list)
     variables = {"search": search}
 
     # when
@@ -45,5 +51,5 @@ def test_sorting_gift_cards_by_current_balance(
     data = content["data"]["giftCards"]["edges"]
     assert len(data) == len(indexes)
     assert {card["node"]["code"] for card in data} == {
-        card.code for card in gift_card_list
+        gift_card_list[index].code for index in indexes
     }

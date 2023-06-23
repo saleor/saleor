@@ -6,14 +6,7 @@ from django.db.models import Value, prefetch_related_objects
 from ..core.postgres import FlatConcatSearchVector, NoValidationSearchVector
 from .models import GiftCard
 
-GIFTCARD_FIELDS_TO_PREFETCH = [
-    "used_by__email",
-    "used_by__first_name",
-    "used_by__last_name",
-    # "created_by__email",
-    # "created_by__first_name",
-    # "created_by__last_name",
-]
+GIFTCARD_FIELDS_TO_PREFETCH = ["used_by", "created_by"]
 
 
 def _add_vector(vectors: List[NoValidationSearchVector], field):
