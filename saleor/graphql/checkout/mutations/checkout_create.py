@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from ....account.models import Address
     from .utils import CheckoutLineData
 
-from ...meta.mutations import MetadataInput
+from ...meta.inputs import MetadataInput
 
 
 class CheckoutAddressValidationRules(BaseInputObjectType):

@@ -16,7 +16,7 @@ from ..core.descriptions import ADDED_IN_314
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types import BaseInputObjectType, InvoiceError, NonNullList
-from ..meta.mutations import MetadataInput
+from ..meta.inputs import MetadataInput
 from ..order.types import Order
 from ..plugins.dataloaders import get_plugin_manager_promise
 from .types import Invoice

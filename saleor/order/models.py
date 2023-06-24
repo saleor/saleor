@@ -803,6 +803,13 @@ class OrderEvent(models.Model):
         related_name="+",
     )
     app = models.ForeignKey(App, related_name="+", on_delete=models.SET_NULL, null=True)
+    related = models.ForeignKey(
+        "self",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="related_events",
+    )
 
     class Meta:
         ordering = ("date",)

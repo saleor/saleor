@@ -74,6 +74,7 @@ from ..core.descriptions import (
     ADDED_IN_310,
     ADDED_IN_311,
     ADDED_IN_313,
+    ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
     PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
@@ -114,10 +115,10 @@ from ..plugins.dataloaders import (
     plugin_manager_promise_callback,
 )
 from ..product.dataloaders import (
+    ImagesByProductIdLoader,
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
-    ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
@@ -142,6 +143,7 @@ from .dataloaders import (
     FulfillmentsByOrderIdLoader,
     OrderByIdLoader,
     OrderByNumberLoader,
+    OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
@@ -340,6 +342,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     related_order = graphene.Field(
         lambda: Order, description="The order which is related to this order."
     )
+    related = graphene.Field(
+        lambda: OrderEvent,
+        description="The order event which is related to this event."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
     )
@@ -519,6 +527,12 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
             return OrderByNumberLoader(info.context).load(order_pk_or_number)
 
         return OrderByIdLoader(info.context).load(order_pk)
+
+    @staticmethod
+    def resolve_related(root: models.OrderEvent, info):
+        if not root.related_id:
+            return None
+        return OrderEventsByIdLoader(info.context).load(root.related_id)
 
     @staticmethod
     def resolve_discount(root: models.OrderEvent, info):
@@ -768,7 +782,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
             # we failed to get image from variant, lets use first from product
             return (
-                ProductImageByProductIdLoader(info.context)
+                ImagesByProductIdLoader(info.context)
                 .load(product.id)
                 .then(_get_first_product_image)
             )
@@ -953,7 +967,10 @@ class Order(ModelObjectType[models.Order]):
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
-    tracking_client_id = graphene.String(required=True)
+    tracking_client_id = graphene.String(
+        required=True,
+        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_FIELD,
+    )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(
@@ -1456,7 +1473,7 @@ class Order(ModelObjectType[models.Order]):
                 root, manager, lines
             ) or Decimal(0)
 
-        lines = OrderLinesByOrderIdLoader(info.context)
+        lines = OrderLinesByOrderIdLoader(info.context).load(root.id)
         manager = get_plugin_manager_promise(info.context)
         return Promise.all([lines, manager]).then(_resolve_shipping_tax_rate)
 

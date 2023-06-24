@@ -9,7 +9,6 @@ from django.contrib.sites.models import Site
 from django.db import transaction
 
 from ..account.models import User
-from ..core import analytics
 from ..core.exceptions import AllocationError, InsufficientStock, InsufficientStockData
 from ..core.tracing import traced_atomic_transaction
 from ..core.transactions import transaction_with_commit_on_errors
@@ -156,11 +155,6 @@ def handle_fully_paid_order(
         send_payment_confirmation(order_info, manager)
         if utils.order_needs_automatic_fulfillment(order_info.lines_data):
             automatically_fulfill_digital_lines(order_info, manager)
-    try:
-        analytics.report_order(order.tracking_client_id, order)
-    except Exception:
-        # Analytics failing should not abort the checkout flow
-        logger.exception("Recording order in analytics failed")
 
     if site_settings is None:
         site_settings = Site.objects.get_current().settings
