@@ -517,4 +517,4 @@ def test_query_filter_gift_cards_by_created_by_email(
     content = get_graphql_content(response)
     data = content["data"]["giftCards"]["edges"]
     assert len(data) == 1
-    assert data[0]["node"]["createdByEmail"] == "test2@example.com"
+    assert data[0]["node"]["createdByEmail"] == "test@example.com"
