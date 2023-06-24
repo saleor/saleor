@@ -3,7 +3,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
 from ..core.models import ModelWithMetadata, SortableModel
-from ..core.utils.translations import Translation, TranslationProxy
+from ..core.utils.translations import Translation
 from ..page.models import Page
 from ..permission.enums import MenuPermissions
 from ..product.models import Category, Collection
@@ -40,7 +40,6 @@ class MenuItem(ModelWithMetadata, MPTTModel, SortableModel):
 
     objects = models.Manager()
     tree = TreeManager()  # type: ignore[django-manager-missing]
-    translated = TranslationProxy()
 
     class Meta(ModelWithMetadata.Meta):
         ordering = ("sort_order", "pk")

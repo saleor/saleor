@@ -5,10 +5,12 @@ All notable, unreleased changes to this project will be documented in this file.
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
 
 ### GraphQL API
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+- Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
 
 ### Saleor Apps
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
@@ -18,6 +20,15 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @Smit-Parmar
 - Added createdByEmail filter in GiftCard and Test case. - #13132 by @Smit-Parmar
 
+- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
+- Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
+- Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
+- Add missing descriptions to App module. - #13163 by @fowczarek
+- Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
+- Add missing descriptions to account module. - #13155 by @fowczarek
+- Add missing descriptions to channel module. - #13166 by @fowczarek
+- Add missing descriptions to checkout module. - #13167 by @fowczarek
+- Add missing descriptions to attribute module. - #13165 by @fowczarek
 
 # 3.14.0
 

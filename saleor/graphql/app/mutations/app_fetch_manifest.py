@@ -17,10 +17,12 @@ FETCH_BRAND_DATA_TIMEOUT = 5
 
 
 class AppFetchManifest(BaseMutation):
-    manifest = graphene.Field(Manifest)
+    manifest = graphene.Field(Manifest, description="The validated manifest.")
 
     class Arguments:
-        manifest_url = graphene.String(required=True)
+        manifest_url = graphene.String(
+            required=True, description="URL to app's manifest in JSON format."
+        )
 
     class Meta:
         description = "Fetch and validate manifest."

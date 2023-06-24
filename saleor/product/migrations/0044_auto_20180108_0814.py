@@ -6,7 +6,6 @@ from decimal import Decimal
 import django.contrib.postgres.fields.hstore
 import django.core.validators
 import django.db.models.deletion
-import versatileimagefield.fields
 from django.db import migrations, models
 
 
@@ -160,7 +159,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="productimage",
             name="image",
-            field=versatileimagefield.fields.VersatileImageField(upload_to="products"),
+            field=models.ImageField(upload_to="products"),
         ),
         migrations.AlterField(
             model_name="productimage",
@@ -170,9 +169,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="productimage",
             name="ppoi",
-            field=versatileimagefield.fields.PPOIField(
-                default="0.5x0.5", editable=False, max_length=20
-            ),
+            field=models.CharField(default="0.5x0.5", editable=False, max_length=20),
         ),
         migrations.AlterField(
             model_name="productimage",
