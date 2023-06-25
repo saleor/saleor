@@ -403,3 +403,51 @@ def test_update_default_sender_settings_invalid_email(
     assert errors == [
         {"field": "defaultMailSenderAddress", "message": "Enter a valid email address."}
     ]
+
+SHOP_SETTINGS_UPDATE_METADATA_MUTATION = """
+    mutation updateShopMetadata($input: ShopSettingsInput!) {
+        shopSettingsUpdate(input: $input) {
+            shop {
+            metadata {
+                key
+                value
+            }
+            privateMetadata {
+                key
+                value
+            }
+            }
+        }
+    }
+"""
+
+PRIVATE_KEY = "private_key"
+PRIVATE_VALUE = "private_value"
+
+PUBLIC_KEY = "key"
+PUBLIC_KEY2 = "key2"
+PUBLIC_KEY = "value"
+PUBLIC_VALUE2 = "value2"
+
+def test_shop_settings_update_metadata(
+    staff_api_client, permission_manage_settings
+):
+    # given
+    query = SHOP_SETTINGS_UPDATE_METADATA_MUTATION
+    metadata = [{"key": PUBLIC_KEY, "value": PUBLIC_KEY}]
+    private_metadata = [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}]
+    variables = {"input":{
+        "metadata": metadata,
+        "privateMetadata": private_metadata,
+    }}
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["metadata"] == metadata
+    assert data["privateMetadata"] == private_metadata
