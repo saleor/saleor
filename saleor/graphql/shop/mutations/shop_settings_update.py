@@ -6,14 +6,15 @@ from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_314, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_314,ADDED_IN_315, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
-
+from ...meta.inputs import MetadataInput
+from ...core.types import common as common_types
 
 class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text.")
@@ -94,6 +95,16 @@ class ShopSettingsInput(graphene.InputObjectType):
             "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
         ),
     )
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Shop public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description=("Shop private metadata." + ADDED_IN_315),
+        required=False,
+    )
 
 
 class ShopSettingsUpdate(BaseMutation):
@@ -110,6 +121,8 @@ class ShopSettingsUpdate(BaseMutation):
         permissions = (SitePermissions.MANAGE_SETTINGS,)
         error_type_class = ShopError
         error_type_field = "shop_errors"
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, _info, _instance, data):
@@ -160,7 +173,10 @@ class ShopSettingsUpdate(BaseMutation):
         instance = site.settings
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
+        metadata_list = cleaned_input.pop("metadata", None)
+        private_metadata_list = cleaned_input.pop("private_metadata", None)
         instance = cls.construct_instance(instance, cleaned_input)
+        cls.validate_and_update_metadata(instance, metadata_list, private_metadata_list)
         cls.clean_instance(info, instance)
         instance.save()
         return ShopSettingsUpdate(shop=Shop())
