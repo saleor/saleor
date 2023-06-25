@@ -404,6 +404,7 @@ def test_update_default_sender_settings_invalid_email(
         {"field": "defaultMailSenderAddress", "message": "Enter a valid email address."}
     ]
 
+
 SHOP_SETTINGS_UPDATE_METADATA_MUTATION = """
     mutation updateShopMetadata($input: ShopSettingsInput!) {
         shopSettingsUpdate(input: $input) {
@@ -429,17 +430,18 @@ PUBLIC_KEY2 = "key2"
 PUBLIC_KEY = "value"
 PUBLIC_VALUE2 = "value2"
 
-def test_shop_settings_update_metadata(
-    staff_api_client, permission_manage_settings
-):
+
+def test_shop_settings_update_metadata(staff_api_client, permission_manage_settings):
     # given
     query = SHOP_SETTINGS_UPDATE_METADATA_MUTATION
     metadata = [{"key": PUBLIC_KEY, "value": PUBLIC_KEY}]
     private_metadata = [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}]
-    variables = {"input":{
-        "metadata": metadata,
-        "privateMetadata": private_metadata,
-    }}
+    variables = {
+        "input": {
+            "metadata": metadata,
+            "privateMetadata": private_metadata,
+        }
+    }
 
     # when
     response = staff_api_client.post_graphql(

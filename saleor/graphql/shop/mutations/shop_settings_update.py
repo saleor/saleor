@@ -6,15 +6,21 @@ from ....core.utils.url import validate_storefront_url
 from ....permission.enums import SitePermissions
 from ....site.models import DEFAULT_LIMIT_QUANTITY_PER_CHECKOUT
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_314,ADDED_IN_315, DEPRECATED_IN_3X_INPUT
+from ...core.descriptions import (
+    ADDED_IN_31,
+    ADDED_IN_314,
+    ADDED_IN_315,
+    DEPRECATED_IN_3X_INPUT,
+)
 from ...core.doc_category import DOC_CATEGORY_SHOP
 from ...core.enums import WeightUnitsEnum
 from ...core.mutations import BaseMutation
 from ...core.types import ShopError
+from ...core.types import common as common_types
+from ...meta.inputs import MetadataInput
 from ...site.dataloaders import get_site_promise
 from ..types import Shop
-from ...meta.inputs import MetadataInput
-from ...core.types import common as common_types
+
 
 class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text.")

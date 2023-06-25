@@ -831,6 +831,7 @@ def test_query_countries_filter_shiping_zones_attached_none(
     # then
     assert len(data) == len(countries)
 
+
 SHOP_METADATA_QUERY = """
     query {
         shop {
@@ -855,15 +856,18 @@ PRIVATE_VALUE = "private_meta_value"
 PUBLIC_KEY = "meta_key"
 PUBLIC_VALUE = "meta_value"
 
+
 def test_shop_metadata_query_as_user(
-    user_api_client,site_settings,permission_manage_settings
+    user_api_client, site_settings, permission_manage_settings
 ):
     # given
-    site_settings.store_value_in_metadata({PUBLIC_KEY:PUBLIC_VALUE})
+    site_settings.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     site_settings.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     site_settings.save()
     # when
-    response = user_api_client.post_graphql(SHOP_METADATA_QUERY,permissions=[permission_manage_settings])
+    response = user_api_client.post_graphql(
+        SHOP_METADATA_QUERY, permissions=[permission_manage_settings]
+    )
     content = get_graphql_content(response)
 
     data = content["data"]["shop"]
@@ -871,22 +875,25 @@ def test_shop_metadata_query_as_user(
     assert data["metadata"][0]["key"] == "meta_key"
     assert data["metadata"][0]["value"] == PUBLIC_VALUE
     assert data["metafield"] == PUBLIC_VALUE
-    assert data["metafields"] == {PUBLIC_KEY:PUBLIC_VALUE}
+    assert data["metafields"] == {PUBLIC_KEY: PUBLIC_VALUE}
 
     assert data["privateMetadata"][0]["key"] == PRIVATE_KEY
     assert data["privateMetadata"][0]["value"] == PRIVATE_VALUE
     assert data["privateMetafield"] == PRIVATE_VALUE
     assert data["privateMetafields"] == {PRIVATE_KEY: PRIVATE_VALUE}
 
+
 def test_shop_metadata_query_as_staff_user(
-    staff_api_client,site_settings,permission_manage_settings
+    staff_api_client, site_settings, permission_manage_settings
 ):
     # given
-    site_settings.store_value_in_metadata({PUBLIC_KEY:PUBLIC_VALUE})
+    site_settings.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
     site_settings.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
     site_settings.save()
     # when
-    response = staff_api_client.post_graphql(SHOP_METADATA_QUERY,permissions=[permission_manage_settings])
+    response = staff_api_client.post_graphql(
+        SHOP_METADATA_QUERY, permissions=[permission_manage_settings]
+    )
     content = get_graphql_content(response)
 
     data = content["data"]["shop"]
@@ -894,7 +901,7 @@ def test_shop_metadata_query_as_staff_user(
     assert data["metadata"][0]["key"] == "meta_key"
     assert data["metadata"][0]["value"] == PUBLIC_VALUE
     assert data["metafield"] == PUBLIC_VALUE
-    assert data["metafields"] == {PUBLIC_KEY:PUBLIC_VALUE}
+    assert data["metafields"] == {PUBLIC_KEY: PUBLIC_VALUE}
 
     assert data["privateMetadata"][0]["key"] == PRIVATE_KEY
     assert data["privateMetadata"][0]["value"] == PRIVATE_VALUE

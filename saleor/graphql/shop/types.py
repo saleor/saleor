@@ -569,18 +569,22 @@ class Shop(graphene.ObjectType):
     @load_site_callback
     def resolve_metafields(_, info: ResolveInfo, site, *, keys=None):
         return ObjectWithMetadata.resolve_metafields(site.settings, info, keys=keys)
-    
+
     @staticmethod
     @load_site_callback
     def resolve_private_metadata(_, info: ResolveInfo, site):
         return ObjectWithMetadata.resolve_private_metadata(site.settings, info)
-    
+
     @staticmethod
     @load_site_callback
     def resolve_private_metafield(_, info: ResolveInfo, site, *, key: str):
-        return ObjectWithMetadata.resolve_private_metafield(site.settings, info, key=key)
+        return ObjectWithMetadata.resolve_private_metafield(
+            site.settings, info, key=key
+        )
 
     @staticmethod
     @load_site_callback
     def resolve_private_metafields(_, info: ResolveInfo, site, *, keys=None):
-        return ObjectWithMetadata.resolve_private_metafields(site.settings, info, keys=keys)
+        return ObjectWithMetadata.resolve_private_metafields(
+            site.settings, info, keys=keys
+        )
