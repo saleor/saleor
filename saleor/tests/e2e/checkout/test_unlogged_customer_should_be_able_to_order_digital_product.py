@@ -2,9 +2,9 @@ from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
     create_digital_content,
-    create_digital_product_type,
     create_product,
     create_product_channel_listing,
+    create_product_type,
     create_product_variant,
     create_product_variant_channel_listing,
 )
@@ -52,7 +52,7 @@ def test_process_checkout_with_digital_product(
         channel_ids=channel_ids,
     )
 
-    product_type_data = create_digital_product_type(
+    product_type_data = create_product_type(
         e2e_staff_api_client,
         is_shipping_required=False,
         is_digital=True,

@@ -21,7 +21,7 @@ mutation createProductType($input: ProductTypeInput!) {
 """
 
 
-def create_digital_product_type(
+def create_product_type(
     staff_api_client,
     product_type_name="Test type",
     slug="test-type",

@@ -1,4 +1,5 @@
 from ..channel.utils import create_channel
+from ..product.utils import create_product_type
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
@@ -9,12 +10,14 @@ def test_process_checkout_with_physical_product(
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
+    permission_manage_product_types_and_attributes,
 ):
     # given
     permissions = [
         permission_manage_products,
         permission_manage_channels,
         permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
     ]
     assign_permissions(e2e_staff_api_client, permissions)
 
@@ -32,3 +35,9 @@ def test_process_checkout_with_physical_product(
         warehouse_ids=warehouse_ids,
         channel_ids=channel_ids,
     )
+
+    product_type_data = create_product_type(
+        e2e_staff_api_client,
+    )
+    product_type_id = product_type_data["id"]
+    assert product_type_id is not None
