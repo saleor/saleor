@@ -29,6 +29,7 @@ from .mutations.account import (
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
+    ConfirmAccount,
     ConfirmEmailChange,
     RequestEmailChange,
 )
@@ -40,14 +41,11 @@ from .mutations.authentication import (
     ExternalObtainAccessTokens,
     ExternalRefresh,
     ExternalVerify,
-    RefreshToken,
-    VerifyToken,
-)
-from .mutations.base import (
-    ConfirmAccount,
     PasswordChange,
+    RefreshToken,
     RequestPasswordReset,
     SetPassword,
+    VerifyToken,
 )
 from .mutations.permission_group import (
     PermissionGroupCreate,
@@ -201,7 +199,7 @@ class AccountQueries(graphene.ObjectType):
         country_code,
         country_area=None,
         city=None,
-        city_area=None
+        city_area=None,
     ):
         return resolve_address_validation_rules(
             info,

@@ -40,6 +40,7 @@ from ..tax.dataloaders import TaxClassByIdLoader
 from ..tax.types import TaxClass
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
+from ..warehouse.dataloaders import WarehousesByShippingZoneIdLoader
 from ..warehouse.types import Warehouse
 from .dataloaders import (
     ChannelsByShippingZoneIdLoader,
@@ -327,8 +328,8 @@ class ShippingZone(ChannelContextTypeWithMetadata[models.ShippingZone]):
         )
 
     @staticmethod
-    def resolve_warehouses(root: ChannelContext[models.ShippingZone], _info):
-        return root.node.warehouses.all()
+    def resolve_warehouses(root: ChannelContext[models.ShippingZone], info):
+        return WarehousesByShippingZoneIdLoader(info.context).load(root.node.id)
 
     @staticmethod
     def resolve_channels(root: ChannelContext[models.ShippingZone], info):

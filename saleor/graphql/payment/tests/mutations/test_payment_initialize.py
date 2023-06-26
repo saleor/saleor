@@ -27,6 +27,7 @@ mutation PaymentInitialize(
 
 @patch.object(PluginsManager, "initialize_payment")
 def test_payment_initialize(mocked_initialize_payment, api_client, channel_USD):
+    # given
     exected_initialize_payment_response = InitializedPaymentResponse(
         gateway="gateway.id",
         name="PaymentPluginName",
@@ -46,7 +47,11 @@ def test_payment_initialize(mocked_initialize_payment, api_client, channel_USD):
             {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
         ),
     }
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     init_payment_data = content["data"]["paymentInitialize"]["initializedPayment"]
     assert init_payment_data["gateway"] == exected_initialize_payment_response.gateway
@@ -58,6 +63,7 @@ def test_payment_initialize(mocked_initialize_payment, api_client, channel_USD):
 
 
 def test_payment_initialize_gateway_doesnt_exist(api_client, channel_USD):
+    # given
     query = PAYMENT_INITIALIZE_MUTATION
     variables = {
         "gateway": "wrong.gateway",
@@ -66,7 +72,11 @@ def test_payment_initialize_gateway_doesnt_exist(api_client, channel_USD):
             {"paymentMethod": "applepay", "validationUrl": "https://127.0.0.1/valid"}
         ),
     }
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     assert content["data"]["paymentInitialize"]["initializedPayment"] is None
 
@@ -75,6 +85,7 @@ def test_payment_initialize_gateway_doesnt_exist(api_client, channel_USD):
 def test_payment_initialize_plugin_raises_error(
     mocked_initialize_payment, api_client, channel_USD
 ):
+    # given
     error_msg = "Missing paymentMethod field."
     mocked_initialize_payment.side_effect = PaymentError(error_msg)
 
@@ -84,7 +95,11 @@ def test_payment_initialize_plugin_raises_error(
         "channel": channel_USD.slug,
         "paymentData": json.dumps({"validationUrl": "https://127.0.0.1/valid"}),
     }
+
+    # when
     response = api_client.post_graphql(query, variables)
+
+    # then
     content = get_graphql_content(response)
     initialized_payment_data = content["data"]["paymentInitialize"][
         "initializedPayment"

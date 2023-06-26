@@ -24,7 +24,7 @@ from ....core.mutations import ModelMutation
 from ....core.scalars import WeightScalar
 from ....core.types import BaseInputObjectType, NonNullList, ProductError
 from ....core.utils import get_duplicated_values
-from ....meta.mutations import MetadataInput
+from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....warehouse.types import Warehouse
 from ...types import ProductVariant

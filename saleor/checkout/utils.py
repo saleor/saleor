@@ -15,6 +15,7 @@ from ..core.utils.promo_code import (
     promo_code_is_gift_card,
     promo_code_is_voucher,
 )
+from ..core.utils.translations import get_translation
 from ..discount import VoucherType
 from ..discount.interface import VoucherInfo, fetch_voucher_info
 from ..discount.models import NotApplicable, Voucher
@@ -620,11 +621,15 @@ def recalculate_checkout_discount(
                 else discount
             )
             checkout.discount_name = voucher.name
+
+            language_code = checkout.language_code
+            translated_discount_name = get_translation(voucher, language_code).name
             checkout.translated_discount_name = (
-                voucher.translated.name
-                if voucher.translated.name != voucher.name
+                translated_discount_name
+                if translated_discount_name != voucher.name
                 else ""
             )
+
             checkout.save(
                 update_fields=[
                     "translated_discount_name",
@@ -722,9 +727,13 @@ def add_voucher_to_checkout(
     )
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
+
+    language_code = checkout.language_code
+    translated_discount_name = get_translation(voucher, language_code).name
     checkout.translated_discount_name = (
-        voucher.translated.name if voucher.translated.name != voucher.name else ""
+        translated_discount_name if translated_discount_name != voucher.name else ""
     )
+
     checkout.discount = discount
     checkout.save(
         update_fields=[
