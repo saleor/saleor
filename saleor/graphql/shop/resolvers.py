@@ -1,6 +1,5 @@
 from django.utils import translation
 from django_countries import countries
-from django_prices_vatlayer.models import VAT
 
 from ...account.models import Address
 from ...shipping.models import ShippingMethod, ShippingMethodChannelListing
@@ -37,14 +36,11 @@ def resolve_countries(**kwargs):
     countries_filter = kwargs.get("filter", {})
     attached_to_shipping_zones = countries_filter.get("attached_to_shipping_zones")
     language_code = kwargs.get("language_code")
-    taxes = {vat.country_code: vat for vat in VAT.objects.all()}
     codes_list = get_countries_codes_list(attached_to_shipping_zones)
     # DEPRECATED: translation.override will be dropped in Saleor 4.0
     with translation.override(language_code):
         return [
-            CountryDisplay(
-                code=country[0], country=country[1], vat=taxes.get(country[0])
-            )
+            CountryDisplay(code=country[0], country=country[1], vat=None)
             for country in countries
             if country[0] in codes_list
         ]
