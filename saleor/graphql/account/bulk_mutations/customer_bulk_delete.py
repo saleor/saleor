@@ -7,8 +7,8 @@ from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import AccountError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..mutations.base import CustomerDeleteMixin
 from ..types import User
-from ..utils import CustomerDeleteMixin
 
 
 class UserBulkDelete(ModelBulkDeleteMutation):
