@@ -251,7 +251,6 @@ INSTALLED_APPS = [
     # External apps
     "django_measurement",
     "django_prices",
-    "django_prices_openexchangerates",
     "django_prices_vatlayer",
     "mptt",
     "django_countries",
@@ -407,8 +406,6 @@ DEFAULT_CURRENCY_CODE_LENGTH = 3
 DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 COUNTRIES_OVERRIDE = {"EU": "European Union"}
-
-OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 
 
 def get_host():

@@ -7126,7 +7126,7 @@ type VariantPricingInfo @doc(category: "Products") {
   discount: TaxedMoney
 
   """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
   """The price, with any discount subtracted."""
   price: TaxedMoney
@@ -7135,7 +7135,7 @@ type VariantPricingInfo @doc(category: "Products") {
   priceUndiscounted: TaxedMoney
 
   """The discounted price in the local currency."""
-  priceLocalCurrency: TaxedMoney
+  priceLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 }
 
 """
@@ -7469,7 +7469,14 @@ type ProductPricingInfo @doc(category: "Products") {
   discount: TaxedMoney
 
   """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
+
+  """
+  Determines whether this product's price displayed in a storefront should include taxes.
+  
+  Added in Saleor 3.9.
+  """
+  displayGrossPrices: Boolean!
 
   """The discounted price range of the product variants."""
   priceRange: TaxedMoneyRange
@@ -7480,14 +7487,7 @@ type ProductPricingInfo @doc(category: "Products") {
   """
   The discounted price range of the product variants in the local currency.
   """
-  priceRangeLocalCurrency: TaxedMoneyRange
-
-  """
-  Determines whether this product's price displayed in a storefront should include taxes.
-  
-  Added in Saleor 3.9.
-  """
-  displayGrossPrices: Boolean!
+  priceRangeLocalCurrency: TaxedMoneyRange @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 }
 
 """Represents a range of monetary values."""
