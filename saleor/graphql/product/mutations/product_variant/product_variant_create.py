@@ -12,7 +12,7 @@ from .....permission.enums import ProductPermissions
 from .....product import models
 from .....product.error_codes import ProductErrorCode
 from .....product.search import update_product_search_vector
-from .....product.tasks import update_product_discounted_price_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from .....product.utils.variants import generate_and_set_variant_name
 from ....attribute.types import AttributeValueInput
 from ....attribute.utils import AttributeAssignmentMixin, AttrValuesInput
@@ -317,7 +317,9 @@ class ProductVariantCreate(ModelMutation):
                 instance.product.default_variant = instance
                 instance.product.save(update_fields=["default_variant", "updated_at"])
             # Recalculate the "discounted price" for the parent product
-            update_product_discounted_price_task.delay(instance.product_id)
+            update_products_discounted_prices_for_promotion_task.delay(
+                [instance.product_id]
+            )
             stocks = cleaned_input.get("stocks")
             if stocks:
                 cls.create_variant_stocks(instance, stocks)

@@ -31,11 +31,13 @@ PROMOTION_UPDATE_MUTATION = """
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_staff_user(
     promotion_updated_mock,
     promotion_toggle_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     promotion,
@@ -76,14 +78,19 @@ def test_promotion_update_by_staff_user(
 
     promotion_updated_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_called_once_with(promotion)
+    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
+        promotion.id
+    )
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_app(
     promotion_updated_mock,
     promotion_toggle_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     promotion,
@@ -122,13 +129,72 @@ def test_promotion_update_by_app(
 
     promotion_updated_mock.assert_called_once_with(promotion)
     promotion_toggle_mock.assert_not_called()
+    update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
+        promotion.id
+    )
 
 
 @freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
+@patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
+@patch("saleor.plugins.manager.PluginsManager.promotion_updated")
+def test_promotion_update_dates_dont_change(
+    promotion_updated_mock,
+    promotion_toggle_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion,
+):
+    # given
+    permission_group_manage_discounts.user_set.add(staff_api_client.user)
+    promotion.last_notification_scheduled_at = timezone.now() - timedelta(hours=1)
+    promotion.save(update_fields=["last_notification_scheduled_at"])
+
+    previous_notification_date = promotion.last_notification_scheduled_at
+
+    new_promotion_name = "new test promotion"
+    variables = {
+        "id": graphene.Node.to_global_id("Promotion", promotion.id),
+        "input": {
+            "name": new_promotion_name,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(PROMOTION_UPDATE_MUTATION, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionUpdate"]
+    promotion_data = data["promotion"]
+
+    assert not data["errors"]
+    assert promotion_data["name"] == new_promotion_name
+    assert promotion_data["description"] == promotion.description
+    assert promotion_data["startDate"] == promotion.start_date.isoformat()
+    assert promotion_data["endDate"] == promotion.end_date.isoformat()
+    assert promotion_data["createdAt"] == promotion.created_at.isoformat()
+    assert promotion_data["updatedAt"] == timezone.now().isoformat()
+
+    promotion.refresh_from_db()
+    assert promotion.last_notification_scheduled_at == previous_notification_date
+
+    promotion_updated_mock.assert_called_once_with(promotion)
+    promotion_toggle_mock.assert_not_called()
+    update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
+
+
+@freeze_time("2020-03-18 12:00:00")
+@patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
 @patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_customer(
-    promotion_updated_mock, promotion_toggle_mock, api_client, promotion
+    promotion_updated_mock,
+    promotion_toggle_mock,
+    update_products_discounted_prices_of_promotion_task_mock,
+    api_client,
+    promotion,
 ):
     # given
     start_date = timezone.now() + timedelta(days=1)
@@ -152,6 +218,7 @@ def test_promotion_update_by_customer(
 
     promotion_updated_mock.assert_not_called()
     promotion_toggle_mock.assert_not_called()
+    update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
