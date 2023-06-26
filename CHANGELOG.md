@@ -14,6 +14,8 @@ All notable, unreleased changes to this project will be documented in this file.
     - `ProductPricingInfo.priceRangeLocalCurrency`
     - `VariantPricingInfo.discountLocalCurrency`
     - `VariantPricingInfo.priceLocalCurrency`
+- Unify country fetching - #13159 by @jakubkuc
+    - Note: this change allows to add `shippingAddress` to checkout or order that has no shipping required
 
 ### GraphQL API
 
