@@ -17,7 +17,7 @@ from ....core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ....graphql.account.mutations.authentication import _get_new_csrf_token
+from ....graphql.account.mutations.authentication.utils import _get_new_csrf_token
 from ...base_plugin import ExternalAccessTokens
 from ...models import PluginConfiguration
 from ..utils import (
