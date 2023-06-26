@@ -337,7 +337,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
             # Save addresses
             shipping_address = cleaned_input.get("shipping_address")
-            if shipping_address and instance.is_shipping_required():
+            if shipping_address:
                 shipping_address.save()
                 instance.shipping_address = shipping_address.get_copy()
 
