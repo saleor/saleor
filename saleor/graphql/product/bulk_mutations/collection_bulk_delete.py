@@ -3,7 +3,7 @@ from django.db.models import Exists, OuterRef
 
 from ....permission.enums import ProductPermissions
 from ....product import models
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import CollectionError, NonNullList
 from ...plugins.dataloaders import get_plugin_manager_promise
@@ -43,6 +43,6 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         for product in products:
             manager.product_updated(product)
 
-        update_products_discounted_prices_task.delay(
+        update_products_discounted_prices_for_promotion_task.delay(
             [product.id for product in products]
         )

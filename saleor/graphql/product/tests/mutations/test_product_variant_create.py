@@ -76,13 +76,15 @@ CREATE_VARIANT_MUTATION = """
 """
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")
 @patch("saleor.plugins.manager.PluginsManager.product_variant_updated")
 def test_create_variant_with_name(
     updated_webhook_mock,
     created_webhook_mock,
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     product_type,
@@ -151,7 +153,9 @@ def test_create_variant_with_name(
 
     created_webhook_mock.assert_called_once_with(product.variants.last())
     updated_webhook_mock.assert_not_called()
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 @patch("saleor.plugins.manager.PluginsManager.product_variant_created")

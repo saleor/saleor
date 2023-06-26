@@ -9,11 +9,12 @@ from django.utils import timezone
 from ..attribute.models import Attribute
 from ..celeryconf import app
 from ..core.exceptions import PreorderAllocationError
-from ..discount.models import Sale
+from ..discount.models import Promotion, Sale
 from ..warehouse.management import deactivate_preorder_for_variant
 from .models import Product, ProductType, ProductVariant
 from .search import PRODUCTS_BATCH_SIZE, update_products_search_vector
 from .utils.variant_prices import (
+    update_discounted_prices_for_promotion,
     update_products_discounted_price,
     update_products_discounted_prices,
     update_products_discounted_prices_of_catalogues,
@@ -25,6 +26,8 @@ logger = logging.getLogger(__name__)
 task_logger = get_task_logger(__name__)
 
 VARIANTS_UPDATE_BATCH = 500
+# Results in update time ~2s for 500 promotions
+DISCOUNTED_PRODUCT_BATCH = 500
 
 
 def _variants_in_batches(variants_qs):
@@ -106,6 +109,32 @@ def update_products_discounted_prices_of_sale_task(discount_pk: int):
         logging.warning(f"Cannot find discount with id: {discount_pk}.")
         return
     update_products_discounted_prices_of_sale(discount)
+
+
+@app.task
+def update_products_discounted_prices_of_promotion_task(promotion_pk: int):
+    from ..graphql.discount.utils import get_products_for_promotion
+
+    try:
+        promotion = Promotion.objects.get(pk=promotion_pk)
+    except ObjectDoesNotExist:
+        logging.warning(f"Cannot find promotion with id: {promotion_pk}.")
+        return
+    products = get_products_for_promotion(promotion)
+    update_products_discounted_prices_for_promotion_task.delay(
+        list(products.values_list("id", flat=True))
+    )
+
+
+@app.task
+def update_products_discounted_prices_for_promotion_task(product_ids):
+    """Update the product discounted prices for given product ids."""
+    ids = sorted(product_ids)[:DISCOUNTED_PRODUCT_BATCH]
+    qs = Product.objects.filter(pk__in=ids)
+    if ids:
+        update_discounted_prices_for_promotion(qs)
+        remaining_ids = list(set(product_ids) - set(ids))
+        update_products_discounted_prices_for_promotion_task.delay(remaining_ids)
 
 
 @app.task

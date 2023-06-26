@@ -5326,7 +5326,11 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for percentage promotion rule."
                 ),
-                catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [graphene.Node.to_global_id("Product", product.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.PERCENTAGE,
                 reward_value=Decimal("10"),
             ),
@@ -5336,7 +5340,11 @@ def promotion(channel_USD, product, collection):
                 description=dummy_editorjs(
                     "Test description for fixes promotion rule."
                 ),
-                catalogue_predicate={"collectionPredicate": {"ids": [collection.id]}},
+                catalogue_predicate={
+                    "collectionPredicate": {
+                        "ids": [graphene.Node.to_global_id("Collection", collection.id)]
+                    }
+                },
                 reward_value_type=RewardValueType.FIXED,
                 reward_value=Decimal("5"),
             ),
