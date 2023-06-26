@@ -2,7 +2,7 @@ import graphene
 
 from .....permission.enums import ProductPermissions
 from .....product import models
-from .....product.tasks import update_products_discounted_prices_task
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelDeleteMutation
@@ -42,7 +42,7 @@ class CollectionDelete(ModelDeleteMutation):
             cls.call_event(manager.product_updated, product)
 
         if collection_on_sale:
-            update_products_discounted_prices_task.delay(
+            update_products_discounted_prices_for_promotion_task.delay(
                 [product.id for product in products]
             )
 

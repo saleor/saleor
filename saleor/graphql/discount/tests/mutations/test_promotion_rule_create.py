@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import ANY
+from unittest.mock import ANY, patch
 
 import graphene
 
@@ -33,7 +33,11 @@ PROMOTION_RULE_CREATE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_create_by_staff_user(
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
     description_json,
@@ -111,9 +115,16 @@ def test_promotion_rule_create_by_staff_user(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_create_by_app(
+    update_products_discounted_prices_for_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     description_json,
@@ -181,9 +192,16 @@ def test_promotion_rule_create_by_app(
     assert rule_data["rewardValue"] == reward_value
     assert rule_data["promotion"]["id"] == promotion_id
     assert promotion.rules.count() == rules_count + 1
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [category.products.first().id]
+    )
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_rule_create_by_customer(
+    update_products_discounted_prices_for_promotion_task_mock,
     api_client,
     permission_manage_discounts,
     description_json,
@@ -232,6 +250,7 @@ def test_promotion_rule_create_by_customer(
     # when
     response = api_client.post_graphql(PROMOTION_RULE_CREATE_MUTATION, variables)
     assert_no_permission(response)
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()
 
 
 def test_promotion_rule_create_missing_catalogue_predicate(

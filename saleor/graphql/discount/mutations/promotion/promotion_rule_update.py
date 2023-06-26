@@ -4,6 +4,7 @@ from django.db import transaction
 
 from .....discount import models
 from .....permission.enums import DiscountPermissions
+from .....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -13,6 +14,7 @@ from ....utils.validators import check_for_duplicates
 from ...enums import PromotionRuleUpdateErrorCode
 from ...inputs import PromotionRuleBaseInput
 from ...types import PromotionRule
+from ...utils import get_products_for_rule
 from ...validators import clean_predicate
 
 
@@ -56,8 +58,30 @@ class PromotionRuleUpdate(ModelMutation):
         doc_category = DOC_CATEGORY_DISCOUNTS
 
     @classmethod
+    def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
+        instance = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+
+        previous_products = get_products_for_rule(instance)
+        previous_product_ids = set(previous_products.values_list("id", flat=True))
+        cls.clean_instance(info, instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+
+        products = get_products_for_rule(instance)
+        product_ids = set(products.values_list("id", flat=True)) | previous_product_ids
+        if product_ids:
+            update_products_discounted_prices_for_promotion_task.delay(
+                list(product_ids)
+            )
+
+        return cls.success_response(instance)
+
+    @classmethod
     def clean_input(
-        cls, info: ResolveInfo, instance: models.PromotionRule, data: dict, **kwargs
+        cls, info: ResolveInfo, instance: models.PromotionRule, data, **kwargs
     ):
         error = check_for_duplicates(
             data, "add_channels", "remove_channels", error_class_field="channels"
