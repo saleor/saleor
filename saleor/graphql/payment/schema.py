@@ -20,12 +20,10 @@ from .mutations import (
     TransactionInitialize,
     TransactionProcess,
     TransactionRequestAction,
+    TransactionRequestRefundForGrantedRefund,
     TransactionUpdate,
 )
 from .resolvers import resolve_payment_by_id, resolve_payments, resolve_transaction
-from .transaction_request_refund_for_granted_refund import (
-    TransactionRequestRefundForGrantedRefund,
-)
 from .types import Payment, PaymentCountableConnection, TransactionItem
 
 

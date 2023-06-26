@@ -115,10 +115,10 @@ from ..plugins.dataloaders import (
     plugin_manager_promise_callback,
 )
 from ..product.dataloaders import (
+    ImagesByProductIdLoader,
     MediaByProductVariantIdLoader,
     ProductByVariantIdLoader,
     ProductChannelListingByProductIdAndChannelSlugLoader,
-    ProductImageByProductIdLoader,
     ProductVariantByIdLoader,
     ThumbnailByProductMediaIdSizeAndFormatLoader,
 )
@@ -822,7 +822,7 @@ class OrderLine(ModelObjectType[models.OrderLine]):
 
             # we failed to get image from variant, lets use first from product
             return (
-                ProductImageByProductIdLoader(info.context)
+                ImagesByProductIdLoader(info.context)
                 .load(product.id)
                 .then(_get_first_product_image)
             )
@@ -1007,7 +1007,10 @@ class Order(ModelObjectType[models.Order]):
             f"{AuthorizationFilters.OWNER.name}."
         ),
     )
-    tracking_client_id = graphene.String(required=True)
+    tracking_client_id = graphene.String(
+        required=True,
+        description="Google Analytics tracking client ID. " + DEPRECATED_IN_3X_FIELD,
+    )
     billing_address = graphene.Field(
         "saleor.graphql.account.types.Address",
         description=(

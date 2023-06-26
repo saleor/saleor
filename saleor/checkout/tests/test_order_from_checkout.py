@@ -43,7 +43,6 @@ def test_create_order_insufficient_stock(
             manager=manager,
             user=None,
             app=app,
-            tracking_code="tracking_code",
         )
 
 
@@ -87,7 +86,6 @@ def test_create_order_with_gift_card(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     assert order.gift_cards.count() == 1
@@ -134,7 +132,6 @@ def test_create_order_with_gift_card_partial_use(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     gift_card_used.refresh_from_db()
@@ -195,7 +192,6 @@ def test_create_order_with_many_gift_cards(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     gift_card_created_by_staff.refresh_from_db()
@@ -268,7 +264,6 @@ def test_create_order_gift_card_bought(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -343,7 +338,6 @@ def test_create_order_gift_card_bought_only_shippable_gift_card(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     assert order.total.gross == total_gross
@@ -398,7 +392,6 @@ def test_create_order_gift_card_bought_do_not_fulfill_gift_cards_automatically(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     assert order.total.gross == total_gross
@@ -425,7 +418,6 @@ def test_note_in_created_order(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
     assert order.customer_note == checkout_with_item.note
 
@@ -469,7 +461,6 @@ def test_create_order_use_translations(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
     order_line = order.lines.first()
 
@@ -503,7 +494,6 @@ def test_create_order_from_checkout_updates_total_authorized_amount(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -540,7 +530,6 @@ def test_create_order_from_checkout_updates_total_charged_amount(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -569,7 +558,6 @@ def test_create_order_from_checkout_update_display_gross_prices(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -608,7 +596,6 @@ def test_create_order_from_checkout_store_shipping_prices(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -654,7 +641,6 @@ def test_create_order_from_store_shipping_prices_with_free_shipping_voucher(
         manager=manager,
         user=None,
         app=app,
-        tracking_code="tracking_code",
     )
 
     # then
@@ -698,7 +684,6 @@ def test_note_in_created_order_checkout_line_deleted_in_the_meantime(
             manager=manager,
             user=None,
             app=app,
-            tracking_code="tracking_code",
         )
 
     # then
@@ -734,7 +719,6 @@ def test_note_in_created_order_checkout_deleted_in_the_meantime(
             manager=manager,
             user=None,
             app=app,
-            tracking_code="tracking_code",
         )
 
     # then

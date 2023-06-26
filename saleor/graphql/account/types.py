@@ -77,25 +77,47 @@ class AddressInput(BaseInputObjectType):
     postal_code = graphene.String(description="Postal code.")
     country = CountryCodeEnum(description="Country.")
     country_area = graphene.String(description="State or province.")
-    phone = graphene.String(description="Phone number.")
+    phone = graphene.String(
+        description=(
+            "Phone number.\n\n"
+            "Phone numbers are validated with Google's "
+            "[libphonenumber](https://github.com/google/libphonenumber) library."
+        )
+    )
 
 
 @federated_entity("id")
 class Address(ModelObjectType[models.Address]):
-    id = graphene.GlobalID(required=True)
-    first_name = graphene.String(required=True)
-    last_name = graphene.String(required=True)
-    company_name = graphene.String(required=True)
-    street_address_1 = graphene.String(required=True)
-    street_address_2 = graphene.String(required=True)
-    city = graphene.String(required=True)
-    city_area = graphene.String(required=True)
-    postal_code = graphene.String(required=True)
-    country = graphene.Field(
-        CountryDisplay, required=True, description="Shop's default country."
+    id = graphene.GlobalID(required=True, description="The ID of the address.")
+    first_name = graphene.String(
+        required=True, description="The given name of the address."
     )
-    country_area = graphene.String(required=True)
-    phone = graphene.String()
+    last_name = graphene.String(
+        required=True, description="The family name of the address."
+    )
+    company_name = graphene.String(
+        required=True, description="Company or organization name."
+    )
+    street_address_1 = graphene.String(
+        required=True, description="The first line of the address."
+    )
+    street_address_2 = graphene.String(
+        required=True, description="The second line of the address."
+    )
+    city = graphene.String(required=True, description="The city of the address.")
+    city_area = graphene.String(
+        required=True, description="The district of the address."
+    )
+    postal_code = graphene.String(
+        required=True, description="The postal code of the address."
+    )
+    country = graphene.Field(
+        CountryDisplay, required=True, description="The country of the address."
+    )
+    country_area = graphene.String(
+        required=True, description="The country area of the address."
+    )
+    phone = graphene.String(description="The phone number assigned the address.")
     is_default_shipping_address = graphene.Boolean(
         required=False, description="Address is user's default shipping address."
     )
@@ -171,7 +193,7 @@ class Address(ModelObjectType[models.Address]):
 
 
 class CustomerEvent(ModelObjectType[models.CustomerEvent]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the customer event.")
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
@@ -265,12 +287,20 @@ class UserPermission(Permission):
 @federated_entity("id")
 @federated_entity("email")
 class User(ModelObjectType[models.User]):
-    id = graphene.GlobalID(required=True)
-    email = graphene.String(required=True)
-    first_name = graphene.String(required=True)
-    last_name = graphene.String(required=True)
-    is_staff = graphene.Boolean(required=True)
-    is_active = graphene.Boolean(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the user.")
+    email = graphene.String(required=True, description="The email address of the user.")
+    first_name = graphene.String(
+        required=True, description="The given name of the address."
+    )
+    last_name = graphene.String(
+        required=True, description="The family name of the address."
+    )
+    is_staff = graphene.Boolean(
+        required=True, description="Determine if the user is a staff admin."
+    )
+    is_active = graphene.Boolean(
+        required=True, description="Determine if the user is active."
+    )
     addresses = NonNullList(
         Address, description="List of all user's addresses.", required=True
     )
@@ -349,7 +379,7 @@ class User(ModelObjectType[models.User]):
         + ADDED_IN_314
         + PREVIEW_FEATURE,
     )
-    avatar = ThumbnailField()
+    avatar = ThumbnailField(description="The avatar of the user.")
     events = PermissionsField(
         NonNullList(CustomerEvent),
         description="List of events associated with the user.",
@@ -365,15 +395,26 @@ class User(ModelObjectType[models.User]):
     language_code = graphene.Field(
         LanguageCodeEnum, description="User language code.", required=True
     )
-    default_shipping_address = graphene.Field(Address)
-    default_billing_address = graphene.Field(Address)
+    default_shipping_address = graphene.Field(
+        Address, description="The default shipping address of the user."
+    )
+    default_billing_address = graphene.Field(
+        Address, description="The default billing address of the user."
+    )
     external_reference = graphene.String(
         description=f"External ID of this user. {ADDED_IN_310}", required=False
     )
 
-    last_login = graphene.DateTime()
-    date_joined = graphene.DateTime(required=True)
-    updated_at = graphene.DateTime(required=True)
+    last_login = graphene.DateTime(
+        description="The date when the user last time log in to the system."
+    )
+    date_joined = graphene.DateTime(
+        required=True, description="The data when the user create account."
+    )
+    updated_at = graphene.DateTime(
+        required=True,
+        description="The data when the user last update the account information.",
+    )
 
     class Meta:
         description = "Represents user data."
@@ -621,28 +662,119 @@ class UserCountableConnection(CountableConnection):
 
 
 class ChoiceValue(graphene.ObjectType):
-    raw = graphene.String()
-    verbose = graphene.String()
+    raw = graphene.String(description="The raw name of the choice.")
+    verbose = graphene.String(description="The verbose name of the choice.")
+
+
+FORMAT_FILED_DESCRIPTION = (
+    "\n\nMany fields in the JSON refer to address fields by one-letter "
+    "abbreviations. These are defined as follows:\n\n"
+    "- `N`: Name\n"
+    "- `O`: Organisation\n"
+    "- `A`: Street Address Line(s)\n"
+    "- `D`: Dependent locality (may be an inner-city district or a suburb)\n"
+    "- `C`: City or Locality\n"
+    "- `S`: Administrative area such as a state, province, island etc\n"
+    "- `Z`: Zip or postal code\n"
+    "- `X`: Sorting code\n\n"
+    "[Click here for more information.](https://github.com/google/libaddressinput/wiki/AddressValidationMetadata)"
+)
 
 
 class AddressValidationData(BaseObjectType):
-    country_code = graphene.String(required=True)
-    country_name = graphene.String(required=True)
-    address_format = graphene.String(required=True)
-    address_latin_format = graphene.String(required=True)
-    allowed_fields = NonNullList(graphene.String, required=True)
-    required_fields = NonNullList(graphene.String, required=True)
-    upper_fields = NonNullList(graphene.String, required=True)
-    country_area_type = graphene.String(required=True)
-    country_area_choices = NonNullList(ChoiceValue, required=True)
-    city_type = graphene.String(required=True)
-    city_choices = NonNullList(ChoiceValue, required=True)
-    city_area_type = graphene.String(required=True)
-    city_area_choices = NonNullList(ChoiceValue, required=True)
-    postal_code_type = graphene.String(required=True)
-    postal_code_matchers = NonNullList(graphene.String, required=True)
-    postal_code_examples = NonNullList(graphene.String, required=True)
-    postal_code_prefix = graphene.String(required=True)
+    country_code = graphene.String(
+        required=True, description="The country code of the address validation rule."
+    )
+    country_name = graphene.String(
+        required=True, description="The country name of the address validation rule."
+    )
+    address_format = graphene.String(
+        required=True,
+        description=(
+            "The address format of the address validation rule."
+            + FORMAT_FILED_DESCRIPTION
+        ),
+    )
+    address_latin_format = graphene.String(
+        required=True,
+        description=(
+            "The latin address format of the address validation rule."
+            + FORMAT_FILED_DESCRIPTION
+        ),
+    )
+    allowed_fields = NonNullList(
+        graphene.String,
+        required=True,
+        description="The allowed fields to use in address.",
+    )
+    required_fields = NonNullList(
+        graphene.String,
+        required=True,
+        description="The required fields to create a valid address.",
+    )
+    upper_fields = NonNullList(
+        graphene.String,
+        required=True,
+        description=(
+            "The list of fields that should be in upper case for address "
+            "validation rule."
+        ),
+    )
+    country_area_type = graphene.String(
+        required=True,
+        description=(
+            "The formal name of the county area of the address validation rule."
+        ),
+    )
+    country_area_choices = NonNullList(
+        ChoiceValue,
+        required=True,
+        description=(
+            "The available choices for the country area of the address validation rule."
+        ),
+    )
+    city_type = graphene.String(
+        required=True,
+        description="The formal name of the city of the address validation rule.",
+    )
+    city_choices = NonNullList(
+        ChoiceValue,
+        required=True,
+        description=(
+            "The available choices for the city of the address validation rule."
+        ),
+    )
+    city_area_type = graphene.String(
+        required=True,
+        description="The formal name of the city area of the address validation rule.",
+    )
+    city_area_choices = NonNullList(
+        ChoiceValue,
+        required=True,
+        description=(
+            "The available choices for the city area of the address validation rule."
+        ),
+    )
+    postal_code_type = graphene.String(
+        required=True,
+        description=(
+            "The formal name of the postal code of the address validation rule."
+        ),
+    )
+    postal_code_matchers = NonNullList(
+        graphene.String,
+        required=True,
+        description=("The regular expression for postal code validation."),
+    )
+    postal_code_examples = NonNullList(
+        graphene.String,
+        required=True,
+        description="The example postal code of the address validation rule.",
+    )
+    postal_code_prefix = graphene.String(
+        required=True,
+        description="The postal code prefix of the address validation rule.",
+    )
 
     class Meta:
         description = "Represents address validation rules for a country."
@@ -650,7 +782,9 @@ class AddressValidationData(BaseObjectType):
 
 
 class StaffNotificationRecipient(graphene.ObjectType):
-    id = graphene.ID(required=True)
+    id = graphene.ID(
+        required=True, description="The ID of the staff notification recipient."
+    )
     user = graphene.Field(
         User,
         description="Returns a user subscribed to email notifications.",
@@ -697,8 +831,8 @@ class StaffNotificationRecipient(graphene.ObjectType):
 
 @federated_entity("id")
 class Group(ModelObjectType[models.Group]):
-    id = graphene.GlobalID(required=True)
-    name = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the group.")
+    name = graphene.String(required=True, description="The name of the group.")
     users = PermissionsField(
         NonNullList(User),
         description="List of group users",

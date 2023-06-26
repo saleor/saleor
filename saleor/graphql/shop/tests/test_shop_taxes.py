@@ -71,6 +71,7 @@ def vatlayer(db, tax_rates, taxes):
 
 
 def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
+    # given
     query = """
     query {
         shop {
@@ -87,7 +88,11 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
         }
     }
     """
+
+    # when
     response = user_api_client.post_graphql(query)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]["countries"]
     vat = VAT.objects.first()
@@ -109,6 +114,7 @@ def test_query_countries_with_tax(user_api_client, vatlayer, tax_rates):
 
 
 def test_query_default_country_with_tax(user_api_client, settings, vatlayer, tax_rates):
+    # given
     settings.DEFAULT_COUNTRY = "PL"
     query = """
     query {
@@ -122,7 +128,11 @@ def test_query_default_country_with_tax(user_api_client, settings, vatlayer, tax
         }
     }
     """
+
+    # when
     response = user_api_client.post_graphql(query)
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["shop"]["defaultCountry"]
     assert data["code"] == settings.DEFAULT_COUNTRY
