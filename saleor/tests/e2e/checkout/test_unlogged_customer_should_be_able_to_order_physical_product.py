@@ -4,6 +4,7 @@ from ..product.utils import (
     create_product,
     create_product_channel_listing,
     create_product_type,
+    create_product_variant,
 )
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
@@ -54,7 +55,20 @@ def test_process_checkout_with_physical_product(
 
     create_product_channel_listing(e2e_staff_api_client, product_id, channel_id)
 
+    stocks = [
+        {
+            "warehouse": warehouse_id,
+            "quantity": 5,
+        }
+    ]
+    product_variant_data = create_product_variant(
+        e2e_staff_api_client,
+        product_id,
+        stocks=stocks,
+    )
+    product_variant_id = product_variant_data["id"]
     # when
 
     # then
     assert channel_slug
+    assert product_variant_id
