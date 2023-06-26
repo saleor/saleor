@@ -100,6 +100,7 @@ def users_for_order_benchmarks(address):
 @pytest.fixture
 def orders_for_benchmarks(
     channel_USD,
+    channel_PLN,
     address,
     payment_dummy,
     users_for_order_benchmarks,
@@ -109,7 +110,7 @@ def orders_for_benchmarks(
 ):
     orders = [
         Order(
-            channel=channel_USD,
+            channel=channel_USD if i % 2 else channel_PLN,
             billing_address=address.get_copy(),
             shipping_address=address.get_copy(),
             shipping_method=shipping_method,
