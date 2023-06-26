@@ -41,6 +41,7 @@ from ..core.types import ModelObjectType, Money, NonNullList, TaxedMoney
 from ..core.utils import str_to_enum
 from ..decorators import one_of_permissions_required
 from ..discount.dataloaders import DiscountsByDateTimeLoader
+from ..giftcard.dataloaders import GirtCardsByCheckoutIdLoader
 from ..giftcard.types import GiftCard
 from ..meta import resolvers as MetaResolvers
 from ..meta.types import ObjectWithMetadata, _filter_metadata
@@ -676,8 +677,8 @@ class Checkout(ModelObjectType[models.Checkout]):
         )
 
     @staticmethod
-    def resolve_gift_cards(root: models.Checkout, _info):
-        return root.gift_cards.all()
+    def resolve_gift_cards(root: models.Checkout, info):
+        return GirtCardsByCheckoutIdLoader(info.context).load(root.pk)
 
     @staticmethod
     def resolve_is_shipping_required(root: models.Checkout, info: ResolveInfo):
