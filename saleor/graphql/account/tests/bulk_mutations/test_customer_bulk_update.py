@@ -8,7 +8,7 @@ from .....account.events import CustomerEvents
 from .....account.search import generate_address_search_document_value
 from ....core.enums import ErrorPolicyEnum
 from ....tests.utils import get_graphql_content
-from ...tests.utils import convert_dict_keys_to_camel_case
+from ..utils import convert_dict_keys_to_camel_case
 
 CUSTOMER_BULK_UPDATE_MUTATION = """
     mutation CustomerBulkUpdate(
