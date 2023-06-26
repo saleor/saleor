@@ -34,6 +34,7 @@ INVOICE_UPDATE_MUTATION = """
 
 
 def test_invoice_update(staff_api_client, permission_group_manage_orders, order):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     test_key = "test_key"
     metadata = {test_key: "test_val"}
@@ -48,7 +49,11 @@ def test_invoice_update(staff_api_client, permission_group_manage_orders, order)
             "url": url,
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert invoice.status == JobStatus.SUCCESS
@@ -132,6 +137,7 @@ def test_invoice_update_by_app(app_api_client, permission_manage_orders, order):
 def test_invoice_update_single_value(
     staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     number = "01/12/2020/TEST"
     invoice = Invoice.objects.create(order=order, number=number)
@@ -142,7 +148,11 @@ def test_invoice_update_single_value(
             "url": url,
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert invoice.status == JobStatus.SUCCESS
@@ -153,6 +163,7 @@ def test_invoice_update_single_value(
 def test_invoice_update_missing_number(
     staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     invoice = Invoice.objects.create(order=order)
     url = "http://www.example.com"
@@ -160,7 +171,11 @@ def test_invoice_update_missing_number(
         "id": graphene.Node.to_global_id("Invoice", invoice.pk),
         "input": {"url": url},
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     error = content["data"]["invoiceUpdate"]["errors"][0]
@@ -171,9 +186,14 @@ def test_invoice_update_missing_number(
 
 
 def test_invoice_update_invalid_id(staff_api_client, permission_group_manage_orders):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {"id": "SW52b2ljZToxMzM3", "input": {"number": "01/12/2020/TEST"}}
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_UPDATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     error = content["data"]["invoiceUpdate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name

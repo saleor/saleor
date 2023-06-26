@@ -166,6 +166,7 @@ def test_create_invoice_by_app(app_api_client, permission_manage_orders, order):
 def test_create_invoice_no_billing_address(
     staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order.billing_address = None
     order.save()
@@ -178,7 +179,11 @@ def test_create_invoice_no_billing_address(
             "url": url,
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_CREATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
     error = content["data"]["invoiceCreate"]["errors"][0]
@@ -193,6 +198,7 @@ def test_create_invoice_no_billing_address(
 def test_create_invoice_invalid_order_status(
     status, staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     order.status = status
     order.save()
@@ -205,7 +211,11 @@ def test_create_invoice_invalid_order_status(
             "url": url,
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_CREATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     assert not Invoice.objects.filter(order_id=order.pk, number=number).exists()
     error = content["data"]["invoiceCreate"]["errors"][0]
@@ -215,6 +225,7 @@ def test_create_invoice_invalid_order_status(
 
 
 def test_create_invoice_invalid_id(staff_api_client, permission_group_manage_orders):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "orderId": graphene.Node.to_global_id("Order", uuid.uuid4()),
@@ -223,7 +234,11 @@ def test_create_invoice_invalid_id(staff_api_client, permission_group_manage_ord
             "url": "http://www.example.com",
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_CREATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     error = content["data"]["invoiceCreate"]["errors"][0]
     assert error["code"] == InvoiceErrorCode.NOT_FOUND.name
@@ -233,6 +248,7 @@ def test_create_invoice_invalid_id(staff_api_client, permission_group_manage_ord
 def test_create_invoice_empty_params(
     staff_api_client, permission_group_manage_orders, order
 ):
+    # given
     permission_group_manage_orders.user_set.add(staff_api_client.user)
     variables = {
         "orderId": graphene.Node.to_global_id("Order", order.pk),
@@ -241,7 +257,11 @@ def test_create_invoice_empty_params(
             "url": "",
         },
     }
+
+    # when
     response = staff_api_client.post_graphql(INVOICE_CREATE_MUTATION, variables)
+
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["invoiceCreate"]["errors"]
     assert errors[0] == {
