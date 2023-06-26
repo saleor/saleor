@@ -12,6 +12,7 @@ from .....channel import models as channel_models
 from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
+from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from ....channel.types import Channel
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
@@ -186,6 +187,7 @@ class PromotionCreate(ModelMutation):
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
             cls.send_promotion_webhooks(manager, instance)
+            update_products_discounted_prices_of_promotion_task.delay(instance.pk)
         return cls.success_response(instance)
 
     @classmethod
