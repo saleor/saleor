@@ -1,4 +1,5 @@
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from django.utils import timezone
 
 from ..celeryconf import app
@@ -22,7 +23,10 @@ def deactivate_expired_cards_task():
     task_logger.debug("Deactivate %s gift cards", count)
 
 
-@app.task
+@app.task(
+    queue=settings.UPDATE_SEARCH_VECTOR_INDEX_QUEUE_NAME,
+    expires=settings.BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC,
+)
 def update_gift_cards_search_vector_task():
     gift_cards = GiftCard.objects.filter(search_index_dirty=True)
     if not gift_cards:
