@@ -78,7 +78,16 @@ class ShopSettingsInput(graphene.InputObjectType):
     enable_account_confirmation_by_email = graphene.Boolean(
         description="Enable automatic account confirmation by email." + ADDED_IN_314
     )
-
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Shop public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description=("Shop private metadata." + ADDED_IN_315),
+        required=False,
+    )
     # deprecated
     include_taxes_in_prices = graphene.Boolean(
         description=(
@@ -100,16 +109,6 @@ class ShopSettingsInput(graphene.InputObjectType):
             "a shipping method, assign a tax class to the shipping method with "
             "`shippingPriceCreate` or `shippingPriceUpdate` mutations."
         ),
-    )
-    metadata = common_types.NonNullList(
-        MetadataInput,
-        description="Shop public metadata." + ADDED_IN_315,
-        required=False,
-    )
-    private_metadata = common_types.NonNullList(
-        MetadataInput,
-        description=("Shop private metadata." + ADDED_IN_315),
-        required=False,
     )
 
 

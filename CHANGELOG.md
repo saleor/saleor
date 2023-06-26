@@ -19,6 +19,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Added metadata to Shop object #13128 by @Smit-Parmar
 
 ### Saleor Apps
 

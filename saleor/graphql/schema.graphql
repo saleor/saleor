@@ -18589,6 +18589,20 @@ input ShopSettingsInput {
   enableAccountConfirmationByEmail: Boolean
 
   """
+  Shop public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Shop private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
+  """
   Include taxes in prices. 
   
   DEPRECATED: this field will be removed in Saleor 4.0. Use `taxConfigurationUpdate` mutation to configure this setting per channel or country.
@@ -18608,20 +18622,6 @@ input ShopSettingsInput {
   DEPRECATED: this field will be removed in Saleor 4.0. To enable taxes for a shipping method, assign a tax class to the shipping method with `shippingPriceCreate` or `shippingPriceUpdate` mutations.
   """
   chargeTaxesOnShipping: Boolean
-
-  """
-  Shop public metadata.
-  
-  Added in Saleor 3.15.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Shop private metadata.
-  
-  Added in Saleor 3.15.
-  """
-  privateMetadata: [MetadataInput!]
 }
 
 input MetadataInput {
