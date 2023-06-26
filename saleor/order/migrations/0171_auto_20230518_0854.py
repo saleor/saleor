@@ -49,6 +49,10 @@ class Migration(migrations.Migration):
                         to="order.orderline",
                     ),
                 ),
+                (
+                    "reason",
+                    models.TextField(blank=True, null=True, default=""),
+                ),
             ],
         ),
     ]

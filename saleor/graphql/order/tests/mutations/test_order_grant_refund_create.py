@@ -480,7 +480,6 @@ def test_grant_refund_with_incorrect_line_id(
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    print(line)
     assert line["lineId"] == graphene.Node.to_global_id("OrderLine", 1)
     assert line["field"] == "id"
     assert line["code"] == OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.name
