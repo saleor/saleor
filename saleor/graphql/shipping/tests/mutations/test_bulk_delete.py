@@ -41,17 +41,22 @@ def shipping_zone_list():
 def test_delete_shipping_methods(
     staff_api_client, shipping_method_list, permission_manage_shipping
 ):
+    # given
     variables = {
         "ids": [
             graphene.Node.to_global_id("ShippingMethodType", method.id)
             for method in shipping_method_list
         ]
     }
+
+    # when
     response = staff_api_client.post_graphql(
         BULK_DELETE_SHIPPING_PRICE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["shippingPriceBulkDelete"]["count"] == 3
@@ -107,6 +112,7 @@ BULK_DELETE_SHIPPING_ZONE_MUTATION = """
 def test_delete_shipping_zones(
     staff_api_client, shipping_zone_list, permission_manage_shipping
 ):
+    # given
     variables = {
         "ids": [
             graphene.Node.to_global_id("ShippingZone", zone.id)
@@ -114,11 +120,14 @@ def test_delete_shipping_zones(
         ]
     }
 
+    # when
     response = staff_api_client.post_graphql(
         BULK_DELETE_SHIPPING_ZONE_MUTATION,
         variables,
         permissions=[permission_manage_shipping],
     )
+
+    # then
     content = get_graphql_content(response)
 
     assert content["data"]["shippingZoneBulkDelete"]["count"] == 3

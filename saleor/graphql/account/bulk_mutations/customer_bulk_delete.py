@@ -2,13 +2,15 @@ import graphene
 
 from ....account import models
 from ....permission.enums import AccountPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import AccountError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..mutations.base import CustomerDeleteMixin
 from ..types import User
-from ..utils import CustomerDeleteMixin
 
 
 class UserBulkDelete(ModelBulkDeleteMutation):
@@ -30,6 +32,12 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_DELETED,
+                description="A customer account was deleted.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):

@@ -2787,6 +2787,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
 """Represents app data."""
 type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
+  """The ID of the app."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3036,6 +3037,7 @@ enum AppTypeEnum @doc(category: "Apps") {
 
 """Represents token data."""
 type AppToken implements Node @doc(category: "Apps") {
+  """The ID of the app token."""
   id: ID!
 
   """Name of the authenticated token."""
@@ -3047,6 +3049,7 @@ type AppToken implements Node @doc(category: "Apps") {
 
 """Represents app data."""
 type AppExtension implements Node @doc(category: "Apps") {
+  """The ID of the app extension."""
   id: ID!
 
   """List of the app extension's permissions."""
@@ -3063,9 +3066,11 @@ type AppExtension implements Node @doc(category: "Apps") {
 
   """Type of way how app extension will be opened."""
   target: AppExtensionTargetEnum!
+
+  """The app assigned to app extension."""
   app: App!
 
-  """JWT token used to authenticate by thridparty app extension."""
+  """JWT token used to authenticate by third-party app extension."""
   accessToken: String
 }
 
@@ -3533,6 +3538,7 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
 
 """Represents user address data."""
 type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the address."""
   id: ID!
 
   """
@@ -3592,18 +3598,38 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The given name of the address."""
   firstName: String!
+
+  """The family name of the address."""
   lastName: String!
+
+  """Company or organization name."""
   companyName: String!
+
+  """The first line of the address."""
   streetAddress1: String!
+
+  """The second line of the address."""
   streetAddress2: String!
+
+  """The city of the address."""
   city: String!
+
+  """The district of the address."""
   cityArea: String!
+
+  """The postal code of the address."""
   postalCode: String!
 
-  """Shop's default country."""
+  """The country of the address."""
   country: CountryDisplay!
+
+  """The country area of the address."""
   countryArea: String!
+
+  """The phone number assigned the address."""
   phone: String
 
   """Address is user's default shipping address."""
@@ -3621,7 +3647,7 @@ type CountryDisplay {
   country: String!
 
   """Country tax."""
-  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Use `TaxClassCountryRate` type to manage tax rates per country.")
+  vat: VAT @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`. Use `TaxClassCountryRate` type to manage tax rates per country.")
 }
 
 """Represents a VAT rate for a country."""
@@ -4718,6 +4744,7 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
 
 """Represents channel."""
 type Channel implements Node @doc(category: "Channels") {
+  """The ID of the channel."""
   id: ID!
 
   """Slug of the channel."""
@@ -5771,6 +5798,7 @@ type TaxClassCountryRate @doc(category: "Taxes") {
 Custom attribute of a product. Attributes can be assigned to products and variants at the product type level.
 """
 type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes") {
+  """The ID of the attribute."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5900,6 +5928,10 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
 
   """Flag indicating that attribute has predefined choices."""
   withChoices: Boolean!
+
+  """
+  A list of product types that use this attribute as a product attribute.
+  """
   productTypes(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -5917,6 +5949,10 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
     """
     last: Int
   ): ProductTypeCountableConnection!
+
+  """
+  A list of product types that use this attribute as a product variant attribute.
+  """
   productVariantTypes(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -6028,6 +6064,7 @@ type AttributeValueCountableEdge @doc(category: "Attributes") {
 
 """Represents a value of an attribute."""
 type AttributeValue implements Node @doc(category: "Attributes") {
+  """The ID of the attribute value."""
   id: ID!
 
   """Name of a value displayed in the interface."""
@@ -7098,7 +7135,7 @@ type VariantPricingInfo @doc(category: "Products") {
   discount: TaxedMoney
 
   """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 
   """The price, with any discount subtracted."""
   price: TaxedMoney
@@ -7107,7 +7144,7 @@ type VariantPricingInfo @doc(category: "Products") {
   priceUndiscounted: TaxedMoney
 
   """The discounted price in the local currency."""
-  priceLocalCurrency: TaxedMoney
+  priceLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 }
 
 """
@@ -7158,7 +7195,11 @@ input AddressInput {
   """State or province."""
   countryArea: String
 
-  """Phone number."""
+  """
+  Phone number.
+  
+  Phone numbers are validated with Google's [libphonenumber](https://github.com/google/libphonenumber) library.
+  """
   phone: String
 }
 
@@ -7437,7 +7478,14 @@ type ProductPricingInfo @doc(category: "Products") {
   discount: TaxedMoney
 
   """The discount amount in the local currency."""
-  discountLocalCurrency: TaxedMoney
+  discountLocalCurrency: TaxedMoney @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
+
+  """
+  Determines whether this product's price displayed in a storefront should include taxes.
+  
+  Added in Saleor 3.9.
+  """
+  displayGrossPrices: Boolean!
 
   """The discounted price range of the product variants."""
   priceRange: TaxedMoneyRange
@@ -7448,14 +7496,7 @@ type ProductPricingInfo @doc(category: "Products") {
   """
   The discounted price range of the product variants in the local currency.
   """
-  priceRangeLocalCurrency: TaxedMoneyRange
-
-  """
-  Determines whether this product's price displayed in a storefront should include taxes.
-  
-  Added in Saleor 3.9.
-  """
-  displayGrossPrices: Boolean!
+  priceRangeLocalCurrency: TaxedMoneyRange @deprecated(reason: "This field will be removed in Saleor 4.0. Always returns `null`.")
 }
 
 """Represents a range of monetary values."""
@@ -9341,6 +9382,7 @@ type ShopTranslation implements Node @doc(category: "Shop") {
 Represents a recipient of email notifications send by Saleor, such as notifications about new orders. Notifications can be assigned to staff users or arbitrary email addresses.
 """
 type StaffNotificationRecipient implements Node {
+  """The ID of the staff notification recipient."""
   id: ID!
 
   """Returns a user subscribed to email notifications."""
@@ -9355,6 +9397,7 @@ type StaffNotificationRecipient implements Node {
 
 """Represents user data."""
 type User implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the user."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9402,10 +9445,20 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The email address of the user."""
   email: String!
+
+  """The given name of the address."""
   firstName: String!
+
+  """The family name of the address."""
   lastName: String!
+
+  """Determine if the user is a staff admin."""
   isStaff: Boolean!
+
+  """Determine if the user is active."""
   isActive: Boolean!
 
   """List of all user's addresses."""
@@ -9525,6 +9578,8 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean!
+
+  """The avatar of the user."""
   avatar(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -9554,7 +9609,11 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
 
   """User language code."""
   languageCode: LanguageCodeEnum!
+
+  """The default shipping address of the user."""
   defaultShippingAddress: Address
+
+  """The default billing address of the user."""
   defaultBillingAddress: Address
 
   """
@@ -9563,13 +9622,20 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """The date when the user last time log in to the system."""
   lastLogin: DateTime
+
+  """The data when the user create account."""
   dateJoined: DateTime!
+
+  """The data when the user last update the account information."""
   updatedAt: DateTime!
 }
 
 """Checkout object."""
 type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
+  """The ID of the checkout."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -9617,6 +9683,8 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The date and time when the checkout was created."""
   created: DateTime!
 
   """
@@ -9626,14 +9694,36 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   updatedAt: DateTime!
   lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
+
+  """The user assigned to the checkout."""
   user: User
+
+  """The channel for which checkout was created."""
   channel: Channel!
+
+  """The billing address of the checkout."""
   billingAddress: Address
+
+  """The shipping address of the checkout."""
   shippingAddress: Address
+
+  """The note for the checkout."""
   note: String!
+
+  """
+  The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
+  """
   discount: Money
+
+  """The name of voucher assigned to the checkout."""
   discountName: String
+
+  """
+  Translation of the discountName field in the language set in Checkout.languageCode field.Note: this field is set automatically when Checkout.languageCode is defined; otherwise it's null
+  """
   translatedDiscountName: String
+
+  """The code of voucher assigned to the checkout."""
   voucherCode: String
 
   """
@@ -10055,6 +10145,7 @@ type GiftCardTag implements Node @doc(category: "Gift cards") {
 
 """Represents an item in the checkout."""
 type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout") {
+  """The ID of the checkout line."""
   id: ID!
 
   """
@@ -10114,7 +10205,11 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The product variant from which the checkout line was created."""
   variant: ProductVariant!
+
+  """The quantity of product variant assigned to the checkout line."""
   quantity: Int!
 
   """
@@ -10390,6 +10485,10 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   User who placed the order. This field is set only for orders placed by authenticated users. Can be fetched for orders created in Saleor 3.2 and later, for other orders requires one of the following permissions: MANAGE_USERS, MANAGE_ORDERS, OWNER.
   """
   user: User
+
+  """
+  Google Analytics tracking client ID. This field will be removed in Saleor 4.0.
+  """
   trackingClientId: String!
 
   """
@@ -11891,7 +11990,10 @@ type UserPermission @doc(category: "Users") {
 
 """Represents permission group data."""
 type Group implements Node @doc(category: "Users") {
+  """The ID of the group."""
   id: ID!
+
+  """The name of the group."""
   name: String!
 
   """
@@ -11930,6 +12032,7 @@ type Group implements Node @doc(category: "Users") {
 
 """History log of the customer."""
 type CustomerEvent implements Node @doc(category: "Users") {
+  """The ID of the customer event."""
   id: ID!
 
   """Date when event happened at in ISO 8601 format."""
@@ -12606,6 +12709,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   currentBalance: PriceRangeInput
   initialBalance: PriceRangeInput
   code: String
+  createdByEmail: String
 }
 
 type GiftCardTagCountableConnection @doc(category: "Gift cards") {
@@ -12889,6 +12993,7 @@ enum VoucherSortField {
 
 """Represents a job data of exported file."""
 type ExportFile implements Node & Job {
+  """The ID of the export file."""
   id: ID!
 
   """Job status."""
@@ -12908,7 +13013,11 @@ type ExportFile implements Node & Job {
 
   """List of events associated with the export."""
   events: [ExportEvent!]
+
+  """The user who requests file export."""
   user: User
+
+  """The app which requests file export."""
   app: App
 }
 
@@ -13075,6 +13184,7 @@ enum AttributeSortField @doc(category: "Attributes") {
 
 """Represents ongoing installation of app."""
 type AppInstallation implements Node & Job @doc(category: "Apps") {
+  """The ID of the app installation."""
   id: ID!
 
   """Job status."""
@@ -13088,7 +13198,11 @@ type AppInstallation implements Node & Job @doc(category: "Apps") {
 
   """Job message."""
   message: String
+
+  """The name of the app installation."""
   appName: String!
+
+  """The URL address of manifest for the app installation."""
   manifestUrl: String!
 
   """
@@ -13164,27 +13278,99 @@ input AppExtensionFilterInput @doc(category: "Apps") {
 
 """Represents address validation rules for a country."""
 type AddressValidationData @doc(category: "Users") {
+  """The country code of the address validation rule."""
   countryCode: String!
+
+  """The country name of the address validation rule."""
   countryName: String!
+
+  """
+  The address format of the address validation rule.
+  
+  Many fields in the JSON refer to address fields by one-letter abbreviations. These are defined as follows:
+  
+  - `N`: Name
+  - `O`: Organisation
+  - `A`: Street Address Line(s)
+  - `D`: Dependent locality (may be an inner-city district or a suburb)
+  - `C`: City or Locality
+  - `S`: Administrative area such as a state, province, island etc
+  - `Z`: Zip or postal code
+  - `X`: Sorting code
+  
+  [Click here for more information.](https://github.com/google/libaddressinput/wiki/AddressValidationMetadata)
+  """
   addressFormat: String!
+
+  """
+  The latin address format of the address validation rule.
+  
+  Many fields in the JSON refer to address fields by one-letter abbreviations. These are defined as follows:
+  
+  - `N`: Name
+  - `O`: Organisation
+  - `A`: Street Address Line(s)
+  - `D`: Dependent locality (may be an inner-city district or a suburb)
+  - `C`: City or Locality
+  - `S`: Administrative area such as a state, province, island etc
+  - `Z`: Zip or postal code
+  - `X`: Sorting code
+  
+  [Click here for more information.](https://github.com/google/libaddressinput/wiki/AddressValidationMetadata)
+  """
   addressLatinFormat: String!
+
+  """The allowed fields to use in address."""
   allowedFields: [String!]!
+
+  """The required fields to create a valid address."""
   requiredFields: [String!]!
+
+  """
+  The list of fields that should be in upper case for address validation rule.
+  """
   upperFields: [String!]!
+
+  """The formal name of the county area of the address validation rule."""
   countryAreaType: String!
+
+  """
+  The available choices for the country area of the address validation rule.
+  """
   countryAreaChoices: [ChoiceValue!]!
+
+  """The formal name of the city of the address validation rule."""
   cityType: String!
+
+  """The available choices for the city of the address validation rule."""
   cityChoices: [ChoiceValue!]!
+
+  """The formal name of the city area of the address validation rule."""
   cityAreaType: String!
+
+  """
+  The available choices for the city area of the address validation rule.
+  """
   cityAreaChoices: [ChoiceValue!]!
+
+  """The formal name of the postal code of the address validation rule."""
   postalCodeType: String!
+
+  """The regular expression for postal code validation."""
   postalCodeMatchers: [String!]!
+
+  """The example postal code of the address validation rule."""
   postalCodeExamples: [String!]!
+
+  """The postal code prefix of the address validation rule."""
   postalCodePrefix: String!
 }
 
 type ChoiceValue {
+  """The raw name of the choice."""
   raw: String
+
+  """The verbose name of the choice."""
   verbose: String
 }
 
@@ -17124,7 +17310,10 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   """
-  appFetchManifest(manifestUrl: String!): AppFetchManifest @doc(category: "Apps")
+  appFetchManifest(
+    """URL to app's manifest in JSON format."""
+    manifestUrl: String!
+  ): AppFetchManifest @doc(category: "Apps")
 
   """
   Activate the app. 
@@ -17530,12 +17719,13 @@ type Mutation {
   
   Triggers below webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   - NOTIFY_USER (async): A notification for setting the password.
   """
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
-  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: [])
+  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: [])
 
   """
   Updates an existing customer. 
@@ -17543,7 +17733,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_USERS.
   
   Triggers below webhook events:
-  - CUSTOMER_CREATED (async): A new customer account was created.
+  - CUSTOMER_UPDATED (async): A new customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerUpdate(
@@ -17559,7 +17749,7 @@ type Mutation {
 
     """Fields required to update a customer."""
     input: CustomerInput!
-  ): CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
+  ): CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
 
   """
   Deletes a customer. 
@@ -17585,11 +17775,14 @@ type Mutation {
   Deletes customers. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers below webhook events:
+  - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): CustomerBulkDelete @doc(category: "Users")
+  ): CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
 
   """
   Updates customers.
@@ -17599,6 +17792,10 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers below webhook events:
+  - CUSTOMER_UPDATED (async): A new customer account was updated.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerBulkUpdate(
     """Input list of customers to update."""
@@ -17606,7 +17803,7 @@ type Mutation {
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
-  ): CustomerBulkUpdate @doc(category: "Users")
+  ): CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
@@ -17655,11 +17852,14 @@ type Mutation {
   Deletes staff users. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers below webhook events:
+  - STAFF_DELETED (async): A staff account was deleted.
   """
   staffBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): StaffBulkDelete @doc(category: "Users")
+  ): StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: [])
 
   """
   Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -23316,9 +23516,6 @@ input OrderBulkCreateInput @doc(category: "Orders") {
   """Customer associated with the order."""
   user: OrderBulkCreateUserInput!
 
-  """Tracking ID of the customer."""
-  trackingClientId: String
-
   """Billing address of the customer."""
   billingAddress: AddressInput!
 
@@ -25604,7 +25801,7 @@ enum ChannelErrorCode @doc(category: "Channels") {
 }
 
 input ChannelCreateInput @doc(category: "Channels") {
-  """isActive flag."""
+  """Determine if channel will be set active or not."""
   isActive: Boolean
 
   """
@@ -25721,7 +25918,7 @@ type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [C
 }
 
 input ChannelUpdateInput @doc(category: "Channels") {
-  """isActive flag."""
+  """Determine if channel will be set active or not."""
   isActive: Boolean
 
   """
@@ -26489,7 +26686,7 @@ input AppInstallInput @doc(category: "Apps") {
   """Name of the app to install."""
   appName: String
 
-  """Url to app's manifest in JSON format."""
+  """URL to app's manifest in JSON format."""
   manifestUrl: String
 
   """Determine if app will be set active or not."""
@@ -26530,6 +26727,7 @@ Fetch and validate manifest.
 Requires one of the following permissions: MANAGE_APPS.
 """
 type AppFetchManifest @doc(category: "Apps") {
+  """The validated manifest."""
   manifest: Manifest
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
@@ -26537,22 +26735,47 @@ type AppFetchManifest @doc(category: "Apps") {
 
 """The manifest definition."""
 type Manifest @doc(category: "Apps") {
+  """The identifier of the manifest for the app."""
   identifier: String!
+
+  """The version of the manifest for the app."""
   version: String!
+
+  """The name of the manifest for the app ."""
   name: String!
+
+  """Description of the app displayed in the dashboard."""
   about: String
+
+  """The array permissions required for the app."""
   permissions: [Permission!]
+
+  """App website rendered in the dashboard."""
   appUrl: String
 
   """URL to iframe with the configuration for the app."""
   configurationUrl: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `appUrl` instead.")
+
+  """
+  Endpoint used during process of app installation, [see installing an app.](https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)
+  """
   tokenTargetUrl: String
 
   """Description of the data privacy defined for this app."""
   dataPrivacy: String @deprecated(reason: "This field will be removed in Saleor 4.0. Use `dataPrivacyUrl` instead.")
+
+  """URL to the full privacy policy."""
   dataPrivacyUrl: String
+
+  """External URL to the app homepage."""
   homepageUrl: String
+
+  """External URL to the page where app users can find support."""
   supportUrl: String
+
+  """
+  List of extensions that will be mounted in Saleor's dashboard. For details, please [see the extension section.](https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)
+  """
   extensions: [AppManifestExtension!]!
 
   """
@@ -27228,9 +27451,10 @@ Requires one of the following permissions: MANAGE_USERS.
 
 Triggers below webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 - NOTIFY_USER (async): A notification for setting the password.
 """
-type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: []) {
+type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -27299,10 +27523,10 @@ Updates an existing customer.
 Requires one of the following permissions: MANAGE_USERS.
 
 Triggers below webhook events:
-- CUSTOMER_CREATED (async): A new customer account was created.
+- CUSTOMER_UPDATED (async): A new customer account was updated.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
-type CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
+type CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -27373,8 +27597,11 @@ type CustomerDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUS
 Deletes customers. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers below webhook events:
+- CUSTOMER_DELETED (async): A customer account was deleted.
 """
-type CustomerBulkDelete @doc(category: "Users") {
+type CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -27389,8 +27616,12 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers below webhook events:
+- CUSTOMER_UPDATED (async): A new customer account was updated.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
-type CustomerBulkUpdate @doc(category: "Users") {
+type CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
   """Returns how many objects were created."""
   count: Int!
 
@@ -27593,8 +27824,11 @@ type StaffDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_
 Deletes staff users. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers below webhook events:
+- STAFF_DELETED (async): A staff account was deleted.
 """
-type StaffBulkDelete @doc(category: "Users") {
+type StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
