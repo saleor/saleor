@@ -16,7 +16,7 @@ CUSTOMER_BULK_DELETE_MUTATION = """
 """
 
 
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_delete_customers(
     mocked_deletion_event,
     staff_api_client,
@@ -88,7 +88,7 @@ def test_delete_customers_trigger_webhooks(
     assert mocked_webhook_trigger.call_count == 2
 
 
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_delete_customers_by_app(
     mocked_deletion_event,
     app_api_client,

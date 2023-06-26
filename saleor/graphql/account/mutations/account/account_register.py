@@ -18,7 +18,7 @@ from ....meta.inputs import MetadataInput
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ....site.dataloaders import get_site_promise
 from ...types import User
-from ..base import AccountBaseInput
+from .base import AccountBaseInput
 
 
 class AccountRegisterInput(AccountBaseInput):

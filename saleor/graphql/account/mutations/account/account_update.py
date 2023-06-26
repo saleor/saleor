@@ -10,7 +10,8 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
 from ....meta.inputs import MetadataInput
 from ...types import AddressInput, User
-from ..base import AccountBaseInput, BaseCustomerCreate
+from ..base import BaseCustomerCreate
+from .base import AccountBaseInput
 
 
 class AccountInput(AccountBaseInput):

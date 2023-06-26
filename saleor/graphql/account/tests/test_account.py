@@ -56,7 +56,8 @@ from ...tests.utils import (
     get_multipart_request_body,
 )
 from ..mutations.base import INVALID_TOKEN
-from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
+from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate
+from ..mutations.staff.base import UserDelete
 from ..tests.utils import convert_dict_keys_to_camel_case
 
 
@@ -3033,7 +3034,7 @@ CUSTOMER_DELETE_MUTATION = """
 
 
 @patch("saleor.account.signals.delete_from_storage_task.delay")
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_customer_delete(
     mocked_deletion_event,
     delete_from_storage_task_mock,
@@ -3107,7 +3108,7 @@ def test_customer_delete_trigger_webhook(
 
 
 @patch("saleor.account.signals.delete_from_storage_task.delay")
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
     mocked_deletion_event,
     delete_from_storage_task_mock,
@@ -5774,8 +5775,12 @@ def test_account_reset_password_with_upper_case_email(
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
@@ -5802,8 +5807,12 @@ def test_account_confirmation(
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation_invalid_user(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
@@ -5827,8 +5836,12 @@ def test_account_confirmation_invalid_user(
     assign_gift_cards_mock.assert_not_called()
 
 
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation_invalid_token(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
