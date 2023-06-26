@@ -370,3 +370,111 @@ def test_query_customers_with_permission_manage_orders(
     content = get_graphql_content(response)
     users = content["data"]["customers"]["totalCount"]
     assert users == 1
+
+
+QUERY_CUSTOMERS_WITH_PAGINATION = """
+    query (
+        $first: Int, $last: Int, $after: String, $before: String,
+        $sortBy: UserSortingInput, $filter: CustomerFilterInput
+    ){
+        customers(
+            first: $first, last: $last, after: $after, before: $before,
+            sortBy: $sortBy, filter: $filter
+        ) {
+            edges {
+                node {
+                    firstName
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+@pytest.fixture()
+def customers_for_search(db, address):
+    accounts = User.objects.bulk_create(
+        [
+            User(
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@test.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@test.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@test.com",
+                is_staff=False,
+                is_active=True,
+            ),
+        ]
+    )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(accounts, ["search_document"])
+    return accounts
+
+
+@pytest.mark.parametrize(
+    "customer_filter, users_order",
+    [
+        ({"search": "example.com"}, ["Alan", "Harry"]),  # email
+        ({"search": "davis@test.com"}, ["Robert", "Xavier"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
+    ],
+)
+def test_query_customer_members_pagination_with_filter_search(
+    customer_filter,
+    users_order,
+    staff_api_client,
+    permission_manage_users,
+    address,
+    staff_user,
+    customers_for_search,
+):
+    page_size = 2
+    variables = {"first": page_size, "after": None, "filter": customer_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    response = staff_api_client.post_graphql(
+        QUERY_CUSTOMERS_WITH_PAGINATION,
+        variables,
+    )
+    content = get_graphql_content(response)
+
+    users = content["data"]["customers"]["edges"]
+    assert users_order[0] == users[0]["node"]["firstName"]
+    assert users_order[1] == users[1]["node"]["firstName"]
+    assert len(users) == page_size

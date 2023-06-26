@@ -139,3 +139,108 @@ def test_query_staff_members_with_filter_search(
     users = content["data"]["staffUsers"]["edges"]
 
     assert len(users) == count
+
+
+@pytest.fixture()
+def staff_for_search(db, address):
+    accounts = User.objects.bulk_create(
+        [
+            User(
+                first_name="Alan",
+                last_name="Smith",
+                email="asmith@example.com",
+                is_staff=True,
+                is_active=False,
+            ),
+            User(
+                first_name="Harry",
+                last_name="Smith",
+                email="hsmith@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="Robert",
+                last_name="Davis",
+                email="rdavis@example.com",
+                is_staff=True,
+                is_active=False,
+            ),
+            User(
+                first_name="Xavier",
+                last_name="Davis",
+                email="xdavis@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="Anthony",
+                last_name="Matthews",
+                email="amatthews@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+        ]
+    )
+    for i, user in enumerate(accounts):
+        if i in (0, 3, 4):
+            user.addresses.set([address])
+        user.search_document = prepare_user_search_document_value(user)
+    User.objects.bulk_update(accounts, ["search_document"])
+    return accounts
+
+
+QUERY_STAFF_WITH_PAGINATION = """
+    query (
+        $first: Int, $last: Int, $after: String, $before: String,
+        $sortBy: UserSortingInput, $filter: StaffUserInput
+    ){
+        staffUsers(
+            first: $first, last: $last, after: $after, before: $before,
+            sortBy: $sortBy, filter: $filter
+        ) {
+            edges {
+                node {
+                    firstName
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "staff_member_filter, users_order",
+    [
+        ({"search": "davis@example.com"}, ["Robert", "Xavier"]),  # email
+        ({"search": "davis"}, ["Robert", "Xavier"]),  # last_name
+        ({"search": "wroc"}, ["Anthony", "Alan"]),  # city
+        ({"search": "pl"}, ["Anthony", "Alan"]),  # country
+        ({"status": "DEACTIVATED"}, ["Alan", "Robert"]),  # status
+        ({"status": "ACTIVE"}, ["Anthony", "Harry"]),  # status
+    ],
+)
+def test_query_staff_members_pagination_with_filter_search(
+    staff_member_filter,
+    users_order,
+    staff_api_client,
+    permission_manage_staff,
+    address,
+    staff_user,
+    staff_for_search,
+):
+    page_size = 2
+    variables = {"first": page_size, "after": None, "filter": staff_member_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_staff)
+    response = staff_api_client.post_graphql(QUERY_STAFF_WITH_PAGINATION, variables)
+    content = get_graphql_content(response)
+    users = content["data"]["staffUsers"]["edges"]
+    assert users_order[0] == users[0]["node"]["firstName"]
+    assert users_order[1] == users[1]["node"]["firstName"]
+    assert len(users) == page_size
