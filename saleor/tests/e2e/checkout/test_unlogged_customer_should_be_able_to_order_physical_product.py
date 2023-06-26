@@ -10,16 +10,18 @@ from ..product.utils import (
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
+from .utils import checkout_create
 
 
 def test_process_checkout_with_physical_product(
     e2e_staff_api_client,
+    e2e_not_logged_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
 ):
-    # given
+    # before
     permissions = [
         permission_manage_products,
         permission_manage_channels,
@@ -74,7 +76,16 @@ def test_process_checkout_with_physical_product(
         product_variant_id,
         channel_id,
     )
-    # when
 
-    # then
-    assert channel_slug
+    # Step 1
+    lines = [
+        {"variantId": product_variant_id, "quantity": 1},
+    ]
+    checkout_data = checkout_create(e2e_not_logged_api_client, lines, channel_slug)
+    checkout_id = checkout_data["id"]
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+
+    assert checkout_data["isShippingRequired"] is True
+    assert checkout_data["shippingMethods"] == []
+    assert checkout_data["deliveryMethod"] is None
+    assert checkout_data["shippingMethod"] is None

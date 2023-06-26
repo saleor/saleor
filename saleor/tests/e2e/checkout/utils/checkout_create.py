@@ -19,6 +19,21 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
           amount
         }
       }
+      isShippingRequired
+      shippingMethods {
+        id
+      }
+      deliveryMethod {
+        ... on ShippingMethod {
+          id
+        }
+        ... on Warehouse {
+          id
+        }
+      }
+      shippingMethod {
+        id
+      }
     }
   }
 }
