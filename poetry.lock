@@ -1313,23 +1313,6 @@ enmerkar = ">=0.7.1"
 prices = ">=1.0.0"
 
 [[package]]
-name = "django-prices-vatlayer"
-version = "1.1.0"
-description = "vatlayer.com support for django"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-prices-vatlayer-1.1.0.tar.gz", hash = "sha256:54cb240dfd2b7c5fd22498aaf6e9141e602eccb2b0672911c64dc5add3fa666e"},
-    {file = "django_prices_vatlayer-1.1.0-py3-none-any.whl", hash = "sha256:de47234d46ae35d83dd35adbd83e3d26a9c90a8d184020590109bdef39474ed0"},
-]
-
-[package.dependencies]
-Django = ">=1.11"
-jsonfield = "*"
-prices = ">=1.0.0"
-requests = "*"
-
-[[package]]
 name = "django-redis"
 version = "5.3.0"
 description = "Full featured redis cache backend for Django."
@@ -2313,20 +2296,6 @@ files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
 ]
-
-[[package]]
-name = "jsonfield"
-version = "3.1.0"
-description = "A reusable Django field that allows you to store validated JSON in your model."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "jsonfield-3.1.0-py3-none-any.whl", hash = "sha256:df857811587f252b97bafba42e02805e70a398a7a47870bc6358a0308dd689ed"},
-    {file = "jsonfield-3.1.0.tar.gz", hash = "sha256:7e4e84597de21eeaeeaaa7cc5da08c61c48a9b64d0c446b2d71255d01812887a"},
-]
-
-[package.dependencies]
-Django = ">=2.2"
 
 [[package]]
 name = "kombu"
@@ -4904,4 +4873,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "3938ac24cfeaf676ba73ee59e01d26073b2c4c59ee759a597b41e543964486a7"
+content-hash = "a2dbada6b13fa41ce168f34715c6bfd7f3322e0b85d93f4b0a85ee543cfbc1ed"

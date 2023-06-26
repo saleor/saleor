@@ -251,7 +251,6 @@ INSTALLED_APPS = [
     # External apps
     "django_measurement",
     "django_prices",
-    "django_prices_vatlayer",
     "mptt",
     "django_countries",
     "django_filters",
