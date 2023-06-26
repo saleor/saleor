@@ -182,9 +182,11 @@ def test_variant_channel_listing_update_with_too_many_decimal_places_in_price(
     assert error["code"] == ProductErrorCode.INVALID.name
 
 
-@patch("saleor.product.tasks.update_product_discounted_price_task.delay")
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_variant_channel_listing_update_as_staff_user(
-    update_product_discounted_price_task_mock,
+    update_products_discounted_prices_for_promotion_task_mock,
     staff_api_client,
     product,
     permission_manage_products,
@@ -250,7 +252,9 @@ def test_variant_channel_listing_update_as_staff_user(
     pln_channel_listing = variant.channel_listings.get(channel=channel_PLN)
     assert usd_channel_listing.discounted_price_amount == price
     assert pln_channel_listing.discounted_price_amount == second_price
-    update_product_discounted_price_task_mock.assert_called_once_with(product.id)
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
 
 def test_variant_channel_listing_update_by_sku(
@@ -473,9 +477,11 @@ def test_variant_channel_listing_update_as_anonymous(
     assert_no_permission(response)
 
 
-@patch("saleor.graphql.product.mutations.channels.update_product_discounted_price_task")
+@patch(
+    "saleor.graphql.product.mutations.channels.update_products_discounted_prices_for_promotion_task"
+)
 def test_product_variant_channel_listing_update_updates_discounted_price(
-    mock_update_product_discounted_price_task,
+    mock_update_products_discounted_prices_for_promotion_task,
     staff_api_client,
     product,
     permission_manage_products,
@@ -499,7 +505,9 @@ def test_product_variant_channel_listing_update_updates_discounted_price(
     data = content["data"]["productVariantChannelListingUpdate"]
     assert data["errors"] == []
 
-    mock_update_product_discounted_price_task.delay.assert_called_once_with(product.pk)
+    mock_update_products_discounted_prices_for_promotion_task.delay.assert_called_once_with(
+        [product.pk]
+    )
 
 
 def test_product_variant_channel_listing_update_remove_cost_price(

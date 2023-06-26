@@ -8,6 +8,7 @@ from django.db import transaction
 from .....discount import models
 from .....permission.enums import DiscountPermissions
 from .....plugins.manager import PluginsManager
+from .....product.tasks import update_products_discounted_prices_of_promotion_task
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_315, PREVIEW_FEATURE
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
@@ -55,6 +56,10 @@ class PromotionUpdate(ModelMutation):
             cls.clean_instance(info, instance)
             cls.save(info, instance, cleaned_input)
             cls._save_m2m(info, instance, cleaned_input)
+            # update the product undiscounted prices for promotion only when
+            # start or end date has changed
+            if "start_date" in cleaned_input or "end_date" in cleaned_input:
+                update_products_discounted_prices_of_promotion_task.delay(instance.pk)
             cls.send_promotion_webhooks(
                 manager, instance, cleaned_input, previous_end_date
             )

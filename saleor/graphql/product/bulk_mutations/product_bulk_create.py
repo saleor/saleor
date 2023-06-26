@@ -18,7 +18,7 @@ from ....core.utils.validators import get_oembed_data
 from ....permission.enums import ProductPermissions
 from ....product import ProductMediaTypes, models
 from ....product.error_codes import ProductBulkCreateErrorCode
-from ....product.tasks import update_products_discounted_prices_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....thumbnail.utils import get_filename_from_url
 from ....warehouse.models import Warehouse
 from ...attribute.types import AttributeValueInput
@@ -840,7 +840,7 @@ class ProductBulkCreate(BaseMutation):
         for channel in channels:
             cls.call_event(manager.channel_updated, channel)
 
-        update_products_discounted_prices_task.delay(product_ids)
+        update_products_discounted_prices_for_promotion_task.delay(product_ids)
 
     @classmethod
     @traced_atomic_transaction()
