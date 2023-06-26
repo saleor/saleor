@@ -13,7 +13,7 @@ from ....permission.enums import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductVariantBulkErrorCode
 from ....product.search import update_product_search_vector
-from ....product.tasks import update_product_discounted_price_task
+from ....product.tasks import update_products_discounted_prices_for_promotion_task
 from ....warehouse import models as warehouse_models
 from ...attribute.types import (
     AttributeValueDescriptions,
@@ -912,7 +912,7 @@ class ProductVariantBulkCreate(BaseMutation):
         manager = get_plugin_manager_promise(info.context).get()
 
         # Recalculate the "discounted price" for the parent product
-        update_product_discounted_price_task.delay(product.pk)
+        update_products_discounted_prices_for_promotion_task.delay([product.pk])
         update_product_search_vector(product)
 
         for instance in instances:
