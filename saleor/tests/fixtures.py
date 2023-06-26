@@ -1223,6 +1223,24 @@ def shipping_zones(db, channel_USD, channel_PLN):
     return [shipping_zone_poland, shipping_zone_usa]
 
 
+def chunks(it, n):
+    for i in range(0, len(it), n):
+        yield it[i : i + n]
+
+
+@pytest.fixture
+def shipping_zones_with_warehouses(address, channel_USD):
+    zones = [ShippingZone(name=f"{i}_zone") for i in range(10)]
+    warehouses = [Warehouse(slug=f"{i}_warehouse", address=address) for i in range(20)]
+    warehouses = Warehouse.objects.bulk_create(warehouses)
+    warehouses_in_batches = list(chunks(warehouses, 2))
+    for i, zone in enumerate(ShippingZone.objects.bulk_create(zones)):
+        zone.channels.add(channel_USD)
+        for warehouse in warehouses_in_batches[i]:
+            zone.warehouses.add(warehouse)
+    return zones
+
+
 @pytest.fixture
 def shipping_zones_with_different_channels(db, channel_USD, channel_PLN):
     shipping_zone_poland, shipping_zone_usa = ShippingZone.objects.bulk_create(
