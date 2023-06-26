@@ -19,6 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @Smit-Parmar
+- Added createdByEmail filter in GiftCard and Test case. - #13132 by @Smit-Parmar
 
 ### Saleor Apps
 
@@ -27,10 +29,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
-- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @Smit-Parmar
-- Added createdByEmail filter in GiftCard and Test case. - #13132 by @Smit-Parmar
-
-- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
 - Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
 - Add missing descriptions to App module. - #13163 by @fowczarek
