@@ -173,7 +173,7 @@ class WebhookPlugin(BasePlugin):
         user: "User",
         channel_slug: str,
         token: str,
-        redirect_url: str,
+        redirect_url: Optional[str],
         previous_value: None,
     ) -> None:
         if not self.active:

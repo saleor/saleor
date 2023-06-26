@@ -1062,7 +1062,7 @@ class PluginsManager(PaymentInterface):
         )
 
     def account_confirmation_requested(
-        self, user: "User", channel_slug: str, token: str, redirect_url: str
+        self, user: "User", channel_slug: str, token: str, redirect_url: Optional[str]
     ):
         default_value = None
         return self.__run_method_on_plugins(

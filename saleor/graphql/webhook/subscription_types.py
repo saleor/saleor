@@ -136,7 +136,8 @@ class Event(graphene.Interface):
 
 class AccountOperationBase(AbstractType):
     redirect_url = graphene.String(
-        description="The URL to redirect the user after he accepts the request."
+        description="The URL to redirect the user after he accepts the request.",
+        required=False,
     )
     user = graphene.Field(
         UserType,
@@ -157,7 +158,7 @@ class AccountOperationBase(AbstractType):
     @staticmethod
     def resolve_redirect_url(root, _info: ResolveInfo):
         _, data = root
-        return data["redirect_url"]
+        return data.get("redirect_url")
 
     @staticmethod
     def resolve_channel(root, _info: ResolveInfo):
