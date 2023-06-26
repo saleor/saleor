@@ -180,7 +180,11 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
         root_type = "User"
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Event sent when account confirmation requested." + ADDED_IN_315
+        description = (
+            "Event sent when account confirmation requested. This event is always sent."
+            " enableAccountConfirmationByEmail flag set to True is not required."
+            + ADDED_IN_315
+        )
 
 
 class AddressBase(AbstractType):

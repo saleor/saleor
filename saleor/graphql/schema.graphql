@@ -1687,6 +1687,8 @@ type WebhookEvent @doc(category: "Webhooks") {
 enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
+
+  """An account confirmation requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
   """A new address created."""
@@ -2319,6 +2321,8 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
+
+  """An account confirmation requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
   """A new address created."""
@@ -27431,7 +27435,7 @@ enum VolumeUnitsEnum {
 }
 
 """
-Event sent when account confirmation requested.
+Event sent when account confirmation requested. This event is always sent. enableAccountConfirmationByEmail flag set to True is not required.
 
 Added in Saleor 3.15.
 """
