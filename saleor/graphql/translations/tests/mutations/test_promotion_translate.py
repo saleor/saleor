@@ -184,3 +184,6 @@ def test_promotion_create_translation_by_translatable_content_id(
     content = get_graphql_content(response)
     data = content["data"]["promotionTranslate"]
     assert not data["errors"]
+    translation_data = data["promotion"]["translation"]
+    assert translation_data["name"] == "Polish promotion name"
+    assert translation_data["language"]["code"] == "PL"

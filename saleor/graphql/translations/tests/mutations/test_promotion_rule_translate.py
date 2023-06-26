@@ -153,3 +153,36 @@ def test_promotion_rule_create_translation_no_permission(
 
     # then
     assert_no_permission(response)
+
+
+def test_promotion_rule_create_translation_by_translatable_content_id(
+    staff_api_client,
+    promotion_rule,
+    permission_manage_translations,
+):
+    # given
+    translatable_content_id = graphene.Node.to_global_id(
+        "PromotionRuleTranslatableContent", promotion_rule.id
+    )
+    variables = {
+        "id": translatable_content_id,
+        "languageCode": "PL",
+        "input": {
+            "name": "Polish rule name",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        PROMOTION_RULE_TRANSLATE_MUTATION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["promotionRuleTranslate"]
+    assert not data["errors"]
+    translation_data = data["promotionRule"]["translation"]
+    assert translation_data["name"] == "Polish rule name"
+    assert translation_data["language"]["code"] == "PL"

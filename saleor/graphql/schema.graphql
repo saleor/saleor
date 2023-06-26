@@ -16383,7 +16383,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   promotionTranslate(
-    """Promotion ID."""
+    """Promotion ID or PromotionTranslatableContent ID."""
     id: ID!
     input: PromotionTranslationInput!
 
@@ -16399,7 +16399,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
   """
   promotionRuleTranslate(
-    """Promotion rule ID"""
+    """PromotionRule ID or PromotionRuleTranslatableContent ID."""
     id: ID!
     input: PromotionRuleTranslationInput!
 

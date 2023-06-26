@@ -18,7 +18,7 @@ class PromotionRuleTranslate(BaseTranslateMutation):
     class Arguments:
         id = graphene.ID(
             required=True,
-            description="Promotion rule ID",
+            description="PromotionRule ID or PromotionRuleTranslatableContent ID.",
         )
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
