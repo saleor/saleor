@@ -19,8 +19,8 @@ All notable, unreleased changes to this project will be documented in this file.
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
-- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @Smit-Parmar
-- Added createdByEmail filter in GiftCard and Test case. - #13132 by @Smit-Parmar
+- Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
+- Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 
 ### Saleor Apps
 
