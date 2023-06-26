@@ -590,3 +590,34 @@ class WarehousesByChannelIdLoader(DataLoader):
             .load_many({pk for pk, _ in warehouse_and_channel_in_pairs})
             .then(map_warehouses)
         )
+
+
+class WarehousesByShippingZoneIdLoader(DataLoader):
+    context_key = "warehouses_by_shipping_zone_id"
+
+    def batch_load(self, keys):
+        warehouse_and_shipping_zone_in_pairs = (
+            ShippingZone.warehouses.through.objects.using(self.database_connection_name)  # type: ignore[attr-defined] # raw access to the through model # noqa: E501
+            .filter(shippingzone_id__in=keys)
+            .values_list("warehouse_id", "shippingzone_id")
+        )
+
+        shipping_zone_warehouse_map = defaultdict(list)
+        for warehouse_id, shipping_zone_id in warehouse_and_shipping_zone_in_pairs:
+            shipping_zone_warehouse_map[shipping_zone_id].append(warehouse_id)
+
+        def map_warehouses(warehouses):
+            warehouse_map = {warehouse.pk: warehouse for warehouse in warehouses}
+            return [
+                [
+                    warehouse_map[warehouse_id]
+                    for warehouse_id in shipping_zone_warehouse_map[shipping_zone_id]
+                ]
+                for shipping_zone_id in keys
+            ]
+
+        return (
+            WarehouseByIdLoader(self.context)
+            .load_many({pk for pk, _ in warehouse_and_shipping_zone_in_pairs})
+            .then(map_warehouses)
+        )
