@@ -12643,6 +12643,7 @@ input GiftCardFilterInput @doc(category: "Gift cards") {
   currentBalance: PriceRangeInput
   initialBalance: PriceRangeInput
   code: String
+  createdByEmail: String
 }
 
 type GiftCardTagCountableConnection @doc(category: "Gift cards") {
