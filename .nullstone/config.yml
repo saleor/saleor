@@ -1,0 +1,61 @@
+version: "0.1"
+
+subdomains:
+  api-saleor-nullst-one-subdomain:
+    dns_name: api.saleor
+    connections:
+      domain: nullst-one-domain
+
+apps:
+  api:
+    module: nullstone/aws-fargate-service
+    vars:
+      cpu: 512
+      memory: 1024
+      port: 8000
+    environment:
+      BASE_DOMAIN: "saleor.{{ NULLSTONE_ENV }}.nullst.one"
+      ALLOWED_HOSTS: "{{ NULLSTONE_PUBLIC_HOSTS }}"
+      DASHBOARD_URL: "https://dashboard.{{ BASE_DOMAIN }}/"
+      STOREFRONT_URL: "https://{{ BASE_DOMAIN }}/"
+      CELERY_BROKER_URL: "{{ REDIS_URL }}"
+      DATABASE_URL: "{{ POSTGRES_URL }}"
+      DEFAULT_CHANNEL_SLUG: "default-channel"
+      DEFAULT_FROM_EMAIL: "noreply@example.com"
+    capabilities:
+      - module: nullstone/python-cookies
+      - module: nullstone/aws-load-balancer
+        vars:
+          health_check_interval: 10
+          health_check_timeout: 9
+          health_check_healthy_threshold: 2
+          health_check_unhealthy_threshold: 5
+          health_check_path: "/"
+        connections:
+          subdomain: api-saleor-nullst-one-subdomain
+      - module: nullstone/aws-postgres-access
+        connections:
+          postgres: db
+        vars:
+          database_name: "saleor"
+      - module: nullstone/aws-redis-access
+        connections:
+          redis: redis
+  worker:
+    module: nullstone/aws-fargate-service
+    vars:
+      command: ["celery", "-A", "saleor", "--app=saleor.celeryconf:app", "worker", "--loglevel=info", "-B"]
+      cpu: 256
+      memory: 512
+      port: 0
+    environment:
+      CELERY_BROKER_URL: "{{ REDIS_URL }}"
+      DATABASE_URL: "{{ POSTGRES_URL }}"
+      DEFAULT_CHANNEL_SLUG: "default-channel"
+      DEFAULT_FROM_EMAIL: "noreply@example.com"
+    capabilities:
+      - module: nullstone/aws-postgres-access
+        connections:
+          postgres: db
+        vars:
+          database_name: "saleor"

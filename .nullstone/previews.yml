@@ -1,0 +1,17 @@
+version: "0.1"
+
+apps:
+  api:
+    capabilities:
+      - module: nullstone/aws-postgres-access
+        connections:
+          postgres: db
+        vars:
+          database_name: "saleor-{{ NULLSTONE_ENV }}"
+  worker:
+    capabilities:
+      - module: nullstone/aws-postgres-access
+        connections:
+          postgres: db
+        vars:
+          database_name: "saleor-{{ NULLSTONE_ENV }}"

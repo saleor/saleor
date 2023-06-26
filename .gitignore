@@ -1,5 +1,6 @@
 *.py[cod]
 .*
+!.nullstone
 !.devcontainer
 !.dockerignore
 !.github
