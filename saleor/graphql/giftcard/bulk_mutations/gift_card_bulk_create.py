@@ -4,24 +4,23 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ...core.tracing import traced_atomic_transaction
-from ...core.utils.promo_code import generate_promo_code
-from ...core.utils.validators import is_date_in_future
-from ...giftcard import events, models
-from ...giftcard.error_codes import GiftCardErrorCode
-from ...giftcard.utils import is_gift_card_expired
-from ...permission.enums import GiftcardPermissions
-from ..app.dataloaders import get_app_promise
-from ..core import ResolveInfo
-from ..core.descriptions import ADDED_IN_31
-from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
-from ..core.mutations import BaseBulkMutation, BaseMutation, ModelBulkDeleteMutation
-from ..core.scalars import Date
-from ..core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
-from ..core.validators import validate_price_precision
-from ..plugins.dataloaders import get_plugin_manager_promise
-from .mutations import GiftCardCreate
-from .types import GiftCard
+from ....core.tracing import traced_atomic_transaction
+from ....core.utils.promo_code import generate_promo_code
+from ....core.utils.validators import is_date_in_future
+from ....giftcard import events, models
+from ....giftcard.error_codes import GiftCardErrorCode
+from ....permission.enums import GiftcardPermissions
+from ...app.dataloaders import get_app_promise
+from ...core import ResolveInfo
+from ...core.descriptions import ADDED_IN_31
+from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
+from ...core.mutations import BaseMutation
+from ...core.scalars import Date
+from ...core.types import BaseInputObjectType, GiftCardError, NonNullList, PriceInput
+from ...core.validators import validate_price_precision
+from ...plugins.dataloaders import get_plugin_manager_promise
+from ..mutations import GiftCardCreate
+from ..types import GiftCard
 
 
 class GiftCardBulkCreateInput(BaseInputObjectType):
@@ -165,91 +164,3 @@ class GiftCardBulkCreate(BaseMutation):
     def call_gift_card_created_on_plugins(instances, manager):
         for instance in instances:
             manager.gift_card_created(instance)
-
-
-class GiftCardBulkDelete(ModelBulkDeleteMutation):
-    class Arguments:
-        ids = NonNullList(
-            graphene.ID, required=True, description="List of gift card IDs to delete."
-        )
-
-    class Meta:
-        description = "Delete gift cards." + ADDED_IN_31
-        model = models.GiftCard
-        object_type = GiftCard
-        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
-        error_type_class = GiftCardError
-
-    @classmethod
-    def bulk_action(cls, info: ResolveInfo, queryset, /):
-        instances = [card for card in queryset]
-        queryset.delete()
-        manager = get_plugin_manager_promise(info.context).get()
-        for instance in instances:
-            manager.gift_card_deleted(instance)
-
-
-class GiftCardBulkActivate(BaseBulkMutation):
-    class Arguments:
-        ids = NonNullList(
-            graphene.ID, required=True, description="List of gift card IDs to activate."
-        )
-
-    class Meta:
-        description = "Activate gift cards." + ADDED_IN_31
-        model = models.GiftCard
-        object_type = GiftCard
-        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
-        error_type_class = GiftCardError
-
-    @classmethod
-    def clean_instance(cls, _info: ResolveInfo, instance):
-        if is_gift_card_expired(instance):
-            raise ValidationError(
-                "Cannot activate expired card.",
-                code=GiftCardErrorCode.EXPIRED_GIFT_CARD.value,
-            )
-
-    @classmethod
-    @traced_atomic_transaction()
-    def bulk_action(cls, info: ResolveInfo, queryset, /):
-        queryset = queryset.filter(is_active=False)
-        gift_card_ids = [gift_card.id for gift_card in queryset]
-        app = get_app_promise(info.context).get()
-        queryset.update(is_active=True)
-        events.gift_cards_activated_event(
-            gift_card_ids, user=info.context.user, app=app
-        )
-        manager = get_plugin_manager_promise(info.context).get()
-        for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card)
-
-
-class GiftCardBulkDeactivate(BaseBulkMutation):
-    class Arguments:
-        ids = NonNullList(
-            graphene.ID,
-            required=True,
-            description="List of gift card IDs to deactivate.",
-        )
-
-    class Meta:
-        description = "Deactivate gift cards." + ADDED_IN_31
-        model = models.GiftCard
-        object_type = GiftCard
-        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
-        error_type_class = GiftCardError
-
-    @classmethod
-    @traced_atomic_transaction()
-    def bulk_action(cls, info: ResolveInfo, queryset, /):
-        app = get_app_promise(info.context).get()
-        queryset = queryset.filter(is_active=True)
-        gift_card_ids = [gift_card.id for gift_card in queryset]
-        queryset.update(is_active=False)
-        events.gift_cards_deactivated_event(
-            gift_card_ids, user=info.context.user, app=app
-        )
-        manager = get_plugin_manager_promise(info.context).get()
-        for card in models.GiftCard.objects.filter(id__in=gift_card_ids):
-            manager.gift_card_status_changed(card)
