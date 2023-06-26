@@ -7,7 +7,7 @@ from .models import GiftCard
 from .search import update_gift_cards_search_vector
 
 task_logger = get_task_logger(__name__)
-GIFT_CARD_BATCH_SIZE = 10
+GIFT_CARD_BATCH_SIZE = 300
 
 
 @app.task

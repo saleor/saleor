@@ -6,7 +6,7 @@ from ...giftcard.search import search_gift_cards
 from ...permission.enums import GiftcardPermissions
 from ..core import ResolveInfo
 from ..core.connection import create_connection_slice, filter_connection_queryset
-from ..core.descriptions import ADDED_IN_31, ADDED_IN_315
+from ..core.descriptions import ADDED_IN_31, ADDED_IN_315, PREVIEW_FEATURE
 from ..core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import NonNullList
@@ -51,7 +51,9 @@ class GiftCardQueries(graphene.ObjectType):
             description=("Filtering options for gift cards." + ADDED_IN_31)
         ),
         search=graphene.String(
-            description="Look up gift cards by multiple fields." + ADDED_IN_315
+            description="Look up gift cards by multiple fields."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
         ),
         description="List of gift cards.",
         permissions=[

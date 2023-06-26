@@ -112,7 +112,7 @@ class GiftCard(ModelWithMetadata):
         amount_field="current_balance_amount", currency_field="currency"
     )
     search_vector = SearchVectorField(blank=True, null=True)
-    search_index_dirty = models.BooleanField(default=True, db_index=True)
+    search_index_dirty = models.BooleanField(default=True)
 
     objects = GiftCardManager()
 

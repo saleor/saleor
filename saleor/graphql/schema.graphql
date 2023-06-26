@@ -977,6 +977,8 @@ type Query {
     Look up gift cards by multiple fields.
     
     Added in Saleor 3.15.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
     """
     search: String
 
