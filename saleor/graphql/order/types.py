@@ -1158,6 +1158,7 @@ class Order(ModelObjectType):
     def resolve_created(root: models.Order, _info):
         return root.created_at
 
+    @staticmethod
     def resolve_channel(root: models.Order, info):
         return ChannelByIdLoader(info.context).load(root.channel_id)
 
