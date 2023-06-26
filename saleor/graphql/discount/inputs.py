@@ -3,35 +3,13 @@ import graphene
 from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.scalars import JSON, PositiveDecimal
 from ..core.types import BaseInputObjectType, NonNullList
+from ..product.filters import (
+    CategoryWhereInput,
+    CollectionWhereInput,
+    ProductVariantWhereInput,
+    ProductWhereInput,
+)
 from .enums import RewardValueTypeEnum
-
-
-class ProductVariantPredicateInput(BaseInputObjectType):
-    ids = NonNullList(graphene.ID, description="The list of product variant ids.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class ProductPredicateInput(BaseInputObjectType):
-    ids = NonNullList(graphene.ID, description="The list of product ids.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class CategoryPredicateInput(BaseInputObjectType):
-    ids = NonNullList(graphene.ID, description="The list of category ids.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
-
-
-class CollectionPredicateInput(BaseInputObjectType):
-    ids = NonNullList(graphene.ID, description="The list of collection ids.")
-
-    class Meta:
-        doc_category = DOC_CATEGORY_DISCOUNTS
 
 
 class PredicateInputObjectType(BaseInputObjectType):
@@ -68,16 +46,16 @@ class PredicateInputObjectType(BaseInputObjectType):
 
 
 class CataloguePredicateInput(PredicateInputObjectType):
-    variant_predicate = ProductVariantPredicateInput(
+    variant_predicate = ProductVariantWhereInput(
         description="Defines the product variant conditions to be met."
     )
-    product_predicate = ProductPredicateInput(
+    product_predicate = ProductWhereInput(
         description="Defines the product conditions to be met."
     )
-    category_predicate = CategoryPredicateInput(
+    category_predicate = CategoryWhereInput(
         description="Defines the category conditions to be met."
     )
-    collection_predicate = CollectionPredicateInput(
+    collection_predicate = CollectionWhereInput(
         description="Defines the collection conditions to be met."
     )
 

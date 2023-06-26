@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import graphene
 import pytest
 
@@ -20,12 +22,19 @@ PROMOTION_RULE_DELETE_MUTATION = """
 """
 
 
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_delete_by_staff_user(
-    staff_api_client, permission_group_manage_discounts, promotion
+    update_products_discounted_prices_for_promotion_task_mock,
+    staff_api_client,
+    permission_group_manage_discounts,
+    promotion,
+    product,
 ):
     # given
     permission_group_manage_discounts.user_set.add(staff_api_client.user)
-    rule = promotion.rules.first()
+    rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
 
     # when
@@ -38,12 +47,23 @@ def test_promotion_delete_by_staff_user(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
 def test_promotion_delete_by_staff_app(
-    app_api_client, permission_manage_discounts, promotion
+    update_products_discounted_prices_for_promotion_task_mock,
+    app_api_client,
+    permission_manage_discounts,
+    promotion,
+    product,
 ):
     # given
-    rule = promotion.rules.first()
+    rule = promotion.rules.get(name="Percentage promotion rule")
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
 
     # when
@@ -60,8 +80,17 @@ def test_promotion_delete_by_staff_app(
     with pytest.raises(rule._meta.model.DoesNotExist):
         rule.refresh_from_db()
 
+    update_products_discounted_prices_for_promotion_task_mock.assert_called_once_with(
+        [product.id]
+    )
 
-def test_promotion_delete_by_customer(api_client, promotion):
+
+@patch(
+    "saleor.product.tasks.update_products_discounted_prices_for_promotion_task.delay"
+)
+def test_promotion_delete_by_customer(
+    update_products_discounted_prices_for_promotion_task_mock, api_client, promotion
+):
     # given
     rule = promotion.rules.first()
     variables = {"id": graphene.Node.to_global_id("PromotionRule", rule.id)}
@@ -71,3 +100,4 @@ def test_promotion_delete_by_customer(api_client, promotion):
 
     # then
     assert_no_permission(response)
+    update_products_discounted_prices_for_promotion_task_mock.assert_not_called()

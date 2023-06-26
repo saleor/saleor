@@ -26250,42 +26250,22 @@ input PromotionRuleInput @doc(category: "Discounts") {
 
 input CataloguePredicateInput @doc(category: "Discounts") {
   """Defines the product variant conditions to be met."""
-  variantPredicate: ProductVariantPredicateInput
+  variantPredicate: ProductVariantWhereInput
 
   """Defines the product conditions to be met."""
-  productPredicate: ProductPredicateInput
+  productPredicate: ProductWhereInput
 
   """Defines the category conditions to be met."""
-  categoryPredicate: CategoryPredicateInput
+  categoryPredicate: CategoryWhereInput
 
   """Defines the collection conditions to be met."""
-  collectionPredicate: CollectionPredicateInput
+  collectionPredicate: CollectionWhereInput
 
   """List of conditions that must be met."""
   AND: [CataloguePredicateInput!]
 
   """A list of conditions of which at least one must be met."""
   OR: [CataloguePredicateInput!]
-}
-
-input ProductVariantPredicateInput @doc(category: "Discounts") {
-  """The list of product variant ids."""
-  ids: [ID!]
-}
-
-input ProductPredicateInput @doc(category: "Discounts") {
-  """The list of product ids."""
-  ids: [ID!]
-}
-
-input CategoryPredicateInput @doc(category: "Discounts") {
-  """The list of category ids."""
-  ids: [ID!]
-}
-
-input CollectionPredicateInput @doc(category: "Discounts") {
-  """The list of collection ids."""
-  ids: [ID!]
 }
 
 """
