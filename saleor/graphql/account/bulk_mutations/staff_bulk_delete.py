@@ -9,8 +9,8 @@ from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_USERS
 from ...core.types import StaffError
 from ...plugins.dataloaders import get_plugin_manager_promise
+from ..mutations.base import StaffDeleteMixin
 from ..types import User
-from ..utils import StaffDeleteMixin
 from .customer_bulk_delete import UserBulkDelete
 
 
