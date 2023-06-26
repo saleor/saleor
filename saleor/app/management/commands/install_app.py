@@ -16,7 +16,7 @@ class Command(BaseCommand):
     help = "Used to install new app."
 
     def add_arguments(self, parser: CommandParser) -> None:
-        parser.add_argument("manifest-url", help="Url with app manifest.", type=str)
+        parser.add_argument("manifest-url", help="URL with app manifest.", type=str)
         parser.add_argument(
             "--activate",
             action="store_true",
