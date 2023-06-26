@@ -17,8 +17,7 @@ def shipping_costs_already_granted(order: models.Order):
 
 def handle_lines_with_quantity_already_refunded(
     order: models.Order,
-    lines_dict: dict[uuid.UUID, models.OrderLine],
-    input_lines_data: dict[str, int],
+    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
     errors: list[dict[str, Any]],
     error_code: str,
     granted_refund_lines_to_exclude: Optional[list[int]] = None,
@@ -34,16 +33,30 @@ def handle_lines_with_quantity_already_refunded(
     for line in all_granted_refund_lines:
         lines_with_quantity_already_refunded[line.order_line_id] += line.quantity
 
-    for line in lines_dict.values():
-        quantity_already_refunded = lines_with_quantity_already_refunded[line.pk]
-        if input_lines_data[str(line.pk)] + quantity_already_refunded > line.quantity:
+    for granted_refund_line in input_lines_data.values():
+        if not granted_refund_line.order_line:
+            continue
+
+        quantity_already_refunded = lines_with_quantity_already_refunded[
+            granted_refund_line.order_line.pk
+        ]
+
+        if (
+            granted_refund_line.quantity + quantity_already_refunded
+            > granted_refund_line.order_line.quantity
+        ):
+            available_quantity = (
+                granted_refund_line.order_line.quantity - quantity_already_refunded
+            )
             errors.append(
                 {
-                    "line_id": graphene.Node.to_global_id("OrderLine", line.pk),
+                    "line_id": graphene.Node.to_global_id(
+                        "OrderLine", granted_refund_line.order_line.pk
+                    ),
                     "field": "quantity",
                     "message": (
                         "Cannot grant refund for more than the available quantity "
-                        f"of the line ({line.quantity - quantity_already_refunded})."
+                        f"of the line ({available_quantity})."
                     ),
                     "code": error_code,
                 }
@@ -54,16 +67,22 @@ def get_input_lines_data(
     lines: list[dict[str, Union[str, int]]],
     errors: list[dict[str, str]],
     error_code: str,
-) -> dict[str, int]:
-    input_lines_data = {}
+) -> dict[uuid.UUID, models.OrderGrantedRefundLine]:
+    granted_refund_lines = {}
     for line in lines:
         order_line_id = cast(str, line["id"])
         try:
             _, pk = from_global_id_or_error(
                 order_line_id, only_type="OrderLine", raise_error=True
             )
-            input_lines_data[pk] = int(line["quantity"])
-        except GraphQLError as e:
+            uuid_pk = uuid.UUID(pk)
+            reason = cast(Optional[str], line.get("reason"))
+            granted_refund_lines[uuid_pk] = models.OrderGrantedRefundLine(
+                order_line_id=uuid_pk,
+                quantity=int(line["quantity"]),
+                reason=reason,
+            )
+        except (GraphQLError, ValueError) as e:
             errors.append(
                 {
                     "line_id": order_line_id,
@@ -72,15 +91,15 @@ def get_input_lines_data(
                     "message": str(e),
                 }
             )
-    return input_lines_data
+    return granted_refund_lines
 
 
-def get_lines_map(
+def assign_order_lines(
     order: models.Order,
-    input_lines_data: dict[str, int],
+    input_lines_data: dict[uuid.UUID, models.OrderGrantedRefundLine],
     errors: list[dict[str, str]],
     error_code: str,
-) -> dict[uuid.UUID, models.OrderLine]:
+):
     input_line_ids = list(input_lines_data.keys())
     lines = order.lines.filter(id__in=input_line_ids)
     lines_dict = {line.pk: line for line in lines}
@@ -95,4 +114,5 @@ def get_lines_map(
                     "code": error_code,
                 }
             )
-    return lines_dict
+    for line_pk, order_line in lines_dict.items():
+        input_lines_data[line_pk].order_line = order_line

@@ -11738,6 +11738,9 @@ type OrderGrantedRefundLine {
 
   """Line of the order associated with this granted refund."""
   orderLine: OrderLine!
+
+  """Reason for refunding the line."""
+  reason: String
 }
 
 """Represents transaction's event."""
@@ -22870,6 +22873,9 @@ input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
 
   """The quantity of line items to be marked to refund."""
   quantity: Int!
+
+  """Reason of the granted refund for the line."""
+  reason: String
 }
 
 """

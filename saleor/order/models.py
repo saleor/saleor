@@ -864,3 +864,5 @@ class OrderGrantedRefundLine(models.Model):
     granted_refund = models.ForeignKey(
         OrderGrantedRefund, related_name="lines", on_delete=models.CASCADE
     )
+
+    reason = models.TextField(blank=True, null=True, default="")

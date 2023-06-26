@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+import graphene
+
 from saleor.core.prices import quantize_price
 
 from ....core.utils import to_global_id_or_none
@@ -35,6 +37,7 @@ mutation OrderGrantRefundCreate(
           id
         }
         quantity
+        reason
       }
     }
     order{
@@ -60,6 +63,7 @@ mutation OrderGrantRefundCreate(
             id
           }
           quantity
+          reason
         }
       }
     }
@@ -262,9 +266,19 @@ def test_grant_refund_with_only_lines(
     order_id = to_global_id_or_none(order)
     first_line = order.lines.first()
     staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    expected_reason = "Reason"
     variables = {
         "id": order_id,
-        "input": {"lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}]},
+        "input": {
+            "lines": [
+                {
+                    "id": to_global_id_or_none(first_line),
+                    "quantity": 1,
+                    "reason": expected_reason,
+                },
+            ]
+        },
     }
 
     # when
@@ -287,6 +301,8 @@ def test_grant_refund_with_only_lines(
     assert order_granted_refund["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
         first_line
     )
+    assert order_granted_refund["lines"][0]["reason"] == expected_reason
+
     assert granted_refund_from_db.amount_value == first_line.unit_price_gross_amount * 1
     assert quantize_price(
         granted_refund_from_db.amount_value, order.currency
@@ -296,6 +312,7 @@ def test_grant_refund_with_only_lines(
     granted_refund_line = granted_refund_from_db.lines.first()
     assert granted_refund_line.order_line == first_line
     assert granted_refund_line.quantity == 1
+    assert granted_refund_line.reason == expected_reason
 
 
 def test_grant_refund_with_include_grant_refund_for_shipping_and_lines(
@@ -444,7 +461,9 @@ def test_grant_refund_with_incorrect_line_id(
     variables = {
         "id": order_id,
         "input": {
-            "lines": [{"id": "incorrect_id", "quantity": 1}],
+            "lines": [
+                {"id": graphene.Node.to_global_id("OrderLine", 1), "quantity": 1}
+            ],
         },
     }
 
@@ -461,7 +480,8 @@ def test_grant_refund_with_incorrect_line_id(
     assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
     assert len(error["lines"]) == 1
     line = error["lines"][0]
-    assert line["lineId"] == "incorrect_id"
+    print(line)
+    assert line["lineId"] == graphene.Node.to_global_id("OrderLine", 1)
     assert line["field"] == "id"
     assert line["code"] == OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.name
 

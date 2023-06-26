@@ -1,5 +1,5 @@
 import decimal
-from typing import Any, Optional, Union, cast
+from typing import Any, Optional, Union
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -17,8 +17,8 @@ from ...core.types.common import Error, NonNullList
 from ..enums import OrderGrantRefundCreateErrorCode, OrderGrantRefundCreateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
+    assign_order_lines,
     get_input_lines_data,
-    get_lines_map,
     handle_lines_with_quantity_already_refunded,
     shipping_costs_already_granted,
 )
@@ -52,6 +52,7 @@ class OrderGrantRefundCreateLineInput(BaseInputObjectType):
     quantity = graphene.Int(
         description="The quantity of line items to be marked to refund.", required=True
     )
+    reason = graphene.String(description="Reason of the granted refund for the line.")
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -112,14 +113,12 @@ class OrderGrantRefundCreate(BaseMutation):
         cls,
         order: models.Order,
         lines: list[dict[str, Union[str, int]]],
-    ) -> tuple[
-        Optional[list[tuple[models.OrderLine, int]]], Optional[list[dict[str, str]]]
-    ]:
+    ) -> tuple[list[models.OrderGrantedRefundLine], Optional[list[dict[str, str]]]]:
         errors: list[dict[str, str]] = []
         input_lines_data = get_input_lines_data(
             lines, errors, OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.value
         )
-        lines_dict = get_lines_map(
+        assign_order_lines(
             order,
             input_lines_data,
             errors,
@@ -127,29 +126,29 @@ class OrderGrantRefundCreate(BaseMutation):
         )
         handle_lines_with_quantity_already_refunded(
             order,
-            lines_dict,
             input_lines_data,
             errors,
             OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
         )
 
         if errors:
-            return None, errors
+            return [], errors
 
-        return [
-            (line, input_lines_data[str(line.pk)]) for line in lines_dict.values()
-        ], None
+        return list(input_lines_data.values()), None
 
     @classmethod
     def calculate_amount(
         cls,
         order: models.Order,
-        cleaned_input_lines: list[tuple[models.OrderLine, int]],
+        cleaned_input_lines: list[models.OrderGrantedRefundLine],
         grant_refund_for_shipping: bool,
     ) -> decimal.Decimal:
         amount = decimal.Decimal(0)
-        for line, quantity in cleaned_input_lines:
-            amount += line.unit_price_gross_amount * quantity
+        for granted_refund_line in cleaned_input_lines:
+            amount += (
+                granted_refund_line.order_line.unit_price_gross_amount
+                * granted_refund_line.quantity
+            )
         if grant_refund_for_shipping:
             amount += order.shipping_price_gross_amount
         return amount
@@ -189,7 +188,7 @@ class OrderGrantRefundCreate(BaseMutation):
 
         cls.validate_input(input)
 
-        cleaned_input_lines: Optional[list[tuple[models.OrderLine, int]]] = []
+        cleaned_input_lines: list[models.OrderGrantedRefundLine] = []
         if input_lines:
             cleaned_input_lines, errors = cls.clean_input_lines(order, input_lines)
             if errors:
@@ -214,9 +213,6 @@ class OrderGrantRefundCreate(BaseMutation):
             )
 
         if amount is None:
-            cleaned_input_lines = cast(
-                list[tuple[models.OrderLine, int]], cleaned_input_lines
-            )
             amount = cls.calculate_amount(
                 order, cleaned_input_lines, grant_refund_for_shipping
             )
@@ -249,14 +245,8 @@ class OrderGrantRefundCreate(BaseMutation):
                 shipping_costs_included=grant_refund_for_shipping or False,
             )
             if cleaned_input_lines:
-                models.OrderGrantedRefundLine.objects.bulk_create(
-                    [
-                        models.OrderGrantedRefundLine(
-                            order_line=line,
-                            quantity=quantity,
-                            granted_refund=granted_refund,
-                        )
-                        for line, quantity in cleaned_input_lines
-                    ]
-                )
+                for line in cleaned_input_lines:
+                    line.granted_refund = granted_refund
+                models.OrderGrantedRefundLine.objects.bulk_create(cleaned_input_lines)
+
         return cls(order=order, granted_refund=granted_refund)
