@@ -10,7 +10,7 @@ from ..product.utils import (
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
-from .utils import checkout_create
+from .utils import checkout_create, checkout_shipping_address_update
 
 
 def test_process_checkout_with_physical_product(
@@ -83,9 +83,14 @@ def test_process_checkout_with_physical_product(
     ]
     checkout_data = checkout_create(e2e_not_logged_api_client, lines, channel_slug)
     checkout_id = checkout_data["id"]
-    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
     assert checkout_data["isShippingRequired"] is True
     assert checkout_data["shippingMethods"] == []
     assert checkout_data["deliveryMethod"] is None
     assert checkout_data["shippingMethod"] is None
+
+    # Step 2
+    checkout_data = checkout_shipping_address_update(
+        e2e_not_logged_api_client, checkout_id
+    )
+    assert len(checkout_data["shippingMethods"]) > 0
