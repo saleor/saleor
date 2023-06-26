@@ -1,5 +1,5 @@
 from ..channel.utils import create_channel
-from ..product.utils import create_category, create_product_type
+from ..product.utils import create_category, create_product, create_product_type
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
@@ -44,9 +44,10 @@ def test_process_checkout_with_physical_product(
     category_data = create_category(e2e_staff_api_client)
     category_id = category_data["id"]
 
+    product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
+    product_id = product_data["id"]
     # when
 
     # then
     assert channel_slug
-    assert product_type_id
-    assert category_id
+    assert product_id
