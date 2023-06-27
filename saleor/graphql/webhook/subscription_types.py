@@ -192,7 +192,7 @@ class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
         root_type = "User"
         enable_dry_run = False
         interfaces = (Event,)
-        description = "Event sent when account delete requested." + ADDED_IN_315
+        description = "Event sent when account delete is requested." + ADDED_IN_315
 
 
 class AddressBase(AbstractType):

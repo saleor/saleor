@@ -93,7 +93,7 @@ def test_account_confirmation_requested(
             "user": customer_user,
             "channel_slug": channel_USD.slug,
             "token": "token",
-            "redirect_url": "http://www.example.com?token=token",
+            "redirect_url": "http://www.mirumee.com?token=token",
         },
         webhooks,
     )
@@ -120,7 +120,7 @@ def test_account_delete_requested(
             "user": customer_user,
             "channel_slug": channel_USD.slug,
             "token": "token",
-            "redirect_url": "http://www.example.com?token=token",
+            "redirect_url": "http://www.mirumee.com?token=token",
         },
         webhooks,
     )

@@ -1688,10 +1688,10 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
-  """An account confirmation requested."""
+  """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """An account delete requested."""
+  """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
 
   """A new address created."""
@@ -2325,10 +2325,10 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
-  """An account confirmation requested."""
+  """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """An account delete requested."""
+  """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
 
   """A new address created."""
@@ -27476,7 +27476,7 @@ type AccountConfirmationRequested implements Event @doc(category: "Users") {
 }
 
 """
-Event sent when account delete requested.
+Event sent when account delete is requested.
 
 Added in Saleor 3.15.
 """

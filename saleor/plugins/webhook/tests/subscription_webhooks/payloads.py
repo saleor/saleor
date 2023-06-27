@@ -14,7 +14,7 @@ def generate_account_events_payload(customer_user, channel):
             **generate_customer_payload(customer_user),
             **{
                 "token": "token",
-                "redirectUrl": "http://www.example.com?token=token",
+                "redirectUrl": "http://www.mirumee.com?token=token",
                 "channel": {
                     "slug": channel.slug,
                     "id": graphene.Node.to_global_id("Channel", channel.id),
