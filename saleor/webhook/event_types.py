@@ -20,6 +20,7 @@ class WebhookEventAsyncType:
     ANY = "any_events"
 
     ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+    ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
 
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
@@ -175,6 +176,7 @@ class WebhookEventAsyncType:
     DISPLAY_LABELS = {
         ANY: "Any events",
         ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
+        ACCOUNT_DELETE_REQUESTED: "Account delete requested",
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
         ADDRESS_DELETED: "Address deleted",
@@ -301,6 +303,7 @@ class WebhookEventAsyncType:
             ACCOUNT_CONFIRMATION_REQUESTED,
             DISPLAY_LABELS[ACCOUNT_CONFIRMATION_REQUESTED],
         ),
+        (ACCOUNT_DELETE_REQUESTED, DISPLAY_LABELS[ACCOUNT_DELETE_REQUESTED]),
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
         (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
         (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
@@ -434,6 +437,7 @@ class WebhookEventAsyncType:
 
     PERMISSIONS = {
         ACCOUNT_CONFIRMATION_REQUESTED: AccountPermissions.MANAGE_USERS,
+        ACCOUNT_DELETE_REQUESTED: AccountPermissions.MANAGE_USERS,
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,
