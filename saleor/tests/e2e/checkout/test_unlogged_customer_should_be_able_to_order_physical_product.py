@@ -95,7 +95,9 @@ def test_process_checkout_with_physical_product(
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
-    checkout_data = checkout_create(e2e_not_logged_api_client, lines, channel_slug)
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client, lines, channel_slug, set_default_billing_address=True
+    )
     checkout_id = checkout_data["id"]
 
     assert checkout_data["isShippingRequired"] is True
@@ -107,4 +109,5 @@ def test_process_checkout_with_physical_product(
     checkout_data = checkout_shipping_address_update(
         e2e_not_logged_api_client, checkout_id
     )
-    assert len(checkout_data["shippingMethods"]) > 0
+    assert len(checkout_data["shippingMethods"]) == 1
+    shipping_method_id = checkout_data["shippingMethods"][0]["id"]

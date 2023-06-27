@@ -1,4 +1,5 @@
 from ...utils import get_graphql_content
+from .. import DEFAULT_ADDRESS
 
 CHECKOUT_CREATE_MUTATION = """
 mutation CreateCheckout($input: CheckoutCreateInput!) {
@@ -40,7 +41,13 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
 """
 
 
-def checkout_create(api_client, lines, channel_slug, email="testEmail@example.com"):
+def checkout_create(
+    api_client,
+    lines,
+    channel_slug,
+    email="testEmail@example.com",
+    set_default_billing_address=False,
+):
     variables = {
         "input": {
             "channel": channel_slug,
@@ -48,6 +55,9 @@ def checkout_create(api_client, lines, channel_slug, email="testEmail@example.co
             "lines": lines,
         }
     }
+
+    if set_default_billing_address:
+        variables["input"]["billingAddress"] = DEFAULT_ADDRESS
 
     response = api_client.post_graphql(
         CHECKOUT_CREATE_MUTATION,

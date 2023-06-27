@@ -1,4 +1,5 @@
 from ...utils import get_graphql_content
+from .. import DEFAULT_ADDRESS
 
 CHECKOUT_BILLING_ADDRESS_UPDATE_MUTATION = """
 mutation CheckoutBillingAddressUpdate(
@@ -28,19 +29,6 @@ mutation CheckoutBillingAddressUpdate(
   }
 }
 """
-
-DEFAULT_ADDRESS = {
-    "firstName": "John Saleor",
-    "lastName": "Doe Mirumee",
-    "companyName": "Saleor Commerce",
-    "streetAddress1": "14208 Hawthorne Blvd",
-    "streetAddress2": "",
-    "postalCode": "90250",
-    "country": "US",
-    "city": "Hawthorne",
-    "countryArea": "CA",
-    "phone": "+12025550163",
-}
 
 
 def checkout_billing_address_update(api_client, checkout_id, address=DEFAULT_ADDRESS):
