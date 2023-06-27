@@ -36,8 +36,6 @@ All notable, unreleased changes to this project will be documented in this file.
 ### Other changes
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
-
-- Fix Error Cannot return null for non-nullable field Webhook.name. - #12989 by @cyborg7898
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
 - Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
 - Add missing descriptions to App module. - #13163 by @fowczarek
