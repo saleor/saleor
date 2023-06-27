@@ -36,7 +36,8 @@ def convert_void_to_cancel(apps, schema_editor):
             current_available_actions = transaction_item.available_actions
             if "void" in current_available_actions:
                 current_available_actions.remove("void")
-                current_available_actions.append("cancel")
+                if "cancel" not in current_available_actions:
+                    current_available_actions.append("cancel")
         TransactionItem.objects.bulk_update(transactions, ["available_actions"])
 
 

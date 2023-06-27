@@ -7,7 +7,9 @@ BATCH_SIZE = 5000
 
 @app.task
 def drop_status_field_from_transaction_event_task():
-    qs = OrderEvent.objects.filter(type="transaction_event")
+    qs = OrderEvent.objects.filter(
+        type="transaction_event", parameters__has_key="status"
+    )
     event_ids = qs.values_list("pk", flat=True)[:BATCH_SIZE]
     if event_ids:
         events_to_update = []
