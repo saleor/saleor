@@ -34,8 +34,9 @@ order_updated_event_enum_description = (
 
 WEBHOOK_EVENT_DESCRIPTION = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: (
-        "An account confirmation requested."
+        "An account confirmation is requested."
     ),
+    WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: "An account delete is requested.",
     WebhookEventAsyncType.ADDRESS_CREATED: "A new address created.",
     WebhookEventAsyncType.ADDRESS_UPDATED: "An address updated.",
     WebhookEventAsyncType.ADDRESS_DELETED: "An address deleted.",
