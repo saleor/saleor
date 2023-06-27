@@ -974,7 +974,7 @@ type Query {
     filter: GiftCardFilterInput
 
     """
-    Look up gift cards by multiple fields.
+    Search gift cards by email and name of user, who created or used the gift card, and by code.
     
     Added in Saleor 3.15.
     

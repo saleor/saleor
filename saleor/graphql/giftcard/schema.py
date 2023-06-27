@@ -51,7 +51,8 @@ class GiftCardQueries(graphene.ObjectType):
             description=("Filtering options for gift cards." + ADDED_IN_31)
         ),
         search=graphene.String(
-            description="Look up gift cards by multiple fields."
+            description="Search gift cards by email and name of user, "
+            "who created or used the gift card, and by code."
             + ADDED_IN_315
             + PREVIEW_FEATURE
         ),

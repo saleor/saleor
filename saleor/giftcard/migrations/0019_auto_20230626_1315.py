@@ -23,4 +23,12 @@ class Migration(migrations.Migration):
                 blank=True, null=True
             ),
         ),
+        migrations.RunSQL(
+            """
+            ALTER TABLE giftcard_giftcard
+            ALTER COLUMN search_index_dirty
+            SET DEFAULT true;
+            """,
+            migrations.RunSQL.noop,
+        ),
     ]
