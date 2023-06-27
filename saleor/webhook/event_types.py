@@ -19,6 +19,8 @@ from ..permission.enums import (
 class WebhookEventAsyncType:
     ANY = "any_events"
 
+    ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
     ADDRESS_DELETED = "address_deleted"
@@ -172,6 +174,7 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
         ADDRESS_DELETED: "Address deleted",
@@ -294,6 +297,10 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (
+            ACCOUNT_CONFIRMATION_REQUESTED,
+            DISPLAY_LABELS[ACCOUNT_CONFIRMATION_REQUESTED],
+        ),
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
         (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
         (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
@@ -426,6 +433,7 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        ACCOUNT_CONFIRMATION_REQUESTED: AccountPermissions.MANAGE_USERS,
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,

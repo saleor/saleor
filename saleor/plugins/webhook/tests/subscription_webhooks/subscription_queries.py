@@ -1,5 +1,33 @@
 from .....graphql.tests.queries import fragments
 
+ACCOUNT_CONFIRMATION_REQUESTED = (
+    fragments.CUSTOMER_DETAILS
+    + """
+    subscription{
+      event{
+        ...on AccountConfirmationRequested{
+          user{
+            ...CustomerDetails
+          }
+          token
+          redirectUrl
+          channel{
+            slug
+            id
+          }
+          shop{
+            domain{
+                host
+                url
+            }
+          }
+        }
+      }
+    }
+"""
+)
+
+
 ADDRESS_CREATED = (
     fragments.ADDRESS_DETAILS
     + """

@@ -78,6 +78,48 @@ def test_subscription_query_with_meta(
     assert deliveries[0].webhook == webhooks[0]
 
 
+def test_account_confirmation_requested(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.example.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = json.dumps(
+        {
+            **generate_customer_payload(customer_user),
+            **{
+                "token": "token",
+                "redirectUrl": "http://www.example.com?token=token",
+                "channel": {
+                    "slug": channel_USD.slug,
+                    "id": graphene.Node.to_global_id("Channel", channel_USD.id),
+                },
+                "shop": {
+                    "domain": {"host": "mirumee.com", "url": "http://mirumee.com/"}
+                },
+            },
+        }
+    )
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
 def test_address_created(address, subscription_address_created_webhook):
     # given
     webhooks = [subscription_address_created_webhook]

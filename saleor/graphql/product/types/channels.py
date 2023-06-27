@@ -5,7 +5,6 @@ from typing import List, Optional
 import graphene
 from promise import Promise
 
-from ....core.utils import get_currency_for_country
 from ....graphql.core.types import Money, MoneyRange
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -241,7 +240,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
 
                         def calculate_pricing_info(data):
                             country_rates, default_country_rate_obj = data
-                            local_currency = get_currency_for_country(country_code)
 
                             tax_config_country = next(
                                 (
@@ -271,7 +269,6 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
                             availability = get_product_availability(
                                 product_channel_listing=root,
                                 variants_channel_listing=variants_channel_listing,
-                                local_currency=local_currency,
                                 prices_entered_with_tax=prices_entered_with_tax,
                                 tax_calculation_strategy=tax_calculation_strategy,
                                 tax_rate=tax_rate,

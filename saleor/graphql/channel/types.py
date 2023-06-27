@@ -228,7 +228,7 @@ class OrderSettings(ObjectType):
 
 
 class Channel(ModelObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the channel.")
     slug = graphene.String(
         required=True,
         description="Slug of the channel.",
