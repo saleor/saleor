@@ -157,6 +157,12 @@ class BasePlugin:
         ["User", str, str, Optional[str], None], None
     ]
 
+    # Trigger when account delete is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # delete is requested.
+    account_delete_requested: Callable[["User", str, str, str, None], None]
+
     # Trigger when address is created.
     #
     # Overwrite this method if you need to trigger specific logic after an address is

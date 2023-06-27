@@ -1688,8 +1688,11 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
-  """An account confirmation requested."""
+  """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
+
+  """An account delete is requested."""
+  ACCOUNT_DELETE_REQUESTED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -2322,8 +2325,11 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
-  """An account confirmation requested."""
+  """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
+
+  """An account delete is requested."""
+  ACCOUNT_DELETE_REQUESTED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -3324,6 +3330,7 @@ scalar JSONString
 """An enumeration."""
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
+  ACCOUNT_DELETE_REQUESTED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -27440,6 +27447,40 @@ Event sent when account confirmation requested. This event is always sent. enabl
 Added in Saleor 3.15.
 """
 type AccountConfirmationRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account delete is requested.
+
+Added in Saleor 3.15.
+"""
+type AccountDeleteRequested implements Event @doc(category: "Users") {
   """Time of the event."""
   issuedAt: DateTime
 
