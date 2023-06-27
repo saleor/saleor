@@ -4825,6 +4825,17 @@ type Channel implements Node @doc(category: "Channels") {
   Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
   """
   orderSettings: OrderSettings!
+
+  """
+  Channel-specific checkout settings.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
+  """
+  checkoutSettings: CheckoutSettings!
 }
 
 """
@@ -5304,6 +5315,22 @@ enum TransactionFlowStrategyEnum @doc(category: "Payments") {
 
 """The `Day` scalar type represents number of days by integer value."""
 scalar Day
+
+"""
+Represents the channel-specific checkout settings.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutSettings {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one.
+  
+  Added in Saleor 3.15.This field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean!
+}
 
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
@@ -16712,7 +16739,7 @@ type Mutation {
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
-  Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+  Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -25330,6 +25357,15 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   orderSettings: OrderSettingsInput
 
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
+
   """Name of the channel."""
   name: String!
 
@@ -25404,11 +25440,22 @@ input OrderSettingsInput @doc(category: "Orders") {
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
 }
 
+input CheckoutSettingsInput @doc(category: "Checkout") {
+  """
+  Default `true`. Determines if the checkout mutations should use legacy error flow. In legacy flow, all mutations can raise an exception unrelated to the requested action - (e.g. out-of-stock exception when updating checkoutShippingAddress.) If `false`, the errors will be aggregated in `checkout.problems` field. Some of the `problems` can block the finalizing checkout process. The legacy flow will be removed in Saleor 4.0. The flow with `checkout.problems` will be the default one. 
+  
+  Added in Saleor 3.15.
+  
+  DEPRECATED: this field will be removed in Saleor 4.0.
+  """
+  useLegacyErrorFlow: Boolean
+}
+
 """
 Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
-Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+Requires one of the following permissions when updating only `orderSettings` field: MANAGE_CHANNELS, MANAGE_ORDERS.Requires one of the following permissions when updating only `checkoutSettings` field: MANAGE_CHANNELS, MANAGE_CHECKOUTS.
 """
 type ChannelUpdate @doc(category: "Channels") {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25443,6 +25490,15 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.12.
   """
   orderSettings: OrderSettingsInput
+
+  """
+  The channel checkout settings
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  checkoutSettings: CheckoutSettingsInput
 
   """Name of the channel."""
   name: String
