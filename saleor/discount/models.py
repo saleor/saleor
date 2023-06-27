@@ -495,8 +495,12 @@ class BaseDiscount(models.Model):
     sale = models.ForeignKey(
         Sale, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
     )
-    promotion = models.ForeignKey(
-        Promotion, related_name="+", blank=True, null=True, on_delete=models.SET_NULL
+    promotion_rule = models.ForeignKey(
+        PromotionRule,
+        related_name="+",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
     )
     voucher = models.ForeignKey(
         Voucher, related_name="+", blank=True, null=True, on_delete=models.SET_NULL

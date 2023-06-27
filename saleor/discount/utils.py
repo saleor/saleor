@@ -215,7 +215,7 @@ def calculate_discounted_price_for_promotions(
     rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[PromotionRule, Money]]:
+) -> List[Tuple[int, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
     applied_discounts = []
     if rules_info_per_promotion_id:
@@ -230,7 +230,7 @@ def get_best_promotion_discount(
     rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> List[Tuple[PromotionRule, Money]]:
+) -> List[Tuple[int, Money]]:
     """Return the rules with the discount amounts for the best promotion.
 
     The data for the promotion that gives the best saving are returned in the following
@@ -839,7 +839,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             discount_to_update = rule_id_to_discount.get(
                 variant_listing_promotion_rule.promotion_rule
             )
-            if not discounts_to_update:
+            if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
                     type=DiscountType.PROMOTION,
@@ -851,7 +851,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                     # TODO: set the promotion translation
                     translated_name="",
                     reason=None,
-                    promotion_id=rule.promotion_id,
+                    promotion_rule=rule,
                 )
                 line_discounts_to_create.append(line_discount)
                 line_info.discounts.append(line_discount)
@@ -914,7 +914,12 @@ def _get_discount_amount(
 ) -> Decimal:
     price_amount = variant_channel_listing.price_amount
     discounted_price_amount = variant_channel_listing.discounted_price_amount
-    if price_amount == discounted_price_amount:
+
+    if (
+        price_amount is None
+        or discounted_price_amount is None
+        or price_amount == discounted_price_amount
+    ):
         return Decimal("0.0")
 
     unit_discount = price_amount - discounted_price_amount
