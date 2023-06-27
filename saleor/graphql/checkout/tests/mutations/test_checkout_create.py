@@ -8,7 +8,6 @@ import pytz
 from django.test import override_settings
 from django.utils import timezone
 
-from .....account.models import Address
 from .....channel.utils import DEPRECATION_WARNING_MESSAGE
 from .....checkout import AddressType
 from .....checkout.error_codes import CheckoutErrorCode
