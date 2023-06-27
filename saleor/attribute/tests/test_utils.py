@@ -47,13 +47,19 @@ def test_associate_attribute_to_product_instance_without_values(product):
     assert new_assignment.values.count() == 0
 
 
-def test_associate_attribute_to_product_instance_multiple_values(product):
+def test_associate_attribute_to_product_instance_multiple_values(
+    product, attribute_value_generator
+):
     """Ensure multiple values in proper order are assigned."""
     old_assignment = product.attributes.first()
     assert old_assignment is not None, "The product doesn't have attribute-values"
     assert old_assignment.values.count() == 1
 
     attribute = old_assignment.attribute
+    attribute_value_generator(
+        attribute=attribute,
+        slug="attr-value2",
+    )
     values = attribute.values.all()
 
     # Assign new values
@@ -91,10 +97,16 @@ def test_associate_attribute_to_page_instance_multiple_values(page):
     ) == [(values[1].pk, 0), (values[0].pk, 1)]
 
 
-def test_associate_attribute_to_variant_instance_multiple_values(variant):
+def test_associate_attribute_to_variant_instance_multiple_values(
+    variant, attribute_value_generator
+):
     """Ensure multiple values in proper order are assigned."""
 
     attribute = variant.product.product_type.variant_attributes.first()
+    attribute_value_generator(
+        attribute=attribute,
+        slug="attr-value2",
+    )
     values = attribute.values.all()
 
     new_assignment = associate_attribute_values_to_instance(
