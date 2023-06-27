@@ -1,14 +1,17 @@
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Optional
 
 from ...account.models import Address
 from ...channel.models import Channel
+
+if TYPE_CHECKING:
+    from ...graphql.account.types import AddressInput
 
 
 def get_active_country(
     channel: "Channel",
     shipping_address: Optional["Address"] = None,
     billing_address: Optional["Address"] = None,
-    address_data: Optional[Dict[str, Any]] = None,
+    address_data: Optional["AddressInput"] = None,
 ):
     """Get country code for orders, checkouts and tax calculations.
 
