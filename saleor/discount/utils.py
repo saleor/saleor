@@ -212,46 +212,54 @@ def get_sale_id_applied_as_a_discount(
 def calculate_discounted_price_for_promotions(
     *,
     price: Money,
-    rules_info: List[PromotionRuleInfo],
+    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[Optional[int], Money]:
+) -> List[Tuple[PromotionRule, Money]]:
     """Return minimum product's price of all prices with promotions applied."""
-    rule_id = None
-    if rules_info:
-        rule_id, price = get_rule_id_with_min_price(
-            price=price,
-            rules_info=rules_info,
-            channel=channel,
-            variant_id=variant_id,
+    applied_discounts = []
+    if rules_info_per_promotion_id:
+        applied_discounts = get_best_promotion_discount(
+            price, rules_info_per_promotion_id, channel, variant_id
         )
-    return rule_id, price
+    return applied_discounts
 
 
-def get_rule_id_with_min_price(
-    *,
+def get_best_promotion_discount(
     price: Money,
-    rules_info: List[PromotionRuleInfo],
+    rules_info_per_promotion_id: Dict[int, List[PromotionRuleInfo]],
     channel: "Channel",
     variant_id: Optional[int] = None,
-) -> Tuple[Optional[int], Money]:
-    """Return a rule_id and minimum product's price."""
-    available_discounts = [
-        (rule_id, discount)
-        for rule_id, discount in get_product_promotion_discounts(
-            rules_info=rules_info,
-            channel=channel,
-            variant_id=variant_id,
-        )
-    ]
-    if not available_discounts:
-        return None, price
+) -> List[Tuple[PromotionRule, Money]]:
+    """Return the rules with the discount amounts for the best promotion.
 
-    applied_discount = min(
-        [(rule_id, discount(price)) for rule_id, discount in available_discounts],
-        key=lambda d: d[1],  # sort over a min price
+    The data for the promotion that gives the best saving are returned in the following
+    shape:
+    [
+        (rule_id_1, discount_amount_1),
+        (rule_id_2, discount_amount_2),
+    ]
+    """
+    available_discounts = [
+        [
+            (rule_id, discount)
+            for rule_id, discount in get_product_promotion_discounts(
+                rules_info=rules_info,
+                channel=channel,
+                variant_id=variant_id,
+            )
+        ]
+        for _, rules_info in rules_info_per_promotion_id.items()
+    ]
+    applied_discounts = max(
+        [
+            [(rule_id, price - discount(price)) for rule_id, discount in discounts]
+            for discounts in available_discounts
+        ],
+        key=lambda x: sum(y[1].amount for y in x),  # sort over a max discount
     )
-    return applied_discount
+
+    return applied_discounts
 
 
 def get_product_promotion_discounts(
@@ -926,20 +934,19 @@ def generate_sale_discount_objects_for_checkout(
 def fetch_active_promotion_rules(
     variant_qs: "ProductVariantQueryset",
     date: Optional[datetime.date] = None,
-) -> List[PromotionRuleInfo]:
+) -> Dict[int, List[PromotionRuleInfo]]:
     from ..graphql.discount.utils import get_variants_for_predicate
 
-    if date is None:
-        date = timezone.now()
-    promotions = Promotion.objects.active()
+    rules_info_per_promotion_id = defaultdict(list)
+
+    promotions = Promotion.objects.active(date)
     rules = PromotionRule.objects.filter(
         Exists(promotions.filter(id=OuterRef("promotion_id")))
     ).prefetch_related("channels")
     rule_to_channel_ids_map = _get_rule_to_channel_ids_map(rules)
-    infos = []
     for rule in rules.iterator():
         variants = get_variants_for_predicate(rule.catalogue_predicate, variant_qs)
-        infos.append(
+        rules_info_per_promotion_id[rule.promotion_id].append(
             PromotionRuleInfo(
                 rule=rule,
                 variants=variants,
@@ -947,7 +954,7 @@ def fetch_active_promotion_rules(
                 channel_ids=rule_to_channel_ids_map.get(rule.id, []),
             )
         )
-    return infos
+    return rules_info_per_promotion_id
 
 
 def _get_rule_to_channel_ids_map(rules: QuerySet):
