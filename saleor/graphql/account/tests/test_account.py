@@ -1617,6 +1617,44 @@ def test_customer_register(
     assert customer_creation_event.user == new_user
 
 
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_confirmation_requested")
+def test_customer_register_send_account_confirmation_requested_event(
+    account_confirmation_requested_mock,
+    mocked_generator,
+    api_client,
+    channel_USD,
+):
+    # given
+    mocked_generator.return_value = "token"
+
+    email = "customer@example.com"
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "email": email,
+        "password": "Password",
+        "redirectUrl": redirect_url,
+        "channel": channel_USD.slug,
+    }
+
+    #   when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    errors = response.json()["data"]["accountRegister"]["errors"]
+
+    # then
+    assert errors == []
+    created_user = User.objects.get()
+    account_confirmation_requested_mock.assert_called_once_with(
+        created_user,
+        channel_USD.slug,
+        "token",
+        redirect_url + "?email=customer%40example.com&token=token",
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_register_disabled_email_confirmation(
     mocked_notify, api_client, site_settings
