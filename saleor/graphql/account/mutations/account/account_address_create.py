@@ -3,6 +3,7 @@ from typing import cast
 import graphene
 
 from .....account import models, search, utils
+from .....account.error_codes import AccountErrorCode
 from .....account.utils import (
     remove_the_oldest_user_address_if_address_limit_is_reached,
 )
@@ -55,6 +56,10 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(info=info, instance=Address(), data=input)
         with traced_atomic_transaction():
             address = cls.validate_address(cleaned_input, address_type=address_type)
+            # Check for invalid fields and return errors if necessary
+            invalid_fields = cls.get_invalid_fields(cleaned_input)
+            if invalid_fields:
+                return cls.handle_invalid_fields(invalid_fields)
             cls.clean_instance(info, address)
             cls.save(info, address, cleaned_input)
             cls._save_m2m(info, address, cleaned_input)
@@ -62,6 +67,29 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
                 manager = get_plugin_manager_promise(info.context).get()
                 utils.change_user_default_address(user, address, address_type, manager)
         return AccountAddressCreate(user=user, address=address)
+
+    @classmethod
+    def get_invalid_fields(cls, cleaned_input):
+        invalid_fields = []
+        for field, value in cleaned_input.items():
+            if not value and field not in (
+                "is_default_shipping_address",
+                "is_default_billing_address",
+            ):
+                invalid_fields.append(field)
+        return invalid_fields
+
+    @classmethod
+    def handle_invalid_fields(cls, invalid_fields):
+        errors = []
+        for field in invalid_fields:
+            error = AccountError(
+                field=field,
+                code=AccountErrorCode.INVALID.value,
+                message=f"Invalid value for field '{field}'.",
+            )
+            errors.append(error)
+        raise ValueError(errors)
 
     @classmethod
     def save(cls, info: ResolveInfo, instance, cleaned_input):
