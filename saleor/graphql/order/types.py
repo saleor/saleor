@@ -205,6 +205,7 @@ class OrderGrantedRefundLine(ModelObjectType[models.OrderGrantedRefundLine]):
         description="Line of the order associated with this granted refund.",
         required=True,
     )
+    reason = graphene.String(description="Reason for refunding the line.")
 
     class Meta:
         description = "Represents granted refund line." + ADDED_IN_315 + PREVIEW_FEATURE

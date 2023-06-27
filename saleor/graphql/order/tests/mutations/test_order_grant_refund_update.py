@@ -39,6 +39,7 @@ mutation OrderGrantRefundUpdate(
           id
         }
         quantity
+        reason
       }
     }
     order {
@@ -64,6 +65,7 @@ mutation OrderGrantRefundUpdate(
             id
           }
           quantity
+          reason
         }
       }
     }
@@ -521,12 +523,17 @@ def test_grant_refund_update_with_only_add_lines(
     app_api_client.app.permissions.set([permission_manage_orders])
 
     expected_quantity = 1
+    expected_reason = "Reason"
 
     variables = {
         "id": granted_refund_id,
         "input": {
             "addLines": [
-                {"id": to_global_id_or_none(order_line), "quantity": expected_quantity}
+                {
+                    "id": to_global_id_or_none(order_line),
+                    "quantity": expected_quantity,
+                    "reason": expected_reason,
+                }
             ]
         },
     }
@@ -545,11 +552,14 @@ def test_grant_refund_update_with_only_add_lines(
     assert granted_refund_data["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
         order_line
     )
+    assert granted_refund_data["lines"][0]["quantity"] == expected_quantity
+    assert granted_refund_data["lines"][0]["reason"] == expected_reason
 
     assert len(granted_refund.lines.all()) == 1
     granted_refund_line = granted_refund.lines.first()
     assert granted_refund_line.order_line == order_line
     assert granted_refund_line.quantity == expected_quantity
+    assert granted_refund_line.reason == expected_reason
 
     assert (
         granted_refund.amount_value

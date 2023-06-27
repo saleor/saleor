@@ -18,8 +18,8 @@ from ...core.utils import from_global_id_or_error
 from ..enums import OrderGrantRefundUpdateErrorCode, OrderGrantRefundUpdateLineErrorCode
 from ..types import Order, OrderGrantedRefund
 from .order_grant_refund_utils import (
+    assign_order_lines,
     get_input_lines_data,
-    get_lines_map,
     handle_lines_with_quantity_already_refunded,
     shipping_costs_already_granted,
 )
@@ -61,6 +61,7 @@ class OrderGrantRefundUpdateLineAddInput(BaseInputObjectType):
     quantity = graphene.Int(
         description="The quantity of line items to be marked to refund.", required=True
     )
+    reason = graphene.String(description="Reason of the granted refund for the line.")
 
     class Meta:
         doc_category = DOC_CATEGORY_ORDERS
@@ -191,11 +192,11 @@ class OrderGrantRefundUpdate(BaseMutation):
         lines: list[dict[str, Union[str, int]]],
         errors: list[dict[str, Any]],
         line_ids_exclude: list[int],
-    ):
+    ) -> list[models.OrderGrantedRefundLine]:
         input_lines_data = get_input_lines_data(
             lines, errors, OrderGrantRefundUpdateLineErrorCode.GRAPHQL_ERROR.value
         )
-        lines_dict = get_lines_map(
+        assign_order_lines(
             order,
             input_lines_data,
             errors,
@@ -203,14 +204,13 @@ class OrderGrantRefundUpdate(BaseMutation):
         )
         handle_lines_with_quantity_already_refunded(
             order,
-            lines_dict,
             input_lines_data,
             errors,
             OrderGrantRefundUpdateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.value,
             granted_refund_lines_to_exclude=line_ids_exclude,
         )
 
-        return [(line, input_lines_data[str(line.pk)]) for line in lines_dict.values()]
+        return list(input_lines_data.values())
 
     @classmethod
     def clean_input(
@@ -247,6 +247,8 @@ class OrderGrantRefundUpdate(BaseMutation):
             lines_to_add = cls.clean_add_lines(
                 order, add_lines, add_errors, line_ids_to_remove
             )
+            for line in lines_to_add:
+                line.granted_refund = granted_refund
 
         if add_errors:
             errors["add_lines"] = ValidationError(
@@ -290,16 +292,7 @@ class OrderGrantRefundUpdate(BaseMutation):
             if lines_to_remove:
                 granted_refund.lines.filter(id__in=lines_to_remove).delete()
             if lines_to_add:
-                granted_refund.lines.bulk_create(
-                    [
-                        models.OrderGrantedRefundLine(
-                            order_line=line,
-                            quantity=quantity,
-                            granted_refund=granted_refund,
-                        )
-                        for line, quantity in lines_to_add
-                    ]
-                )
+                granted_refund.lines.bulk_create(lines_to_add)
 
             amount = cleaned_input.get("amount")
             if amount is not None:
