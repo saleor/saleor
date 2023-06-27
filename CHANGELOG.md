@@ -14,6 +14,12 @@ All notable, unreleased changes to this project will be documented in this file.
     - `ProductPricingInfo.priceRangeLocalCurrency`
     - `VariantPricingInfo.discountLocalCurrency`
     - `VariantPricingInfo.priceLocalCurrency`
+- Change order of resolving country code in checkout - #13159 by @jakubkuc
+  - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
+  - The order of resolving the checkout country code is always as follows:
+      1. Shipping address
+      2. Billing address
+      3. Channel's default country
 
 
 ### GraphQL API
@@ -42,7 +48,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to csv module. - #13184 by @fowczarek
 - Add missing descriptions to Account module. - #13155 by @fowczarek
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
-
+- Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
+-
 # 3.14.0
 
 ### Breaking changes

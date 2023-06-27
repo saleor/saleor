@@ -150,6 +150,66 @@ class WebhookPlugin(BasePlugin):
                 metadata_updated_data, event_type, webhooks, instance, self.requestor
             )
 
+    def _trigger_account_event(
+        self, event_type, user, channel_slug, token, redirect_url
+    ):
+        if webhooks := get_webhooks_for_event(event_type):
+            payload = self._serialize_payload(
+                {
+                    "id": graphene.Node.to_global_id("User", user.id),
+                    "token": token,
+                    "redirect_url": redirect_url,
+                }
+            )
+            trigger_webhooks_async(
+                payload,
+                event_type,
+                webhooks,
+                {
+                    "user": user,
+                    "channel_slug": channel_slug,
+                    "token": token,
+                    "redirect_url": redirect_url,
+                },
+                self.requestor,
+            )
+
+    def account_confirmation_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: Optional[str],
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+        )
+
+    def account_delete_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            redirect_url,
+        )
+
     def _trigger_address_event(self, event_type, address):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
@@ -166,39 +226,6 @@ class WebhookPlugin(BasePlugin):
             )
             trigger_webhooks_async(
                 payload, event_type, webhooks, address, self.requestor
-            )
-
-    def account_confirmation_requested(
-        self,
-        user: "User",
-        channel_slug: str,
-        token: str,
-        redirect_url: Optional[str],
-        previous_value: None,
-    ) -> None:
-        if not self.active:
-            return previous_value
-        if webhooks := get_webhooks_for_event(
-            WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
-        ):
-            payload = self._serialize_payload(
-                {
-                    "id": graphene.Node.to_global_id("User", user.id),
-                    "token": token,
-                    "redirect_url": redirect_url,
-                }
-            )
-            trigger_webhooks_async(
-                payload,
-                WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
-                webhooks,
-                {
-                    "user": user,
-                    "channel_slug": channel_slug,
-                    "token": token,
-                    "redirect_url": redirect_url,
-                },
-                self.requestor,
             )
 
     def address_created(self, address: "Address", previous_value: None) -> None:
