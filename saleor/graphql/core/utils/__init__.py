@@ -150,7 +150,7 @@ CHECKOUT_CALCULATE_TAXES_MESSAGE = (
 
 
 def message_webhook_events(webhook_events: List[WebhookEventInfo]) -> str:
-    description = "\n\nTriggers below webhook events:"
+    description = "\n\nTriggers the following webhook events:"
     for event in webhook_events:
         webhook_type = "async" if event.type in WebhookEventAsyncType.ALL else "sync"
         description += f"\n- {event.type.upper()} ({webhook_type})"

@@ -102,22 +102,25 @@ class OrderCreateFromCheckout(BaseMutation):
             ),
             WebhookEventInfo(
                 type=WebhookEventSyncType.CHECKOUT_CALCULATE_TAXES,
-                description=(CHECKOUT_CALCULATE_TAXES_MESSAGE),
+                description=CHECKOUT_CALCULATE_TAXES_MESSAGE,
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ORDER_CREATED,
-                description=("Triggered when order is created."),
+                description="Triggered when order is created.",
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.NOTIFY_USER,
-                description=("A notification for order confirmation."),
+                description="A notification for order placement.",
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.NOTIFY_USER,
-                description=("A notification for order confirmed."),
+                description="A staff notification for order placement.",
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ORDER_UPDATED,
+                description=(
+                    "Triggered when order received the update after placement."
+                ),
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ORDER_PAID,
@@ -130,7 +133,7 @@ class OrderCreateFromCheckout(BaseMutation):
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ORDER_CONFIRMED,
                 description=(
-                    "Triggered when newly created order are automatically "
+                    "Optionally triggered when newly created order are automatically "
                     "marked as confirmed."
                 ),
             ),

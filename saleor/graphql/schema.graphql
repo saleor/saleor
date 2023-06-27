@@ -9729,7 +9729,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   Shipping methods that can be used with this checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
@@ -9738,7 +9738,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   Shipping methods that can be used with this checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
@@ -9754,7 +9754,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   List of available payment gateways.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - PAYMENT_LIST_GATEWAYS (sync): Fetch payment gateways available for checkout.
   """
   availablePaymentGateways: [PaymentGateway!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_LIST_GATEWAYS])
@@ -9786,7 +9786,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -9794,7 +9794,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The shipping method related with checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
@@ -9805,7 +9805,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   
   Added in Saleor 3.1.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
@@ -9814,7 +9814,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The price of the checkout before shipping, with taxes included.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   subtotalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -9832,7 +9832,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -9844,7 +9844,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   totalBalance: Money! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -9875,7 +9875,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   authorizeStatus: CheckoutAuthorizeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -9887,7 +9887,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -10215,7 +10215,7 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   """
   The unit price of the checkout line, with taxes and discounts.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   unitPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -10226,7 +10226,7 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   """
   The sum of the checkout line price, taxes and discounts.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
   totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
@@ -16018,7 +16018,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_CREATED (async): A sale was created.
   """
   saleCreate(
@@ -16031,7 +16031,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_DELETED (async): A sale was deleted.
   """
   saleDelete(
@@ -16044,7 +16044,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_DELETED (async): A sale was deleted.
   """
   saleBulkDelete(
@@ -16057,7 +16057,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_UPDATED (async): A sale was updated.
   - SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
   """
@@ -16074,7 +16074,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_UPDATED (async): A sale was updated.
   """
   saleCataloguesAdd(
@@ -16090,7 +16090,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SALE_UPDATED (async): A sale was updated.
   """
   saleCataloguesRemove(
@@ -16133,7 +16133,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_CREATED (async): A voucher was created.
   """
   voucherCreate(
@@ -16146,7 +16146,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherDelete(
@@ -16159,7 +16159,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherBulkDelete(
@@ -16172,7 +16172,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherUpdate(
@@ -16188,7 +16188,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesAdd(
@@ -16204,7 +16204,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesRemove(
@@ -16234,7 +16234,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherChannelListingUpdate(
@@ -16250,7 +16250,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
   """
   exportProducts(
@@ -16265,7 +16265,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for the exported file.
   """
   exportGiftCards(
@@ -16286,7 +16286,7 @@ type Mutation {
   """
   Adds a gift card or a voucher to a checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutAddPromoCode(
@@ -16318,7 +16318,7 @@ type Mutation {
   """
   Update billing address in the existing checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutBillingAddressUpdate(
@@ -16357,17 +16357,17 @@ type Mutation {
   """
   Completes the checkout. As a result a new order is created and a payment charge is made. This action requires a successful payment before it can be performed. In case additional confirmation step as 3D secure is required confirmationNeeded flag will be set to True and no order created until payment is confirmed with second call of this mutation.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   - ORDER_CREATED (async): Triggered when order is created.
-  - NOTIFY_USER (async): A notification for order confirmation.
-  - NOTIFY_USER (async): A notification for order confirmed.
-  - ORDER_UPDATED (async)
+  - NOTIFY_USER (async): A notification for order placement.
+  - NOTIFY_USER (async): A staff notification for order placement.
+  - ORDER_UPDATED (async): Triggered when order received the update after placement.
   - ORDER_PAID (async): Triggered when newly created order is paid.
   - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
-  - ORDER_CONFIRMED (async): Triggered when newly created order are automatically marked as confirmed.
+  - ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
   """
   checkoutComplete(
     """
@@ -16417,7 +16417,7 @@ type Mutation {
   """
   Create a new checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_CREATED (async): A checkout was created.
   """
   checkoutCreate(
@@ -16442,7 +16442,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutCustomerAttach(
@@ -16478,7 +16478,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutCustomerDetach(
@@ -16507,7 +16507,7 @@ type Mutation {
   """
   Updates email address in the existing checkout object.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutEmailUpdate(
@@ -16539,7 +16539,7 @@ type Mutation {
   """
   Deletes a CheckoutLine.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLineDelete(
@@ -16571,7 +16571,7 @@ type Mutation {
   """
   Deletes checkout lines.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLinesDelete(
@@ -16596,7 +16596,7 @@ type Mutation {
   """
   Adds a checkout line to the existing checkout.If line was already in checkout, its quantity will be increased.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLinesAdd(
@@ -16630,7 +16630,7 @@ type Mutation {
   """
   Updates checkout line in the existing checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLinesUpdate(
@@ -16664,7 +16664,7 @@ type Mutation {
   """
   Remove a gift card or a voucher from a checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutRemovePromoCode(
@@ -16726,7 +16726,7 @@ type Mutation {
   """
   Update shipping address in the existing checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutShippingAddressUpdate(
@@ -16765,7 +16765,7 @@ type Mutation {
   """
   Updates the shipping method of the checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
@@ -16800,7 +16800,7 @@ type Mutation {
   
   Added in Saleor 3.1.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
@@ -16826,7 +16826,7 @@ type Mutation {
   """
   Update language code in the existing checkout.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLanguageCodeUpdate(
@@ -16860,17 +16860,17 @@ type Mutation {
   
   Added in Saleor 3.2.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
   - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   - ORDER_CREATED (async): Triggered when order is created.
-  - NOTIFY_USER (async): A notification for order confirmation.
-  - NOTIFY_USER (async): A notification for order confirmed.
-  - ORDER_UPDATED (async)
+  - NOTIFY_USER (async): A notification for order placement.
+  - NOTIFY_USER (async): A staff notification for order placement.
+  - ORDER_UPDATED (async): Triggered when order received the update after placement.
   - ORDER_PAID (async): Triggered when newly created order is paid.
   - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
-  - ORDER_CONFIRMED (async): Triggered when newly created order are automatically marked as confirmed.
+  - ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -16901,7 +16901,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHANNEL_CREATED (async): A channel was created.
   """
   channelCreate(
@@ -16915,7 +16915,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_CHANNELS.
   Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHANNEL_UPDATED (async): A channel was updated.
   """
   channelUpdate(
@@ -16931,7 +16931,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHANNEL_DELETED (async): A channel was deleted.
   """
   channelDelete(
@@ -16947,7 +16947,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHANNEL_STATUS_CHANGED (async): A channel was activated.
   """
   channelActivate(
@@ -16960,7 +16960,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CHANNEL_STATUS_CHANGED (async): A channel was deactivated.
   """
   channelDeactivate(
@@ -16986,7 +16986,7 @@ type Mutation {
   """
   Creates an attribute.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_CREATED (async): An attribute was created.
   """
   attributeCreate(
@@ -16999,7 +16999,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
   """
   attributeDelete(
@@ -17019,7 +17019,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeUpdate(
@@ -17073,7 +17073,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_DELETED (async): An attribute was deleted.
   """
   attributeBulkDelete(
@@ -17086,7 +17086,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
@@ -17100,7 +17100,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
@@ -17117,7 +17117,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
@@ -17138,7 +17138,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
@@ -17193,7 +17193,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
   - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
@@ -17208,7 +17208,7 @@ type Mutation {
   """
   Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_INSTALLED (async): An app was installed.
   """
   appCreate(
@@ -17221,7 +17221,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_UPDATED (async): An app was installed.
   """
   appUpdate(
@@ -17237,7 +17237,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_DELETED (async): An app was deleted.
   """
   appDelete(
@@ -17284,7 +17284,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_INSTALLED (async): An app was installed.
   """
   appRetryInstall(
@@ -17320,7 +17320,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_STATUS_CHANGED (async): An app was activated.
   """
   appActivate(
@@ -17333,7 +17333,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_APPS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - APP_STATUS_CHANGED (async): An app was deactivated.
   """
   appDeactivate(
@@ -17431,7 +17431,7 @@ type Mutation {
   """
   Sends an email with the account password modification link.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for password reset.
   """
   requestPasswordReset(
@@ -17490,7 +17490,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account email change.
   """
   requestEmailChange(
@@ -17516,7 +17516,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - NOTIFY_USER (async): A notification that account email change was confirmed.
   """
@@ -17535,7 +17535,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - ADDRESS_CREATED (async): An address was created.
   """
@@ -17552,7 +17552,7 @@ type Mutation {
   """
   Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ADDRESS_UPDATED (async): An address was updated.
   """
   accountAddressUpdate(
@@ -17566,7 +17566,7 @@ type Mutation {
   """
   Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ADDRESS_DELETED (async): An address was deleted.
   """
   accountAddressDelete(
@@ -17579,7 +17579,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer's address was updated.
   """
   accountSetDefaultAddress(
@@ -17593,7 +17593,7 @@ type Mutation {
   """
   Register a new user.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
   """
@@ -17607,7 +17607,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
@@ -17621,7 +17621,7 @@ type Mutation {
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - NOTIFY_USER (async): A notification for account delete request.
   """
   accountRequestDeletion(
@@ -17653,7 +17653,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ADDRESS_CREATED (async): A new address was created.
   """
   addressCreate(
@@ -17669,7 +17669,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ADDRESS_UPDATED (async): An address was updated.
   """
   addressUpdate(
@@ -17685,7 +17685,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - ADDRESS_DELETED (async): An address was deleted.
   """
   addressDelete(
@@ -17698,7 +17698,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A customer was updated.
   """
   addressSetDefault(
@@ -17717,7 +17717,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   - NOTIFY_USER (async): A notification for setting the password.
@@ -17732,7 +17732,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_UPDATED (async): A new customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
@@ -17756,7 +17756,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerDelete(
@@ -17776,7 +17776,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerBulkDelete(
@@ -17793,8 +17793,8 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_USERS.
   
-  Triggers below webhook events:
-  - CUSTOMER_UPDATED (async): A new customer account was updated.
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer account was updated.
   - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerBulkUpdate(
@@ -17810,7 +17810,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - STAFF_CREATED (async): A new staff account was created.
   - NOTIFY_USER (async): A notification for setting the password.
   """
@@ -17824,7 +17824,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - STAFF_UPDATED (async): A staff account was updated.
   """
   staffUpdate(
@@ -17840,7 +17840,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - STAFF_DELETED (async): A staff account was deleted.
   """
   staffDelete(
@@ -17853,7 +17853,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - STAFF_DELETED (async): A staff account was deleted.
   """
   staffBulkDelete(
@@ -17896,7 +17896,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - PERMISSION_GROUP_CREATED (async)
   """
   permissionGroupCreate(
@@ -17909,7 +17909,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - PERMISSION_GROUP_UPDATED (async)
   """
   permissionGroupUpdate(
@@ -17925,7 +17925,7 @@ type Mutation {
   
   Requires one of the following permissions: MANAGE_STAFF.
   
-  Triggers below webhook events:
+  Triggers the following webhook events:
   - PERMISSION_GROUP_DELETED (async)
   """
   permissionGroupDelete(
@@ -24620,7 +24620,7 @@ Creates a new sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_CREATED (async): A sale was created.
 """
 type SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) {
@@ -24692,7 +24692,7 @@ Deletes a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_DELETED (async): A sale was deleted.
 """
 type SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
@@ -24706,7 +24706,7 @@ Deletes sales.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_DELETED (async): A sale was deleted.
 """
 type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
@@ -24721,7 +24721,7 @@ Updates a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_UPDATED (async): A sale was updated.
 - SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
 """
@@ -24736,7 +24736,7 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_UPDATED (async): A sale was updated.
 """
 type SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
@@ -24769,7 +24769,7 @@ Removes products, categories, collections from a sale.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SALE_UPDATED (async): A sale was updated.
 """
 type SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
@@ -24823,7 +24823,7 @@ Creates a new voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_CREATED (async): A voucher was created.
 """
 type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: []) {
@@ -24891,7 +24891,7 @@ Deletes a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_DELETED (async): A voucher was deleted.
 """
 type VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
@@ -24905,7 +24905,7 @@ Deletes vouchers.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_DELETED (async): A voucher was deleted.
 """
 type VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
@@ -24920,7 +24920,7 @@ Updates a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
 type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
@@ -24934,7 +24934,7 @@ Adds products, categories, collections to a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
 type VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
@@ -24949,7 +24949,7 @@ Removes products, categories, collections from a voucher.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
 type VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
@@ -24975,7 +24975,7 @@ Manage voucher's availability in channels.
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - VOUCHER_UPDATED (async): A voucher was updated.
 """
 type VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
@@ -25009,7 +25009,7 @@ Export products to csv file.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
 """
 type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
@@ -25112,7 +25112,7 @@ Added in Saleor 3.1.
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for the exported file.
 """
 type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
@@ -25169,7 +25169,7 @@ enum UploadErrorCode {
 """
 Adds a gift card or a voucher to a checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutAddPromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25236,7 +25236,7 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
 """
 Update billing address in the existing checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutBillingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25266,17 +25266,17 @@ input CheckoutAddressValidationRules @doc(category: "Checkout") {
 """
 Completes the checkout. As a result a new order is created and a payment charge is made. This action requires a successful payment before it can be performed. In case additional confirmation step as 3D secure is required confirmationNeeded flag will be set to True and no order created until payment is confirmed with second call of this mutation.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
 - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
 - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
 - ORDER_CREATED (async): Triggered when order is created.
-- NOTIFY_USER (async): A notification for order confirmation.
-- NOTIFY_USER (async): A notification for order confirmed.
-- ORDER_UPDATED (async)
+- NOTIFY_USER (async): A notification for order placement.
+- NOTIFY_USER (async): A staff notification for order placement.
+- ORDER_UPDATED (async): Triggered when order received the update after placement.
 - ORDER_PAID (async): Triggered when newly created order is paid.
 - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
-- ORDER_CONFIRMED (async): Triggered when newly created order are automatically marked as confirmed.
+- ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
 """
 type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES]) {
   """Placed order."""
@@ -25296,7 +25296,7 @@ type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents:
 """
 Create a new checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_CREATED (async): A checkout was created.
 """
 type CheckoutCreate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_CREATED], syncEvents: []) {
@@ -25448,7 +25448,7 @@ Sets the customer as the owner of the checkout.
 
 Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutCustomerAttach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25463,7 +25463,7 @@ Removes the user assigned as the owner of the checkout.
 
 Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25476,7 +25476,7 @@ type CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncE
 """
 Updates email address in the existing checkout object.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25489,7 +25489,7 @@ type CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEven
 """
 Deletes a CheckoutLine.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25502,7 +25502,7 @@ type CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvent
 """
 Deletes checkout lines.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutLinesDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25514,7 +25514,7 @@ type CheckoutLinesDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEven
 """
 Adds a checkout line to the existing checkout.If line was already in checkout, its quantity will be increased.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutLinesAdd @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25527,7 +25527,7 @@ type CheckoutLinesAdd @doc(category: "Checkout") @webhookEventsInfo(asyncEvents:
 """
 Updates checkout line in the existing checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutLinesUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25568,7 +25568,7 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
 """
 Remove a gift card or a voucher from a checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutRemovePromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25642,7 +25642,7 @@ enum StorePaymentMethodEnum @doc(category: "Payments") {
 """
 Update shipping address in the existing checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25655,7 +25655,7 @@ type CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo
 """
 Updates the shipping method of the checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
@@ -25671,7 +25671,7 @@ Updates the delivery method (shipping method or pick up point) of the checkout.
 
 Added in Saleor 3.1.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
@@ -25684,7 +25684,7 @@ type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(
 """
 Update language code in the existing checkout.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutLanguageCodeUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
@@ -25699,17 +25699,17 @@ Create new order from existing checkout. Requires the following permissions: AUT
 
 Added in Saleor 3.2.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
 - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
 - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
 - ORDER_CREATED (async): Triggered when order is created.
-- NOTIFY_USER (async): A notification for order confirmation.
-- NOTIFY_USER (async): A notification for order confirmed.
-- ORDER_UPDATED (async)
+- NOTIFY_USER (async): A notification for order placement.
+- NOTIFY_USER (async): A staff notification for order placement.
+- ORDER_UPDATED (async): Triggered when order received the update after placement.
 - ORDER_PAID (async): Triggered when newly created order is paid.
 - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
-- ORDER_CONFIRMED (async): Triggered when newly created order are automatically marked as confirmed.
+- ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
 """
 type OrderCreateFromCheckout @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES]) {
   """Placed order."""
@@ -25759,7 +25759,7 @@ Creates new channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHANNEL_CREATED (async): A channel was created.
 """
 type ChannelCreate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_CREATED], syncEvents: []) {
@@ -25908,7 +25908,7 @@ Update a channel.
 Requires one of the following permissions: MANAGE_CHANNELS.
 Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHANNEL_UPDATED (async): A channel was updated.
 """
 type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: []) {
@@ -25974,7 +25974,7 @@ Delete a channel. Orders associated with the deleted channel will be moved to th
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHANNEL_DELETED (async): A channel was deleted.
 """
 type ChannelDelete @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_DELETED], syncEvents: []) {
@@ -25993,7 +25993,7 @@ Activate a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHANNEL_STATUS_CHANGED (async): A channel was activated.
 """
 type ChannelActivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: []) {
@@ -26008,7 +26008,7 @@ Deactivate a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CHANNEL_STATUS_CHANGED (async): A channel was deactivated.
 """
 type ChannelDeactivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: []) {
@@ -26034,7 +26034,7 @@ type ChannelReorderWarehouses @doc(category: "Channels") {
 """
 Creates an attribute.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_CREATED (async): An attribute was created.
 """
 type AttributeCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
@@ -26173,7 +26173,7 @@ Deletes an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_DELETED (async): An attribute was deleted.
 """
 type AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: []) {
@@ -26187,7 +26187,7 @@ Updates attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
 type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: []) {
@@ -26369,7 +26369,7 @@ Deletes attributes.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_DELETED (async): An attribute was deleted.
 """
 type AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: []) {
@@ -26384,7 +26384,7 @@ Deletes values of attributes.
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
@@ -26400,7 +26400,7 @@ Creates a value for an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
@@ -26417,7 +26417,7 @@ Deletes a value of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
@@ -26434,7 +26434,7 @@ Updates value of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
@@ -26537,7 +26537,7 @@ Reorder the values of an attribute.
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
 - ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
@@ -26551,7 +26551,7 @@ type AttributeReorderValues @doc(category: "Attributes") @webhookEventsInfo(asyn
 """
 Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_INSTALLED (async): An app was installed.
 """
 type AppCreate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: []) {
@@ -26610,7 +26610,7 @@ Updates an existing app.
 
 Requires one of the following permissions: MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_UPDATED (async): An app was installed.
 """
 type AppUpdate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: []) {
@@ -26624,7 +26624,7 @@ Deletes an app.
 
 Requires one of the following permissions: MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_DELETED (async): An app was deleted.
 """
 type AppDelete @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_DELETED], syncEvents: []) {
@@ -26701,7 +26701,7 @@ Retry failed installation of new app.
 
 Requires one of the following permissions: MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_INSTALLED (async): An app was installed.
 """
 type AppRetryInstall @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: []) {
@@ -26929,7 +26929,7 @@ Activate the app.
 
 Requires one of the following permissions: MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_STATUS_CHANGED (async): An app was activated.
 """
 type AppActivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: []) {
@@ -26943,7 +26943,7 @@ Deactivate the app.
 
 Requires one of the following permissions: MANAGE_APPS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - APP_STATUS_CHANGED (async): An app was deactivated.
 """
 type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: []) {
@@ -27135,7 +27135,7 @@ type ExternalVerify @doc(category: "Authentication") {
 """
 Sends an email with the account password modification link.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for password reset.
 """
 type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
@@ -27187,7 +27187,7 @@ Request email change of the logged in user.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account email change.
 """
 type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
@@ -27202,7 +27202,7 @@ Confirm the email change of the logged-in user.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - NOTIFY_USER (async): A notification that account email change was confirmed.
 """
@@ -27218,7 +27218,7 @@ Create a new address for the customer.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - ADDRESS_CREATED (async): An address was created.
 """
@@ -27233,7 +27233,7 @@ type AccountAddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents
 """
 Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ADDRESS_UPDATED (async): An address was updated.
 """
 type AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: []) {
@@ -27247,7 +27247,7 @@ type AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents
 """
 Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ADDRESS_DELETED (async): An address was deleted.
 """
 type AccountAddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: []) {
@@ -27263,7 +27263,7 @@ Sets a default address for the authenticated user.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer's address was updated.
 """
 type AccountSetDefaultAddress @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: []) {
@@ -27276,7 +27276,7 @@ type AccountSetDefaultAddress @doc(category: "Users") @webhookEventsInfo(asyncEv
 """
 Register a new user.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
 """
@@ -27322,7 +27322,7 @@ Updates the account of the logged-in user.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer account was updated.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
@@ -27362,7 +27362,7 @@ Sends an email with the account removal link for the logged-in user.
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - NOTIFY_USER (async): A notification for account delete request.
 """
 type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
@@ -27386,7 +27386,7 @@ Creates user address.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ADDRESS_CREATED (async): A new address was created.
 """
 type AddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_CREATED], syncEvents: []) {
@@ -27402,7 +27402,7 @@ Updates an address.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ADDRESS_UPDATED (async): An address was updated.
 """
 type AddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: []) {
@@ -27418,7 +27418,7 @@ Deletes an address.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - ADDRESS_DELETED (async): An address was deleted.
 """
 type AddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: []) {
@@ -27434,7 +27434,7 @@ Sets a default address for the given user.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A customer was updated.
 """
 type AddressSetDefault @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: []) {
@@ -27449,7 +27449,7 @@ Creates a new customer.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 - NOTIFY_USER (async): A notification for setting the password.
@@ -27522,7 +27522,7 @@ Updates an existing customer.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_UPDATED (async): A new customer account was updated.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
@@ -27584,7 +27584,7 @@ Deletes a customer.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_DELETED (async): A customer account was deleted.
 """
 type CustomerDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: []) {
@@ -27598,7 +27598,7 @@ Deletes customers.
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - CUSTOMER_DELETED (async): A customer account was deleted.
 """
 type CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: []) {
@@ -27617,8 +27617,8 @@ Note: this API is currently in Feature Preview and can be subject to changes at 
 
 Requires one of the following permissions: MANAGE_USERS.
 
-Triggers below webhook events:
-- CUSTOMER_UPDATED (async): A new customer account was updated.
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer account was updated.
 - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
 type CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
@@ -27679,7 +27679,7 @@ Creates a new staff user. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - STAFF_CREATED (async): A new staff account was created.
 - NOTIFY_USER (async): A notification for setting the password.
 """
@@ -27759,7 +27759,7 @@ Updates an existing staff user. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - STAFF_UPDATED (async): A staff account was updated.
 """
 type StaffUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_UPDATED], syncEvents: []) {
@@ -27811,7 +27811,7 @@ Deletes a staff user. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - STAFF_DELETED (async): A staff account was deleted.
 """
 type StaffDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: []) {
@@ -27825,7 +27825,7 @@ Deletes staff users. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - STAFF_DELETED (async): A staff account was deleted.
 """
 type StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: []) {
@@ -27876,7 +27876,7 @@ Create new permission group. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - PERMISSION_GROUP_CREATED (async)
 """
 type PermissionGroupCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_CREATED], syncEvents: []) {
@@ -27954,7 +27954,7 @@ Update permission group. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - PERMISSION_GROUP_UPDATED (async)
 """
 type PermissionGroupUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_UPDATED], syncEvents: []) {
@@ -28012,7 +28012,7 @@ Delete permission group. Apps are not allowed to perform this mutation.
 
 Requires one of the following permissions: MANAGE_STAFF.
 
-Triggers below webhook events:
+Triggers the following webhook events:
 - PERMISSION_GROUP_DELETED (async)
 """
 type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_DELETED], syncEvents: []) {

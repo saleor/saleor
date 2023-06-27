@@ -100,7 +100,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.CUSTOMER_UPDATED,
-                description="A new customer account was updated.",
+                description="A customer account was updated.",
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
