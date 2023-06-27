@@ -39,6 +39,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add missing descriptions to checkout module. - #13167 by @fowczarek
 - Add missing descriptions to attribute module. - #13165 by @fowczarek
 - Add missing descriptions to csv module. - #13184 by @fowczarek
+- Add missing descriptions to Account module. - #13155 by @fowczarek
+- Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 
 # 3.14.0
 

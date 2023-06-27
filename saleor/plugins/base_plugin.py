@@ -149,6 +149,14 @@ class BasePlugin:
     def __str__(self):
         return self.PLUGIN_NAME
 
+    # Trigger when account confirmation is requested.
+    #
+    # Overwrite this method if you need to trigger specific logic after an account
+    # confirmation is requested.
+    account_confirmation_requested: Callable[
+        ["User", str, str, Optional[str], None], None
+    ]
+
     # Trigger when address is created.
     #
     # Overwrite this method if you need to trigger specific logic after an address is
