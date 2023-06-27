@@ -5,6 +5,7 @@ from typing import List, Optional
 import graphene
 from promise import Promise
 
+from ....core.utils.country import get_active_country
 from ....graphql.core.types import Money, MoneyRange
 from ....permission.enums import ProductPermissions
 from ....product import models
@@ -214,14 +215,13 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
     @staticmethod
     def resolve_pricing(root: models.ProductChannelListing, info, *, address=None):
         context = info.context
-        address_country = address.country if address is not None else None
 
         channel = ChannelByIdLoader(context).load(root.channel_id)
         product = ProductByIdLoader(context).load(root.product_id)
 
         def load_tax_configuration(data):
             channel, product = data
-            country_code = address_country or channel.default_country.code
+            country_code = get_active_country(channel, address_data=address)
 
             def load_tax_country_exceptions(tax_config):
                 tax_class = TaxClassByProductIdLoader(info.context).load(product.id)
