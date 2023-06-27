@@ -104,7 +104,6 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo)
             "Make sure that model exists inside MODEL_TO_TYPE_MAP."
         )
 
-    # print("107",item_type.__name__)
     get_required_permission = PRIVATE_META_PERMISSION_MAP.get(item_type.__name__)
     if not get_required_permission:
         raise PermissionDenied()
