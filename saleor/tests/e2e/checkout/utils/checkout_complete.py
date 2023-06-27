@@ -1,10 +1,8 @@
 from ...utils import get_graphql_content
 
 CHECKOUT_COMPLETE_MUTATION = """
-mutation CheckoutComplete($checkoutId: ID!){
-  checkoutComplete(
-    id: $checkoutId
-  ) {
+mutation CheckoutComplete($checkoutId: ID!) {
+  checkoutComplete(id: $checkoutId) {
     errors {
       message
       field
@@ -14,9 +12,17 @@ mutation CheckoutComplete($checkoutId: ID!){
       id
       status
       isShippingRequired
-      total{
-        gross{
+      total {
+        gross {
           amount
+        }
+      }
+      deliveryMethod {
+        ... on ShippingMethod {
+          id
+        }
+        ... on Warehouse {
+          id
         }
       }
     }

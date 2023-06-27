@@ -15,6 +15,7 @@ from ..shipping_zone.utils import (
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
 from .utils import (
+    checkout_complete,
     checkout_create,
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
@@ -30,7 +31,7 @@ def test_process_checkout_with_physical_product(
     permission_manage_shipping,
     permission_manage_product_types_and_attributes,
 ):
-    # before
+    # Before
     permissions = [
         permission_manage_products,
         permission_manage_channels,
@@ -130,3 +131,10 @@ def test_process_checkout_with_physical_product(
     checkout_dummy_payment_create(
         e2e_not_logged_api_client, checkout_id, total_gross_amount
     )
+
+    # Step 5
+    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
+    assert order_data["isShippingRequired"] is True
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_data["deliveryMethod"]["id"] == shipping_method_id
