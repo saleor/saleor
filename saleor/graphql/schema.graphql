@@ -23002,6 +23002,9 @@ input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
 
   """The quantity of line items to be marked to refund."""
   quantity: Int!
+
+  """Reason of the granted refund for the line."""
+  reason: String
 }
 
 """
