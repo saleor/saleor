@@ -15,7 +15,11 @@ All notable, unreleased changes to this project will be documented in this file.
     - `VariantPricingInfo.discountLocalCurrency`
     - `VariantPricingInfo.priceLocalCurrency`
 - Unify country fetching - #13159 by @jakubkuc
-    - Note: this change allows to add `shippingAddress` to checkout or order that has no shipping required
+  - Note: this change allows to add `shippingAddress` to checkout or order that has no shipping required. In such case it affects tax calculations because they will be calculated using country from `shippingAddres`.
+  - The order of fetching checkout or order country will be always as follows:
+      1. Shipping address
+      2. Billing address
+      3. Channels default country
 
 ### GraphQL API
 
