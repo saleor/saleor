@@ -13,6 +13,11 @@ mutation checkoutDeliveryMethodUpdate($checkoutId: ID!, $deliveryMethodId: ID!) 
     }
     checkout {
       id
+      totalPrice {
+        gross {
+          amount
+        }
+      }
       deliveryMethod {
         ... on ShippingMethod {
           id

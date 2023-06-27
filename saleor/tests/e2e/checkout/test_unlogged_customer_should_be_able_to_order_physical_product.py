@@ -17,6 +17,7 @@ from ..warehouse.utils import create_warehouse
 from .utils import (
     checkout_create,
     checkout_delivery_method_update,
+    checkout_dummy_payment_create,
     checkout_shipping_address_update,
 )
 
@@ -123,3 +124,9 @@ def test_process_checkout_with_physical_product(
         shipping_method_id,
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+
+    # Step 4
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client, checkout_id, total_gross_amount
+    )
