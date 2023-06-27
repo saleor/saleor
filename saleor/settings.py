@@ -90,11 +90,11 @@ DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:5432/saleorb2b",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
     DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
+        default="postgres://saleor:saleor@localhost:5432/saleorb2b",
         # TODO: We need to add read only user to saleor platform,
         # and we need to update docs.
         # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
@@ -223,6 +223,7 @@ INSTALLED_APPS = [
     # Local apps
     "saleor.permission",
     "saleor.auth",
+    "saleor.b2b",
     "saleor.plugins",
     "saleor.account",
     "saleor.discount",
@@ -462,7 +463,7 @@ GS_AUTO_CREATE_BUCKET = get_bool_from_env("GS_AUTO_CREATE_BUCKET", False)
 GS_QUERYSTRING_AUTH = get_bool_from_env("GS_QUERYSTRING_AUTH", False)
 GS_DEFAULT_ACL = os.environ.get("GS_DEFAULT_ACL", None)
 GS_MEDIA_CUSTOM_ENDPOINT = os.environ.get("GS_MEDIA_CUSTOM_ENDPOINT", None)
-GS_EXPIRATION = timedelta(seconds=parse(os.environ.get("GS_EXPIRATION", "1 day")))
+GS_EXPIRATION = timedelta(seconds=parse(os.environ.get("GS_EXPIRATION", "1 day"))) # type: ignore
 GS_FILE_OVERWRITE = get_bool_from_env("GS_FILE_OVERWRITE", True)
 
 # If GOOGLE_APPLICATION_CREDENTIALS is set there is no need to load OAuth token
@@ -543,7 +544,7 @@ CELERY_TASK_ROUTES = {
 
 # Expire orders task setting
 BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
-    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes"))
+    seconds=parse(os.environ.get("BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA", "5 minutes")) # type: ignore
 )
 
 # Defines after how many seconds should the task triggered by the Celery beat

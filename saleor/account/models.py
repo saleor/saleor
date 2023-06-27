@@ -185,6 +185,7 @@ class User(
     )
     search_document = models.TextField(blank=True, default="")
     uuid = models.UUIDField(default=uuid4, unique=True)
+    customer_group = models.ForeignKey("b2b.CustomerGroup", related_name="groups", null=True, blank=True, on_delete=models.SET_NULL)
 
     USERNAME_FIELD = "email"
 

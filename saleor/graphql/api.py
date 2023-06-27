@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 
 from ..graphql.notifications.schema import ExternalNotificationMutations
+from .b2b.schema import B2BMutations, B2BQueries
 from .account.schema import AccountMutations, AccountQueries
 from .app.schema import AppMutations, AppQueries
 from .attribute.schema import AttributeMutations, AttributeQueries
@@ -61,6 +62,7 @@ class Query(
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
+    B2BQueries,
 ):
     pass
 
@@ -90,6 +92,7 @@ class Mutation(
     TaxMutations,
     WarehouseMutations,
     WebhookMutations,
+    B2BMutations,
 ):
     pass
 
