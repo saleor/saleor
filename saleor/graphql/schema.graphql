@@ -16766,7 +16766,7 @@ type Mutation {
   Updates the shipping method of the checkout.
   
   Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutShippingMethodUpdate(
@@ -16801,7 +16801,7 @@ type Mutation {
   Added in Saleor 3.1.
   
   Triggers the following webhook events:
-  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
   - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutDeliveryMethodUpdate(
@@ -25656,7 +25656,7 @@ type CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo
 Updates the shipping method of the checkout.
 
 Triggers the following webhook events:
-- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {
@@ -25672,7 +25672,7 @@ Updates the delivery method (shipping method or pick up point) of the checkout.
 Added in Saleor 3.1.
 
 Triggers the following webhook events:
-- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when provided delivery method is external id.
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
 - CHECKOUT_UPDATED (async): A checkout was updated.
 """
 type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {

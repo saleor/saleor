@@ -65,7 +65,10 @@ class CheckoutDeliveryMethodUpdate(BaseMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventSyncType.SHIPPING_LIST_METHODS_FOR_CHECKOUT,
-                description="Triggered when provided delivery method is external id.",
+                description=(
+                    "Triggered when updating the checkout delivery method with "
+                    "the external one."
+                ),
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.CHECKOUT_UPDATED,
