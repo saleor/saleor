@@ -7,7 +7,11 @@ from ..product.utils import (
     create_product_variant,
     create_product_variant_channel_listing,
 )
-from ..shipping_zone.utils import create_shipping_method, create_shipping_zone
+from ..shipping_zone.utils import (
+    create_shipping_method,
+    create_shipping_method_channel_listing,
+    create_shipping_zone,
+)
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse
 from .utils import checkout_create, checkout_shipping_address_update
@@ -46,7 +50,14 @@ def test_process_checkout_with_physical_product(
     )
     shipping_zone_id = shipping_zone_data["id"]
 
-    create_shipping_method(e2e_staff_api_client, shipping_zone_id)
+    shipping_method_data = create_shipping_method(
+        e2e_staff_api_client, shipping_zone_id
+    )
+    shipping_method_id = shipping_method_data["id"]
+
+    create_shipping_method_channel_listing(
+        e2e_staff_api_client, shipping_method_id, channel_id
+    )
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
