@@ -1313,39 +1313,6 @@ enmerkar = ">=0.7.1"
 prices = ">=1.0.0"
 
 [[package]]
-name = "django-prices-openexchangerates"
-version = "1.2.0"
-description = "openexchangerates.org support for django-prices"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-prices-openexchangerates-1.2.0.tar.gz", hash = "sha256:183cc2b6c15da7555d36b03634fef6c73c80e692a9f63ff0bfc1443f57f55740"},
-    {file = "django_prices_openexchangerates-1.2.0-py3-none-any.whl", hash = "sha256:2daff7ae82632ca4fd23e1b5328d9520b9d6a9f75e652f93ea8c8935d94f2baf"},
-]
-
-[package.dependencies]
-Django = ">=3.0"
-django-prices = ">=1.0.0"
-prices = ">=1.0.0"
-
-[[package]]
-name = "django-prices-vatlayer"
-version = "1.1.0"
-description = "vatlayer.com support for django"
-optional = false
-python-versions = "*"
-files = [
-    {file = "django-prices-vatlayer-1.1.0.tar.gz", hash = "sha256:54cb240dfd2b7c5fd22498aaf6e9141e602eccb2b0672911c64dc5add3fa666e"},
-    {file = "django_prices_vatlayer-1.1.0-py3-none-any.whl", hash = "sha256:de47234d46ae35d83dd35adbd83e3d26a9c90a8d184020590109bdef39474ed0"},
-]
-
-[package.dependencies]
-Django = ">=1.11"
-jsonfield = "*"
-prices = ">=1.0.0"
-requests = "*"
-
-[[package]]
 name = "django-redis"
 version = "5.3.0"
 description = "Full featured redis cache backend for Django."
@@ -2329,20 +2296,6 @@ files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
 ]
-
-[[package]]
-name = "jsonfield"
-version = "3.1.0"
-description = "A reusable Django field that allows you to store validated JSON in your model."
-optional = false
-python-versions = ">=3.6"
-files = [
-    {file = "jsonfield-3.1.0-py3-none-any.whl", hash = "sha256:df857811587f252b97bafba42e02805e70a398a7a47870bc6358a0308dd689ed"},
-    {file = "jsonfield-3.1.0.tar.gz", hash = "sha256:7e4e84597de21eeaeeaaa7cc5da08c61c48a9b64d0c446b2d71255d01812887a"},
-]
-
-[package.dependencies]
-Django = ">=2.2"
 
 [[package]]
 name = "kombu"
@@ -4920,4 +4873,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "ce6a6282bcaf681ee6d59154678d971fd17297d77ece3acd14788d2fd963c4aa"
+content-hash = "a2dbada6b13fa41ce168f34715c6bfd7f3322e0b85d93f4b0a85ee543cfbc1ed"

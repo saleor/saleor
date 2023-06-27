@@ -100,7 +100,9 @@ class OrderSettingsInput(BaseInputObjectType):
 
 
 class ChannelInput(BaseInputObjectType):
-    is_active = graphene.Boolean(description="isActive flag.")
+    is_active = graphene.Boolean(
+        description="Determine if channel will be set active or not."
+    )
     stock_settings = graphene.Field(
         StockSettingsInput,
         description=("The channel stock settings." + ADDED_IN_37),

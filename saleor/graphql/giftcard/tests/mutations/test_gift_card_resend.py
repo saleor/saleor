@@ -50,7 +50,9 @@ GIFT_CARD_RESEND_MUTATION = """
 """
 
 
-@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
+@mock.patch(
+    "saleor.graphql.giftcard.mutations.gift_card_resend.send_gift_card_notification"
+)
 def test_resend_gift_card(
     send_notification_mock,
     staff_api_client,
@@ -101,7 +103,9 @@ def test_resend_gift_card(
     )
 
 
-@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
+@mock.patch(
+    "saleor.graphql.giftcard.mutations.gift_card_resend.send_gift_card_notification"
+)
 def test_resend_gift_card_as_app(
     send_notification_mock,
     app_api_client,
@@ -149,7 +153,9 @@ def test_resend_gift_card_as_app(
     )
 
 
-@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
+@mock.patch(
+    "saleor.graphql.giftcard.mutations.gift_card_resend.send_gift_card_notification"
+)
 def test_update_gift_card_no_permission(
     send_notification_mock,
     staff_api_client,
@@ -177,7 +183,9 @@ def test_update_gift_card_no_permission(
     send_notification_mock.assert_not_called()
 
 
-@mock.patch("saleor.graphql.giftcard.mutations.send_gift_card_notification")
+@mock.patch(
+    "saleor.graphql.giftcard.mutations.gift_card_resend.send_gift_card_notification"
+)
 def test_resend_gift_card_malformed_email(
     send_notification_mock,
     staff_api_client,
