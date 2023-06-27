@@ -14,6 +14,7 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       channel {
         slug
       }
+      isShippingRequired
       totalPrice {
         gross {
           amount

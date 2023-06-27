@@ -28,7 +28,7 @@ def test_process_checkout_with_digital_product(
     permission_manage_shipping,
     media_root,
 ):
-    # given
+    # Before
     permissions = [
         permission_manage_products,
         permission_manage_channels,
@@ -88,23 +88,25 @@ def test_process_checkout_with_digital_product(
 
     create_digital_content(e2e_staff_api_client, product_variant_id)
 
-    # when
+    # Step 1
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(e2e_not_logged_api_client, lines, channel_slug)
     checkout_id = checkout_data["id"]
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+    assert checkout_data["isShippingRequired"] is False
 
+    # Step 2
     checkout_billing_address_update(e2e_not_logged_api_client, checkout_id)
 
+    # Step 3
     checkout_dummy_payment_create(
         e2e_not_logged_api_client, checkout_id, total_gross_amount
     )
 
+    # Step 4
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
-
-    # then
     assert order_data["isShippingRequired"] is False
     assert order_data["status"] == "UNFULFILLED"
     assert order_data["total"]["gross"]["amount"] == total_gross_amount
