@@ -25,7 +25,7 @@ from ..account.dataloaders import AddressByIdLoader
 from ..account.utils import check_is_owner_or_has_one_of_perms
 from ..channel import ChannelContext
 from ..channel.types import Channel
-from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader
+from ..checkout.dataloaders import ChannelByCheckoutLineIDLoader, ChannelByIdLoader
 from ..core import ResolveInfo
 from ..core.connection import CountableConnection
 from ..core.descriptions import (
@@ -552,6 +552,10 @@ class Checkout(ModelObjectType[models.Checkout]):
     @staticmethod
     def resolve_created(root: models.Checkout, _info: ResolveInfo):
         return root.created_at
+
+    @staticmethod
+    def resolve_channel(root: models.Checkout, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     def resolve_id(root: models.Checkout, _info: ResolveInfo):
