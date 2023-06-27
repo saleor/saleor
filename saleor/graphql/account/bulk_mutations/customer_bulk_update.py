@@ -12,6 +12,7 @@ from ....account.events import CustomerEvents
 from ....account.search import prepare_user_search_document_value
 from ....checkout import AddressType
 from ....core.tracing import traced_atomic_transaction
+from ....giftcard.search import mark_gift_cards_search_index_as_dirty_by_users
 from ....giftcard.utils import assign_user_gift_cards
 from ....order.utils import match_orders_with_new_user
 from ....permission.enums import AccountPermissions
@@ -540,7 +541,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
         customer_events = []
         app = get_app_promise(info.context).get()
         staff_user = info.context.user
-
+        users_with_name_or_email_updated = []
         for updated_instance, old_instance in zip(instances, old_instances):
             cls.call_event(manager.customer_updated, updated_instance)
             new_email = updated_instance.email
@@ -566,6 +567,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 )
                 assign_user_gift_cards(updated_instance)
                 match_orders_with_new_user(updated_instance)
+                users_with_name_or_email_updated.append(updated_instance)
 
             if has_new_name:
                 customer_events.append(
@@ -577,6 +579,8 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                         parameters={"message": new_fullname},
                     )
                 )
+                users_with_name_or_email_updated.append(updated_instance)
+
             if was_activated:
                 customer_events.append(
                     models.CustomerEvent(
@@ -600,6 +604,7 @@ class CustomerBulkUpdate(BaseMutation, I18nMixin):
                 cls.call_event(manager.customer_metadata_updated, updated_instance)
 
         models.CustomerEvent.objects.bulk_create(customer_events)
+        mark_gift_cards_search_index_as_dirty_by_users(users_with_name_or_email_updated)
 
     @classmethod
     def get_results(cls, instances_data_with_errors_list, reject_everything=False):

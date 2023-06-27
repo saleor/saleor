@@ -1,10 +1,12 @@
 from copy import copy
 
 import graphene
+from django.db.models import QuerySet
 
 from .....account import events as account_events
 from .....account import models
-from .....giftcard.utils import assign_user_gift_cards
+from .....giftcard.search import mark_gift_cards_search_index_as_dirty
+from .....giftcard.utils import assign_user_gift_cards, get_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....permission.enums import AccountPermissions
 from ....account.types import User
@@ -83,6 +85,20 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
             )
 
     @classmethod
+    def update_gift_card_search_vector(
+        cls,
+        old_instance: models.User,
+        new_instance: models.User,
+        gift_cards: QuerySet,
+    ):
+        new_email = new_instance.email
+        new_fullname = new_instance.get_full_name()
+        has_new_name = old_instance.get_full_name() != new_fullname
+        has_new_email = old_instance.email != new_email
+        if has_new_email and has_new_name:
+            mark_gift_cards_search_index_as_dirty(gift_cards)
+
+    @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):
         """Generate events by comparing the old instance with the new data.
 
@@ -114,6 +130,11 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         if metadata_list:
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.customer_metadata_updated, new_instance)
+
+        if gift_cards := get_user_gift_cards(new_instance):
+            cls.update_gift_card_search_vector(
+                original_instance, new_instance, gift_cards
+            )
 
         # Return the response
         return cls.success_response(new_instance)
