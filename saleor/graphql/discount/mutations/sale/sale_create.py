@@ -10,6 +10,7 @@ from .....discount.error_codes import DiscountErrorCode
 from .....discount.utils import fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_sale_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31
@@ -17,6 +18,7 @@ from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.scalars import PositiveDecimal
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum
@@ -70,6 +72,12 @@ class SaleCreate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_CREATED,
+                description="A sale was created.",
+            ),
+        ]
 
     @classmethod
     def clean_instance(cls, info: ResolveInfo, instance):

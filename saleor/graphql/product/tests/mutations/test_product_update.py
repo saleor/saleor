@@ -2332,7 +2332,6 @@ def test_update_product_with_dropdown_attribute_non_existing_value(
 def test_update_product_with_dropdown_attribute_existing_value(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute,
     product,
     product_type,
     permission_manage_products,
@@ -2342,14 +2341,15 @@ def test_update_product_with_dropdown_attribute_existing_value(
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribute = product_type.product_attributes.first()
 
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
-    attribute_value = color_attribute.values.model.objects.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attribute_value = attribute.values.model.objects.first()
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.pk
     )
-    attribute_value_name = color_attribute.values.model.objects.first().name
-    product_type.product_attributes.add(color_attribute)
+    attribute_value_name = attribute.values.model.objects.first().name
+    product_type.product_attributes.add(attribute)
 
     variables = {
         "productId": product_id,
@@ -2384,7 +2384,6 @@ def test_update_product_with_dropdown_attribute_existing_value(
 def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_value(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute,
     product,
     product_type,
     permission_manage_products,
@@ -2394,13 +2393,14 @@ def test_update_product_with_dropdown_attribute_existing_value_passed_as_new_val
     query = MUTATION_UPDATE_PRODUCT
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
-    attribute_value = color_attribute.values.model.objects.first()
+    attribute = product_type.product_attributes.first()
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.pk)
+    attribute_value = attribute.values.model.objects.first()
     attribute_value_id = graphene.Node.to_global_id(
         "AttributeValue", attribute_value.pk
     )
-    attribute_value_name = color_attribute.values.model.objects.first().name
-    product_type.product_attributes.add(color_attribute)
+    attribute_value_name = attribute.values.model.objects.first().name
+    product_type.product_attributes.add(attribute)
 
     value_count = AttributeValue.objects.count()
 

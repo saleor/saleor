@@ -12,13 +12,14 @@ from ....checkout.utils import (
     remove_promo_code_from_checkout,
     remove_voucher_from_checkout,
 )
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_34, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_CHECKOUT
 from ...core.mutations import BaseMutation
 from ...core.scalars import UUID
 from ...core.types import CheckoutError
-from ...core.utils import from_global_id_or_error
+from ...core.utils import WebhookEventInfo, from_global_id_or_error
 from ...core.validators import validate_one_of_args_is_in_mutation
 from ...discount.types import Voucher
 from ...giftcard.types import GiftCard
@@ -60,6 +61,12 @@ class CheckoutRemovePromoCode(BaseMutation):
         doc_category = DOC_CATEGORY_CHECKOUT
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_UPDATED,
+                description="A checkout was updated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(

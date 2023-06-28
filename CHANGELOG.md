@@ -2,6 +2,7 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
+
 # 3.15.0 [Unreleased]
 
 ### Breaking changes
@@ -24,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### GraphQL API
 Shipping methods can be removed by the user after it has been assigned to a checkout; `shippingMethodId` is now a nullable input in the `checkoutShippingMethodUpdate` mutation.  - #13068 by @FremahA
+- Add `lines` to `OrderGrantedRefund` - #13014 by @korycins
 
 - Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ

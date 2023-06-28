@@ -5,12 +5,14 @@ from .....core.utils.promo_code import generate_promo_code, is_available_promo_c
 from .....discount import models
 from .....discount.error_codes import DiscountErrorCode
 from .....permission.enums import DiscountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_31
 from ....core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ....core.mutations import ModelMutation
 from ....core.types import BaseInputObjectType, DiscountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....core.validators import validate_end_is_after_start
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import DiscountValueTypeEnum, VoucherTypeEnum
@@ -87,6 +89,12 @@ class VoucherCreate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_CREATED,
+                description="A voucher was created.",
+            )
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

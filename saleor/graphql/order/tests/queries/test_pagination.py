@@ -570,9 +570,9 @@ def test_draft_orders_query_pagination_with_filter_search(
 
 
 def test_orders_query_pagination_with_filter_search_by_number(
-    order_with_search_vector_value, staff_api_client, permission_group_manage_orders
+    order_generator, staff_api_client, permission_group_manage_orders
 ):
-    order = order_with_search_vector_value
+    order = order_generator(search_vector_class=FlatConcatSearchVector)
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": {"search": order.number}}
     permission_group_manage_orders.user_set.add(staff_api_client.user)

@@ -6,9 +6,11 @@ from ....discount import models
 from ....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from ....permission.enums import DiscountPermissions
 from ....product.tasks import update_products_discounted_prices_of_catalogues_task
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import DiscountError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Sale, Voucher
 from .utils import convert_catalogue_info_to_global_ids
@@ -27,6 +29,12 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_DELETED,
+                description="A sale was deleted.",
+            )
+        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):
@@ -66,6 +74,12 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.VOUCHER_DELETED,
+                description="A voucher was deleted.",
+            )
+        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

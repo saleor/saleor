@@ -1033,19 +1033,10 @@ def orders_from_checkout(customer_user, checkout):
 
 
 @pytest.fixture
-def order_from_checkout_JPY(customer_user, checkout_JPY):
-    return Order.objects.create(
-        user=customer_user,
-        status=OrderStatus.CANCELED,
-        channel=checkout_JPY.channel,
-        checkout_token=checkout_JPY.token,
-    )
-
-
-@pytest.fixture
-def order(customer_user, channel_USD):
+def order_generator(customer_user, channel_USD):
     address = customer_user.default_billing_address.get_copy()
-    order = Order.objects.create(
+
+    def create_order(
         billing_address=address,
         channel=channel_USD,
         currency=channel_USD.currency_code,
@@ -1056,31 +1047,38 @@ def order(customer_user, channel_USD):
         should_refresh_prices=False,
         metadata={"key": "value"},
         private_metadata={"secret_key": "secret_value"},
-    )
-    return order
+        checkout_token="",
+        status=OrderStatus.UNFULFILLED,
+        search_vector_class=None,
+    ):
+        order = Order.objects.create(
+            billing_address=billing_address,
+            channel=channel,
+            currency=currency,
+            shipping_address=shipping_address,
+            user_email=user_email,
+            user=user,
+            origin=origin,
+            should_refresh_prices=should_refresh_prices,
+            metadata=metadata,
+            private_metadata=private_metadata,
+            checkout_token=checkout_token,
+            status=status,
+        )
+        if search_vector_class:
+            search_vector = search_vector_class(
+                *prepare_order_search_vector_value(order)
+            )
+            order.search_vector = search_vector
+            order.save(update_fields=["search_vector"])
+        return order
+
+    return create_order
 
 
 @pytest.fixture
-def order_with_search_vector_value(order):
-    order.search_vector = FlatConcatSearchVector(
-        *prepare_order_search_vector_value(order)
-    )
-    order.save(update_fields=["search_vector"])
-    return order
-
-
-@pytest.fixture
-def order_JPY(customer_user, channel_JPY):
-    address = customer_user.default_billing_address.get_copy()
-    return Order.objects.create(
-        billing_address=address,
-        channel=channel_JPY,
-        currency=channel_JPY.currency_code,
-        shipping_address=address,
-        user_email=customer_user.email,
-        user=customer_user,
-        origin=OrderOrigin.CHECKOUT,
-    )
+def order(order_generator):
+    return order_generator()
 
 
 @pytest.fixture
@@ -1088,6 +1086,74 @@ def order_unconfirmed(order):
     order.status = OrderStatus.UNCONFIRMED
     order.save(update_fields=["status"])
     return order
+
+
+@pytest.fixture
+def product_type_generator(
+    attribute_generator, attribute_value_generator, default_tax_class
+):
+    def create_product_type(
+        name="Default Type",
+        slug="default-type",
+        kind=ProductTypeKind.NORMAL,
+        has_variants=True,
+        is_shipping_required=True,
+        tax_class=default_tax_class,
+        product_attributes=None,
+        variant_attributes=None,
+    ):
+        product_type = ProductType.objects.create(
+            name=name,
+            slug=slug,
+            kind=kind,
+            has_variants=has_variants,
+            is_shipping_required=is_shipping_required,
+            tax_class=tax_class,
+        )
+        if product_attributes is None:
+            product_attribute = attribute_generator(
+                external_reference="colorAttributeExternalReference",
+                slug="color",
+                name="Color",
+                type=AttributeType.PRODUCT_TYPE,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+            )
+
+            attribute_value_generator(
+                external_reference="colorAttributeValue1ExternalReference",
+                name="Red",
+                slug="red",
+                attribute=product_attribute,
+            )
+
+            product_attributes = [product_attribute]
+        if variant_attributes is None:
+            variant_attribute = attribute_generator(
+                external_reference="sizeAttributeExternalReference",
+                slug="size",
+                name="Size",
+                type=AttributeType.PRODUCT_TYPE,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+            )
+
+            attribute_value_generator(
+                name="Small",
+                slug="small",
+                attribute=variant_attribute,
+            )
+            variant_attributes = [variant_attribute]
+
+        product_type.product_attributes.add(*product_attributes)
+        product_type.variant_attributes.add(
+            *variant_attributes, through_defaults={"variant_selection": True}
+        )
+        return product_type
+
+    return create_product_type
 
 
 @pytest.fixture
@@ -1386,8 +1452,103 @@ def shipping_method_channel_PLN(shipping_zone, channel_PLN):
 
 
 @pytest.fixture
-def color_attribute(db):
-    attribute = Attribute.objects.create(
+def attribute_generator():
+    def create_attribute(
+        external_reference="attributeExtRef",
+        slug="attr",
+        name="Attr",
+        type=AttributeType.PRODUCT_TYPE,
+        filterable_in_storefront=True,
+        filterable_in_dashboard=True,
+        available_in_grid=True,
+    ):
+        attribute, _ = Attribute.objects.get_or_create(
+            external_reference=external_reference,
+            slug=slug,
+            name=name,
+            type=type,
+            filterable_in_storefront=filterable_in_storefront,
+            filterable_in_dashboard=filterable_in_dashboard,
+            available_in_grid=available_in_grid,
+        )
+
+        return attribute
+
+    return create_attribute
+
+
+@pytest.fixture
+def attribute_value_generator(attribute_generator):
+    def create_attribute_value(
+        attribute=None,
+        external_reference=None,
+        name="Attr Value",
+        slug="attr-value",
+        value="",
+    ):
+        if attribute is None:
+            attribute = attribute_generator()
+        attribute_value, _ = AttributeValue.objects.get_or_create(
+            attribute=attribute,
+            external_reference=external_reference,
+            name=name,
+            slug=slug,
+            value=value,
+        )
+
+        return attribute_value
+
+    return create_attribute_value
+
+
+@pytest.fixture
+def attribute_values_generator(attribute_generator):
+    def create_attribute_values(
+        external_references=None,
+        names=None,
+        slugs=None,
+        attribute=None,
+        values=None,
+    ):
+        if attribute is None:
+            attribute = attribute_generator()
+
+        if slugs is None:
+            slugs = ["attr-value"]
+
+        if external_references is None:
+            external_references = [None] * len(slugs)
+
+        if names is None:
+            names = [""] * len(slugs)
+
+        if values is None:
+            values = [""] * len(slugs)
+
+        AttributeValue.objects.bulk_create(
+            [
+                AttributeValue(
+                    attribute=attribute,
+                    external_reference=ext_ref,
+                    name=name,
+                    slug=slug,
+                    value=value,
+                )
+                for slug, name, ext_ref, value in zip(
+                    slugs, names, external_references, values
+                )
+            ],
+            ignore_conflicts=True,
+        )
+
+        return list(AttributeValue.objects.filter(slug__in=slugs))
+
+    return create_attribute_values
+
+
+@pytest.fixture
+def color_attribute(db, attribute_generator, attribute_values_generator):
+    attribute = attribute_generator(
         external_reference="colorAttributeExternalReference",
         slug="color",
         name="Color",
@@ -1396,18 +1557,19 @@ def color_attribute(db):
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(
-        external_reference="colorAttributeValue1ExternalReference",
+    external_references = [
+        "colorAttributeValue1ExternalReference",
+        "colorAttributeValue2ExternalReference",
+    ]
+    slugs = ["red", "blue"]
+    names = ["Red", "Blue"]
+    attribute_values_generator(
         attribute=attribute,
-        name="Red",
-        slug="red",
+        external_references=external_references,
+        names=names,
+        slugs=slugs,
     )
-    AttributeValue.objects.create(
-        external_reference="colorAttributeValue2ExternalReference",
-        attribute=attribute,
-        name="Blue",
-        slug="blue",
-    )
+
     return attribute
 
 
@@ -1721,8 +1883,10 @@ def pink_attribute_value(color_attribute):  # pylint: disable=W0613
 
 
 @pytest.fixture
-def size_attribute(db):  # pylint: disable=W0613
-    attribute = Attribute.objects.create(
+def size_attribute(
+    db, attribute_generator, attribute_values_generator
+):  # pylint: disable=W0613
+    attribute = attribute_generator(
         external_reference="sizeAttributeExternalReference",
         slug="size",
         name="Size",
@@ -1731,8 +1895,15 @@ def size_attribute(db):  # pylint: disable=W0613
         filterable_in_dashboard=True,
         available_in_grid=True,
     )
-    AttributeValue.objects.create(attribute=attribute, name="Small", slug="small")
-    AttributeValue.objects.create(attribute=attribute, name="Big", slug="big")
+
+    slugs = ["small", "big"]
+    names = ["Small", "Big"]
+    attribute_values_generator(
+        attribute=attribute,
+        names=names,
+        slugs=slugs,
+    )
+
     return attribute
 
 
@@ -2049,8 +2220,23 @@ def image_list():
 
 
 @pytest.fixture
-def category(db):  # pylint: disable=W0613
-    return Category.objects.create(name="Default", slug="default")
+def category_generator():
+    def create_category(
+        name="Default",
+        slug="default",
+    ):
+        category = Category.objects.create(
+            name=name,
+            slug=slug,
+        )
+        return category
+
+    return create_category
+
+
+@pytest.fixture
+def category(category_generator):  # pylint: disable=W0613
+    return category_generator()
 
 
 @pytest.fixture
@@ -2199,20 +2385,8 @@ def permission_manage_taxes():
 
 
 @pytest.fixture
-def product_type(color_attribute, size_attribute, default_tax_class):
-    product_type = ProductType.objects.create(
-        name="Default Type",
-        slug="default-type",
-        kind=ProductTypeKind.NORMAL,
-        has_variants=True,
-        is_shipping_required=True,
-        tax_class=default_tax_class,
-    )
-    product_type.product_attributes.add(color_attribute)
-    product_type.variant_attributes.add(
-        size_attribute, through_defaults={"variant_selection": True}
-    )
-    return product_type
+def product_type(product_type_generator):
+    return product_type_generator()
 
 
 @pytest.fixture
@@ -3759,7 +3933,11 @@ def gift_card_shippable_order_line(order, gift_card_shippable_variant, warehouse
 
 
 @pytest.fixture
-def order_line_JPY(order_JPY, product_in_channel_JPY):
+def order_line_JPY(order_generator, channel_JPY, product_in_channel_JPY):
+    order_JPY = order_generator(
+        channel=channel_JPY,
+        currency=channel_JPY.currency_code,
+    )
     product = product_in_channel_JPY
     variant = product_in_channel_JPY.variants.get()
     channel = order_JPY.channel

@@ -652,10 +652,15 @@ class WebhookEventSyncType:
         PAYMENT_VOID,
     ]
 
+    # Events that are used only in the mutation logic can be excluded from the
+    # circular query check.
     ALLOWED_IN_CIRCULAR_QUERY = [
         PAYMENT_GATEWAY_INITIALIZE_SESSION,
         TRANSACTION_INITIALIZE_SESSION,
         TRANSACTION_PROCESS_SESSION,
+        TRANSACTION_CHARGE_REQUESTED,
+        TRANSACTION_REFUND_REQUESTED,
+        TRANSACTION_CANCELATION_REQUESTED,
     ]
 
     PERMISSIONS = {
