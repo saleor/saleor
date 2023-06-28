@@ -19,7 +19,6 @@ from .utils import (
     checkout_create,
     checkout_delivery_method_update,
     checkout_dummy_payment_create,
-    checkout_shipping_address_update,
 )
 
 
@@ -138,3 +137,11 @@ def test_process_checkout_with_physical_product(
     checkout_dummy_payment_create(
         e2e_logged_api_client, checkout_id, total_gross_amount
     )
+
+    # Step 5
+    order_data = checkout_complete(e2e_logged_api_client, checkout_id)
+    assert order_data["isShippingRequired"] is True
+    assert order_data["user"]["email"] == expected_email
+    assert order_data["status"] == "UNFULFILLED"
+    assert order_data["total"]["gross"]["amount"] == total_gross_amount
+    assert order_data["deliveryMethod"]["id"] == shipping_method_id
