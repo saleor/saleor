@@ -123,3 +123,13 @@ def test_process_checkout_with_physical_product(
     assert checkout_data["user"]["email"] == expected_email
     assert checkout_data["isShippingRequired"] is True
     assert checkout_data["shippingMethods"] != []
+    shipping_method_id = checkout_data["shippingMethods"][0]["id"]
+
+    # Step 3
+    checkout_data = checkout_delivery_method_update(
+        e2e_logged_api_client,
+        checkout_id,
+        shipping_method_id,
+    )
+    assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
