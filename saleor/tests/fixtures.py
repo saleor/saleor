@@ -5099,6 +5099,16 @@ def promotion(channel_USD, product, collection):
 
 
 @pytest.fixture
+def promotion_without_rules(db):
+    promotion = Promotion.objects.create(
+        name="Promotion",
+        description=dummy_editorjs("Test description."),
+        end_date=timezone.now() + timedelta(days=30),
+    )
+    return promotion
+
+
+@pytest.fixture
 def promotion_list(channel_USD, product, collection):
     promotions = Promotion.objects.bulk_create(
         [
