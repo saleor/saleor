@@ -1,5 +1,5 @@
 from django.db import migrations, transaction
-from django.db.models import Q, QuerySet, Case, When
+from django.db.models import QuerySet
 from ..models import User
 
 
@@ -25,32 +25,33 @@ def queryset_in_batches(queryset):
         start_pk = pks[-1]
 
 
-def set_user_is_confirmed(qs: QuerySet["User"]):
-    is_confirmed_case = Case(
-        When(
-            Q(is_active=True) | Q(last_login__isnull=False),
-            then=True,
-        ),
-        default=False,
-    )
+def set_user_is_confirmed_to_false(qs: QuerySet["User"]):
     with transaction.atomic():
         # lock the batch of objects
         _users = list(qs.select_for_update(of=(["self"])))
-        qs.update(is_confirmed=is_confirmed_case)
+        qs.update(is_confirmed=False)
 
 
 def set_user_is_confirmed_task(apps, schema_editor):
     User = apps.get_model("account", "User")
-    users = User.objects.order_by("pk")
+    SiteSettings = apps.get_model("site", "SiteSettings")
+    confirmation_enabled = (
+        SiteSettings.objects.first().enable_account_confirmation_by_email
+    )
+
+    users = User.objects.order_by("pk").filter(is_confirmed=True)
+    if confirmation_enabled:
+        users = users.filter(is_active=False, last_login__isnull=True)
 
     for ids in queryset_in_batches(users):
         qs = User.objects.filter(pk__in=ids)
-        set_user_is_confirmed(qs)
+        set_user_is_confirmed_to_false(qs)
 
 
 class Migration(migrations.Migration):
     dependencies = [
         ("account", "0080_user_is_confirmed"),
+        ("site", "0038_auto_20230510_1107"),
     ]
 
     operations = [
