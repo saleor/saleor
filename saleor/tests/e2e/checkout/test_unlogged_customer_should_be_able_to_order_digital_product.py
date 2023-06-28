@@ -1,3 +1,5 @@
+import pytest
+
 from ..channel.utils import create_channel
 from ..product.utils import (
     create_category,
@@ -89,6 +91,7 @@ def prepare_product(
     return product_variant_id
 
 
+@pytest.mark.e2e
 def test_process_checkout_with_digital_product(
     e2e_not_logged_api_client,
     e2e_staff_api_client,
