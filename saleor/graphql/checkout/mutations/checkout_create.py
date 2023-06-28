@@ -10,6 +10,7 @@ from ....core.tracing import traced_atomic_transaction
 from ....core.utils.country import get_active_country
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
+from ....webhook.event_types import WebhookEventAsyncType
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...app.dataloaders import get_app_promise
@@ -27,6 +28,7 @@ from ...core.enums import LanguageCodeEnum
 from ...core.mutations import ModelMutation
 from ...core.scalars import PositiveDecimal
 from ...core.types import BaseInputObjectType, CheckoutError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_variants_available_in_channel
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...product.types import ProductVariant
@@ -186,6 +188,12 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return_field_name = "checkout"
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CHECKOUT_CREATED,
+                description="A checkout was created.",
+            )
+        ]
 
     @classmethod
     def clean_checkout_lines(

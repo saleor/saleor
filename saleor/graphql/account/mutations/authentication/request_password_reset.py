@@ -7,11 +7,13 @@ from .....account.error_codes import AccountErrorCode
 from .....account.notifications import send_password_reset_notification
 from .....account.utils import retrieve_user_by_email
 from .....core.utils.url import validate_storefront_url
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel, validate_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 
 
@@ -40,6 +42,12 @@ class RequestPasswordReset(BaseMutation):
         doc_category = DOC_CATEGORY_USERS
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for password reset.",
+            )
+        ]
 
     @classmethod
     def clean_user(cls, email, redirect_url):

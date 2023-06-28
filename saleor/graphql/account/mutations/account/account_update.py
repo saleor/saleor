@@ -4,10 +4,12 @@ import graphene
 
 from .....account import models
 from .....permission.auth_filters import AuthorizationFilters
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_314
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError, NonNullList
+from ....core.utils import WebhookEventInfo
 from ....meta.inputs import MetadataInput
 from ...types import AddressInput, User
 from ..base import BaseCustomerCreate
@@ -49,6 +51,16 @@ class AccountUpdate(BaseCustomerCreate):
         error_type_class = AccountError
         error_type_field = "account_errors"
         support_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_METADATA_UPDATED,
+                description="Optionally called when customer's metadata was updated.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
