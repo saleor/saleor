@@ -19,16 +19,14 @@ from .utils import (
 )
 
 
-def test_process_checkout_with_digital_product(
-    e2e_not_logged_api_client,
+def prepare_product(
     e2e_staff_api_client,
     permission_manage_product_types_and_attributes,
     permission_manage_channels,
     permission_manage_products,
     permission_manage_shipping,
-    media_root,
+    channel_slug,
 ):
-    # Before
     permissions = [
         permission_manage_products,
         permission_manage_channels,
@@ -41,9 +39,10 @@ def test_process_checkout_with_digital_product(
     warehouse_id = warehouse_data["id"]
 
     warehouse_ids = [warehouse_id]
-    channel_data = create_channel(e2e_staff_api_client, warehouse_ids=warehouse_ids)
+    channel_data = create_channel(
+        e2e_staff_api_client, slug=channel_slug, warehouse_ids=warehouse_ids
+    )
     channel_id = channel_data["id"]
-    channel_slug = channel_data["slug"]
 
     channel_ids = [channel_id]
     create_shipping_zone(
@@ -87,6 +86,28 @@ def test_process_checkout_with_digital_product(
     )
 
     create_digital_content(e2e_staff_api_client, product_variant_id)
+    return product_variant_id
+
+
+def test_process_checkout_with_digital_product(
+    e2e_not_logged_api_client,
+    e2e_staff_api_client,
+    permission_manage_product_types_and_attributes,
+    permission_manage_channels,
+    permission_manage_products,
+    permission_manage_shipping,
+    media_root,
+):
+    # Before
+    channel_slug = "test-channel"
+    product_variant_id = prepare_product(
+        e2e_staff_api_client,
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_shipping,
+        permission_manage_product_types_and_attributes,
+        channel_slug,
+    )
 
     # Step 1
     lines = [
