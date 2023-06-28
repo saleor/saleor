@@ -133,3 +133,8 @@ def test_process_checkout_with_physical_product(
     )
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+
+    # Step 4
+    checkout_dummy_payment_create(
+        e2e_logged_api_client, checkout_id, total_gross_amount
+    )
