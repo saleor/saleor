@@ -7,6 +7,7 @@ from ....checkout import AddressType, models
 from ....checkout.error_codes import CheckoutErrorCode
 from ....checkout.utils import add_variants_to_checkout
 from ....core.tracing import traced_atomic_transaction
+from ....core.utils.country import get_active_country
 from ....product import models as product_models
 from ....warehouse.reservations import get_reservation_length, is_reservation_enabled
 from ....webhook.event_types import WebhookEventAsyncType
@@ -286,12 +287,11 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         shipping_address = cls.retrieve_shipping_address(user, data)
         billing_address = cls.retrieve_billing_address(user, data)
 
-        if shipping_address:
-            country = shipping_address.country.code
-        else:
-            country = channel.default_country
-
-        # Resolve and process the lines, retrieving the variants and quantities
+        country = get_active_country(
+            channel,
+            shipping_address,
+            billing_address,
+        )
         lines = data.pop("lines", None)
         if lines:
             (
@@ -345,7 +345,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
             # Save addresses
             shipping_address = cleaned_input.get("shipping_address")
-            if shipping_address and instance.is_shipping_required():
+            if shipping_address:
                 shipping_address.save()
                 instance.shipping_address = shipping_address.get_copy()
 

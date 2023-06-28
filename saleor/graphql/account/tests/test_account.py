@@ -1617,6 +1617,44 @@ def test_customer_register(
     assert customer_creation_event.user == new_user
 
 
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_confirmation_requested")
+def test_customer_register_send_account_confirmation_requested_event(
+    account_confirmation_requested_mock,
+    mocked_generator,
+    api_client,
+    channel_USD,
+):
+    # given
+    mocked_generator.return_value = "token"
+
+    email = "customer@example.com"
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "email": email,
+        "password": "Password",
+        "redirectUrl": redirect_url,
+        "channel": channel_USD.slug,
+    }
+
+    #   when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    errors = response.json()["data"]["accountRegister"]["errors"]
+
+    # then
+    assert errors == []
+    created_user = User.objects.get()
+    account_confirmation_requested_mock.assert_called_once_with(
+        created_user,
+        channel_USD.slug,
+        "token",
+        redirect_url + "?email=customer%40example.com&token=token",
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_register_disabled_email_confirmation(
     mocked_notify, api_client, site_settings
@@ -2755,6 +2793,36 @@ def test_account_request_deletion(
         NotifyEventType.ACCOUNT_DELETE,
         payload=expected_payload,
         channel_slug=channel_PLN.slug,
+    )
+
+
+@patch("saleor.account.notifications.account_delete_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_delete_requested")
+def test_account_request_deletion_send_account_delete_requested_event(
+    account_delete_requested_mock,
+    mocked_token,
+    user_api_client,
+    channel_PLN,
+    site_settings,
+):
+    mocked_token.return_value = "token"
+    user = user_api_client.user
+    redirect_url = "https://www.example.com"
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    params = urlencode({"token": "token"})
+    delete_url = prepare_url(params, redirect_url)
+
+    account_delete_requested_mock.assert_called_once_with(
+        user,
+        channel_PLN.slug,
+        "token",
+        delete_url,
     )
 
 

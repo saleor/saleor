@@ -1697,6 +1697,12 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
 
+  """An account confirmation is requested."""
+  ACCOUNT_CONFIRMATION_REQUESTED
+
+  """An account delete is requested."""
+  ACCOUNT_DELETE_REQUESTED
+
   """A new address created."""
   ADDRESS_CREATED
 
@@ -2327,6 +2333,12 @@ type WebhookEventAsync @doc(category: "Webhooks") {
 enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """All the events."""
   ANY_EVENTS
+
+  """An account confirmation is requested."""
+  ACCOUNT_CONFIRMATION_REQUESTED
+
+  """An account delete is requested."""
+  ACCOUNT_DELETE_REQUESTED
 
   """A new address created."""
   ADDRESS_CREATED
@@ -3326,6 +3338,8 @@ scalar JSONString
 
 """An enumeration."""
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
+  ACCOUNT_CONFIRMATION_REQUESTED
+  ACCOUNT_DELETE_REQUESTED
   ADDRESS_CREATED
   ADDRESS_UPDATED
   ADDRESS_DELETED
@@ -11769,6 +11783,44 @@ type OrderGrantedRefund @doc(category: "Orders") {
 
   """App that performed the action."""
   app: App
+
+  """
+  If true, the refunded amount includes the shipping price.If false, the refunded amount does not include the shipping price.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingCostsIncluded: Boolean!
+
+  """
+  Lines assigned to the granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantedRefundLine!]
+}
+
+"""
+Represents granted refund line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderGrantedRefundLine {
+  id: ID!
+
+  """Number of items to refund."""
+  quantity: Int!
+
+  """Line of the order associated with this granted refund."""
+  orderLine: OrderLine!
+
+  """Reason for refunding the line."""
+  reason: String
 }
 
 """Represents transaction's event."""
@@ -14866,6 +14918,23 @@ type Mutation {
     """The ID of the transaction."""
     id: ID!
   ): TransactionRequestAction @doc(category: "Payments")
+
+  """
+  Request a refund for payment transaction based on granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  transactionRequestRefundForGrantedRefund(
+    """The ID of the granted refund."""
+    grantedRefundId: ID!
+
+    """The ID of the transaction."""
+    id: ID!
+  ): TransactionRequestRefundForGrantedRefund @doc(category: "Payments")
 
   """
   Report the event for the transaction.
@@ -22083,6 +22152,41 @@ enum TransactionRequestActionErrorCode @doc(category: "Payments") {
 }
 
 """
+Request a refund for payment transaction based on granted refund.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type TransactionRequestRefundForGrantedRefund @doc(category: "Payments") {
+  transaction: TransactionItem
+  errors: [TransactionRequestRefundForGrantedRefundError!]!
+}
+
+type TransactionRequestRefundForGrantedRefundError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestRefundForGrantedRefundErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments") {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
 Report the event for the transaction.
 
 Added in Saleor 3.13.
@@ -23075,19 +23179,85 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
+
+  """
+  List of lines which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantRefundCreateLineError!]
 }
 
 """An enumeration."""
 enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  SHIPPING_COSTS_ALREADY_GRANTED
+  REQUIRED
+  INVALID
+}
+
+type OrderGrantRefundCreateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
-  amount: Decimal!
+  """
+  Amount of the granted refund. If not provided, the amount will be calculated automatically based on provided `lines` and `grantRefundForShipping`.
+  """
+  amount: Decimal
 
   """Reason of the granted refund."""
+  reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantRefundCreateLineInput!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantRefundForShipping: Boolean
+}
+
+input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+
+  """Reason of the granted refund for the line."""
   reason: String
 }
 
@@ -23107,7 +23277,6 @@ type OrderGrantRefundUpdate @doc(category: "Orders") {
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
   errors: [OrderGrantRefundUpdateError!]!
-  orderGrantedRefund: OrderGrantedRefund
 }
 
 type OrderGrantRefundUpdateError @doc(category: "Orders") {
@@ -23121,6 +23290,24 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundUpdateErrorCode!
+
+  """
+  List of lines to add which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addLines: [OrderGrantRefundUpdateLineError!]
+
+  """
+  List of lines to remove which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeLines: [OrderGrantRefundUpdateLineError!]
 }
 
 """An enumeration."""
@@ -23128,13 +23315,78 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
+  INVALID
+  SHIPPING_COSTS_ALREADY_GRANTED
+}
+
+type OrderGrantRefundUpdateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundUpdateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundUpdateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundUpdateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
+  """
+  Amount of the granted refund. if not provided and `addLines` or `removeLines` or `grantRefundForShipping` is provided, amount will be calculated automatically.
+  """
   amount: Decimal
 
   """Reason of the granted refund."""
+  reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addLines: [OrderGrantRefundUpdateLineAddInput!]
+
+  """
+  Lines to remove from granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeLines: [ID!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantRefundForShipping: Boolean
+}
+
+input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+
+  """Reason of the granted refund for the line."""
   reason: String
 }
 
@@ -28088,6 +28340,74 @@ enum VolumeUnitsEnum {
 }
 
 """
+Event sent when account confirmation requested. This event is always sent. enableAccountConfirmationByEmail flag set to True is not required.
+
+Added in Saleor 3.15.
+"""
+type AccountConfirmationRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
+Event sent when account delete is requested.
+
+Added in Saleor 3.15.
+"""
+type AccountDeleteRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+}
+
+"""
 Event sent when new address is created.
 
 Added in Saleor 3.5.
@@ -31096,6 +31416,15 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Granted refund related to refund request.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantedRefund: OrderGrantedRefund
 }
 
 """

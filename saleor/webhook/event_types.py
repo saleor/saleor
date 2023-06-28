@@ -19,6 +19,9 @@ from ..permission.enums import (
 class WebhookEventAsyncType:
     ANY = "any_events"
 
+    ACCOUNT_CONFIRMATION_REQUESTED = "account_confirmation_requested"
+    ACCOUNT_DELETE_REQUESTED = "account_delete_requested"
+
     ADDRESS_CREATED = "address_created"
     ADDRESS_UPDATED = "address_updated"
     ADDRESS_DELETED = "address_deleted"
@@ -172,6 +175,8 @@ class WebhookEventAsyncType:
 
     DISPLAY_LABELS = {
         ANY: "Any events",
+        ACCOUNT_CONFIRMATION_REQUESTED: "Account confirmation requested",
+        ACCOUNT_DELETE_REQUESTED: "Account delete requested",
         ADDRESS_CREATED: "Address created",
         ADDRESS_UPDATED: "Address updated",
         ADDRESS_DELETED: "Address deleted",
@@ -294,6 +299,11 @@ class WebhookEventAsyncType:
 
     CHOICES = [
         (ANY, DISPLAY_LABELS[ANY]),
+        (
+            ACCOUNT_CONFIRMATION_REQUESTED,
+            DISPLAY_LABELS[ACCOUNT_CONFIRMATION_REQUESTED],
+        ),
+        (ACCOUNT_DELETE_REQUESTED, DISPLAY_LABELS[ACCOUNT_DELETE_REQUESTED]),
         (ADDRESS_CREATED, DISPLAY_LABELS[ADDRESS_CREATED]),
         (ADDRESS_UPDATED, DISPLAY_LABELS[ADDRESS_UPDATED]),
         (ADDRESS_DELETED, DISPLAY_LABELS[ADDRESS_DELETED]),
@@ -426,6 +436,8 @@ class WebhookEventAsyncType:
     ALL = [event[0] for event in CHOICES]
 
     PERMISSIONS = {
+        ACCOUNT_CONFIRMATION_REQUESTED: AccountPermissions.MANAGE_USERS,
+        ACCOUNT_DELETE_REQUESTED: AccountPermissions.MANAGE_USERS,
         ADDRESS_CREATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_UPDATED: AccountPermissions.MANAGE_USERS,
         ADDRESS_DELETED: AccountPermissions.MANAGE_USERS,
@@ -640,10 +652,15 @@ class WebhookEventSyncType:
         PAYMENT_VOID,
     ]
 
+    # Events that are used only in the mutation logic can be excluded from the
+    # circular query check.
     ALLOWED_IN_CIRCULAR_QUERY = [
         PAYMENT_GATEWAY_INITIALIZE_SESSION,
         TRANSACTION_INITIALIZE_SESSION,
         TRANSACTION_PROCESS_SESSION,
+        TRANSACTION_CHARGE_REQUESTED,
+        TRANSACTION_REFUND_REQUESTED,
+        TRANSACTION_CANCELATION_REQUESTED,
     ]
 
     PERMISSIONS = {

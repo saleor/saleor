@@ -258,8 +258,10 @@ def test_update_shipping_zone_add_second_warehouses(
     data = content["data"]["shippingZoneUpdate"]
     assert not data["errors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
-    assert data["warehouses"][1]["slug"] == warehouse.slug
-    assert data["warehouses"][0]["slug"] == warehouse_no_shipping_zone.slug
+    response_warehouses_slugs = set([wh["slug"] for wh in data["warehouses"]])
+    assert response_warehouses_slugs == set(
+        [warehouse.slug, warehouse_no_shipping_zone.slug]
+    )
 
 
 def test_update_shipping_zone_remove_warehouses(

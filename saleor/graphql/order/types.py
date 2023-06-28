@@ -145,6 +145,7 @@ from .dataloaders import (
     OrderByNumberLoader,
     OrderEventsByIdLoader,
     OrderEventsByOrderIdLoader,
+    OrderGrantedRefundLinesByOrderGrantedRefundIdLoader,
     OrderGrantedRefundsByOrderIdLoader,
     OrderLineByIdLoader,
     OrderLinesByOrderIdLoader,
@@ -196,7 +197,26 @@ def get_payment_status_for_order(order):
     return status
 
 
-class OrderGrantedRefund(ModelObjectType):
+class OrderGrantedRefundLine(ModelObjectType[models.OrderGrantedRefundLine]):
+    id = graphene.GlobalID(required=True)
+    quantity = graphene.Int(description="Number of items to refund.", required=True)
+    order_line = graphene.Field(
+        "saleor.graphql.order.types.OrderLine",
+        description="Line of the order associated with this granted refund.",
+        required=True,
+    )
+    reason = graphene.String(description="Reason for refunding the line.")
+
+    class Meta:
+        description = "Represents granted refund line." + ADDED_IN_315 + PREVIEW_FEATURE
+        model = models.OrderGrantedRefundLine
+
+    @staticmethod
+    def resolve_order_line(root: models.OrderGrantedRefundLine, info):
+        return OrderLineByIdLoader(info.context).load(root.order_line_id)
+
+
+class OrderGrantedRefund(ModelObjectType[models.OrderGrantedRefund]):
     id = graphene.GlobalID(required=True)
     created_at = graphene.DateTime(required=True, description="Time of creation.")
     updated_at = graphene.DateTime(required=True, description="Time of last update.")
@@ -212,6 +232,21 @@ class OrderGrantedRefund(ModelObjectType):
         ),
     )
     app = graphene.Field(App, description=("App that performed the action."))
+    shipping_costs_included = graphene.Boolean(
+        required=True,
+        description=(
+            "If true, the refunded amount includes the shipping price."
+            "If false, the refunded amount does not include the shipping price."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        ),
+    )
+    lines = NonNullList(
+        OrderGrantedRefundLine,
+        description="Lines assigned to the granted refund."
+        + ADDED_IN_315
+        + PREVIEW_FEATURE,
+    )
 
     class Meta:
         description = "The details of granted refund." + ADDED_IN_313 + PREVIEW_FEATURE
@@ -241,6 +276,12 @@ class OrderGrantedRefund(ModelObjectType):
         if root.app_id:
             return AppByIdLoader(info.context).load(root.app_id)
         return None
+
+    @staticmethod
+    def resolve_lines(root: models.OrderGrantedRefund, info):
+        return OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(info.context).load(
+            root.id
+        )
 
 
 class OrderDiscount(BaseObjectType):
@@ -1332,6 +1373,10 @@ class Order(ModelObjectType[models.Order]):
     @staticmethod
     def resolve_created(root: models.Order, _info):
         return root.created_at
+
+    @staticmethod
+    def resolve_channel(root: models.Order, info):
+        return ChannelByIdLoader(info.context).load(root.channel_id)
 
     @staticmethod
     def resolve_token(root: models.Order, info):
