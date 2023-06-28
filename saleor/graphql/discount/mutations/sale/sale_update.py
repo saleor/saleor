@@ -9,10 +9,12 @@ from .....discount import models
 from .....discount.utils import CATALOGUE_FIELDS, fetch_catalogue_info
 from .....permission.enums import DiscountPermissions
 from .....product.tasks import update_products_discounted_prices_of_catalogues_task
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel import ChannelContext
 from ....core import ResolveInfo
 from ....core.mutations import ModelMutation
 from ....core.types import DiscountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Sale
 from ..utils import convert_catalogue_info_to_global_ids
@@ -33,6 +35,16 @@ class SaleUpdate(ModelMutation):
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
         error_type_class = DiscountError
         error_type_field = "discount_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_UPDATED,
+                description="A sale was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.SALE_TOGGLE,
+                description="Optionally triggered when a sale is started or stopped.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, _root, info: ResolveInfo, /, **data):

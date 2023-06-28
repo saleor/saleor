@@ -10,11 +10,13 @@ from .....core.jwt import jwt_decode
 from .....giftcard.utils import assign_user_gift_cards
 from .....order.utils import match_orders_with_new_user
 from .....permission.auth_filters import AuthorizationFilters
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
@@ -39,6 +41,16 @@ class ConfirmEmailChange(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification that account email change was confirmed.",
+            ),
+        ]
 
     @classmethod
     def get_token_payload(cls, token):
