@@ -29,7 +29,10 @@ class ShippingPriceTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = ShippingPriceTranslationInput(required=True)
+        input = ShippingPriceTranslationInput(
+            required=True,
+            description="Fields required to update shipping price translations.",
+        )
 
     class Meta:
         description = "Creates/updates translations for a shipping method."

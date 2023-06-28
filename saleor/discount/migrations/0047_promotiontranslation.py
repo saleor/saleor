@@ -47,4 +47,39 @@ class Migration(migrations.Migration):
                 "unique_together": {("language_code", "promotion")},
             },
         ),
+        migrations.CreateModel(
+            name="PromotionRuleTranslation",
+            fields=[
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("language_code", models.CharField(max_length=35)),
+                ("name", models.CharField(blank=True, max_length=255, null=True)),
+                (
+                    "description",
+                    saleor.core.db.fields.SanitizedJSONField(
+                        blank=True,
+                        null=True,
+                        sanitizer=saleor.core.utils.editorjs.clean_editor_js,
+                    ),
+                ),
+                (
+                    "promotion_rule",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="translations",
+                        to="discount.promotionrule",
+                    ),
+                ),
+            ],
+            options={
+                "unique_together": {("language_code", "promotion_rule")},
+            },
+        ),
     ]

@@ -18,7 +18,10 @@ class MenuItemTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = NameTranslationInput(required=True)
+        input = NameTranslationInput(
+            required=True,
+            description="Fields required to update menu item translations.",
+        )
 
     class Meta:
         description = "Creates/updates translations for a menu item."

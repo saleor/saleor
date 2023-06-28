@@ -23,7 +23,10 @@ class PromotionRuleTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = PromotionRuleTranslationInput(required=True)
+        input = PromotionRuleTranslationInput(
+            required=True,
+            description="Fields required to update promotion rule translations.",
+        )
 
     class Meta:
         description = (
