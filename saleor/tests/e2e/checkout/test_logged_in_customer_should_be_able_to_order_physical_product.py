@@ -25,7 +25,7 @@ from .utils import (
 
 def test_process_checkout_with_physical_product(
     e2e_staff_api_client,
-    e2e_customer_api_client,
+    e2e_logged_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
@@ -103,3 +103,23 @@ def test_process_checkout_with_physical_product(
     # This step is implemented automatically by using a proper
     # API client(eg. e2e_staff_api_client, e2e_not_logged_api_client,
     # e2e_logged_api_client).
+
+    # Step 2
+    lines = [
+        {"variantId": product_variant_id, "quantity": 1},
+    ]
+    checkout_data = checkout_create(
+        e2e_logged_api_client,
+        lines,
+        channel_slug,
+        email=None,
+        set_default_billing_address=True,
+        set_default_shipping_address=True,
+    )
+    checkout_id = checkout_data["id"]
+
+    expected_email = e2e_logged_api_client.user.email
+    assert checkout_data["email"] == expected_email
+    assert checkout_data["user"]["email"] == expected_email
+    assert checkout_data["isShippingRequired"] is True
+    assert checkout_data["shippingMethods"] != []

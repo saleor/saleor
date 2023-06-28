@@ -92,7 +92,12 @@ def test_process_checkout_with_digital_product(
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
-    checkout_data = checkout_create(e2e_not_logged_api_client, lines, channel_slug)
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="testEmail@example.com",
+    )
     checkout_id = checkout_data["id"]
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert checkout_data["isShippingRequired"] is False

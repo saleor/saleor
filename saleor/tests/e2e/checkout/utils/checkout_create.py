@@ -12,6 +12,10 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
     checkout {
       id
       email
+      user {
+        id
+        email
+      }
       channel {
         slug
       }
@@ -46,8 +50,9 @@ def checkout_create(
     api_client,
     lines,
     channel_slug,
-    email="testEmail@example.com",
+    email=None,
     set_default_billing_address=False,
+    set_default_shipping_address=False,
 ):
     variables = {
         "input": {
@@ -60,6 +65,9 @@ def checkout_create(
     if set_default_billing_address:
         variables["input"]["billingAddress"] = DEFAULT_ADDRESS
 
+    if set_default_shipping_address:
+        variables["input"]["shippingAddress"] = DEFAULT_ADDRESS
+
     response = api_client.post_graphql(
         CHECKOUT_CREATE_MUTATION,
         variables=variables,
@@ -71,6 +79,5 @@ def checkout_create(
     data = content["data"]["checkoutCreate"]["checkout"]
     assert data["id"] is not None
     assert data["channel"]["slug"] == channel_slug
-    assert data["email"] == email
 
     return data

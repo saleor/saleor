@@ -56,7 +56,7 @@ def e2e_staff_api_client():
 
 
 @pytest.fixture
-def e2e_customer_api_client():
+def e2e_logged_api_client():
     e2e_customer = User.objects.create_user(
         email="JoeCustomer@example.com",
         password="password",
