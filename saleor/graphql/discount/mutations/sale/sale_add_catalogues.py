@@ -26,7 +26,7 @@ class SaleAddCatalogues(SaleBaseCatalogueMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.SALE_UPDATED,
-                description=("A sale was updated."),
+                description="A sale was updated.",
             ),
         ]
 

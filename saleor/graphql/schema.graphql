@@ -17291,7 +17291,7 @@ type Mutation {
   Requires one of the following permissions: MANAGE_APPS.
   
   Triggers the following webhook events:
-  - APP_UPDATED (async): An app was installed.
+  - APP_UPDATED (async): An app was updated.
   """
   appUpdate(
     """ID of an app to update."""
@@ -26863,7 +26863,7 @@ Updates an existing app.
 Requires one of the following permissions: MANAGE_APPS.
 
 Triggers the following webhook events:
-- APP_UPDATED (async): An app was installed.
+- APP_UPDATED (async): An app was updated.
 """
 type AppUpdate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")

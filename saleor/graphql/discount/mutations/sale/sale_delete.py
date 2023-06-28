@@ -30,7 +30,7 @@ class SaleDelete(ModelDeleteMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.SALE_DELETED,
-                description=("A sale was deleted."),
+                description="A sale was deleted.",
             ),
         ]
 

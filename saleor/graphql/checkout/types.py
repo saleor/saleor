@@ -488,7 +488,7 @@ class Checkout(ModelObjectType[models.Checkout]):
         webhook_events_info=[
             WebhookEventInfo(
                 type=WebhookEventSyncType.PAYMENT_LIST_GATEWAYS,
-                description=("Fetch payment gateways available for checkout. "),
+                description="Fetch payment gateways available for checkout.",
             ),
         ],
     )

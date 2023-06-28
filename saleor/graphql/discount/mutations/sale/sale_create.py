@@ -75,7 +75,7 @@ class SaleCreate(ModelMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.SALE_CREATED,
-                description=("A sale was created."),
+                description="A sale was created.",
             ),
         ]
 

@@ -34,7 +34,7 @@ class AppUpdate(ModelMutation):
         webhook_events_info = [
             WebhookEventInfo(
                 type=WebhookEventAsyncType.APP_UPDATED,
-                description="An app was installed.",
+                description="An app was updated.",
             ),
         ]
 
