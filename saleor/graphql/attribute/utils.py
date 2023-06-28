@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Tuple, Type, U
 import graphene
 from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.db.utils import IntegrityError
 from django.template.defaultfilters import truncatechars
 from django.utils import timezone
 from django.utils.text import slugify
@@ -181,26 +180,24 @@ class AttributeAssignmentMixin:
         )
 
     @classmethod
-    def _create_value_instance(
+    def _get_create_value_instance(
         cls, attribute, attr_value, external_ref, attr_and_value_slugs_map
     ):
-        try:
-            slug = prepare_unique_slug(
-                slugify(unidecode(attr_value)), attr_and_value_slugs_map[attribute]
-            )
-            value = attribute_models.AttributeValue.objects.create(
-                external_reference=external_ref,
-                attribute=attribute,
-                name=attr_value,
-                slug=slug,
-            )
-        except IntegrityError:
-            raise ValidationError(
-                "Attribute value with given externalReference already exists."
-            )
+        slug = prepare_unique_slug(
+            slugify(unidecode(attr_value)), attr_and_value_slugs_map[attribute]
+        )
+        value, created = attribute_models.AttributeValue.objects.get_or_create(
+            external_reference=external_ref,
+            defaults={
+                "attribute": attribute,
+                "name": attr_value,
+                "slug": slug,
+            },
+        )
+        if created:
+            attr_and_value_slugs_map[attribute].add(slug)
 
-        attr_and_value_slugs_map[attribute].add(slug)
-        return (value,)
+        return value
 
     @classmethod
     def clean_input(
@@ -449,27 +446,29 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.dropdown.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(
+            value = cls._get_create_value_instance(
                 attribute, attr_value, external_ref, attr_and_value_slugs_map
             )
-            return value
+            return (value,)
 
         if external_ref:
-            value = attribute_models.AttributeValue.objects.get(
-                external_reference=external_ref
-            )
-            if not value:
+            try:
+                value = attribute_models.AttributeValue.objects.get(
+                    external_reference=external_ref
+                )
+                return (value,)
+            except attribute_models.AttributeValue.DoesNotExist:
                 raise ValidationError(
                     "Attribute value with given externalReference can't be found"
                 )
-            return (value,)
 
         if id := attr_values.dropdown.id:
-            _, attr_value_id = from_global_id_or_error(id)
-            value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
-            if not value:
+            try:
+                _, attr_value_id = from_global_id_or_error(id)
+                value = attribute_models.AttributeValue.objects.get(pk=attr_value_id)
+                return (value,)
+            except attribute_models.AttributeValue.DoesNotExist:
                 raise ValidationError("Attribute value with given ID can't be found")
-            return (value,)
 
         if attr_value:
             value = prepare_attribute_values(attribute, [attr_value])
@@ -492,7 +491,7 @@ class AttributeAssignmentMixin:
         external_ref = attr_values.swatch.external_reference
 
         if external_ref and attr_value:
-            value = cls._create_value_instance(
+            value = cls._get_create_value_instance(
                 attribute, attr_value, external_ref, attr_and_value_slugs_map
             )
             return value
@@ -536,30 +535,35 @@ class AttributeAssignmentMixin:
             external_ref = attr_value.external_reference
 
             if external_ref and attr_value.value:
-                value = cls._create_value_instance(
+                value = cls._get_create_value_instance(
                     attribute, attr_value.value, external_ref, attr_and_value_slugs_map
                 )
-                return value
+                if value.id not in [a.id for a in attribute_values]:
+                    attribute_values.append(value)
 
             if external_ref:
-                value = attribute_models.AttributeValue.objects.get(
-                    external_reference=external_ref
-                )
-                if not value:
+                try:
+                    value = attribute_models.AttributeValue.objects.get(
+                        external_reference=external_ref
+                    )
+                    if value.id not in [a.id for a in attribute_values]:
+                        attribute_values.append(value)
+                except attribute_models.AttributeValue.DoesNotExist:
                     raise ValidationError(
                         "Attribute value with given externalReference can't be found"
                     )
-                return (value,)
 
             if attr_value.id:
-                _, attr_value_id = from_global_id_or_error(attr_value.id)
-                attr_value_model = attribute_models.AttributeValue.objects.get(
-                    pk=attr_value_id
-                )
-                if not attr_value_model:
+                try:
+                    _, attr_value_id = from_global_id_or_error(attr_value.id)
+                    attr_value_model = attribute_models.AttributeValue.objects.get(
+                        pk=attr_value_id
+                    )
+                except attribute_models.AttributeValue.DoesNotExist:
                     raise ValidationError(
                         "Attribute value with given ID can't be found"
                     )
+
                 if attr_value_model.id not in [a.id for a in attribute_values]:
                     attribute_values.append(attr_value_model)
 
