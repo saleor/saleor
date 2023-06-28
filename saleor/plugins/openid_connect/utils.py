@@ -26,7 +26,7 @@ from ...core.jwt import (
     jwt_encode,
     jwt_user_payload,
 )
-from ...graphql.account.mutations.authentication import (
+from ...graphql.account.mutations.authentication.utils import (
     _does_token_match,
     _get_new_csrf_token,
 )

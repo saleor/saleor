@@ -142,6 +142,7 @@ class OrderEvents:
     FULFILLMENT_AWAITS_APPROVAL = "fulfillment_awaits_approval"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
+    NOTE_UPDATED = "note_updated"
 
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
@@ -199,6 +200,7 @@ class OrderEvents:
         (FULFILLMENT_AWAITS_APPROVAL, "Fulfillments awaits approval"),
         (TRACKING_UPDATED, "The fulfillment's tracking code was updated"),
         (NOTE_ADDED, "A note was added to the order"),
+        (NOTE_UPDATED, "A note was updated in the order"),
         (OTHER, "An unknown order event containing a message"),
     ]
 

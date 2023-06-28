@@ -6,9 +6,31 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ### Breaking changes
 
+- Remove `OrderBulkCreateInput.trackingClientId` field - #13146 by @SzymJ
+- Drop backend integration with Open Exchange Rates API - #13175 by @maarcingebala
+  - Note: this changes doesn't affect Saleor Cloud users, as the integration was never enabled there.
+  - After this change, the following fields in API alway return `null` values:
+    - `ProductPricingInfo.discountLocalCurrency`
+    - `ProductPricingInfo.priceRangeLocalCurrency`
+    - `VariantPricingInfo.discountLocalCurrency`
+    - `VariantPricingInfo.priceLocalCurrency`
+- Change order of resolving country code in checkout - #13159 by @jakubkuc
+  - Until now, checkout mutations were ignoring provided shipping address when shipping was not required. After this change, the shipping address is always set when supplied in the input. It might be breaking, as the shipping address affects the country code used for tax calculation.
+  - The order of resolving the checkout country code is always as follows:
+      1. Shipping address
+      2. Billing address
+      3. Channel's default country
+
 ### GraphQL API
 
+- Add `orderNoteAdd` and `orderNoteUpdate` mutations and deprecate `orderAddNote` mutation - #12434 by @pawelzar
+- Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
+- Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
+- Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
+
 ### Saleor Apps
+
+- Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
 
 ### Other changes
 - Add possibility to log without confirming email - #13059 by @kadewu
@@ -17,6 +39,20 @@ All notable, unreleased changes to this project will be documented in this file.
   - Type `User` gets new field `is_confirmed`
   - `CustomerInput` gets new field `is_confirmed`
 
+- Expand metric units to support more types of products. - #13043 by @FremahA
+- Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
+- Remove unused `google-measurement-protocol` package - #13146 by @SzymJ
+- Add missing descriptions to App module. - #13163 by @fowczarek
+- Drop TranslationProxy and replace `translated` model property with `get_translation` function where needed. - #13156 by @zedzior
+- Add missing descriptions to account module. - #13155 by @fowczarek
+- Add missing descriptions to channel module. - #13166 by @fowczarek
+- Add missing descriptions to checkout module. - #13167 by @fowczarek
+- Add missing descriptions to attribute module. - #13165 by @fowczarek
+- Add missing descriptions to csv module. - #13184 by @fowczarek
+- Add missing descriptions to Account module. - #13155 by @fowczarek
+- Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
+- Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
+-
 # 3.14.0
 
 ### Breaking changes
@@ -58,6 +94,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `enable_account_confirmation_by_email` to `SiteSettings` model and allow to update it via `shopSettingsUpdate` mutation - #12781 by @SzymJ
 - Add `brand` optional field with brand data (initially logo image) to `Manifest`, `AppInstallation` and `App` - #12361 by @przlada
 - Add `externalReference` field to `AttributeValueInput`, `BulkAttributeValueInput` and `AttributeValueSelectableTypeInput` - #12823 by @SzymJ
+- [Preview] Add `where` filtering option with `ids` filter for `product_variants`, `collections` and `categories` query - #13004 by @zedzior
 
 ### Saleor Apps
 

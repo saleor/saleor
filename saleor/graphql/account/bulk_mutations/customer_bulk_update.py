@@ -30,8 +30,11 @@ from ...core.validators import validate_one_of_args_is_in_mutation
 from ...payment.utils import metadata_contains_empty_key
 from ...plugins.dataloaders import get_app_promise, get_plugin_manager_promise
 from ..i18n import I18nMixin
-from ..mutations.base import BILLING_ADDRESS_FIELD, SHIPPING_ADDRESS_FIELD
-from ..mutations.staff import CustomerInput
+from ..mutations.base import (
+    BILLING_ADDRESS_FIELD,
+    SHIPPING_ADDRESS_FIELD,
+    CustomerInput,
+)
 from ..types import User
 
 

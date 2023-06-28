@@ -117,8 +117,8 @@ class CountryDisplay(graphene.ObjectType):
         VAT,
         description="Country tax.",
         deprecation_reason=(
-            f"{DEPRECATED_IN_3X_FIELD} Use `TaxClassCountryRate` type to manage tax "
-            "rates per country."
+            f"{DEPRECATED_IN_3X_FIELD} Always returns `null`. Use `TaxClassCountryRate`"
+            " type to manage tax rates per country."
         ),
     )
 

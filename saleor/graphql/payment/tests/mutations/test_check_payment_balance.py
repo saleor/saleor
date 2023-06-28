@@ -24,11 +24,15 @@ MUTATION_CHECK_PAYMENT_BALANCE = """
 def test_payment_check_balance_mutation_validate_gateway_does_not_exist(
     check_payment_balance_mock, staff_api_client, check_payment_balance_input
 ):
+    # given
     check_payment_balance_input["gatewayId"] = "mirumee.payments.not_existing_gateway"
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["paymentCheckBalance"]["errors"]
 
@@ -48,11 +52,15 @@ def test_payment_check_balance_mutation_validate_gateway_does_not_exist(
 def test_payment_check_balance_validate_not_supported_currency(
     _, __, check_payment_balance_mock, staff_api_client, check_payment_balance_input
 ):
+    # given
     check_payment_balance_input["card"]["money"]["currency"] = "ABSTRACT_CURRENCY"
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["paymentCheckBalance"]["errors"]
 
@@ -73,11 +81,15 @@ def test_payment_check_balance_validate_not_supported_currency(
 def test_payment_check_balance_validate_channel_does_not_exist(
     _, __, check_payment_balance_mock, staff_api_client, check_payment_balance_input
 ):
+    # given
     check_payment_balance_input["channel"] = "not_existing_channel"
+
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["paymentCheckBalance"]["errors"]
 
@@ -102,14 +114,17 @@ def test_payment_check_balance_validate_channel_inactive(
     channel_USD,
     check_payment_balance_input,
 ):
+    # given
     channel_USD.is_active = False
     channel_USD.save(update_fields=["is_active"])
     check_payment_balance_input["channel"] = "main"
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["paymentCheckBalance"]["errors"]
 
@@ -123,7 +138,9 @@ def test_payment_check_balance_validate_channel_inactive(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch("saleor.graphql.payment.mutations.validate_channel")
+@patch(
+    "saleor.graphql.payment.mutations.payment.payment_check_balance.validate_channel"
+)
 def test_payment_check_balance_payment(
     _,
     __,
@@ -132,10 +149,12 @@ def test_payment_check_balance_payment(
     staff_api_client,
     check_payment_balance_input,
 ):
+    # when
     staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     check_payment_balance_mock.assert_called_once_with(
         {
             "gateway_id": "mirumee.payments.gateway",
@@ -153,7 +172,9 @@ def test_payment_check_balance_payment(
 @patch.object(PluginsManager, "check_payment_balance")
 @patch.object(PaymentCheckBalance, "validate_gateway")
 @patch.object(PaymentCheckBalance, "validate_currency")
-@patch("saleor.graphql.payment.mutations.validate_channel")
+@patch(
+    "saleor.graphql.payment.mutations.payment.payment_check_balance.validate_channel"
+)
 def test_payment_check_balance_balance_raises_error(
     _,
     __,
@@ -162,14 +183,17 @@ def test_payment_check_balance_balance_raises_error(
     staff_api_client,
     check_payment_balance_input,
 ):
+    # given
     check_payment_balance_mock.side_effect = Mock(
         side_effect=PaymentError("Test payment error")
     )
 
+    # when
     response = staff_api_client.post_graphql(
         MUTATION_CHECK_PAYMENT_BALANCE, {"input": check_payment_balance_input}
     )
 
+    # then
     content = get_graphql_content(response)
     errors = content["data"]["paymentCheckBalance"]["errors"]
 

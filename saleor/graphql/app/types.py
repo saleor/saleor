@@ -132,10 +132,14 @@ class AppManifestExtension(BaseObjectType):
 
 
 class AppExtension(AppManifestExtension, ModelObjectType[models.AppExtension]):
-    id = graphene.GlobalID(required=True)
-    app = graphene.Field("saleor.graphql.app.types.App", required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app extension.")
+    app = graphene.Field(
+        "saleor.graphql.app.types.App",
+        required=True,
+        description="The app assigned to app extension.",
+    )
     access_token = graphene.String(
-        description="JWT token used to authenticate by thridparty app extension."
+        description="JWT token used to authenticate by third-party app extension."
     )
 
     class Meta:
@@ -272,7 +276,7 @@ class AppManifestBrandLogo(BaseObjectType):
         _info: ResolveInfo,
         *,
         size: Optional[int] = None,
-        format: Optional[str] = None
+        format: Optional[str] = None,
     ):
         format = get_icon_thumbnail_format(format)
         # limit thumbnail max size as it is transferred
@@ -377,25 +381,50 @@ class AppManifestBrand(BaseObjectType):
 
 
 class Manifest(BaseObjectType):
-    identifier = graphene.String(required=True)
-    version = graphene.String(required=True)
-    name = graphene.String(required=True)
-    about = graphene.String()
-    permissions = NonNullList(Permission)
-    app_url = graphene.String()
+    identifier = graphene.String(
+        required=True, description="The identifier of the manifest for the app."
+    )
+    version = graphene.String(
+        required=True, description="The version of the manifest for the app."
+    )
+    name = graphene.String(
+        required=True, description="The name of the manifest for the app ."
+    )
+    about = graphene.String(
+        description="Description of the app displayed in the dashboard."
+    )
+    permissions = NonNullList(
+        Permission, description="The array permissions required for the app."
+    )
+    app_url = graphene.String(description="App website rendered in the dashboard.")
     configuration_url = graphene.String(
         description="URL to iframe with the configuration for the app.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `appUrl` instead.",
     )
-    token_target_url = graphene.String()
+    token_target_url = graphene.String(
+        description=(
+            "Endpoint used during process of app installation, [see installing an app.]"
+            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/installing-apps#installing-an-app)"
+        )
+    )
     data_privacy = graphene.String(
         description="Description of the data privacy defined for this app.",
         deprecation_reason=f"{DEPRECATED_IN_3X_FIELD} Use `dataPrivacyUrl` instead.",
     )
-    data_privacy_url = graphene.String()
-    homepage_url = graphene.String()
-    support_url = graphene.String()
-    extensions = NonNullList(AppManifestExtension, required=True)
+    data_privacy_url = graphene.String(description="URL to the full privacy policy.")
+    homepage_url = graphene.String(description="External URL to the app homepage.")
+    support_url = graphene.String(
+        description="External URL to the page where app users can find support."
+    )
+    extensions = NonNullList(
+        AppManifestExtension,
+        required=True,
+        description=(
+            "List of extensions that will be mounted in Saleor's dashboard. "
+            "For details, please [see the extension section.]"
+            "(https://docs.saleor.io/docs/3.x/developer/extending/apps/extending-dashboard-with-apps#key-concepts)"
+        ),
+    )
     webhooks = NonNullList(
         AppManifestWebhook,
         description="List of the app's webhooks." + ADDED_IN_35,
@@ -435,7 +464,7 @@ class Manifest(BaseObjectType):
 
 
 class AppToken(BaseObjectType):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app token.")
     name = graphene.String(description="Name of the authenticated token.")
     auth_token = graphene.String(description="Last 4 characters of the token.")
 
@@ -459,7 +488,7 @@ class AppToken(BaseObjectType):
 
 @federated_entity("id")
 class App(ModelObjectType[models.App]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app.")
     permissions = NonNullList(Permission, description="List of the app's permissions.")
     created = graphene.DateTime(
         description="The date and time when the app was created."
@@ -600,9 +629,14 @@ class AppCountableConnection(CountableConnection):
 
 
 class AppInstallation(ModelObjectType[models.AppInstallation]):
-    id = graphene.GlobalID(required=True)
-    app_name = graphene.String(required=True)
-    manifest_url = graphene.String(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the app installation.")
+    app_name = graphene.String(
+        required=True, description="The name of the app installation."
+    )
+    manifest_url = graphene.String(
+        required=True,
+        description="The URL address of manifest for the app installation.",
+    )
     brand = graphene.Field(
         AppBrand, description="App's brand data." + ADDED_IN_314 + PREVIEW_FEATURE
     )

@@ -56,7 +56,8 @@ from ...tests.utils import (
     get_multipart_request_body,
 )
 from ..mutations.base import INVALID_TOKEN
-from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate, UserDelete
+from ..mutations.staff import CustomerDelete, StaffDelete, StaffUpdate
+from ..mutations.staff.base import UserDelete
 from ..tests.utils import convert_dict_keys_to_camel_case
 
 
@@ -1618,6 +1619,44 @@ def test_customer_register(
     assert customer_creation_event.user == new_user
 
 
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
+@patch("saleor.account.notifications.default_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_confirmation_requested")
+def test_customer_register_send_account_confirmation_requested_event(
+    account_confirmation_requested_mock,
+    mocked_generator,
+    api_client,
+    channel_USD,
+):
+    # given
+    mocked_generator.return_value = "token"
+
+    email = "customer@example.com"
+    redirect_url = "http://localhost:3000"
+    variables = {
+        "email": email,
+        "password": "Password",
+        "redirectUrl": redirect_url,
+        "channel": channel_USD.slug,
+    }
+
+    #   when
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    errors = response.json()["data"]["accountRegister"]["errors"]
+
+    # then
+    assert errors == []
+    created_user = User.objects.get()
+    account_confirmation_requested_mock.assert_called_once_with(
+        created_user,
+        channel_USD.slug,
+        "token",
+        redirect_url + "?email=customer%40example.com&token=token",
+    )
+
+
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_customer_register_disabled_email_confirmation(
     mocked_notify, api_client, site_settings
@@ -2819,6 +2858,36 @@ def test_account_request_deletion(
     )
 
 
+@patch("saleor.account.notifications.account_delete_token_generator.make_token")
+@patch("saleor.plugins.manager.PluginsManager.account_delete_requested")
+def test_account_request_deletion_send_account_delete_requested_event(
+    account_delete_requested_mock,
+    mocked_token,
+    user_api_client,
+    channel_PLN,
+    site_settings,
+):
+    mocked_token.return_value = "token"
+    user = user_api_client.user
+    redirect_url = "https://www.example.com"
+    variables = {"redirectUrl": redirect_url, "channel": channel_PLN.slug}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    params = urlencode({"token": "token"})
+    delete_url = prepare_url(params, redirect_url)
+
+    account_delete_requested_mock.assert_called_once_with(
+        user,
+        channel_PLN.slug,
+        "token",
+        delete_url,
+    )
+
+
 @freeze_time("2018-05-31 12:00:01")
 @patch("saleor.plugins.manager.PluginsManager.notify")
 def test_account_request_deletion_token_validation(
@@ -3095,7 +3164,7 @@ CUSTOMER_DELETE_MUTATION = """
 
 
 @patch("saleor.account.signals.delete_from_storage_task.delay")
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_customer_delete(
     mocked_deletion_event,
     delete_from_storage_task_mock,
@@ -3169,7 +3238,7 @@ def test_customer_delete_trigger_webhook(
 
 
 @patch("saleor.account.signals.delete_from_storage_task.delay")
-@patch("saleor.graphql.account.utils.account_events.customer_deleted_event")
+@patch("saleor.graphql.account.mutations.base.account_events.customer_deleted_event")
 def test_customer_delete_by_app(
     mocked_deletion_event,
     delete_from_storage_task_mock,
@@ -5836,8 +5905,12 @@ def test_account_reset_password_with_upper_case_email(
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
@@ -5864,8 +5937,12 @@ def test_account_confirmation(
 
 
 @freeze_time("2018-05-31 12:00:01")
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation_invalid_user(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
@@ -5889,8 +5966,12 @@ def test_account_confirmation_invalid_user(
     assign_gift_cards_mock.assert_not_called()
 
 
-@patch("saleor.graphql.account.mutations.base.assign_user_gift_cards")
-@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.assign_user_gift_cards"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_account.match_orders_with_new_user"
+)
 def test_account_confirmation_invalid_token(
     match_orders_with_new_user_mock,
     assign_gift_cards_mock,
@@ -7619,8 +7700,12 @@ mutation emailUpdate($token: String!, $channel: String) {
 """
 
 
-@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
-@patch("saleor.graphql.account.mutations.account.assign_user_gift_cards")
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_email_change.match_orders_with_new_user"
+)
+@patch(
+    "saleor.graphql.account.mutations.account.confirm_email_change.assign_user_gift_cards"
+)
 def test_email_update(
     assign_gift_cards_mock,
     assign_orders_mock,

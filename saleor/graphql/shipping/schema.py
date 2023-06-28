@@ -11,8 +11,7 @@ from ..core.utils import from_global_id_or_error
 from ..translations.mutations import ShippingPriceTranslate
 from .bulk_mutations import ShippingPriceBulkDelete, ShippingZoneBulkDelete
 from .filters import ShippingZoneFilterInput
-from .mutations.channels import ShippingMethodChannelListingUpdate
-from .mutations.shippings import (
+from .mutations import (
     ShippingPriceCreate,
     ShippingPriceDelete,
     ShippingPriceExcludeProducts,
@@ -21,6 +20,9 @@ from .mutations.shippings import (
     ShippingZoneCreate,
     ShippingZoneDelete,
     ShippingZoneUpdate,
+)
+from .mutations.shipping_method_channel_listing_update import (
+    ShippingMethodChannelListingUpdate,
 )
 from .resolvers import resolve_shipping_zones
 from .types import ShippingZone, ShippingZoneCountableConnection

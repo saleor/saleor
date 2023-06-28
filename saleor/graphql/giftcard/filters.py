@@ -85,6 +85,12 @@ def filter_code(qs, _, value):
     return qs.filter(code=value)
 
 
+def filter_created_by_email(qs, _, value):
+    if not value:
+        return qs
+    return qs.filter(created_by_email=value)
+
+
 class GiftCardFilter(MetadataFilterBase):
     tags = ListObjectTypeFilter(input_class=graphene.String, method=filter_tags_list)
     products = GlobalIDMultipleChoiceFilter(method=filter_products)
@@ -99,6 +105,7 @@ class GiftCardFilter(MetadataFilterBase):
     )
     is_active = django_filters.BooleanFilter()
     code = django_filters.CharFilter(method=filter_code)
+    created_by_email = django_filters.CharFilter(method=filter_created_by_email)
 
     class Meta:
         model = models.GiftCard

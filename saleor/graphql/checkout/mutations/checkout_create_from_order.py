@@ -6,6 +6,7 @@ from django.contrib.sites.models import Site
 from ....checkout import models as checkout_models
 from ....checkout.utils import add_variants_to_checkout
 from ....core.exceptions import InsufficientStock
+from ....core.utils.country import get_active_country
 from ....order import models as order_models
 from ....product import models as product_models
 from ....product.models import ProductVariant
@@ -318,10 +319,9 @@ class CheckoutCreateFromOrder(BaseMutation):
             ],
         )
         valid_order_lines: list[order_models.OrderLine] = []
-        if order.shipping_address:
-            country = order.shipping_address.country.code
-        else:
-            country = order.channel.default_country
+        country = get_active_country(
+            order.channel, order.shipping_address, order.billing_address
+        )
         try:
             check_stock_and_preorder_quantity_bulk(
                 variants,

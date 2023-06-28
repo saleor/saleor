@@ -596,3 +596,39 @@ def test_category_products_where_filter(
     products = content["data"]["category"]["products"]["edges"]
     assert len(products) == 1
     assert products[0]["node"]["slug"] == "test-product-b"
+
+
+CATEGORY_WHERE_QUERY = """
+    query($where: CategoryWhereInput!) {
+      categories(first: 10, where: $where) {
+        edges {
+          node {
+            id
+            slug
+          }
+        }
+      }
+    }
+"""
+
+
+def test_categories_where_by_ids(api_client, category_list):
+    # given
+    ids = [
+        graphene.Node.to_global_id("Category", category.pk)
+        for category in category_list[:2]
+    ]
+    variables = {"where": {"AND": [{"ids": ids}]}}
+
+    # when
+    response = api_client.post_graphql(CATEGORY_WHERE_QUERY, variables)
+
+    # then
+    data = get_graphql_content(response)
+    categories = data["data"]["categories"]["edges"]
+    assert len(categories) == 2
+    returned_slugs = {node["node"]["slug"] for node in categories}
+    assert returned_slugs == {
+        category_list[0].slug,
+        category_list[1].slug,
+    }

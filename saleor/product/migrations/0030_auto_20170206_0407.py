@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import django.db.models.deletion
-import versatileimagefield.fields
 from django.db import migrations, models
 
 
@@ -75,9 +74,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="productimage",
             name="image",
-            field=versatileimagefield.fields.VersatileImageField(
-                upload_to="products", verbose_name="image"
-            ),
+            field=models.ImageField(upload_to="products", verbose_name="image"),
         ),
         migrations.AlterField(
             model_name="productimage",
@@ -87,7 +84,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="productimage",
             name="ppoi",
-            field=versatileimagefield.fields.PPOIField(
+            field=models.CharField(
                 default="0.5x0.5", editable=False, max_length=20, verbose_name="ppoi"
             ),
         ),
