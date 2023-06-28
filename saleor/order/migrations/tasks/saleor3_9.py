@@ -101,7 +101,7 @@ def recalculate_undiscounted_prices():
             )
         )
         & Q(tax_rate__gt=0)
-    ).order_by("-created_at")[:BATCH_SIZE]
+    ).prefetch_related("order_id").order_by("-created_at")[:BATCH_SIZE]
 
     if not order_lines:
         task_logger.info("No order lines to update.")

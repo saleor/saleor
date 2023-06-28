@@ -689,9 +689,7 @@ def test_create_order_from_checkout_valid_undiscounted_prices(
             net=line.base_unit_price,
             gross=expected_gross,
         )
-        import ipdb
 
-        ipdb.set_trace()
         assert line.undiscounted_unit_price == expected_undiscounted_unit_price
         expected_total_gross = quantize_price(
             Money(
@@ -784,8 +782,11 @@ def test_create_order_from_checkout_update_undiscounted_prices_match(
     manager = get_plugins_manager()
     country_code = checkout.shipping_address.country.code
     line = checkout.lines.first()
+    line.quantity = 2
+    line.save()
     product = line.variant.product
     channel_listing = line.variant.channel_listings.first()
+
     channel_listing.price = Money("35.000", "USD")
     channel_listing.save()
     product.tax_class.country_rates.update_or_create(

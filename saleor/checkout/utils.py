@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, Union, cast
 import graphene
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ..account.models import User
 from ..core.exceptions import ProductNotPublished
@@ -921,18 +921,19 @@ def delete_external_shipping_id(checkout: Checkout):
     checkout.delete_value_from_private_metadata(PRIVATE_META_APP_SHIPPING_ID)
 
 
-# this function prevents edge-case where prices from tax app might be inconsistent
 def get_taxed_undiscounted_price(
-    undiscounted_base_price, price, tax_rate, prices_entered_with_tax
+    undiscounted_base_price: "Money",
+    price: "TaxedMoney",
+    tax_rate: "Decimal",
+    prices_entered_with_tax: bool
 ):
     """Apply taxes to undiscounted base price.
 
     This function also prevents rounding difference between prices from tax-app and
     local calculations based on tax_rate that might occur in orders without discounts.
     """
-    if undiscounted_base_price == price.net and not prices_entered_with_tax:
-        return price
-    if undiscounted_base_price == price.gross and prices_entered_with_tax:
+    price_to_compare = price.gross if prices_entered_with_tax else price.net
+    if undiscounted_base_price == price_to_compare:
         return price
     return quantize_price(
         calculate_flat_rate_tax(
