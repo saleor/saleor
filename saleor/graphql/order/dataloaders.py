@@ -9,6 +9,7 @@ from ...order.models import (
     Order,
     OrderEvent,
     OrderGrantedRefund,
+    OrderGrantedRefundLine,
     OrderLine,
 )
 from ...payment.models import TransactionItem
@@ -139,6 +140,22 @@ class OrderGrantedRefundsByOrderIdLoader(DataLoader):
         for refund in refunds.iterator():
             refunds_map[refund.order_id].append(refund)
         return [refunds_map.get(order_id, []) for order_id in keys]
+
+
+class OrderGrantedRefundLinesByOrderGrantedRefundIdLoader(DataLoader):
+    context_key = "order_granted_refund_lines_by_granted_refund_id"
+
+    def batch_load(self, keys):
+        refund_lines = OrderGrantedRefundLine.objects.using(
+            self.database_connection_name
+        ).filter(granted_refund_id__in=keys)
+        refund_lines_map = defaultdict(list)
+
+        for refund_line in refund_lines.iterator():
+            refund_lines_map[refund_line.granted_refund_id].append(refund_line)
+        return [
+            refund_lines_map.get(granted_refund_id, []) for granted_refund_id in keys
+        ]
 
 
 class AllocationsByOrderLineIdLoader(DataLoader):
