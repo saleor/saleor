@@ -19,6 +19,8 @@ def test_account_address_create_get_invalid_fields():
     assert "streetAddress1" in invalid_fields
     assert "postalCode" in invalid_fields
 
+
+def test_account_address_create_get_invalid_fields_with_valid_fields():
     valid_input = {
         "firstName": "John",
         "lastName": "Doe",
