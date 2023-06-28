@@ -340,8 +340,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             manager = get_plugin_manager_promise(info.context).get()
             cls.call_event(manager.customer_metadata_updated, instance)
 
-        if user_gift_cards := get_user_gift_cards(instance):
-            if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
+        if cleaned_input.get("first_name") or cleaned_input.get("last_name"):
+            if user_gift_cards := get_user_gift_cards(instance):
                 mark_gift_cards_search_index_as_dirty(user_gift_cards)
 
 
