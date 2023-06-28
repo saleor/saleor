@@ -1,7 +1,8 @@
 import graphene
 from ..core.fields import ConnectionField
+from ..core.types import FilterInputObjectType
 from ...permission.enums import AccountPermissions, DiscountPermissions
-from ..core.connection import create_connection_slice
+from ..core.connection import create_connection_slice, filter_connection_queryset
 from ..core.validators import validate_one_of_args_is_in_query
 from ..core.utils import from_global_id_or_error
 from ...b2b import models
@@ -11,13 +12,17 @@ from .category_discount.types import *
 from .company_info.types import *
 from .category_discount.mutations import *
 from .company_info.mutations import *
+from .filters import CustomerGroupFilters
 
+
+class CustomerGroupFilterInput(FilterInputObjectType):
+    filterset_class = CustomerGroupFilters
 
 class B2BQueries(graphene.ObjectType):
     company_info = PermissionsField(CompanyInfo, id=graphene.Argument(graphene.ID, required=True), permissions=[AccountPermissions.MANAGE_USERS],)
     company_infos = PermissionsField(CompanyInfoCountableConnection, permissions=[AccountPermissions.MANAGE_USERS,])
     customer_group = PermissionsField(CustomerGroup, id=graphene.Argument(graphene.ID, required=True), permissions=[AccountPermissions.MANAGE_USERS, DiscountPermissions.MANAGE_DISCOUNTS])
-    customer_groups = PermissionsField(CustomerGroupCountableConnection, permissions=[AccountPermissions.MANAGE_USERS, DiscountPermissions.MANAGE_DISCOUNTS])
+    customer_groups = FilterConnectionField(CustomerGroupCountableConnection, filter=CustomerGroupFilterInput() ,permissions=[AccountPermissions.MANAGE_USERS, DiscountPermissions.MANAGE_DISCOUNTS])
 
     @staticmethod
     def resolve_company_info(_root, info: ResolveInfo, id=None):
@@ -43,6 +48,7 @@ class B2BQueries(graphene.ObjectType):
     @staticmethod
     def resolve_customer_groups(root, info: ResolveInfo, **kwargs):
         qs = models.CustomerGroup.objects.all()
+        qs = filter_connection_queryset(info, kwargs)
         return create_connection_slice(qs, info, kwargs, CustomerGroupCountableConnection)
 
 
