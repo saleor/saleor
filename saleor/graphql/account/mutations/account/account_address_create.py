@@ -9,10 +9,12 @@ from .....account.utils import (
 )
 from .....core.tracing import traced_atomic_transaction
 from .....permission.auth_filters import AuthorizationFilters
+from .....webhook.event_types import WebhookEventAsyncType
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...enums import AddressTypeEnum
 from ...i18n import I18nMixin
@@ -45,6 +47,16 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_UPDATED,
+                description="A customer account was updated.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_CREATED,
+                description="An address was created.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

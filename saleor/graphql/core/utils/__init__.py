@@ -1,7 +1,8 @@
 import binascii
 import os
 import secrets
-from typing import Literal, Tuple, Type, Union, overload
+from dataclasses import dataclass
+from typing import List, Literal, Optional, Tuple, Type, Union, overload
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -10,6 +11,7 @@ from graphql.error import GraphQLError
 
 from ....plugins.const import APP_ID_PREFIX
 from ....thumbnail import FILE_NAME_MAX_LENGTH
+from ....webhook.event_types import WebhookEventAsyncType
 from ..validators import validate_if_int_or_uuid
 
 
@@ -134,3 +136,24 @@ def ext_ref_to_global_id_or_error(model, external_reference):
             message=f"Couldn't resolve to a node: {external_reference}",
             code="not_found",
         )
+
+
+@dataclass
+class WebhookEventInfo:
+    type: str
+    description: Optional[str] = None
+
+
+CHECKOUT_CALCULATE_TAXES_MESSAGE = (
+    "Optionally triggered when checkout prices are expired."
+)
+
+
+def message_webhook_events(webhook_events: List[WebhookEventInfo]) -> str:
+    description = "\n\nTriggers the following webhook events:"
+    for event in webhook_events:
+        webhook_type = "async" if event.type in WebhookEventAsyncType.ALL else "sync"
+        description += f"\n- {event.type.upper()} ({webhook_type})"
+        if event.description:
+            description += f": {event.description}"
+    return description

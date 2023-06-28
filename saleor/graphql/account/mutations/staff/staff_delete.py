@@ -3,10 +3,12 @@ import graphene
 from .....account import models
 from .....account.utils import remove_staff_member
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import StaffError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import StaffDeleteMixin
 from .base import UserDelete
@@ -23,6 +25,12 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = StaffError
         error_type_field = "staff_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_DELETED,
+                description="A staff account was deleted.",
+            ),
+        ]
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a staff user to delete.")

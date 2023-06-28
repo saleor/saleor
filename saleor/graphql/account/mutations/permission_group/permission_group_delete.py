@@ -5,6 +5,7 @@ from .....account import models
 from .....account.error_codes import PermissionGroupErrorCode
 from .....core.exceptions import PermissionDenied
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.utils import (
     can_user_manage_group_channels,
     can_user_manage_group_permissions,
@@ -16,6 +17,7 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.mutations import ModelDeleteMutation
 from ....core.types import PermissionGroupError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Group
 
@@ -34,6 +36,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PERMISSION_GROUP_DELETED,
+            )
+        ]
 
     @classmethod
     def post_save_action(cls, info: ResolveInfo, instance, cleaned_input):

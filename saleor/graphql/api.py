@@ -1,6 +1,7 @@
 import graphql
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
+from graphql import GraphQLScalarType
 
 from ..graphql.notifications.schema import ExternalNotificationMutations
 from .account.schema import AccountMutations, AccountQueries
@@ -113,10 +114,57 @@ GraphQLDocDirective = graphql.GraphQLDirective(
 )
 
 
+def serialize_webhook_event(value):
+    return value
+
+
+GraphQLWebhookEventAsyncType = GraphQLScalarType(
+    name="WebhookEventTypeAsyncEnum",
+    description="",
+    serialize=serialize_webhook_event,
+)
+
+GraphQLWebhookEventSyncType = GraphQLScalarType(
+    name="WebhookEventTypeSyncEnum",
+    description="",
+    serialize=serialize_webhook_event,
+)
+
+GraphQLWebhookEventsInfoDirective = graphql.GraphQLDirective(
+    name="webhookEventsInfo",
+    description="Webhook events triggered by a specific location.",
+    args={
+        "asyncEvents": graphql.GraphQLArgument(
+            type_=graphql.GraphQLNonNull(
+                graphql.GraphQLList(
+                    graphql.GraphQLNonNull(GraphQLWebhookEventAsyncType)
+                )
+            ),
+            description=(
+                "List of asynchronous webhook events triggered by a specific location."
+            ),
+        ),
+        "syncEvents": graphql.GraphQLArgument(
+            type_=graphql.GraphQLNonNull(
+                graphql.GraphQLList(graphql.GraphQLNonNull(GraphQLWebhookEventSyncType))
+            ),
+            description=(
+                "List of synchronous webhook events triggered by a specific location."
+            ),
+        ),
+    },
+    locations=[
+        graphql.DirectiveLocation.FIELD,
+        graphql.DirectiveLocation.FIELD_DEFINITION,
+        graphql.DirectiveLocation.INPUT_OBJECT,
+        graphql.DirectiveLocation.OBJECT,
+    ],
+)
 schema = build_federated_schema(
     Query,
     mutation=Mutation,
     types=unit_enums + list(WEBHOOK_TYPES_MAP.values()),
     subscription=Subscription,
-    directives=graphql.specified_directives + [GraphQLDocDirective],
+    directives=graphql.specified_directives
+    + [GraphQLDocDirective, GraphQLWebhookEventsInfoDirective],
 )

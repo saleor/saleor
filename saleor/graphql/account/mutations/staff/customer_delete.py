@@ -2,11 +2,13 @@ import graphene
 
 from .....account import models
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....core import ResolveInfo
 from ....core.descriptions import ADDED_IN_310
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ..base import CustomerDeleteMixin
 from .base import UserDelete
@@ -21,6 +23,12 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.CUSTOMER_DELETED,
+                description="A customer account was deleted.",
+            )
+        ]
 
     class Arguments:
         id = graphene.ID(required=False, description="ID of a customer to delete.")

@@ -11,6 +11,7 @@ from ..order.events import (
     event_transaction_charge_requested,
     event_transaction_refund_requested,
 )
+from ..order.models import OrderGrantedRefund
 from ..payment.interface import (
     CustomerSource,
     PaymentGateway,
@@ -124,6 +125,7 @@ def request_refund_action(
     channel_slug: str,
     user: Optional[User],
     app: Optional[App],
+    granted_refund: Optional[OrderGrantedRefund] = None,
 ):
     if refund_value is None:
         refund_value = transaction.charged_value
@@ -133,6 +135,7 @@ def request_refund_action(
         action_type=TransactionAction.REFUND,
         action_value=refund_value,
         request_event=request_event,
+        granted_refund=granted_refund,
     )
     _request_payment_action(
         transaction_action_data=transaction_action_data,
@@ -192,6 +195,7 @@ def _create_transaction_data(
     action_type: "str",
     action_value: Optional[Decimal],
     request_event: TransactionEvent,
+    granted_refund: Optional[OrderGrantedRefund] = None,
 ):
     app_owner = None
     if transaction.app_id:
@@ -205,6 +209,7 @@ def _create_transaction_data(
         action_value=action_value,
         event=request_event,
         transaction_app_owner=app_owner,
+        granted_refund=granted_refund,
     )
 
 
