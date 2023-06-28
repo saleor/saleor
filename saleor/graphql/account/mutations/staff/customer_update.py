@@ -95,7 +95,7 @@ class CustomerUpdate(CustomerCreate, ModelWithExtRefMutation):
         new_fullname = new_instance.get_full_name()
         has_new_name = old_instance.get_full_name() != new_fullname
         has_new_email = old_instance.email != new_email
-        if has_new_email and has_new_name:
+        if has_new_email or has_new_name:
             mark_gift_cards_search_index_as_dirty(gift_cards)
 
     @classmethod
