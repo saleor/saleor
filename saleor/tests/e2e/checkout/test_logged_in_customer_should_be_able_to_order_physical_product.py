@@ -25,6 +25,7 @@ from .utils import (
 
 def test_process_checkout_with_physical_product(
     e2e_staff_api_client,
+    e2e_customer_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_shipping,
@@ -95,3 +96,10 @@ def test_process_checkout_with_physical_product(
         product_variant_id,
         channel_id,
     )
+
+    # Step 1
+
+    # Login as existing customer
+    # This step is implemented automatically by using a proper
+    # API client(eg. e2e_staff_api_client, e2e_not_logged_api_client,
+    # e2e_logged_api_client).
