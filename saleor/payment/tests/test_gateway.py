@@ -722,6 +722,71 @@ def test_request_refund_action_on_order(
 
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
+def test_request_refund_action_with_granted_refund(
+    mocked_transaction_request, mocked_is_active, order_with_lines, staff_user
+):
+    # given
+    order_line = order_with_lines.lines.first()
+    granted_refund = order_with_lines.granted_refunds.create(
+        amount_value=order_line.unit_price_gross_amount
+    )
+    granted_refund.lines.create(
+        quantity=1,
+        order_line=order_line,
+    )
+
+    transaction = TransactionItem.objects.create(
+        status="Captured",
+        name="Credit card",
+        psp_reference="PSP ref",
+        available_actions=["refund"],
+        currency="USD",
+        order_id=order_with_lines.pk,
+        charged_value=Decimal("10"),
+    )
+    action_value = order_line.unit_price_gross_amount
+    requested_event = transaction.events.create(
+        amount_value=action_value,
+        currency=transaction.currency,
+        type=TransactionEventType.REFUND_REQUEST,
+    )
+    mocked_is_active.side_effect = [False, True]
+
+    # when
+    request_refund_action(
+        transaction=transaction,
+        manager=get_plugins_manager(),
+        refund_value=action_value,
+        channel_slug=order_with_lines.channel.slug,
+        user=staff_user,
+        app=None,
+        request_event=requested_event,
+        granted_refund=granted_refund,
+    )
+
+    # then
+    assert mocked_is_active.called
+    mocked_transaction_request.assert_called_once_with(
+        TransactionActionData(
+            transaction=transaction,
+            action_type=TransactionAction.REFUND,
+            action_value=action_value,
+            event=requested_event,
+            transaction_app_owner=None,
+            granted_refund=granted_refund,
+        ),
+        order_with_lines.channel.slug,
+    )
+
+    event = order_with_lines.events.first()
+    assert event.type == OrderEvents.TRANSACTION_REFUND_REQUESTED
+    assert Decimal(event.parameters["amount"]) == action_value
+    assert event.parameters["reference"] == transaction.psp_reference
+    assert event.user == staff_user
+
+
+@patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
+@patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_request_refund_action_by_app(
     mocked_transaction_request, mocked_is_active, order, app
 ):

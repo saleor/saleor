@@ -13,6 +13,7 @@ from .transaction import (
     TransactionInitialize,
     TransactionProcess,
     TransactionRequestAction,
+    TransactionRequestRefundForGrantedRefund,
     TransactionUpdate,
 )
 
@@ -30,4 +31,5 @@ __all__ = [
     "TransactionProcess",
     "TransactionRequestAction",
     "TransactionUpdate",
+    "TransactionRequestRefundForGrantedRefund",
 ]

@@ -1,8 +1,15 @@
 from decimal import Decimal
 
+import graphene
+
+from saleor.core.prices import quantize_price
+
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import OrderGrantRefundCreateErrorCode
+from ...enums import (
+    OrderGrantRefundCreateErrorCode,
+    OrderGrantRefundCreateLineErrorCode,
+)
 
 ORDER_GRANT_REFUND_CREATE = """
 mutation OrderGrantRefundCreate(
@@ -23,6 +30,15 @@ mutation OrderGrantRefundCreate(
       app{
         id
       }
+      shippingCostsIncluded
+      lines{
+        id
+        orderLine{
+          id
+        }
+        quantity
+        reason
+      }
     }
     order{
       id
@@ -40,11 +56,26 @@ mutation OrderGrantRefundCreate(
         user{
           id
         }
+        shippingCostsIncluded
+        lines{
+          id
+          orderLine{
+            id
+          }
+          quantity
+          reason
+        }
       }
     }
     errors{
       field
       code
+      lines{
+        field
+        code
+        lineId
+        message
+      }
     }
   }
 }
@@ -189,3 +220,467 @@ def test_grant_refund_incorrect_order_id(staff_api_client, permission_manage_ord
     assert len(errors) == 1
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == OrderGrantRefundCreateErrorCode.GRAPHQL_ERROR.name
+
+
+def test_grant_refund_with_only_include_grant_refund_for_shipping(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order_id = to_global_id_or_none(order_with_lines)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {"grantRefundForShipping": True},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_from_db = order_with_lines.granted_refunds.first()
+    order_granted_refund = data["order"]["grantedRefunds"][0]
+    assert (
+        granted_refund_from_db.shipping_costs_included
+        == order_granted_refund["shippingCostsIncluded"]
+        is True
+    )
+    assert data["grantedRefund"]["shippingCostsIncluded"] is True
+    assert (
+        granted_refund_from_db.amount_value
+        == order_with_lines.shipping_price_gross_amount
+    )
+
+
+def test_grant_refund_with_only_lines(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+
+    expected_reason = "Reason"
+    variables = {
+        "id": order_id,
+        "input": {
+            "lines": [
+                {
+                    "id": to_global_id_or_none(first_line),
+                    "quantity": 1,
+                    "reason": expected_reason,
+                },
+            ]
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+
+    granted_refund_from_db = order.granted_refunds.first()
+    order_granted_refund = data["order"]["grantedRefunds"][0]
+    assert data["grantedRefund"]["shippingCostsIncluded"] is False
+    assert len(order_granted_refund["lines"]) == 1
+    assert order_granted_refund["lines"][0]["quantity"] == 1
+    assert order_granted_refund["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        first_line
+    )
+    assert order_granted_refund["lines"][0]["reason"] == expected_reason
+
+    assert granted_refund_from_db.amount_value == first_line.unit_price_gross_amount * 1
+    assert quantize_price(
+        granted_refund_from_db.amount_value, order.currency
+    ) == quantize_price(
+        Decimal(order_granted_refund["amount"]["amount"]), order.currency
+    )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
+    assert granted_refund_line.reason == expected_reason
+
+
+def test_grant_refund_with_include_grant_refund_for_shipping_and_lines(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "grantRefundForShipping": True,
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_from_db = order.granted_refunds.first()
+    order_granted_refund = data["order"]["grantedRefunds"][0]
+    assert (
+        granted_refund_from_db.shipping_costs_included
+        == order_granted_refund["shippingCostsIncluded"]
+        is True
+    )
+    assert data["grantedRefund"]["shippingCostsIncluded"] is True
+    assert len(order_granted_refund["lines"]) == 1
+    assert order_granted_refund["lines"][0]["quantity"] == 1
+    assert order_granted_refund["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        first_line
+    )
+    assert granted_refund_from_db.amount_value == (
+        first_line.unit_price_gross_amount * 1 + order.shipping_price_gross_amount
+    )
+    assert quantize_price(
+        granted_refund_from_db.amount_value, order.currency
+    ) == quantize_price(
+        Decimal(order_granted_refund["amount"]["amount"]), order.currency
+    )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
+
+
+def test_grant_refund_with_provided_lines_shipping_and_amount(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    expected_amount = Decimal("10.0")
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "grantRefundForShipping": True,
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
+            "amount": expected_amount,
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 1
+    granted_refund_from_db = order.granted_refunds.first()
+    order_granted_refund = data["order"]["grantedRefunds"][0]
+    assert (
+        granted_refund_from_db.shipping_costs_included
+        == order_granted_refund["shippingCostsIncluded"]
+        is True
+    )
+    assert data["grantedRefund"]["shippingCostsIncluded"] is True
+    assert len(order_granted_refund["lines"]) == 1
+    assert order_granted_refund["lines"][0]["quantity"] == 1
+    assert order_granted_refund["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        first_line
+    )
+    assert granted_refund_from_db.amount_value == expected_amount
+    assert quantize_price(
+        granted_refund_from_db.amount_value, order.currency
+    ) == quantize_price(
+        Decimal(order_granted_refund["amount"]["amount"]), order.currency
+    )
+    granted_refund_line = granted_refund_from_db.lines.first()
+    assert granted_refund_line.order_line == first_line
+    assert granted_refund_line.quantity == 1
+
+
+def test_grant_refund_without_lines_and_amount_and_grant_for_shipping(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "reason": "Reason",
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 3
+    assert set([error["field"] for error in errors]) == {
+        "amount",
+        "lines",
+        "grantRefundForShipping",
+    }
+    assert set([error["code"] for error in errors]) == {"REQUIRED"}
+
+
+def test_grant_refund_with_incorrect_line_id(
+    staff_api_client, permission_manage_orders, order_with_lines
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "lines": [
+                {"id": graphene.Node.to_global_id("OrderLine", 1), "quantity": 1}
+            ],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "lines"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert len(error["lines"]) == 1
+    line = error["lines"][0]
+    assert line["lineId"] == graphene.Node.to_global_id("OrderLine", 1)
+    assert line["field"] == "id"
+    assert line["code"] == OrderGrantRefundCreateLineErrorCode.GRAPHQL_ERROR.name
+
+
+def test_grant_refund_with_line_that_belongs_to_another_order(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+    order_with_lines_for_cc,
+):
+    # given
+    order = order_with_lines
+    another_order = order_with_lines_for_cc
+    another_order_id = to_global_id_or_none(another_order)
+    first_line = order.lines.first()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": another_order_id,
+        "input": {
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "lines"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert len(error["lines"]) == 1
+    line = error["lines"][0]
+    assert line["lineId"] == to_global_id_or_none(first_line)
+    assert line["field"] == "id"
+    assert line["code"] == OrderGrantRefundCreateLineErrorCode.NOT_FOUND.name
+
+
+def test_grant_refund_with_bigger_quantity_than_available(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 100}],
+        },
+    }
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "lines"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert len(error["lines"]) == 1
+    line = error["lines"][0]
+    assert line["lineId"] == to_global_id_or_none(first_line)
+    assert line["field"] == "quantity"
+    assert (
+        line["code"]
+        == OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.name
+    )
+
+
+def test_grant_refund_with_refund_for_shipping_already_processed(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "grantRefundForShipping": True,
+        },
+    }
+    order.granted_refunds.create(shipping_costs_included=True)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "grantRefundForShipping"
+    assert (
+        error["code"]
+        == OrderGrantRefundCreateErrorCode.SHIPPING_COSTS_ALREADY_GRANTED.name
+    )
+
+
+def test_grant_refund_with_lines_and_existing_other_grant_refund(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    first_line.quantity = 2
+    first_line.save(update_fields=["quantity"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
+        },
+    }
+    granted_refund = order.granted_refunds.create(shipping_costs_included=False)
+    granted_refund.lines.create(order_line=first_line, quantity=1)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert not errors
+
+    assert order_id == data["order"]["id"]
+    assert len(data["order"]["grantedRefunds"]) == 2
+
+    granted_refund_from_db = order.granted_refunds.last()
+    order_granted_refund = data["order"]["grantedRefunds"][1]
+    assert data["grantedRefund"]["shippingCostsIncluded"] is False
+    assert len(order_granted_refund["lines"]) == 1
+    assert order_granted_refund["lines"][0]["quantity"] == 1
+    assert order_granted_refund["lines"][0]["orderLine"]["id"] == to_global_id_or_none(
+        first_line
+    )
+    assert granted_refund_from_db.amount_value == first_line.unit_price_gross_amount * 1
+    assert quantize_price(
+        granted_refund_from_db.amount_value, order.currency
+    ) == quantize_price(
+        Decimal(order_granted_refund["amount"]["amount"]), order.currency
+    )
+
+
+def test_grant_refund_with_lines_and_existing_other_grant_and_refund_exceeding_quantity(
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
+):
+    # given
+    order = order_with_lines
+    order_id = to_global_id_or_none(order)
+    first_line = order.lines.first()
+    first_line.quantity = 1
+    first_line.save(update_fields=["quantity"])
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    variables = {
+        "id": order_id,
+        "input": {
+            "lines": [{"id": to_global_id_or_none(first_line), "quantity": 1}],
+        },
+    }
+    granted_refund = order.granted_refunds.create(shipping_costs_included=False)
+    granted_refund.lines.create(order_line=first_line, quantity=1)
+
+    # when
+    response = staff_api_client.post_graphql(ORDER_GRANT_REFUND_CREATE, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["orderGrantRefundCreate"]
+    errors = data["errors"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "lines"
+    assert error["code"] == OrderGrantRefundCreateErrorCode.INVALID.name
+    assert len(error["lines"]) == 1
+    line = error["lines"][0]
+    assert line["lineId"] == to_global_id_or_none(first_line)
+    assert line["field"] == "quantity"
+    assert (
+        line["code"]
+        == OrderGrantRefundCreateLineErrorCode.QUANTITY_GREATER_THAN_AVAILABLE.name
+    )
