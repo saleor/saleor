@@ -131,7 +131,11 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
-        if not site_settings.allow_login_without_confirmation and not user.is_confirmed:
+        if (
+            not user.is_confirmed
+            and not site_settings.allow_login_without_confirmation
+            and site_settings.enable_account_confirmation_by_email
+        ):
             raise ValidationError(
                 {
                     "email": ValidationError(
@@ -140,7 +144,7 @@ class CreateToken(BaseMutation):
                     )
                 }
             )
-        if not user.is_active and user.is_confirmed:
+        if not user.is_active:
             raise ValidationError(
                 {
                     "email": ValidationError(

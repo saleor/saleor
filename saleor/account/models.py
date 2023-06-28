@@ -308,10 +308,10 @@ class User(
         return super().has_perms(perm_list, obj)
 
     def can_login(self, site_settings: SiteSettings):
-        return (
-            self.is_active
-            or site_settings.allow_login_without_confirmation
-            and not self.is_confirmed
+        return self.is_active and (
+            site_settings.allow_login_without_confirmation
+            or not site_settings.enable_account_confirmation_by_email
+            or self.is_confirmed
         )
 
 

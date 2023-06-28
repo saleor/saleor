@@ -378,9 +378,8 @@ class ConfirmAccount(BaseMutation):
                 }
             )
 
-        user.is_active = True
         user.is_confirmed = True
-        user.save(update_fields=["is_active", "is_confirmed", "updated_at"])
+        user.save(update_fields=["is_confirmed", "updated_at"])
 
         match_orders_with_new_user(user)
         assign_user_gift_cards(user)
