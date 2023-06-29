@@ -11,6 +11,7 @@ from .....channel.models import Channel
 from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import AccountPermissions, get_permissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.utils import get_out_of_scope_permissions, get_user_accessible_channels
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
@@ -19,6 +20,7 @@ from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.enums import PermissionEnum
 from ....core.mutations import ModelMutation
 from ....core.types import BaseInputObjectType, NonNullList, PermissionGroupError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import Group
 
@@ -78,6 +80,11 @@ class PermissionGroupCreate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.PERMISSION_GROUP_CREATED,
+            )
+        ]
 
     @classmethod
     def _save_m2m(cls, info: ResolveInfo, instance, cleaned_data):

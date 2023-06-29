@@ -12,12 +12,14 @@ from .....core.exceptions import PermissionDenied
 from .....core.tracing import traced_atomic_transaction
 from .....core.utils.url import validate_storefront_url
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import User
 from ....app.dataloaders import get_app_promise
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelMutation
 from ....core.types import NonNullList, StaffError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...utils import get_groups_which_user_can_manage
 from ..base import UserInput
@@ -64,6 +66,16 @@ class StaffCreate(ModelMutation):
         error_type_field = "staff_errors"
         support_meta_field = True
         support_private_meta_field = True
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.STAFF_CREATED,
+                description="A new staff account was created.",
+            ),
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for setting the password.",
+            ),
+        ]
 
     @classmethod
     def check_permissions(cls, context, permissions=None, **data):

@@ -9,11 +9,13 @@ from .....account.error_codes import AccountErrorCode
 from .....core.jwt import create_token
 from .....core.utils.url import validate_storefront_url
 from .....permission.auth_filters import AuthorizationFilters
+from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...types import User
 
@@ -44,6 +46,12 @@ class RequestEmailChange(BaseMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for account email change.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]

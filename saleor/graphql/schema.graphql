@@ -10,6 +10,15 @@ directive @doc(
   category: String!
 ) on ENUM | FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
 
+"""Webhook events triggered by a specific location."""
+directive @webhookEventsInfo(
+  """List of asynchronous webhook events triggered by a specific location."""
+  asyncEvents: [WebhookEventTypeAsyncEnum!]!
+
+  """List of synchronous webhook events triggered by a specific location."""
+  syncEvents: [WebhookEventTypeSyncEnum!]!
+) on FIELD | FIELD_DEFINITION | INPUT_OBJECT | OBJECT
+
 type Query {
   """
   Look up a webhook by ID. Requires one of the following permissions: MANAGE_APPS, OWNER.
@@ -9738,11 +9747,23 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """The code of voucher assigned to the checkout."""
   voucherCode: String
 
-  """Shipping methods that can be used with this checkout."""
-  availableShippingMethods: [ShippingMethod!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  """
+  availableShippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
 
-  """Shipping methods that can be used with this checkout."""
-  shippingMethods: [ShippingMethod!]!
+  """
+  Shipping methods that can be used with this checkout.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  """
+  shippingMethods: [ShippingMethod!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
 
   """
   Collection points that can be used for this order.
@@ -9751,8 +9772,13 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   availableCollectionPoints: [Warehouse!]!
 
-  """List of available payment gateways."""
-  availablePaymentGateways: [PaymentGateway!]!
+  """
+  List of available payment gateways.
+  
+  Triggers the following webhook events:
+  - PAYMENT_LIST_GATEWAYS (sync): Fetch payment gateways available for checkout.
+  """
+  availablePaymentGateways: [PaymentGateway!]! @webhookEventsInfo(asyncEvents: [], syncEvents: [PAYMENT_LIST_GATEWAYS])
 
   """Email of a customer."""
   email: String
@@ -9780,21 +9806,39 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """
   The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  shippingPrice: TaxedMoney!
+  shippingPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
-  """The shipping method related with checkout."""
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+  """
+  The shipping method related with checkout.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  """
+  shippingMethod: ShippingMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS]) @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
 
   """
   The delivery method selected for this checkout.
   
   Added in Saleor 3.1.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
   """
-  deliveryMethod: DeliveryMethod
+  deliveryMethod: DeliveryMethod @webhookEventsInfo(asyncEvents: [], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS])
 
-  """The price of the checkout before shipping, with taxes included."""
-  subtotalPrice: TaxedMoney!
+  """
+  The price of the checkout before shipping, with taxes included.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+  """
+  subtotalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
   Returns True if checkout has to be exempt from taxes.
@@ -9808,8 +9852,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
 
   """
   The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  totalPrice: TaxedMoney!
+  totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
   The difference between the paid and the checkout total amount.
@@ -9817,8 +9864,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  totalBalance: Money!
+  totalBalance: Money! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """Checkout language code."""
   languageCode: LanguageCodeEnum!
@@ -9845,8 +9895,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  authorizeStatus: CheckoutAuthorizeStatusEnum!
+  authorizeStatus: CheckoutAuthorizeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """
   The charge status of the checkout.
@@ -9854,8 +9907,11 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
   """
-  chargeStatus: CheckoutChargeStatusEnum!
+  chargeStatus: CheckoutChargeStatusEnum! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 }
 
 """
@@ -10177,14 +10233,24 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   """The quantity of product variant assigned to the checkout line."""
   quantity: Int!
 
-  """The unit price of the checkout line, with taxes and discounts."""
-  unitPrice: TaxedMoney!
+  """
+  The unit price of the checkout line, with taxes and discounts.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+  """
+  unitPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """The unit price of the checkout line, without discounts."""
   undiscountedUnitPrice: Money!
 
-  """The sum of the checkout line price, taxes and discounts."""
-  totalPrice: TaxedMoney!
+  """
+  The sum of the checkout line price, taxes and discounts.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+  """
+  totalPrice: TaxedMoney! @webhookEventsInfo(asyncEvents: [], syncEvents: [CHECKOUT_CALCULATE_TAXES])
 
   """The sum of the checkout line price, without discounts."""
   undiscountedTotalPrice: Money!
@@ -11724,6 +11790,44 @@ type OrderGrantedRefund @doc(category: "Orders") {
 
   """App that performed the action."""
   app: App
+
+  """
+  If true, the refunded amount includes the shipping price.If false, the refunded amount does not include the shipping price.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  shippingCostsIncluded: Boolean!
+
+  """
+  Lines assigned to the granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantedRefundLine!]
+}
+
+"""
+Represents granted refund line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type OrderGrantedRefundLine {
+  id: ID!
+
+  """Number of items to refund."""
+  quantity: Int!
+
+  """Line of the order associated with this granted refund."""
+  orderLine: OrderLine!
+
+  """Reason for refunding the line."""
+  reason: String
 }
 
 """Represents transaction's event."""
@@ -14823,6 +14927,23 @@ type Mutation {
   ): TransactionRequestAction @doc(category: "Payments")
 
   """
+  Request a refund for payment transaction based on granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: HANDLE_PAYMENTS.
+  """
+  transactionRequestRefundForGrantedRefund(
+    """The ID of the granted refund."""
+    grantedRefundId: ID!
+
+    """The ID of the transaction."""
+    id: ID!
+  ): TransactionRequestRefundForGrantedRefund @doc(category: "Payments")
+
+  """
   Report the event for the transaction.
   
   Added in Saleor 3.13.
@@ -15972,36 +16093,49 @@ type Mutation {
   Creates a new sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_CREATED (async): A sale was created.
   """
   saleCreate(
     """Fields required to create a sale."""
     input: SaleInput!
-  ): SaleCreate @doc(category: "Discounts")
+  ): SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: [])
 
   """
   Deletes a sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_DELETED (async): A sale was deleted.
   """
   saleDelete(
     """ID of a sale to delete."""
     id: ID!
-  ): SaleDelete @doc(category: "Discounts")
+  ): SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
 
   """
   Deletes sales. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_DELETED (async): A sale was deleted.
   """
   saleBulkDelete(
     """List of sale IDs to delete."""
     ids: [ID!]!
-  ): SaleBulkDelete @doc(category: "Discounts")
+  ): SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: [])
 
   """
   Updates a sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_UPDATED (async): A sale was updated.
+  - SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
   """
   saleUpdate(
     """ID of a sale to update."""
@@ -16009,12 +16143,15 @@ type Mutation {
 
     """Fields required to update a sale."""
     input: SaleInput!
-  ): SaleUpdate @doc(category: "Discounts")
+  ): SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_UPDATED (async): A sale was updated.
   """
   saleCataloguesAdd(
     """ID of a sale."""
@@ -16022,12 +16159,15 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleAddCatalogues @doc(category: "Discounts")
+  ): SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: [])
 
   """
   Removes products, categories, collections from a sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - SALE_UPDATED (async): A sale was updated.
   """
   saleCataloguesRemove(
     """ID of a sale."""
@@ -16035,7 +16175,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of sale."""
     input: CatalogueInput!
-  ): SaleRemoveCatalogues @doc(category: "Discounts")
+  ): SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for a sale. 
@@ -16068,36 +16208,48 @@ type Mutation {
   Creates a new voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_CREATED (async): A voucher was created.
   """
   voucherCreate(
     """Fields required to create a voucher."""
     input: VoucherInput!
-  ): VoucherCreate @doc(category: "Discounts")
+  ): VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: [])
 
   """
   Deletes a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherDelete(
     """ID of a voucher to delete."""
     id: ID!
-  ): VoucherDelete @doc(category: "Discounts")
+  ): VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
   Deletes vouchers. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_DELETED (async): A voucher was deleted.
   """
   voucherBulkDelete(
     """List of voucher IDs to delete."""
     ids: [ID!]!
-  ): VoucherBulkDelete @doc(category: "Discounts")
+  ): VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: [])
 
   """
   Updates a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherUpdate(
     """ID of a voucher to update."""
@@ -16105,12 +16257,15 @@ type Mutation {
 
     """Fields required to update a voucher."""
     input: VoucherInput!
-  ): VoucherUpdate @doc(category: "Discounts")
+  ): VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Adds products, categories, collections to a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesAdd(
     """ID of a voucher."""
@@ -16118,12 +16273,15 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherAddCatalogues @doc(category: "Discounts")
+  ): VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Removes products, categories, collections from a voucher. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherCataloguesRemove(
     """ID of a voucher."""
@@ -16131,7 +16289,7 @@ type Mutation {
 
     """Fields required to modify catalogue IDs of voucher."""
     input: CatalogueInput!
-  ): VoucherRemoveCatalogues @doc(category: "Discounts")
+  ): VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for a voucher. 
@@ -16151,6 +16309,9 @@ type Mutation {
   Manage voucher's availability in channels. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
+  
+  Triggers the following webhook events:
+  - VOUCHER_UPDATED (async): A voucher was updated.
   """
   voucherChannelListingUpdate(
     """ID of a voucher to update."""
@@ -16158,17 +16319,20 @@ type Mutation {
 
     """Fields required to update voucher channel listings."""
     input: VoucherChannelListingInput!
-  ): VoucherChannelListingUpdate @doc(category: "Discounts")
+  ): VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: [])
 
   """
   Export products to csv file. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for the exported file.
   """
   exportProducts(
     """Fields required to export product data."""
     input: ExportProductsInput!
-  ): ExportProducts @doc(category: "Products")
+  ): ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Export gift cards to csv file.
@@ -16176,11 +16340,14 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for the exported file.
   """
   exportGiftCards(
     """Fields required to export gift cards data."""
     input: ExportGiftCardsInput!
-  ): ExportGiftCards @doc(category: "Gift cards")
+  ): ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Upload a file. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -16192,7 +16359,12 @@ type Mutation {
     file: Upload!
   ): FileUpload
 
-  """Adds a gift card or a voucher to a checkout."""
+  """
+  Adds a gift card or a voucher to a checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutAddPromoCode(
     """
     The ID of the checkout.
@@ -16217,9 +16389,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutAddPromoCode @doc(category: "Checkout")
+  ): CheckoutAddPromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Update billing address in the existing checkout."""
+  """
+  Update billing address in the existing checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutBillingAddressUpdate(
     """The billing address of the checkout."""
     billingAddress: AddressInput!
@@ -16251,10 +16428,22 @@ type Mutation {
     Added in Saleor 3.5.
     """
     validationRules: CheckoutAddressValidationRules
-  ): CheckoutBillingAddressUpdate @doc(category: "Checkout")
+  ): CheckoutBillingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
   Completes the checkout. As a result a new order is created and a payment charge is made. This action requires a successful payment before it can be performed. In case additional confirmation step as 3D secure is required confirmationNeeded flag will be set to True and no order created until payment is confirmed with second call of this mutation.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+  - ORDER_CREATED (async): Triggered when order is created.
+  - NOTIFY_USER (async): A notification for order placement.
+  - NOTIFY_USER (async): A staff notification for order placement.
+  - ORDER_UPDATED (async): Triggered when order received the update after placement.
+  - ORDER_PAID (async): Triggered when newly created order is paid.
+  - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
+  - ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
   """
   checkoutComplete(
     """
@@ -16299,13 +16488,18 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutComplete @doc(category: "Checkout")
+  ): CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES])
 
-  """Create a new checkout."""
+  """
+  Create a new checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_CREATED (async): A checkout was created.
+  """
   checkoutCreate(
     """Fields required to create checkout."""
     input: CheckoutCreateInput!
-  ): CheckoutCreate @doc(category: "Checkout")
+  ): CheckoutCreate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_CREATED], syncEvents: [])
 
   """
   Create new checkout from existing order.
@@ -16323,6 +16517,9 @@ type Mutation {
   Sets the customer as the owner of the checkout. 
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutCustomerAttach(
     """
@@ -16350,12 +16547,15 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutCustomerAttach @doc(category: "Checkout")
+  ): CheckoutCustomerAttach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
   Removes the user assigned as the owner of the checkout. 
   
   Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutCustomerDetach(
     """
@@ -16378,9 +16578,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutCustomerDetach @doc(category: "Checkout")
+  ): CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Updates email address in the existing checkout object."""
+  """
+  Updates email address in the existing checkout object.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutEmailUpdate(
     """
     The ID of the checkout. 
@@ -16405,9 +16610,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutEmailUpdate @doc(category: "Checkout")
+  ): CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Deletes a CheckoutLine."""
+  """
+  Deletes a CheckoutLine.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutLineDelete(
     """
     The ID of the checkout. 
@@ -16432,9 +16642,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLineDelete @doc(category: "Checkout") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
+  ): CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutLinesDelete` instead.")
 
-  """Deletes checkout lines."""
+  """
+  Deletes checkout lines.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutLinesDelete(
     """
     The checkout's ID.
@@ -16452,10 +16667,13 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLinesDelete @doc(category: "Checkout")
+  ): CheckoutLinesDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
   Adds a checkout line to the existing checkout.If line was already in checkout, its quantity will be increased.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutLinesAdd(
     """
@@ -16483,9 +16701,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLinesAdd @doc(category: "Checkout")
+  ): CheckoutLinesAdd @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Updates checkout line in the existing checkout."""
+  """
+  Updates checkout line in the existing checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutLinesUpdate(
     """
     The ID of the checkout. 
@@ -16512,9 +16735,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLinesUpdate @doc(category: "Checkout")
+  ): CheckoutLinesUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Remove a gift card or a voucher from a checkout."""
+  """
+  Remove a gift card or a voucher from a checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutRemovePromoCode(
     """
     The ID of the checkout. 
@@ -16542,7 +16770,7 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutRemovePromoCode @doc(category: "Checkout")
+  ): CheckoutRemovePromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """Create a new payment for given checkout."""
   checkoutPaymentCreate(
@@ -16571,7 +16799,12 @@ type Mutation {
     token: UUID
   ): CheckoutPaymentCreate @doc(category: "Checkout")
 
-  """Update shipping address in the existing checkout."""
+  """
+  Update shipping address in the existing checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutShippingAddressUpdate(
     """
     The ID of the checkout. 
@@ -16603,9 +16836,15 @@ type Mutation {
     Added in Saleor 3.5.
     """
     validationRules: CheckoutAddressValidationRules
-  ): CheckoutShippingAddressUpdate @doc(category: "Checkout")
+  ): CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
-  """Updates the shipping method of the checkout."""
+  """
+  Updates the shipping method of the checkout.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutShippingMethodUpdate(
     """
     The ID of the checkout. 
@@ -16630,12 +16869,16 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutShippingMethodUpdate @doc(category: "Checkout") @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
+  ): CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutDeliveryMethodUpdate` instead.")
 
   """
   Updates the delivery method (shipping method or pick up point) of the checkout.
   
   Added in Saleor 3.1.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
+  - CHECKOUT_UPDATED (async): A checkout was updated.
   """
   checkoutDeliveryMethodUpdate(
     """Delivery Method ID (`Warehouse` ID or `ShippingMethod` ID)."""
@@ -16654,9 +16897,14 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutDeliveryMethodUpdate @doc(category: "Checkout")
+  ): CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT])
 
-  """Update language code in the existing checkout."""
+  """
+  Update language code in the existing checkout.
+  
+  Triggers the following webhook events:
+  - CHECKOUT_UPDATED (async): A checkout was updated.
+  """
   checkoutLanguageCodeUpdate(
     """
     The ID of the checkout. 
@@ -16681,12 +16929,24 @@ type Mutation {
     DEPRECATED: this field will be removed in Saleor 4.0. Use `id` instead.
     """
     token: UUID
-  ): CheckoutLanguageCodeUpdate @doc(category: "Checkout")
+  ): CheckoutLanguageCodeUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [])
 
   """
   Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
   
   Added in Saleor 3.2.
+  
+  Triggers the following webhook events:
+  - SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+  - CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+  - CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+  - ORDER_CREATED (async): Triggered when order is created.
+  - NOTIFY_USER (async): A notification for order placement.
+  - NOTIFY_USER (async): A staff notification for order placement.
+  - ORDER_UPDATED (async): Triggered when order received the update after placement.
+  - ORDER_PAID (async): Triggered when newly created order is paid.
+  - ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
+  - ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
   """
   orderCreateFromCheckout(
     """ID of a checkout that will be converted to an order."""
@@ -16710,23 +16970,29 @@ type Mutation {
     Determines if checkout should be removed after creating an order. Default true.
     """
     removeCheckout: Boolean = true
-  ): OrderCreateFromCheckout @doc(category: "Orders")
+  ): OrderCreateFromCheckout @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES])
 
   """
   Creates new channel. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  
+  Triggers the following webhook events:
+  - CHANNEL_CREATED (async): A channel was created.
   """
   channelCreate(
     """Fields required to create channel."""
     input: ChannelCreateInput!
-  ): ChannelCreate @doc(category: "Channels")
+  ): ChannelCreate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_CREATED], syncEvents: [])
 
   """
   Update a channel.
   
   Requires one of the following permissions: MANAGE_CHANNELS.
   Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - CHANNEL_UPDATED (async): A channel was updated.
   """
   channelUpdate(
     """ID of a channel to update."""
@@ -16734,12 +17000,15 @@ type Mutation {
 
     """Fields required to update a channel."""
     input: ChannelUpdateInput!
-  ): ChannelUpdate @doc(category: "Channels")
+  ): ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: [])
 
   """
   Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  
+  Triggers the following webhook events:
+  - CHANNEL_DELETED (async): A channel was deleted.
   """
   channelDelete(
     """ID of a channel to delete."""
@@ -16747,27 +17016,33 @@ type Mutation {
 
     """Fields required to delete a channel."""
     input: ChannelDeleteInput
-  ): ChannelDelete @doc(category: "Channels")
+  ): ChannelDelete @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_DELETED], syncEvents: [])
 
   """
   Activate a channel. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  
+  Triggers the following webhook events:
+  - CHANNEL_STATUS_CHANGED (async): A channel was activated.
   """
   channelActivate(
     """ID of the channel to activate."""
     id: ID!
-  ): ChannelActivate @doc(category: "Channels")
+  ): ChannelActivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: [])
 
   """
   Deactivate a channel. 
   
   Requires one of the following permissions: MANAGE_CHANNELS.
+  
+  Triggers the following webhook events:
+  - CHANNEL_STATUS_CHANGED (async): A channel was deactivated.
   """
   channelDeactivate(
     """ID of the channel to deactivate."""
     id: ID!
-  ): ChannelDeactivate @doc(category: "Channels")
+  ): ChannelDeactivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: [])
 
   """
   Reorder the warehouses of a channel.
@@ -16784,16 +17059,24 @@ type Mutation {
     moves: [ReorderInput!]!
   ): ChannelReorderWarehouses @doc(category: "Channels")
 
-  """Creates an attribute."""
+  """
+  Creates an attribute.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_CREATED (async): An attribute was created.
+  """
   attributeCreate(
     """Fields required to create an attribute."""
     input: AttributeCreateInput!
-  ): AttributeCreate @doc(category: "Attributes")
+  ): AttributeCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: [])
 
   """
   Deletes an attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_DELETED (async): An attribute was deleted.
   """
   attributeDelete(
     """
@@ -16805,12 +17088,15 @@ type Mutation {
 
     """ID of an attribute to delete."""
     id: ID
-  ): AttributeDelete @doc(category: "Attributes")
+  ): AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: [])
 
   """
   Updates attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeUpdate(
     """
@@ -16825,7 +17111,7 @@ type Mutation {
 
     """Fields required to update an attribute."""
     input: AttributeUpdateInput!
-  ): AttributeUpdate @doc(category: "Attributes")
+  ): AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for an attribute. 
@@ -16862,26 +17148,37 @@ type Mutation {
   Deletes attributes. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_DELETED (async): An attribute was deleted.
   """
   attributeBulkDelete(
     """List of attribute IDs to delete."""
     ids: [ID!]!
-  ): AttributeBulkDelete @doc(category: "Attributes")
+  ): AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: [])
 
   """
   Deletes values of attributes. 
   
   Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueBulkDelete(
     """List of attribute value IDs to delete."""
     ids: [ID!]!
-  ): AttributeValueBulkDelete @doc(category: "Attributes")
+  ): AttributeValueBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Creates a value for an attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCTS.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueCreate(
     """Attribute to which value will be assigned."""
@@ -16889,12 +17186,16 @@ type Mutation {
 
     """Fields required to create an AttributeValue."""
     input: AttributeValueCreateInput!
-  ): AttributeValueCreate @doc(category: "Attributes")
+  ): AttributeValueCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Deletes a value of an attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueDelete(
     """
@@ -16906,12 +17207,16 @@ type Mutation {
 
     """ID of a value to delete."""
     id: ID
-  ): AttributeValueDelete @doc(category: "Attributes")
+  ): AttributeValueDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Updates value of an attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeValueUpdate(
     """
@@ -16926,7 +17231,7 @@ type Mutation {
 
     """Fields required to update an AttributeValue."""
     input: AttributeValueUpdateInput!
-  ): AttributeValueUpdate @doc(category: "Attributes")
+  ): AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Creates/updates translations for attributes values.
@@ -16963,6 +17268,10 @@ type Mutation {
   Reorder the values of an attribute. 
   
   Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+  
+  Triggers the following webhook events:
+  - ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
+  - ATTRIBUTE_UPDATED (async): An attribute was updated.
   """
   attributeReorderValues(
     """ID of an attribute."""
@@ -16970,20 +17279,26 @@ type Mutation {
 
     """The list of reordering operations for given attribute values."""
     moves: [ReorderInput!]!
-  ): AttributeReorderValues @doc(category: "Attributes")
+  ): AttributeReorderValues @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: [])
 
   """
   Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_INSTALLED (async): An app was installed.
   """
   appCreate(
     """Fields required to create a new app."""
     input: AppInput!
-  ): AppCreate @doc(category: "Apps")
+  ): AppCreate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: [])
 
   """
   Updates an existing app. 
   
   Requires one of the following permissions: MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_UPDATED (async): An app was updated.
   """
   appUpdate(
     """ID of an app to update."""
@@ -16991,17 +17306,20 @@ type Mutation {
 
     """Fields required to update an existing app."""
     input: AppInput!
-  ): AppUpdate @doc(category: "Apps")
+  ): AppUpdate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: [])
 
   """
   Deletes an app. 
   
   Requires one of the following permissions: MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_DELETED (async): An app was deleted.
   """
   appDelete(
     """ID of an app to delete."""
     id: ID!
-  ): AppDelete @doc(category: "Apps")
+  ): AppDelete @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_DELETED], syncEvents: [])
 
   """
   Creates a new token. 
@@ -17041,6 +17359,9 @@ type Mutation {
   Retry failed installation of new app. 
   
   Requires one of the following permissions: MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_INSTALLED (async): An app was installed.
   """
   appRetryInstall(
     """Determine if app will be set active or not."""
@@ -17048,7 +17369,7 @@ type Mutation {
 
     """ID of failed installation."""
     id: ID!
-  ): AppRetryInstall @doc(category: "Apps")
+  ): AppRetryInstall @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: [])
 
   """
   Delete failed installation. 
@@ -17074,21 +17395,27 @@ type Mutation {
   Activate the app. 
   
   Requires one of the following permissions: MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_STATUS_CHANGED (async): An app was activated.
   """
   appActivate(
     """ID of app to activate."""
     id: ID!
-  ): AppActivate @doc(category: "Apps")
+  ): AppActivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """
   Deactivate the app. 
   
   Requires one of the following permissions: MANAGE_APPS.
+  
+  Triggers the following webhook events:
+  - APP_STATUS_CHANGED (async): An app was deactivated.
   """
   appDeactivate(
     """ID of app to deactivate."""
     id: ID!
-  ): AppDeactivate @doc(category: "Apps")
+  ): AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: [])
 
   """Create JWT token."""
   tokenCreate(
@@ -17177,7 +17504,12 @@ type Mutation {
     pluginId: String!
   ): ExternalVerify @doc(category: "Authentication")
 
-  """Sends an email with the account password modification link."""
+  """
+  Sends an email with the account password modification link.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for password reset.
+  """
   requestPasswordReset(
     """
     Slug of a channel which will be used for notify user. Optional when only one channel exists.
@@ -17191,7 +17523,7 @@ type Mutation {
     URL of a view where users should be redirected to reset the password. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestPasswordReset @doc(category: "Users")
+  ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Sends an email with confirmation link. 
@@ -17248,6 +17580,9 @@ type Mutation {
   Request email change of the logged in user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for account email change.
   """
   requestEmailChange(
     """
@@ -17265,12 +17600,16 @@ type Mutation {
     URL of a view where users should be redirected to update the email address. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): RequestEmailChange @doc(category: "Users")
+  ): RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Confirm the email change of the logged-in user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer account was updated.
+  - NOTIFY_USER (async): A notification that account email change was confirmed.
   """
   confirmEmailChange(
     """
@@ -17280,12 +17619,16 @@ type Mutation {
 
     """A one-time token required to change the email."""
     token: String!
-  ): ConfirmEmailChange @doc(category: "Users")
+  ): ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: [])
 
   """
   Create a new address for the customer. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer account was updated.
+  - ADDRESS_CREATED (async): An address was created.
   """
   accountAddressCreate(
     """Fields required to create address."""
@@ -17295,10 +17638,13 @@ type Mutation {
     A type of address. If provided, the new address will be automatically assigned as the customer's default address of that type.
     """
     type: AddressTypeEnum
-  ): AccountAddressCreate @doc(category: "Users")
+  ): AccountAddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, ADDRESS_CREATED], syncEvents: [])
 
   """
   Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+  
+  Triggers the following webhook events:
+  - ADDRESS_UPDATED (async): An address was updated.
   """
   accountAddressUpdate(
     """ID of the address to update."""
@@ -17306,20 +17652,26 @@ type Mutation {
 
     """Fields required to update the address."""
     input: AddressInput!
-  ): AccountAddressUpdate @doc(category: "Users")
+  ): AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: [])
 
   """
   Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+  
+  Triggers the following webhook events:
+  - ADDRESS_DELETED (async): An address was deleted.
   """
   accountAddressDelete(
     """ID of the address to delete."""
     id: ID!
-  ): AccountAddressDelete @doc(category: "Users")
+  ): AccountAddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: [])
 
   """
   Sets a default address for the authenticated user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer's address was updated.
   """
   accountSetDefaultAddress(
     """ID of the address to set as default."""
@@ -17327,28 +17679,41 @@ type Mutation {
 
     """The type of address."""
     type: AddressTypeEnum!
-  ): AccountSetDefaultAddress @doc(category: "Users")
+  ): AccountSetDefaultAddress @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: [])
 
-  """Register a new user."""
+  """
+  Register a new user.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_CREATED (async): A new customer account was created.
+  - NOTIFY_USER (async): A notification for account confirmation.
+  """
   accountRegister(
     """Fields required to create a user."""
     input: AccountRegisterInput!
-  ): AccountRegister @doc(category: "Users")
+  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
   Updates the account of the logged-in user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer account was updated.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   accountUpdate(
     """Fields required to update the account of the logged-in user."""
     input: AccountInput!
-  ): AccountUpdate @doc(category: "Users")
+  ): AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
 
   """
   Sends an email with the account removal link for the logged-in user. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for account delete request.
   """
   accountRequestDeletion(
     """
@@ -17360,7 +17725,7 @@ type Mutation {
     URL of a view where users should be redirected to delete their account. URL in RFC 1808 format.
     """
     redirectUrl: String!
-  ): AccountRequestDeletion @doc(category: "Users")
+  ): AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Remove user account. 
@@ -17378,6 +17743,9 @@ type Mutation {
   Creates user address. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - ADDRESS_CREATED (async): A new address was created.
   """
   addressCreate(
     """Fields required to create address."""
@@ -17385,12 +17753,15 @@ type Mutation {
 
     """ID of a user to create address for."""
     userId: ID!
-  ): AddressCreate @doc(category: "Users")
+  ): AddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_CREATED], syncEvents: [])
 
   """
   Updates an address. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - ADDRESS_UPDATED (async): An address was updated.
   """
   addressUpdate(
     """ID of the address to update."""
@@ -17398,22 +17769,28 @@ type Mutation {
 
     """Fields required to update the address."""
     input: AddressInput!
-  ): AddressUpdate @doc(category: "Users")
+  ): AddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: [])
 
   """
   Deletes an address. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - ADDRESS_DELETED (async): An address was deleted.
   """
   addressDelete(
     """ID of the address to delete."""
     id: ID!
-  ): AddressDelete @doc(category: "Users")
+  ): AddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: [])
 
   """
   Sets a default address for the given user. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer was updated.
   """
   addressSetDefault(
     """ID of the address."""
@@ -17424,22 +17801,31 @@ type Mutation {
 
     """ID of the user to change the address for."""
     userId: ID!
-  ): AddressSetDefault @doc(category: "Users")
+  ): AddressSetDefault @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: [])
 
   """
   Creates a new customer. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_CREATED (async): A new customer account was created.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
+  - NOTIFY_USER (async): A notification for setting the password.
   """
   customerCreate(
     """Fields required to create a customer."""
     input: UserCreateInput!
-  ): CustomerCreate @doc(category: "Users")
+  ): CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: [])
 
   """
   Updates an existing customer. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A new customer account was updated.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerUpdate(
     """
@@ -17454,12 +17840,15 @@ type Mutation {
 
     """Fields required to update a customer."""
     input: CustomerInput!
-  ): CustomerUpdate @doc(category: "Users")
+  ): CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
 
   """
   Deletes a customer. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerDelete(
     """
@@ -17471,17 +17860,20 @@ type Mutation {
 
     """ID of a customer to delete."""
     id: ID
-  ): CustomerDelete @doc(category: "Users")
+  ): CustomerDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
 
   """
   Deletes customers. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_DELETED (async): A customer account was deleted.
   """
   customerBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): CustomerBulkDelete @doc(category: "Users")
+  ): CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: [])
 
   """
   Updates customers.
@@ -17491,6 +17883,10 @@ type Mutation {
   Note: this API is currently in Feature Preview and can be subject to changes at later point. 
   
   Requires one of the following permissions: MANAGE_USERS.
+  
+  Triggers the following webhook events:
+  - CUSTOMER_UPDATED (async): A customer account was updated.
+  - CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
   """
   customerBulkUpdate(
     """Input list of customers to update."""
@@ -17498,22 +17894,29 @@ type Mutation {
 
     """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
     errorPolicy: ErrorPolicyEnum
-  ): CustomerBulkUpdate @doc(category: "Users")
+  ): CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: [])
 
   """
   Creates a new staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - STAFF_CREATED (async): A new staff account was created.
+  - NOTIFY_USER (async): A notification for setting the password.
   """
   staffCreate(
     """Fields required to create a staff user."""
     input: StaffCreateInput!
-  ): StaffCreate @doc(category: "Users")
+  ): StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
   Updates an existing staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - STAFF_UPDATED (async): A staff account was updated.
   """
   staffUpdate(
     """ID of a staff user to update."""
@@ -17521,27 +17924,33 @@ type Mutation {
 
     """Fields required to update a staff user."""
     input: StaffUpdateInput!
-  ): StaffUpdate @doc(category: "Users")
+  ): StaffUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_UPDATED], syncEvents: [])
 
   """
   Deletes a staff user. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - STAFF_DELETED (async): A staff account was deleted.
   """
   staffDelete(
     """ID of a staff user to delete."""
     id: ID!
-  ): StaffDelete @doc(category: "Users")
+  ): StaffDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: [])
 
   """
   Deletes staff users. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - STAFF_DELETED (async): A staff account was deleted.
   """
   staffBulkDelete(
     """List of user IDs to delete."""
     ids: [ID!]!
-  ): StaffBulkDelete @doc(category: "Users")
+  ): StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: [])
 
   """
   Create a user avatar. Only for staff members. This mutation must be sent as a `multipart` request. More detailed specs of the upload format can be found here: https://github.com/jaydenseric/graphql-multipart-request-spec 
@@ -17577,16 +17986,22 @@ type Mutation {
   Create new permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - PERMISSION_GROUP_CREATED (async)
   """
   permissionGroupCreate(
     """Input fields to create permission group."""
     input: PermissionGroupCreateInput!
-  ): PermissionGroupCreate @doc(category: "Users")
+  ): PermissionGroupCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_CREATED], syncEvents: [])
 
   """
   Update permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - PERMISSION_GROUP_UPDATED (async)
   """
   permissionGroupUpdate(
     """ID of the group to update."""
@@ -17594,17 +18009,20 @@ type Mutation {
 
     """Input fields to create permission group."""
     input: PermissionGroupUpdateInput!
-  ): PermissionGroupUpdate @doc(category: "Users")
+  ): PermissionGroupUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_UPDATED], syncEvents: [])
 
   """
   Delete permission group. Apps are not allowed to perform this mutation. 
   
   Requires one of the following permissions: MANAGE_STAFF.
+  
+  Triggers the following webhook events:
+  - PERMISSION_GROUP_DELETED (async)
   """
   permissionGroupDelete(
     """ID of the group to delete."""
     id: ID!
-  ): PermissionGroupDelete @doc(category: "Users")
+  ): PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_DELETED], syncEvents: [])
 }
 
 """
@@ -21756,6 +22174,41 @@ enum TransactionRequestActionErrorCode @doc(category: "Payments") {
 }
 
 """
+Request a refund for payment transaction based on granted refund.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: HANDLE_PAYMENTS.
+"""
+type TransactionRequestRefundForGrantedRefund @doc(category: "Payments") {
+  transaction: TransactionItem
+  errors: [TransactionRequestRefundForGrantedRefundError!]!
+}
+
+type TransactionRequestRefundForGrantedRefundError @doc(category: "Payments") {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: TransactionRequestRefundForGrantedRefundErrorCode!
+}
+
+"""An enumeration."""
+enum TransactionRequestRefundForGrantedRefundErrorCode @doc(category: "Payments") {
+  INVALID
+  GRAPHQL_ERROR
+  NOT_FOUND
+  MISSING_TRANSACTION_ACTION_REQUEST_WEBHOOK
+}
+
+"""
 Report the event for the transaction.
 
 Added in Saleor 3.13.
@@ -22748,19 +23201,85 @@ type OrderGrantRefundCreateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundCreateErrorCode!
+
+  """
+  List of lines which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantRefundCreateLineError!]
 }
 
 """An enumeration."""
 enum OrderGrantRefundCreateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
+  SHIPPING_COSTS_ALREADY_GRANTED
+  REQUIRED
+  INVALID
+}
+
+type OrderGrantRefundCreateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundCreateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundCreateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundCreateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
-  amount: Decimal!
+  """
+  Amount of the granted refund. If not provided, the amount will be calculated automatically based on provided `lines` and `grantRefundForShipping`.
+  """
+  amount: Decimal
 
   """Reason of the granted refund."""
+  reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  lines: [OrderGrantRefundCreateLineInput!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantRefundForShipping: Boolean
+}
+
+input OrderGrantRefundCreateLineInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+
+  """Reason of the granted refund for the line."""
   reason: String
 }
 
@@ -22780,7 +23299,6 @@ type OrderGrantRefundUpdate @doc(category: "Orders") {
   """Created granted refund."""
   grantedRefund: OrderGrantedRefund
   errors: [OrderGrantRefundUpdateError!]!
-  orderGrantedRefund: OrderGrantedRefund
 }
 
 type OrderGrantRefundUpdateError @doc(category: "Orders") {
@@ -22794,6 +23312,24 @@ type OrderGrantRefundUpdateError @doc(category: "Orders") {
 
   """The error code."""
   code: OrderGrantRefundUpdateErrorCode!
+
+  """
+  List of lines to add which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addLines: [OrderGrantRefundUpdateLineError!]
+
+  """
+  List of lines to remove which cause the error.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeLines: [OrderGrantRefundUpdateLineError!]
 }
 
 """An enumeration."""
@@ -22801,13 +23337,78 @@ enum OrderGrantRefundUpdateErrorCode @doc(category: "Orders") {
   GRAPHQL_ERROR
   NOT_FOUND
   REQUIRED
+  INVALID
+  SHIPPING_COSTS_ALREADY_GRANTED
+}
+
+type OrderGrantRefundUpdateLineError {
+  """
+  Name of a field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  field: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: OrderGrantRefundUpdateLineErrorCode!
+
+  """The ID of the line related to the error."""
+  lineId: ID!
+}
+
+"""An enumeration."""
+enum OrderGrantRefundUpdateLineErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  QUANTITY_GREATER_THAN_AVAILABLE
 }
 
 input OrderGrantRefundUpdateInput @doc(category: "Orders") {
-  """Amount of the granted refund."""
+  """
+  Amount of the granted refund. if not provided and `addLines` or `removeLines` or `grantRefundForShipping` is provided, amount will be calculated automatically.
+  """
   amount: Decimal
 
   """Reason of the granted refund."""
+  reason: String
+
+  """
+  Lines to assign to granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  addLines: [OrderGrantRefundUpdateLineAddInput!]
+
+  """
+  Lines to remove from granted refund.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  removeLines: [ID!]
+
+  """
+  Determine if granted refund should include shipping costs.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantRefundForShipping: Boolean
+}
+
+input OrderGrantRefundUpdateLineAddInput @doc(category: "Orders") {
+  """The ID of the order line."""
+  id: ID!
+
+  """The quantity of line items to be marked to refund."""
+  quantity: Int!
+
+  """Reason of the granted refund for the line."""
   reason: String
 }
 
@@ -24292,8 +24893,11 @@ input ExternalNotificationTriggerInput {
 Creates a new sale. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_CREATED (async): A sale was created.
 """
-type SaleCreate @doc(category: "Discounts") {
+type SaleCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -24361,8 +24965,11 @@ input SaleInput @doc(category: "Discounts") {
 Deletes a sale. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_DELETED (async): A sale was deleted.
 """
-type SaleDelete @doc(category: "Discounts") {
+type SaleDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -24372,8 +24979,11 @@ type SaleDelete @doc(category: "Discounts") {
 Deletes sales. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_DELETED (async): A sale was deleted.
 """
-type SaleBulkDelete @doc(category: "Discounts") {
+type SaleBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24384,8 +24994,12 @@ type SaleBulkDelete @doc(category: "Discounts") {
 Updates a sale. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_UPDATED (async): A sale was updated.
+- SALE_TOGGLE (async): Optionally triggered when a sale is started or stopped.
 """
-type SaleUpdate @doc(category: "Discounts") {
+type SaleUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED, SALE_TOGGLE], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   sale: Sale
@@ -24395,8 +25009,11 @@ type SaleUpdate @doc(category: "Discounts") {
 Adds products, categories, collections to a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_UPDATED (async): A sale was updated.
 """
-type SaleAddCatalogues @doc(category: "Discounts") {
+type SaleAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24425,8 +25042,11 @@ input CatalogueInput @doc(category: "Discounts") {
 Removes products, categories, collections from a sale. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- SALE_UPDATED (async): A sale was updated.
 """
-type SaleRemoveCatalogues @doc(category: "Discounts") {
+type SaleRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [SALE_UPDATED], syncEvents: []) {
   """Sale of which catalogue IDs will be modified."""
   sale: Sale
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24476,8 +25096,11 @@ input SaleChannelListingAddInput @doc(category: "Discounts") {
 Creates a new voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_CREATED (async): A voucher was created.
 """
-type VoucherCreate @doc(category: "Discounts") {
+type VoucherCreate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_CREATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24541,8 +25164,11 @@ input VoucherInput @doc(category: "Discounts") {
 Deletes a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_DELETED (async): A voucher was deleted.
 """
-type VoucherDelete @doc(category: "Discounts") {
+type VoucherDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24552,8 +25178,11 @@ type VoucherDelete @doc(category: "Discounts") {
 Deletes vouchers. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_DELETED (async): A voucher was deleted.
 """
-type VoucherBulkDelete @doc(category: "Discounts") {
+type VoucherBulkDelete @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24564,8 +25193,11 @@ type VoucherBulkDelete @doc(category: "Discounts") {
 Updates a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherUpdate @doc(category: "Discounts") {
+type VoucherUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [DiscountError!]!
   voucher: Voucher
@@ -24575,8 +25207,11 @@ type VoucherUpdate @doc(category: "Discounts") {
 Adds products, categories, collections to a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherAddCatalogues @doc(category: "Discounts") {
+type VoucherAddCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24587,8 +25222,11 @@ type VoucherAddCatalogues @doc(category: "Discounts") {
 Removes products, categories, collections from a voucher. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherRemoveCatalogues @doc(category: "Discounts") {
+type VoucherRemoveCatalogues @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """Voucher of which catalogue IDs will be modified."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24610,8 +25248,11 @@ type VoucherTranslate @doc(category: "Discounts") {
 Manage voucher's availability in channels. 
 
 Requires one of the following permissions: MANAGE_DISCOUNTS.
+
+Triggers the following webhook events:
+- VOUCHER_UPDATED (async): A voucher was updated.
 """
-type VoucherChannelListingUpdate @doc(category: "Discounts") {
+type VoucherChannelListingUpdate @doc(category: "Discounts") @webhookEventsInfo(asyncEvents: [VOUCHER_UPDATED], syncEvents: []) {
   """An updated voucher instance."""
   voucher: Voucher
   discountErrors: [DiscountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24641,8 +25282,11 @@ input VoucherChannelListingAddInput @doc(category: "Discounts") {
 Export products to csv file. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for the exported file.
 """
-type ExportProducts @doc(category: "Products") {
+type ExportProducts @doc(category: "Products") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -24741,8 +25385,11 @@ Export gift cards to csv file.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for the exported file.
 """
-type ExportGiftCards @doc(category: "Gift cards") {
+type ExportGiftCards @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   """
   The newly created export file job which is responsible for export data.
   """
@@ -24793,8 +25440,13 @@ enum UploadErrorCode {
   GRAPHQL_ERROR
 }
 
-"""Adds a gift card or a voucher to a checkout."""
-type CheckoutAddPromoCode @doc(category: "Checkout") {
+"""
+Adds a gift card or a voucher to a checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutAddPromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """The checkout with the added gift card or voucher."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24855,8 +25507,13 @@ enum CheckoutErrorCode @doc(category: "Checkout") {
   INACTIVE_PAYMENT
 }
 
-"""Update billing address in the existing checkout."""
-type CheckoutBillingAddressUpdate @doc(category: "Checkout") {
+"""
+Update billing address in the existing checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutBillingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24882,8 +25539,20 @@ input CheckoutAddressValidationRules @doc(category: "Checkout") {
 
 """
 Completes the checkout. As a result a new order is created and a payment charge is made. This action requires a successful payment before it can be performed. In case additional confirmation step as 3D secure is required confirmationNeeded flag will be set to True and no order created until payment is confirmed with second call of this mutation.
+
+Triggers the following webhook events:
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+- CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+- ORDER_CREATED (async): Triggered when order is created.
+- NOTIFY_USER (async): A notification for order placement.
+- NOTIFY_USER (async): A staff notification for order placement.
+- ORDER_UPDATED (async): Triggered when order received the update after placement.
+- ORDER_PAID (async): Triggered when newly created order is paid.
+- ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
+- ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
 """
-type CheckoutComplete @doc(category: "Checkout") {
+type CheckoutComplete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES]) {
   """Placed order."""
   order: Order
 
@@ -24898,8 +25567,13 @@ type CheckoutComplete @doc(category: "Checkout") {
   errors: [CheckoutError!]!
 }
 
-"""Create a new checkout."""
-type CheckoutCreate @doc(category: "Checkout") {
+"""
+Create a new checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_CREATED (async): A checkout was created.
+"""
+type CheckoutCreate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_CREATED], syncEvents: []) {
   """
   Whether the checkout was created or the current active one was returned. Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart with an active checkout.
   """
@@ -25047,8 +25721,11 @@ enum CheckoutCreateFromOrderErrorCode @doc(category: "Checkout") {
 Sets the customer as the owner of the checkout. 
 
 Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutCustomerAttach @doc(category: "Checkout") {
+type CheckoutCustomerAttach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25059,32 +25736,50 @@ type CheckoutCustomerAttach @doc(category: "Checkout") {
 Removes the user assigned as the owner of the checkout. 
 
 Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutCustomerDetach @doc(category: "Checkout") {
+type CheckoutCustomerDetach @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
-"""Updates email address in the existing checkout object."""
-type CheckoutEmailUpdate @doc(category: "Checkout") {
+"""
+Updates email address in the existing checkout object.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutEmailUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
-"""Deletes a CheckoutLine."""
-type CheckoutLineDelete @doc(category: "Checkout") {
+"""
+Deletes a CheckoutLine.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutLineDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
-"""Deletes checkout lines."""
-type CheckoutLinesDelete @doc(category: "Checkout") {
+"""
+Deletes checkout lines.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutLinesDelete @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   errors: [CheckoutError!]!
@@ -25092,16 +25787,24 @@ type CheckoutLinesDelete @doc(category: "Checkout") {
 
 """
 Adds a checkout line to the existing checkout.If line was already in checkout, its quantity will be increased.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutLinesAdd @doc(category: "Checkout") {
+type CheckoutLinesAdd @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
-"""Updates checkout line in the existing checkout."""
-type CheckoutLinesUpdate @doc(category: "Checkout") {
+"""
+Updates checkout line in the existing checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutLinesUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25136,8 +25839,13 @@ input CheckoutLineUpdateInput @doc(category: "Checkout") {
   lineId: ID
 }
 
-"""Remove a gift card or a voucher from a checkout."""
-type CheckoutRemovePromoCode @doc(category: "Checkout") {
+"""
+Remove a gift card or a voucher from a checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutRemovePromoCode @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """The checkout with the removed gift card or voucher."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25205,16 +25913,27 @@ enum StorePaymentMethodEnum @doc(category: "Payments") {
   NONE
 }
 
-"""Update shipping address in the existing checkout."""
-type CheckoutShippingAddressUpdate @doc(category: "Checkout") {
+"""
+Update shipping address in the existing checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutShippingAddressUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [CheckoutError!]!
 }
 
-"""Updates the shipping method of the checkout."""
-type CheckoutShippingMethodUpdate @doc(category: "Checkout") {
+"""
+Updates the shipping method of the checkout.
+
+Triggers the following webhook events:
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout shipping method with the external one.
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutShippingMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25225,15 +25944,24 @@ type CheckoutShippingMethodUpdate @doc(category: "Checkout") {
 Updates the delivery method (shipping method or pick up point) of the checkout.
 
 Added in Saleor 3.1.
+
+Triggers the following webhook events:
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Triggered when updating the checkout delivery method with the external one.
+- CHECKOUT_UPDATED (async): A checkout was updated.
 """
-type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") {
+type CheckoutDeliveryMethodUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT]) {
   """An updated checkout."""
   checkout: Checkout
   errors: [CheckoutError!]!
 }
 
-"""Update language code in the existing checkout."""
-type CheckoutLanguageCodeUpdate @doc(category: "Checkout") {
+"""
+Update language code in the existing checkout.
+
+Triggers the following webhook events:
+- CHECKOUT_UPDATED (async): A checkout was updated.
+"""
+type CheckoutLanguageCodeUpdate @doc(category: "Checkout") @webhookEventsInfo(asyncEvents: [CHECKOUT_UPDATED], syncEvents: []) {
   """An updated checkout."""
   checkout: Checkout
   checkoutErrors: [CheckoutError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25244,8 +25972,20 @@ type CheckoutLanguageCodeUpdate @doc(category: "Checkout") {
 Create new order from existing checkout. Requires the following permissions: AUTHENTICATED_APP and HANDLE_CHECKOUTS.
 
 Added in Saleor 3.2.
+
+Triggers the following webhook events:
+- SHIPPING_LIST_METHODS_FOR_CHECKOUT (sync): Optionally triggered when cached external shipping methods are invalid.
+- CHECKOUT_FILTER_SHIPPING_METHODS (sync): Optionally triggered when cached filtered shipping methods are invalid.
+- CHECKOUT_CALCULATE_TAXES (sync): Optionally triggered when checkout prices are expired.
+- ORDER_CREATED (async): Triggered when order is created.
+- NOTIFY_USER (async): A notification for order placement.
+- NOTIFY_USER (async): A staff notification for order placement.
+- ORDER_UPDATED (async): Triggered when order received the update after placement.
+- ORDER_PAID (async): Triggered when newly created order is paid.
+- ORDER_FULLY_PAID (async): Triggered when newly created order is fully paid.
+- ORDER_CONFIRMED (async): Optionally triggered when newly created order are automatically marked as confirmed.
 """
-type OrderCreateFromCheckout @doc(category: "Orders") {
+type OrderCreateFromCheckout @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [ORDER_CREATED, NOTIFY_USER, NOTIFY_USER, ORDER_UPDATED, ORDER_PAID, ORDER_FULLY_PAID, ORDER_CONFIRMED], syncEvents: [SHIPPING_LIST_METHODS_FOR_CHECKOUT, CHECKOUT_FILTER_SHIPPING_METHODS, CHECKOUT_CALCULATE_TAXES]) {
   """Placed order."""
   order: Order
   errors: [OrderCreateFromCheckoutError!]!
@@ -25292,8 +26032,11 @@ enum OrderCreateFromCheckoutErrorCode @doc(category: "Orders") {
 Creates new channel. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+
+Triggers the following webhook events:
+- CHANNEL_CREATED (async): A channel was created.
 """
-type ChannelCreate @doc(category: "Channels") {
+type ChannelCreate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_CREATED], syncEvents: []) {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -25438,8 +26181,11 @@ Update a channel.
 
 Requires one of the following permissions: MANAGE_CHANNELS.
 Requires one of the following permissions when updating only orderSettings field: MANAGE_CHANNELS, MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- CHANNEL_UPDATED (async): A channel was updated.
 """
-type ChannelUpdate @doc(category: "Channels") {
+type ChannelUpdate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_UPDATED], syncEvents: []) {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -25501,8 +26247,11 @@ input ChannelUpdateInput @doc(category: "Channels") {
 Delete a channel. Orders associated with the deleted channel will be moved to the target channel. Checkouts, product availability, and pricing will be removed. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+
+Triggers the following webhook events:
+- CHANNEL_DELETED (async): A channel was deleted.
 """
-type ChannelDelete @doc(category: "Channels") {
+type ChannelDelete @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_DELETED], syncEvents: []) {
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [ChannelError!]!
   channel: Channel
@@ -25517,8 +26266,11 @@ input ChannelDeleteInput @doc(category: "Channels") {
 Activate a channel. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+
+Triggers the following webhook events:
+- CHANNEL_STATUS_CHANGED (async): A channel was activated.
 """
-type ChannelActivate @doc(category: "Channels") {
+type ChannelActivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: []) {
   """Activated channel."""
   channel: Channel
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25529,8 +26281,11 @@ type ChannelActivate @doc(category: "Channels") {
 Deactivate a channel. 
 
 Requires one of the following permissions: MANAGE_CHANNELS.
+
+Triggers the following webhook events:
+- CHANNEL_STATUS_CHANGED (async): A channel was deactivated.
 """
-type ChannelDeactivate @doc(category: "Channels") {
+type ChannelDeactivate @doc(category: "Channels") @webhookEventsInfo(asyncEvents: [CHANNEL_STATUS_CHANGED], syncEvents: []) {
   """Deactivated channel."""
   channel: Channel
   channelErrors: [ChannelError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25550,8 +26305,13 @@ type ChannelReorderWarehouses @doc(category: "Channels") {
   errors: [ChannelError!]!
 }
 
-"""Creates an attribute."""
-type AttributeCreate @doc(category: "Attributes") {
+"""
+Creates an attribute.
+
+Triggers the following webhook events:
+- ATTRIBUTE_CREATED (async): An attribute was created.
+"""
+type AttributeCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_CREATED], syncEvents: []) {
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
@@ -25686,8 +26446,11 @@ input AttributeValueCreateInput @doc(category: "Attributes") {
 Deletes an attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_DELETED (async): An attribute was deleted.
 """
-type AttributeDelete @doc(category: "Attributes") {
+type AttributeDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: []) {
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
   attribute: Attribute
@@ -25697,8 +26460,11 @@ type AttributeDelete @doc(category: "Attributes") {
 Updates attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeUpdate @doc(category: "Attributes") {
+type AttributeUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_UPDATED], syncEvents: []) {
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AttributeError!]!
@@ -25876,8 +26642,11 @@ input AttributeBulkTranslateInput @doc(category: "Attributes") {
 Deletes attributes. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_DELETED (async): An attribute was deleted.
 """
-type AttributeBulkDelete @doc(category: "Attributes") {
+type AttributeBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25888,8 +26657,12 @@ type AttributeBulkDelete @doc(category: "Attributes") {
 Deletes values of attributes. 
 
 Requires one of the following permissions: MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeValueBulkDelete @doc(category: "Attributes") {
+type AttributeValueBulkDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25900,8 +26673,12 @@ type AttributeValueBulkDelete @doc(category: "Attributes") {
 Creates a value for an attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCTS.
+
+Triggers the following webhook events:
+- ATTRIBUTE_VALUE_CREATED (async): An attribute value was created.
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeValueCreate @doc(category: "Attributes") {
+type AttributeValueCreate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_CREATED, ATTRIBUTE_UPDATED], syncEvents: []) {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25913,8 +26690,12 @@ type AttributeValueCreate @doc(category: "Attributes") {
 Deletes a value of an attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_VALUE_DELETED (async): An attribute value was deleted.
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeValueDelete @doc(category: "Attributes") {
+type AttributeValueDelete @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_DELETED, ATTRIBUTE_UPDATED], syncEvents: []) {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -25926,8 +26707,12 @@ type AttributeValueDelete @doc(category: "Attributes") {
 Updates value of an attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeValueUpdate @doc(category: "Attributes") {
+type AttributeValueUpdate @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: []) {
   """The updated attribute."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26025,8 +26810,12 @@ type AttributeValueTranslate @doc(category: "Attributes") {
 Reorder the values of an attribute. 
 
 Requires one of the following permissions: MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES.
+
+Triggers the following webhook events:
+- ATTRIBUTE_VALUE_UPDATED (async): An attribute value was updated.
+- ATTRIBUTE_UPDATED (async): An attribute was updated.
 """
-type AttributeReorderValues @doc(category: "Attributes") {
+type AttributeReorderValues @doc(category: "Attributes") @webhookEventsInfo(asyncEvents: [ATTRIBUTE_VALUE_UPDATED, ATTRIBUTE_UPDATED], syncEvents: []) {
   """Attribute from which values are reordered."""
   attribute: Attribute
   attributeErrors: [AttributeError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26035,8 +26824,11 @@ type AttributeReorderValues @doc(category: "Attributes") {
 
 """
 Creates a new app. Requires the following permissions: AUTHENTICATED_STAFF_USER and MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_INSTALLED (async): An app was installed.
 """
-type AppCreate @doc(category: "Apps") {
+type AppCreate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: []) {
   """The newly created authentication token."""
   authToken: String
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26091,8 +26883,11 @@ input AppInput @doc(category: "Apps") {
 Updates an existing app. 
 
 Requires one of the following permissions: MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_UPDATED (async): An app was updated.
 """
-type AppUpdate @doc(category: "Apps") {
+type AppUpdate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_UPDATED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -26102,8 +26897,11 @@ type AppUpdate @doc(category: "Apps") {
 Deletes an app. 
 
 Requires one of the following permissions: MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_DELETED (async): An app was deleted.
 """
-type AppDelete @doc(category: "Apps") {
+type AppDelete @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_DELETED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -26176,8 +26974,11 @@ input AppInstallInput @doc(category: "Apps") {
 Retry failed installation of new app. 
 
 Requires one of the following permissions: MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_INSTALLED (async): An app was installed.
 """
-type AppRetryInstall @doc(category: "Apps") {
+type AppRetryInstall @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_INSTALLED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   appInstallation: AppInstallation
@@ -26401,8 +27202,11 @@ type AppManifestBrandLogo @doc(category: "Apps") {
 Activate the app. 
 
 Requires one of the following permissions: MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_STATUS_CHANGED (async): An app was activated.
 """
-type AppActivate @doc(category: "Apps") {
+type AppActivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -26412,8 +27216,11 @@ type AppActivate @doc(category: "Apps") {
 Deactivate the app. 
 
 Requires one of the following permissions: MANAGE_APPS.
+
+Triggers the following webhook events:
+- APP_STATUS_CHANGED (async): An app was deactivated.
 """
-type AppDeactivate @doc(category: "Apps") {
+type AppDeactivate @doc(category: "Apps") @webhookEventsInfo(asyncEvents: [APP_STATUS_CHANGED], syncEvents: []) {
   appErrors: [AppError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AppError!]!
   app: App
@@ -26599,8 +27406,13 @@ type ExternalVerify @doc(category: "Authentication") {
   errors: [AccountError!]!
 }
 
-"""Sends an email with the account password modification link."""
-type RequestPasswordReset @doc(category: "Users") {
+"""
+Sends an email with the account password modification link.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for password reset.
+"""
+type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -26682,8 +27494,11 @@ type PasswordChange @doc(category: "Users") {
 Request email change of the logged in user. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for account email change.
 """
-type RequestEmailChange @doc(category: "Users") {
+type RequestEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   """A user instance."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26694,8 +27509,12 @@ type RequestEmailChange @doc(category: "Users") {
 Confirm the email change of the logged-in user. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer account was updated.
+- NOTIFY_USER (async): A notification that account email change was confirmed.
 """
-type ConfirmEmailChange @doc(category: "Users") {
+type ConfirmEmailChange @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, NOTIFY_USER], syncEvents: []) {
   """A user instance with a new email."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26706,8 +27525,12 @@ type ConfirmEmailChange @doc(category: "Users") {
 Create a new address for the customer. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer account was updated.
+- ADDRESS_CREATED (async): An address was created.
 """
-type AccountAddressCreate @doc(category: "Users") {
+type AccountAddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, ADDRESS_CREATED], syncEvents: []) {
   """A user instance for which the address was created."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26717,8 +27540,11 @@ type AccountAddressCreate @doc(category: "Users") {
 
 """
 Updates an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+
+Triggers the following webhook events:
+- ADDRESS_UPDATED (async): An address was updated.
 """
-type AccountAddressUpdate @doc(category: "Users") {
+type AccountAddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: []) {
   """A user object for which the address was edited."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26728,8 +27554,11 @@ type AccountAddressUpdate @doc(category: "Users") {
 
 """
 Delete an address of the logged-in user. Requires one of the following permissions: MANAGE_USERS, IS_OWNER.
+
+Triggers the following webhook events:
+- ADDRESS_DELETED (async): An address was deleted.
 """
-type AccountAddressDelete @doc(category: "Users") {
+type AccountAddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: []) {
   """A user instance for which the address was deleted."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26741,16 +27570,25 @@ type AccountAddressDelete @doc(category: "Users") {
 Sets a default address for the authenticated user. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer's address was updated.
 """
-type AccountSetDefaultAddress @doc(category: "Users") {
+type AccountSetDefaultAddress @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: []) {
   """An updated user instance."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
 
-"""Register a new user."""
-type AccountRegister @doc(category: "Users") {
+"""
+Register a new user.
+
+Triggers the following webhook events:
+- CUSTOMER_CREATED (async): A new customer account was created.
+- NOTIFY_USER (async): A notification for account confirmation.
+"""
+type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
   requiresConfirmation: Boolean
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26791,8 +27629,12 @@ input AccountRegisterInput @doc(category: "Users") {
 Updates the account of the logged-in user. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer account was updated.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
-type AccountUpdate @doc(category: "Users") {
+type AccountUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -26827,8 +27669,11 @@ input AccountInput @doc(category: "Users") {
 Sends an email with the account removal link for the logged-in user. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for account delete request.
 """
-type AccountRequestDeletion @doc(category: "Users") {
+type AccountRequestDeletion @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
 }
@@ -26848,8 +27693,11 @@ type AccountDelete @doc(category: "Users") {
 Creates user address. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- ADDRESS_CREATED (async): A new address was created.
 """
-type AddressCreate @doc(category: "Users") {
+type AddressCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_CREATED], syncEvents: []) {
   """A user instance for which the address was created."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26861,8 +27709,11 @@ type AddressCreate @doc(category: "Users") {
 Updates an address. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- ADDRESS_UPDATED (async): An address was updated.
 """
-type AddressUpdate @doc(category: "Users") {
+type AddressUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_UPDATED], syncEvents: []) {
   """A user object for which the address was edited."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26874,8 +27725,11 @@ type AddressUpdate @doc(category: "Users") {
 Deletes an address. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- ADDRESS_DELETED (async): An address was deleted.
 """
-type AddressDelete @doc(category: "Users") {
+type AddressDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [ADDRESS_DELETED], syncEvents: []) {
   """A user instance for which the address was deleted."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26887,8 +27741,11 @@ type AddressDelete @doc(category: "Users") {
 Sets a default address for the given user. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer was updated.
 """
-type AddressSetDefault @doc(category: "Users") {
+type AddressSetDefault @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED], syncEvents: []) {
   """An updated user instance."""
   user: User
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -26899,8 +27756,13 @@ type AddressSetDefault @doc(category: "Users") {
 Creates a new customer. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_CREATED (async): A new customer account was created.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
+- NOTIFY_USER (async): A notification for setting the password.
 """
-type CustomerCreate @doc(category: "Users") {
+type CustomerCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, CUSTOMER_METADATA_UPDATED, NOTIFY_USER], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -26974,8 +27836,12 @@ input UserCreateInput @doc(category: "Users") {
 Updates an existing customer. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A new customer account was updated.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
-type CustomerUpdate @doc(category: "Users") {
+type CustomerUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -27039,8 +27905,11 @@ input CustomerInput @doc(category: "Users") {
 Deletes a customer. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_DELETED (async): A customer account was deleted.
 """
-type CustomerDelete @doc(category: "Users") {
+type CustomerDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: []) {
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [AccountError!]!
   user: User
@@ -27050,8 +27919,11 @@ type CustomerDelete @doc(category: "Users") {
 Deletes customers. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_DELETED (async): A customer account was deleted.
 """
-type CustomerBulkDelete @doc(category: "Users") {
+type CustomerBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -27066,8 +27938,12 @@ Added in Saleor 3.13.
 Note: this API is currently in Feature Preview and can be subject to changes at later point. 
 
 Requires one of the following permissions: MANAGE_USERS.
+
+Triggers the following webhook events:
+- CUSTOMER_UPDATED (async): A customer account was updated.
+- CUSTOMER_METADATA_UPDATED (async): Optionally called when customer's metadata was updated.
 """
-type CustomerBulkUpdate @doc(category: "Users") {
+type CustomerBulkUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_UPDATED, CUSTOMER_METADATA_UPDATED], syncEvents: []) {
   """Returns how many objects were created."""
   count: Int!
 
@@ -27124,8 +28000,12 @@ input CustomerBulkUpdateInput @doc(category: "Users") {
 Creates a new staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- STAFF_CREATED (async): A new staff account was created.
+- NOTIFY_USER (async): A notification for setting the password.
 """
-type StaffCreate @doc(category: "Users") {
+type StaffCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_CREATED, NOTIFY_USER], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -27200,8 +28080,11 @@ input StaffCreateInput @doc(category: "Users") {
 Updates an existing staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- STAFF_UPDATED (async): A staff account was updated.
 """
-type StaffUpdate @doc(category: "Users") {
+type StaffUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_UPDATED], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -27249,8 +28132,11 @@ input StaffUpdateInput @doc(category: "Users") {
 Deletes a staff user. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- STAFF_DELETED (async): A staff account was deleted.
 """
-type StaffDelete @doc(category: "Users") {
+type StaffDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: []) {
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [StaffError!]!
   user: User
@@ -27260,8 +28146,11 @@ type StaffDelete @doc(category: "Users") {
 Deletes staff users. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- STAFF_DELETED (async): A staff account was deleted.
 """
-type StaffBulkDelete @doc(category: "Users") {
+type StaffBulkDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [STAFF_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   staffErrors: [StaffError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -27308,8 +28197,11 @@ type UserBulkSetActive @doc(category: "Users") {
 Create new permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- PERMISSION_GROUP_CREATED (async)
 """
-type PermissionGroupCreate @doc(category: "Users") {
+type PermissionGroupCreate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_CREATED], syncEvents: []) {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
   group: Group
@@ -27383,8 +28275,11 @@ input PermissionGroupCreateInput @doc(category: "Users") {
 Update permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- PERMISSION_GROUP_UPDATED (async)
 """
-type PermissionGroupUpdate @doc(category: "Users") {
+type PermissionGroupUpdate @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_UPDATED], syncEvents: []) {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
   group: Group
@@ -27438,8 +28333,11 @@ input PermissionGroupUpdateInput @doc(category: "Users") {
 Delete permission group. Apps are not allowed to perform this mutation. 
 
 Requires one of the following permissions: MANAGE_STAFF.
+
+Triggers the following webhook events:
+- PERMISSION_GROUP_DELETED (async)
 """
-type PermissionGroupDelete @doc(category: "Users") {
+type PermissionGroupDelete @doc(category: "Users") @webhookEventsInfo(asyncEvents: [PERMISSION_GROUP_DELETED], syncEvents: []) {
   permissionGroupErrors: [PermissionGroupError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [PermissionGroupError!]!
   group: Group
@@ -30588,6 +31486,15 @@ type TransactionRefundRequested implements Event @doc(category: "Payments") {
 
   """Requested action data."""
   action: TransactionAction!
+
+  """
+  Granted refund related to refund request.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  grantedRefund: OrderGrantedRefund
 }
 
 """

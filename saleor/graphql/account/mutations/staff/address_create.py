@@ -7,11 +7,13 @@ from .....account.utils import (
 )
 from .....core.tracing import traced_atomic_transaction
 from .....permission.enums import AccountPermissions
+from .....webhook.event_types import WebhookEventAsyncType
 from ....account.types import Address, AddressInput, User
 from ....core import ResolveInfo
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import ModelMutation
 from ....core.types import AccountError
+from ....core.utils import WebhookEventInfo
 from ....plugins.dataloaders import get_plugin_manager_promise
 from ...i18n import I18nMixin
 
@@ -37,6 +39,12 @@ class AddressCreate(ModelMutation, I18nMixin):
         permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ADDRESS_CREATED,
+                description="A new address was created.",
+            ),
+        ]
 
     @classmethod
     def perform_mutation(cls, root, info: ResolveInfo, /, **data):
