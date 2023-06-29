@@ -120,8 +120,8 @@ class RequestEmailChange(BaseMutation):
             user,
             channel_slug,
             token,
-            new_email,
             prepare_url(params, redirect_url),
+            new_email,
         )
 
         return RequestEmailChange(user=user)

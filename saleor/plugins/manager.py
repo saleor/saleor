@@ -1079,8 +1079,8 @@ class PluginsManager(PaymentInterface):
         user: "User",
         channel_slug: str,
         token: str,
-        new_email: str,
         redirect_url: str,
+        new_email: str,
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -1089,8 +1089,8 @@ class PluginsManager(PaymentInterface):
             user,
             channel_slug,
             token=token,
-            new_email=new_email,
             redirect_url=redirect_url,
+            new_email=new_email,
         )
 
     def account_delete_requested(

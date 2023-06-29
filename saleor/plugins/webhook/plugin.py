@@ -151,7 +151,7 @@ class WebhookPlugin(BasePlugin):
             )
 
     def _trigger_account_event(
-        self, event_type, user, channel_slug, token, redirect_url
+        self, event_type, user, channel_slug, token, redirect_url, new_email=None
     ):
         if webhooks := get_webhooks_for_event(event_type):
             payload = self._serialize_payload(
@@ -161,16 +161,22 @@ class WebhookPlugin(BasePlugin):
                     "redirect_url": redirect_url,
                 }
             )
+            data = {
+                "user": user,
+                "channel_slug": channel_slug,
+                "token": token,
+                "redirect_url": redirect_url,
+            }
+
+            if new_email:
+                payload["new_email"] = new_email
+                data["new_email"] = new_email
+
             trigger_webhooks_async(
                 payload,
                 event_type,
                 webhooks,
-                {
-                    "user": user,
-                    "channel_slug": channel_slug,
-                    "token": token,
-                    "redirect_url": redirect_url,
-                },
+                data,
                 self.requestor,
             )
 
@@ -197,8 +203,8 @@ class WebhookPlugin(BasePlugin):
         user: "User",
         channel_slug: str,
         token: str,
-        new_email: str,
         redirect_url: str,
+        new_email: str,
         previous_value: None,
     ) -> None:
         if not self.active:
@@ -208,8 +214,8 @@ class WebhookPlugin(BasePlugin):
             user,
             channel_slug,
             token,
-            new_email,
             redirect_url,
+            new_email,
         )
 
     def account_delete_requested(

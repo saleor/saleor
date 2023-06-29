@@ -188,9 +188,5 @@ def test_request_email_change_send_event(
     change_email_url = prepare_url(params, redirect_url)
 
     account_change_email_requested_mock.assert_called_once_with(
-        customer_user,
-        channel_PLN.slug,
-        "token",
-        new_email,
-        change_email_url,
+        customer_user, channel_PLN.slug, "token", change_email_url, new_email
     )
