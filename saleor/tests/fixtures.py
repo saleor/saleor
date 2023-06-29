@@ -818,11 +818,9 @@ def graphql_address_data():
         "lastName": "Doe Mirumee",
         "companyName": "Mirumee Software",
         "streetAddress1": "Tęczowa 7",
-        # "streetAddress2": "",
         "postalCode": "53-601",
         "country": "PL",
         "city": "Wrocław",
-        # "countryArea": "",
         "phone": "+48321321888",
     }
 
