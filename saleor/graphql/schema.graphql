@@ -17529,6 +17529,10 @@ type Mutation {
   Sends an email with confirmation link. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
   """
   sendConfirmationEmail(
     """
@@ -17538,7 +17542,7 @@ type Mutation {
 
     """Base of frontend URL that will be needed to create confirmation URL."""
     redirectUrl: String!
-  ): SendConfirmationEmail @doc(category: "Users")
+  ): SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """Confirm user account with token sent by email during registration."""
   confirmAccount(
@@ -17687,11 +17691,12 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
   """
   accountRegister(
     """Fields required to create a user."""
     input: AccountRegisterInput!
-  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: [])
+  ): AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: [])
 
   """
   Updates the account of the logged-in user. 
@@ -27421,8 +27426,12 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
 Sends an email with confirmation link. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
 """
-type SendConfirmationEmail @doc(category: "Users") {
+type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """An user instance."""
   user: User
   errors: [SendConfirmationEmailError!]!
@@ -27587,8 +27596,9 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
+- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
 """
-type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER], syncEvents: []) {
+type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
   requiresConfirmation: Boolean
   accountErrors: [AccountError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
