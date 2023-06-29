@@ -127,7 +127,11 @@ def test_process_checkout_with_physical_product(
         {"variantId": product_variant_id, "quantity": 1},
     ]
     checkout_data = checkout_create(
-        e2e_not_logged_api_client, lines, channel_slug, set_default_billing_address=True
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="testEmail@example.com",
+        set_default_billing_address=True,
     )
     checkout_id = checkout_data["id"]
 
