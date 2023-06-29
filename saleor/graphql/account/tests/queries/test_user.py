@@ -26,6 +26,7 @@ FULL_USER_QUERY = """
             lastName
             isStaff
             isActive
+            isConfirmed
             addresses {
                 id
                 isDefaultShippingAddress
@@ -160,6 +161,7 @@ def test_query_customer_user(
     assert data["lastName"] == user.last_name
     assert data["isStaff"] == user.is_staff
     assert data["isActive"] == user.is_active
+    assert data["isConfirmed"] == user.is_confirmed
     assert data["orders"]["totalCount"] == user.orders.count()
     assert data["avatar"]["url"]
     assert data["languageCode"] == settings.LANGUAGE_CODE.upper()
