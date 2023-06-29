@@ -192,6 +192,26 @@ class WebhookPlugin(BasePlugin):
             redirect_url,
         )
 
+    def account_change_email_requested(
+        self,
+        user: "User",
+        channel_slug: str,
+        token: str,
+        new_email: str,
+        redirect_url: str,
+        previous_value: None,
+    ) -> None:
+        if not self.active:
+            return previous_value
+        self._trigger_account_event(
+            WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED,
+            user,
+            channel_slug,
+            token,
+            new_email,
+            redirect_url,
+        )
+
     def account_delete_requested(
         self,
         user: "User",
