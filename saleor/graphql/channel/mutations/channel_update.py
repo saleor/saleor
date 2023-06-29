@@ -12,11 +12,13 @@ from ....shipping.tasks import (
 from ....webhook.event_types import WebhookEventAsyncType
 from ...account.enums import CountryCodeEnum
 from ...core import ResolveInfo
-from ...core.descriptions import ADDED_IN_31, ADDED_IN_35
+from ...core.descriptions import ADDED_IN_31, ADDED_IN_35, ADDED_IN_315
 from ...core.doc_category import DOC_CATEGORY_CHANNELS
 from ...core.mutations import ModelMutation
 from ...core.types import ChannelError, NonNullList
+from ...core.types import common as common_types
 from ...core.utils import WebhookEventInfo
+from ...meta.inputs import MetadataInput
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
 from ..types import Channel
@@ -43,6 +45,16 @@ class ChannelUpdateInput(ChannelInput):
     remove_warehouses = NonNullList(
         graphene.ID,
         description="List of warehouses to unassign from the channel." + ADDED_IN_35,
+        required=False,
+    )
+    metadata = common_types.NonNullList(
+        MetadataInput,
+        description="Channel public metadata." + ADDED_IN_315,
+        required=False,
+    )
+    private_metadata = common_types.NonNullList(
+        MetadataInput,
+        description=("Channel private metadata." + ADDED_IN_315),
         required=False,
     )
 
@@ -76,6 +88,8 @@ class ChannelUpdate(ModelMutation):
                 description="A channel was updated.",
             ),
         ]
+        support_meta_field = True
+        support_private_meta_field = True
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):

@@ -324,7 +324,7 @@ class Channel(ModelObjectType):
     class Meta:
         description = "Represents channel."
         model = models.Channel
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
 
     @staticmethod
     def resolve_has_orders(root: models.Channel, info: ResolveInfo):
