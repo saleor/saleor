@@ -146,10 +146,6 @@ Want to see Saleor in action?
 * [View React Storefront](https://demo.saleor.io/)
 * [View Dashboard (admin area)](https://demo.saleor.io/dashboard/)
 
-Or launch the demo on a Heroku instance.
-
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
-
 Login credentials: `admin@example.com`/`admin`
 
 ## Contributing
