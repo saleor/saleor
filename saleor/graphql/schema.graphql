@@ -1700,7 +1700,7 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """An account change email is requested."""
+  """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
   """An account delete is requested."""
@@ -2340,7 +2340,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
-  """An account change email is requested."""
+  """Account email change is requested."""
   ACCOUNT_CHANGE_EMAIL_REQUESTED
 
   """An account delete is requested."""
