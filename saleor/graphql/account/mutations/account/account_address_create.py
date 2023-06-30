@@ -68,7 +68,6 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
         cleaned_input = cls.clean_input(info=info, instance=Address(), data=input)
         with traced_atomic_transaction():
             address = cls.validate_address(cleaned_input, address_type=address_type)
-            # Check for invalid fields and return errors if necessary
             invalid_fields = cls.get_invalid_fields(cleaned_input)
             if invalid_fields:
                 return cls.handle_invalid_fields(invalid_fields)
