@@ -34,15 +34,14 @@ subscription {
 
 
 @freeze_time("2020-03-18 12:00:00")
-def test_transaction_void_request(order, webhook_app, permission_manage_payments):
+def test_transaction_cancel_request(order, webhook_app, permission_manage_payments):
     # given
     authorized_value = Decimal("10")
     webhook_app.permissions.add(permission_manage_payments)
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
-        available_actions=["void"],
+        available_actions=["cancel"],
         currency="USD",
         order_id=order.pk,
         authorized_value=authorized_value,
@@ -66,7 +65,7 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
 
     transaction_data = TransactionActionData(
         transaction=transaction,
-        action_type=TransactionAction.VOID,
+        action_type=TransactionAction.CANCEL,
         event=request_event,
         transaction_app_owner=None,
     )
@@ -80,22 +79,19 @@ def test_transaction_void_request(order, webhook_app, permission_manage_payments
         "transaction": {
             "id": transaction_id,
             "createdAt": "2020-03-18T12:00:00+00:00",
-            "actions": ["VOID"],
+            "actions": ["CANCEL"],
             "authorizedAmount": {
                 "currency": "USD",
                 "amount": quantize_price(authorized_value, "USD"),
             },
             "refundedAmount": {"currency": "USD", "amount": 0.0},
-            "voidedAmount": {"currency": "USD", "amount": 0.0},
+            "canceledAmount": {"currency": "USD", "amount": 0.0},
             "chargedAmount": {"currency": "USD", "amount": 0.0},
             "events": [
                 {"id": graphene.Node.to_global_id("TransactionEvent", request_event.id)}
             ],
-            "status": "Captured",
-            "type": "Credit card",
-            "reference": "PSP ref",
             "pspReference": "PSP ref",
             "order": {"id": graphene.Node.to_global_id("Order", order.id)},
         },
-        "action": {"actionType": "VOID", "amount": None},
+        "action": {"actionType": "CANCEL", "amount": None},
     }

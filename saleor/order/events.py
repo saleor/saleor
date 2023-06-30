@@ -503,10 +503,9 @@ def transaction_event(
     user: Optional[User],
     app: Optional[App],
     reference: str,
-    status: Optional[str],
     message: str
 ) -> OrderEvent:
-    parameters = {"message": message, "reference": reference, "status": status}
+    parameters = {"message": message, "reference": reference}
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.TRANSACTION_EVENT,
