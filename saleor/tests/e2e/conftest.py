@@ -31,7 +31,7 @@ class E2eApiClient(BaseApiClient):
         flush_post_commit_hooks()
         return result
 
-    def post_multipart(self, *args, permissions=None, **kwargs):
+    def post_multipart(self, *args, **kwargs):
         """Send a multipart POST request.
 
         This is used to send multipart requests to GraphQL API when e.g.
