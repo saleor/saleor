@@ -17,7 +17,7 @@ def drop_status_field_from_transaction_event(apps, _schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("order", "0170_auto_20230529_1314"),
+        ("order", "0171_auto_20230518_0854"),
     ]
 
     operations = [
