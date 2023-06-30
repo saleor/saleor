@@ -43,7 +43,7 @@ class Channel(ModelWithMetadata):
         default=timedelta(days=60),
     )
 
-    class Meta:
+    class Meta(ModelWithMetadata.Meta):
         ordering = ("slug",)
         app_label = "channel"
         permissions = (

@@ -135,7 +135,7 @@ class ChannelInput(BaseInputObjectType):
     )
     private_metadata = common_types.NonNullList(
         MetadataInput,
-        description=("Channel private metadata." + ADDED_IN_315),
+        description="Channel private metadata." + ADDED_IN_315,
         required=False,
     )
 
