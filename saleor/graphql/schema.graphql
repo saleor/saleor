@@ -1700,6 +1700,9 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
 
+  """Account email change is requested."""
+  ACCOUNT_CHANGE_EMAIL_REQUESTED
+
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
 
@@ -2336,6 +2339,9 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """An account confirmation is requested."""
   ACCOUNT_CONFIRMATION_REQUESTED
+
+  """Account email change is requested."""
+  ACCOUNT_CHANGE_EMAIL_REQUESTED
 
   """An account delete is requested."""
   ACCOUNT_DELETE_REQUESTED
@@ -3339,6 +3345,7 @@ scalar JSONString
 """An enumeration."""
 enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   ACCOUNT_CONFIRMATION_REQUESTED
+  ACCOUNT_CHANGE_EMAIL_REQUESTED
   ACCOUNT_DELETE_REQUESTED
   ADDRESS_CREATED
   ADDRESS_UPDATED
@@ -28371,6 +28378,43 @@ type AccountConfirmationRequested implements Event @doc(category: "Users") {
 
   """Shop data."""
   shop: Shop
+}
+
+"""
+Event sent when account change email is requested.
+
+Added in Saleor 3.15.
+"""
+type AccountChangeEmailRequested implements Event @doc(category: "Users") {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The URL to redirect the user after he accepts the request."""
+  redirectUrl: String
+
+  """The user the event relates to."""
+  user: User
+
+  """The channel data."""
+  channel: Channel
+
+  """The token required to confirm request."""
+  token: String
+
+  """Shop data."""
+  shop: Shop
+
+  """The new email address the user wants to change to."""
+  newEmail: String
 }
 
 """

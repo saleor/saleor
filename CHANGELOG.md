@@ -51,7 +51,8 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Add missing descriptions to Account module. - #13155 by @fowczarek
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
--
+- Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+
 # 3.14.0
 
 ### Breaking changes
