@@ -154,13 +154,11 @@ class WebhookPlugin(BasePlugin):
         self, event_type, user, channel_slug, token, redirect_url, new_email=None
     ):
         if webhooks := get_webhooks_for_event(event_type):
-            payload = self._serialize_payload(
-                {
-                    "id": graphene.Node.to_global_id("User", user.id),
-                    "token": token,
-                    "redirect_url": redirect_url,
-                }
-            )
+            raw_payload = {
+                "id": graphene.Node.to_global_id("User", user.id),
+                "token": token,
+                "redirect_url": redirect_url,
+            }
             data = {
                 "user": user,
                 "channel_slug": channel_slug,
@@ -169,11 +167,11 @@ class WebhookPlugin(BasePlugin):
             }
 
             if new_email:
-                payload["new_email"] = new_email
+                raw_payload["new_email"] = new_email
                 data["new_email"] = new_email
 
             trigger_webhooks_async(
-                payload,
+                self._serialize_payload(raw_payload),
                 event_type,
                 webhooks,
                 data,
