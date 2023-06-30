@@ -26126,6 +26126,20 @@ input ChannelCreateInput @doc(category: "Channels") {
   """
   orderSettings: OrderSettingsInput
 
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
   """Name of the channel."""
   name: String!
 
@@ -26243,6 +26257,20 @@ input ChannelUpdateInput @doc(category: "Channels") {
   """
   orderSettings: OrderSettingsInput
 
+  """
+  Channel public metadata.
+  
+  Added in Saleor 3.15.
+  """
+  metadata: [MetadataInput!]
+
+  """
+  Channel private metadata.
+  
+  Added in Saleor 3.15.
+  """
+  privateMetadata: [MetadataInput!]
+
   """Name of the channel."""
   name: String
 
@@ -26265,20 +26293,6 @@ input ChannelUpdateInput @doc(category: "Channels") {
   Added in Saleor 3.5.
   """
   removeWarehouses: [ID!]
-
-  """
-  Channel public metadata.
-  
-  Added in Saleor 3.15.
-  """
-  metadata: [MetadataInput!]
-
-  """
-  Channel private metadata.
-  
-  Added in Saleor 3.15.
-  """
-  privateMetadata: [MetadataInput!]
 }
 
 """

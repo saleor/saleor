@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Deprecate `Order.trackingClientId` field - #13146 by @SzymJ
 - Fix error "Cannot return null for non-nullable field Webhook.name" - #12989 by @Smit-Parmar
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
+- Added `metadata` and `privateMetadata` in `ChannelInput`. #13230 by @Smit-Parmar
 
 ### Saleor Apps
 
