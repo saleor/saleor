@@ -187,6 +187,25 @@ class AccountConfirmationRequested(SubscriptionObjectType, AccountOperationBase)
         )
 
 
+class AccountChangeEmailRequested(SubscriptionObjectType, AccountOperationBase):
+    new_email = graphene.String(
+        description="The new email address the user wants to change to.",
+    )
+
+    class Meta:
+        root_type = "User"
+        enable_dry_run = False
+        interfaces = (Event,)
+        description = (
+            "Event sent when account change email is requested." + ADDED_IN_315
+        )
+
+    @staticmethod
+    def resolve_new_email(root, _info: ResolveInfo):
+        _, data = root
+        return data["new_email"]
+
+
 class AccountDeleteRequested(SubscriptionObjectType, AccountOperationBase):
     class Meta:
         root_type = "User"
@@ -2106,6 +2125,7 @@ class ThumbnailCreated(SubscriptionObjectType):
 
 WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED: AccountConfirmationRequested,
+    WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED: AccountChangeEmailRequested,
     WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED: AccountDeleteRequested,
     WebhookEventAsyncType.ADDRESS_CREATED: AddressCreated,
     WebhookEventAsyncType.ADDRESS_UPDATED: AddressUpdated,
