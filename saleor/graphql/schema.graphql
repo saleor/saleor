@@ -7539,8 +7539,14 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Indicates if the product is published in the channel."""
   isPublished: Boolean!
+
+  """The channel in which the product is listed."""
   channel: Channel!
+
+  """Indicates product visibility in the channel listings."""
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
@@ -7585,7 +7591,10 @@ type ProductChannelListing implements Node @doc(category: "Products") {
 }
 
 type Margin @doc(category: "Products") {
+  """The starting value of the margin."""
   start: Int
+
+  """The ending value of the margin."""
   stop: Int
 }
 

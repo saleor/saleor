@@ -44,8 +44,8 @@ from ..dataloaders import (
 
 
 class Margin(BaseObjectType):
-    start = graphene.Int()
-    stop = graphene.Int()
+    start = graphene.Int(description="The starting value of the margin.")
+    stop = graphene.Int(description="The ending value of the margin.")
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
@@ -62,9 +62,19 @@ class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
     published_at = graphene.DateTime(
         description="The product publication date time." + ADDED_IN_33
     )
-    is_published = graphene.Boolean(required=True)
-    channel = graphene.Field(Channel, required=True)
-    visible_in_listings = graphene.Boolean(required=True)
+    is_published = graphene.Boolean(
+        required=True,
+        description="Indicates if the product is published in the channel.",
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel in which the product is listed.",
+    )
+    visible_in_listings = graphene.Boolean(
+        required=True,
+        description="Indicates product visibility in the channel listings.",
+    )
     available_for_purchase = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
