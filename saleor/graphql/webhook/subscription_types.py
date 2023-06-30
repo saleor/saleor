@@ -1549,21 +1549,6 @@ class TransactionActionBase(AbstractType):
         return transaction_action_data
 
 
-class TransactionActionRequest(TransactionActionBase, SubscriptionObjectType):
-    class Meta:
-        root_type = None
-        enable_dry_run = False
-        interfaces = (Event,)
-        description = (
-            "Event sent when transaction action is requested."
-            + ADDED_IN_34
-            + "\n\nDEPRECATED: this subscription will be removed in Saleor 3.14 "
-            + "(Preview Feature). Use `TransactionChargeRequested`, "
-            + "`TransactionRefundRequested`, `TransactionCancelationRequested` instead."
-        )
-        doc_category = DOC_CATEGORY_PAYMENTS
-
-
 class TransactionChargeRequested(TransactionActionBase, SubscriptionObjectType):
     class Meta:
         interfaces = (Event,)
@@ -2231,7 +2216,6 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.STAFF_CREATED: StaffCreated,
     WebhookEventAsyncType.STAFF_UPDATED: StaffUpdated,
     WebhookEventAsyncType.STAFF_DELETED: StaffDeleted,
-    WebhookEventAsyncType.TRANSACTION_ACTION_REQUEST: TransactionActionRequest,
     WebhookEventAsyncType.TRANSACTION_ITEM_METADATA_UPDATED: (
         TransactionItemMetadataUpdated
     ),
