@@ -14,6 +14,7 @@ from ...permission.enums import (
     AccountPermissions,
     AppPermission,
     BasePermissionEnum,
+    ChannelPermissions,
     CheckoutPermissions,
     DiscountPermissions,
     GiftcardPermissions,
@@ -195,6 +196,12 @@ def private_app_permssions(
     return [AppPermission.MANAGE_APPS]
 
 
+def channel_permissions(
+    _info: ResolveInfo, _object_pk: Any
+) -> List[BasePermissionEnum]:
+    return [ChannelPermissions.MANAGE_CHANNELS]
+
+
 def checkout_permissions(
     _info: ResolveInfo, _object_pk: Any
 ) -> List[BasePermissionEnum]:
@@ -272,6 +279,7 @@ PUBLIC_META_PERMISSION_MAP: Dict[
     "App": app_permissions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
+    "Channel": channel_permissions,
     "Checkout": no_permissions,
     "CheckoutLine": no_permissions,
     "Collection": product_permissions,
@@ -309,6 +317,7 @@ PRIVATE_META_PERMISSION_MAP: Dict[
     "App": private_app_permssions,
     "Attribute": attribute_permissions,
     "Category": product_permissions,
+    "Channel": channel_permissions,
     "Checkout": checkout_permissions,
     "CheckoutLine": checkout_permissions,
     "Collection": product_permissions,

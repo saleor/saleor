@@ -4,6 +4,7 @@ from operator import itemgetter
 from ...account import models as account_models
 from ...app import models as app_models
 from ...attribute import models as attribute_models
+from ...channel import models as channel_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
 from ...core.models import ModelWithMetadata
@@ -30,6 +31,7 @@ def resolve_object_with_metadata_type(instance):
     from ..account import types as account_types
     from ..app import types as app_types
     from ..attribute import types as attribute_types
+    from ..channel import types as channel_types
     from ..checkout import types as checkout_types
     from ..discount import types as discount_types
     from ..giftcard import types as giftcard_types
@@ -49,6 +51,7 @@ def resolve_object_with_metadata_type(instance):
             account_models.User: account_types.User,
             app_models.App: app_types.App,
             attribute_models.Attribute: attribute_types.Attribute,
+            channel_models.Channel: channel_types.Channel,
             checkout_models.Checkout: checkout_types.Checkout,
             checkout_models.CheckoutMetadata: checkout_types.Checkout,
             checkout_models.CheckoutLine: checkout_types.CheckoutLine,

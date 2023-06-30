@@ -5,20 +5,29 @@ import saleor.core.utils.json_serializer
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('channel', '0012_channel_delete_expired_orders_after'),
+        ("channel", "0012_channel_delete_expired_orders_after"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='channel',
-            name='metadata',
-            field=models.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder, null=True),
+            model_name="channel",
+            name="metadata",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                null=True,
+            ),
         ),
         migrations.AddField(
-            model_name='channel',
-            name='private_metadata',
-            field=models.JSONField(blank=True, default=dict, encoder=saleor.core.utils.json_serializer.CustomJsonEncoder, null=True),
+            model_name="channel",
+            name="private_metadata",
+            field=models.JSONField(
+                blank=True,
+                default=dict,
+                encoder=saleor.core.utils.json_serializer.CustomJsonEncoder,
+                null=True,
+            ),
         ),
     ]
