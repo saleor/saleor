@@ -88,7 +88,7 @@ class ModelObjectType(Generic[MT], BaseObjectType):
                 cls._meta.fields[field_name] = field
             elif metadata_since and field_name in ["private_metadata", "metadata"]:
                 field = copy.deepcopy(field)
-                field.description = field.description + metadata_since + PREVIEW_FEATURE
+                field.description = field.description + metadata_since
                 cls._meta.fields[field_name] = field
 
     @classmethod
