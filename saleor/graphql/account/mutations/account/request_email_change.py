@@ -1,4 +1,5 @@
 from typing import cast
+from urllib.parse import urlencode
 
 import graphene
 from django.conf import settings
@@ -7,7 +8,7 @@ from django.core.exceptions import ValidationError
 from .....account import models, notifications
 from .....account.error_codes import AccountErrorCode
 from .....core.jwt import create_token
-from .....core.utils.url import validate_storefront_url
+from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
 from ....channel.utils import clean_channel
@@ -102,6 +103,9 @@ class RequestEmailChange(BaseMutation):
         }
         token = create_token(token_payload, settings.JWT_TTL_REQUEST_EMAIL_CHANGE)
         manager = get_plugin_manager_promise(info.context).get()
+        params = urlencode({"token": token})
+
+        # Notifications will be deprecated in the future
         notifications.send_request_user_change_email_notification(
             redirect_url,
             user,
@@ -110,4 +114,14 @@ class RequestEmailChange(BaseMutation):
             manager,
             channel_slug=channel_slug,
         )
+
+        cls.call_event(
+            manager.account_change_email_requested,
+            user,
+            channel_slug,
+            token,
+            prepare_url(params, redirect_url),
+            new_email,
+        )
+
         return RequestEmailChange(user=user)

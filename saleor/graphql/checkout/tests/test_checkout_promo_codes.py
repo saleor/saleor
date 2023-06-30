@@ -106,20 +106,33 @@ def test_checkout_get_gift_card_code(user_api_client, checkout_with_gift_card):
 def test_checkout_get_gift_card_codes(
     user_api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
+    # given
     checkout_with_gift_card.gift_cards.add(gift_card_created_by_staff)
     checkout_with_gift_card.save()
-    gift_card_first = checkout_with_gift_card.gift_cards.first()
-    gift_card_last = checkout_with_gift_card.gift_cards.last()
+    gift_card_fist = checkout_with_gift_card.gift_cards.first()
+    gift_card_second = checkout_with_gift_card.gift_cards.last()
     variables = {"id": to_global_id_or_none(checkout_with_gift_card)}
+
+    # when
     response = user_api_client.post_graphql(
         QUERY_GET_CHECKOUT_GIFT_CARD_CODES, variables
     )
+
+    # then
     content = get_graphql_content(response)
     data = content["data"]["checkout"]["giftCards"]
-    assert data[0]["last4CodeChars"] == gift_card_first.display_code
-    assert data[0]["currentBalance"]["amount"] == gift_card_first.current_balance.amount
-    assert data[1]["last4CodeChars"] == gift_card_last.display_code
-    assert data[1]["currentBalance"]["amount"] == gift_card_last.current_balance.amount
+    gift_cards_dict = {
+        data[0]["last4CodeChars"]: data[0],
+        data[1]["last4CodeChars"]: data[1],
+    }
+    assert (
+        gift_cards_dict[gift_card_fist.display_code]["currentBalance"]["amount"]
+        == gift_card_fist.current_balance.amount
+    )
+    assert (
+        gift_cards_dict[gift_card_second.display_code]["currentBalance"]["amount"]
+        == gift_card_second.current_balance.amount
+    )
 
 
 def test_checkout_get_gift_card_code_without_gift_card(user_api_client, checkout):
