@@ -23,6 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
@@ -325,6 +326,7 @@ class Channel(ModelObjectType):
         description = "Represents channel."
         model = models.Channel
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        metadata_since = ADDED_IN_315
 
     @staticmethod
     def resolve_has_orders(root: models.Channel, info: ResolveInfo):
