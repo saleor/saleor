@@ -2817,8 +2817,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -2826,8 +2824,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -2840,8 +2836,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -2849,8 +2843,6 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3480,8 +3472,6 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -3489,8 +3479,6 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3503,8 +3491,6 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -3512,8 +3498,6 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -3575,8 +3559,6 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.10.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -3584,8 +3566,6 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.10.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3602,8 +3582,6 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.10.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -3611,8 +3589,6 @@ type Address implements Node & ObjectWithMetadata @doc(category: "Users") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.10.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -3727,8 +3703,6 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -3736,8 +3710,6 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3750,8 +3722,6 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -3759,8 +3729,6 @@ type ShippingZone implements Node & ObjectWithMetadata @doc(category: "Shipping"
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -3821,8 +3789,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -3830,8 +3796,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -3844,8 +3808,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -3853,8 +3815,6 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5375,8 +5335,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -5384,8 +5342,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5398,8 +5354,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -5407,8 +5361,6 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   seoTitle: String
@@ -5594,8 +5546,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -5603,8 +5553,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5617,8 +5565,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -5626,8 +5572,6 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -5751,8 +5695,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -5760,8 +5702,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5774,8 +5714,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -5783,8 +5721,6 @@ type TaxClass implements Node & ObjectWithMetadata @doc(category: "Taxes") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -5827,8 +5763,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -5836,8 +5770,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -5850,8 +5782,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -5859,8 +5789,6 @@ type Attribute implements Node & ObjectWithMetadata @doc(category: "Attributes")
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -6379,8 +6307,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -6388,8 +6314,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -6402,8 +6326,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -6411,8 +6333,6 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   seoTitle: String
@@ -6950,8 +6870,6 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -6959,8 +6877,6 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -6973,8 +6889,6 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -6982,8 +6896,6 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -7278,8 +7190,6 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -7287,8 +7197,6 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7305,8 +7213,6 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -7314,8 +7220,6 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.12.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   sortOrder: Int
@@ -7370,8 +7274,6 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -7379,8 +7281,6 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7393,8 +7293,6 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -7402,8 +7300,6 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   useDefaultSettings: Boolean!
@@ -7608,8 +7504,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -7617,8 +7511,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -7631,8 +7523,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -7640,8 +7530,6 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   seoTitle: String
@@ -8079,8 +7967,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8088,8 +7974,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8102,8 +7986,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8111,8 +7993,6 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   seoTitle: String
@@ -8170,8 +8050,6 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8179,8 +8057,6 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8193,8 +8069,6 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8202,8 +8076,6 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -8312,8 +8184,6 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8321,8 +8191,6 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8335,8 +8203,6 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8344,8 +8210,6 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -8553,8 +8417,6 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8562,8 +8424,6 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8576,8 +8436,6 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8585,8 +8443,6 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String
@@ -8781,8 +8637,6 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8790,8 +8644,6 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8804,8 +8656,6 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8813,8 +8663,6 @@ type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -8859,8 +8707,6 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8868,8 +8714,6 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8882,8 +8726,6 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8891,8 +8733,6 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   name: String!
@@ -8932,8 +8772,6 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -8941,8 +8779,6 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8955,8 +8791,6 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -8964,8 +8798,6 @@ type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9422,8 +9254,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -9431,8 +9261,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9445,8 +9273,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -9454,8 +9280,6 @@ type User implements Node & ObjectWithMetadata @doc(category: "Users") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9660,8 +9484,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -9669,8 +9491,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9683,8 +9503,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -9692,8 +9510,6 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -9921,8 +9737,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -9930,8 +9744,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -9944,8 +9756,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -9953,8 +9763,6 @@ type GiftCard implements Node & ObjectWithMetadata @doc(category: "Gift cards") 
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10174,8 +9982,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -10183,8 +9989,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10201,8 +10005,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -10210,8 +10012,6 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -10274,8 +10074,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -10283,8 +10081,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10297,8 +10093,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -10306,8 +10100,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   createdAt: DateTime!
@@ -10450,8 +10242,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -10459,8 +10249,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10473,8 +10261,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -10482,8 +10268,6 @@ type Order implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   created: DateTime!
@@ -10853,8 +10637,6 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -10862,8 +10644,6 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10876,8 +10656,6 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -10885,8 +10663,6 @@ type Fulfillment implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   fulfillmentOrder: Int!
@@ -10939,8 +10715,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -10948,8 +10722,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -10966,8 +10738,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -10975,8 +10745,6 @@ type OrderLine implements Node & ObjectWithMetadata @doc(category: "Orders") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.5.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   productName: String!
@@ -11130,8 +10898,6 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -11139,8 +10905,6 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11153,8 +10917,6 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -11162,8 +10924,6 @@ type Invoice implements ObjectWithMetadata & Job & Node @doc(category: "Orders")
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
 
@@ -11293,8 +11053,6 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
@@ -11302,8 +11060,6 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -11316,8 +11072,6 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Tip: Use GraphQL aliases to fetch multiple keys.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
@@ -11325,8 +11079,6 @@ type Payment implements Node & ObjectWithMetadata @doc(category: "Payments") {
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
   
   Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
   gateway: String!
