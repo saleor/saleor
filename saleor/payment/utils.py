@@ -835,6 +835,10 @@ def parse_transaction_action_data(
             for action in available_actions
             if action in possible_actions
         ]
+        if "void" in available_actions:
+            available_actions.remove("void")
+            if "cancel" not in available_actions:
+                available_actions.append("cancel")
 
     parsed_event_data: dict = {}
     error_field_msg: list[str] = []

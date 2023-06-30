@@ -942,6 +942,12 @@ class TransactionCreate(BaseMutation):
             transaction.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if available_actions := transaction.get("available_actions"):
+            if "void" in available_actions:
+                available_actions.remove("void")
+                if "cancel" not in available_actions:
+                    available_actions.append("cancel")
+                transaction["available_actions"] = available_actions
         return instance
 
     @classmethod
@@ -1212,6 +1218,12 @@ class TransactionUpdate(TransactionCreate):
             transaction_data.get("external_url"),
             error_code=TransactionCreateErrorCode.INVALID.value,
         )
+        if available_actions := transaction_data.get("available_actions"):
+            if "void" in available_actions:
+                available_actions.remove("void")
+                if "cancel" not in available_actions:
+                    available_actions.append("cancel")
+                transaction_data["available_actions"] = available_actions
 
     @classmethod
     def update_transaction(
@@ -1575,6 +1587,10 @@ class TransactionEventReport(ModelMutation):
             "cancel_pending_value",
         ]
         if available_actions is not None:
+            if "void" in available_actions:
+                available_actions.remove("void")
+                if "cancel" not in available_actions:
+                    available_actions.append("cancel")
             transaction.available_actions = available_actions
             fields_to_update.append("available_actions")
 
