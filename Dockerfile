@@ -18,7 +18,6 @@ FROM python:3.9-slim
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
 RUN apt-get update \
-  && apt-get upgrade \
   && apt-get install -y \
   libcairo2 \
   libgdk-pixbuf2.0-0 \
