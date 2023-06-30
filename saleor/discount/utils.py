@@ -822,11 +822,11 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             discount.promotion_rule_id: discount for discount in discounts_to_update
         }
 
-        line_info.discounts = []
         # delete all existing discounts if the line is not discounted
         if not discount_amount:
             ids_to_remove = [discount.id for discount in discounts_to_update]
             CheckoutLineDiscount.objects.filter(id__in=ids_to_remove).delete()
+            line_info.discounts = []
             continue
 
         # delete the discount objects that are not valid anymore
@@ -834,6 +834,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             _get_discounts_that_are_not_valid_anymore(
                 variant_listing_promotion_rules,
                 rule_id_to_discount,  # type: ignore[arg-type]
+                line_info,
             )
         )
 
@@ -867,7 +868,6 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                 )
 
                 line_discounts_to_update.append(discount_to_update)
-                line_info.discounts.append(discount_to_update)
 
     if line_discounts_to_create:
         CheckoutLineDiscount.objects.bulk_create(line_discounts_to_create)
@@ -918,6 +918,7 @@ def _get_discount_amount(
 def _get_discounts_that_are_not_valid_anymore(
     variant_listing_promotion_rules: Iterable["VariantChannelListingPromotionRule"],
     rule_id_to_discount: Dict[int, "CheckoutLineDiscount"],
+    line_info: "CheckoutLineInfo",
 ):
     discount_ids = []
     rule_ids = {
@@ -927,6 +928,7 @@ def _get_discounts_that_are_not_valid_anymore(
     for rule_id, discount in rule_id_to_discount.items():
         if rule_id not in rule_ids:
             discount_ids.append(discount.id)
+            line_info.discounts.remove(discount)
     return discount_ids
 
 
