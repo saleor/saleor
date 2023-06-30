@@ -55,7 +55,7 @@ mutation TransactionRequestAction(
 
 
 def test_transaction_request_action_missing_permission(
-    app_api_client, order_with_lines
+    app_api_client, order_with_lines, permission_manage_orders
 ):
     # given
 
@@ -74,7 +74,9 @@ def test_transaction_request_action_missing_permission(
 
     # when
     response = app_api_client.post_graphql(
-        MUTATION_TRANSACTION_REQUEST_ACTION, variables, permissions=[]
+        MUTATION_TRANSACTION_REQUEST_ACTION,
+        variables,
+        permissions=[permission_manage_orders],
     )
 
     # then

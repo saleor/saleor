@@ -15,6 +15,7 @@ from .....webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
 from ...tasks import create_deliveries_for_subscriptions, logger
 from . import subscription_queries
 from .payloads import (
+    generate_account_events_payload,
     generate_address_payload,
     generate_app_payload,
     generate_attribute_payload,
@@ -74,6 +75,90 @@ def test_subscription_query_with_meta(
         subscription_voucher_webhook_with_meta.app,
     )
     assert json.loads(deliveries[0].payload.payload) == json.loads(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_confirmation_requested(
+    customer_user, channel_USD, subscription_account_confirmation_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_confirmation_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user, channel_USD)
+
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_change_email_requested(
+    customer_user, channel_USD, subscription_account_change_email_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_change_email_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_CHANGE_EMAIL_REQUESTED
+    new_email = "new@example.com"
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "new_email": new_email,
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(
+        customer_user, channel_USD, new_email=new_email
+    )
+    assert deliveries[0].payload.payload == expected_payload
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_account_delete_requested(
+    customer_user, channel_USD, subscription_account_delete_requested_webhook
+):
+    # given
+    webhooks = [subscription_account_delete_requested_webhook]
+    event_type = WebhookEventAsyncType.ACCOUNT_DELETE_REQUESTED
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(
+        event_type,
+        {
+            "user": customer_user,
+            "channel_slug": channel_USD.slug,
+            "token": "token",
+            "redirect_url": "http://www.mirumee.com?token=token",
+        },
+        webhooks,
+    )
+
+    # then
+    expected_payload = generate_account_events_payload(customer_user, channel_USD)
+
+    assert deliveries[0].payload.payload == expected_payload
     assert len(deliveries) == len(webhooks)
     assert deliveries[0].webhook == webhooks[0]
 

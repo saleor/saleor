@@ -8,6 +8,7 @@ from ....attribute import models as models
 from ....attribute.error_codes import AttributeErrorCode
 from ....core.exceptions import PermissionDenied
 from ....permission.enums import PageTypePermissions, ProductTypePermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_310, DEPRECATED_IN_3X_INPUT
 from ...core.doc_category import DOC_CATEGORY_ATTRIBUTES
@@ -15,6 +16,7 @@ from ...core.enums import MeasurementUnitsEnum
 from ...core.fields import JSONString
 from ...core.mutations import ModelMutation
 from ...core.types import AttributeError, BaseInputObjectType, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeEntityTypeEnum, AttributeInputTypeEnum, AttributeTypeEnum
@@ -116,6 +118,12 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         description = "Creates an attribute."
         error_type_class = AttributeError
         error_type_field = "attribute_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.ATTRIBUTE_CREATED,
+                description="An attribute was created.",
+            ),
+        ]
 
     @classmethod
     def clean_input(cls, info: ResolveInfo, instance, data, **kwargs):
