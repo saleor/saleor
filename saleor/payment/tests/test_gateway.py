@@ -657,9 +657,20 @@ def test_request_refund_action_on_order(
 @patch("saleor.plugins.manager.PluginsManager.is_event_active_for_any_plugin")
 @patch("saleor.plugins.manager.PluginsManager.transaction_refund_requested")
 def test_request_refund_action_with_granted_refund(
-    mocked_transaction_request, mocked_is_active, order_with_lines, staff_user
+    mocked_transaction_request,
+    mocked_is_active,
+    order_with_lines,
+    staff_user,
+    permission_manage_payments,
+    app,
 ):
     # given
+    app.permissions.add(permission_manage_payments)
+    webhook = app.webhooks.create(
+        name="Simple webhook", app=app, target_url="http://127.0.0.1"
+    )
+    webhook.events.create(event_type=WebhookEventSyncType.TRANSACTION_REFUND_REQUESTED)
+
     order_line = order_with_lines.lines.first()
     granted_refund = order_with_lines.granted_refunds.create(
         amount_value=order_line.unit_price_gross_amount
@@ -670,13 +681,13 @@ def test_request_refund_action_with_granted_refund(
     )
 
     transaction = TransactionItem.objects.create(
-        status="Captured",
         name="Credit card",
         psp_reference="PSP ref",
         available_actions=["refund"],
         currency="USD",
         order_id=order_with_lines.pk,
         charged_value=Decimal("10"),
+        app=app,
     )
     action_value = order_line.unit_price_gross_amount
     requested_event = transaction.events.create(
@@ -706,7 +717,7 @@ def test_request_refund_action_with_granted_refund(
             action_type=TransactionAction.REFUND,
             action_value=action_value,
             event=requested_event,
-            transaction_app_owner=None,
+            transaction_app_owner=app,
             granted_refund=granted_refund,
         ),
         order_with_lines.channel.slug,
