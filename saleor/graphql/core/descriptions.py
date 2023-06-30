@@ -1,16 +1,10 @@
 # Deprecation message for queries, object fields and mutations. Use it, when
 # `deprecation_reason` argument is supported.
 DEPRECATED_IN_3X_FIELD = "This field will be removed in Saleor 4.0."
-PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD = (
-    "This field will be removed in Saleor 3.15 (Preview Feature)."
-)
 
 # Deprecation message for input fields and query arguments. Use it, when
 # deprecation message needs to be included in the field description.
 DEPRECATED_IN_3X_INPUT = "\n\nDEPRECATED: this field will be removed in Saleor 4.0."
-PREVIEW_FEATURE_DEPRECATED_IN_313_INPUT = (
-    "\n\nDEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature)."
-)
 
 DEPRECATED_IN_3X_MUTATION = (
     "\n\nDEPRECATED: this mutation will be removed in Saleor 4.0."

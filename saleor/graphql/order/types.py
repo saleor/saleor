@@ -77,7 +77,6 @@ from ..core.descriptions import (
     ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
     PREVIEW_FEATURE,
-    PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS
 from ..core.enums import LanguageCodeEnum
@@ -108,7 +107,7 @@ from ..invoice.types import Invoice
 from ..meta.resolvers import check_private_metadata_privilege, resolve_metadata
 from ..meta.types import MetadataItem, ObjectWithMetadata
 from ..payment.dataloaders import TransactionByPaymentIdLoader
-from ..payment.enums import OrderAction, TransactionEventStatusEnum
+from ..payment.enums import OrderAction
 from ..payment.types import Payment, PaymentChargeStatusEnum, TransactionItem
 from ..plugins.dataloaders import (
     get_plugin_manager_promise,
@@ -391,14 +390,6 @@ class OrderEvent(ModelObjectType[models.OrderEvent]):
     )
     discount = graphene.Field(
         OrderEventDiscountObject, description="The discount applied to the order."
-    )
-    status = graphene.Field(
-        TransactionEventStatusEnum,
-        description="The status of payment's transaction.",
-        deprecation_reason=(
-            PREVIEW_FEATURE_DEPRECATED_IN_313_FIELD
-            + "Use `TransactionEvent` to track the status of `TransactionItem`."
-        ),
     )
     reference = graphene.String(description="The reference of payment's transaction.")
 
