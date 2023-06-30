@@ -1923,8 +1923,12 @@ class Order(ModelObjectType[models.Order]):
         return InvoicesByOrderIdLoader(info.context).load(root.id)
 
     @staticmethod
-    def resolve_is_shipping_required(root: models.Order, _info):
-        return root.is_shipping_required()
+    def resolve_is_shipping_required(root: models.Order, info):
+        return (
+            OrderLinesByOrderIdLoader(info.context)
+            .load(root.id)
+            .then(lambda lines: any(line.is_shipping_required for line in lines))
+        )
 
     @staticmethod
     def resolve_gift_cards(root: models.Order, info):
