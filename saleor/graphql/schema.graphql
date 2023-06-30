@@ -2101,13 +2101,6 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   STAFF_DELETED
 
   """
-  An action requested for transaction.
-  
-  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
-  """
-  TRANSACTION_ACTION_REQUEST
-
-  """
   Transaction item metadata is updated.
   
   Added in Saleor 3.8.
@@ -2739,13 +2732,6 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 
   """A staff user is deleted."""
   STAFF_DELETED
-
-  """
-  An action requested for transaction.
-  
-  DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED`, `TRANSACTION_REFUND_REQUESTED`, `TRANSACTION_CANCELATION_REQUESTED` instead.
-  """
-  TRANSACTION_ACTION_REQUEST
 
   """
   Transaction item metadata is updated.
@@ -3451,7 +3437,6 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   STAFF_CREATED
   STAFF_UPDATED
   STAFF_DELETED
-  TRANSACTION_ACTION_REQUEST
   TRANSACTION_ITEM_METADATA_UPDATED
   TRANSLATION_CREATED
   TRANSLATION_UPDATED
@@ -10350,9 +10335,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   refundPendingAmount: Money!
 
-  """Total amount voided for this payment."""
-  voidedAmount: Money! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `canceledAmount` instead.")
-
   """
   Total amount canceled for this payment.
   
@@ -10377,12 +10359,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   """
   chargePendingAmount: Money!
 
-  """Status of transaction."""
-  status: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.")
-
-  """Type of transaction."""
-  type: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `name` or `message` instead.")
-
   """
   Name of the transaction.
   
@@ -10396,9 +10372,6 @@ type TransactionItem implements Node & ObjectWithMetadata @doc(category: "Paymen
   Added in Saleor 3.13.
   """
   message: String!
-
-  """Reference of transaction."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
 
   """
   PSP reference of transaction.
@@ -10438,14 +10411,11 @@ Represents possible actions on payment transaction.
     The following actions are possible:
     CHARGE - Represents the charge action.
     REFUND - Represents a refund action.
-    VOID - Represents a void action. This field will be removed
-    in Saleor 3.14 (Preview Feature). Use `CANCEL` instead.
     CANCEL - Represents a cancel action. Added in Saleor 3.12.
 """
 enum TransactionActionEnum @doc(category: "Payments") {
   CHARGE
   REFUND
-  VOID
   CANCEL
 }
 
@@ -11529,9 +11499,6 @@ type OrderEvent implements Node @doc(category: "Orders") {
   """The discount applied to the order."""
   discount: OrderEventDiscountObject
 
-  """The status of payment's transaction."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `TransactionEvent` to track the status of `TransactionItem`.")
-
   """The reference of payment's transaction."""
   reference: String
 }
@@ -11569,17 +11536,7 @@ enum OrderEventsEnum @doc(category: "Orders") {
   PAYMENT_FAILED
   TRANSACTION_EVENT
   TRANSACTION_CHARGE_REQUESTED
-
-  """
-  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CHARGE_REQUESTED` instead.
-  """
-  TRANSACTION_CAPTURE_REQUESTED
   TRANSACTION_REFUND_REQUESTED
-
-  """
-  This field will be removed in Saleor 3.15 (Preview Feature). Use `TRANSACTION_CANCEL_REQUESTED` instead.
-  """
-  TRANSACTION_VOID_REQUESTED
   TRANSACTION_CANCEL_REQUESTED
   TRANSACTION_MARK_AS_PAID_FAILED
   INVOICE_REQUESTED
@@ -11647,20 +11604,6 @@ type OrderEventDiscountObject @doc(category: "Orders") {
 
   """Returns amount of discount."""
   oldAmount: Money
-}
-
-"""
-Represents a status of payment transaction.
-
-    The following statuses are possible:
-    SUCCESS - Represents a sucess action.
-    FAILURE - Represents a failure action.
-    PENDING - Represents a pending action.
-"""
-enum TransactionStatus @doc(category: "Payments") {
-  PENDING
-  SUCCESS
-  FAILURE
 }
 
 """Contains all details related to the applied discount to the order."""
@@ -11836,21 +11779,12 @@ type TransactionEvent implements Node @doc(category: "Payments") {
   id: ID!
   createdAt: DateTime!
 
-  """Status of transaction's event."""
-  status: TransactionStatus @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `type` instead.")
-
-  """Reference of transaction's event."""
-  reference: String! @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature).Use `pspReference` instead.")
-
   """
   PSP reference of transaction.
   
   Added in Saleor 3.13.
   """
   pspReference: String!
-
-  """Name of the transaction's event."""
-  name: String @deprecated(reason: "This field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead.")
 
   """
   Message related to the transaction's event.
@@ -21885,20 +21819,6 @@ enum TransactionCreateErrorCode @doc(category: "Payments") {
 
 input TransactionCreateInput @doc(category: "Payments") {
   """
-  Status of the transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
-  """
-  status: String
-
-  """
-  Payment type used for this transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
-  """
-  type: String
-
-  """
   Payment name of the transaction.
   
   Added in Saleor 3.13.
@@ -21911,13 +21831,6 @@ input TransactionCreateInput @doc(category: "Payments") {
   Added in Saleor 3.13.
   """
   message: String
-
-  """
-  Reference of the transaction. 
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
-  """
-  reference: String
 
   """
   PSP Reference of the transaction. 
@@ -21937,13 +21850,6 @@ input TransactionCreateInput @doc(category: "Payments") {
 
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
-
-  """
-  Amount voided by this transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
-  """
-  amountVoided: MoneyInput
 
   """
   Amount canceled by this transaction.
@@ -21968,32 +21874,11 @@ input TransactionCreateInput @doc(category: "Payments") {
 
 input TransactionEventInput @doc(category: "Payments") {
   """
-  Current status of the payment transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Status will be calculated by Saleor.
-  """
-  status: TransactionStatus
-
-  """
-  Reference of the transaction. 
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
-  """
-  reference: String
-
-  """
   PSP Reference related to this action.
   
   Added in Saleor 3.13.
   """
   pspReference: String
-
-  """
-  Name of the transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `message` instead. `name` field will be added to `message`.
-  """
-  name: String
 
   """
   The message related to the event.
@@ -22042,20 +21927,6 @@ enum TransactionUpdateErrorCode @doc(category: "Payments") {
 
 input TransactionUpdateInput @doc(category: "Payments") {
   """
-  Status of the transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). The `status` is not needed. The amounts can be used to define the current status of transactions.
-  """
-  status: String
-
-  """
-  Payment type used for this transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `name` and `message` instead.
-  """
-  type: String
-
-  """
   Payment name of the transaction.
   
   Added in Saleor 3.13.
@@ -22068,13 +21939,6 @@ input TransactionUpdateInput @doc(category: "Payments") {
   Added in Saleor 3.13.
   """
   message: String
-
-  """
-  Reference of the transaction. 
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `pspReference` instead.
-  """
-  reference: String
 
   """
   PSP Reference of the transaction. 
@@ -22094,13 +21958,6 @@ input TransactionUpdateInput @doc(category: "Payments") {
 
   """Amount refunded by this transaction."""
   amountRefunded: MoneyInput
-
-  """
-  Amount voided by this transaction.
-  
-  DEPRECATED: this field will be removed in Saleor 3.15 (Preview Feature). Use `amountCanceled` instead.
-  """
-  amountVoided: MoneyInput
 
   """
   Amount canceled by this transaction.
@@ -30890,41 +30747,6 @@ type StaffDeleted implements Event @doc(category: "Users") {
 }
 
 """
-Event sent when transaction action is requested.
-
-Added in Saleor 3.4.
-
-DEPRECATED: this subscription will be removed in Saleor 3.14 (Preview Feature). Use `TransactionChargeRequested`, `TransactionRefundRequested`, `TransactionCancelationRequested` instead.
-"""
-type TransactionActionRequest implements Event @doc(category: "Payments") {
-  """Time of the event."""
-  issuedAt: DateTime
-
-  """Saleor version that triggered the event."""
-  version: String
-
-  """The user or application that triggered the event."""
-  issuingPrincipal: IssuingPrincipal
-
-  """The application receiving the webhook."""
-  recipient: App
-
-  """Look up a transaction."""
-  transaction: TransactionItem
-
-  """Requested action data."""
-  action: TransactionAction!
-}
-
-type TransactionAction @doc(category: "Payments") {
-  """Determines the action type."""
-  actionType: TransactionActionEnum!
-
-  """Transaction request amount. Null when action type is VOID."""
-  amount: PositiveDecimal
-}
-
-"""
 Event sent when transaction item metadata is updated.
 
 Added in Saleor 3.8.
@@ -31406,6 +31228,14 @@ type TransactionCancelationRequested implements Event @doc(category: "Payments")
 
   """Requested action data."""
   action: TransactionAction!
+}
+
+type TransactionAction @doc(category: "Payments") {
+  """Determines the action type."""
+  actionType: TransactionActionEnum!
+
+  """Transaction request amount. Null when action type is VOID."""
+  amount: PositiveDecimal
 }
 
 """

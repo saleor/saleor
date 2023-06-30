@@ -22,7 +22,6 @@ from .....payment.models import TransactionEvent, TransactionItem
 from .....shipping.models import ShippingMethod, ShippingMethodChannelListing
 from .....warehouse.models import Warehouse
 from ....order.enums import OrderAuthorizeStatusEnum, OrderChargeStatusEnum
-from ....payment.enums import TransactionEventStatusEnum
 from ....payment.types import PaymentChargeStatusEnum
 from ....tests.utils import (
     assert_graphql_error_with_message,
@@ -126,9 +125,8 @@ query OrdersQuery {
                 transactions{
                     id
                     events{
-                       status
                        pspReference
-                       name
+                       message
                     }
                 }
                 authorizeStatus
@@ -256,7 +254,6 @@ query OrdersQuery {
                     discount {
                         value
                     }
-                    status
                 }
             }
         }
@@ -699,32 +696,31 @@ def test_order_query_with_transactions_details(
         user=None,
         app=None,
         reference="ref-123",
-        status=None,
         message="Message",
     )
     transactions = TransactionItem.objects.bulk_create(
         [
             TransactionItem(
                 order_id=order.id,
-                status="Authorized",
+                message="Authorized",
                 name="Credit card",
                 psp_reference="123",
                 currency="USD",
                 authorized_value=Decimal("15"),
-                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
             ),
             TransactionItem(
                 order_id=order.id,
-                status="Authorized second credit card",
+                message="Authorized second credit card",
                 name="Credit card",
                 psp_reference="321",
                 currency="USD",
                 authorized_value=Decimal("10"),
-                available_actions=[TransactionAction.CHARGE, TransactionAction.VOID],
+                available_actions=[TransactionAction.CHARGE, TransactionAction.CANCEL],
             ),
             TransactionItem(
                 order_id=order.id,
-                status="Captured",
+                message="Captured",
                 name="Credit card",
                 psp_reference="111",
                 currency="USD",
@@ -733,7 +729,7 @@ def test_order_query_with_transactions_details(
             ),
             TransactionItem(
                 order_id=order.id,
-                status="Captured",
+                message="Captured",
                 name="Credit card",
                 psp_reference="111",
                 currency="USD",
@@ -744,14 +740,12 @@ def test_order_query_with_transactions_details(
     )
     update_order_authorize_data(order)
     update_order_charge_data(order)
-    event_status = TransactionEventStatusEnum.FAILURE.value
     event_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
     TransactionEvent.objects.bulk_create(
         [
             TransactionEvent(
-                message=event_name,
-                status=event_status,
+                message=event_message,
                 psp_reference=f"{event_reference}{transaction.token}",
                 transaction=transaction,
                 currency=transaction.currency,
@@ -789,8 +783,7 @@ def test_order_query_with_transactions_details(
     for transaction in order_data["transactions"]:
         assert len(transaction["events"]) == 1
         event = transaction["events"][0]
-        assert event["name"] == event_name
-        assert event["status"] == TransactionEventStatusEnum.FAILURE.name
+        assert event["message"] == event_message
         _, expected_uuid = graphene.Node.from_global_id(transaction.get("id"))
         assert event["pspReference"] == f"{event_reference}{expected_uuid}"
 

@@ -22,7 +22,6 @@ from . import (
     CustomPaymentChoices,
     StorePaymentMethod,
     TransactionAction,
-    TransactionEventStatus,
     TransactionEventType,
     TransactionKind,
 )
@@ -33,7 +32,7 @@ class TransactionItem(ModelWithMetadata):
     use_old_id = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    status = models.CharField(max_length=512, blank=True, null=True, default="")
+
     name = models.CharField(max_length=512, blank=True, null=True, default="")
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
@@ -150,20 +149,11 @@ class TransactionItem(ModelWithMetadata):
         ordering = ("pk",)
         indexes = [
             *ModelWithMetadata.Meta.indexes,
-            # Orders filtering by status index
-            GinIndex(fields=["order_id", "status"]),
         ]
 
 
 class TransactionEvent(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
-    status = models.CharField(
-        max_length=128,
-        choices=TransactionEventStatus.CHOICES,
-        default=TransactionEventStatus.SUCCESS,
-        blank=True,
-        null=True,
-    )
     psp_reference = models.CharField(max_length=512, blank=True, null=True)
     message = models.CharField(max_length=512, blank=True, null=True, default="")
     transaction = models.ForeignKey(

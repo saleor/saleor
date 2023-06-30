@@ -791,7 +791,11 @@ def test_handle_transaction_request_task_with_available_actions(
 
     transaction.refresh_from_db()
     assert set(transaction.available_actions) == set(
-        ["charge", "refund", "cancel", "void"]
+        [
+            "charge",
+            "refund",
+            "cancel",
+        ]
     )
 
     mocked_post_request.assert_called_once_with(
