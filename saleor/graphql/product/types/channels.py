@@ -49,10 +49,13 @@ class Margin(BaseObjectType):
 
     class Meta:
         doc_category = DOC_CATEGORY_PRODUCTS
+        description = "Metadata for the Margin class."
 
 
 class ProductChannelListing(ModelObjectType[models.ProductChannelListing]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(
+        required=True, description="The ID of the product channel listing."
+    )
     publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
@@ -340,9 +343,15 @@ class PreorderThreshold(BaseObjectType):
 class ProductVariantChannelListing(
     ModelObjectType[models.ProductVariantChannelListing]
 ):
-    id = graphene.GlobalID(required=True)
-    channel = graphene.Field(Channel, required=True)
-    price = graphene.Field(Money)
+    id = graphene.GlobalID(
+        required=True, description="The ID Of the variant channel listing."
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel to which the variant listing belongs.",
+    )
+    price = graphene.Field(Money, description="The price of the variant.")
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = PermissionsField(
         graphene.Int,
@@ -379,7 +388,9 @@ class ProductVariantChannelListing(
 
 
 class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(
+        required=True, description="The ID of the collection channel listing."
+    )
     publication_date = Date(
         deprecation_reason=(
             f"{DEPRECATED_IN_3X_FIELD} "
@@ -389,8 +400,15 @@ class CollectionChannelListing(ModelObjectType[models.CollectionChannelListing])
     published_at = graphene.DateTime(
         description="The collection publication date." + ADDED_IN_33
     )
-    is_published = graphene.Boolean(required=True)
-    channel = graphene.Field(Channel, required=True)
+    is_published = graphene.Boolean(
+        required=True,
+        description="Indicates if the collection is published in the channel.",
+    )
+    channel = graphene.Field(
+        Channel,
+        required=True,
+        description="The channel to which the collection belongs.",
+    )
 
     class Meta:
         description = "Represents collection channel listing."
