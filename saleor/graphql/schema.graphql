@@ -7560,6 +7560,7 @@ enum MediaChoicesSortField @doc(category: "Products") {
 
 """Represents a collection of products."""
 type Collection implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the collection."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7599,8 +7600,14 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of the collection."""
   seoTitle: String
+
+  """SEO description of the collection."""
   seoDescription: String
+
+  """Name of the collection."""
   name: String!
 
   """
@@ -7609,6 +7616,8 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Slug of the collection."""
   slug: String!
 
   """
@@ -7656,6 +7665,8 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
     """
     last: Int
   ): ProductCountableConnection
+
+  """Background image of the collection."""
   backgroundImage(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -8406,6 +8417,7 @@ enum SaleType @doc(category: "Discounts") {
   PERCENTAGE
 }
 
+"""Represents a connection to a list of collections."""
 type CollectionCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
