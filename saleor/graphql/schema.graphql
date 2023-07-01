@@ -7371,7 +7371,9 @@ type ProductVariantTranslation implements Node @doc(category: "Products") {
   name: String!
 }
 
+"""Represents digital content associated with a product variant."""
 type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the digital content."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -7419,10 +7421,20 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """Default settings indicator for digital content."""
   useDefaultSettings: Boolean!
+
+  """Indicator for automatic fulfillment of digital content."""
   automaticFulfillment: Boolean!
+
+  """File associated with digital content."""
   contentFile: String!
+
+  """Maximum number of allowed downloads for the digital content."""
   maxDownloads: Int
+
+  """NUmber of days the URL for the digital content remains valid."""
   urlValidDays: Int
 
   """List of URLs for the digital variant."""
@@ -7432,10 +7444,18 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   productVariant: ProductVariant!
 }
 
+"""Represents a URL for digital content."""
 type DigitalContentUrl implements Node @doc(category: "Products") {
+  """The ID of the digiatl content URL."""
   id: ID!
+
+  """Digital content associated with the URL."""
   content: DigitalContent!
+
+  """Date and time when the digital content URL was created."""
   created: DateTime!
+
+  """Number of times digital content has been downloaded."""
   downloadNum: Int!
 
   """URL for digital content."""
@@ -12183,6 +12203,7 @@ input ShippingZoneFilterInput @doc(category: "Shipping") {
   channels: [ID!]
 }
 
+"""A connection to a list of digital content items."""
 type DigitalContentCountableConnection @doc(category: "Products") {
   """Pagination data for this connection."""
   pageInfo: PageInfo!
