@@ -45,7 +45,7 @@ from .products import ProductCountableConnection
 
 @federated_entity("id")
 class Category(ModelObjectType[models.Category]):
-    id = graphene.GlobalID(required=True)
+    id = graphene.GlobalID(required=True, description="The ID of the category.")
     seo_title = graphene.String(description="SEO title of category.")
     seo_description = graphene.String(description="SEO description of category.")
     name = graphene.String(required=True, description="Name of category")

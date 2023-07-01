@@ -6357,6 +6357,7 @@ input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
 """
 type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the category."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
