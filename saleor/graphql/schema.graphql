@@ -7050,8 +7050,13 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
 
 """Represents product variant channel listing."""
 type ProductVariantChannelListing implements Node @doc(category: "Products") {
+  """The ID Of the variant channel listing."""
   id: ID!
+
+  """The channel to which the variant listing belongs."""
   channel: Channel!
+
+  """The price of the variant."""
   price: Money
 
   """Cost price of the variant."""
@@ -7450,6 +7455,7 @@ type TaxedMoneyRange {
 
 """Represents product channel listing."""
 type ProductChannelListing implements Node @doc(category: "Products") {
+  """The ID of the product channel listing."""
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7459,8 +7465,14 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Indicates if the product is published in the channel."""
   isPublished: Boolean!
+
+  """The channel in which the product is listed."""
   channel: Channel!
+
+  """Indicates product visibility in the channel listings."""
   visibleInListings: Boolean!
   availableForPurchase: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `availableForPurchaseAt` field to fetch the available for purchase date.")
 
@@ -7504,8 +7516,12 @@ type ProductChannelListing implements Node @doc(category: "Products") {
   ): ProductPricingInfo
 }
 
+"""Metadata for the Margin class."""
 type Margin @doc(category: "Products") {
+  """The starting value of the margin."""
   start: Int
+
+  """The ending value of the margin."""
   stop: Int
 }
 
@@ -7674,6 +7690,7 @@ type CollectionTranslation implements Node @doc(category: "Products") {
 
 """Represents collection channel listing."""
 type CollectionChannelListing implements Node @doc(category: "Products") {
+  """The ID of the collection channel listing."""
   id: ID!
   publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
 
@@ -7683,7 +7700,11 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   publishedAt: DateTime
+
+  """Indicates if the collection is published in the channel."""
   isPublished: Boolean!
+
+  """The channel to which the collection belongs."""
   channel: Channel!
 }
 
