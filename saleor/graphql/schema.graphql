@@ -5335,6 +5335,7 @@ type ProductCountableEdge @doc(category: "Products") {
 
 """Represents an individual item for sale in the storefront."""
 type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5374,8 +5375,14 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of the product."""
   seoTitle: String
+
+  """SEO description of the product."""
   seoDescription: String
+
+  """SEO description of the product."""
   name: String!
 
   """
@@ -5384,14 +5391,28 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Type of the product."""
   productType: ProductType!
+
+  """Slug of the product."""
   slug: String!
   category: Category
+
+  """The date and time when the product was created."""
   created: DateTime!
+
+  """The date and time when the product was last updated."""
   updatedAt: DateTime!
   chargeTaxes: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` field to determine whether tax collection is enabled.")
+
+  """Weight of the product."""
   weight: Weight
+
+  """Default variant of the product."""
   defaultVariant: ProductVariant
+
+  """Rating of the product."""
   rating: Float
 
   """
@@ -5405,6 +5426,8 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Thumbnail of the product."""
   thumbnail(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -5546,6 +5569,7 @@ type Product implements Node & ObjectWithMetadata @doc(category: "Products") {
 Represents a type of product. It defines what attributes are available to products of this type.
 """
 type ProductType implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product type."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -5585,11 +5609,23 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Name of the product type."""
   name: String!
+
+  """Slug of the product type."""
   slug: String!
+
+  """Whether the product type has variants."""
   hasVariants: Boolean!
+
+  """Whether shipping is required for this product type."""
   isShippingRequired: Boolean!
+
+  """Whether the product type is digital."""
   isDigital: Boolean!
+
+  """Weight of the product type."""
   weight: Weight
 
   """The product type kind."""
@@ -6885,6 +6921,7 @@ type CategoryTranslation implements Node @doc(category: "Products") {
 
 """Represents a version of a product such as different size or color."""
 type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the product variant."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6924,11 +6961,23 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """The name of the product variant."""
   name: String!
+
+  """The SKU (stock keeping unit) of the product variant."""
   sku: String
+
+  """The product to which the variant belongs."""
   product: Product!
+
+  """Whether the inventory of the variant is tracked."""
   trackInventory: Boolean!
+
+  """The maximum quantity of this variant that a customer can purchase."""
   quantityLimitPerCustomer: Int
+
+  """The weight of the product variant."""
   weight: Weight
 
   """
@@ -7037,7 +7086,11 @@ type ProductVariant implements Node & ObjectWithMetadata @doc(category: "Product
   Added in Saleor 3.1.
   """
   preorder: PreorderData
+
+  """The date and time when the product variant was created."""
   created: DateTime!
+
+  """The date and time when the product variant was last updated."""
   updatedAt: DateTime!
 
   """
@@ -7189,6 +7242,8 @@ type ProductImage @doc(category: "Products") {
   The new relative sorting position of the item (from -inf to +inf). 1 moves the item one position forward, -1 moves the item one position backward, 0 leaves the item unchanged.
   """
   sortOrder: Int
+
+  """The URL of the image."""
   url(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
@@ -7206,6 +7261,7 @@ type ProductImage @doc(category: "Products") {
 
 """Represents a product media."""
 type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The unique ID of the product media."""
   id: ID!
 
   """
@@ -7253,10 +7309,20 @@ type ProductMedia implements Node & ObjectWithMetadata @doc(category: "Products"
   Added in Saleor 3.12.
   """
   metafields(keys: [String!]): Metadata
+
+  """The sort order of the media."""
   sortOrder: Int
+
+  """The alt text of the media."""
   alt: String!
+
+  """The type of the media."""
   type: ProductMediaType!
+
+  """The oEmbed data of the media."""
   oembedData: JSONString!
+
+  """The URL of the media."""
   url(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
