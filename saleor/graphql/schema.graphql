@@ -6307,6 +6307,7 @@ input MeasurementUnitsEnumFilterInput @doc(category: "Attributes") {
 Represents a single category of products. Categories allow to organize products in a tree-hierarchies which can be used for navigation in the storefront.
 """
 type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the category."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -6346,8 +6347,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """SEO title of category."""
   seoTitle: String
+
+  """SEO description of category."""
   seoDescription: String
+
+  """Name of category"""
   name: String!
 
   """
@@ -6356,8 +6363,14 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Slug of the category."""
   slug: String!
+
+  """Parent category"""
   parent: Category
+
+  """Level of the category."""
   level: Int!
 
   """
@@ -6451,6 +6464,8 @@ type Category implements Node & ObjectWithMetadata @doc(category: "Products") {
     """
     last: Int
   ): CategoryCountableConnection
+
+  """Background image of the category."""
   backgroundImage(
     """
     Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
