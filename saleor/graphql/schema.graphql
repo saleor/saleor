@@ -1617,7 +1617,10 @@ type Query {
 
 """Webhook."""
 type Webhook implements Node @doc(category: "Webhooks") {
+  """The ID of webhook."""
   id: ID!
+
+  """The name of webhook."""
   name: String
 
   """List of webhook events."""
@@ -1628,6 +1631,8 @@ type Webhook implements Node @doc(category: "Webhooks") {
 
   """List of asynchronous webhook events."""
   asyncEvents: [WebhookEventAsync!]!
+
+  """The app associated with Webhook."""
   app: App!
 
   """Event deliveries."""
@@ -3200,7 +3205,10 @@ type EventDeliveryCountableEdge {
 
 """Event delivery."""
 type EventDelivery implements Node {
+  """The ID of Event Delivery"""
   id: ID!
+
+  """creation time of event delivery."""
   createdAt: DateTime!
 
   """Event delivery status."""
@@ -3260,6 +3268,7 @@ type EventDeliveryAttemptCountableEdge {
 
 """Event delivery attempts."""
 type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
+  """The ID of Event Delivery Attempt."""
   id: ID!
 
   """Event delivery creation date and time."""
