@@ -83,21 +83,10 @@ INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 DB_CONN_MAX_AGE = int(os.environ.get("DB_CONN_MAX_AGE", 600))
 
 DATABASE_CONNECTION_DEFAULT_NAME = "default"
-# TODO: For local envs will be activated in separate PR.
-# We need to update docs an saleor platform.
-# This variable should be set to `replica`
-DATABASE_CONNECTION_REPLICA_NAME = "replica"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        conn_max_age=DB_CONN_MAX_AGE,
-    ),
-    DATABASE_CONNECTION_REPLICA_NAME: dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor",
-        # TODO: We need to add read only user to saleor platform,
-        # and we need to update docs.
-        # default="postgres://saleor_read_only:saleor@localhost:5432/saleor",
+        default=f"postgres://doadmin:{os.environ.get('DB_PASSWORD')}@db-postgresql-fra1-71448-do-user-14313764-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require",
         conn_max_age=DB_CONN_MAX_AGE,
     ),
 }
@@ -105,6 +94,7 @@ DATABASES = {
 DATABASE_ROUTERS = ["saleor.core.db_routers.PrimaryReplicaRouter"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 
 TIME_ZONE = "UTC"
 LANGUAGE_CODE = "en"
