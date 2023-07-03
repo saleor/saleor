@@ -17,9 +17,9 @@ def delete_from_storage_task(path):
 @app.task
 def delete_event_payloads_task():
     delete_period = timezone.now() - settings.EVENT_PAYLOAD_DELETE_PERIOD
-    deliveries = EventDelivery.objects.filter(
-        created_at__lte=delete_period
-    ).order_by("-pk")
+    deliveries = EventDelivery.objects.filter(created_at__lte=delete_period).order_by(
+        "-pk"
+    )
     ids = deliveries.values_list("pk", flat=True)[:BATCH_SIZE]
     qs = EventDelivery.objects.filter(pk__in=ids)
     if ids:
@@ -56,4 +56,3 @@ def delete_unused_payloads():
     qs = EventPayload.objects.filter(pk__in=ids)
     if ids:
         qs.delete()
-
