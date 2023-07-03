@@ -56,3 +56,4 @@ def delete_unused_payloads():
     qs = EventPayload.objects.filter(pk__in=ids)
     if ids:
         qs.delete()
+        delete_unused_payloads.delay()
