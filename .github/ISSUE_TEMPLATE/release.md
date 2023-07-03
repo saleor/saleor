@@ -13,7 +13,7 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 - [ ] Release alpha tag - @maarcingebala
 - [ ] Inform about alpha tag - @maarcingebala
 - [ ] Release alpha tag - @andrzejewsky
-- [ ] inform about alpha tag - @andrzejewsky
+- [ ] Inform about alpha tag - @andrzejewsky
 - [ ] Prepare environments for the new minor and trigger deployments - @cmiacz
 - [ ] Inform about finished deployment on slack channel - @cmiacz
 - [ ] Perform alpha tests migration on staging - @michalina-graczyk
