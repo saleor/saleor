@@ -84,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
 - Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing description for Invoice module - #13265 by @DevilsAutumn
 
 # 3.14.0
 
