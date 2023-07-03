@@ -86,7 +86,7 @@ DATABASE_CONNECTION_DEFAULT_NAME = "default"
 
 DATABASES = {
     DATABASE_CONNECTION_DEFAULT_NAME: dj_database_url.config(
-        default=f"postgres://doadmin:{os.environ.get('DB_PASSWORD')}@db-postgresql-fra1-71448-do-user-14313764-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require",
+        default=os.environ.get('DATABASE_URL'),
         conn_max_age=DB_CONN_MAX_AGE,
     ),
 }
