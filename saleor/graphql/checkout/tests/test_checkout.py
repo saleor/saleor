@@ -26,7 +26,7 @@ from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
-from ....product.models import ProductVariant
+from ....product.models import ProductVariant, ProductVariantChannelListing
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
@@ -1606,6 +1606,17 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
     # To properly apply a sale at checkout, we need to generate discount objects.
     generate_sale_discount_objects_for_checkout(checkout_info, lines)
+    listings_to_update = []
+    for line in lines:
+        discount = line.discounts[0]
+        line.channel_listing.discounted_price = (
+            line.channel_listing.price - discount.amount
+        )
+        listings_to_update.append(line.channel_listing)
+
+    ProductVariantChannelListing.objects.bulk_update(
+        listings_to_update, ["discounted_price_amount"]
+    )
 
     # when
     response = user_api_client.post_graphql(query, variables)

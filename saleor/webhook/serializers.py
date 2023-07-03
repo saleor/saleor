@@ -26,18 +26,10 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
     for line_info in lines:
         variant = line_info.variant
         channel_listing = line_info.channel_listing
-        collections = line_info.collections
         product = variant.product
-        price_override = line_info.line.price_override
-        undiscounted_base_price = variant.get_price(
-            product,
-            collections,
-            channel,
-            channel_listing,
-            [],
-            price_override,
-        )
-        base_price = undiscounted_base_price
+        # TODO: handle price override
+        # price_override = line_info.line.price_override
+        base_price = channel_listing.discounted_price
         if discount_object_from_sale := line_info.get_sale_discount():
             total_discount_amount_for_line = discount_object_from_sale.amount_value
             unit_discount_amount = (

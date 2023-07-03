@@ -318,6 +318,28 @@ def checkout_with_item(checkout, product):
 
 
 @pytest.fixture
+def checkout_with_item_on_sale(checkout_with_item):
+    line = checkout_with_item.lines.first()
+    channel = checkout_with_item.channel
+    sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
+    SaleChannelListing.objects.create(
+        sale=sale,
+        channel=channel,
+        discount_value=discount_amount,
+        currency=channel.currency_code,
+    )
+    variant = line.variant
+    sale.products.add(variant.product)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+    return checkout_with_item
+
+
+@pytest.fixture
 def checkout_with_item_and_transaction_item(checkout_with_item):
     TransactionItem.objects.create(
         status="Captured",

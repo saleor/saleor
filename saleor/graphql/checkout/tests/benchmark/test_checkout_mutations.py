@@ -391,7 +391,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(68):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 1
@@ -409,7 +409,7 @@ def test_create_checkout_with_reservations(
         }
     }
 
-    with django_assert_num_queries(67):
+    with django_assert_num_queries(68):
         response = api_client.post_graphql(query, variables)
         assert get_graphql_content(response)["data"]["checkoutCreate"]
         assert Checkout.objects.first().lines.count() == 10
@@ -660,7 +660,7 @@ def test_update_checkout_lines_with_reservations(
         reservation_length=5,
     )
 
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(76):
         variant_id = graphene.Node.to_global_id("ProductVariant", variants[0].pk)
         variables = {
             "id": to_global_id_or_none(checkout),
@@ -674,7 +674,7 @@ def test_update_checkout_lines_with_reservations(
         assert not data["errors"]
 
     # Updating multiple lines in checkout has same query count as updating one
-    with django_assert_num_queries(75):
+    with django_assert_num_queries(76):
         variables = {
             "id": to_global_id_or_none(checkout),
             "lines": [],
@@ -919,7 +919,7 @@ def test_add_checkout_lines_with_reservations(
         new_lines.append({"quantity": 2, "variantId": variant_id})
 
     # Adding multiple lines to checkout has same query count as adding one
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(75):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": [new_lines[0]],
@@ -932,7 +932,7 @@ def test_add_checkout_lines_with_reservations(
 
     checkout.lines.exclude(id=line.id).delete()
 
-    with django_assert_num_queries(74):
+    with django_assert_num_queries(75):
         variables = {
             "id": Node.to_global_id("Checkout", checkout.pk),
             "lines": new_lines,

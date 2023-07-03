@@ -289,25 +289,14 @@ def test_checkout_add_voucher_code_variant_unavailable(
 
 
 def test_checkout_add_voucher_code_checkout_with_sale(
-    api_client, checkout_with_item, voucher_percentage, product, channel_USD
+    api_client, checkout_with_item_on_sale, voucher_percentage, channel_USD
 ):
     # given
+    checkout = checkout_with_item_on_sale
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
-    address = checkout_with_item.shipping_address
-    pre_discount_subtotal = calculations.checkout_subtotal(
-        manager=manager, checkout_info=checkout_info, lines=lines, address=address
-    )
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
+    address = checkout.shipping_address
     # when
     generate_sale_discount_objects_for_checkout(checkout_info, lines)
     checkout_info.checkout.price_expiration = timezone.now()
@@ -319,20 +308,20 @@ def test_checkout_add_voucher_code_checkout_with_sale(
     )
 
     variables = {
-        "id": to_global_id_or_none(checkout_with_item),
+        "id": to_global_id_or_none(checkout),
         "promoCode": voucher_percentage.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
     # then
-    assert pre_discount_subtotal > subtotal_discounted
-    previous_checkout_last_change = checkout_with_item.last_change
+    previous_checkout_last_change = checkout.last_change
 
-    checkout_with_item.refresh_from_db()
+    checkout.refresh_from_db()
     assert not data["errors"]
-    assert checkout_with_item.voucher_code == voucher_percentage.code
-    assert checkout_with_item.discount_amount == Decimal(1.5)
-    assert checkout_with_item.last_change != previous_checkout_last_change
+    assert checkout.voucher_code == voucher_percentage.code
+    assert checkout.discount_amount == Decimal(1.5)
+    assert checkout.last_change != previous_checkout_last_change
+    assert checkout.subtotal < subtotal_discounted
 
 
 def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
@@ -356,6 +345,7 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     sale = Sale.objects.create(name="Sale")
+    discount_amount = Decimal("5.0")
     SaleChannelListing.objects.create(
         sale=sale,
         channel=channel_USD,
@@ -363,6 +353,12 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
         currency=channel_USD.currency_code,
     )
     sale.products.add(product)
+
+    channel_listing = lines[0].channel_listing
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_amount
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
 
     subtotal_discounted = calculations.checkout_subtotal(
         manager=manager,
@@ -398,10 +394,10 @@ def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
 
 
 def test_checkout_add_products_voucher_code_checkout_with_sale(
-    api_client, checkout_with_item, voucher_percentage, channel_USD
+    api_client, checkout_with_item_on_sale, voucher_percentage, channel_USD
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_sale
     product = checkout.lines.first().variant.product
     voucher = voucher_percentage
     voucher.type = VoucherType.SPECIFIC_PRODUCT
@@ -413,22 +409,6 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    )
-
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-
     checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     subtotal_discounted = calculations.checkout_subtotal(
@@ -437,9 +417,8 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
-    assert subtotal > subtotal_discounted
     variables = {
-        "id": to_global_id_or_none(checkout_with_item),
+        "id": to_global_id_or_none(checkout),
         "promoCode": voucher.code,
     }
 
@@ -459,6 +438,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
     assert checkout.discount_amount == expected_discount.amount
+    assert checkout.subtotal < subtotal_discounted
 
 
 def test_checkout_add_collection_voucher_code_checkout_with_sale(
@@ -485,13 +465,20 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     )
 
     sale = Sale.objects.create(name="Sale")
+    discount_value = Decimal("5.0")
     SaleChannelListing.objects.create(
         sale=sale,
         channel=channel_USD,
-        discount_value=5,
+        discount_value=discount_value,
         currency=channel_USD.currency_code,
     )
     sale.products.add(product)
+
+    channel_listing = lines[0].channel_listing
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - discount_value
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
 
     checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
@@ -527,10 +514,10 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
 
 
 def test_checkout_add_category_code_checkout_with_sale(
-    api_client, checkout_with_item, voucher_percentage, channel_USD
+    api_client, checkout_with_item_on_sale, voucher_percentage, channel_USD
 ):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_sale
     product = checkout.lines.first().variant.product
     category = product.category
     voucher = voucher_percentage
@@ -543,22 +530,6 @@ def test_checkout_add_category_code_checkout_with_sale(
     lines, _ = fetch_checkout_lines(checkout)
     checkout_info = fetch_checkout_info(checkout, lines, manager)
 
-    subtotal = calculations.checkout_subtotal(
-        manager=manager,
-        checkout_info=checkout_info,
-        lines=lines,
-        address=checkout.shipping_address,
-    )
-
-    sale = Sale.objects.create(name="Sale")
-    SaleChannelListing.objects.create(
-        sale=sale,
-        channel=channel_USD,
-        discount_value=5,
-        currency=channel_USD.currency_code,
-    )
-    sale.products.add(product)
-
     checkout.price_expiration = timezone.now()
     checkout_info = fetch_checkout_info(checkout, lines, manager)
     subtotal_discounted = calculations.checkout_subtotal(
@@ -567,9 +538,8 @@ def test_checkout_add_category_code_checkout_with_sale(
         lines=lines,
         address=checkout.shipping_address,
     )
-    assert subtotal > subtotal_discounted
     variables = {
-        "id": to_global_id_or_none(checkout_with_item),
+        "id": to_global_id_or_none(checkout),
         "promoCode": voucher.code,
     }
 
@@ -589,6 +559,7 @@ def test_checkout_add_category_code_checkout_with_sale(
     assert subtotal_discounted == subtotal_with_voucher + expected_discount
     assert checkout.voucher_code == voucher.code
     assert checkout.discount_amount == expected_discount.amount
+    assert checkout.subtotal < subtotal_discounted
 
 
 def test_checkout_add_variant_voucher_code_apply_once_per_order(
@@ -612,8 +583,13 @@ def test_checkout_add_variant_voucher_code_apply_once_per_order(
     variant_2_listing.price_amount = variant_2_price
     variant_3_listing.price_amount = variant_3_price
 
+    variant_1_listing.price_amount = variant_1_price
+    variant_2_listing.discounted_price_amount = variant_2_price
+    variant_3_listing.discounted_price_amount = variant_3_price
+
     ProductVariantChannelListing.objects.bulk_update(
-        [variant_1_listing, variant_2_listing, variant_3_listing], ["price_amount"]
+        [variant_1_listing, variant_2_listing, variant_3_listing],
+        ["price_amount", "discounted_price_amount"],
     )
 
     voucher = voucher_specific_product_type

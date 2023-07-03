@@ -397,7 +397,9 @@ def apply_voucher_to_checkout_line(
 def _get_the_cheapest_line(
     lines_info: Iterable[CheckoutLineInfo],
 ):
-    return min([line_info.channel_listing.discounted_price for line_info in lines_info])
+    return min(
+        lines_info, key=lambda line_info: line_info.channel_listing.discounted_price
+    )
 
 
 def fetch_checkout_info(

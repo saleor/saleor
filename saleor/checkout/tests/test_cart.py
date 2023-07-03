@@ -108,12 +108,8 @@ def test_get_prices_of_discounted_specific_product(
     voucher.collections.add(collection)
     voucher.categories.add(category)
 
-    manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
-    )
+    prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
         line.variant.get_price(
@@ -147,9 +143,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
-    prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
-    )
+    prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
@@ -184,9 +178,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
-    prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
-    )
+    prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
         line.variant.get_price(
@@ -204,6 +196,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
     voucher_specific_product_type,
     product_with_default_variant,
 ):
+    # given
     checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
@@ -225,10 +218,11 @@ def test_get_prices_of_discounted_specific_product_only_category(
     checkout.save()
 
     lines, _ = fetch_checkout_lines(checkout)
-    prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
-    )
 
+    # when
+    prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
+
+    # then
     expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
         for item in range(line.quantity)
@@ -249,12 +243,8 @@ def test_get_prices_of_discounted_specific_product_all_products(
     channel = checkout.channel
     variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
-    manager = get_plugins_manager()
     lines, _ = fetch_checkout_lines(checkout)
-    checkout_info = fetch_checkout_info(checkout, lines, manager)
-    prices = utils.get_prices_of_discounted_specific_product(
-        manager, checkout_info, lines, voucher
-    )
+    prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
         line.variant.get_price(product, [], channel, variant_channel_listing, [])
