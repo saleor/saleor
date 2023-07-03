@@ -15,7 +15,7 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 - [ ] Release alpha tag - @andrzejewsky
 - [ ] Inform about alpha tag - @andrzejewsky
 - [ ] Prepare environments for the new minor and trigger deployments - @cmiacz
-- [ ] Inform about finished deployment on slack channel - @cmiacz
+- [ ] Inform about finished deployment - @cmiacz
 - [ ] Perform alpha tests migration on staging - @michalina-graczyk
 - [ ] Cypress tests review - @michalina-graczyk
 - [ ] Check the change log and do smoke tests - @michalina-graczyk
