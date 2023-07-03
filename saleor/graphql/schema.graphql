@@ -9348,6 +9348,7 @@ type GatewayConfigLine @doc(category: "Payments") {
   value: String
 }
 
+"""External authentication plugin."""
 type ExternalAuthentication @doc(category: "Authentication") {
   """ID of external authentication plugin."""
   id: String!
@@ -12095,6 +12096,7 @@ type PaymentSource @doc(category: "Payments") {
   metadata: [MetadataItem!]!
 }
 
+"""Store the current and allowed usage."""
 type LimitInfo {
   """Defines the current resource usage."""
   currentUsage: Limits!
@@ -12104,10 +12106,19 @@ type LimitInfo {
 }
 
 type Limits {
+  """Defines the number of channels."""
   channels: Int
+
+  """Defines the number of order."""
   orders: Int
+
+  """Defines the number of product variants."""
   productVariants: Int
+
+  """Defines the number of staff users."""
   staffUsers: Int
+
+  """Defines the number of warehouses."""
   warehouses: Int
 }
 
