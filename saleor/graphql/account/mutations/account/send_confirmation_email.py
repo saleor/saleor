@@ -13,9 +13,9 @@ from .....account.notifications import send_account_confirmation
 from .....core.utils.url import prepare_url, validate_storefront_url
 from .....permission.auth_filters import AuthorizationFilters
 from .....webhook.event_types import WebhookEventAsyncType
-from ....account.types import User
 from ....channel.utils import clean_channel
 from ....core import ResolveInfo
+from ....core.descriptions import ADDED_IN_315
 from ....core.doc_category import DOC_CATEGORY_USERS
 from ....core.mutations import BaseMutation
 from ....core.types import SendConfirmationEmailError
@@ -25,8 +25,6 @@ from ....site.dataloaders import get_site_promise
 
 
 class SendConfirmationEmail(BaseMutation):
-    user = graphene.Field(User, description="An user instance.")
-
     class Arguments:
         redirect_url = graphene.String(
             required=True,
@@ -43,7 +41,7 @@ class SendConfirmationEmail(BaseMutation):
         )
 
     class Meta:
-        description = "Sends an email with confirmation link."
+        description = "Sends an email with confirmation link." + ADDED_IN_315
         doc_category = DOC_CATEGORY_USERS
         error_type_class = SendConfirmationEmailError
         permissions = (AuthorizationFilters.AUTHENTICATED_USER,)
@@ -133,4 +131,4 @@ class SendConfirmationEmail(BaseMutation):
             redirect_url,
         )
 
-        return SendConfirmationEmail(user)
+        return SendConfirmationEmail()

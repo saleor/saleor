@@ -87,7 +87,10 @@ class AccountRegister(ModelMutation):
             ),
             WebhookEventInfo(
                 type=WebhookEventAsyncType.ACCOUNT_CONFIRMATION_REQUESTED,
-                description="A email confirmation request was created",
+                description=(
+                    "A email confirmation was requested. "
+                    "This event is always sent regardless of settings,"
+                ),
             ),
         ]
 

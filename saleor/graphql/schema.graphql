@@ -17526,7 +17526,9 @@ type Mutation {
   ): RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
-  Sends an email with confirmation link. 
+  Sends an email with confirmation link.
+  
+  Added in Saleor 3.15. 
   
   Requires one of the following permissions: AUTHENTICATED_USER.
   
@@ -17691,7 +17693,7 @@ type Mutation {
   Triggers the following webhook events:
   - CUSTOMER_CREATED (async): A new customer account was created.
   - NOTIFY_USER (async): A notification for account confirmation.
-  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
+  - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation was requested. This event is always sent regardless of settings,
   """
   accountRegister(
     """Fields required to create a user."""
@@ -27423,7 +27425,9 @@ type RequestPasswordReset @doc(category: "Users") @webhookEventsInfo(asyncEvents
 }
 
 """
-Sends an email with confirmation link. 
+Sends an email with confirmation link.
+
+Added in Saleor 3.15. 
 
 Requires one of the following permissions: AUTHENTICATED_USER.
 
@@ -27432,8 +27436,6 @@ Triggers the following webhook events:
 - ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
 """
 type SendConfirmationEmail @doc(category: "Users") @webhookEventsInfo(asyncEvents: [NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
-  """An user instance."""
-  user: User
   errors: [SendConfirmationEmailError!]!
 }
 
@@ -27596,7 +27598,7 @@ Register a new user.
 Triggers the following webhook events:
 - CUSTOMER_CREATED (async): A new customer account was created.
 - NOTIFY_USER (async): A notification for account confirmation.
-- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation request was created
+- ACCOUNT_CONFIRMATION_REQUESTED (async): A email confirmation was requested. This event is always sent regardless of settings,
 """
 type AccountRegister @doc(category: "Users") @webhookEventsInfo(asyncEvents: [CUSTOMER_CREATED, NOTIFY_USER, ACCOUNT_CONFIRMATION_REQUESTED], syncEvents: []) {
   """Informs whether users need to confirm their email address."""
