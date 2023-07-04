@@ -204,3 +204,6 @@ class EventModel(models.Model):
     class Meta:
         abstract = True
         ordering = ("date",)
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(type={self.type!r})"

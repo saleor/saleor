@@ -464,7 +464,7 @@ class PromotionRuleTranslation(Translation):
 
 
 class PromotionEvent(EventModel):
-    promotion = models.ForeignKey(
+    parent = models.ForeignKey(
         Promotion, related_name="events", on_delete=models.CASCADE
     )
 

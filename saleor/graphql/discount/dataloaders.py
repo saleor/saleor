@@ -280,9 +280,8 @@ class PromotionRulesByPromotionIdLoader(DataLoader):
 
 class PromotionEventsByPromotionIdLoader(BaseEventsByParentIdLoader):
     context_key = "promotion_events_by_promotion_id"
-    model = Promotion
+    parent_model = Promotion
     event_model = PromotionEvent
-    parent_id_field = "promotion_id"
 
 
 class PromotionByIdLoader(DataLoader):

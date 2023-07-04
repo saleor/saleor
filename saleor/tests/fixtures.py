@@ -5199,15 +5199,15 @@ def promotion_events(promotion, staff_user):
             PromotionEvent(
                 type=PromotionEvents.PROMOTION_CREATED,
                 user=staff_user,
-                promotion=promotion,
+                parent=promotion,
             ),
             PromotionEvent(
-                type=PromotionEvents.RULE_CREATED, user=staff_user, promotion=promotion
+                type=PromotionEvents.RULE_CREATED, user=staff_user, parent=promotion
             ),
             PromotionEvent(
                 type=PromotionEvents.PROMOTION_STARTED,
                 user=staff_user,
-                promotion=promotion,
+                parent=promotion,
             ),
         ]
     )

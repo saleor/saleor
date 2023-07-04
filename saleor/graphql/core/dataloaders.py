@@ -91,12 +91,13 @@ class BaseThumbnailBySizeAndFormatLoader(
 
 
 class BaseEventsByParentIdLoader(DataLoader):
-    model: Type[Model]
+    parent_model: Type[Model]
     event_model: Type[EventModel]
-    parent_id_field: str
+    parent_field_name = "parent"
+    parent_id_field = f"{parent_field_name}_id"
 
     def batch_load(self, keys):
-        parents = self.model.objects.using(self.database_connection_name).filter(
+        parents = self.parent_model.objects.using(self.database_connection_name).filter(
             id__in=keys
         )
         events = self.event_model.objects.using(self.database_connection_name).filter(

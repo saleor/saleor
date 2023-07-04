@@ -277,7 +277,7 @@ def test_query_promotion_events(
     permission_manage_staff,
 ):
     # given
-    promotion = promotion_events[0].promotion
+    promotion = promotion_events[0].parent
     promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
     variables = {"id": promotion_id}
 
