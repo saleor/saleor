@@ -15530,6 +15530,9 @@ type Mutation {
   Request an invoice for the order using plugin. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - INVOICE_REQUESTED (async): An invoice was requested.
   """
   invoiceRequest(
     """Invoice number, if not provided it will be generated."""
@@ -15537,17 +15540,20 @@ type Mutation {
 
     """ID of the order related to invoice."""
     orderId: ID!
-  ): InvoiceRequest @doc(category: "Orders")
+  ): InvoiceRequest @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_REQUESTED], syncEvents: [])
 
   """
   Requests deletion of an invoice. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - INVOICE_DELETED (async): An invoice was requested to delete.
   """
   invoiceRequestDelete(
     """ID of an invoice to request the deletion."""
     id: ID!
-  ): InvoiceRequestDelete @doc(category: "Orders")
+  ): InvoiceRequestDelete @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_DELETED], syncEvents: [])
 
   """
   Creates a ready to send invoice. 
@@ -15589,31 +15595,42 @@ type Mutation {
   Send an invoice notification to the customer. 
   
   Requires one of the following permissions: MANAGE_ORDERS.
+  
+  Triggers the following webhook events:
+  - INVOICE_SENT (async): A notification for invoice send
+  - NOTIFY_USER (async): A notification for invoice send
   """
   invoiceSendNotification(
     """ID of an invoice to be sent."""
     id: ID!
-  ): InvoiceSendNotification @doc(category: "Orders")
+  ): InvoiceSendNotification @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_SENT, NOTIFY_USER], syncEvents: [])
 
   """
   Activate a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_STATUS_CHANGED (async): A gift card was activated.
   """
   giftCardActivate(
     """ID of a gift card to activate."""
     id: ID!
-  ): GiftCardActivate @doc(category: "Gift cards")
+  ): GiftCardActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
 
   """
   Creates a new gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_CREATED (async): A gift card was created.
+  - NOTIFY_USER (async): A notification for created gift card.
   """
   giftCardCreate(
     """Fields required to create a gift card."""
     input: GiftCardCreateInput!
-  ): GiftCardCreate @doc(category: "Gift cards")
+  ): GiftCardCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
   Delete gift card.
@@ -15621,26 +15638,35 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_DELETED (async): A gift card was deleted.
   """
   giftCardDelete(
     """ID of the gift card to delete."""
     id: ID!
-  ): GiftCardDelete @doc(category: "Gift cards")
+  ): GiftCardDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: [])
 
   """
   Deactivate a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_STATUS_CHANGED (async): A gift card was deactivated.
   """
   giftCardDeactivate(
     """ID of a gift card to deactivate."""
     id: ID!
-  ): GiftCardDeactivate @doc(category: "Gift cards")
+  ): GiftCardDeactivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
 
   """
   Update a gift card. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_UPDATED (async): A gift card was updated.
   """
   giftCardUpdate(
     """ID of a gift card to update."""
@@ -15648,7 +15674,7 @@ type Mutation {
 
     """Fields required to update a gift card."""
     input: GiftCardUpdateInput!
-  ): GiftCardUpdate @doc(category: "Gift cards")
+  ): GiftCardUpdate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
   Resend a gift card.
@@ -15656,11 +15682,14 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - NOTIFY_USER (async): A notification for gift card resend.
   """
   giftCardResend(
     """Fields required to resend a gift card."""
     input: GiftCardResendInput!
-  ): GiftCardResend @doc(category: "Gift cards")
+  ): GiftCardResend @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: [])
 
   """
   Adds note to the gift card.
@@ -15668,6 +15697,9 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_UPDATED (async): A gift card was updated.
   """
   giftCardAddNote(
     """ID of the gift card to add a note for."""
@@ -15675,7 +15707,7 @@ type Mutation {
 
     """Fields required to create a note for the gift card."""
     input: GiftCardAddNoteInput!
-  ): GiftCardAddNote @doc(category: "Gift cards")
+  ): GiftCardAddNote @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: [])
 
   """
   Create gift cards.
@@ -15683,11 +15715,15 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_CREATED (async): A gift card was created.
+  - NOTIFY_USER (async): A notification for created gift card.
   """
   giftCardBulkCreate(
     """Fields required to create gift cards."""
     input: GiftCardBulkCreateInput!
-  ): GiftCardBulkCreate @doc(category: "Gift cards")
+  ): GiftCardBulkCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: [])
 
   """
   Delete gift cards.
@@ -15695,11 +15731,14 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_DELETED (async): A gift card was deleted.
   """
   giftCardBulkDelete(
     """List of gift card IDs to delete."""
     ids: [ID!]!
-  ): GiftCardBulkDelete @doc(category: "Gift cards")
+  ): GiftCardBulkDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: [])
 
   """
   Activate gift cards.
@@ -15707,11 +15746,14 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_STATUS_CHANGED (async): A gift card was activated.
   """
   giftCardBulkActivate(
     """List of gift card IDs to activate."""
     ids: [ID!]!
-  ): GiftCardBulkActivate @doc(category: "Gift cards")
+  ): GiftCardBulkActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
 
   """
   Deactivate gift cards.
@@ -15719,11 +15761,14 @@ type Mutation {
   Added in Saleor 3.1. 
   
   Requires one of the following permissions: MANAGE_GIFT_CARD.
+  
+  Triggers the following webhook events:
+  - GIFT_CARD_STATUS_CHANGED (async): A gift card was deactivated.
   """
   giftCardBulkDeactivate(
     """List of gift card IDs to deactivate."""
     ids: [ID!]!
-  ): GiftCardBulkDeactivate @doc(category: "Gift cards")
+  ): GiftCardBulkDeactivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: [])
 
   """
   Update plugin configuration. 
@@ -23917,8 +23962,11 @@ input MenuItemMoveInput {
 Request an invoice for the order using plugin. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- INVOICE_REQUESTED (async): An invoice was requested.
 """
-type InvoiceRequest @doc(category: "Orders") {
+type InvoiceRequest @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_REQUESTED], syncEvents: []) {
   """Order related to an invoice."""
   order: Order
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -23955,8 +24003,11 @@ enum InvoiceErrorCode @doc(category: "Orders") {
 Requests deletion of an invoice. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- INVOICE_DELETED (async): An invoice was requested to delete.
 """
-type InvoiceRequestDelete @doc(category: "Orders") {
+type InvoiceRequestDelete @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_DELETED], syncEvents: []) {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
@@ -24043,8 +24094,12 @@ input UpdateInvoiceInput @doc(category: "Orders") {
 Send an invoice notification to the customer. 
 
 Requires one of the following permissions: MANAGE_ORDERS.
+
+Triggers the following webhook events:
+- INVOICE_SENT (async): A notification for invoice send
+- NOTIFY_USER (async): A notification for invoice send
 """
-type InvoiceSendNotification @doc(category: "Orders") {
+type InvoiceSendNotification @doc(category: "Orders") @webhookEventsInfo(asyncEvents: [INVOICE_SENT, NOTIFY_USER], syncEvents: []) {
   invoiceErrors: [InvoiceError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [InvoiceError!]!
   invoice: Invoice
@@ -24054,8 +24109,11 @@ type InvoiceSendNotification @doc(category: "Orders") {
 Activate a gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_STATUS_CHANGED (async): A gift card was activated.
 """
-type GiftCardActivate @doc(category: "Gift cards") {
+type GiftCardActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: []) {
   """Activated gift card."""
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24094,8 +24152,12 @@ enum GiftCardErrorCode @doc(category: "Gift cards") {
 Creates a new gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_CREATED (async): A gift card was created.
+- NOTIFY_USER (async): A notification for created gift card.
 """
-type GiftCardCreate @doc(category: "Gift cards") {
+type GiftCardCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: []) {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -24179,8 +24241,11 @@ Delete gift card.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_DELETED (async): A gift card was deleted.
 """
-type GiftCardDelete @doc(category: "Gift cards") {
+type GiftCardDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: []) {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -24190,8 +24255,11 @@ type GiftCardDelete @doc(category: "Gift cards") {
 Deactivate a gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_STATUS_CHANGED (async): A gift card was deactivated.
 """
-type GiftCardDeactivate @doc(category: "Gift cards") {
+type GiftCardDeactivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: []) {
   """Deactivated gift card."""
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
@@ -24202,8 +24270,11 @@ type GiftCardDeactivate @doc(category: "Gift cards") {
 Update a gift card. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_UPDATED (async): A gift card was updated.
 """
-type GiftCardUpdate @doc(category: "Gift cards") {
+type GiftCardUpdate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: []) {
   giftCardErrors: [GiftCardError!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `errors` field instead.")
   errors: [GiftCardError!]!
   giftCard: GiftCard
@@ -24259,8 +24330,11 @@ Resend a gift card.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- NOTIFY_USER (async): A notification for gift card resend.
 """
-type GiftCardResend @doc(category: "Gift cards") {
+type GiftCardResend @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [NOTIFY_USER], syncEvents: []) {
   """Gift card which has been sent."""
   giftCard: GiftCard
   errors: [GiftCardError!]!
@@ -24283,8 +24357,11 @@ Adds note to the gift card.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_UPDATED (async): A gift card was updated.
 """
-type GiftCardAddNote @doc(category: "Gift cards") {
+type GiftCardAddNote @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_UPDATED], syncEvents: []) {
   """Gift card with the note added."""
   giftCard: GiftCard
 
@@ -24304,8 +24381,12 @@ Create gift cards.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_CREATED (async): A gift card was created.
+- NOTIFY_USER (async): A notification for created gift card.
 """
-type GiftCardBulkCreate @doc(category: "Gift cards") {
+type GiftCardBulkCreate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_CREATED, NOTIFY_USER], syncEvents: []) {
   """Returns how many objects were created."""
   count: Int!
 
@@ -24337,8 +24418,11 @@ Delete gift cards.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_DELETED (async): A gift card was deleted.
 """
-type GiftCardBulkDelete @doc(category: "Gift cards") {
+type GiftCardBulkDelete @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_DELETED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
@@ -24350,8 +24434,11 @@ Activate gift cards.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_STATUS_CHANGED (async): A gift card was activated.
 """
-type GiftCardBulkActivate @doc(category: "Gift cards") {
+type GiftCardBulkActivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
@@ -24363,8 +24450,11 @@ Deactivate gift cards.
 Added in Saleor 3.1. 
 
 Requires one of the following permissions: MANAGE_GIFT_CARD.
+
+Triggers the following webhook events:
+- GIFT_CARD_STATUS_CHANGED (async): A gift card was deactivated.
 """
-type GiftCardBulkDeactivate @doc(category: "Gift cards") {
+type GiftCardBulkDeactivate @doc(category: "Gift cards") @webhookEventsInfo(asyncEvents: [GIFT_CARD_STATUS_CHANGED], syncEvents: []) {
   """Returns how many objects were affected."""
   count: Int!
   errors: [GiftCardError!]!
