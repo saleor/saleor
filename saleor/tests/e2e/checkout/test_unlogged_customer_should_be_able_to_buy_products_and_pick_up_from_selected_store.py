@@ -1,7 +1,12 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..product.utils import create_category, create_product, create_product_type
+from ..product.utils import (
+    create_category,
+    create_product,
+    create_product_channel_listing,
+    create_product_type,
+)
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
 
@@ -29,7 +34,7 @@ def test_unlogged_customer_buy_by_click_and_collect(
         click_and_collect_option="LOCAL",
     )
     channel_data = create_channel(e2e_staff_api_client, warehouse_data["id"])
-    _channel_id = channel_data["id"]
+    channel_id = channel_data["id"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -42,5 +47,10 @@ def test_unlogged_customer_buy_by_click_and_collect(
     category_id = category_data["id"]
 
     product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
+    product_id = product_data["id"]
 
-    assert product_data is not None
+    product_listing = create_product_channel_listing(
+        e2e_staff_api_client, product_id, channel_id
+    )
+
+    assert product_listing is not None
