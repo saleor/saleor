@@ -1,4 +1,3 @@
-from ....checkout.problem_codes import CheckoutLineProblemCode, CheckoutProblemCode
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
 
@@ -7,16 +6,30 @@ query checkout($id: ID) {
   checkout(id: $id){
     id
     problems{
-      code
-      message
-      field
+      __typename
+      ... on CheckoutLineProblemInsufficientStock{
+        availableQuantity
+        variant{
+          id
+        }
+        line{
+          id
+        }
+      }
     }
     lines{
       id
       problems{
-        code
-        message
-        field
+        __typename
+        ... on CheckoutLineProblemInsufficientStock{
+          availableQuantity
+          variant{
+            id
+          }
+          line{
+            id
+          }
+        }
       }
     }
   }
@@ -60,10 +73,16 @@ def test_line_variant_without_stock(api_client, checkout_with_items_and_shipping
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 1
     assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    assert content["data"]["checkout"]["problems"][0]["availableQuantity"] == 0
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+    assert content["data"]["checkout"]["problems"][0]["variant"][
+        "id"
+    ] == to_global_id_or_none(checkout_line.variant)
 
     line_without_stock = [
         line
@@ -72,10 +91,14 @@ def test_line_variant_without_stock(api_client, checkout_with_items_and_shipping
     ][0]
     assert len(line_without_stock["problems"]) == 1
     assert (
-        line_without_stock["problems"][0]["code"]
-        == CheckoutLineProblemCode.INSUFFICIENT_STOCK.name
+        line_without_stock["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert line_without_stock["problems"][0]["field"] == "quantity"
+    assert line_without_stock["problems"][0]["availableQuantity"] == 0
+    assert line_without_stock["problems"][0]["line"]["id"] == checkout_line_id
+    assert line_without_stock["problems"][0]["variant"]["id"] == to_global_id_or_none(
+        checkout_line.variant
+    )
 
 
 def test_line_variant_with_insufficient_stock(
@@ -103,10 +126,16 @@ def test_line_variant_with_insufficient_stock(
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 1
     assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    assert content["data"]["checkout"]["problems"][0]["availableQuantity"] == 0
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+    assert content["data"]["checkout"]["problems"][0]["variant"][
+        "id"
+    ] == to_global_id_or_none(checkout_line.variant)
 
     line_without_stock = [
         line
@@ -115,10 +144,14 @@ def test_line_variant_with_insufficient_stock(
     ][0]
     assert len(line_without_stock["problems"]) == 1
     assert (
-        line_without_stock["problems"][0]["code"]
-        == CheckoutLineProblemCode.INSUFFICIENT_STOCK.name
+        line_without_stock["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert line_without_stock["problems"][0]["field"] == "quantity"
+    assert line_without_stock["problems"][0]["availableQuantity"] == 0
+    assert line_without_stock["problems"][0]["line"]["id"] == checkout_line_id
+    assert line_without_stock["problems"][0]["variant"]["id"] == to_global_id_or_none(
+        checkout_line.variant
+    )
 
 
 def test_line_variant_without_tracking_inventory(
@@ -163,6 +196,7 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     stock = stocks.first()
     stock.quantity = checkout_line.quantity - 1
     stock.save(update_fields=["quantity"])
+    available_quantity = stock.quantity
 
     second_checkout_line = checkout_line
     second_checkout_line.pk = None
@@ -178,12 +212,16 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 1
-    assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+    assert len(content["data"]["checkout"]["problems"]) == 2
+    problems = content["data"]["checkout"]["problems"]
+    assert all(
+        [problem["availableQuantity"] == available_quantity for problem in problems]
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    problem_line_ids = [problem["line"]["id"] for problem in problems]
+    problem_variant_ids = [problem["variant"]["id"] for problem in problems]
+    assert to_global_id_or_none(checkout_line) in problem_line_ids
+    assert to_global_id_or_none(second_checkout_line) in problem_line_ids
+    assert to_global_id_or_none(checkout_line.variant) in problem_variant_ids
 
     first_line_without_stock = [
         line
@@ -192,10 +230,13 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     ][0]
     assert len(first_line_without_stock["problems"]) == 1
     assert (
-        first_line_without_stock["problems"][0]["code"]
-        == CheckoutLineProblemCode.INSUFFICIENT_STOCK.name
+        first_line_without_stock["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert first_line_without_stock["problems"][0]["field"] == "quantity"
+    assert (
+        first_line_without_stock["problems"][0]["availableQuantity"]
+        == available_quantity
+    )
 
     second_line_without_stock = [
         line
@@ -204,7 +245,10 @@ def test_lines_with_same_variant(api_client, checkout_with_items_and_shipping):
     ][0]
     assert len(second_line_without_stock["problems"]) == 1
     assert (
-        second_line_without_stock["problems"][0]["code"]
-        == CheckoutLineProblemCode.INSUFFICIENT_STOCK.name
+        second_line_without_stock["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert second_line_without_stock["problems"][0]["field"] == "quantity"
+    assert (
+        second_line_without_stock["problems"][0]["availableQuantity"]
+        == available_quantity
+    )

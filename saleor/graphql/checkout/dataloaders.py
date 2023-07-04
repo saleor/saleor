@@ -12,6 +12,12 @@ from ...checkout.fetch import (
     update_delivery_method_lists_for_checkout_info,
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
+from ...checkout.problems import (
+    CHECKOUT_LINE_PROBLEM_TYPE,
+    CHECKOUT_PROBLEM_TYPE,
+    get_checkout_lines_problems,
+    get_checkout_problems,
+)
 from ...discount import VoucherType
 from ...payment.models import TransactionItem
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
@@ -39,7 +45,6 @@ from ..warehouse.dataloaders import (
     StocksWithAvailableQuantityByProductVariantIdCountryCodeAndChannelLoader,
     WarehouseByIdLoader,
 )
-from .problems import get_checkout_lines_problems, get_checkout_problems
 
 
 class CheckoutByTokenLoader(DataLoader[str, Checkout]):
@@ -465,7 +470,9 @@ class ChannelByCheckoutLineIDLoader(DataLoader):
         )
 
 
-class CheckoutLinesProblemsByCheckoutIdLoader(DataLoader[str, dict[str, list[dict]]]):
+class CheckoutLinesProblemsByCheckoutIdLoader(
+    DataLoader[str, dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]]
+):
     context_key = "checkout_lines_problems_by_checkout_id"
 
     def batch_load(self, keys):
@@ -527,13 +534,17 @@ class CheckoutLinesProblemsByCheckoutIdLoader(DataLoader[str, dict[str, list[dic
         return Promise.all([checkout_infos, lines]).then(_resolve_problems)
 
 
-class CheckoutProblemsByCheckoutIdDataloader(DataLoader[str, dict[str, str]]):
+class CheckoutProblemsByCheckoutIdDataloader(
+    DataLoader[str, dict[str, list[CHECKOUT_PROBLEM_TYPE]]]
+):
     context_key = "checkout_problems_by_checkout_id"
 
     def batch_load(self, keys):
         line_problems_dataloader = CheckoutLinesProblemsByCheckoutIdLoader(self.context)
 
-        def _resolve_problems(checkouts_lines_problems: list[dict[str, list[dict]]]):
+        def _resolve_problems(
+            checkouts_lines_problems: list[dict[str, list[CHECKOUT_LINE_PROBLEM_TYPE]]]
+        ):
             checkout_problems = defaultdict(list)
             for checkout_pk, checkout_lines_problems in zip(
                 keys, checkouts_lines_problems

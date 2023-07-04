@@ -2,7 +2,6 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from ....checkout.problem_codes import CheckoutProblemCode
 from ....warehouse.models import Allocation, Reservation
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -12,9 +11,16 @@ query checkout($id: ID) {
   checkout(id: $id){
     id
     problems{
-      code
-      message
-      field
+      __typename
+      ... on CheckoutLineProblemInsufficientStock{
+        availableQuantity
+        variant{
+          id
+        }
+        line{
+          id
+        }
+      }
     }
   }
 }
@@ -72,10 +78,16 @@ def test_checkout_with_out_of_stock_when_stocks_dont_exist(
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 1
     assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    assert content["data"]["checkout"]["problems"][0]["availableQuantity"] == 0
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+    assert content["data"]["checkout"]["problems"][0]["variant"][
+        "id"
+    ] == to_global_id_or_none(checkout_line.variant)
 
 
 def test_checkout_problem_out_of_stock_without_available_quantity(
@@ -102,10 +114,16 @@ def test_checkout_problem_out_of_stock_without_available_quantity(
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 1
     assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    assert content["data"]["checkout"]["problems"][0]["availableQuantity"] == 0
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+    assert content["data"]["checkout"]["problems"][0]["variant"][
+        "id"
+    ] == to_global_id_or_none(checkout_line.variant)
 
 
 def test_checkout_problems_with_reservation(api_client, checkout_with_items):
@@ -151,10 +169,11 @@ def test_checkout_with_out_of_stock_with_allocations_and_not_enough_items(
     checkout_line.quantity = line_quantity
     checkout_line.save(update_fields=["quantity"])
 
+    free_quantity = 2
     stocks = checkout_line.variant.stocks.all()
     stocks.update(quantity=0)
     stock = stocks.first()
-    stock.quantity = line_quantity + 2
+    stock.quantity = line_quantity + free_quantity
     stock.save(update_fields=["quantity"])
 
     order_line.variant = checkout_line.variant
@@ -173,10 +192,18 @@ def test_checkout_with_out_of_stock_with_allocations_and_not_enough_items(
     assert content["data"]["checkout"]["id"] == checkout_id
     assert len(content["data"]["checkout"]["problems"]) == 1
     assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemInsufficientStock"
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    assert (
+        content["data"]["checkout"]["problems"][0]["availableQuantity"] == free_quantity
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+    assert content["data"]["checkout"]["problems"][0]["variant"][
+        "id"
+    ] == to_global_id_or_none(checkout_line.variant)
 
 
 def test_checkout_out_of_stock_without_tracking_inventory(
@@ -215,8 +242,10 @@ def test_checkout_with_multiple_same_variant_and_out_of_stock(
     stock = stocks.first()
     stock.quantity = checkout_line.quantity
     stock.save(update_fields=["quantity"])
+    available_quantity = stock.quantity
 
     second_checkout_line = checkout_line
+    second_checkout_line.quantity = 1
     second_checkout_line.pk = None
     second_checkout_line.save()
 
@@ -228,9 +257,13 @@ def test_checkout_with_multiple_same_variant_and_out_of_stock(
     # then
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["id"] == checkout_id
-    assert len(content["data"]["checkout"]["problems"]) == 1
-    assert (
-        content["data"]["checkout"]["problems"][0]["code"]
-        == CheckoutProblemCode.INSUFFICIENT_STOCK.name
+    assert len(content["data"]["checkout"]["problems"]) == 2
+    problems = content["data"]["checkout"]["problems"]
+    assert all(
+        [problem["availableQuantity"] == available_quantity for problem in problems]
     )
-    assert content["data"]["checkout"]["problems"][0]["field"] == "lines"
+    problem_line_ids = [problem["line"]["id"] for problem in problems]
+    problem_variant_ids = [problem["variant"]["id"] for problem in problems]
+    assert to_global_id_or_none(checkout_line) in problem_line_ids
+    assert to_global_id_or_none(second_checkout_line) in problem_line_ids
+    assert to_global_id_or_none(checkout_line.variant) in problem_variant_ids

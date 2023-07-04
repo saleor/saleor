@@ -1,9 +1,32 @@
 from collections import defaultdict
-from typing import Iterable, Tuple
+from dataclasses import dataclass
+from typing import Iterable, Optional, Tuple, Union
 
-from ...checkout.fetch import CheckoutLineInfo
-from ...warehouse.models import Stock
-from .enums import CheckoutLineProblemCode, CheckoutProblemCode
+from ..graphql.channel import ChannelContext
+from ..product.models import ProductVariant
+from ..warehouse.models import Stock
+from .fetch import CheckoutLineInfo
+from .models import CheckoutLine
+
+
+@dataclass
+class CheckoutLineProblemInsufficientStock:
+    available_quantity: int
+    line: CheckoutLine
+    variant: Optional[ChannelContext[ProductVariant]] = None
+
+
+@dataclass
+class CheckoutLineProblemVariantNotAvailable:
+    line: CheckoutLine
+
+
+CHECKOUT_LINE_PROBLEM_TYPE = Union[
+    CheckoutLineProblemInsufficientStock, CheckoutLineProblemVariantNotAvailable
+]
+CHECKOUT_PROBLEM_TYPE = Union[
+    CheckoutLineProblemInsufficientStock, CheckoutLineProblemVariantNotAvailable
+]
 
 
 def get_insufficient_stock_lines(
@@ -32,7 +55,6 @@ def get_insufficient_stock_lines(
 
 
 CHECKOUT_LINE_PK_TYPE = str
-CHECKOUT_LINE_PROBLEM_TYPE = dict[str, str]
 
 
 def get_checkout_lines_problems(
@@ -45,19 +67,20 @@ def get_checkout_lines_problems(
 
     The stocks need to have annotated available_quantity field.
     """
-    problems = defaultdict(list)
+    problems: dict[
+        CHECKOUT_LINE_PK_TYPE, list[CHECKOUT_LINE_PROBLEM_TYPE]
+    ] = defaultdict(list)
     insufficient_stock = get_insufficient_stock_lines(lines_with_stock)
     if insufficient_stock:
         for line_info, available_quantity in insufficient_stock:
             problems[str(line_info.line.pk)].append(
-                {
-                    "code": CheckoutLineProblemCode.INSUFFICIENT_STOCK.value,
-                    "message": (
-                        f"Insufficient stock. Only {max(available_quantity, 0)} "
-                        "remaining in stock."
+                CheckoutLineProblemInsufficientStock(
+                    available_quantity=available_quantity,
+                    line=line_info.line,
+                    variant=ChannelContext(
+                        node=line_info.variant, channel_slug=line_info.channel.slug
                     ),
-                    "field": "quantity",
-                }
+                )
             )
     return problems
 
@@ -75,22 +98,6 @@ def get_checkout_problems(
     The stocks need to have annotated available_quantity field.
     """
     problems = []
-    out_of_stock_problem = False
     for line_problems in checkout_lines_problem.values():
-        if any(
-            [
-                problem["code"] == CheckoutLineProblemCode.INSUFFICIENT_STOCK.value
-                for problem in line_problems
-            ]
-        ):
-            out_of_stock_problem = True
-
-    if out_of_stock_problem:
-        problems.append(
-            {
-                "code": CheckoutProblemCode.INSUFFICIENT_STOCK.value,
-                "message": "Insufficient stock for some variants in checkout.",
-                "field": "lines",
-            }
-        )
+        problems.extend(line_problems)
     return problems

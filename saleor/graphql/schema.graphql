@@ -9873,7 +9873,7 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   """
   List of problems with the checkout.
   
-  Added in Saleor 3.13.
+  Added in Saleor 3.15.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
@@ -10231,25 +10231,36 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutLineProblem @doc(category: "Checkout") {
-  """Code of the existing problem."""
-  code: CheckoutLineProblemCode!
+union CheckoutLineProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
-  """Message describing the problem."""
-  message: String!
+"""
+Indicates insufficient stock for a given checkout line.Placing the order will not be possible until solving this problem.
 
-  """Field name related to the problem."""
-  field: String
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
+  """Available quantity of a variant."""
+  availableQuantity: Int
+
+  """The line that has variant with insufficient stock."""
+  line: CheckoutLine!
+
+  """The variant with insufficient stock."""
+  variant: ProductVariant!
 }
 
 """
-Definition of all possible checkout line problem codes.
+The variant assigned to the checkout line is not available.Placing the order will not be possible until solving this problem.
 
-    INSUFFICIENT_STOCK - indicates insufficient stock for a given checkout line.
-    Placing the order will not be possible until solving this problem.
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-enum CheckoutLineProblemCode {
-  INSUFFICIENT_STOCK
+type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
+  """The line that has variant that is not available."""
+  line: CheckoutLine!
 }
 
 """
@@ -11943,26 +11954,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type CheckoutProblem @doc(category: "Checkout") {
-  """Code of the existing problem."""
-  code: CheckoutProblemCode!
-
-  """Message describing the problem."""
-  message: String!
-
-  """Field name related to the problem."""
-  field: String
-}
-
-"""
-Definition of all possible checkout problem codes.
-
-    INSUFFICIENT_STOCK - indicates insufficient stock for some variants in checkout
-    Placing the order will not be possible until solving this problem.
-"""
-enum CheckoutProblemCode {
-  INSUFFICIENT_STOCK
-}
+union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""

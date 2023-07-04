@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Optional
 import graphene
 from promise import Promise
 
-from ...checkout import calculations, models
+from ...checkout import calculations, models, problems
 from ...checkout.base_calculations import (
     calculate_undiscounted_base_line_total_price,
     calculate_undiscounted_base_line_unit_price,
@@ -81,12 +81,7 @@ from .dataloaders import (
     CheckoutMetadataByCheckoutIdLoader,
     TransactionItemsByCheckoutIDLoader,
 )
-from .enums import (
-    CheckoutAuthorizeStatusEnum,
-    CheckoutChargeStatusEnum,
-    CheckoutLineProblemCode,
-    CheckoutProblemCode,
-)
+from .enums import CheckoutAuthorizeStatusEnum, CheckoutChargeStatusEnum
 from .utils import prevent_sync_event_circular_query
 
 if TYPE_CHECKING:
@@ -111,18 +106,58 @@ def get_dataloaders_for_fetching_checkout_data(
     return address, lines, checkout_info, manager
 
 
-class CheckoutLineProblem(BaseObjectType):
-    code = graphene.Field(
-        CheckoutLineProblemCode,
-        description="Code of the existing problem.",
+class CheckoutLineProblemInsufficientStock(
+    BaseObjectType,
+):
+    available_quantity = graphene.Int(description="Available quantity of a variant.")
+    line = graphene.Field(
+        "saleor.graphql.checkout.types.CheckoutLine",
+        description="The line that has variant with insufficient stock.",
         required=True,
     )
-    message = graphene.String(
-        required=True, description="Message describing the problem."
+    variant = graphene.Field(
+        "saleor.graphql.product.types.ProductVariant",
+        description="The variant with insufficient stock.",
+        required=True,
     )
-    field = graphene.String(description="Field name related to the problem.")
 
     class Meta:
+        description = (
+            (
+                "Indicates insufficient stock for a given checkout line."
+                "Placing the order will not be possible until solving this problem."
+            )
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutLineProblemVariantNotAvailable(BaseObjectType):
+    line = graphene.Field(
+        "saleor.graphql.checkout.types.CheckoutLine",
+        description="The line that has variant that is not available.",
+        required=True,
+    )
+
+    class Meta:
+        description = (
+            (
+                "The variant assigned to the checkout line is not available."
+                "Placing the order will not be possible until solving this problem."
+            )
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        doc_category = DOC_CATEGORY_CHECKOUT
+
+
+class CheckoutLineProblem(graphene.Union):
+    class Meta:
+        types = (
+            CheckoutLineProblemInsufficientStock,
+            CheckoutLineProblemVariantNotAvailable,
+        )
         description = (
             "Represents an problem in the checkout line."
             + ADDED_IN_315
@@ -130,21 +165,32 @@ class CheckoutLineProblem(BaseObjectType):
         )
         doc_category = DOC_CATEGORY_CHECKOUT
 
+    @classmethod
+    def resolve_type(cls, instance: problems.CHECKOUT_PROBLEM_TYPE, info: ResolveInfo):
+        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
+            return CheckoutLineProblemInsufficientStock
+        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
+            return CheckoutLineProblemVariantNotAvailable
+        return super(CheckoutLineProblem, cls).resolve_type(instance, info)
 
-class CheckoutProblem(BaseObjectType):
-    code = graphene.Field(
-        CheckoutProblemCode, description="Code of the existing problem.", required=True
-    )
-    message = graphene.String(
-        required=True, description="Message describing the problem."
-    )
-    field = graphene.String(description="Field name related to the problem.")
 
+class CheckoutProblem(graphene.Union):
     class Meta:
+        types = [] + list(CheckoutLineProblem._meta.types)
         description = (
             "Represents an problem in the checkout." + ADDED_IN_315 + PREVIEW_FEATURE
         )
         doc_category = DOC_CATEGORY_CHECKOUT
+
+    @classmethod
+    def resolve_type(
+        cls, instance: problems.CHECKOUT_LINE_PROBLEM_TYPE, info: ResolveInfo
+    ):
+        if isinstance(instance, problems.CheckoutLineProblemInsufficientStock):
+            return CheckoutLineProblemInsufficientStock
+        if isinstance(instance, problems.CheckoutLineProblemVariantNotAvailable):
+            return CheckoutLineProblemVariantNotAvailable
+        return super(CheckoutProblem, cls).resolve_type(instance, info)
 
 
 class GatewayConfigLine(BaseObjectType):
@@ -612,7 +658,7 @@ class Checkout(ModelObjectType[models.Checkout]):
     problems = NonNullList(
         CheckoutProblem,
         description=(
-            "List of problems with the checkout." + ADDED_IN_313 + PREVIEW_FEATURE
+            "List of problems with the checkout." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
