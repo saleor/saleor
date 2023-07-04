@@ -112,10 +112,7 @@ def test_get_prices_of_discounted_specific_product(
     prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
-        line.variant.get_price(
-            product, [collection], channel, variant_channel_listing, []
-        )
-        for item in range(line.quantity)
+        line.variant.get_price(variant_channel_listing) for item in range(line.quantity)
     ]
 
     assert prices == expected_value
@@ -146,8 +143,7 @@ def test_get_prices_of_discounted_specific_product_only_product(
     prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
-        line.variant.get_price(product, [], channel, variant_channel_listing, [])
-        for item in range(line.quantity)
+        line.variant.get_price(variant_channel_listing) for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -181,10 +177,7 @@ def test_get_prices_of_discounted_specific_product_only_collection(
     prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
-        line.variant.get_price(
-            product, [collection], channel, variant_channel_listing, []
-        )
-        for item in range(line.quantity)
+        line.variant.get_price(variant_channel_listing) for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -224,8 +217,7 @@ def test_get_prices_of_discounted_specific_product_only_category(
 
     # then
     expected_value = [
-        line.variant.get_price(product, [], channel, variant_channel_listing, [])
-        for item in range(line.quantity)
+        line.variant.get_price(variant_channel_listing) for item in range(line.quantity)
     ]
 
     assert checkout.lines.count() > 1
@@ -239,7 +231,6 @@ def test_get_prices_of_discounted_specific_product_all_products(
     checkout = priced_checkout_with_item
     voucher = voucher_specific_product_type
     line = checkout.lines.first()
-    product = line.variant.product
     channel = checkout.channel
     variant_channel_listing = line.variant.channel_listings.get(channel=channel)
 
@@ -247,8 +238,7 @@ def test_get_prices_of_discounted_specific_product_all_products(
     prices = utils.get_prices_of_discounted_specific_product(lines, voucher)
 
     expected_value = [
-        line.variant.get_price(product, [], channel, variant_channel_listing, [])
-        for item in range(line.quantity)
+        line.variant.get_price(variant_channel_listing) for item in range(line.quantity)
     ]
 
     assert prices == expected_value

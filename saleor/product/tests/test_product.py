@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import patch
 
+import graphene
 import pytest
 import pytz
 from freezegun import freeze_time
@@ -11,13 +12,14 @@ from prices import Money
 
 from ...account import events as account_events
 from ...attribute.utils import associate_attribute_values_to_instance
+from ...discount import RewardValueType
+from ...discount.models import PromotionRule
 from ...graphql.product.filters import (
     _clean_product_attributes_boolean_filter_input,
     _clean_product_attributes_date_time_range_filter_input,
     filter_products_by_attributes_values,
 )
 from .. import ProductTypeKind, models
-from ..models import DigitalContentUrl
 from ..tasks import update_variants_names
 from ..utils.costs import get_margin_for_variant_channel_listing
 from ..utils.digital_products import increment_download_count
@@ -216,19 +218,21 @@ def test_clean_product_attributes_boolean_filter_input(boolean_attribute):
 
 
 @pytest.mark.parametrize(
-    "expected_price, include_discounts",
-    [(Decimal("10.00"), True), (Decimal("15.0"), False)],
+    "price, discounted_price",
+    [
+        (Decimal("10.00"), Decimal("8.00")),
+        (Decimal("10.00"), None),
+        (Decimal("10.00"), Decimal("10.00")),
+    ],
 )
 def test_get_price(
+    price,
+    discounted_price,
     product_type,
     category,
-    sale,
-    expected_price,
-    include_discounts,
-    site_settings,
-    discount_info,
     channel_USD,
 ):
+    # given
     product = models.Product.objects.create(
         product_type=product_type,
         category=category,
@@ -237,12 +241,123 @@ def test_get_price(
     channel_listing = models.ProductVariantChannelListing.objects.create(
         variant=variant,
         channel=channel_USD,
-        price_amount=Decimal(15),
+        price_amount=price,
+        discounted_price_amount=discounted_price,
         currency=channel_USD.currency_code,
     )
-    discounts = [discount_info] if include_discounts else []
-    price = variant.get_price(product, [], channel_USD, channel_listing, discounts)
-    assert price.amount == expected_price
+
+    # when
+    price = variant.get_price(channel_listing)
+
+    # then
+    assert price.amount == discounted_price or price
+
+
+def test_get_price_overridden_price_no_discount(
+    product_type,
+    category,
+    channel_USD,
+):
+    # given
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=category,
+    )
+    variant = product.variants.create()
+    price_amount = Decimal(15)
+    channel_listing = models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=price_amount,
+        currency=channel_USD.currency_code,
+    )
+    price_override = Decimal(10)
+
+    # when
+    price = variant.get_price(channel_listing, price_override=price_override)
+
+    # then
+    assert price.amount == price_override
+
+
+def test_get_price_overridden_price_with_discount(
+    product_type,
+    category,
+    channel_USD,
+    promotion_without_rules,
+):
+    # given
+    product = models.Product.objects.create(
+        product_type=product_type,
+        category=category,
+    )
+    variant = product.variants.create()
+    price_amount = Decimal(15)
+    channel_listing = models.ProductVariantChannelListing.objects.create(
+        variant=variant,
+        channel=channel_USD,
+        price_amount=price_amount,
+        currency=channel_USD.currency_code,
+    )
+    price_override = Decimal("20")
+
+    reward_value_1 = Decimal("10")
+    reward_value_2 = Decimal("5")
+    rule_1, rule_2 = PromotionRule.objects.bulk_create(
+        [
+            PromotionRule(
+                promotion=promotion_without_rules,
+                catalogue_predicate={
+                    "productPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id("Product", variant.product.id)
+                        ]
+                    }
+                },
+                reward_value_type=RewardValueType.PERCENTAGE,
+                reward_value=reward_value_1,
+            ),
+            PromotionRule(
+                promotion=promotion_without_rules,
+                catalogue_predicate={
+                    "variantPredicate": {
+                        "ids": [
+                            graphene.Node.to_global_id(
+                                "ProductVariant", variant.product.id
+                            )
+                        ]
+                    }
+                },
+                reward_value_type=RewardValueType.FIXED,
+                reward_value=reward_value_2,
+            ),
+        ]
+    )
+
+    models.VariantChannelListingPromotionRule.objects.bulk_create(
+        [
+            models.VariantChannelListingPromotionRule(
+                variant_channel_listing=channel_listing,
+                promotion_rule=rule_1,
+                discount_amount=reward_value_1,
+                currency=channel_USD.currency_code,
+            ),
+            models.VariantChannelListingPromotionRule(
+                variant_channel_listing=channel_listing,
+                promotion_rule=rule_2,
+                discount_amount=reward_value_2,
+                currency=channel_USD.currency_code,
+            ),
+        ]
+    )
+
+    # when
+    price = variant.get_price(channel_listing, price_override=price_override)
+
+    # then
+    assert price.amount == price_override - reward_value_2 - (
+        reward_value_1 / 100 * price_override
+    )
 
 
 def test_digital_product_view(client, digital_content_url):
@@ -269,7 +384,7 @@ def test_digital_product_view(client, digital_content_url):
 def test_digital_product_increment_download(
     client,
     customer_user,
-    digital_content_url: DigitalContentUrl,
+    digital_content_url: models.DigitalContentUrl,
     is_user_null,
     is_line_null,
 ):
@@ -310,7 +425,9 @@ def test_digital_product_view_url_downloaded_max_times(client, digital_content):
     digital_content.use_default_settings = False
     digital_content.max_downloads = 1
     digital_content.save()
-    digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+    digital_content_url = models.DigitalContentUrl.objects.create(
+        content=digital_content
+    )
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)
@@ -329,7 +446,9 @@ def test_digital_product_view_url_expired(client, digital_content):
     digital_content.save()
 
     with freeze_time("2018-05-31 12:00:01"):
-        digital_content_url = DigitalContentUrl.objects.create(content=digital_content)
+        digital_content_url = models.DigitalContentUrl.objects.create(
+            content=digital_content
+        )
 
     url = digital_content_url.get_absolute_url()
     response = client.get(url)

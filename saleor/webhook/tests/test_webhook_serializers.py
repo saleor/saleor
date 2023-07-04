@@ -97,12 +97,9 @@ def test_serialize_checkout_lines(
     for data, line_info in zip(checkout_lines_data, checkout_lines):
         variant = line_info.line.variant
         product = variant.product
-        collections = line_info.collections
         variant_channel_listing = line_info.channel_listing
 
-        base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing
-        )
+        base_price = variant.get_price(variant_channel_listing)
         currency = checkout.currency
         assert data == {
             "sku": variant.sku,
@@ -118,9 +115,9 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
+def test_serialize_checkout_lines_with_sale(checkout_with_item_on_sale, discount_info):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_sale
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
     manager = get_plugins_manager()
@@ -138,15 +135,10 @@ def test_serialize_checkout_lines_with_sale(checkout_with_item, discount_info):
     for data, line_info in zip(checkout_lines_data, checkout_lines):
         variant = line_info.line.variant
         product = variant.product
-        collections = line_info.collections
         variant_channel_listing = line_info.channel_listing
 
-        base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing, [discount_info]
-        )
-        undiscounted_base_price = variant.get_price(
-            product, collections, channel, variant_channel_listing
-        )
+        base_price = variant.get_price(variant_channel_listing)
+        undiscounted_base_price = variant.get_base_price(variant_channel_listing)
         currency = checkout.currency
         assert base_price < undiscounted_base_price
         assert data == {
@@ -274,11 +266,7 @@ def test_serialize_checkout_lines_for_tax_calculation_with_sale(
         discount = line_info.discounts[0]
         assert discount.type == DiscountType.SALE
         undiscounted_unit_price = variant.get_price(
-            line_info.product,
-            line_info.collections,
-            checkout_info.channel,
             line_info.channel_listing,
-            [],
             line_info.line.price_override,
         ).amount
         assert unit_price < undiscounted_unit_price

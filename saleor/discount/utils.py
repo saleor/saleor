@@ -184,6 +184,21 @@ def calculate_discounted_price(
     return price
 
 
+def calculate_discounted_price_for_rules(
+    *, price: Money, rules: Iterable["PromotionRule"], currency: str
+):
+    """Calculate the discounted price for provided rules.
+
+    The discounts from rules summed up and applied to the price.
+    """
+    total_discount = zero_money(currency)
+    for rule in rules:
+        discount = rule.get_discount(currency)
+        total_discount += price - discount(price)
+
+    return max(price - total_discount, zero_money(currency))
+
+
 def get_sale_id_applied_as_a_discount(
     *,
     product: "Product",

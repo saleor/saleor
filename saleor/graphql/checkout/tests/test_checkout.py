@@ -26,7 +26,7 @@ from ....discount.utils import generate_sale_discount_objects_for_checkout
 from ....payment import TransactionAction
 from ....plugins.manager import get_plugins_manager
 from ....plugins.tests.sample_plugins import ActiveDummyPaymentGateway
-from ....product.models import ProductVariant, ProductVariantChannelListing
+from ....product.models import ProductVariant
 from ....shipping.models import ShippingMethodTranslation
 from ....shipping.utils import convert_to_shipping_method_data
 from ....tests.utils import dummy_editorjs
@@ -1529,11 +1529,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1596,27 +1592,19 @@ def test_checkout_prices_checkout_with_custom_prices(
     )
 
 
-def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discount_info):
+def test_checkout_prices_with_sales(
+    user_api_client, checkout_with_item_on_sale, discount_info
+):
     # given
     query = QUERY_CHECKOUT_PRICES
-    variables = {"id": to_global_id_or_none(checkout_with_item)}
+    checkout = checkout_with_item_on_sale
+    variables = {"id": to_global_id_or_none(checkout)}
 
     manager = get_plugins_manager()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
     # To properly apply a sale at checkout, we need to generate discount objects.
     generate_sale_discount_objects_for_checkout(checkout_info, lines)
-    listings_to_update = []
-    for line in lines:
-        discount = line.discounts[0]
-        line.channel_listing.discounted_price = (
-            line.channel_listing.price - discount.amount
-        )
-        listings_to_update.append(line.channel_listing)
-
-    ProductVariantChannelListing.objects.bulk_update(
-        listings_to_update, ["discounted_price_amount"]
-    )
 
     # when
     response = user_api_client.post_graphql(query, variables)
@@ -1624,25 +1612,25 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
     data = content["data"]["checkout"]
 
     # then
-    assert data["token"] == str(checkout_with_item.token)
-    assert len(data["lines"]) == checkout_with_item.lines.count()
+    assert data["token"] == str(checkout.token)
+    assert len(data["lines"]) == checkout.lines.count()
 
-    checkout_with_item.refresh_from_db()
-    lines, _ = fetch_checkout_lines(checkout_with_item)
-    checkout_info = fetch_checkout_info(checkout_with_item, lines, manager)
+    checkout.refresh_from_db()
+    lines, _ = fetch_checkout_lines(checkout)
+    checkout_info = fetch_checkout_info(checkout, lines, manager)
 
     total = calculations.checkout_total(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_item.shipping_address,
+        address=checkout.shipping_address,
     )
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
     subtotal = calculations.checkout_subtotal(
         manager=manager,
         checkout_info=checkout_info,
         lines=lines,
-        address=checkout_with_item.shipping_address,
+        address=checkout.shipping_address,
     )
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
     line_info = lines[0]
@@ -1660,12 +1648,8 @@ def test_checkout_prices_with_sales(user_api_client, checkout_with_item, discoun
         data["lines"][0]["totalPrice"]["gross"]["amount"]
         == line_total_price.gross.amount
     )
-    undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
+    undiscounted_unit_price = line_info.variant.get_base_price(
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     undiscounted_total_price = undiscounted_unit_price.amount * line_info.line.quantity
@@ -1766,11 +1750,7 @@ def test_checkout_prices_with_specific_voucher(
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1834,11 +1814,7 @@ def test_checkout_prices_with_voucher_once_per_order(
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (
@@ -1900,11 +1876,7 @@ def test_checkout_prices_with_voucher(user_api_client, checkout_with_item_and_vo
         == line_total_price.gross.amount
     )
     undiscounted_unit_price = line_info.variant.get_price(
-        line_info.product,
-        line_info.collections,
-        checkout_info.channel,
         line_info.channel_listing,
-        [],
         line_info.line.price_override,
     )
     assert (

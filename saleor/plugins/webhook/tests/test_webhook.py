@@ -934,30 +934,28 @@ def test_checkout_created(
     )
 
 
-def test_checkout_payload_includes_sales(checkout_with_item, sale, discount_info):
+# TODO: rewrite for promotion
+def test_checkout_payload_includes_sales(
+    checkout_with_item_on_sale, sale, discount_info
+):
     # given
-    checkout = checkout_with_item
+    checkout = checkout_with_item_on_sale
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
     manager = get_plugins_manager()
     checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
+
+    variant = checkout.lines.first().variant
+    channel_listing = variant.channel_listings.first()
+
     create_or_update_discount_objects_from_sale_for_checkout(
         checkout_info, checkout_lines, [discount_info]
     )
-    variant = checkout_with_item.lines.first().variant
-    channel_listing = variant.channel_listings.first()
+
     variant_price_with_sale = variant.get_price(
-        product=variant.product,
-        collections=[],
-        channel=checkout_with_item.channel,
         channel_listing=channel_listing,
-        discounts=[discount_info],
     )
-    variant_price_without_sale = variant.get_price(
-        product=variant.product,
-        collections=[],
-        channel=checkout_with_item.channel,
+    variant_price_without_sale = variant.get_base_price(
         channel_listing=channel_listing,
-        discounts=[],
     )
 
     # when

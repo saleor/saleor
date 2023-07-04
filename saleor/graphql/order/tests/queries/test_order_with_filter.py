@@ -689,8 +689,8 @@ def test_orders_query_with_filter_search(
 
     order_with_orderline = orders[2]
     channel = order_with_orderline.channel
-    channel_listening = variant.channel_listings.get(channel=channel)
-    net = variant.get_price(product, [], channel, channel_listening)
+    channel_listing = variant.channel_listings.get(channel=channel)
+    net = variant.get_price(channel_listing)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     unit_price = TaxedMoney(net=net, gross=gross)
@@ -996,7 +996,7 @@ def test_order_query_with_filter_search_by_product_sku_multi_order_lines(
     product = product
     channel = order.channel
     channel_listening = variants[0].channel_listings.get(channel=channel)
-    net = variants[0].get_price(product, [], channel, channel_listening)
+    net = variants[0].get_price(channel_listening)
     currency = net.currency
     gross = Money(amount=net.amount * Decimal(1.23), currency=currency)
     quantity = 3

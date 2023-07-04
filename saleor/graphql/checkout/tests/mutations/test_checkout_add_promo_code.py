@@ -124,12 +124,7 @@ def test_checkout_add_already_applied_voucher_for_entire_order(
     variant = checkout_with_item.lines.first().variant
     channel = checkout_with_item.channel
     channel_listing = variant.channel_listings.get(channel=channel)
-    net = (
-        variant.get_price(
-            variant.product, [], checkout_with_item.channel, channel_listing
-        )
-        * checkout_with_item.lines.first().quantity
-    )
+    net = variant.get_price(channel_listing) * checkout_with_item.lines.first().quantity
 
     voucher_channel_listing = voucher.channel_listings.get(channel=channel)
     voucher_channel_listing.discount_value = net.amount

@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Optional, Union
+from typing import TYPE_CHECKING, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -52,9 +52,8 @@ from ..core.utils import build_absolute_uri
 from ..core.utils.editorjs import clean_editor_js
 from ..core.utils.translations import Translation, get_translation
 from ..core.weight import zero_weight
-from ..discount import DiscountInfo
 from ..discount.models import PromotionRule
-from ..discount.utils import calculate_discounted_price
+from ..discount.utils import calculate_discounted_price_for_rules
 from ..permission.enums import (
     DiscountPermissions,
     OrderPermissions,
@@ -638,7 +637,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
-    ):
+    ) -> "Money":
         return (
             channel_listing.price
             if price_override is None
@@ -647,22 +646,15 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
 
     def get_price(
         self,
-        product: Product,
-        collections: Iterable["Collection"],
-        channel: Channel,
         channel_listing: "ProductVariantChannelListing",
-        discounts: Optional[Iterable[DiscountInfo]] = None,
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
-        price = self.get_base_price(channel_listing, price_override)
-        collection_ids = {collection.id for collection in collections}
-        return calculate_discounted_price(
-            product=product,
-            price=price,
-            discounts=discounts,
-            collection_ids=collection_ids,
-            channel=channel,
-            variant_id=self.id,
+        if price_override is None:
+            return channel_listing.discounted_price or channel_listing.price
+        price: "Money" = self.get_base_price(channel_listing, price_override)
+        rules = channel_listing.promotion_rules.all()
+        return calculate_discounted_price_for_rules(
+            price=price, rules=rules, currency=channel_listing.currency
         )
 
     def get_weight(self):

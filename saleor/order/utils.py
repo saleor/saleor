@@ -224,22 +224,15 @@ def create_order_line(
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
     untaxed_unit_price = variant.get_price(
-        product,
-        collections,
-        channel,
         channel_listing,
-        discounts,
         price_override=price_override,
     )
+    # TODO: rewrite for promotion
     if not discounts:
         untaxed_undiscounted_price = untaxed_unit_price
     else:
-        untaxed_undiscounted_price = variant.get_price(
-            product,
-            collections,
-            channel,
+        untaxed_undiscounted_price = variant.get_base_price(
             channel_listing,
-            [],
             price_override=price_override,
         )
     unit_price = TaxedMoney(net=untaxed_unit_price, gross=untaxed_unit_price)
@@ -285,6 +278,7 @@ def create_order_line(
     )
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
+    # TODO: rewrite for promotions
     if unit_discount.gross:
         sale_id = get_sale_id_applied_as_a_discount(
             product=product,
