@@ -24,14 +24,15 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
+from ....checkout.fetch import fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
 from ....core.notify_events import NotifyEventType
 from ....core.utils.url import prepare_url
+from ....discount import RewardValueType
 from ....discount.utils import (
-    create_or_update_discount_objects_from_sale_for_checkout,
+    create_or_update_discount_objects_from_promotion_for_checkout,
     fetch_catalogue_info,
 )
 from ....graphql.discount.mutations.utils import convert_catalogue_info_to_global_ids
@@ -934,22 +935,41 @@ def test_checkout_created(
     )
 
 
-# TODO: rewrite for promotion
-def test_checkout_payload_includes_sales(
-    checkout_with_item_on_sale, sale, discount_info
+def test_checkout_payload_includes_promotions(
+    checkout_with_item, promotion_without_rules
 ):
     # given
-    checkout = checkout_with_item_on_sale
+    checkout = checkout_with_item
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
 
-    variant = checkout.lines.first().variant
+    variant = checkout_lines[0].variant
     channel_listing = variant.channel_listings.first()
 
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, checkout_lines, [discount_info]
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
     )
+    rule.channels.add(channel_listing.channel)
+
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - reward_value
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_listing.channel.currency_code,
+    )
+
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
 
     variant_price_with_sale = variant.get_price(
         channel_listing=channel_listing,

@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Union
 
 import graphene
@@ -30,8 +31,12 @@ def serialize_checkout_lines(checkout: "Checkout") -> List[dict]:
         base_price = variant.get_base_price(
             channel_listing, line_info.line.price_override
         )
-        if discount_object_from_sale := line_info.get_sale_discount():
-            total_discount_amount_for_line = discount_object_from_sale.amount_value
+        total_discount_amount_for_line = Decimal("0")
+        total_discount_amount_for_line = sum(
+            [discount.amount_value for discount in line_info.get_promotion_discounts()],
+            Decimal("0"),
+        )
+        if total_discount_amount_for_line:
             unit_discount_amount = (
                 total_discount_amount_for_line / line_info.line.quantity
             )
