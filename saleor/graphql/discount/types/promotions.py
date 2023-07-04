@@ -4,10 +4,6 @@ from graphene import relay
 from ....discount import PromotionEvents as events
 from ....discount import models
 from ....permission.auth_filters import AuthorizationFilters
-from ....permission.enums import AccountPermissions, AppPermission
-from ...account.dataloaders import UserByUserIdLoader
-from ...account.utils import check_is_owner_or_has_one_of_perms
-from ...app.dataloaders import AppByIdLoader
 from ...channel.types import Channel
 from ...core import ResolveInfo
 from ...core.connection import CountableConnection
@@ -16,18 +12,16 @@ from ...core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ...core.fields import PermissionsField
 from ...core.scalars import JSON, PositiveDecimal
 from ...core.types import ModelObjectType, NonNullList
-from ...core.types.user_or_app import UserOrApp
-from ...meta.types import ObjectWithMetadata
+from ...meta.types import ObjectEvent, ObjectWithEvents, ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import PromotionRuleTranslation, PromotionTranslation
-from ...utils import get_user_or_app_from_context
 from ..dataloaders import (
     ChannelsByPromotionRuleIdLoader,
     PromotionByIdLoader,
     PromotionEventsByPromotionIdLoader,
     PromotionRulesByPromotionIdLoader,
 )
-from ..enums import PromotionEventsEnum, RewardValueTypeEnum
+from ..enums import RewardValueTypeEnum
 
 
 class Promotion(ModelObjectType[models.Promotion]):
@@ -48,10 +42,6 @@ class Promotion(ModelObjectType[models.Promotion]):
         lambda: PromotionRule, description="The list of promotion rules."
     )
     translation = TranslationField(PromotionTranslation, type_name="promotion")
-    events = NonNullList(
-        lambda: PromotionEvent,
-        description="The list of events associated with the promotion.",
-    )
 
     class Meta:
         description = (
@@ -60,7 +50,7 @@ class Promotion(ModelObjectType[models.Promotion]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, ObjectWithMetadata]
+        interfaces = [relay.Node, ObjectWithMetadata, ObjectWithEvents]
         model = models.Promotion
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -132,57 +122,6 @@ def resolve_event_type(root: models.PromotionEvent, info):
     return root.type
 
 
-class PromotionEvent(graphene.Interface):
-    id = graphene.GlobalID()
-    date = graphene.DateTime(description="Date when event happened.", required=True)
-    type = PromotionEventsEnum(
-        description="Promotion event type.", resolver=resolve_event_type, required=True
-    )
-    created_by = PermissionsField(
-        UserOrApp,
-        description="User or App that created the promotion event. ",
-        permissions=[AccountPermissions.MANAGE_STAFF, AppPermission.MANAGE_APPS],
-    )
-
-    class Meta:
-        model = models.PromotionEvent
-
-    @staticmethod
-    def resolve_type(instance: models.PromotionEvent, _info):
-        return PROMOTION_EVENT_MAP.get(instance.type)
-
-    @staticmethod
-    def resolve_created_by(root: models.PromotionEvent, info):
-        requester = get_user_or_app_from_context(info.context)
-        if not requester:
-            return None
-
-        def _resolve_user(user):
-            check_is_owner_or_has_one_of_perms(
-                requester,
-                user,
-                AccountPermissions.MANAGE_STAFF,
-            )
-            return user
-
-        def _resolve_app(app):
-            check_is_owner_or_has_one_of_perms(
-                requester,
-                app,
-                AppPermission.MANAGE_APPS,
-            )
-            return app
-
-        if root.user_id:
-            return (
-                UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
-            )
-        if root.app_id:
-            return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
-
-        return None
-
-
 class PromotionCreatedEvent(ModelObjectType[models.PromotionEvent]):
     class Meta:
         description = (
@@ -190,7 +129,7 @@ class PromotionCreatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, ObjectEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -202,7 +141,7 @@ class PromotionUpdatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, ObjectEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -214,7 +153,7 @@ class PromotionStartedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, ObjectEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -224,7 +163,7 @@ class PromotionEndedEvent(ModelObjectType[models.PromotionEvent]):
         description = (
             "History log of the promotion ended event." + ADDED_IN_315 + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent]
+        interfaces = [relay.Node, ObjectEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -256,7 +195,7 @@ class PromotionRuleCreatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, ObjectEvent, PromotionRuleEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -268,7 +207,7 @@ class PromotionRuleUpdatedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, ObjectEvent, PromotionRuleEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 
@@ -280,7 +219,7 @@ class PromotionRuleDeletedEvent(ModelObjectType[models.PromotionEvent]):
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
-        interfaces = [relay.Node, PromotionEvent, PromotionRuleEvent]
+        interfaces = [relay.Node, ObjectEvent, PromotionRuleEvent]
         model = models.PromotionEvent
         doc_category = DOC_CATEGORY_DISCOUNTS
 

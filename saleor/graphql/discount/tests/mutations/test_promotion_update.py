@@ -22,11 +22,11 @@ PROMOTION_UPDATE_MUTATION = """
                 createdAt
                 updatedAt
                 events {
-                    ... on PromotionEvent {
+                    ... on ObjectEvent {
                         type
                     }
                     ... on PromotionRuleEvent {
-                        type
+                        ruleId
                     }
                 }
             }
@@ -298,4 +298,4 @@ def test_promotion_update_events(
     events = data["promotion"]["events"]
     assert len(events) == 1
     assert PromotionEvent.objects.count() == event_count + 1
-    assert PromotionEvents.PROMOTION_UPDATED.upper() == events[0]["type"]
+    assert PromotionEvents.PROMOTION_UPDATED == events[0]["type"]

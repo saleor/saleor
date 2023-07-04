@@ -13261,7 +13261,7 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+type Promotion implements Node & ObjectWithMetadata & ObjectWithEvents @doc(category: "Discounts") {
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -13310,6 +13310,9 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
   """
   metafields(keys: [String!]): Metadata
 
+  """The list of events associated with the object."""
+  events: [ObjectEvent!]
+
   """Name of the promotion."""
   name: String!
 
@@ -13336,9 +13339,28 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
     """A language code to return the translation for promotion."""
     languageCode: LanguageCodeEnum!
   ): PromotionTranslation
+}
 
-  """The list of events associated with the promotion."""
-  events: [PromotionEvent!]
+interface ObjectWithEvents {
+  """The list of events associated with the object."""
+  events: [ObjectEvent!]
+}
+
+interface ObjectEvent {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: String!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
+  """
+  createdBy: UserOrApp
 }
 
 scalar JSON
@@ -13391,34 +13413,6 @@ type PromotionRule implements Node @doc(category: "Discounts") {
 enum RewardValueTypeEnum @doc(category: "Discounts") {
   FIXED
   PERCENTAGE
-}
-
-interface PromotionEvent {
-  id: ID!
-
-  """Date when event happened."""
-  date: DateTime!
-
-  """Promotion event type."""
-  type: PromotionEventsEnum!
-
-  """
-  User or App that created the promotion event. 
-  
-  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
-  """
-  createdBy: UserOrApp
-}
-
-"""An enumeration."""
-enum PromotionEventsEnum @doc(category: "Discounts") {
-  PROMOTION_CREATED
-  PROMOTION_UPDATED
-  PROMOTION_STARTED
-  PROMOTION_ENDED
-  RULE_CREATED
-  RULE_UPDATED
-  RULE_DELETED
 }
 
 type PromotionCountableConnection @doc(category: "Discounts") {
@@ -31942,14 +31936,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionCreatedEvent implements Node & PromotionEvent @doc(category: "Discounts") {
+type PromotionCreatedEvent implements Node & ObjectEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -31966,14 +31960,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionUpdatedEvent implements Node & PromotionEvent @doc(category: "Discounts") {
+type PromotionUpdatedEvent implements Node & ObjectEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -31990,14 +31984,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionStartedEvent implements Node & PromotionEvent @doc(category: "Discounts") {
+type PromotionStartedEvent implements Node & ObjectEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -32014,14 +32008,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionEndedEvent implements Node & PromotionEvent @doc(category: "Discounts") {
+type PromotionEndedEvent implements Node & ObjectEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -32038,14 +32032,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionRuleCreatedEvent implements Node & PromotionEvent & PromotionRuleEvent @doc(category: "Discounts") {
+type PromotionRuleCreatedEvent implements Node & ObjectEvent & PromotionRuleEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -32077,14 +32071,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionRuleUpdatedEvent implements Node & PromotionEvent & PromotionRuleEvent @doc(category: "Discounts") {
+type PromotionRuleUpdatedEvent implements Node & ObjectEvent & PromotionRuleEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 
@@ -32104,14 +32098,14 @@ Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionRuleDeletedEvent implements Node & PromotionEvent & PromotionRuleEvent @doc(category: "Discounts") {
+type PromotionRuleDeletedEvent implements Node & ObjectEvent & PromotionRuleEvent @doc(category: "Discounts") {
   id: ID!
 
   """Date when event happened."""
   date: DateTime!
 
   """Promotion event type."""
-  type: PromotionEventsEnum!
+  type: String!
 
   """
   User or App that created the promotion event. 

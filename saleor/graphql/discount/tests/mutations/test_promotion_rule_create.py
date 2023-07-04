@@ -19,8 +19,14 @@ PROMOTION_RULE_CREATE_MUTATION = """
                 promotion {
                     id
                     events {
-                        ... on PromotionRuleEvent {
+                        ... on ObjectEvent {
                             type
+                            __typename
+                        }
+                        ... on PromotionRuleCreatedEvent {
+                            date
+                        }
+                        ... on PromotionRuleEvent {
                             ruleId
                         }
                     }
@@ -583,6 +589,6 @@ def test_promotion_rule_create_events(
     events = data["promotionRule"]["promotion"]["events"]
     assert len(events) == 1
     assert PromotionEvent.objects.count() == event_count + 1
-    assert PromotionEvents.RULE_CREATED.upper() == events[0]["type"]
+    assert PromotionEvents.RULE_CREATED == events[0]["type"]
 
     assert events[0]["ruleId"] == data["promotionRule"]["id"]

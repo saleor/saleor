@@ -24,7 +24,7 @@ from ...discount.utils import (
     fetch_sale_channel_listings,
     fetch_variants,
 )
-from ..core.dataloaders import DataLoader
+from ..core.dataloaders import BaseEventsByParentIdLoader, DataLoader
 
 
 class DiscountsByDateTimeLoader(DataLoader):
@@ -278,20 +278,11 @@ class PromotionRulesByPromotionIdLoader(DataLoader):
         return [rules_map.get(promotion_id, []) for promotion_id in keys]
 
 
-class PromotionEventsByPromotionIdLoader(DataLoader):
+class PromotionEventsByPromotionIdLoader(BaseEventsByParentIdLoader):
     context_key = "promotion_events_by_promotion_id"
-
-    def batch_load(self, keys):
-        promotions = Promotion.objects.using(self.database_connection_name).filter(
-            id__in=keys
-        )
-        events = PromotionEvent.objects.using(self.database_connection_name).filter(
-            Exists(promotions.filter(id=OuterRef("promotion_id")))
-        )
-        events_map = defaultdict(list)
-        for event in events:
-            events_map[event.promotion_id].append(event)
-        return [events_map.get(promotion_id, []) for promotion_id in keys]
+    model = Promotion
+    event_model = PromotionEvent
+    parent_id_field = "promotion_id"
 
 
 class PromotionByIdLoader(DataLoader):

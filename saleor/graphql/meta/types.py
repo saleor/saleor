@@ -5,12 +5,19 @@ from graphene.types.generic import GenericScalar
 
 from ...checkout.models import Checkout
 from ...checkout.utils import get_or_create_checkout_metadata
-from ...core.models import ModelWithMetadata
+from ...core.models import EventModel, ModelWithMetadata
+from ...permission.enums import AccountPermissions, AppPermission
+from ..account.dataloaders import UserByUserIdLoader
+from ..account.utils import check_is_owner_or_has_one_of_perms
+from ..app.dataloaders import AppByIdLoader
 from ..channel import ChannelContext
 from ..core import ResolveInfo
+from ..core.fields import PermissionsField
 from ..core.types import NonNullList
+from ..utils import get_user_or_app_from_context
 from .resolvers import (
     check_private_metadata_privilege,
+    resolve_event_type,
     resolve_metadata,
     resolve_object_with_metadata_type,
     resolve_private_metadata,
@@ -171,3 +178,64 @@ def get_valid_metadata_instance(instance):
     if isinstance(instance, Checkout):
         instance = get_or_create_checkout_metadata(instance)
     return instance
+
+
+def resolve_object_event_type(root: EventModel, _info):
+    return root.type
+
+
+class ObjectEvent(graphene.Interface):
+    id = graphene.GlobalID()
+    date = graphene.DateTime(description="Date when event happened.", required=True)
+    type = graphene.String(
+        description="Promotion event type.",
+        resolver=resolve_object_event_type,
+        required=True,
+    )
+    created_by = PermissionsField(
+        "saleor.graphql.core.types.user_or_app.UserOrApp",
+        description="User or App that created the promotion event. ",
+        permissions=[AccountPermissions.MANAGE_STAFF, AppPermission.MANAGE_APPS],
+    )
+
+    @classmethod
+    def resolve_type(cls, instance: EventModel, _info: ResolveInfo):
+        return resolve_event_type(instance)
+
+    @staticmethod
+    def resolve_created_by(root: EventModel, info):
+        requester = get_user_or_app_from_context(info.context)
+        if not requester:
+            return None
+
+        def _resolve_user(user):
+            check_is_owner_or_has_one_of_perms(
+                requester,
+                user,
+                AccountPermissions.MANAGE_STAFF,
+            )
+            return user
+
+        def _resolve_app(app):
+            check_is_owner_or_has_one_of_perms(
+                requester,
+                app,
+                AppPermission.MANAGE_APPS,
+            )
+            return app
+
+        if root.user_id:
+            return (
+                UserByUserIdLoader(info.context).load(root.user_id).then(_resolve_user)
+            )
+        if root.app_id:
+            return AppByIdLoader(info.context).load(root.app_id).then(_resolve_app)
+
+        return None
+
+
+class ObjectWithEvents(graphene.Interface):
+    events = NonNullList(
+        ObjectEvent,
+        description="The list of events associated with the object.",
+    )

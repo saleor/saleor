@@ -15,8 +15,10 @@ PROMOTION_RULE_DELETE_MUTATION = """
                 id
                 promotion {
                     events {
-                        ... on PromotionRuleEvent {
+                        ... on ObjectEvent {
                             type
+                        }
+                        ... on PromotionRuleEvent {
                             ruleId
                         }
                     }
@@ -134,6 +136,6 @@ def test_promotion_rule_delete_events(
     events = data["promotionRule"]["promotion"]["events"]
     assert len(events) == 1
     assert PromotionEvent.objects.count() == event_count + 1
-    assert PromotionEvents.RULE_DELETED.upper() == events[0]["type"]
+    assert PromotionEvents.RULE_DELETED == events[0]["type"]
 
     assert events[0]["ruleId"] == rule_id

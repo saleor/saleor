@@ -1,11 +1,23 @@
 from collections import defaultdict
-from typing import DefaultDict, Generic, Iterable, List, Optional, Tuple, TypeVar, Union
+from typing import (
+    DefaultDict,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import opentracing
 import opentracing.tags
+from django.db.models import Exists, Model, OuterRef
 from promise import Promise
 from promise.dataloader import DataLoader as BaseLoader
 
+from ...core.models import EventModel
 from ...thumbnail.models import Thumbnail
 from ...thumbnail.utils import get_thumbnail_format
 from . import SaleorContext
@@ -76,3 +88,22 @@ class BaseThumbnailBySizeAndFormatLoader(
                 (getattr(thumbnail, f"{model_name}_id"), thumbnail.size, format)
             ] = thumbnail
         return [thumbnails_by_instance_id_size_and_format_map.get(key) for key in keys]
+
+
+class BaseEventsByParentIdLoader(DataLoader):
+    model: Type[Model]
+    event_model: Type[EventModel]
+    parent_id_field: str
+
+    def batch_load(self, keys):
+        parents = self.model.objects.using(self.database_connection_name).filter(
+            id__in=keys
+        )
+        events = self.event_model.objects.using(self.database_connection_name).filter(
+            Exists(parents.filter(id=OuterRef(self.parent_id_field)))
+        )
+        events_map = defaultdict(list)
+        for event in events:
+            parent_id = getattr(event, self.parent_id_field)
+            events_map[parent_id].append(event)
+        return [events_map.get(parent_id, []) for parent_id in keys]

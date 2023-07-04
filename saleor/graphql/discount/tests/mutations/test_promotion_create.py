@@ -936,7 +936,7 @@ PROMOTION_CREATE_WITH_EVENTS = """
             promotion {
                 id
                 events {
-                    ... on PromotionEvent {
+                    ... on ObjectEvent {
                         type
                         createdBy {
                             ... on User {
@@ -948,15 +948,6 @@ PROMOTION_CREATE_WITH_EVENTS = """
                         }
                     }
                     ... on PromotionRuleEvent {
-                        type
-                        createdBy {
-                            ... on User {
-                                id
-                            }
-                            ... on App {
-                                id
-                            }
-                        }
                         ruleId
                     }
                 }
@@ -1033,8 +1024,8 @@ def test_promotion_create_events_by_staff_user(
     event_types = {event["type"] for event in events}
     assert len(events) == 3
     assert PromotionEvent.objects.count() == event_count + 3
-    assert PromotionEvents.PROMOTION_CREATED.upper() in event_types
-    assert PromotionEvents.RULE_CREATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_CREATED in event_types
+    assert PromotionEvents.RULE_CREATED in event_types
 
     users = list({event["createdBy"]["id"] for event in events})
     user_id = graphene.Node.to_global_id("User", staff_api_client.user.id)
@@ -1105,8 +1096,8 @@ def test_promotion_create_events_by_app(
     event_types = {event["type"] for event in events}
     assert len(events) == 3
     assert PromotionEvent.objects.count() == event_count + 3
-    assert PromotionEvents.PROMOTION_CREATED.upper() in event_types
-    assert PromotionEvents.RULE_CREATED.upper() in event_types
+    assert PromotionEvents.PROMOTION_CREATED in event_types
+    assert PromotionEvents.RULE_CREATED in event_types
 
     apps = list({event["createdBy"]["id"] for event in events})
     app_id = graphene.Node.to_global_id("App", app_api_client.app.id)

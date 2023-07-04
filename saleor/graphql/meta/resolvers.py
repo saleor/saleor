@@ -6,7 +6,7 @@ from ...app import models as app_models
 from ...attribute import models as attribute_models
 from ...checkout import models as checkout_models
 from ...core.exceptions import PermissionDenied
-from ...core.models import ModelWithMetadata
+from ...core.models import EventModel, ModelWithMetadata
 from ...discount import models as discount_models
 from ...giftcard import models as giftcard_models
 from ...order import models as order_models
@@ -121,3 +121,13 @@ def check_private_metadata_privilege(root: ModelWithMetadata, info: ResolveInfo)
 def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
     check_private_metadata_privilege(root, info)
     return resolve_metadata(root.private_metadata)
+
+
+def resolve_event_type(instance):
+    # Imports inside resolvers to avoid circular imports.
+    from ..discount.types.promotions import PROMOTION_EVENT_MAP
+
+    if isinstance(instance, EventModel):
+        MODEL_TO_TYPE_MAP = {**PROMOTION_EVENT_MAP}
+        return MODEL_TO_TYPE_MAP.get(instance.type, None)
+    raise ValueError(f"Unknown type: {instance.__class__}")

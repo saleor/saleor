@@ -294,7 +294,9 @@ def test_query_promotion_events(
     assert len(events) == promotion.events.count()
     for event in promotion.events.all():
         event_data = {
-            "type": event.type.upper(),
+            "type": event.type,
             "createdBy": {"id": graphene.Node.to_global_id("User", event.user.id)},
         }
+        if event.type.upper() == "RULE_CREATED":
+            event_data.update({"ruleId": None})
         assert event_data in events

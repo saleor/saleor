@@ -2,6 +2,7 @@ import datetime
 from typing import Any, TypeVar
 
 import pytz
+from django.conf import settings
 from django.contrib.postgres.indexes import GinIndex
 from django.db import models, transaction
 from django.db.models import F, JSONField, Max, Q
@@ -183,3 +184,23 @@ class EventDeliveryAttempt(models.Model):
 
     class Meta:
         ordering = ("-created_at",)
+
+
+class EventModel(models.Model):
+    date = models.DateTimeField(auto_now_add=True, db_index=True, editable=False)
+    type = models.CharField(max_length=255)
+    parameters = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        related_name="+",
+        on_delete=models.SET_NULL,
+    )
+    app = models.ForeignKey(
+        "app.App", blank=True, null=True, related_name="+", on_delete=models.SET_NULL
+    )
+
+    class Meta:
+        abstract = True
+        ordering = ("date",)
