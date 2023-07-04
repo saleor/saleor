@@ -1,5 +1,9 @@
+<<<<<<< HEAD:saleor/tests/e2e/warehouse/utils.py
 from .. import DEFAULT_ADDRESS
 from ..utils import get_graphql_content
+=======
+from ...utils import get_graphql_content
+>>>>>>> 20d16e454 (warehouse update utils created):saleor/tests/e2e/warehouse/utils/create_warehouse.py
 
 WAREHOUSE_CREATE_MUTATION = """
 mutation createWarehouse($input: WarehouseCreateInput!) {
