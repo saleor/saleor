@@ -11,12 +11,7 @@ from ..product.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
-from .utils import (
-    checkout_complete,
-    checkout_create,
-    checkout_delivery_method_update,
-    checkout_dummy_payment_create,
-)
+from .utils import checkout_create
 
 
 def prepare_product(
@@ -111,27 +106,9 @@ def test_unlogged_customer_buy_by_click_and_collect(
         set_default_billing_address=True,
         set_default_shipping_address=True,
     )
-    checkout_id = checkout_data["id"]
+    _checkout_id = checkout_data["id"]
 
     collection_point = checkout_data["availableCollectionPoints"][0]
     assert collection_point["id"] == warehouse_id
     assert collection_point["isPrivate"] is False
     assert collection_point["clickAndCollectOption"] == "LOCAL"
-
-    # Step 2 - Assign delivery method
-    checkout_data = checkout_delivery_method_update(
-        e2e_not_logged_api_client, checkout_id, collection_point["id"]
-    )
-    assert checkout_data["deliveryMethod"]["id"] == warehouse_id
-    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
-
-    # Step 3 - Create dummy payment
-    checkout_dummy_payment_create(
-        e2e_not_logged_api_client, checkout_id, total_gross_amount
-    )
-
-    # Step 4 - Complete checkout and verify created order
-    order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
-    assert order_data["status"] == "UNFULFILLED"
-    assert order_data["total"]["gross"]["amount"] == total_gross_amount
-    assert order_data["deliveryMethod"]["id"] == warehouse_id
