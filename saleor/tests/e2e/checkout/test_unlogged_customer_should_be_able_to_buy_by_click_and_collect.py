@@ -1,7 +1,6 @@
 import pytest
 
 from ..channel.utils import create_channel
-from ..checkout.utils import checkout_create
 from ..product.utils import (
     create_category,
     create_product,
@@ -12,6 +11,7 @@ from ..product.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
+from .utils import checkout_create
 
 
 def prepare_product(
