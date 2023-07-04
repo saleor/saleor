@@ -13,21 +13,19 @@ from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
 
 
-@pytest.mark.e2e
-def test_unlogged_customer_buy_by_click_and_collect(
+def prepare_product(
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
 ):
-    assign_permissions(
-        e2e_staff_api_client,
-        [
-            permission_manage_products,
-            permission_manage_channels,
-            permission_manage_product_types_and_attributes,
-        ],
-    )
+    permissions = [
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_product_types_and_attributes,
+    ]
+
+    assign_permissions(e2e_staff_api_client, permissions)
     warehouse_data = create_warehouse(e2e_staff_api_client)
     update_warehouse(
         e2e_staff_api_client,
@@ -37,6 +35,7 @@ def test_unlogged_customer_buy_by_click_and_collect(
     )
     channel_data = create_channel(e2e_staff_api_client, warehouse_data["id"])
     channel_id = channel_data["id"]
+    channel_slug = channel_data["slug"]
 
     product_type_data = create_product_type(
         e2e_staff_api_client,
@@ -68,10 +67,26 @@ def test_unlogged_customer_buy_by_click_and_collect(
     )
     variant_id = variant_data["id"]
 
-    variant_listing = create_product_variant_channel_listing(
+    create_product_variant_channel_listing(
         e2e_staff_api_client,
         variant_id,
         channel_id,
     )
 
-    assert variant_listing is not None
+    return variant_id, channel_slug
+
+
+@pytest.mark.e2e
+def test_unlogged_customer_buy_by_click_and_collect(
+    e2e_staff_api_client,
+    permission_manage_products,
+    permission_manage_channels,
+    permission_manage_product_types_and_attributes,
+):
+    # Before
+    _variant_id, _channel_slug = prepare_product(
+        e2e_staff_api_client,
+        permission_manage_products,
+        permission_manage_channels,
+        permission_manage_product_types_and_attributes,
+    )
