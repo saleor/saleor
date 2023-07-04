@@ -11,7 +11,11 @@ from ..product.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
-from .utils import checkout_create, checkout_delivery_method_update
+from .utils import (
+    checkout_create,
+    checkout_delivery_method_update,
+    checkout_dummy_payment_create,
+)
 
 
 def prepare_product(
@@ -118,3 +122,9 @@ def test_unlogged_customer_buy_by_click_and_collect(
         e2e_not_logged_api_client, checkout_id, collection_point["id"]
     )
     assert checkout_data["deliveryMethod"]["id"] == warehouse_id
+    total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
+
+    # Step 3 - Create dummy payment
+    checkout_dummy_payment_create(
+        e2e_not_logged_api_client, checkout_id, total_gross_amount
+    )
