@@ -5238,6 +5238,15 @@ type OrderSettings {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   deleteExpiredOrdersAfter: Day!
+
+  """
+  Determine if it is possible to create order before finalizing payment in TRANSACTION_FLOW.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allowToCreateOrderWithoutPayment: Boolean!
 }
 
 """
@@ -25756,6 +25765,15 @@ input OrderSettingsInput @doc(category: "Orders") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   defaultTransactionFlowStrategy: TransactionFlowStrategyEnum
+
+  """
+  Determine if it is possible to create order before finalizing payment in TRANSACTION_FLOW.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  allowToCreateOrderWithoutPayment: Boolean
 }
 
 """

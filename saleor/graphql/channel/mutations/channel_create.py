@@ -15,6 +15,7 @@ from ...core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
 from ...core.doc_category import (
@@ -94,6 +95,13 @@ class OrderSettingsInput(BaseInputObjectType):
             "Determine the transaction flow strategy to be used. "
             "Include the selected option in the payload sent to the payment app, as a "
             "requested action for the transaction." + ADDED_IN_313 + PREVIEW_FEATURE
+        ),
+    )
+    allow_to_create_order_without_payment = graphene.Boolean(
+        required=False,
+        description=(
+            "Determine if it is possible to create order before finalizing payment "
+            "in TRANSACTION_FLOW." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
@@ -220,6 +228,13 @@ class ChannelCreate(ModelMutation):
                 cleaned_input[
                     "default_transaction_flow_strategy"
                 ] = default_transaction_strategy
+
+            if allow_to_create_order_without_payment := order_settings.get(
+                "allow_to_create_order_without_payment"
+            ):
+                cleaned_input[
+                    "allow_to_create_order_without_payment"
+                ] = allow_to_create_order_without_payment
 
         return cleaned_input
 

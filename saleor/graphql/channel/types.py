@@ -23,6 +23,7 @@ from ..core.descriptions import (
     ADDED_IN_312,
     ADDED_IN_313,
     ADDED_IN_314,
+    ADDED_IN_315,
     PREVIEW_FEATURE,
 )
 from ..core.doc_category import DOC_CATEGORY_ORDERS, DOC_CATEGORY_PRODUCTS
@@ -219,6 +220,13 @@ class OrderSettings(ObjectType):
             "The time in days after expired orders will be deleted."
             + ADDED_IN_314
             + PREVIEW_FEATURE
+        ),
+    )
+    allow_to_create_order_without_payment = graphene.Boolean(
+        required=True,
+        description=(
+            "Determine if it is possible to create order before finalizing payment "
+            "in TRANSACTION_FLOW." + ADDED_IN_315 + PREVIEW_FEATURE
         ),
     )
 
