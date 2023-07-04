@@ -40,6 +40,11 @@ mutation CreateCheckout($input: CheckoutCreateInput!) {
       shippingMethod {
         id
       }
+      availableCollectionPoints {
+        id
+        isPrivate
+        clickAndCollectOption
+      }
     }
   }
 }
