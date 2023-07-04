@@ -1,3 +1,4 @@
+from decimal import Decimal
 from operator import itemgetter
 from unittest.mock import ANY, sentinel
 
@@ -7,8 +8,11 @@ import pytest
 from ...checkout import base_calculations
 from ...checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from ...core.prices import quantize_price
-from ...discount import DiscountType
-from ...discount.utils import create_or_update_discount_objects_from_sale_for_checkout
+from ...discount import DiscountType, RewardValueType
+from ...discount.utils import (
+    create_or_update_discount_objects_from_promotion_for_checkout,
+    create_or_update_discount_objects_from_sale_for_checkout,
+)
 from ...plugins.manager import get_plugins_manager
 from ..serializers import (
     serialize_checkout_lines,
@@ -115,16 +119,42 @@ def test_serialize_checkout_lines(
     assert len(checkout_lines_data) == len(list(checkout_lines))
 
 
-def test_serialize_checkout_lines_with_sale(checkout_with_item_on_sale, discount_info):
+def test_serialize_checkout_lines_with_promotion(
+    checkout_with_item_on_sale, promotion_without_rules
+):
     # given
     checkout = checkout_with_item_on_sale
     channel = checkout.channel
     checkout_lines, _ = fetch_checkout_lines(checkout, prefetch_variant_attributes=True)
-    manager = get_plugins_manager()
-    checkout_info = fetch_checkout_info(checkout, checkout_lines, manager)
-    create_or_update_discount_objects_from_sale_for_checkout(
-        checkout_info, checkout_lines, [discount_info]
+
+    variant = checkout_lines[0].variant
+    channel_listing = variant.channel_listings.first()
+
+    reward_value = Decimal("5")
+    rule = promotion_without_rules.rules.create(
+        name="Percentage promotion rule",
+        catalogue_predicate={
+            "productPredicate": {
+                "ids": [graphene.Node.to_global_id("Product", variant.product.id)]
+            }
+        },
+        reward_value_type=RewardValueType.FIXED,
+        reward_value=reward_value,
     )
+    rule.channels.add(channel_listing.channel)
+
+    channel_listing.discounted_price_amount = (
+        channel_listing.price_amount - reward_value
+    )
+    channel_listing.save(update_fields=["discounted_price_amount"])
+
+    channel_listing.variantlistingpromotionrule.create(
+        promotion_rule=rule,
+        discount_amount=reward_value,
+        currency=channel_listing.channel.currency_code,
+    )
+
+    create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
 
     # when
     checkout_lines_data = serialize_checkout_lines(checkout)
