@@ -6,6 +6,7 @@ from ..product.utils import (
     create_product,
     create_product_channel_listing,
     create_product_type,
+    create_product_variant,
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
@@ -49,8 +50,18 @@ def test_unlogged_customer_buy_by_click_and_collect(
     product_data = create_product(e2e_staff_api_client, product_type_id, category_id)
     product_id = product_data["id"]
 
-    product_listing = create_product_channel_listing(
+    _product_listing = create_product_channel_listing(
         e2e_staff_api_client, product_id, channel_id
     )
 
-    assert product_listing is not None
+    stocks = [
+        {
+            "warehouse": warehouse_data["id"],
+            "quantity": 5,
+        }
+    ]
+    variant_data = create_product_variant(
+        e2e_staff_api_client, product_id, stocks=stocks
+    )
+
+    assert variant_data is not None
