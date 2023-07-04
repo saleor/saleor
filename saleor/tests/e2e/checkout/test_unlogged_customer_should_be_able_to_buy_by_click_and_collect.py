@@ -11,7 +11,7 @@ from ..product.utils import (
 )
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
-from .utils import checkout_create
+from .utils import checkout_create, checkout_delivery_method_update
 
 
 def prepare_product(
@@ -106,9 +106,15 @@ def test_unlogged_customer_buy_by_click_and_collect(
         set_default_billing_address=True,
         set_default_shipping_address=True,
     )
-    _checkout_id = checkout_data["id"]
+    checkout_id = checkout_data["id"]
 
     collection_point = checkout_data["availableCollectionPoints"][0]
     assert collection_point["id"] == warehouse_id
     assert collection_point["isPrivate"] is False
     assert collection_point["clickAndCollectOption"] == "LOCAL"
+
+    # Step 2 - Assign delivery method
+    checkout_data = checkout_delivery_method_update(
+        e2e_not_logged_api_client, checkout_id, collection_point["id"]
+    )
+    assert checkout_data["deliveryMethod"]["id"] == warehouse_id
