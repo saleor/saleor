@@ -638,6 +638,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
+        """Return the base variant price before applying the promotion discounts."""
         return (
             channel_listing.price
             if price_override is None
@@ -649,6 +650,11 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
     ) -> "Money":
+        """Return the variant discounted price with applied promotions.
+
+        If a custom price is provided, return the price with applied discounts from
+        valid promotion rules for this variant.
+        """
         if price_override is None:
             return channel_listing.discounted_price or channel_listing.price
         price: "Money" = self.get_base_price(channel_listing, price_override)

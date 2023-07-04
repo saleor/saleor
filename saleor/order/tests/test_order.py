@@ -1346,7 +1346,7 @@ def test_order_update_charge_data_with_transaction_item_and_payment(
     )
 
 
-# TODO: fix in PR for order calculations
+# TODO: fix in PR for order calculations - rewrite for promotions
 @pytest.mark.skip()
 def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_price(
     order_with_lines,
@@ -1367,8 +1367,6 @@ def test_add_variant_to_order_adds_line_for_new_variant_on_sale_with_custom_pric
         channel_listing.price.amount - sale_channel_listing.discount_value
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
-
-    # TODO: rewrite for promotions
 
     lines_before = order.lines.count()
     price_override = Decimal(15)
