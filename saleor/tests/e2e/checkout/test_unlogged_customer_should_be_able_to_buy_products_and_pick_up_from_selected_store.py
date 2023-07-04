@@ -1,6 +1,7 @@
 import pytest
 
 from ..channel.utils import create_channel
+from ..checkout.utils import checkout_create
 from ..product.utils import (
     create_category,
     create_product,
@@ -27,6 +28,7 @@ def prepare_product(
 
     assign_permissions(e2e_staff_api_client, permissions)
     warehouse_data = create_warehouse(e2e_staff_api_client)
+    warehouse_id = warehouse_data["id"]
     update_warehouse(
         e2e_staff_api_client,
         warehouse_data["id"],
@@ -73,20 +75,40 @@ def prepare_product(
         channel_id,
     )
 
-    return variant_id, channel_slug
+    return variant_id, channel_slug, warehouse_id
 
 
 @pytest.mark.e2e
 def test_unlogged_customer_buy_by_click_and_collect(
+    e2e_not_logged_api_client,
     e2e_staff_api_client,
     permission_manage_products,
     permission_manage_channels,
     permission_manage_product_types_and_attributes,
 ):
     # Before
-    _variant_id, _channel_slug = prepare_product(
+    variant_id, channel_slug, warehouse_id = prepare_product(
         e2e_staff_api_client,
         permission_manage_products,
         permission_manage_channels,
         permission_manage_product_types_and_attributes,
     )
+
+    # Step 1 - Create checkout and check collection point
+    lines = [
+        {"variantId": variant_id, "quantity": 1},
+    ]
+    checkout_data = checkout_create(
+        e2e_not_logged_api_client,
+        lines,
+        channel_slug,
+        email="jon.doe@saleor.io",
+        set_default_billing_address=True,
+        set_default_shipping_address=True,
+    )
+    _checkout_id = checkout_data["id"]
+
+    collection_point = checkout_data["availableCollectionPoints"][0]
+    assert collection_point["id"] == warehouse_id
+    assert collection_point["isPrivate"] is False
+    assert collection_point["clickAndCollectOption"] == "LOCAL"
