@@ -1,7 +1,7 @@
 import graphene
 
 from ...attribute.models import Attribute, AttributeValue
-from ...discount.models import Sale, Voucher
+from ...discount.models import Promotion, PromotionRule, Sale, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
 from ...permission.enums import SitePermissions
@@ -21,6 +21,8 @@ from .resolvers import (
     resolve_collections,
     resolve_product_variants,
     resolve_products,
+    resolve_promotion_rules,
+    resolve_promotions,
     resolve_sales,
     resolve_shipping_methods,
     resolve_vouchers,
@@ -38,6 +40,8 @@ TYPES_TRANSLATIONS_MAP = {
     Sale: translation_types.SaleTranslatableContent,
     Voucher: translation_types.VoucherTranslatableContent,
     MenuItem: translation_types.MenuItemTranslatableContent,
+    Promotion: translation_types.PromotionTranslatableContent,
+    PromotionRule: translation_types.PromotionRuleTranslatableContent,
 }
 
 
@@ -67,6 +71,8 @@ class TranslatableKinds(graphene.Enum):
     MENU_ITEM = "MenuItem"
     PAGE = "Page"
     PRODUCT = "Product"
+    PROMOTION = "Promotion"
+    PROMOTION_RULE = "PromotionRule"
     SALE = "Sale"
     SHIPPING_METHOD = "ShippingMethodType"
     VARIANT = "ProductVariant"
@@ -122,6 +128,10 @@ class TranslationQueries(graphene.ObjectType):
             qs = resolve_menu_items(info)
         elif kind == TranslatableKinds.SALE:
             qs = resolve_sales(info)
+        elif kind == TranslatableKinds.PROMOTION:
+            qs = resolve_promotions(info)
+        elif kind == TranslatableKinds.PROMOTION_RULE:
+            qs = resolve_promotion_rules(info)
 
         return create_connection_slice(qs, info, kwargs, TranslatableItemConnection)
 
@@ -142,5 +152,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds.SALE.value: Sale,  # type: ignore[attr-defined]
             TranslatableKinds.VOUCHER.value: Voucher,  # type: ignore[attr-defined]
             TranslatableKinds.MENU_ITEM.value: MenuItem,  # type: ignore[attr-defined]
+            TranslatableKinds.PROMOTION.value: Promotion,  # type: ignore[attr-defined]
+            TranslatableKinds.PROMOTION_RULE.value: PromotionRule,  # type: ignore[attr-defined] # noqa: E501
         }
         return models[kind].objects.filter(pk=kind_id).first()
