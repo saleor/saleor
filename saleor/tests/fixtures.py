@@ -55,6 +55,8 @@ from ..discount.models import (
     NotApplicable,
     Promotion,
     PromotionRule,
+    PromotionRuleTranslation,
+    PromotionTranslation,
     Sale,
     SaleChannelListing,
     SaleTranslation,
@@ -5429,6 +5431,20 @@ def promotion_list(channel_USD, product, collection):
 
 
 @pytest.fixture
+def promotion_rule(channel_USD, promotion, product):
+    rule = PromotionRule.objects.create(
+        name="Promotion rule name",
+        promotion=promotion,
+        description=dummy_editorjs("Test description for percentage promotion rule."),
+        catalogue_predicate={"productPredicate": {"ids": [product.id]}},
+        reward_value_type=RewardValueType.PERCENTAGE,
+        reward_value=Decimal("25"),
+    )
+    rule.channels.add(channel_USD)
+    return rule
+
+
+@pytest.fixture
 def permission_manage_staff():
     return Permission.objects.get(codename="manage_staff")
 
@@ -6099,6 +6115,26 @@ def shipping_method_translation_fr(shipping_method):
         language_code="fr",
         shipping_method=shipping_method,
         name="French shipping method name",
+    )
+
+
+@pytest.fixture
+def promotion_translation_fr(promotion):
+    return PromotionTranslation.objects.create(
+        language_code="fr",
+        promotion=promotion,
+        name="French promotion name",
+        description=dummy_editorjs("French promotion description."),
+    )
+
+
+@pytest.fixture
+def promotion_rule_translation_fr(promotion_rule):
+    return PromotionRuleTranslation.objects.create(
+        language_code="fr",
+        promotion_rule=promotion_rule,
+        name="French promotion rule name",
+        description=dummy_editorjs("French promotion rule description."),
     )
 
 
