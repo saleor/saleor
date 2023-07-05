@@ -258,7 +258,10 @@ class PluginSample(BasePlugin):
     def promotion_deleted(self, promotion: "Promotion", previous_value: Any):
         return None
 
-    def promotion_toggle(self, promotion: "Promotion", previous_value: Any):
+    def promotion_started(self, promotion: "Promotion", previous_value: Any):
+        return None
+
+    def promotion_ended(self, promotion: "Promotion", previous_value: Any):
         return None
 
     def get_checkout_line_tax_rate(
