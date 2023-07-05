@@ -1057,11 +1057,17 @@ class BasePlugin:
     # a promotion is updated.
     promotion_updated: Callable[["Promotion", Any], Any]
 
-    # Trigger when promotion is started or ended.
+    # Trigger when promotion is started.
     #
     # Overwrite this method if you need to trigger specific logic after
-    # a promotion is updated.
-    promotion_toggle: Callable[["Promotion", Any], Any]
+    # a promotion is started.
+    promotion_started: Callable[["Promotion", Any], Any]
+
+    # Trigger when promotion is ended.
+    #
+    # Overwrite this method if you need to trigger specific logic after
+    # a promotion is ended.
+    promotion_ended: Callable[["Promotion", Any], Any]
 
     # Trigger when shipping price is created.
     #

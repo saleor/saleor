@@ -2018,8 +2018,11 @@ enum WebhookEventTypeEnum @doc(category: "Webhooks") {
   """A promotion is deleted."""
   PROMOTION_DELETED
 
-  """A promotion is activated or deactivated."""
-  PROMOTION_TOGGLE
+  """A promotion is activated."""
+  PROMOTION_STARTED
+
+  """A promotion is deactivated."""
+  PROMOTION_ENDED
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -2721,8 +2724,11 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
   """A promotion is deleted."""
   PROMOTION_DELETED
 
-  """A promotion is activated or deactivated."""
-  PROMOTION_TOGGLE
+  """A promotion is activated."""
+  PROMOTION_STARTED
+
+  """A promotion is deactivated."""
+  PROMOTION_ENDED
 
   """An invoice for order requested."""
   INVOICE_REQUESTED
@@ -3589,7 +3595,8 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
   PROMOTION_CREATED
   PROMOTION_UPDATED
   PROMOTION_DELETED
-  PROMOTION_TOGGLE
+  PROMOTION_STARTED
+  PROMOTION_ENDED
   INVOICE_REQUESTED
   INVOICE_DELETED
   INVOICE_SENT
@@ -32775,13 +32782,37 @@ type PromotionDeleted implements Event {
 }
 
 """
-The event informs about the start or end of the promotion.
+The event informs about the start of the promotion.
 
 Added in Saleor 3.15.
 
 Note: this API is currently in Feature Preview and can be subject to changes at later point.
 """
-type PromotionToggle implements Event {
+type PromotionStarted implements Event {
+  """Time of the event."""
+  issuedAt: DateTime
+
+  """Saleor version that triggered the event."""
+  version: String
+
+  """The user or application that triggered the event."""
+  issuingPrincipal: IssuingPrincipal
+
+  """The application receiving the webhook."""
+  recipient: App
+
+  """The promotion the event relates to."""
+  promotion: Promotion
+}
+
+"""
+The event informs about the end of the promotion.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type PromotionEnded implements Event {
   """Time of the event."""
   issuedAt: DateTime
 

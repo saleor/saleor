@@ -1183,12 +1183,24 @@ class PromotionDeleted(SubscriptionObjectType, PromotionBase):
         )
 
 
-class PromotionToggle(SubscriptionObjectType, PromotionBase):
+class PromotionStarted(SubscriptionObjectType, PromotionBase):
     class Meta:
         root_type = "Promotion"
         enable_dry_run = True
         description = (
-            "The event informs about the start or end of the promotion."
+            "The event informs about the start of the promotion."
+            + ADDED_IN_315
+            + PREVIEW_FEATURE
+        )
+        interfaces = (Event,)
+
+
+class PromotionEnded(SubscriptionObjectType, PromotionBase):
+    class Meta:
+        root_type = "Promotion"
+        enable_dry_run = True
+        description = (
+            "The event informs about the end of the promotion."
             + ADDED_IN_315
             + PREVIEW_FEATURE
         )
@@ -2674,7 +2686,8 @@ WEBHOOK_TYPES_MAP = {
     WebhookEventAsyncType.PROMOTION_CREATED: PromotionCreated,
     WebhookEventAsyncType.PROMOTION_UPDATED: PromotionUpdated,
     WebhookEventAsyncType.PROMOTION_DELETED: PromotionDeleted,
-    WebhookEventAsyncType.PROMOTION_TOGGLE: PromotionToggle,
+    WebhookEventAsyncType.PROMOTION_STARTED: PromotionStarted,
+    WebhookEventAsyncType.PROMOTION_ENDED: PromotionEnded,
     WebhookEventAsyncType.INVOICE_REQUESTED: InvoiceRequested,
     WebhookEventAsyncType.INVOICE_DELETED: InvoiceDeleted,
     WebhookEventAsyncType.INVOICE_SENT: InvoiceSent,
