@@ -1011,14 +1011,25 @@ class WebhookPlugin(BasePlugin):
             WebhookEventAsyncType.PROMOTION_DELETED, promotion
         )
 
-    def promotion_toggle(
+    def promotion_started(
         self,
         promotion: "Promotion",
         previous_value: Any,
     ):
         if not self.active:
             return previous_value
-        self._trigger_promotion_event(WebhookEventAsyncType.PROMOTION_TOGGLE, promotion)
+        self._trigger_promotion_event(
+            WebhookEventAsyncType.PROMOTION_STARTED, promotion
+        )
+
+    def promotion_ended(
+        self,
+        promotion: "Promotion",
+        previous_value: Any,
+    ):
+        if not self.active:
+            return previous_value
+        self._trigger_promotion_event(WebhookEventAsyncType.PROMOTION_ENDED, promotion)
 
     def invoice_request(
         self,

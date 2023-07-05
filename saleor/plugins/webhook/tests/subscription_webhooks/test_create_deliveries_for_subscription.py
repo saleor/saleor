@@ -1704,10 +1704,25 @@ def test_promotion_deleted(promotion, subscription_promotion_deleted_webhook):
     assert deliveries[0].webhook == webhooks[0]
 
 
-def test_promotion_toggle(promotion, subscription_promotion_toggle_webhook):
+def test_promotion_started(promotion, subscription_promotion_started_webhook):
     # given
-    webhooks = [subscription_promotion_toggle_webhook]
-    event_type = WebhookEventAsyncType.PROMOTION_TOGGLE
+    webhooks = [subscription_promotion_started_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_STARTED
+    expected_payload = generate_promotion_payload(promotion)
+
+    # when
+    deliveries = create_deliveries_for_subscriptions(event_type, promotion, webhooks)
+
+    # then
+    assert deliveries[0].payload.payload == json.dumps(expected_payload)
+    assert len(deliveries) == len(webhooks)
+    assert deliveries[0].webhook == webhooks[0]
+
+
+def test_promotion_ended(promotion, subscription_promotion_ended_webhook):
+    # given
+    webhooks = [subscription_promotion_ended_webhook]
+    event_type = WebhookEventAsyncType.PROMOTION_ENDED
     expected_payload = generate_promotion_payload(promotion)
 
     # when
