@@ -130,12 +130,10 @@ class PromotionUpdate(ModelMutation):
         if (start_date and start_date <= now) and (not end_date or end_date > now):
             event = manager.promotion_started
 
-        if end_date and end_date <= now:
-            event = manager.promotion_ended
-
         # we always need to notify if the end_date is in the past and previously
         # the end date was not set
         if end_date and end_date <= now and previous_end_date is None:
+            event = manager.promotion_ended
             send_notification = True
 
         if send_notification and event:

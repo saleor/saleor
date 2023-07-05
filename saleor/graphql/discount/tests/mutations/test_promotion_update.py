@@ -96,6 +96,9 @@ def test_promotion_update_by_app(
     promotion,
 ):
     # given
+    promotion.end_date = None
+    promotion.save(update_fields=["end_date"])
+
     start_date = timezone.now() - timedelta(days=10)
     end_date = timezone.now() - timedelta(days=2)
 
