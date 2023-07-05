@@ -7388,7 +7388,7 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
   """Maximum number of allowed downloads for the digital content."""
   maxDownloads: Int
 
-  """NUmber of days the URL for the digital content remains valid."""
+  """Number of days the URL for the digital content remains valid."""
   urlValidDays: Int
 
   """List of URLs for the digital variant."""
@@ -7400,7 +7400,7 @@ type DigitalContent implements Node & ObjectWithMetadata @doc(category: "Product
 
 """Represents a URL for digital content."""
 type DigitalContentUrl implements Node @doc(category: "Products") {
-  """The ID of the digiatl content URL."""
+  """The ID of the digital content URL."""
   id: ID!
 
   """Digital content associated with the URL."""
