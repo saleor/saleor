@@ -395,6 +395,23 @@ class Promotion(ModelWithMetadata):
         return (not self.end_date or self.end_date >= date) and self.start_date <= date
 
 
+class PromotionTranslation(Translation):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    promotion = models.ForeignKey(
+        Promotion, related_name="translations", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = (("language_code", "promotion"),)
+
+    def get_translated_object_id(self):
+        return "Promotion", self.promotion_id
+
+    def get_translated_keys(self):
+        return {"name": self.name, "description": self.description}
+
+
 class PromotionRule(models.Model):
     name = models.CharField(max_length=255)
     description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
@@ -426,6 +443,23 @@ class PromotionRule(models.Model):
                 rounding=ROUND_HALF_UP,
             )
         raise NotImplementedError("Unknown discount type")
+
+
+class PromotionRuleTranslation(Translation):
+    name = models.CharField(max_length=255, null=True, blank=True)
+    description = SanitizedJSONField(blank=True, null=True, sanitizer=clean_editor_js)
+    promotion_rule = models.ForeignKey(
+        PromotionRule, related_name="translations", on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = (("language_code", "promotion_rule"),)
+
+    def get_translated_object_id(self):
+        return "PromotionRule", self.promotion_rule_id
+
+    def get_translated_keys(self):
+        return {"name": self.name, "description": self.description}
 
 
 class BaseDiscount(models.Model):

@@ -4091,6 +4091,7 @@ enum ShippingMethodTypeEnum @doc(category: "Shipping") {
   WEIGHT
 }
 
+"""Represents shipping method translations."""
 type ShippingMethodTranslation implements Node @doc(category: "Shipping") {
   """The ID of the shipping method translation."""
   id: ID!
@@ -6407,6 +6408,7 @@ type AttributeValue implements Node @doc(category: "Attributes") {
   externalReference: String
 }
 
+"""Represents attribute value translations."""
 type AttributeValueTranslation implements Node @doc(category: "Attributes") {
   """The ID of the attribute value translation."""
   id: ID!
@@ -6464,6 +6466,7 @@ input AttributeValueFilterInput @doc(category: "Attributes") {
   ids: [ID!]
 }
 
+"""Represents attribute translations."""
 type AttributeTranslation implements Node @doc(category: "Attributes") {
   """The ID of the attribute translation."""
   id: ID!
@@ -7194,6 +7197,7 @@ enum ThumbnailFormatEnum {
   WEBP
 }
 
+"""Represents category translations."""
 type CategoryTranslation implements Node @doc(category: "Products") {
   """The ID of the category translation."""
   id: ID!
@@ -7674,6 +7678,7 @@ enum ProductMediaType @doc(category: "Products") {
   VIDEO
 }
 
+"""Represents product variant translations."""
 type ProductVariantTranslation implements Node @doc(category: "Products") {
   """The ID of the product variant translation."""
   id: ID!
@@ -8087,6 +8092,7 @@ type Collection implements Node & ObjectWithMetadata @doc(category: "Products") 
   channelListings: [CollectionChannelListing!]
 }
 
+"""Represents collection translations."""
 type CollectionTranslation implements Node @doc(category: "Products") {
   """The ID of the collection translation."""
   id: ID!
@@ -8138,6 +8144,7 @@ type CollectionChannelListing implements Node @doc(category: "Products") {
   channel: Channel!
 }
 
+"""Represents product translations."""
 type ProductTranslation implements Node @doc(category: "Products") {
   """The ID of the product translation."""
   id: ID!
@@ -8225,8 +8232,11 @@ type TranslatableItemEdge {
   cursor: String!
 }
 
-union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent
 
+"""
+Represents product's original translatable fields and related translations.
+"""
 type ProductTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the product translatable content."""
   id: ID!
@@ -8267,6 +8277,9 @@ type ProductTranslatableContent implements Node @doc(category: "Products") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
+"""
+Represents attribute value's original translatable fields and related translations.
+"""
 type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
   """The ID of the attribute value translatable content."""
   id: ID!
@@ -8301,6 +8314,9 @@ type AttributeValueTranslatableContent implements Node @doc(category: "Attribute
   attribute: AttributeTranslatableContent
 }
 
+"""
+Represents attribute's original translatable fields and related translations.
+"""
 type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
   """The ID of the attribute."""
   id: ID!
@@ -8318,6 +8334,9 @@ type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
   attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""
+Represents collection's original translatable fields and related translations.
+"""
 type CollectionTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the collection translatable content."""
   id: ID!
@@ -8355,6 +8374,9 @@ type CollectionTranslatableContent implements Node @doc(category: "Products") {
   collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""
+Represents category original translatable fields and related translations.
+"""
 type CategoryTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the category translatable content."""
   id: ID!
@@ -8392,6 +8414,9 @@ type CategoryTranslatableContent implements Node @doc(category: "Products") {
   category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""
+Represents product variant's original translatable fields and related translations.
+"""
 type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
   """The ID of the product variant translatable content."""
   id: ID!
@@ -8412,6 +8437,9 @@ type ProductVariantTranslatableContent implements Node @doc(category: "Products"
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
+"""
+Represents page's original translatable fields and related translations.
+"""
 type PageTranslatableContent implements Node @doc(category: "Pages") {
   """The ID of the page translatable content."""
   id: ID!
@@ -8454,6 +8482,7 @@ type PageTranslatableContent implements Node @doc(category: "Pages") {
   attributeValues: [AttributeValueTranslatableContent!]!
 }
 
+"""Represents page translations."""
 type PageTranslation implements Node @doc(category: "Pages") {
   """The ID of the page translation."""
   id: ID!
@@ -8671,6 +8700,9 @@ type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
   hasPages: Boolean
 }
 
+"""
+Represents shipping method's original translatable fields and related translations.
+"""
 type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
   """The ID of the shipping method translatable content."""
   id: ID!
@@ -8699,6 +8731,9 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
   shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""
+Represents sale's original translatable fields and related translations.
+"""
 type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the sale translatable content."""
   id: ID!
@@ -8720,6 +8755,7 @@ type SaleTranslatableContent implements Node @doc(category: "Discounts") {
   sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""Represents sale translations."""
 type SaleTranslation implements Node @doc(category: "Discounts") {
   """The ID of the sale translation."""
   id: ID!
@@ -8959,6 +8995,9 @@ type SaleChannelListing implements Node @doc(category: "Discounts") {
   currency: String!
 }
 
+"""
+Represents voucher's original translatable fields and related translations.
+"""
 type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   """The ID of the voucher translatable content."""
   id: ID!
@@ -8980,6 +9019,7 @@ type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
   voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""Represents voucher translations."""
 type VoucherTranslation implements Node @doc(category: "Discounts") {
   """The ID of the voucher translation."""
   id: ID!
@@ -9221,6 +9261,9 @@ type VoucherChannelListing implements Node @doc(category: "Discounts") {
   minSpent: Money
 }
 
+"""
+Represents menu item's original translatable fields and related translations.
+"""
 type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   """The ID of the menu item translatable content."""
   id: ID!
@@ -9240,6 +9283,7 @@ type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
   menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
 }
 
+"""Represents menu item translations."""
 type MenuItemTranslation implements Node @doc(category: "Menu") {
   """The ID of the menu item translation."""
   id: ID!
@@ -9389,6 +9433,104 @@ type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
   items: [MenuItem!]
 }
 
+"""
+Represents promotion's original translatable fields and related translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionTranslatableContent implements Node {
+  """ID of the promotion translatable content."""
+  id: ID!
+
+  """Name of the promotion."""
+  name: String!
+
+  """
+  Description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslation
+}
+
+"""
+Represents promotion translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionTranslation implements Node {
+  """ID of the promotion translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the promotion."""
+  name: String
+
+  """
+  Translated description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
+"""
+Represents promotion rule's original translatable fields and related translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionRuleTranslatableContent implements Node {
+  """ID of the promotion rule translatable content."""
+  id: ID!
+
+  """Name of the promotion rule."""
+  name: String!
+
+  """
+  Description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion rule fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion rule."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslation
+}
+
+"""
+Represents promotion rule translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionRuleTranslation implements Node {
+  """ID of the promotion rule translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the promotion rule."""
+  name: String
+
+  """
+  Translated description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
 enum TranslatableKinds {
   ATTRIBUTE
   ATTRIBUTE_VALUE
@@ -9397,6 +9539,8 @@ enum TranslatableKinds {
   MENU_ITEM
   PAGE
   PRODUCT
+  PROMOTION
+  PROMOTION_RULE
   SALE
   SHIPPING_METHOD
   VARIANT
@@ -9908,6 +10052,7 @@ type Domain {
   url: String!
 }
 
+"""Represents shop translations."""
 type ShopTranslation implements Node @doc(category: "Shop") {
   """The ID of the shop translation."""
   id: ID!
@@ -13716,6 +13861,12 @@ type Promotion implements Node & ObjectWithMetadata @doc(category: "Discounts") 
 
   """The list of promotion rules."""
   rules: [PromotionRule!]
+
+  """Returns translated promotion fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslation
 }
 
 """
@@ -13754,6 +13905,12 @@ type PromotionRule implements Node @doc(category: "Discounts") {
   The reward value of the promotion rule. Defines the discount value applied when the rule conditions are met.
   """
   rewardValue: PositiveDecimal
+
+  """Returns translated promotion rule fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion rule."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslation
 }
 
 """An enumeration."""
@@ -14746,6 +14903,8 @@ type Mutation {
   shippingPriceTranslate(
     """ShippingMethodType ID or ShippingMethodTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update shipping price translations."""
     input: ShippingPriceTranslationInput!
 
     """Translation language code."""
@@ -14918,6 +15077,8 @@ type Mutation {
   categoryTranslate(
     """Category ID or CategoryTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update category translations."""
     input: TranslationInput!
 
     """Translation language code."""
@@ -15014,6 +15175,8 @@ type Mutation {
   collectionTranslate(
     """Collection ID or CollectionTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update collection translations."""
     input: TranslationInput!
 
     """Translation language code."""
@@ -15136,6 +15299,8 @@ type Mutation {
   productTranslate(
     """Product ID or ProductTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update product translations."""
     input: TranslationInput!
 
     """Translation language code."""
@@ -15531,6 +15696,8 @@ type Mutation {
   productVariantTranslate(
     """ProductVariant ID or ProductVariantTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update product variant translations."""
     input: NameTranslationInput!
 
     """Translation language code."""
@@ -15950,6 +16117,8 @@ type Mutation {
   pageTranslate(
     """Page ID or PageTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update page translations."""
     input: PageTranslationInput!
 
     """Translation language code."""
@@ -16717,6 +16886,8 @@ type Mutation {
   menuItemTranslate(
     """MenuItem ID or MenuItemTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update menu item translations."""
     input: NameTranslationInput!
 
     """Translation language code."""
@@ -17108,6 +17279,42 @@ type Mutation {
   ): PromotionRuleDelete @doc(category: "Discounts")
 
   """
+  Creates/updates translations for a promotion.
+  
+  Added in Saleor 3.15. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  promotionTranslate(
+    """Promotion ID or PromotionTranslatableContent ID."""
+    id: ID!
+
+    """Fields required to update promotion translations."""
+    input: PromotionTranslationInput!
+
+    """Translation language code."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslate
+
+  """
+  Creates/updates translations for a promotion rule.
+  
+  Added in Saleor 3.15. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  """
+  promotionRuleTranslate(
+    """PromotionRule ID or PromotionRuleTranslatableContent ID."""
+    id: ID!
+
+    """Fields required to update promotion rule translations."""
+    input: PromotionRuleTranslationInput!
+
+    """Translation language code."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslate
+
+  """
   Creates a new sale. 
   
   Requires one of the following permissions: MANAGE_DISCOUNTS.
@@ -17203,6 +17410,8 @@ type Mutation {
   saleTranslate(
     """Sale ID or SaleTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update sale translations."""
     input: NameTranslationInput!
 
     """Translation language code."""
@@ -17317,6 +17526,8 @@ type Mutation {
   voucherTranslate(
     """Voucher ID or VoucherTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update voucher translations."""
     input: NameTranslationInput!
 
     """Translation language code."""
@@ -18181,6 +18392,8 @@ type Mutation {
   attributeTranslate(
     """Attribute ID or AttributeTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update attribute translations."""
     input: NameTranslationInput!
 
     """Translation language code."""
@@ -18318,6 +18531,8 @@ type Mutation {
   attributeValueTranslate(
     """AttributeValue ID or AttributeValueTranslatableContent ID."""
     id: ID!
+
+    """Fields required to update attribute value translations."""
     input: AttributeValueTranslationInput!
 
     """Translation language code."""
@@ -26512,6 +26727,52 @@ type PromotionRuleDeleteError {
 enum PromotionRuleDeleteErrorCode {
   GRAPHQL_ERROR
   NOT_FOUND
+}
+
+"""
+Creates/updates translations for a promotion.
+
+Added in Saleor 3.15. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type PromotionTranslate {
+  errors: [TranslationError!]!
+  promotion: Promotion
+}
+
+input PromotionTranslationInput {
+  name: String
+
+  """
+  Translated promotion description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSON
+}
+
+"""
+Creates/updates translations for a promotion rule.
+
+Added in Saleor 3.15. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+"""
+type PromotionRuleTranslate {
+  errors: [TranslationError!]!
+  promotionRule: PromotionRule
+}
+
+input PromotionRuleTranslationInput {
+  name: String
+
+  """
+  Translated promotion description.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSON
 }
 
 """
