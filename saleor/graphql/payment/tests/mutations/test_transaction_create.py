@@ -9,16 +9,12 @@ from .....checkout.calculations import fetch_checkout_data
 from .....checkout.fetch import fetch_checkout_info, fetch_checkout_lines
 from .....order import OrderAuthorizeStatus, OrderChargeStatus, OrderEvents, OrderStatus
 from .....order.utils import update_order_authorize_data, update_order_charge_data
-from .....payment import TransactionEventStatus, TransactionEventType
+from .....payment import TransactionEventType
 from .....payment.error_codes import TransactionCreateErrorCode
 from .....payment.models import TransactionItem
 from ....core.utils import to_global_id_or_none
 from ....tests.utils import assert_no_permission, get_graphql_content
-from ...enums import (
-    TransactionActionEnum,
-    TransactionEventStatusEnum,
-    TransactionEventTypeEnum,
-)
+from ...enums import TransactionActionEnum, TransactionEventTypeEnum
 
 TEST_SERVER_DOMAIN = "testserver.com"
 
@@ -37,8 +33,6 @@ mutation TransactionCreate(
                 id
                 actions
                 pspReference
-                type
-                status
                 modifiedAt
                 createdAt
                 externalUrl
@@ -47,10 +41,6 @@ mutation TransactionCreate(
                     currency
                 }
                 canceledAmount{
-                    currency
-                    amount
-                }
-                voidedAmount{
                     currency
                     amount
                 }
@@ -71,9 +61,7 @@ mutation TransactionCreate(
                     }
                 }
                 events{
-                    status
                     pspReference
-                    name
                     message
                     createdAt
                     externalUrl
@@ -106,12 +94,10 @@ def test_transaction_create_updates_order_authorize_amounts(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -121,8 +107,7 @@ def test_transaction_create_updates_order_authorize_amounts(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -152,12 +137,10 @@ def test_transaction_create_for_order_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -167,8 +150,7 @@ def test_transaction_create_for_order_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -191,14 +173,12 @@ def test_transaction_create_for_order_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
     assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
-    assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
     assert transaction.metadata == {metadata["key"]: metadata["value"]}
@@ -227,8 +207,7 @@ def test_transaction_create_for_order_updates_order_total_authorized_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Authorized for 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountAuthorized": {
@@ -273,8 +252,7 @@ def test_transaction_create_for_order_updates_order_total_charged_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountCharged": {
@@ -308,12 +286,10 @@ def test_transaction_create_for_checkout_by_app(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -323,8 +299,7 @@ def test_transaction_create_for_checkout_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -351,14 +326,12 @@ def test_transaction_create_for_checkout_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["externalUrl"] == external_url
     assert data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
-    assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
     assert transaction.metadata == {metadata["key"]: metadata["value"]}
@@ -376,7 +349,6 @@ def test_transaction_create_for_checkout_by_app(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -389,16 +361,14 @@ def test_transaction_create_calculate_amount_by_app(
     app_api_client,
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     expected_value = Decimal("10")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": [],
             amount_field_name: {
@@ -424,12 +394,10 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
@@ -439,8 +407,7 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -472,7 +439,7 @@ def test_transaction_create_multiple_amounts_provided_by_app(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
+
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
@@ -489,12 +456,10 @@ def test_transaction_create_create_event_for_order_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     transaction_reference = "transaction reference"
@@ -503,8 +468,7 @@ def test_transaction_create_create_event_for_order_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -531,18 +495,15 @@ def test_transaction_create_create_event_for_order_by_app(
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
-        "status": None,
     }
 
 
 def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_client):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -551,8 +512,7 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -576,7 +536,6 @@ def test_transaction_create_missing_permission_by_app(order_with_lines, app_api_
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -589,16 +548,14 @@ def test_transaction_create_incorrect_currency_by_app(
     app_api_client,
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     expected_value = Decimal("10")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": [],
             amount_field_name: {
@@ -626,12 +583,10 @@ def test_transaction_create_empty_metadata_key_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
@@ -639,8 +594,7 @@ def test_transaction_create_empty_metadata_key_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -670,12 +624,10 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -683,8 +635,7 @@ def test_transaction_create_empty_private_metadata_key_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -714,8 +665,7 @@ def test_creates_transaction_event_for_order_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Failed authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = []
     authorized_value = Decimal("0")
@@ -724,12 +674,11 @@ def test_creates_transaction_event_for_order_by_app(
 
     event_psp_reference = "PSP-ref"
     event_message = "Failed authorization"
-    event_name = "Depreceated field attached to message."
+
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -742,7 +691,6 @@ def test_creates_transaction_event_for_order_by_app(
         "transaction_event": {
             "pspReference": event_psp_reference,
             "message": event_message,
-            "name": event_name,
         },
     }
 
@@ -759,16 +707,14 @@ def test_creates_transaction_event_for_order_by_app(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
-    assert event_data["message"] == event_message + " " + event_name
-    assert event_data["name"] == event_message + " " + event_name
+    assert event_data["message"] == event_message
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["externalUrl"] == ""
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.message == event_message + " " + event_name
-    assert event.status is None
+    assert event.message == event_message
     assert event.psp_reference == event_psp_reference
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
@@ -779,25 +725,22 @@ def test_creates_transaction_event_for_checkout_by_app(
     checkout_with_items, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("0")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
     event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -809,7 +752,7 @@ def test_creates_transaction_event_for_checkout_by_app(
         },
         "transaction_event": {
             "pspReference": event_psp_reference,
-            "name": event_name,
+            "message": event_message,
         },
     }
 
@@ -826,14 +769,13 @@ def test_creates_transaction_event_for_checkout_by_app(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
-    assert event_data["message"] == event_name
-    assert event_data["name"] == event_name
+    assert event_data["message"] == event_message
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(app_api_client.app)
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.message == event_name
+    assert event.message == event_message
     assert event.psp_reference == event_psp_reference
     assert event.app_identifier == app_api_client.app.identifier
     assert event.app == app_api_client.app
@@ -844,12 +786,10 @@ def test_transaction_create_for_order_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -858,8 +798,7 @@ def test_transaction_create_for_order_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -881,13 +820,12 @@ def test_transaction_create_for_order_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
+
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
-    assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
     assert transaction.metadata == {metadata["key"]: metadata["value"]}
@@ -915,8 +853,7 @@ def test_transaction_create_for_order_updates_order_total_authorized_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Authorized for 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountAuthorized": {
@@ -961,8 +898,7 @@ def test_transaction_create_for_order_updates_order_total_charged_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountCharged": {
@@ -996,12 +932,10 @@ def test_transaction_create_for_checkout_by_staff(
     checkout_with_items, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1010,8 +944,7 @@ def test_transaction_create_for_checkout_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1036,13 +969,12 @@ def test_transaction_create_for_checkout_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
+
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
 
     assert available_actions == list(map(str.upper, transaction.available_actions))
-    assert status == transaction.status
     assert psp_reference == transaction.psp_reference
     assert authorized_value == transaction.authorized_value
     assert transaction.metadata == {metadata["key"]: metadata["value"]}
@@ -1063,12 +995,10 @@ def test_transaction_create_for_checkout_fully_paid(
     plugins_manager,
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
@@ -1081,8 +1011,7 @@ def test_transaction_create_for_checkout_fully_paid(
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountCharged": {
@@ -1112,7 +1041,6 @@ def test_transaction_create_for_checkout_fully_paid(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -1125,16 +1053,14 @@ def test_transaction_create_calculate_amount_by_staff(
     staff_api_client,
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     expected_value = Decimal("10")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": [],
             amount_field_name: {
@@ -1160,12 +1086,10 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     charged_value = Decimal("11")
@@ -1175,8 +1099,7 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1191,7 +1114,7 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
                 "amount": refunded_value,
                 "currency": "USD",
             },
-            "amountVoided": {
+            "amountCanceled": {
                 "amount": canceled_value,
                 "currency": "USD",
             },
@@ -1208,12 +1131,11 @@ def test_transaction_create_multiple_amounts_provided_by_staff(
     content = get_graphql_content(response)
     data = content["data"]["transactionCreate"]["transaction"]
     assert data["actions"] == available_actions
-    assert data["status"] == status
+
     assert data["pspReference"] == psp_reference
     assert data["authorizedAmount"]["amount"] == authorized_value
     assert data["chargedAmount"]["amount"] == charged_value
     assert data["refundedAmount"]["amount"] == refunded_value
-    assert data["voidedAmount"]["amount"] == canceled_value
     assert data["canceledAmount"]["amount"] == canceled_value
 
     assert transaction.authorized_value == authorized_value
@@ -1226,23 +1148,19 @@ def test_transaction_create_create_event_for_order_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
-    transaction_status = "PENDING"
     transaction_reference = "transaction reference"
     transaction_name = "Processing transaction"
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1251,7 +1169,6 @@ def test_transaction_create_create_event_for_order_by_staff(
             },
         },
         "transaction_event": {
-            "status": transaction_status,
             "pspReference": transaction_reference,
             "message": transaction_name,
         },
@@ -1269,7 +1186,6 @@ def test_transaction_create_create_event_for_order_by_staff(
     assert event.parameters == {
         "message": transaction_name,
         "reference": transaction_reference,
-        "status": transaction_status.lower(),
     }
 
 
@@ -1277,12 +1193,10 @@ def test_transaction_create_missing_permission_by_staff(
     order_with_lines, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1291,8 +1205,7 @@ def test_transaction_create_missing_permission_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1316,7 +1229,6 @@ def test_transaction_create_missing_permission_by_staff(
     [
         ("amountAuthorized", "authorized_value"),
         ("amountCharged", "charged_value"),
-        ("amountVoided", "canceled_value"),
         ("amountCanceled", "canceled_value"),
         ("amountRefunded", "refunded_value"),
     ],
@@ -1329,16 +1241,14 @@ def test_transaction_create_incorrect_currency_by_staff(
     staff_api_client,
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     expected_value = Decimal("10")
 
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": [],
             amount_field_name: {
@@ -1366,12 +1276,10 @@ def test_transaction_create_empty_metadata_key_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "", "value": "123"}
@@ -1379,8 +1287,7 @@ def test_transaction_create_empty_metadata_key_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1410,12 +1317,10 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1423,8 +1328,7 @@ def test_transaction_create_empty_private_metadata_key_by_staff(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1454,22 +1358,19 @@ def test_creates_transaction_event_for_order_by_staff(
     order_with_lines, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Failed authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = []
     authorized_value = Decimal("0")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
-    event_status = TransactionEventStatus.FAILURE
     event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1480,9 +1381,8 @@ def test_creates_transaction_event_for_order_by_staff(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.FAILURE.name,
             "pspReference": event_psp_reference,
-            "message": event_name,
+            "message": event_message,
         },
     }
 
@@ -1499,17 +1399,14 @@ def test_creates_transaction_event_for_order_by_staff(
     events_data = data["events"]
     assert len(events_data) == 1
     event_data = events_data[0]
-    assert event_data["message"] == event_name
-    assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.FAILURE.name
+    assert event_data["message"] == event_message
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
     assert event_data["type"] == TransactionEventTypeEnum.INFO.name
 
     assert transaction.events.count() == 1
     event = transaction.events.first()
-    assert event.message == event_name
-    assert event.status == event_status
+    assert event.message == event_message
     assert event.psp_reference == event_psp_reference
     assert event.user == staff_api_client.user
     assert event.app_identifier is None
@@ -1521,26 +1418,22 @@ def test_creates_transaction_event_for_checkout_by_staff(
     checkout_with_items, permission_manage_payments, staff_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
     private_metadata = {"key": "test-2", "value": "321"}
 
-    event_status = TransactionEventStatus.SUCCESS
     event_psp_reference = "PSP-ref"
-    event_name = "Failed authorization"
+    event_message = "Failed authorization"
 
     variables = {
         "id": graphene.Node.to_global_id("Checkout", checkout_with_items.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1551,9 +1444,8 @@ def test_creates_transaction_event_for_checkout_by_staff(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.SUCCESS.name,
             "pspReference": event_psp_reference,
-            "message": event_name,
+            "message": event_message,
         },
     }
 
@@ -1572,9 +1464,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     event_data = [
         event for event in events_data if event["pspReference"] == event_psp_reference
     ][0]
-    assert event_data["message"] == event_name
-    assert event_data["name"] == event_name
-    assert event_data["status"] == TransactionEventStatusEnum.SUCCESS.name
+    assert event_data["message"] == event_message
     assert event_data["pspReference"] == event_psp_reference
     assert event_data["createdBy"]["id"] == to_global_id_or_none(staff_api_client.user)
     assert event_data["type"] == TransactionEventTypeEnum.INFO.name
@@ -1583,8 +1473,7 @@ def test_creates_transaction_event_for_checkout_by_staff(
     event = transaction.events.exclude(
         type=TransactionEventType.AUTHORIZATION_SUCCESS
     ).first()
-    assert event.message == event_name
-    assert event.status == event_status
+    assert event.message == event_message
     assert event.psp_reference == event_psp_reference
     assert event.user == staff_api_client.user
     assert event.app_identifier is None
@@ -1601,8 +1490,7 @@ def test_creates_transaction_automatically_confirm(
     order_with_lines.channel.automatically_confirm_all_new_orders = True
     order_with_lines.channel.save()
 
-    status = "Failed authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     reference = "PSP reference - 123"
     available_actions = []
     authorized_value = Decimal("0")
@@ -1610,13 +1498,12 @@ def test_creates_transaction_automatically_confirm(
     private_metadata = {"key": "test-2", "value": "321"}
 
     event_reference = "PSP-ref"
-    event_name = "Test"
+    event_message = "Test"
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
-            "reference": reference,
+            "name": name,
+            "pspReference": reference,
             "availableActions": available_actions,
             "amountAuthorized": {
                 "amount": authorized_value,
@@ -1626,9 +1513,8 @@ def test_creates_transaction_automatically_confirm(
             "privateMetadata": [private_metadata],
         },
         "transaction_event": {
-            "status": TransactionEventStatusEnum.SUCCESS.name,
-            "reference": event_reference,
-            "name": event_name,
+            "pspReference": event_reference,
+            "message": event_message,
         },
     }
 
@@ -1648,12 +1534,10 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     order_with_lines, permission_manage_payments, app_api_client
 ):
     # given
-    status = "Authorized for 10$"
-    type = "Credit Card"
+    name = "Credit Card"
     psp_reference = "PSP reference - 123"
     available_actions = [
         TransactionActionEnum.CHARGE.name,
-        TransactionActionEnum.VOID.name,
     ]
     authorized_value = Decimal("10")
     metadata = {"key": "test-1", "value": "123"}
@@ -1662,8 +1546,7 @@ def test_transaction_create_external_url_incorrect_url_format_by_app(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": status,
-            "type": type,
+            "name": name,
             "pspReference": psp_reference,
             "availableActions": available_actions,
             "amountAuthorized": {
@@ -1784,8 +1667,7 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_paid(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountCharged": {
@@ -1827,8 +1709,7 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_paid(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountCharged": {
@@ -1868,8 +1749,7 @@ def test_transaction_create_for_order_triggers_webhook_when_authorized(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountAuthorized": {
@@ -1910,8 +1790,7 @@ def test_transaction_create_for_order_triggers_webhooks_when_fully_refunded(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountRefunded": {
@@ -1952,8 +1831,7 @@ def test_transaction_create_for_order_triggers_webhook_when_partially_refunded(
     variables = {
         "id": graphene.Node.to_global_id("Order", order_with_lines.pk),
         "transaction": {
-            "status": "Charged 10$",
-            "type": "Credit Card",
+            "name": "Credit Card",
             "pspReference": "PSP reference - 123",
             "availableActions": [],
             "amountRefunded": {
