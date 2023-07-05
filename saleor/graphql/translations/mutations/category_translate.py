@@ -17,7 +17,10 @@ class CategoryTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = TranslationInput(required=True)
+        input = TranslationInput(
+            required=True,
+            description="Fields required to update category translations.",
+        )
 
     class Meta:
         description = "Creates/updates translations for a category."
