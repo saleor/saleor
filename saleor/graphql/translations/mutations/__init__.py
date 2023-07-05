@@ -10,6 +10,8 @@ from .product_bulk_translate import ProductBulkTranslate
 from .product_translate import ProductTranslate
 from .product_variant_bulk_translate import ProductVariantBulkTranslate
 from .product_variant_translate import ProductVariantTranslate
+from .promotion_rule_translate import PromotionRuleTranslate
+from .promotion_translate import PromotionTranslate
 from .sale_translate import SaleTranslate
 from .shipping_price_translate import ShippingPriceTranslate
 from .shop_settings_translate import ShopSettingsTranslate
@@ -28,6 +30,8 @@ __all__ = [
     "ProductBulkTranslate",
     "ProductVariantTranslate",
     "ProductVariantBulkTranslate",
+    "PromotionTranslate",
+    "PromotionRuleTranslate",
     "SaleTranslate",
     "ShippingPriceTranslate",
     "ShopSettingsTranslate",

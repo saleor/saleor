@@ -4017,3 +4017,103 @@ def test_nested_page_attribute_translation(
     attribute_response = data["translation"]["attributeValues"][0]["attribute"]
     assert attribute_response["name"] == plain_text_attribute_page_type.name
     assert attribute_response["translation"]["name"] == text
+
+
+QUERY_TRANSLATION_PROMOTION = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            ...on PromotionTranslatableContent{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                    description
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_promotion(
+    staff_api_client,
+    promotion,
+    promotion_translation_fr,
+    permission_manage_translations,
+):
+    # given
+    promotion_id = graphene.Node.to_global_id("Promotion", promotion.id)
+
+    variables = {
+        "id": promotion_id,
+        "kind": TranslatableKinds.PROMOTION.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PROMOTION,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == promotion.name
+    assert data["translation"]["name"] == promotion_translation_fr.name
+    assert data["translation"]["description"] == json.dumps(
+        promotion_translation_fr.description
+    )
+
+
+QUERY_TRANSLATION_PROMOTION_RULE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            ...on PromotionRuleTranslatableContent{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                    description
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_promotion_rule(
+    staff_api_client,
+    promotion_rule,
+    promotion_rule_translation_fr,
+    permission_manage_translations,
+):
+    # given
+    rule_id = graphene.Node.to_global_id("PromotionRule", promotion_rule.id)
+
+    variables = {
+        "id": rule_id,
+        "kind": TranslatableKinds.PROMOTION_RULE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PROMOTION_RULE,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == promotion_rule.name
+    assert data["translation"]["name"] == promotion_rule_translation_fr.name
+    assert data["translation"]["description"] == json.dumps(
+        promotion_rule_translation_fr.description
+    )
