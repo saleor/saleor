@@ -861,6 +861,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
             rule_discount_amount = _get_rule_discount_amount(
                 variant_listing_promotion_rule, line.quantity
             )
+            discount_name = _get_discount_name(rule)
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
@@ -869,7 +870,7 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                     value=rule.reward_value,
                     amount_value=rule_discount_amount,
                     currency=line.currency,
-                    name=rule.name or rule.promotion.name,
+                    name=discount_name,
                     # TODO: set the promotion translation
                     translated_name="",
                     reason=None,
@@ -955,6 +956,12 @@ def _get_rule_discount_amount(
     return discount_amount * line_quantity
 
 
+def _get_discount_name(rule: "PromotionRule"):
+    if rule.promotion.name and rule.name:
+        return f"{rule.promotion.name}: {rule.name}"
+    return rule.name or rule.promotion.name
+
+
 def _update_line_discount(
     rule: "PromotionRule",
     rule_discount_amount: Decimal,
@@ -972,9 +979,9 @@ def _update_line_discount(
     if discount_to_update.amount_value != rule_discount_amount:
         discount_to_update.amount_value = rule_discount_amount
         updated_fields.append("amount_value")
-    name = rule.name or rule.promotion.name
-    if discount_to_update.name != name:
-        discount_to_update.name = name
+    discount_name = _get_discount_name(rule)
+    if discount_to_update.name != discount_name:
+        discount_to_update.name = discount_name
         updated_fields.append("name")
     # TODO: after adding a transaltion update the translated_name
 

@@ -74,7 +74,11 @@ def test_create_fixed_discount(checkout_lines_info, promotion_without_rules):
         discount_from_info.amount_value == discount_from_db.amount_value == reward_value
     )
     assert discount_from_info.currency == discount_from_db.currency == "USD"
-    assert discount_from_info.name == discount_from_db.name == rule.name
+    assert (
+        discount_from_info.name
+        == discount_from_db.name
+        == f"{promotion_without_rules.name}: {rule.name}"
+    )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
@@ -269,7 +273,11 @@ def test_create_percentage_discount(checkout_lines_info, promotion_without_rules
         == discount_amount
     )
     assert discount_from_info.currency == discount_from_db.currency == "USD"
-    assert discount_from_info.name == discount_from_db.name == rule.name
+    assert (
+        discount_from_info.name
+        == discount_from_db.name
+        == f"{promotion_without_rules.name}: {rule.name}"
+    )
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
@@ -340,7 +348,8 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
         == expected_discount_amount
     )
     assert discount_from_info.currency == discount_from_db.currency == "USD"
-    assert discount_from_info.name == discount_from_db.name == rule.name
+    discount_name = f"{promotion_without_rules.name}: {rule.name}"
+    assert discount_from_info.name == discount_from_db.name == discount_name
     assert discount_from_info.reason == discount_from_db.reason is None
     assert discount_from_info.promotion_rule == discount_from_db.promotion_rule == rule
     assert discount_from_info.voucher == discount_from_db.voucher is None
@@ -541,7 +550,11 @@ def test_two_promotions_applied_to_two_different_lines(
         == reward_value_1
     )
     assert discount_from_info_1.currency == discount_from_db_1.currency == "USD"
-    assert discount_from_info_1.name == discount_from_db_1.name == rule_1.name
+    assert (
+        discount_from_info_1.name
+        == discount_from_db_1.name
+        == f"{promotion_without_rules.name}: {rule_1.name}"
+    )
     assert discount_from_info_1.reason == discount_from_db_1.reason is None
     assert (
         discount_from_info_1.promotion_rule
@@ -568,7 +581,11 @@ def test_two_promotions_applied_to_two_different_lines(
         == reward_value_2
     )
     assert discount_from_info_2.currency == discount_from_db_2.currency == "USD"
-    assert discount_from_info_2.name == discount_from_db_2.name == rule_2.name
+    assert (
+        discount_from_info_2.name
+        == discount_from_db_2.name
+        == f"{promotion_without_rules.name}: {rule_2.name}"
+    )
     assert discount_from_info_2.reason == discount_from_db_2.reason is None
     assert (
         discount_from_info_2.promotion_rule
@@ -715,7 +732,11 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         == RewardValueType.FIXED
     )
     assert discount_from_info.value == line_discount_1.value == rule_1.reward_value
-    assert discount_from_info.name == line_discount_1.name == rule_1.name
+    assert (
+        discount_from_info.name
+        == line_discount_1.name
+        == f"{promotion_without_rules.name}: {rule_1.name}"
+    )
     assert (
         discount_from_info.amount_value
         == line_discount_1.amount_value
@@ -724,12 +745,3 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
 
     for checkout_line_info in checkout_lines_info[1:]:
         assert not checkout_line_info.discounts
-
-
-def test_discounts_updated(
-    checkout_lines_info,
-    checkout_info,
-    new_sale_percentage,
-    sale_1_usd,
-):
-    pass
