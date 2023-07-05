@@ -626,9 +626,16 @@ def subscription_promotion_deleted_webhook(subscription_webhook):
 
 
 @pytest.fixture
-def subscription_promotion_toggle_webhook(subscription_webhook):
+def subscription_promotion_started_webhook(subscription_webhook):
     return subscription_webhook(
-        queries.PROMOTION_TOGGLE, WebhookEventAsyncType.PROMOTION_TOGGLE
+        queries.PROMOTION_STARTED, WebhookEventAsyncType.PROMOTION_STARTED
+    )
+
+
+@pytest.fixture
+def subscription_promotion_ended_webhook(subscription_webhook):
+    return subscription_webhook(
+        queries.PROMOTION_ENDED, WebhookEventAsyncType.PROMOTION_ENDED
     )
 
 

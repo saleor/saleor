@@ -1340,12 +1340,28 @@ PROMOTION_DELETED = (
 )
 
 
-PROMOTION_TOGGLE = (
+PROMOTION_STARTED = (
     fragments.PROMOTION_DETAILS
     + """
     subscription{
       event{
-        ...on PromotionToggle{
+        ...on PromotionStarted{
+          promotion{
+            ...PromotionDetails
+          }
+        }
+      }
+    }
+"""
+)
+
+
+PROMOTION_ENDED = (
+    fragments.PROMOTION_DETAILS
+    + """
+    subscription{
+      event{
+        ...on PromotionEnded{
           promotion{
             ...PromotionDetails
           }

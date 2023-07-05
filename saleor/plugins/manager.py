@@ -778,11 +778,15 @@ class PluginsManager(PaymentInterface):
             "promotion_deleted", default_value, promotion
         )
 
-    def promotion_toggle(self, promotion: "Promotion"):
+    def promotion_started(self, promotion: "Promotion"):
         default_value = None
         return self.__run_method_on_plugins(
-            "promotion_toggle", default_value, promotion
+            "promotion_started", default_value, promotion
         )
+
+    def promotion_ended(self, promotion: "Promotion"):
+        default_value = None
+        return self.__run_method_on_plugins("promotion_ended", default_value, promotion)
 
     def invoice_request(
         self, order: "Order", invoice: "Invoice", number: Optional[str]

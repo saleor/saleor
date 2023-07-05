@@ -103,7 +103,8 @@ class WebhookEventAsyncType:
     PROMOTION_CREATED = "promotion_created"
     PROMOTION_UPDATED = "promotion_updated"
     PROMOTION_DELETED = "promotion_deleted"
-    PROMOTION_TOGGLE = "promotion_toggle"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
@@ -464,8 +465,12 @@ class WebhookEventAsyncType:
             "name": "Promotion deleted",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
-        PROMOTION_TOGGLE: {
-            "name": "Promotion toggle",
+        PROMOTION_STARTED: {
+            "name": "Promotion started",
+            "permission": DiscountPermissions.MANAGE_DISCOUNTS,
+        },
+        PROMOTION_ENDED: {
+            "name": "Promotion ended",
             "permission": DiscountPermissions.MANAGE_DISCOUNTS,
         },
         INVOICE_REQUESTED: {
