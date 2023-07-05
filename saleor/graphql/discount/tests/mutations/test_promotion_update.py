@@ -32,11 +32,11 @@ PROMOTION_UPDATE_MUTATION = """
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_staff_user(
     promotion_updated_mock,
-    promotion_toggle_mock,
+    promotion_started_mock,
     update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -77,7 +77,7 @@ def test_promotion_update_by_staff_user(
     assert promotion.last_notification_scheduled_at == timezone.now()
 
     promotion_updated_mock.assert_called_once_with(promotion)
-    promotion_toggle_mock.assert_called_once_with(promotion)
+    promotion_started_mock.assert_called_once_with(promotion)
     update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
         promotion.id
     )
@@ -85,19 +85,22 @@ def test_promotion_update_by_staff_user(
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
+@patch("saleor.plugins.manager.PluginsManager.promotion_ended")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_app(
     promotion_updated_mock,
-    promotion_toggle_mock,
+    promotion_ended_mock,
     update_products_discounted_prices_of_promotion_task_mock,
     app_api_client,
     permission_manage_discounts,
     promotion,
 ):
     # given
-    start_date = timezone.now() + timedelta(days=1)
-    end_date = timezone.now() + timedelta(days=10)
+    promotion.end_date = None
+    promotion.save(update_fields=["end_date"])
+
+    start_date = timezone.now() - timedelta(days=10)
+    end_date = timezone.now() - timedelta(days=2)
 
     new_promotion_name = "new test promotion"
     variables = {
@@ -128,7 +131,7 @@ def test_promotion_update_by_app(
     assert promotion_data["updatedAt"] == timezone.now().isoformat()
 
     promotion_updated_mock.assert_called_once_with(promotion)
-    promotion_toggle_mock.assert_not_called()
+    promotion_ended_mock.assert_called_once_with(promotion)
     update_products_discounted_prices_of_promotion_task_mock.assert_called_once_with(
         promotion.id
     )
@@ -136,11 +139,13 @@ def test_promotion_update_by_app(
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_ended")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_dates_dont_change(
     promotion_updated_mock,
-    promotion_toggle_mock,
+    promotion_started_mock,
+    promotion_ended_mock,
     update_products_discounted_prices_of_promotion_task_mock,
     staff_api_client,
     permission_group_manage_discounts,
@@ -181,17 +186,20 @@ def test_promotion_update_dates_dont_change(
     assert promotion.last_notification_scheduled_at == previous_notification_date
 
     promotion_updated_mock.assert_called_once_with(promotion)
-    promotion_toggle_mock.assert_not_called()
+    promotion_started_mock.assert_not_called()
+    promotion_ended_mock.assert_not_called()
     update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
 
 
 @freeze_time("2020-03-18 12:00:00")
 @patch("saleor.product.tasks.update_products_discounted_prices_of_promotion_task.delay")
-@patch("saleor.plugins.manager.PluginsManager.promotion_toggle")
+@patch("saleor.plugins.manager.PluginsManager.promotion_started")
+@patch("saleor.plugins.manager.PluginsManager.promotion_ended")
 @patch("saleor.plugins.manager.PluginsManager.promotion_updated")
 def test_promotion_update_by_customer(
     promotion_updated_mock,
-    promotion_toggle_mock,
+    promotion_started_mock,
+    promotion_ended_mock,
     update_products_discounted_prices_of_promotion_task_mock,
     api_client,
     promotion,
@@ -217,7 +225,8 @@ def test_promotion_update_by_customer(
     assert_no_permission(response)
 
     promotion_updated_mock.assert_not_called()
-    promotion_toggle_mock.assert_not_called()
+    promotion_started_mock.assert_not_called()
+    promotion_ended_mock.assert_not_called()
     update_products_discounted_prices_of_promotion_task_mock.assert_not_called()
 
 

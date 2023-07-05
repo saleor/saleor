@@ -93,7 +93,8 @@ class WebhookEventAsyncType:
     PROMOTION_CREATED = "promotion_created"
     PROMOTION_UPDATED = "promotion_updated"
     PROMOTION_DELETED = "promotion_deleted"
-    PROMOTION_TOGGLE = "promotion_toggle"
+    PROMOTION_STARTED = "promotion_started"
+    PROMOTION_ENDED = "promotion_ended"
 
     INVOICE_REQUESTED = "invoice_requested"
     INVOICE_DELETED = "invoice_deleted"
@@ -237,7 +238,8 @@ class WebhookEventAsyncType:
         PROMOTION_CREATED: "Promotion created",
         PROMOTION_UPDATED: "Promotion updated",
         PROMOTION_DELETED: "Promotion deleted",
-        PROMOTION_TOGGLE: "Promotion toggle",
+        PROMOTION_STARTED: "Promotion started",
+        PROMOTION_ENDED: "Promotion ended",
         INVOICE_REQUESTED: "Invoice requested",
         INVOICE_DELETED: "Invoice deleted",
         INVOICE_SENT: "Invoice sent",
@@ -371,7 +373,8 @@ class WebhookEventAsyncType:
         (PROMOTION_CREATED, DISPLAY_LABELS[PROMOTION_CREATED]),
         (PROMOTION_UPDATED, DISPLAY_LABELS[PROMOTION_UPDATED]),
         (PROMOTION_DELETED, DISPLAY_LABELS[PROMOTION_DELETED]),
-        (PROMOTION_TOGGLE, DISPLAY_LABELS[PROMOTION_TOGGLE]),
+        (PROMOTION_STARTED, DISPLAY_LABELS[PROMOTION_STARTED]),
+        (PROMOTION_ENDED, DISPLAY_LABELS[PROMOTION_ENDED]),
         (INVOICE_REQUESTED, DISPLAY_LABELS[INVOICE_REQUESTED]),
         (INVOICE_DELETED, DISPLAY_LABELS[INVOICE_DELETED]),
         (INVOICE_SENT, DISPLAY_LABELS[INVOICE_SENT]),
@@ -509,7 +512,8 @@ class WebhookEventAsyncType:
         PROMOTION_CREATED: DiscountPermissions.MANAGE_DISCOUNTS,
         PROMOTION_UPDATED: DiscountPermissions.MANAGE_DISCOUNTS,
         PROMOTION_DELETED: DiscountPermissions.MANAGE_DISCOUNTS,
-        PROMOTION_TOGGLE: DiscountPermissions.MANAGE_DISCOUNTS,
+        PROMOTION_STARTED: DiscountPermissions.MANAGE_DISCOUNTS,
+        PROMOTION_ENDED: DiscountPermissions.MANAGE_DISCOUNTS,
         INVOICE_REQUESTED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_DELETED: OrderPermissions.MANAGE_ORDERS,
         INVOICE_SENT: OrderPermissions.MANAGE_ORDERS,
