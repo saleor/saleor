@@ -16,7 +16,7 @@ from ...shipping import models as shipping_models
 from ...site import models as site_models
 from ..attribute.dataloaders import AttributesByAttributeId
 from ..channel import ChannelContext
-from ..core.descriptions import (
+from ..core.descriptions import (  # 13177))
     ADDED_IN_39,
     ADDED_IN_315,
     DEPRECATED_IN_3X_FIELD,
