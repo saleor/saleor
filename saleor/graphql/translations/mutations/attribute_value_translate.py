@@ -27,7 +27,10 @@ class AttributeValueTranslate(BaseTranslateMutation):
         language_code = graphene.Argument(
             LanguageCodeEnum, required=True, description="Translation language code."
         )
-        input = AttributeValueTranslationInput(required=True)
+        input = AttributeValueTranslationInput(
+            required=True,
+            description="Fields required to update attribute value translations.",
+        )
 
     class Meta:
         description = "Creates/updates translations for an attribute value."
