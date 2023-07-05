@@ -8,7 +8,12 @@ from ..core.doc_category import DOC_CATEGORY_DISCOUNTS
 from ..core.fields import FilterConnectionField, PermissionsField
 from ..core.types import FilterInputObjectType
 from ..core.utils import from_global_id_or_error
-from ..translations.mutations import SaleTranslate, VoucherTranslate
+from ..translations.mutations import (
+    PromotionRuleTranslate,
+    PromotionTranslate,
+    SaleTranslate,
+    VoucherTranslate,
+)
 from .filters import PromotionWhereInput, SaleFilter, VoucherFilter
 from .mutations import (
     PromotionCreate,
@@ -190,6 +195,8 @@ class DiscountMutations(graphene.ObjectType):
     promotion_rule_create = PromotionRuleCreate.Field()
     promotion_rule_update = PromotionRuleUpdate.Field()
     promotion_rule_delete = PromotionRuleDelete.Field()
+    promotion_translate = PromotionTranslate.Field()
+    promotion_rule_translate = PromotionRuleTranslate.Field()
 
     sale_create = SaleCreate.Field()
     sale_delete = SaleDelete.Field()
