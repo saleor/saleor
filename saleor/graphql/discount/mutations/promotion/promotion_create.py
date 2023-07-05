@@ -213,13 +213,13 @@ class PromotionCreate(ModelMutation):
         cls, manager: "PluginsManager", instance: models.Promotion
     ):
         cls.call_event(manager.promotion_created, instance)
-        cls.send_promotion_toggle_webhook(manager, instance)
+        cls.send_promotion_started_webhook(manager, instance)
 
     @classmethod
-    def send_promotion_toggle_webhook(
+    def send_promotion_started_webhook(
         cls, manager: "PluginsManager", instance: models.Promotion
     ):
-        """Send a webhook about starting or ending promotion if it hasn't been sent yet.
+        """Send a webhook about starting promotion if it hasn't been sent yet.
 
         Send the webhook when the start date is before the current date and the
         promotion is not already finished.
@@ -230,6 +230,6 @@ class PromotionCreate(ModelMutation):
         end_date = instance.end_date
 
         if (start_date and start_date <= now) and (not end_date or not end_date <= now):
-            cls.call_event(manager.promotion_toggle, instance)
+            cls.call_event(manager.promotion_started, instance)
             instance.last_notification_scheduled_at = now
             instance.save(update_fields=["last_notification_scheduled_at"])
