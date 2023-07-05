@@ -14,7 +14,7 @@ from ..dataloaders import ProductVariantByIdLoader
 
 class DigitalContentUrl(ModelObjectType[models.DigitalContentUrl]):
     id = graphene.GlobalID(
-        required=True, description="The ID of the digiatl content URL."
+        required=True, description="The ID of the digital content URL."
     )
     content = graphene.Field(
         lambda: DigitalContent,
@@ -63,7 +63,7 @@ class DigitalContent(ModelObjectType[models.DigitalContent]):
         description="Maximum number of allowed downloads for the digital content."
     )
     url_valid_days = graphene.Int(
-        description="NUmber of days the URL for the digital content remains valid."
+        description="Number of days the URL for the digital content remains valid."
     )
     urls = NonNullList(
         lambda: DigitalContentUrl,
