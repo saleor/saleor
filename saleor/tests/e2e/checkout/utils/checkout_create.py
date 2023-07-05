@@ -1,5 +1,5 @@
+from ... import DEFAULT_ADDRESS
 from ...utils import get_graphql_content
-from .. import DEFAULT_ADDRESS
 
 CHECKOUT_CREATE_MUTATION = """
 mutation CreateCheckout($input: CheckoutCreateInput!) {

@@ -112,7 +112,7 @@ def test_process_checkout_with_digital_product(
         channel_slug,
     )
 
-    # Step 1
+    # Step 1  - Create checkout.
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
@@ -126,15 +126,15 @@ def test_process_checkout_with_digital_product(
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
     assert checkout_data["isShippingRequired"] is False
 
-    # Step 2
+    # Step 2 - Set billing address for checkout.
     checkout_billing_address_update(e2e_not_logged_api_client, checkout_id)
 
-    # Step 3
+    # Step 3  - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_not_logged_api_client, checkout_id, total_gross_amount
     )
 
-    # Step 4
+    # Step 4 - Complete checkout.
     order_data = checkout_complete(e2e_not_logged_api_client, checkout_id)
     assert order_data["isShippingRequired"] is False
     assert order_data["status"] == "UNFULFILLED"

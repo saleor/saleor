@@ -20,6 +20,7 @@ mutation CheckoutComplete($checkoutId: ID!) {
           amount
         }
       }
+      checkoutId
       deliveryMethod {
         ... on ShippingMethod {
           id
@@ -47,5 +48,7 @@ def checkout_complete(api_client, checkout_id):
     assert content["data"]["checkoutComplete"]["errors"] == []
 
     data = content["data"]["checkoutComplete"]["order"]
+    assert data["id"] is not None
+    assert data["checkoutId"] == checkout_id
 
     return data

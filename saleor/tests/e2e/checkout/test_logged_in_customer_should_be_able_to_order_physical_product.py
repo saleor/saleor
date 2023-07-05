@@ -120,14 +120,13 @@ def test_process_checkout_with_physical_product(
         channel_slug,
     )
 
-    # Step 1
+    # Step 1 - Login as existing customer.
 
-    # Login as existing customer
     # This step is implemented automatically by using a proper
     # API client(eg. e2e_staff_api_client, e2e_not_logged_api_client,
     # e2e_logged_api_client).
 
-    # Step 2
+    # Step 2 - Create checkout.
     lines = [
         {"variantId": product_variant_id, "quantity": 1},
     ]
@@ -148,7 +147,7 @@ def test_process_checkout_with_physical_product(
     assert checkout_data["shippingMethods"] != []
     shipping_method_id = checkout_data["shippingMethods"][0]["id"]
 
-    # Step 3
+    # Step 3 - Set DeliveryMethod for checkout.
     checkout_data = checkout_delivery_method_update(
         e2e_logged_api_client,
         checkout_id,
@@ -157,12 +156,12 @@ def test_process_checkout_with_physical_product(
     assert checkout_data["deliveryMethod"]["id"] == shipping_method_id
     total_gross_amount = checkout_data["totalPrice"]["gross"]["amount"]
 
-    # Step 4
+    # Step 4 - Create payment for checkout.
     checkout_dummy_payment_create(
         e2e_logged_api_client, checkout_id, total_gross_amount
     )
 
-    # Step 5
+    # Step 5 - Complete checkout.
     order_data = checkout_complete(e2e_logged_api_client, checkout_id)
     assert order_data["isShippingRequired"] is True
     assert order_data["user"]["email"] == expected_email
