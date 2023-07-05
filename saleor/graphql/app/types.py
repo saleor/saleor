@@ -2,9 +2,10 @@ import base64
 from typing import List, Optional, Type, Union
 
 import graphene
+from graphene import AbstractType
 
 from ...app import models
-from ...app.types import AppExtensionTarget
+from ...app.types import AppEventType, AppExtensionTarget
 from ...core.exceptions import PermissionDenied
 from ...core.jwt import JWT_THIRDPARTY_ACCESS_TYPE
 from ...core.utils import build_absolute_uri
@@ -42,13 +43,14 @@ from ..core.types import (
     Permission,
 )
 from ..core.utils import from_global_id_or_error
-from ..meta.types import ObjectWithMetadata
+from ..meta.types import ObjectEvent, ObjectWithEvents, ObjectWithMetadata
 from ..utils import format_permissions_for_display, get_user_or_app_from_context
 from ..webhook.dataloaders import WebhooksByAppIdLoader
 from ..webhook.enums import WebhookEventTypeAsyncEnum, WebhookEventTypeSyncEnum
 from ..webhook.types import Webhook
 from .dataloaders import (
     AppByIdLoader,
+    AppEventsByAppIdLoader,
     AppExtensionByAppIdLoader,
     AppTokensByAppIdLoader,
     DataLoader,
@@ -56,7 +58,12 @@ from .dataloaders import (
     ThumbnailByAppInstallationIdSizeAndFormatLoader,
     app_promise_callback,
 )
-from .enums import AppExtensionMountEnum, AppExtensionTargetEnum, AppTypeEnum
+from .enums import (
+    AppEventRequestorTypeEnum,
+    AppExtensionMountEnum,
+    AppExtensionTargetEnum,
+    AppTypeEnum,
+)
 from .resolvers import (
     resolve_access_token_for_app,
     resolve_access_token_for_app_extension,
@@ -554,7 +561,7 @@ class App(ModelObjectType[models.App]):
 
     class Meta:
         description = "Represents app data."
-        interfaces = [graphene.relay.Node, ObjectWithMetadata]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata, ObjectWithEvents]
         model = models.App
 
     @staticmethod
@@ -621,6 +628,10 @@ class App(ModelObjectType[models.App]):
         if root.brand_logo_default:
             return root
 
+    @staticmethod
+    def resolve_events(root: models.App, info: ResolveInfo):
+        return AppEventsByAppIdLoader(info.context).load(root.id)
+
 
 class AppCountableConnection(CountableConnection):
     class Meta:
@@ -650,3 +661,38 @@ class AppInstallation(ModelObjectType[models.AppInstallation]):
     def resolve_brand(root: models.AppInstallation, _info: ResolveInfo):
         if root.brand_logo_default:
             return root
+
+
+class AppEventBase(AbstractType):
+    requestor_type = AppEventRequestorTypeEnum(
+        description="App event requestor type.", required=True
+    )
+
+    @staticmethod
+    def resolve_requestor_type(root: models.AppEvent, _info):
+        return root.parameters.get("requestor_type", None)
+
+
+class AppEventInstalled(ModelObjectType[models.AppEvent], AppEventBase):
+    class Meta:
+        interfaces = [graphene.relay.Node, ObjectEvent]
+        model = models.AppEvent
+
+
+class AppEventActivated(ModelObjectType[models.AppEvent], AppEventBase):
+    class Meta:
+        interfaces = [graphene.relay.Node, ObjectEvent]
+        model = models.AppEvent
+
+
+class AppEventDeactivated(ModelObjectType[models.AppEvent], AppEventBase):
+    class Meta:
+        interfaces = [graphene.relay.Node, ObjectEvent]
+        model = models.AppEvent
+
+
+APP_EVENTS_MAP = {
+    AppEventType.INSTALLED: AppEventInstalled,
+    AppEventType.ACTIVATED: AppEventActivated,
+    AppEventType.DEACTIVATED: AppEventDeactivated,
+}

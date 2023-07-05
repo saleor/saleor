@@ -6,11 +6,15 @@ from django.contrib.auth.hashers import check_password
 from django.utils.functional import LazyObject
 from promise import Promise
 
-from ...app.models import App, AppExtension, AppToken
+from ...app.models import App, AppEvent, AppExtension, AppToken
 from ...core.auth import get_token_from_request
 from ...core.utils.lazyobjects import unwrap_lazy
 from ..core import SaleorContext
-from ..core.dataloaders import BaseThumbnailBySizeAndFormatLoader, DataLoader
+from ..core.dataloaders import (
+    BaseEventsByParentIdLoader,
+    BaseThumbnailBySizeAndFormatLoader,
+    DataLoader,
+)
 
 
 class AppByIdLoader(DataLoader):
@@ -139,3 +143,9 @@ def app_promise_callback(func):
         )
 
     return _wrapper
+
+
+class AppEventsByAppIdLoader(BaseEventsByParentIdLoader):
+    context_key = "app_events_by_app_id"
+    parent_model = App
+    event_model = AppEvent

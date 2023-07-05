@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.text import Truncator
 from oauthlib.common import generate_token
 
-from ..core.models import Job, ModelWithMetadata
+from ..core.models import EventModel, Job, ModelWithMetadata
 from ..permission.enums import AppPermission, BasePermissionEnum
 from ..permission.models import Permission
 from ..webhook.event_types import WebhookEventAsyncType, WebhookEventSyncType
@@ -184,3 +184,7 @@ class AppInstallation(Job):
                 raise ValueError("Cannot truncate message without max_length")
             message = Truncator(message).chars(max_length)
         self.message = message
+
+
+class AppEvent(EventModel):
+    parent = models.ForeignKey(App, related_name="events", on_delete=models.CASCADE)

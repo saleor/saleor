@@ -2854,7 +2854,7 @@ enum WebhookEventTypeAsyncEnum @doc(category: "Webhooks") {
 }
 
 """Represents app data."""
-type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
+type App implements Node & ObjectWithMetadata & ObjectWithEvents @doc(category: "Apps") {
   """The ID of the app."""
   id: ID!
 
@@ -2903,6 +2903,9 @@ type App implements Node & ObjectWithMetadata @doc(category: "Apps") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
+
+  """The list of events associated with the object."""
+  events: [ObjectEvent!]
 
   """List of the app's permissions."""
   permissions: [Permission!]
@@ -3046,41 +3049,26 @@ Example:
 """
 scalar Metadata
 
-"""Represents a permission object in a friendly form."""
-type Permission @doc(category: "Authentication") {
-  """Internal code for permission."""
-  code: PermissionEnum!
-
-  """Describe action(s) allowed to do by permission."""
-  name: String!
+interface ObjectWithEvents {
+  """The list of events associated with the object."""
+  events: [ObjectEvent!]
 }
 
-"""An enumeration."""
-enum PermissionEnum @doc(category: "Users") {
-  MANAGE_USERS
-  MANAGE_STAFF
-  IMPERSONATE_USER
-  MANAGE_APPS
-  MANAGE_OBSERVABILITY
-  MANAGE_CHECKOUTS
-  HANDLE_CHECKOUTS
-  HANDLE_TAXES
-  MANAGE_TAXES
-  MANAGE_CHANNELS
-  MANAGE_DISCOUNTS
-  MANAGE_GIFT_CARD
-  MANAGE_MENUS
-  MANAGE_ORDERS
-  MANAGE_ORDERS_IMPORT
-  MANAGE_PAGES
-  MANAGE_PAGE_TYPES_AND_ATTRIBUTES
-  HANDLE_PAYMENTS
-  MANAGE_PLUGINS
-  MANAGE_PRODUCTS
-  MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
-  MANAGE_SHIPPING
-  MANAGE_SETTINGS
-  MANAGE_TRANSLATIONS
+interface ObjectEvent {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: String!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
+  """
+  createdBy: UserOrApp
 }
 
 """
@@ -3090,437 +3078,11 @@ value as specified by
 """
 scalar DateTime
 
-"""Enum determining type of your App."""
-enum AppTypeEnum @doc(category: "Apps") {
-  """
-  Local Saleor App. The app is fully manageable from dashboard. You can change assigned permissions, add webhooks, or authentication token
-  """
-  LOCAL
-
-  """
-  Third party external App. Installation is fully automated. Saleor uses a defined App manifest to gather all required information.
-  """
-  THIRDPARTY
-}
-
-"""Represents token data."""
-type AppToken implements Node @doc(category: "Apps") {
-  """The ID of the app token."""
-  id: ID!
-
-  """Name of the authenticated token."""
-  name: String
-
-  """Last 4 characters of the token."""
-  authToken: String
-}
-
-"""Represents app data."""
-type AppExtension implements Node @doc(category: "Apps") {
-  """The ID of the app extension."""
-  id: ID!
-
-  """List of the app extension's permissions."""
-  permissions: [Permission!]!
-
-  """Label of the extension to show in the dashboard."""
-  label: String!
-
-  """URL of a view where extension's iframe is placed."""
-  url: String!
-
-  """Place where given extension will be mounted."""
-  mount: AppExtensionMountEnum!
-
-  """Type of way how app extension will be opened."""
-  target: AppExtensionTargetEnum!
-
-  """The app assigned to app extension."""
-  app: App!
-
-  """JWT token used to authenticate by third-party app extension."""
-  accessToken: String
-}
-
-"""All places where app extension can be mounted."""
-enum AppExtensionMountEnum @doc(category: "Apps") {
-  CUSTOMER_OVERVIEW_CREATE
-  CUSTOMER_OVERVIEW_MORE_ACTIONS
-  CUSTOMER_DETAILS_MORE_ACTIONS
-  PRODUCT_OVERVIEW_CREATE
-  PRODUCT_OVERVIEW_MORE_ACTIONS
-  PRODUCT_DETAILS_MORE_ACTIONS
-  NAVIGATION_CATALOG
-  NAVIGATION_ORDERS
-  NAVIGATION_CUSTOMERS
-  NAVIGATION_DISCOUNTS
-  NAVIGATION_TRANSLATIONS
-  NAVIGATION_PAGES
-  ORDER_DETAILS_MORE_ACTIONS
-  ORDER_OVERVIEW_CREATE
-  ORDER_OVERVIEW_MORE_ACTIONS
-}
-
-"""
-All available ways of opening an app extension.
-
-    POPUP - app's extension will be mounted as a popup window
-    APP_PAGE - redirect to app's page
-"""
-enum AppExtensionTargetEnum @doc(category: "Apps") {
-  POPUP
-  APP_PAGE
-}
-
-"""
-Represents the app's brand data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type AppBrand @doc(category: "Apps") {
-  """
-  App's logos details.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  logo: AppBrandLogo!
-}
-
-"""
-Represents the app's brand logo data.
-
-Added in Saleor 3.14.
-
-Note: this API is currently in Feature Preview and can be subject to changes at later point.
-"""
-type AppBrandLogo @doc(category: "Apps") {
-  """
-  URL to the default logo image.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  default(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.14.
-    
-    Note: this API is currently in Feature Preview and can be subject to changes at later point.
-    """
-    format: IconThumbnailFormatEnum = ORIGINAL
-  ): String!
-}
-
-"""Thumbnail formats for icon images."""
-enum IconThumbnailFormatEnum {
-  ORIGINAL
-  WEBP
-}
-
-type EventDeliveryCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [EventDeliveryCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-"""
-The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
-"""
-type PageInfo {
-  """When paginating forwards, are there more items?"""
-  hasNextPage: Boolean!
-
-  """When paginating backwards, are there more items?"""
-  hasPreviousPage: Boolean!
-
-  """When paginating backwards, the cursor to continue."""
-  startCursor: String
-
-  """When paginating forwards, the cursor to continue."""
-  endCursor: String
-}
-
-type EventDeliveryCountableEdge {
-  """The item at the end of the edge."""
-  node: EventDelivery!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Event delivery."""
-type EventDelivery implements Node {
-  id: ID!
-  createdAt: DateTime!
-
-  """Event delivery status."""
-  status: EventDeliveryStatusEnum!
-
-  """Webhook event type."""
-  eventType: WebhookEventTypeEnum!
-
-  """Event delivery attempts."""
-  attempts(
-    """Event delivery sorter"""
-    sortBy: EventDeliveryAttemptSortingInput
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): EventDeliveryAttemptCountableConnection
-
-  """Event payload."""
-  payload: String
-}
-
-enum EventDeliveryStatusEnum @doc(category: "Webhooks") {
-  PENDING
-  SUCCESS
-  FAILED
-}
-
-type EventDeliveryAttemptCountableConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [EventDeliveryAttemptCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type EventDeliveryAttemptCountableEdge {
-  """The item at the end of the edge."""
-  node: EventDeliveryAttempt!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Event delivery attempts."""
-type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
-  id: ID!
-
-  """Event delivery creation date and time."""
-  createdAt: DateTime!
-
-  """Task id for delivery attempt."""
-  taskId: String
-
-  """Delivery attempt duration."""
-  duration: Float
-
-  """Delivery attempt response content."""
-  response: String
-
-  """Response headers for delivery attempt."""
-  responseHeaders: String
-
-  """Delivery attempt response status code."""
-  responseStatusCode: Int
-
-  """Request headers for delivery attempt."""
-  requestHeaders: String
-
-  """Event delivery status."""
-  status: EventDeliveryStatusEnum!
-}
-
-input EventDeliveryAttemptSortingInput @doc(category: "Webhooks") {
-  """Specifies the direction in which to sort attempts."""
-  direction: OrderDirection!
-
-  """Sort attempts by the selected field."""
-  field: EventDeliveryAttemptSortField!
-}
-
-enum OrderDirection {
-  """Specifies an ascending sort order."""
-  ASC
-
-  """Specifies a descending sort order."""
-  DESC
-}
-
-enum EventDeliveryAttemptSortField @doc(category: "Webhooks") {
-  """Sort event delivery attempts by created at."""
-  CREATED_AT
-}
-
-input EventDeliverySortingInput @doc(category: "Webhooks") {
-  """Specifies the direction in which to sort deliveries."""
-  direction: OrderDirection!
-
-  """Sort deliveries by the selected field."""
-  field: EventDeliverySortField!
-}
-
-enum EventDeliverySortField @doc(category: "Webhooks") {
-  """Sort event deliveries by created at."""
-  CREATED_AT
-}
-
-input EventDeliveryFilterInput {
-  status: EventDeliveryStatusEnum
-  eventType: WebhookEventTypeEnum
-}
-
-scalar JSONString
-
-"""An enumeration."""
-enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
-  ADDRESS_CREATED
-  ADDRESS_UPDATED
-  ADDRESS_DELETED
-  APP_INSTALLED
-  APP_UPDATED
-  APP_DELETED
-  APP_STATUS_CHANGED
-  ATTRIBUTE_CREATED
-  ATTRIBUTE_UPDATED
-  ATTRIBUTE_DELETED
-  ATTRIBUTE_VALUE_CREATED
-  ATTRIBUTE_VALUE_UPDATED
-  ATTRIBUTE_VALUE_DELETED
-  CATEGORY_CREATED
-  CATEGORY_UPDATED
-  CATEGORY_DELETED
-  CHANNEL_CREATED
-  CHANNEL_UPDATED
-  CHANNEL_DELETED
-  CHANNEL_STATUS_CHANGED
-  GIFT_CARD_CREATED
-  GIFT_CARD_UPDATED
-  GIFT_CARD_DELETED
-  GIFT_CARD_SENT
-  GIFT_CARD_STATUS_CHANGED
-  GIFT_CARD_METADATA_UPDATED
-  MENU_CREATED
-  MENU_UPDATED
-  MENU_DELETED
-  MENU_ITEM_CREATED
-  MENU_ITEM_UPDATED
-  MENU_ITEM_DELETED
-  ORDER_CREATED
-  ORDER_CONFIRMED
-  ORDER_PAID
-  ORDER_FULLY_PAID
-  ORDER_REFUNDED
-  ORDER_FULLY_REFUNDED
-  ORDER_UPDATED
-  ORDER_CANCELLED
-  ORDER_EXPIRED
-  ORDER_FULFILLED
-  ORDER_METADATA_UPDATED
-  ORDER_BULK_CREATED
-  DRAFT_ORDER_CREATED
-  DRAFT_ORDER_UPDATED
-  DRAFT_ORDER_DELETED
-  SALE_CREATED
-  SALE_UPDATED
-  SALE_DELETED
-  SALE_TOGGLE
-  PROMOTION_CREATED
-  PROMOTION_UPDATED
-  PROMOTION_DELETED
-  PROMOTION_STARTED
-  PROMOTION_ENDED
-  INVOICE_REQUESTED
-  INVOICE_DELETED
-  INVOICE_SENT
-  CUSTOMER_CREATED
-  CUSTOMER_UPDATED
-  CUSTOMER_DELETED
-  CUSTOMER_METADATA_UPDATED
-  COLLECTION_CREATED
-  COLLECTION_UPDATED
-  COLLECTION_DELETED
-  COLLECTION_METADATA_UPDATED
-  PRODUCT_CREATED
-  PRODUCT_UPDATED
-  PRODUCT_DELETED
-  PRODUCT_MEDIA_CREATED
-  PRODUCT_MEDIA_UPDATED
-  PRODUCT_MEDIA_DELETED
-  PRODUCT_METADATA_UPDATED
-  PRODUCT_VARIANT_CREATED
-  PRODUCT_VARIANT_UPDATED
-  PRODUCT_VARIANT_DELETED
-  PRODUCT_VARIANT_OUT_OF_STOCK
-  PRODUCT_VARIANT_BACK_IN_STOCK
-  PRODUCT_VARIANT_STOCK_UPDATED
-  PRODUCT_VARIANT_METADATA_UPDATED
-  CHECKOUT_CREATED
-  CHECKOUT_UPDATED
-  CHECKOUT_FULLY_PAID
-  CHECKOUT_METADATA_UPDATED
-  FULFILLMENT_CREATED
-  FULFILLMENT_CANCELED
-  FULFILLMENT_APPROVED
-  FULFILLMENT_METADATA_UPDATED
-  NOTIFY_USER
-  PAGE_CREATED
-  PAGE_UPDATED
-  PAGE_DELETED
-  PAGE_TYPE_CREATED
-  PAGE_TYPE_UPDATED
-  PAGE_TYPE_DELETED
-  PERMISSION_GROUP_CREATED
-  PERMISSION_GROUP_UPDATED
-  PERMISSION_GROUP_DELETED
-  SHIPPING_PRICE_CREATED
-  SHIPPING_PRICE_UPDATED
-  SHIPPING_PRICE_DELETED
-  SHIPPING_ZONE_CREATED
-  SHIPPING_ZONE_UPDATED
-  SHIPPING_ZONE_DELETED
-  SHIPPING_ZONE_METADATA_UPDATED
-  STAFF_CREATED
-  STAFF_UPDATED
-  STAFF_DELETED
-  TRANSACTION_ACTION_REQUEST
-  TRANSACTION_ITEM_METADATA_UPDATED
-  TRANSLATION_CREATED
-  TRANSLATION_UPDATED
-  WAREHOUSE_CREATED
-  WAREHOUSE_UPDATED
-  WAREHOUSE_DELETED
-  WAREHOUSE_METADATA_UPDATED
-  VOUCHER_CREATED
-  VOUCHER_UPDATED
-  VOUCHER_DELETED
-  VOUCHER_METADATA_UPDATED
-  OBSERVABILITY
-  THUMBNAIL_CREATED
-}
-
-"""Represents warehouse."""
-type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
+union UserOrApp = User | App
+
+"""Represents user data."""
+type User implements Node & ObjectWithMetadata @doc(category: "Users") {
+  """The ID of the user."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3568,22 +3130,49 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
-  name: String!
-  slug: String!
+
+  """The email address of the user."""
   email: String!
-  isPrivate: Boolean!
-  address: Address!
 
-  """Warehouse company name."""
-  companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
+  """The given name of the address."""
+  firstName: String!
+
+  """The family name of the address."""
+  lastName: String!
+
+  """Determine if the user is a staff admin."""
+  isStaff: Boolean!
+
+  """Determine if the user is active."""
+  isActive: Boolean!
+
+  """List of all user's addresses."""
+  addresses: [Address!]!
+
+  """Returns the last open checkout of this user."""
+  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
+
+  """Returns the checkout UUID's assigned to this user."""
+  checkoutTokens(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [UUID!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutIds` instead.")
+
+  """Returns the checkout ID's assigned to this user."""
+  checkoutIds(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [ID!]
 
   """
-  Click and collect options: local, all or disabled.
+  Returns checkouts assigned to this user.
   
-  Added in Saleor 3.1.
+  Added in Saleor 3.8.
   """
-  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
-  shippingZones(
+  checkouts(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
@@ -3599,14 +3188,134 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
     Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
     """
     last: Int
-  ): ShippingZoneCountableConnection!
+  ): CheckoutCountableConnection
+
+  """List of the user gift cards."""
+  giftCards(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): GiftCardCountableConnection
 
   """
-  External ID of this warehouse. 
+  A note about the customer.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
+  """
+  note: String
+
+  """
+  List of user's orders. Requires one of the following permissions: MANAGE_STAFF, OWNER.
+  """
+  orders(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): OrderCountableConnection
+
+  """List of user's permissions."""
+  userPermissions: [UserPermission!]
+
+  """List of user's permission groups."""
+  permissionGroups: [Group!]
+
+  """List of user's permission groups which user can manage."""
+  editableGroups: [Group!]
+
+  """
+  List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  accessibleChannels: [Channel!]
+
+  """
+  Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  restrictedAccessToChannels: Boolean!
+
+  """The avatar of the user."""
+  avatar(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.6.
+    """
+    format: ThumbnailFormatEnum = ORIGINAL
+  ): Image
+
+  """
+  List of events associated with the user.
+  
+  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
+  """
+  events: [CustomerEvent!]
+
+  """List of stored payment sources."""
+  storedPaymentSources(
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [PaymentSource!]
+
+  """User language code."""
+  languageCode: LanguageCodeEnum!
+
+  """The default shipping address of the user."""
+  defaultShippingAddress: Address
+
+  """The default billing address of the user."""
+  defaultBillingAddress: Address
+
+  """
+  External ID of this user. 
   
   Added in Saleor 3.10.
   """
   externalReference: String
+
+  """The date when the user last time log in to the system."""
+  lastLogin: DateTime
+
+  """The data when the user create account."""
+  dateJoined: DateTime!
+
+  """The data when the user last update the account information."""
+  updatedAt: DateTime!
 }
 
 """Represents user address data."""
@@ -3744,6 +3453,396 @@ type ReducedRate @doc(category: "Taxes") {
   rateType: String!
 }
 
+"""Checkout object."""
+type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
+  """The ID of the checkout."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """The date and time when the checkout was created."""
+  created: DateTime!
+
+  """
+  Time of last modification of the given checkout.
+  
+  Added in Saleor 3.13.
+  """
+  updatedAt: DateTime!
+  lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
+
+  """The user assigned to the checkout."""
+  user: User
+
+  """The channel for which checkout was created."""
+  channel: Channel!
+
+  """The billing address of the checkout."""
+  billingAddress: Address
+
+  """The shipping address of the checkout."""
+  shippingAddress: Address
+
+  """The note for the checkout."""
+  note: String!
+
+  """
+  The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
+  """
+  discount: Money
+
+  """The name of voucher assigned to the checkout."""
+  discountName: String
+
+  """
+  Translation of the discountName field in the language set in Checkout.languageCode field.Note: this field is set automatically when Checkout.languageCode is defined; otherwise it's null
+  """
+  translatedDiscountName: String
+
+  """The code of voucher assigned to the checkout."""
+  voucherCode: String
+
+  """Shipping methods that can be used with this checkout."""
+  availableShippingMethods: [ShippingMethod!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
+
+  """Shipping methods that can be used with this checkout."""
+  shippingMethods: [ShippingMethod!]!
+
+  """
+  Collection points that can be used for this order.
+  
+  Added in Saleor 3.1.
+  """
+  availableCollectionPoints: [Warehouse!]!
+
+  """List of available payment gateways."""
+  availablePaymentGateways: [PaymentGateway!]!
+
+  """Email of a customer."""
+  email: String
+
+  """List of gift cards associated with this checkout."""
+  giftCards: [GiftCard!]!
+
+  """Returns True, if checkout requires shipping."""
+  isShippingRequired: Boolean!
+
+  """The number of items purchased."""
+  quantity: Int!
+
+  """
+  Date when oldest stock reservation for this checkout expires or null if no stock is reserved.
+  
+  Added in Saleor 3.1.
+  """
+  stockReservationExpires: DateTime
+
+  """
+  A list of checkout lines, each containing information about an item in the checkout.
+  """
+  lines: [CheckoutLine!]!
+
+  """
+  The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
+  """
+  shippingPrice: TaxedMoney!
+
+  """The shipping method related with checkout."""
+  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
+
+  """
+  The delivery method selected for this checkout.
+  
+  Added in Saleor 3.1.
+  """
+  deliveryMethod: DeliveryMethod
+
+  """The price of the checkout before shipping, with taxes included."""
+  subtotalPrice: TaxedMoney!
+
+  """
+  Returns True if checkout has to be exempt from taxes.
+  
+  Added in Saleor 3.8.
+  """
+  taxExemption: Boolean!
+
+  """The checkout's token."""
+  token: UUID!
+
+  """
+  The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
+  """
+  totalPrice: TaxedMoney!
+
+  """
+  The difference between the paid and the checkout total amount.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  totalBalance: Money!
+
+  """Checkout language code."""
+  languageCode: LanguageCodeEnum!
+
+  """
+  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
+  
+  Added in Saleor 3.4.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  transactions: [TransactionItem!]
+
+  """
+  Determines whether checkout prices should include taxes when displayed in a storefront.
+  
+  Added in Saleor 3.9.
+  """
+  displayGrossPrices: Boolean!
+
+  """
+  The authorize status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  authorizeStatus: CheckoutAuthorizeStatusEnum!
+
+  """
+  The charge status of the checkout.
+  
+  Added in Saleor 3.13.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  chargeStatus: CheckoutChargeStatusEnum!
+}
+
+"""Represents channel."""
+type Channel implements Node @doc(category: "Channels") {
+  """The ID of the channel."""
+  id: ID!
+
+  """Slug of the channel."""
+  slug: String!
+
+  """
+  Name of the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  name: String!
+
+  """
+  Whether the channel is active.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  isActive: Boolean!
+
+  """
+  A currency that is assigned to the channel.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  currencyCode: String!
+
+  """
+  Whether a channel has associated orders.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS.
+  """
+  hasOrders: Boolean!
+
+  """
+  Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  defaultCountry: CountryDisplay!
+
+  """
+  List of warehouses assigned to this channel.
+  
+  Added in Saleor 3.5.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  warehouses: [Warehouse!]!
+
+  """
+  List of shippable countries for the channel.
+  
+  Added in Saleor 3.6.
+  """
+  countries: [CountryDisplay!]
+
+  """
+  Shipping methods that are available for the channel.
+  
+  Added in Saleor 3.6.
+  """
+  availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
+
+  """
+  Define the stock setting for this channel.
+  
+  Added in Saleor 3.7.
+  
+  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
+  """
+  stockSettings: StockSettings!
+
+  """
+  Channel-specific order settings.
+  
+  Added in Saleor 3.12.
+  
+  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
+  """
+  orderSettings: OrderSettings!
+}
+
+"""Represents warehouse."""
+type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String!
+  slug: String!
+  email: String!
+  isPrivate: Boolean!
+  address: Address!
+
+  """Warehouse company name."""
+  companyName: String! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Address.companyName` instead.")
+
+  """
+  Click and collect options: local, all or disabled.
+  
+  Added in Saleor 3.1.
+  """
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+  shippingZones(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ShippingZoneCountableConnection!
+
+  """
+  External ID of this warehouse. 
+  
+  Added in Saleor 3.10.
+  """
+  externalReference: String
+}
+
 """An enumeration."""
 enum WarehouseClickAndCollectOptionEnum @doc(category: "Products") {
   DISABLED
@@ -3758,6 +3857,23 @@ type ShippingZoneCountableConnection @doc(category: "Shipping") {
 
   """A total count of items in the collection."""
   totalCount: Int
+}
+
+"""
+The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
+"""
+type PageInfo {
+  """When paginating forwards, are there more items?"""
+  hasNextPage: Boolean!
+
+  """When paginating backwards, are there more items?"""
+  hasPreviousPage: Boolean!
+
+  """When paginating backwards, the cursor to continue."""
+  startCursor: String
+
+  """When paginating forwards, the cursor to continue."""
+  endCursor: String
 }
 
 type ShippingZoneCountableEdge @doc(category: "Shipping") {
@@ -3993,6 +4109,8 @@ type ShippingMethodType implements Node & ObjectWithMetadata @doc(category: "Shi
   """
   taxClass: TaxClass
 }
+
+scalar JSONString
 
 """An enumeration."""
 enum ShippingMethodTypeEnum @doc(category: "Shipping") {
@@ -4819,571 +4937,6 @@ type ShippingMethodChannelListing implements Node @doc(category: "Shipping") {
   price: Money
 }
 
-"""Represents channel."""
-type Channel implements Node @doc(category: "Channels") {
-  """The ID of the channel."""
-  id: ID!
-
-  """Slug of the channel."""
-  slug: String!
-
-  """
-  Name of the channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  name: String!
-
-  """
-  Whether the channel is active.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  isActive: Boolean!
-
-  """
-  A currency that is assigned to the channel.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  currencyCode: String!
-
-  """
-  Whether a channel has associated orders.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS.
-  """
-  hasOrders: Boolean!
-
-  """
-  Default country for the channel. Default country can be used in checkout to determine the stock quantities or calculate taxes when the country was not explicitly provided.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  defaultCountry: CountryDisplay!
-
-  """
-  List of warehouses assigned to this channel.
-  
-  Added in Saleor 3.5.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  warehouses: [Warehouse!]!
-
-  """
-  List of shippable countries for the channel.
-  
-  Added in Saleor 3.6.
-  """
-  countries: [CountryDisplay!]
-
-  """
-  Shipping methods that are available for the channel.
-  
-  Added in Saleor 3.6.
-  """
-  availableShippingMethodsPerCountry(countries: [CountryCode!]): [ShippingMethodsPerCountry!]
-
-  """
-  Define the stock setting for this channel.
-  
-  Added in Saleor 3.7.
-  
-  Requires one of the following permissions: AUTHENTICATED_APP, AUTHENTICATED_STAFF_USER.
-  """
-  stockSettings: StockSettings!
-
-  """
-  Channel-specific order settings.
-  
-  Added in Saleor 3.12.
-  
-  Requires one of the following permissions: MANAGE_CHANNELS, MANAGE_ORDERS.
-  """
-  orderSettings: OrderSettings!
-}
-
-"""
-List of shipping methods available for the country.
-
-Added in Saleor 3.6.
-"""
-type ShippingMethodsPerCountry @doc(category: "Shipping") {
-  """The country code."""
-  countryCode: CountryCode!
-
-  """List of available shipping methods."""
-  shippingMethods: [ShippingMethod!]
-}
-
-"""An enumeration."""
-enum CountryCode {
-  AF
-  AX
-  AL
-  DZ
-  AS
-  AD
-  AO
-  AI
-  AQ
-  AG
-  AR
-  AM
-  AW
-  AU
-  AT
-  AZ
-  BS
-  BH
-  BD
-  BB
-  BY
-  BE
-  BZ
-  BJ
-  BM
-  BT
-  BO
-  BQ
-  BA
-  BW
-  BV
-  BR
-  IO
-  BN
-  BG
-  BF
-  BI
-  CV
-  KH
-  CM
-  CA
-  KY
-  CF
-  TD
-  CL
-  CN
-  CX
-  CC
-  CO
-  KM
-  CG
-  CD
-  CK
-  CR
-  CI
-  HR
-  CU
-  CW
-  CY
-  CZ
-  DK
-  DJ
-  DM
-  DO
-  EC
-  EG
-  SV
-  GQ
-  ER
-  EE
-  SZ
-  ET
-  EU
-  FK
-  FO
-  FJ
-  FI
-  FR
-  GF
-  PF
-  TF
-  GA
-  GM
-  GE
-  DE
-  GH
-  GI
-  GR
-  GL
-  GD
-  GP
-  GU
-  GT
-  GG
-  GN
-  GW
-  GY
-  HT
-  HM
-  VA
-  HN
-  HK
-  HU
-  IS
-  IN
-  ID
-  IR
-  IQ
-  IE
-  IM
-  IL
-  IT
-  JM
-  JP
-  JE
-  JO
-  KZ
-  KE
-  KI
-  KW
-  KG
-  LA
-  LV
-  LB
-  LS
-  LR
-  LY
-  LI
-  LT
-  LU
-  MO
-  MG
-  MW
-  MY
-  MV
-  ML
-  MT
-  MH
-  MQ
-  MR
-  MU
-  YT
-  MX
-  FM
-  MD
-  MC
-  MN
-  ME
-  MS
-  MA
-  MZ
-  MM
-  NA
-  NR
-  NP
-  NL
-  NC
-  NZ
-  NI
-  NE
-  NG
-  NU
-  NF
-  KP
-  MK
-  MP
-  NO
-  OM
-  PK
-  PW
-  PS
-  PA
-  PG
-  PY
-  PE
-  PH
-  PN
-  PL
-  PT
-  PR
-  QA
-  RE
-  RO
-  RU
-  RW
-  BL
-  SH
-  KN
-  LC
-  MF
-  PM
-  VC
-  WS
-  SM
-  ST
-  SA
-  SN
-  RS
-  SC
-  SL
-  SG
-  SX
-  SK
-  SI
-  SB
-  SO
-  ZA
-  GS
-  KR
-  SS
-  ES
-  LK
-  SD
-  SR
-  SJ
-  SE
-  CH
-  SY
-  TW
-  TJ
-  TZ
-  TH
-  TL
-  TG
-  TK
-  TO
-  TT
-  TN
-  TR
-  TM
-  TC
-  TV
-  UG
-  UA
-  AE
-  GB
-  UM
-  US
-  UY
-  UZ
-  VU
-  VE
-  VN
-  VG
-  VI
-  WF
-  EH
-  YE
-  ZM
-  ZW
-}
-
-"""
-Shipping methods that can be used as means of shipping for orders and checkouts.
-"""
-type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shipping") {
-  """Unique ID of ShippingMethod available for Order."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """Type of the shipping method."""
-  type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
-
-  """Shipping method name."""
-  name: String!
-
-  """
-  Shipping method description.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Maximum delivery days for this shipping method."""
-  maximumDeliveryDays: Int
-
-  """Minimum delivery days for this shipping method."""
-  minimumDeliveryDays: Int
-
-  """Maximum order weight for this shipping method."""
-  maximumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
-
-  """Minimum order weight for this shipping method."""
-  minimumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
-
-  """Returns translated shipping method fields for the given language code."""
-  translation(
-    """A language code to return the translation for shipping method."""
-    languageCode: LanguageCodeEnum!
-  ): ShippingMethodTranslation
-
-  """The price of selected shipping method."""
-  price: Money!
-
-  """Maximum order price for this shipping method."""
-  maximumOrderPrice: Money
-
-  """Minimal order price for this shipping method."""
-  minimumOrderPrice: Money
-
-  """Describes if this shipping method is active and can be selected."""
-  active: Boolean!
-
-  """Message connected to this shipping method."""
-  message: String
-}
-
-"""Represents weight value in a specific weight unit."""
-type Weight {
-  """Weight unit."""
-  unit: WeightUnitsEnum!
-
-  """Weight value."""
-  value: Float!
-}
-
-"""An enumeration."""
-enum WeightUnitsEnum {
-  G
-  LB
-  OZ
-  KG
-  TONNE
-}
-
-"""
-Represents the channel stock settings.
-
-Added in Saleor 3.7.
-"""
-type StockSettings @doc(category: "Products") {
-  """
-  Allocation strategy defines the preference of warehouses for allocations and reservations.
-  """
-  allocationStrategy: AllocationStrategyEnum!
-}
-
-"""
-Determine the allocation strategy for the channel.
-
-    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
-    within the channel
-
-    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
-"""
-enum AllocationStrategyEnum @doc(category: "Products") {
-  PRIORITIZE_SORTING_ORDER
-  PRIORITIZE_HIGH_STOCK
-}
-
-"""Represents the channel-specific order settings."""
-type OrderSettings {
-  """
-  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
-  """
-  automaticallyConfirmAllNewOrders: Boolean!
-
-  """
-  When enabled, all non-shippable gift card orders will be fulfilled automatically.
-  """
-  automaticallyFulfillNonShippableGiftCard: Boolean!
-
-  """
-  Expiration time in minutes. Default null - means do not expire any orders.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  expireOrdersAfter: Minute
-
-  """
-  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
-  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
-  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  markAsPaidStrategy: MarkAsPaidStrategyEnum!
-
-  """
-  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
-
-  """
-  The time in days after expired orders will be deleted.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  deleteExpiredOrdersAfter: Day!
-}
-
-"""
-The `Minute` scalar type represents number of minutes by integer value.
-"""
-scalar Minute
-
-"""
-Determine the mark as paid strategy for the channel.
-
-    TRANSACTION_FLOW - new orders marked as paid will receive a
-    `TransactionItem` object, that will cover the `order.total`.
-
-    PAYMENT_FLOW - new orders marked as paid will receive a
-    `Payment` object, that will cover the `order.total`.
-"""
-enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
-  TRANSACTION_FLOW
-  PAYMENT_FLOW
-}
-
-"""
-Determine the transaction flow strategy.
-
-    AUTHORIZATION - the processed transaction should be only authorized
-    CHARGE - the processed transaction should be charged.
-"""
-enum TransactionFlowStrategyEnum @doc(category: "Payments") {
-  AUTHORIZATION
-  CHARGE
-}
-
-"""The `Day` scalar type represents number of days by integer value."""
-scalar Day
-
 """Represents shipping method postal code rule."""
 type ShippingMethodPostalCodeRule implements Node @doc(category: "Shipping") {
   """The ID of the object."""
@@ -5776,6 +5329,24 @@ type ProductType implements Node & ObjectWithMetadata @doc(category: "Products")
     """
     last: Int
   ): AttributeCountableConnection
+}
+
+"""Represents weight value in a specific weight unit."""
+type Weight {
+  """Weight unit."""
+  unit: WeightUnitsEnum!
+
+  """Weight value."""
+  value: Float!
+}
+
+"""An enumeration."""
+enum WeightUnitsEnum {
+  G
+  LB
+  OZ
+  KG
+  TONNE
 }
 
 """An enumeration."""
@@ -6242,6 +5813,14 @@ input AttributeChoicesSortingInput @doc(category: "Attributes") {
 
   """Sort attribute choices by the selected field."""
   field: AttributeChoicesSortField!
+}
+
+enum OrderDirection {
+  """Specifies an ascending sort order."""
+  ASC
+
+  """Specifies a descending sort order."""
+  DESC
 }
 
 enum AttributeChoicesSortField @doc(category: "Attributes") {
@@ -7296,6 +6875,260 @@ input AddressInput {
   phone: String
 }
 
+"""An enumeration."""
+enum CountryCode {
+  AF
+  AX
+  AL
+  DZ
+  AS
+  AD
+  AO
+  AI
+  AQ
+  AG
+  AR
+  AM
+  AW
+  AU
+  AT
+  AZ
+  BS
+  BH
+  BD
+  BB
+  BY
+  BE
+  BZ
+  BJ
+  BM
+  BT
+  BO
+  BQ
+  BA
+  BW
+  BV
+  BR
+  IO
+  BN
+  BG
+  BF
+  BI
+  CV
+  KH
+  CM
+  CA
+  KY
+  CF
+  TD
+  CL
+  CN
+  CX
+  CC
+  CO
+  KM
+  CG
+  CD
+  CK
+  CR
+  CI
+  HR
+  CU
+  CW
+  CY
+  CZ
+  DK
+  DJ
+  DM
+  DO
+  EC
+  EG
+  SV
+  GQ
+  ER
+  EE
+  SZ
+  ET
+  EU
+  FK
+  FO
+  FJ
+  FI
+  FR
+  GF
+  PF
+  TF
+  GA
+  GM
+  GE
+  DE
+  GH
+  GI
+  GR
+  GL
+  GD
+  GP
+  GU
+  GT
+  GG
+  GN
+  GW
+  GY
+  HT
+  HM
+  VA
+  HN
+  HK
+  HU
+  IS
+  IN
+  ID
+  IR
+  IQ
+  IE
+  IM
+  IL
+  IT
+  JM
+  JP
+  JE
+  JO
+  KZ
+  KE
+  KI
+  KW
+  KG
+  LA
+  LV
+  LB
+  LS
+  LR
+  LY
+  LI
+  LT
+  LU
+  MO
+  MG
+  MW
+  MY
+  MV
+  ML
+  MT
+  MH
+  MQ
+  MR
+  MU
+  YT
+  MX
+  FM
+  MD
+  MC
+  MN
+  ME
+  MS
+  MA
+  MZ
+  MM
+  NA
+  NR
+  NP
+  NL
+  NC
+  NZ
+  NI
+  NE
+  NG
+  NU
+  NF
+  KP
+  MK
+  MP
+  NO
+  OM
+  PK
+  PW
+  PS
+  PA
+  PG
+  PY
+  PE
+  PH
+  PN
+  PL
+  PT
+  PR
+  QA
+  RE
+  RO
+  RU
+  RW
+  BL
+  SH
+  KN
+  LC
+  MF
+  PM
+  VC
+  WS
+  SM
+  ST
+  SA
+  SN
+  RS
+  SC
+  SL
+  SG
+  SX
+  SK
+  SI
+  SB
+  SO
+  ZA
+  GS
+  KR
+  SS
+  ES
+  LK
+  SD
+  SR
+  SJ
+  SE
+  CH
+  SY
+  TW
+  TJ
+  TZ
+  TH
+  TL
+  TG
+  TK
+  TO
+  TT
+  TN
+  TR
+  TM
+  TC
+  TV
+  UG
+  UA
+  AE
+  GB
+  UM
+  US
+  UY
+  UZ
+  VU
+  VE
+  VN
+  VG
+  VI
+  WF
+  EH
+  YE
+  ZM
+  ZW
+}
+
 """Represents a custom attribute."""
 type SelectedAttribute @doc(category: "Attributes") {
   """Name of an attribute displayed in the interface."""
@@ -7892,348 +7725,24 @@ type ProductTranslation implements Node @doc(category: "Products") {
   descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
 }
 
-type WarehouseCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [WarehouseCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type WarehouseCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Warehouse!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input WarehouseFilterInput @doc(category: "Products") {
-  clickAndCollectOption: WarehouseClickAndCollectOptionEnum
-  search: String
-  ids: [ID!]
-  isPrivate: Boolean
-  channels: [ID!]
-  slugs: [String!]
-}
-
-input WarehouseSortingInput @doc(category: "Products") {
-  """Specifies the direction in which to sort warehouses."""
-  direction: OrderDirection!
-
-  """Sort warehouses by the selected field."""
-  field: WarehouseSortField!
-}
-
-enum WarehouseSortField @doc(category: "Products") {
-  """Sort warehouses by name."""
-  NAME
-}
-
-type TranslatableItemConnection {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [TranslatableItemEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type TranslatableItemEdge {
-  """The item at the end of the edge."""
-  node: TranslatableItem!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent
-
 """
-Represents product's original translatable fields and related translations.
+List of shipping methods available for the country.
+
+Added in Saleor 3.6.
 """
-type ProductTranslatableContent implements Node @doc(category: "Products") {
-  """ID of the product translatable content."""
-  id: ID!
+type ShippingMethodsPerCountry @doc(category: "Shipping") {
+  """The country code."""
+  countryCode: CountryCode!
 
-  """SEO title of the product."""
-  seoTitle: String
-
-  """SEO description of the product."""
-  seoDescription: String
-
-  """Name of the product."""
-  name: String!
-
-  """
-  Description of the product.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the product.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated product fields for the given language code."""
-  translation(
-    """A language code to return the translation for product."""
-    languageCode: LanguageCodeEnum!
-  ): ProductTranslation
-
-  """Represents an individual item for sale in the storefront."""
-  product: Product @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """List of product attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
+  """List of available shipping methods."""
+  shippingMethods: [ShippingMethod!]
 }
 
 """
-Represents attribute value's original translatable fields and related translations.
+Shipping methods that can be used as means of shipping for orders and checkouts.
 """
-type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
-  """ID of the attribute value translatable content."""
-  id: ID!
-
-  """Name of the attribute value."""
-  name: String!
-
-  """
-  Attribute value.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  richText: JSONString
-
-  """Attribute plain text value."""
-  plainText: String
-
-  """Returns translated attribute value fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute value."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeValueTranslation
-
-  """Represents a value of an attribute."""
-  attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """
-  Associated attribute that can be translated.
-  
-  Added in Saleor 3.9.
-  """
-  attribute: AttributeTranslatableContent
-}
-
-"""
-Represents attribute's original translatable fields and related translations.
-"""
-type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
-  """ID of the attribute translatable content."""
-  id: ID!
-
-  """Name of the attribute."""
-  name: String!
-
-  """Returns translated attribute fields for the given language code."""
-  translation(
-    """A language code to return the translation for attribute."""
-    languageCode: LanguageCodeEnum!
-  ): AttributeTranslation
-
-  """Custom attribute of a product."""
-  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents collection's original translatable fields and related translations.
-"""
-type CollectionTranslatableContent implements Node @doc(category: "Products") {
-  """ID of the collection translatable content."""
-  id: ID!
-
-  """SEO title of the collection."""
-  seoTitle: String
-
-  """SEO description of the collection."""
-  seoDescription: String
-
-  """Name of the collection."""
-  name: String!
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the collection.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated collection fields for the given language code."""
-  translation(
-    """A language code to return the translation for collection."""
-    languageCode: LanguageCodeEnum!
-  ): CollectionTranslation
-
-  """Represents a collection of products."""
-  collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents category original translatable fields and related translations.
-"""
-type CategoryTranslatableContent implements Node @doc(category: "Products") {
-  """ID of the category translatable content."""
-  id: ID!
-
-  """SEO title of the category."""
-  seoTitle: String
-
-  """SEO description of the category."""
-  seoDescription: String
-
-  """Name of the category."""
-  name: String!
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """
-  Description of the category.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
-
-  """Returns translated category fields for the given language code."""
-  translation(
-    """A language code to return the translation for category."""
-    languageCode: LanguageCodeEnum!
-  ): CategoryTranslation
-
-  """Represents a single category of products."""
-  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""
-Represents product variant's original translatable fields and related translations.
-"""
-type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
-  """ID of the product variant translatable content."""
-  id: ID!
-
-  """Name of the product variant."""
-  name: String!
-
-  """Returns translated product variant fields for the given language code."""
-  translation(
-    """A language code to return the translation for product variant."""
-    languageCode: LanguageCodeEnum!
-  ): ProductVariantTranslation
-
-  """Represents a version of a product such as different size or color."""
-  productVariant: ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """List of product variant attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
-"""
-Represents page's original translatable fields and related translations.
-"""
-type PageTranslatableContent implements Node @doc(category: "Pages") {
-  """ID of the page translatable content."""
-  id: ID!
-
-  """SEO title of the page."""
-  seoTitle: String
-
-  """SEO description of the page."""
-  seoDescription: String
-
-  """Title of the page."""
-  title: String!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """
-  A static page that can be manually added by a shop operator through the dashboard.
-  """
-  page: Page @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-
-  """List of page content attribute values that can be translated."""
-  attributeValues: [AttributeValueTranslatableContent!]!
-}
-
-"""Represents page translations."""
-type PageTranslation implements Node @doc(category: "Pages") {
-  """ID of the page translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated SEO title of the page."""
-  seoTitle: String
-
-  """Translated SEO description of the page."""
-  seoDescription: String
-
-  """Translated title of the page."""
-  title: String
-
-  """
-  Translated content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-
-  """
-  Translated description of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
-}
-
-"""
-A static page that can be manually added by a shop operator through the dashboard.
-"""
-type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+type ShippingMethod implements Node & ObjectWithMetadata @doc(category: "Shipping") {
+  """Unique ID of ShippingMethod available for Order."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -8243,19 +7752,11 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from private metadata. Requires staff permissions to access.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafield(key: String!): String
 
   """
   Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   privateMetafields(keys: [String!]): Metadata
 
@@ -8266,168 +7767,38 @@ type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
   A single key from public metadata.
   
   Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafield(key: String!): String
 
   """
   Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   metafields(keys: [String!]): Metadata
-  seoTitle: String
-  seoDescription: String
-  title: String!
 
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  content: JSONString
-  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+  """Type of the shipping method."""
+  type: ShippingMethodTypeEnum @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
-  """
-  The page publication date.
-  
-  Added in Saleor 3.3.
-  """
-  publishedAt: DateTime
-  isPublished: Boolean!
-  slug: String!
-  pageType: PageType!
-  created: DateTime!
-
-  """
-  Content of the page.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  contentJson: JSONString! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
-
-  """Returns translated page fields for the given language code."""
-  translation(
-    """A language code to return the translation for page."""
-    languageCode: LanguageCodeEnum!
-  ): PageTranslation
-
-  """List of attributes assigned to this product."""
-  attributes: [SelectedAttribute!]!
-}
-
-"""
-Represents a type of page. It defines what attributes are available to pages of this type.
-"""
-type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  name: String!
-  slug: String!
-
-  """Page attributes of that page type."""
-  attributes: [Attribute!]
-
-  """
-  Attributes that can be assigned to the page type.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  availableAttributes(
-    filter: AttributeFilterInput
-    where: AttributeWhereInput
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): AttributeCountableConnection
-
-  """
-  Whether page type has pages assigned.
-  
-  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
-  """
-  hasPages: Boolean
-}
-
-"""
-Represents shipping method's original translatable fields and related translations.
-"""
-type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
-  """ID of the shipping method translatable content."""
-  id: ID!
-
-  """Name of the shipping method."""
+  """Shipping method name."""
   name: String!
 
   """
-  Description of the shipping method.
+  Shipping method description.
   
   Rich text format. For reference see https://editorjs.io/
   """
   description: JSONString
+
+  """Maximum delivery days for this shipping method."""
+  maximumDeliveryDays: Int
+
+  """Minimum delivery days for this shipping method."""
+  minimumDeliveryDays: Int
+
+  """Maximum order weight for this shipping method."""
+  maximumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
+
+  """Minimum order weight for this shipping method."""
+  minimumOrderWeight: Weight @deprecated(reason: "This field will be removed in Saleor 4.0.")
 
   """Returns translated shipping method fields for the given language code."""
   translation(
@@ -8435,1201 +7806,130 @@ type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping"
     languageCode: LanguageCodeEnum!
   ): ShippingMethodTranslation
 
-  """
-  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
-  
-  Requires one of the following permissions: MANAGE_SHIPPING.
-  """
-  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+  """The price of selected shipping method."""
+  price: Money!
+
+  """Maximum order price for this shipping method."""
+  maximumOrderPrice: Money
+
+  """Minimal order price for this shipping method."""
+  minimumOrderPrice: Money
+
+  """Describes if this shipping method is active and can be selected."""
+  active: Boolean!
+
+  """Message connected to this shipping method."""
+  message: String
 }
 
 """
-Represents sale's original translatable fields and related translations.
+Represents the channel stock settings.
+
+Added in Saleor 3.7.
 """
-type SaleTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the sale translatable content."""
-  id: ID!
-
-  """Name of the sale."""
-  name: String!
-
-  """Returns translated sale fields for the given language code."""
-  translation(
-    """A language code to return the translation for sale."""
-    languageCode: LanguageCodeEnum!
-  ): SaleTranslation
-
+type StockSettings @doc(category: "Products") {
   """
-  Sales allow creating discounts for categories, collections or products and are visible to all the customers.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  Allocation strategy defines the preference of warehouses for allocations and reservations.
   """
-  sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""Represents sale translations."""
-type SaleTranslation implements Node @doc(category: "Discounts") {
-  """ID of the sale translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of sale."""
-  name: String
+  allocationStrategy: AllocationStrategyEnum!
 }
 
 """
-Sales allow creating discounts for categories, collections or products and are visible to all the customers.
-"""
-type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
-  id: ID!
+Determine the allocation strategy for the channel.
 
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
+    PRIORITIZE_SORTING_ORDER - allocate stocks according to the warehouses' order
+    within the channel
+
+    PRIORITIZE_HIGH_STOCK - allocate stock in a warehouse with the most stock
+"""
+enum AllocationStrategyEnum @doc(category: "Products") {
+  PRIORITIZE_SORTING_ORDER
+  PRIORITIZE_HIGH_STOCK
+}
+
+"""Represents the channel-specific order settings."""
+type OrderSettings {
+  """
+  When disabled, all new orders from checkout will be marked as unconfirmed. When enabled orders from checkout will become unfulfilled immediately.
+  """
+  automaticallyConfirmAllNewOrders: Boolean!
 
   """
-  A single key from private metadata. Requires staff permissions to access.
+  When enabled, all non-shippable gift card orders will be fulfilled automatically.
+  """
+  automaticallyFulfillNonShippableGiftCard: Boolean!
+
+  """
+  Expiration time in minutes. Default null - means do not expire any orders.
   
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  privateMetafield(key: String!): String
+  expireOrdersAfter: Minute
 
   """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  Determine what strategy will be used to mark the order as paid. Based on the chosen option, the proper object will be created and attached to the order when it's manually marked as paid.
+  `PAYMENT_FLOW` - [default option] creates the `Payment` object.
+  `TRANSACTION_FLOW` - creates the `TransactionItem` object.
   
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  metafield(key: String!): String
+  markAsPaidStrategy: MarkAsPaidStrategyEnum!
 
   """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  Determine the transaction flow strategy to be used. Include the selected option in the payload sent to the payment app, as a requested action for the transaction.
   
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  name: String!
-  type: SaleType!
-  startDate: DateTime!
-  endDate: DateTime
-  created: DateTime!
-  updatedAt: DateTime!
-
-  """List of categories this sale applies to."""
-  categories(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CategoryCountableConnection
-
-  """
-  List of collections this sale applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  collections(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CollectionCountableConnection
-
-  """
-  List of products this sale applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  products(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection
-
-  """
-  List of product variants this sale applies to.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  variants(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductVariantCountableConnection
-
-  """Returns translated sale fields for the given language code."""
-  translation(
-    """A language code to return the translation for sale."""
-    languageCode: LanguageCodeEnum!
-  ): SaleTranslation
-
-  """
-  List of channels available for the sale.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  channelListings: [SaleChannelListing!]
-
-  """Sale value."""
-  discountValue: Float
-
-  """Currency code for sale."""
-  currency: String
-}
-
-enum SaleType @doc(category: "Discounts") {
-  FIXED
-  PERCENTAGE
-}
-
-type CollectionCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [CollectionCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type CollectionCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Collection!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-type ProductVariantCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [ProductVariantCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type ProductVariantCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: ProductVariant!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-"""Represents sale channel listing."""
-type SaleChannelListing implements Node @doc(category: "Discounts") {
-  id: ID!
-  channel: Channel!
-  discountValue: Float!
-  currency: String!
-}
-
-"""
-Represents voucher's original translatable fields and related translations.
-"""
-type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
-  """ID of the voucher translatable content."""
-  id: ID!
-
-  """Name of the voucher."""
-  name: String
-
-  """Returns translated voucher fields for the given language code."""
-  translation(
-    """A language code to return the translation for voucher."""
-    languageCode: LanguageCodeEnum!
-  ): VoucherTranslation
-
-  """
-  Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""Represents voucher translations."""
-type VoucherTranslation implements Node @doc(category: "Discounts") {
-  """ID of the voucher translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of the voucher."""
-  name: String
-}
-
-"""
-Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
-"""
-type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
+  Added in Saleor 3.13.
   
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  privateMetafield(key: String!): String
+  defaultTransactionFlowStrategy: TransactionFlowStrategyEnum!
 
   """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  name: String
-  code: String!
-  usageLimit: Int
-  used: Int!
-  startDate: DateTime!
-  endDate: DateTime
-  applyOncePerOrder: Boolean!
-  applyOncePerCustomer: Boolean!
-  onlyForStaff: Boolean!
-  minCheckoutItemsQuantity: Int
-
-  """List of categories this voucher applies to."""
-  categories(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CategoryCountableConnection
-
-  """
-  List of collections this voucher applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  collections(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CollectionCountableConnection
-
-  """
-  List of products this voucher applies to.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  products(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductCountableConnection
-
-  """
-  List of product variants this voucher applies to.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  variants(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): ProductVariantCountableConnection
-
-  """List of countries available for the shipping voucher."""
-  countries: [CountryDisplay!]
-
-  """Returns translated voucher fields for the given language code."""
-  translation(
-    """A language code to return the translation for voucher."""
-    languageCode: LanguageCodeEnum!
-  ): VoucherTranslation
-
-  """Determines a type of discount for voucher - value or percentage"""
-  discountValueType: DiscountValueTypeEnum!
-
-  """Voucher value."""
-  discountValue: Float
-
-  """Currency code for voucher."""
-  currency: String
-
-  """Minimum order value to apply voucher."""
-  minSpent: Money
-
-  """Determines a type of voucher."""
-  type: VoucherTypeEnum!
-
-  """
-  List of availability in channels for the voucher.
-  
-  Requires one of the following permissions: MANAGE_DISCOUNTS.
-  """
-  channelListings: [VoucherChannelListing!]
-}
-
-enum DiscountValueTypeEnum @doc(category: "Discounts") {
-  FIXED
-  PERCENTAGE
-}
-
-enum VoucherTypeEnum @doc(category: "Discounts") {
-  SHIPPING
-  ENTIRE_ORDER
-  SPECIFIC_PRODUCT
-}
-
-"""Represents voucher channel listing."""
-type VoucherChannelListing implements Node @doc(category: "Discounts") {
-  id: ID!
-  channel: Channel!
-  discountValue: Float!
-  currency: String!
-  minSpent: Money
-}
-
-"""
-Represents menu item's original translatable fields and related translations.
-"""
-type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
-  """ID of the menu item translatable content."""
-  id: ID!
-
-  """Name of the menu item."""
-  name: String!
-
-  """Returns translated menu item fields for the given language code."""
-  translation(
-    """A language code to return the translation for menu item."""
-    languageCode: LanguageCodeEnum!
-  ): MenuItemTranslation
-
-  """
-  Represents a single item of the related menu. Can store categories, collection or pages.
-  """
-  menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
-}
-
-"""Represents menu item translations."""
-type MenuItemTranslation implements Node @doc(category: "Menu") {
-  """ID of the menu item translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of the menu item."""
-  name: String!
-}
-
-"""
-Represents a single item of the related menu. Can store categories, collection or pages.
-"""
-type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  name: String!
-  menu: Menu!
-  parent: MenuItem
-  category: Category
-
-  """
-  A collection associated with this menu item. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
-  """
-  collection: Collection
-
-  """
-  A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
-  """
-  page: Page
-  level: Int!
-  children: [MenuItem!]
-
-  """URL to the menu item."""
-  url: String
-
-  """Returns translated menu item fields for the given language code."""
-  translation(
-    """A language code to return the translation for menu item."""
-    languageCode: LanguageCodeEnum!
-  ): MenuItemTranslation
-}
-
-"""
-Represents a single menu - an object that is used to help navigate through the store.
-"""
-type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-  name: String!
-  slug: String!
-  items: [MenuItem!]
-}
-
-"""
-Represents promotion's original translatable fields and related translations.
-
-Added in Saleor 3.15.
-"""
-type PromotionTranslatableContent implements Node {
-  """ID of the promotion translatable content."""
-  id: ID!
-
-  """Name of the promotion."""
-  name: String!
-
-  """
-  Description of the promotion.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Returns translated promotion fields for the given language code."""
-  translation(
-    """A language code to return the translation for promotion."""
-    languageCode: LanguageCodeEnum!
-  ): PromotionTranslation
-}
-
-"""
-Represents promotion translations.
-
-Added in Saleor 3.15.
-"""
-type PromotionTranslation implements Node {
-  """ID of the promotion translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of the promotion."""
-  name: String
-
-  """
-  Translated description of the promotion.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-}
-
-"""
-Represents promotion rule's original translatable fields and related translations.
-
-Added in Saleor 3.15.
-"""
-type PromotionRuleTranslatableContent implements Node {
-  """ID of the promotion rule translatable content."""
-  id: ID!
-
-  """Name of the promotion rule."""
-  name: String!
-
-  """
-  Description of the promotion rule.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-
-  """Returns translated promotion rule fields for the given language code."""
-  translation(
-    """A language code to return the translation for promotion rule."""
-    languageCode: LanguageCodeEnum!
-  ): PromotionRuleTranslation
-}
-
-"""
-Represents promotion rule translations.
-
-Added in Saleor 3.15.
-"""
-type PromotionRuleTranslation implements Node {
-  """ID of the promotion rule translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated name of the promotion rule."""
-  name: String
-
-  """
-  Translated description of the promotion rule.
-  
-  Rich text format. For reference see https://editorjs.io/
-  """
-  description: JSONString
-}
-
-enum TranslatableKinds {
-  ATTRIBUTE
-  ATTRIBUTE_VALUE
-  CATEGORY
-  COLLECTION
-  MENU_ITEM
-  PAGE
-  PRODUCT
-  PROMOTION
-  PROMOTION_RULE
-  SALE
-  SHIPPING_METHOD
-  VARIANT
-  VOUCHER
-}
-
-"""
-Channel-specific tax configuration.
-
-Added in Saleor 3.9.
-"""
-type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
-  """The ID of the object."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """A channel to which the tax configuration applies to."""
-  channel: Channel!
-
-  """Determines whether taxes are charged in the given channel."""
-  chargeTaxes: Boolean!
-
-  """
-  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
-  """
-  taxCalculationStrategy: TaxCalculationStrategy
-
-  """
-  Determines whether prices displayed in a storefront should include taxes.
-  """
-  displayGrossPrices: Boolean!
-
-  """Determines whether prices are entered with the tax included."""
-  pricesEnteredWithTax: Boolean!
-
-  """List of country-specific exceptions in tax configuration."""
-  countries: [TaxConfigurationPerCountry!]!
-}
-
-enum TaxCalculationStrategy @doc(category: "Taxes") {
-  FLAT_RATES
-  TAX_APP
-}
-
-"""
-Country-specific exceptions of a channel's tax configuration.
-
-Added in Saleor 3.9.
-"""
-type TaxConfigurationPerCountry @doc(category: "Taxes") {
-  """Country in which this configuration applies."""
-  country: CountryDisplay!
-
-  """Determines whether taxes are charged in this country."""
-  chargeTaxes: Boolean!
-
-  """
-  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
-  """
-  taxCalculationStrategy: TaxCalculationStrategy
-
-  """
-  Determines whether prices displayed in a storefront should include taxes for this country.
-  """
-  displayGrossPrices: Boolean!
-}
-
-type TaxConfigurationCountableConnection @doc(category: "Taxes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [TaxConfigurationCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type TaxConfigurationCountableEdge @doc(category: "Taxes") {
-  """The item at the end of the edge."""
-  node: TaxConfiguration!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input TaxConfigurationFilterInput @doc(category: "Taxes") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-}
-
-type TaxClassCountableConnection @doc(category: "Taxes") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [TaxClassCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type TaxClassCountableEdge @doc(category: "Taxes") {
-  """The item at the end of the edge."""
-  node: TaxClass!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input TaxClassSortingInput @doc(category: "Taxes") {
-  """Specifies the direction in which to sort tax classes."""
-  direction: OrderDirection!
-
-  """Sort tax classes by the selected field."""
-  field: TaxClassSortField!
-}
-
-enum TaxClassSortField @doc(category: "Taxes") {
-  """Sort tax classes by name."""
-  NAME
-}
-
-input TaxClassFilterInput @doc(category: "Taxes") {
-  metadata: [MetadataFilter!]
-  ids: [ID!]
-  countries: [CountryCode!]
-}
-
-"""
-Tax class rates grouped by country.
-
-Added in Saleor 3.9.
-"""
-type TaxCountryConfiguration @doc(category: "Taxes") {
-  """A country for which tax class rates are grouped."""
-  country: CountryDisplay!
-
-  """List of tax class rates."""
-  taxClassCountryRates: [TaxClassCountryRate!]!
-}
-
-type StockCountableConnection @doc(category: "Products") {
-  """Pagination data for this connection."""
-  pageInfo: PageInfo!
-  edges: [StockCountableEdge!]!
-
-  """A total count of items in the collection."""
-  totalCount: Int
-}
-
-type StockCountableEdge @doc(category: "Products") {
-  """The item at the end of the edge."""
-  node: Stock!
-
-  """A cursor for use in pagination."""
-  cursor: String!
-}
-
-input StockFilterInput @doc(category: "Products") {
-  quantity: Float
-  search: String
-}
-
-"""
-Represents a shop resource containing general shop data and configuration.
-"""
-type Shop {
-  """List of available payment gateways."""
-  availablePaymentGateways(
-    """
-    A currency for which gateways will be returned. 
-    
-    DEPRECATED: this field will be removed in Saleor 4.0. Use `channel` argument instead.
-    """
-    currency: String
-
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): [PaymentGateway!]!
-
-  """List of available external authentications."""
-  availableExternalAuthentications: [ExternalAuthentication!]!
-
-  """Shipping methods that are available for the shop."""
-  availableShippingMethods(
-    """Slug of a channel for which the data should be returned."""
-    channel: String!
-
-    """Address for which available shipping methods should be returned."""
-    address: AddressInput
-  ): [ShippingMethod!]
-
-  """
-  List of all currencies supported by shop's channels.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  channelCurrencies: [String!]!
-
-  """List of countries available in the shop."""
-  countries(
-    """
-    A language code to return the translation for. 
-    
-    DEPRECATED: this field will be removed in Saleor 4.0.
-    """
-    languageCode: LanguageCodeEnum
-
-    """Filtering options for countries"""
-    filter: CountryFilterInput
-  ): [CountryDisplay!]!
-
-  """Shop's default country."""
-  defaultCountry: CountryDisplay
-
-  """
-  Default shop's email sender's name.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultMailSenderName: String
-
-  """
-  Default shop's email sender's address.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultMailSenderAddress: String
-
-  """Shop's description."""
-  description: String
-
-  """Shop's domain data."""
-  domain: Domain!
-
-  """List of the shops's supported languages."""
-  languages: [LanguageDisplay!]!
-
-  """Shop's name."""
-  name: String!
-
-  """List of available permissions."""
-  permissions: [Permission!]!
-
-  """List of possible phone prefixes."""
-  phonePrefixes: [String!]!
-
-  """Header text."""
-  headerText: String
-
-  """
-  Automatically approve all new fulfillments.
-  
-  Added in Saleor 3.1.
-  """
-  fulfillmentAutoApprove: Boolean!
-
-  """
-  Allow to approve fulfillments which are unpaid.
-  
-  Added in Saleor 3.1.
-  """
-  fulfillmentAllowUnpaid: Boolean!
-
-  """Enable inventory tracking."""
-  trackInventoryByDefault: Boolean
-
-  """Default weight unit."""
-  defaultWeightUnit: WeightUnitsEnum
-
-  """Returns translated shop fields for the given language code."""
-  translation(
-    """A language code to return the translation for shop."""
-    languageCode: LanguageCodeEnum!
-  ): ShopTranslation
-
-  """
-  Enable automatic fulfillment for all digital products.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  automaticFulfillmentDigitalProducts: Boolean
-
-  """
-  Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  reserveStockDurationAnonymousUser: Int
-
-  """
-  Default number of minutes stock will be reserved for authenticated checkout or null when stock reservation is disabled.
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  reserveStockDurationAuthenticatedUser: Int
-
-  """
-  Default number of maximum line quantity in single checkout (per single checkout line).
-  
-  Added in Saleor 3.1.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  limitQuantityPerCheckout: Int
-
-  """
-  Default number of max downloads per digital content URL.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultDigitalMaxDownloads: Int
-
-  """
-  Default number of days which digital content URL will be valid.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  defaultDigitalUrlValidDays: Int
-
-  """Company address."""
-  companyAddress: Address
-
-  """URL of a view where customers can set their password."""
-  customerSetPasswordUrl: String
-
-  """
-  List of staff notification recipients.
-  
-  Requires one of the following permissions: MANAGE_SETTINGS.
-  """
-  staffNotificationRecipients: [StaffNotificationRecipient!]
-
-  """
-  Determines if account confirmation by email is enabled.
+  The time in days after expired orders will be deleted.
   
   Added in Saleor 3.14.
   
-  Requires one of the following permissions: MANAGE_SETTINGS.
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
-  enableAccountConfirmationByEmail: Boolean
-
-  """
-  Resource limitations and current usage if any set for a shop
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
-  """
-  limits: LimitInfo!
-
-  """
-  Saleor API version.
-  
-  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
-  """
-  version: String!
-
-  """
-  Minor Saleor API version.
-  
-  Added in Saleor 3.5.
-  """
-  schemaVersion: String!
-
-  """Include taxes in prices."""
-  includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
-
-  """Display prices with tax in store."""
-  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
-
-  """Charge taxes on shipping."""
-  chargeTaxesOnShipping: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
+  deleteExpiredOrdersAfter: Day!
 }
+
+"""
+The `Minute` scalar type represents number of minutes by integer value.
+"""
+scalar Minute
+
+"""
+Determine the mark as paid strategy for the channel.
+
+    TRANSACTION_FLOW - new orders marked as paid will receive a
+    `TransactionItem` object, that will cover the `order.total`.
+
+    PAYMENT_FLOW - new orders marked as paid will receive a
+    `Payment` object, that will cover the `order.total`.
+"""
+enum MarkAsPaidStrategyEnum @doc(category: "Channels") {
+  TRANSACTION_FLOW
+  PAYMENT_FLOW
+}
+
+"""
+Determine the transaction flow strategy.
+
+    AUTHORIZATION - the processed transaction should be only authorized
+    CHARGE - the processed transaction should be charged.
+"""
+enum TransactionFlowStrategyEnum @doc(category: "Payments") {
+  AUTHORIZATION
+  CHARGE
+}
+
+"""The `Day` scalar type represents number of days by integer value."""
+scalar Day
 
 """
 Available payment gateway backend with configuration necessary to setup client.
@@ -9655,516 +7955,6 @@ type GatewayConfigLine @doc(category: "Payments") {
 
   """Gateway config value for key."""
   value: String
-}
-
-type ExternalAuthentication @doc(category: "Authentication") {
-  """ID of external authentication plugin."""
-  id: String!
-
-  """Name of external authentication plugin."""
-  name: String
-}
-
-input CountryFilterInput {
-  """
-  Boolean for filtering countries by having shipping zone assigned.If 'true', return countries with shipping zone assigned.If 'false', return countries without any shipping zone assigned.If the argument is not provided (null), return all countries.
-  """
-  attachedToShippingZones: Boolean
-}
-
-"""Represents shop's domain."""
-type Domain {
-  """The host name of the domain."""
-  host: String!
-
-  """Inform if SSL is enabled."""
-  sslEnabled: Boolean!
-
-  """Shop's absolute URL."""
-  url: String!
-}
-
-"""Represents shop translations."""
-type ShopTranslation implements Node @doc(category: "Shop") {
-  """ID of the shop translation."""
-  id: ID!
-
-  """Translation language."""
-  language: LanguageDisplay!
-
-  """Translated header text of the shop."""
-  headerText: String!
-
-  """Translated description of the shop."""
-  description: String!
-}
-
-"""
-Represents a recipient of email notifications send by Saleor, such as notifications about new orders. Notifications can be assigned to staff users or arbitrary email addresses.
-"""
-type StaffNotificationRecipient implements Node {
-  """The ID of the staff notification recipient."""
-  id: ID!
-
-  """Returns a user subscribed to email notifications."""
-  user: User
-
-  """Returns email address of a user subscribed to email notifications."""
-  email: String
-
-  """Determines if a notification active."""
-  active: Boolean
-}
-
-"""Represents user data."""
-type User implements Node & ObjectWithMetadata @doc(category: "Users") {
-  """The ID of the user."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """The email address of the user."""
-  email: String!
-
-  """The given name of the address."""
-  firstName: String!
-
-  """The family name of the address."""
-  lastName: String!
-
-  """Determine if the user is a staff admin."""
-  isStaff: Boolean!
-
-  """Determine if the user is active."""
-  isActive: Boolean!
-
-  """List of all user's addresses."""
-  addresses: [Address!]!
-
-  """Returns the last open checkout of this user."""
-  checkout: Checkout @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `checkoutTokens` field to fetch the user checkouts.")
-
-  """Returns the checkout UUID's assigned to this user."""
-  checkoutTokens(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): [UUID!] @deprecated(reason: "This field will be removed in Saleor 4.0. Use `checkoutIds` instead.")
-
-  """Returns the checkout ID's assigned to this user."""
-  checkoutIds(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): [ID!]
-
-  """
-  Returns checkouts assigned to this user.
-  
-  Added in Saleor 3.8.
-  """
-  checkouts(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): CheckoutCountableConnection
-
-  """List of the user gift cards."""
-  giftCards(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): GiftCardCountableConnection
-
-  """
-  A note about the customer.
-  
-  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
-  """
-  note: String
-
-  """
-  List of user's orders. Requires one of the following permissions: MANAGE_STAFF, OWNER.
-  """
-  orders(
-    """Return the elements in the list that come before the specified cursor."""
-    before: String
-
-    """Return the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    first: Int
-
-    """
-    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
-    """
-    last: Int
-  ): OrderCountableConnection
-
-  """List of user's permissions."""
-  userPermissions: [UserPermission!]
-
-  """List of user's permission groups."""
-  permissionGroups: [Group!]
-
-  """List of user's permission groups which user can manage."""
-  editableGroups: [Group!]
-
-  """
-  List of channels the user has access to. The sum of channels from all user groups. If at least one group has `restrictedAccessToChannels` set to False - all channels are returned.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  accessibleChannels: [Channel!]
-
-  """
-  Determine if user have restricted access to channels. False if at least one user group has `restrictedAccessToChannels` set to False.
-  
-  Added in Saleor 3.14.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  restrictedAccessToChannels: Boolean!
-
-  """The avatar of the user."""
-  avatar(
-    """
-    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
-    """
-    size: Int
-
-    """
-    The format of the image. When not provided, format of the original image will be used.
-    
-    Added in Saleor 3.6.
-    """
-    format: ThumbnailFormatEnum = ORIGINAL
-  ): Image
-
-  """
-  List of events associated with the user.
-  
-  Requires one of the following permissions: MANAGE_USERS, MANAGE_STAFF.
-  """
-  events: [CustomerEvent!]
-
-  """List of stored payment sources."""
-  storedPaymentSources(
-    """Slug of a channel for which the data should be returned."""
-    channel: String
-  ): [PaymentSource!]
-
-  """User language code."""
-  languageCode: LanguageCodeEnum!
-
-  """The default shipping address of the user."""
-  defaultShippingAddress: Address
-
-  """The default billing address of the user."""
-  defaultBillingAddress: Address
-
-  """
-  External ID of this user. 
-  
-  Added in Saleor 3.10.
-  """
-  externalReference: String
-
-  """The date when the user last time log in to the system."""
-  lastLogin: DateTime
-
-  """The data when the user create account."""
-  dateJoined: DateTime!
-
-  """The data when the user last update the account information."""
-  updatedAt: DateTime!
-}
-
-"""Checkout object."""
-type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
-  """The ID of the checkout."""
-  id: ID!
-
-  """List of private metadata items. Requires staff permissions to access."""
-  privateMetadata: [MetadataItem!]!
-
-  """
-  A single key from private metadata. Requires staff permissions to access.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafield(key: String!): String
-
-  """
-  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  privateMetafields(keys: [String!]): Metadata
-
-  """List of public metadata items. Can be accessed without permissions."""
-  metadata: [MetadataItem!]!
-
-  """
-  A single key from public metadata.
-  
-  Tip: Use GraphQL aliases to fetch multiple keys.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafield(key: String!): String
-
-  """
-  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
-  
-  Added in Saleor 3.3.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  metafields(keys: [String!]): Metadata
-
-  """The date and time when the checkout was created."""
-  created: DateTime!
-
-  """
-  Time of last modification of the given checkout.
-  
-  Added in Saleor 3.13.
-  """
-  updatedAt: DateTime!
-  lastChange: DateTime! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `updatedAt` instead.")
-
-  """The user assigned to the checkout."""
-  user: User
-
-  """The channel for which checkout was created."""
-  channel: Channel!
-
-  """The billing address of the checkout."""
-  billingAddress: Address
-
-  """The shipping address of the checkout."""
-  shippingAddress: Address
-
-  """The note for the checkout."""
-  note: String!
-
-  """
-  The total discount applied to the checkout. Note: Only discount created via voucher are included in this field.
-  """
-  discount: Money
-
-  """The name of voucher assigned to the checkout."""
-  discountName: String
-
-  """
-  Translation of the discountName field in the language set in Checkout.languageCode field.Note: this field is set automatically when Checkout.languageCode is defined; otherwise it's null
-  """
-  translatedDiscountName: String
-
-  """The code of voucher assigned to the checkout."""
-  voucherCode: String
-
-  """Shipping methods that can be used with this checkout."""
-  availableShippingMethods: [ShippingMethod!]! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `shippingMethods` instead.")
-
-  """Shipping methods that can be used with this checkout."""
-  shippingMethods: [ShippingMethod!]!
-
-  """
-  Collection points that can be used for this order.
-  
-  Added in Saleor 3.1.
-  """
-  availableCollectionPoints: [Warehouse!]!
-
-  """List of available payment gateways."""
-  availablePaymentGateways: [PaymentGateway!]!
-
-  """Email of a customer."""
-  email: String
-
-  """List of gift cards associated with this checkout."""
-  giftCards: [GiftCard!]!
-
-  """Returns True, if checkout requires shipping."""
-  isShippingRequired: Boolean!
-
-  """The number of items purchased."""
-  quantity: Int!
-
-  """
-  Date when oldest stock reservation for this checkout expires or null if no stock is reserved.
-  
-  Added in Saleor 3.1.
-  """
-  stockReservationExpires: DateTime
-
-  """
-  A list of checkout lines, each containing information about an item in the checkout.
-  """
-  lines: [CheckoutLine!]!
-
-  """
-  The price of the shipping, with all the taxes included. Set to 0 when no delivery method is selected.
-  """
-  shippingPrice: TaxedMoney!
-
-  """The shipping method related with checkout."""
-  shippingMethod: ShippingMethod @deprecated(reason: "This field will be removed in Saleor 4.0. Use `deliveryMethod` instead.")
-
-  """
-  The delivery method selected for this checkout.
-  
-  Added in Saleor 3.1.
-  """
-  deliveryMethod: DeliveryMethod
-
-  """The price of the checkout before shipping, with taxes included."""
-  subtotalPrice: TaxedMoney!
-
-  """
-  Returns True if checkout has to be exempt from taxes.
-  
-  Added in Saleor 3.8.
-  """
-  taxExemption: Boolean!
-
-  """The checkout's token."""
-  token: UUID!
-
-  """
-  The sum of the the checkout line prices, with all the taxes,shipping costs, and discounts included.
-  """
-  totalPrice: TaxedMoney!
-
-  """
-  The difference between the paid and the checkout total amount.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  totalBalance: Money!
-
-  """Checkout language code."""
-  languageCode: LanguageCodeEnum!
-
-  """
-  List of transactions for the checkout. Requires one of the following permissions: MANAGE_CHECKOUTS, HANDLE_PAYMENTS.
-  
-  Added in Saleor 3.4.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  transactions: [TransactionItem!]
-
-  """
-  Determines whether checkout prices should include taxes when displayed in a storefront.
-  
-  Added in Saleor 3.9.
-  """
-  displayGrossPrices: Boolean!
-
-  """
-  The authorize status of the checkout.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  authorizeStatus: CheckoutAuthorizeStatusEnum!
-
-  """
-  The charge status of the checkout.
-  
-  Added in Saleor 3.13.
-  
-  Note: this API is currently in Feature Preview and can be subject to changes at later point.
-  """
-  chargeStatus: CheckoutChargeStatusEnum!
 }
 
 """
@@ -11364,6 +9154,11 @@ type Allocation implements Node @doc(category: "Products") {
   warehouse: Warehouse!
 }
 
+enum DiscountValueTypeEnum @doc(category: "Discounts") {
+  FIXED
+  PERCENTAGE
+}
+
 enum OrderAction @doc(category: "Payments") {
   """Represents the capture action."""
   CAPTURE
@@ -11689,6 +9484,251 @@ type CreditCard @doc(category: "Payments") {
 
   """Four-digit number representing the card’s expiration year."""
   expYear: Int
+}
+
+"""
+Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
+"""
+type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String
+  code: String!
+  usageLimit: Int
+  used: Int!
+  startDate: DateTime!
+  endDate: DateTime
+  applyOncePerOrder: Boolean!
+  applyOncePerCustomer: Boolean!
+  onlyForStaff: Boolean!
+  minCheckoutItemsQuantity: Int
+
+  """List of categories this voucher applies to."""
+  categories(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """
+  List of collections this voucher applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  collections(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CollectionCountableConnection
+
+  """
+  List of products this voucher applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  products(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """
+  List of product variants this voucher applies to.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  variants(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
+
+  """List of countries available for the shipping voucher."""
+  countries: [CountryDisplay!]
+
+  """Returns translated voucher fields for the given language code."""
+  translation(
+    """A language code to return the translation for voucher."""
+    languageCode: LanguageCodeEnum!
+  ): VoucherTranslation
+
+  """Determines a type of discount for voucher - value or percentage"""
+  discountValueType: DiscountValueTypeEnum!
+
+  """Voucher value."""
+  discountValue: Float
+
+  """Currency code for voucher."""
+  currency: String
+
+  """Minimum order value to apply voucher."""
+  minSpent: Money
+
+  """Determines a type of voucher."""
+  type: VoucherTypeEnum!
+
+  """
+  List of availability in channels for the voucher.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  channelListings: [VoucherChannelListing!]
+}
+
+type CollectionCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [CollectionCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type CollectionCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Collection!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+type ProductVariantCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [ProductVariantCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type ProductVariantCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: ProductVariant!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Represents voucher translations."""
+type VoucherTranslation implements Node @doc(category: "Discounts") {
+  """ID of the voucher translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the voucher."""
+  name: String
+}
+
+enum VoucherTypeEnum @doc(category: "Discounts") {
+  SHIPPING
+  ENTIRE_ORDER
+  SPECIFIC_PRODUCT
+}
+
+"""Represents voucher channel listing."""
+type VoucherChannelListing implements Node @doc(category: "Discounts") {
+  id: ID!
+  channel: Channel!
+  discountValue: Float!
+  currency: String!
+  minSpent: Money
 }
 
 """History log of the order."""
@@ -12141,8 +10181,6 @@ enum TransactionEventTypeEnum @doc(category: "Payments") {
   INFO
 }
 
-union UserOrApp = User | App
-
 """
 Determine a current authorize status for checkout.
 
@@ -12252,6 +10290,34 @@ type UserPermission @doc(category: "Users") {
   ): [Group!]
 }
 
+"""An enumeration."""
+enum PermissionEnum @doc(category: "Users") {
+  MANAGE_USERS
+  MANAGE_STAFF
+  IMPERSONATE_USER
+  MANAGE_APPS
+  MANAGE_OBSERVABILITY
+  MANAGE_CHECKOUTS
+  HANDLE_CHECKOUTS
+  HANDLE_TAXES
+  MANAGE_TAXES
+  MANAGE_CHANNELS
+  MANAGE_DISCOUNTS
+  MANAGE_GIFT_CARD
+  MANAGE_MENUS
+  MANAGE_ORDERS
+  MANAGE_ORDERS_IMPORT
+  MANAGE_PAGES
+  MANAGE_PAGE_TYPES_AND_ATTRIBUTES
+  HANDLE_PAYMENTS
+  MANAGE_PLUGINS
+  MANAGE_PRODUCTS
+  MANAGE_PRODUCT_TYPES_AND_ATTRIBUTES
+  MANAGE_SHIPPING
+  MANAGE_SETTINGS
+  MANAGE_TRANSLATIONS
+}
+
 """Represents permission group data."""
 type Group implements Node @doc(category: "Users") {
   """The ID of the group."""
@@ -12292,6 +10358,15 @@ type Group implements Node @doc(category: "Users") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   restrictedAccessToChannels: Boolean!
+}
+
+"""Represents a permission object in a friendly form."""
+type Permission @doc(category: "Authentication") {
+  """Internal code for permission."""
+  code: PermissionEnum!
+
+  """Describe action(s) allowed to do by permission."""
+  name: String!
 }
 
 """History log of the customer."""
@@ -12364,6 +10439,1956 @@ type PaymentSource @doc(category: "Payments") {
   Can be accessed without permissions.
   """
   metadata: [MetadataItem!]!
+}
+
+"""Enum determining type of your App."""
+enum AppTypeEnum @doc(category: "Apps") {
+  """
+  Local Saleor App. The app is fully manageable from dashboard. You can change assigned permissions, add webhooks, or authentication token
+  """
+  LOCAL
+
+  """
+  Third party external App. Installation is fully automated. Saleor uses a defined App manifest to gather all required information.
+  """
+  THIRDPARTY
+}
+
+"""Represents token data."""
+type AppToken implements Node @doc(category: "Apps") {
+  """The ID of the app token."""
+  id: ID!
+
+  """Name of the authenticated token."""
+  name: String
+
+  """Last 4 characters of the token."""
+  authToken: String
+}
+
+"""Represents app data."""
+type AppExtension implements Node @doc(category: "Apps") {
+  """The ID of the app extension."""
+  id: ID!
+
+  """List of the app extension's permissions."""
+  permissions: [Permission!]!
+
+  """Label of the extension to show in the dashboard."""
+  label: String!
+
+  """URL of a view where extension's iframe is placed."""
+  url: String!
+
+  """Place where given extension will be mounted."""
+  mount: AppExtensionMountEnum!
+
+  """Type of way how app extension will be opened."""
+  target: AppExtensionTargetEnum!
+
+  """The app assigned to app extension."""
+  app: App!
+
+  """JWT token used to authenticate by third-party app extension."""
+  accessToken: String
+}
+
+"""All places where app extension can be mounted."""
+enum AppExtensionMountEnum @doc(category: "Apps") {
+  CUSTOMER_OVERVIEW_CREATE
+  CUSTOMER_OVERVIEW_MORE_ACTIONS
+  CUSTOMER_DETAILS_MORE_ACTIONS
+  PRODUCT_OVERVIEW_CREATE
+  PRODUCT_OVERVIEW_MORE_ACTIONS
+  PRODUCT_DETAILS_MORE_ACTIONS
+  NAVIGATION_CATALOG
+  NAVIGATION_ORDERS
+  NAVIGATION_CUSTOMERS
+  NAVIGATION_DISCOUNTS
+  NAVIGATION_TRANSLATIONS
+  NAVIGATION_PAGES
+  ORDER_DETAILS_MORE_ACTIONS
+  ORDER_OVERVIEW_CREATE
+  ORDER_OVERVIEW_MORE_ACTIONS
+}
+
+"""
+All available ways of opening an app extension.
+
+    POPUP - app's extension will be mounted as a popup window
+    APP_PAGE - redirect to app's page
+"""
+enum AppExtensionTargetEnum @doc(category: "Apps") {
+  POPUP
+  APP_PAGE
+}
+
+"""
+Represents the app's brand data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrand @doc(category: "Apps") {
+  """
+  App's logos details.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  logo: AppBrandLogo!
+}
+
+"""
+Represents the app's brand logo data.
+
+Added in Saleor 3.14.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type AppBrandLogo @doc(category: "Apps") {
+  """
+  URL to the default logo image.
+  
+  Added in Saleor 3.14.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  default(
+    """
+    Desired longest side the image in pixels. Defaults to 4096. Images are never cropped. Pass 0 to retrieve the original size (not recommended).
+    """
+    size: Int
+
+    """
+    The format of the image. When not provided, format of the original image will be used.
+    
+    Added in Saleor 3.14.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    format: IconThumbnailFormatEnum = ORIGINAL
+  ): String!
+}
+
+"""Thumbnail formats for icon images."""
+enum IconThumbnailFormatEnum {
+  ORIGINAL
+  WEBP
+}
+
+type EventDeliveryCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [EventDeliveryCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type EventDeliveryCountableEdge {
+  """The item at the end of the edge."""
+  node: EventDelivery!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Event delivery."""
+type EventDelivery implements Node {
+  id: ID!
+  createdAt: DateTime!
+
+  """Event delivery status."""
+  status: EventDeliveryStatusEnum!
+
+  """Webhook event type."""
+  eventType: WebhookEventTypeEnum!
+
+  """Event delivery attempts."""
+  attempts(
+    """Event delivery sorter"""
+    sortBy: EventDeliveryAttemptSortingInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): EventDeliveryAttemptCountableConnection
+
+  """Event payload."""
+  payload: String
+}
+
+enum EventDeliveryStatusEnum @doc(category: "Webhooks") {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+type EventDeliveryAttemptCountableConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [EventDeliveryAttemptCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type EventDeliveryAttemptCountableEdge {
+  """The item at the end of the edge."""
+  node: EventDeliveryAttempt!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+"""Event delivery attempts."""
+type EventDeliveryAttempt implements Node @doc(category: "Webhooks") {
+  id: ID!
+
+  """Event delivery creation date and time."""
+  createdAt: DateTime!
+
+  """Task id for delivery attempt."""
+  taskId: String
+
+  """Delivery attempt duration."""
+  duration: Float
+
+  """Delivery attempt response content."""
+  response: String
+
+  """Response headers for delivery attempt."""
+  responseHeaders: String
+
+  """Delivery attempt response status code."""
+  responseStatusCode: Int
+
+  """Request headers for delivery attempt."""
+  requestHeaders: String
+
+  """Event delivery status."""
+  status: EventDeliveryStatusEnum!
+}
+
+input EventDeliveryAttemptSortingInput @doc(category: "Webhooks") {
+  """Specifies the direction in which to sort attempts."""
+  direction: OrderDirection!
+
+  """Sort attempts by the selected field."""
+  field: EventDeliveryAttemptSortField!
+}
+
+enum EventDeliveryAttemptSortField @doc(category: "Webhooks") {
+  """Sort event delivery attempts by created at."""
+  CREATED_AT
+}
+
+input EventDeliverySortingInput @doc(category: "Webhooks") {
+  """Specifies the direction in which to sort deliveries."""
+  direction: OrderDirection!
+
+  """Sort deliveries by the selected field."""
+  field: EventDeliverySortField!
+}
+
+enum EventDeliverySortField @doc(category: "Webhooks") {
+  """Sort event deliveries by created at."""
+  CREATED_AT
+}
+
+input EventDeliveryFilterInput {
+  status: EventDeliveryStatusEnum
+  eventType: WebhookEventTypeEnum
+}
+
+"""An enumeration."""
+enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
+  ADDRESS_CREATED
+  ADDRESS_UPDATED
+  ADDRESS_DELETED
+  APP_INSTALLED
+  APP_UPDATED
+  APP_DELETED
+  APP_STATUS_CHANGED
+  ATTRIBUTE_CREATED
+  ATTRIBUTE_UPDATED
+  ATTRIBUTE_DELETED
+  ATTRIBUTE_VALUE_CREATED
+  ATTRIBUTE_VALUE_UPDATED
+  ATTRIBUTE_VALUE_DELETED
+  CATEGORY_CREATED
+  CATEGORY_UPDATED
+  CATEGORY_DELETED
+  CHANNEL_CREATED
+  CHANNEL_UPDATED
+  CHANNEL_DELETED
+  CHANNEL_STATUS_CHANGED
+  GIFT_CARD_CREATED
+  GIFT_CARD_UPDATED
+  GIFT_CARD_DELETED
+  GIFT_CARD_SENT
+  GIFT_CARD_STATUS_CHANGED
+  GIFT_CARD_METADATA_UPDATED
+  MENU_CREATED
+  MENU_UPDATED
+  MENU_DELETED
+  MENU_ITEM_CREATED
+  MENU_ITEM_UPDATED
+  MENU_ITEM_DELETED
+  ORDER_CREATED
+  ORDER_CONFIRMED
+  ORDER_PAID
+  ORDER_FULLY_PAID
+  ORDER_REFUNDED
+  ORDER_FULLY_REFUNDED
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  ORDER_EXPIRED
+  ORDER_FULFILLED
+  ORDER_METADATA_UPDATED
+  ORDER_BULK_CREATED
+  DRAFT_ORDER_CREATED
+  DRAFT_ORDER_UPDATED
+  DRAFT_ORDER_DELETED
+  SALE_CREATED
+  SALE_UPDATED
+  SALE_DELETED
+  SALE_TOGGLE
+  PROMOTION_CREATED
+  PROMOTION_UPDATED
+  PROMOTION_DELETED
+  PROMOTION_STARTED
+  PROMOTION_ENDED
+  INVOICE_REQUESTED
+  INVOICE_DELETED
+  INVOICE_SENT
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  CUSTOMER_DELETED
+  CUSTOMER_METADATA_UPDATED
+  COLLECTION_CREATED
+  COLLECTION_UPDATED
+  COLLECTION_DELETED
+  COLLECTION_METADATA_UPDATED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
+  PRODUCT_MEDIA_CREATED
+  PRODUCT_MEDIA_UPDATED
+  PRODUCT_MEDIA_DELETED
+  PRODUCT_METADATA_UPDATED
+  PRODUCT_VARIANT_CREATED
+  PRODUCT_VARIANT_UPDATED
+  PRODUCT_VARIANT_DELETED
+  PRODUCT_VARIANT_OUT_OF_STOCK
+  PRODUCT_VARIANT_BACK_IN_STOCK
+  PRODUCT_VARIANT_STOCK_UPDATED
+  PRODUCT_VARIANT_METADATA_UPDATED
+  CHECKOUT_CREATED
+  CHECKOUT_UPDATED
+  CHECKOUT_FULLY_PAID
+  CHECKOUT_METADATA_UPDATED
+  FULFILLMENT_CREATED
+  FULFILLMENT_CANCELED
+  FULFILLMENT_APPROVED
+  FULFILLMENT_METADATA_UPDATED
+  NOTIFY_USER
+  PAGE_CREATED
+  PAGE_UPDATED
+  PAGE_DELETED
+  PAGE_TYPE_CREATED
+  PAGE_TYPE_UPDATED
+  PAGE_TYPE_DELETED
+  PERMISSION_GROUP_CREATED
+  PERMISSION_GROUP_UPDATED
+  PERMISSION_GROUP_DELETED
+  SHIPPING_PRICE_CREATED
+  SHIPPING_PRICE_UPDATED
+  SHIPPING_PRICE_DELETED
+  SHIPPING_ZONE_CREATED
+  SHIPPING_ZONE_UPDATED
+  SHIPPING_ZONE_DELETED
+  SHIPPING_ZONE_METADATA_UPDATED
+  STAFF_CREATED
+  STAFF_UPDATED
+  STAFF_DELETED
+  TRANSACTION_ACTION_REQUEST
+  TRANSACTION_ITEM_METADATA_UPDATED
+  TRANSLATION_CREATED
+  TRANSLATION_UPDATED
+  WAREHOUSE_CREATED
+  WAREHOUSE_UPDATED
+  WAREHOUSE_DELETED
+  WAREHOUSE_METADATA_UPDATED
+  VOUCHER_CREATED
+  VOUCHER_UPDATED
+  VOUCHER_DELETED
+  VOUCHER_METADATA_UPDATED
+  OBSERVABILITY
+  THUMBNAIL_CREATED
+}
+
+type WarehouseCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [WarehouseCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type WarehouseCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Warehouse!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input WarehouseFilterInput @doc(category: "Products") {
+  clickAndCollectOption: WarehouseClickAndCollectOptionEnum
+  search: String
+  ids: [ID!]
+  isPrivate: Boolean
+  channels: [ID!]
+  slugs: [String!]
+}
+
+input WarehouseSortingInput @doc(category: "Products") {
+  """Specifies the direction in which to sort warehouses."""
+  direction: OrderDirection!
+
+  """Sort warehouses by the selected field."""
+  field: WarehouseSortField!
+}
+
+enum WarehouseSortField @doc(category: "Products") {
+  """Sort warehouses by name."""
+  NAME
+}
+
+type TranslatableItemConnection {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TranslatableItemEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TranslatableItemEdge {
+  """The item at the end of the edge."""
+  node: TranslatableItem!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent | PromotionTranslatableContent | PromotionRuleTranslatableContent
+
+"""
+Represents product's original translatable fields and related translations.
+"""
+type ProductTranslatableContent implements Node @doc(category: "Products") {
+  """ID of the product translatable content."""
+  id: ID!
+
+  """SEO title of the product."""
+  seoTitle: String
+
+  """SEO description of the product."""
+  seoDescription: String
+
+  """Name of the product."""
+  name: String!
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the product.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated product fields for the given language code."""
+  translation(
+    """A language code to return the translation for product."""
+    languageCode: LanguageCodeEnum!
+  ): ProductTranslation
+
+  """Represents an individual item for sale in the storefront."""
+  product: Product @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """List of product attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
+}
+
+"""
+Represents attribute value's original translatable fields and related translations.
+"""
+type AttributeValueTranslatableContent implements Node @doc(category: "Attributes") {
+  """ID of the attribute value translatable content."""
+  id: ID!
+
+  """Name of the attribute value."""
+  name: String!
+
+  """
+  Attribute value.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  richText: JSONString
+
+  """Attribute plain text value."""
+  plainText: String
+
+  """Returns translated attribute value fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute value."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeValueTranslation
+
+  """Represents a value of an attribute."""
+  attributeValue: AttributeValue @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """
+  Associated attribute that can be translated.
+  
+  Added in Saleor 3.9.
+  """
+  attribute: AttributeTranslatableContent
+}
+
+"""
+Represents attribute's original translatable fields and related translations.
+"""
+type AttributeTranslatableContent implements Node @doc(category: "Attributes") {
+  """ID of the attribute translatable content."""
+  id: ID!
+
+  """Name of the attribute."""
+  name: String!
+
+  """Returns translated attribute fields for the given language code."""
+  translation(
+    """A language code to return the translation for attribute."""
+    languageCode: LanguageCodeEnum!
+  ): AttributeTranslation
+
+  """Custom attribute of a product."""
+  attribute: Attribute @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents collection's original translatable fields and related translations.
+"""
+type CollectionTranslatableContent implements Node @doc(category: "Products") {
+  """ID of the collection translatable content."""
+  id: ID!
+
+  """SEO title of the collection."""
+  seoTitle: String
+
+  """SEO description of the collection."""
+  seoDescription: String
+
+  """Name of the collection."""
+  name: String!
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the collection.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated collection fields for the given language code."""
+  translation(
+    """A language code to return the translation for collection."""
+    languageCode: LanguageCodeEnum!
+  ): CollectionTranslation
+
+  """Represents a collection of products."""
+  collection: Collection @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents category original translatable fields and related translations.
+"""
+type CategoryTranslatableContent implements Node @doc(category: "Products") {
+  """ID of the category translatable content."""
+  id: ID!
+
+  """SEO title of the category."""
+  seoTitle: String
+
+  """SEO description of the category."""
+  seoDescription: String
+
+  """Name of the category."""
+  name: String!
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """
+  Description of the category.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  descriptionJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `description` field instead.")
+
+  """Returns translated category fields for the given language code."""
+  translation(
+    """A language code to return the translation for category."""
+    languageCode: LanguageCodeEnum!
+  ): CategoryTranslation
+
+  """Represents a single category of products."""
+  category: Category @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents product variant's original translatable fields and related translations.
+"""
+type ProductVariantTranslatableContent implements Node @doc(category: "Products") {
+  """ID of the product variant translatable content."""
+  id: ID!
+
+  """Name of the product variant."""
+  name: String!
+
+  """Returns translated product variant fields for the given language code."""
+  translation(
+    """A language code to return the translation for product variant."""
+    languageCode: LanguageCodeEnum!
+  ): ProductVariantTranslation
+
+  """Represents a version of a product such as different size or color."""
+  productVariant: ProductVariant @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """List of product variant attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
+}
+
+"""
+Represents page's original translatable fields and related translations.
+"""
+type PageTranslatableContent implements Node @doc(category: "Pages") {
+  """ID of the page translatable content."""
+  id: ID!
+
+  """SEO title of the page."""
+  seoTitle: String
+
+  """SEO description of the page."""
+  seoDescription: String
+
+  """Title of the page."""
+  title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """
+  A static page that can be manually added by a shop operator through the dashboard.
+  """
+  page: Page @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+
+  """List of page content attribute values that can be translated."""
+  attributeValues: [AttributeValueTranslatableContent!]!
+}
+
+"""Represents page translations."""
+type PageTranslation implements Node @doc(category: "Pages") {
+  """ID of the page translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated SEO title of the page."""
+  seoTitle: String
+
+  """Translated SEO description of the page."""
+  seoDescription: String
+
+  """Translated title of the page."""
+  title: String
+
+  """
+  Translated content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+
+  """
+  Translated description of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
+}
+
+"""
+A static page that can be manually added by a shop operator through the dashboard.
+"""
+type Page implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  seoTitle: String
+  seoDescription: String
+  title: String!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  content: JSONString
+  publicationDate: Date @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `publishedAt` field to fetch the publication date.")
+
+  """
+  The page publication date.
+  
+  Added in Saleor 3.3.
+  """
+  publishedAt: DateTime
+  isPublished: Boolean!
+  slug: String!
+  pageType: PageType!
+  created: DateTime!
+
+  """
+  Content of the page.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  contentJson: JSONString! @deprecated(reason: "This field will be removed in Saleor 4.0. Use the `content` field instead.")
+
+  """Returns translated page fields for the given language code."""
+  translation(
+    """A language code to return the translation for page."""
+    languageCode: LanguageCodeEnum!
+  ): PageTranslation
+
+  """List of attributes assigned to this product."""
+  attributes: [SelectedAttribute!]!
+}
+
+"""
+Represents a type of page. It defines what attributes are available to pages of this type.
+"""
+type PageType implements Node & ObjectWithMetadata @doc(category: "Pages") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String!
+  slug: String!
+
+  """Page attributes of that page type."""
+  attributes: [Attribute!]
+
+  """
+  Attributes that can be assigned to the page type.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  availableAttributes(
+    filter: AttributeFilterInput
+    where: AttributeWhereInput
+
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): AttributeCountableConnection
+
+  """
+  Whether page type has pages assigned.
+  
+  Requires one of the following permissions: MANAGE_PAGES, MANAGE_PAGE_TYPES_AND_ATTRIBUTES.
+  """
+  hasPages: Boolean
+}
+
+"""
+Represents shipping method's original translatable fields and related translations.
+"""
+type ShippingMethodTranslatableContent implements Node @doc(category: "Shipping") {
+  """ID of the shipping method translatable content."""
+  id: ID!
+
+  """Name of the shipping method."""
+  name: String!
+
+  """
+  Description of the shipping method.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated shipping method fields for the given language code."""
+  translation(
+    """A language code to return the translation for shipping method."""
+    languageCode: LanguageCodeEnum!
+  ): ShippingMethodTranslation
+
+  """
+  Shipping method are the methods you'll use to get customer's orders  to them. They are directly exposed to the customers.
+  
+  Requires one of the following permissions: MANAGE_SHIPPING.
+  """
+  shippingMethod: ShippingMethodType @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents sale's original translatable fields and related translations.
+"""
+type SaleTranslatableContent implements Node @doc(category: "Discounts") {
+  """ID of the sale translatable content."""
+  id: ID!
+
+  """Name of the sale."""
+  name: String!
+
+  """Returns translated sale fields for the given language code."""
+  translation(
+    """A language code to return the translation for sale."""
+    languageCode: LanguageCodeEnum!
+  ): SaleTranslation
+
+  """
+  Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  sale: Sale @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""Represents sale translations."""
+type SaleTranslation implements Node @doc(category: "Discounts") {
+  """ID of the sale translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of sale."""
+  name: String
+}
+
+"""
+Sales allow creating discounts for categories, collections or products and are visible to all the customers.
+"""
+type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String!
+  type: SaleType!
+  startDate: DateTime!
+  endDate: DateTime
+  created: DateTime!
+  updatedAt: DateTime!
+
+  """List of categories this sale applies to."""
+  categories(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CategoryCountableConnection
+
+  """
+  List of collections this sale applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  collections(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): CollectionCountableConnection
+
+  """
+  List of products this sale applies to.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  products(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductCountableConnection
+
+  """
+  List of product variants this sale applies to.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  variants(
+    """Return the elements in the list that come before the specified cursor."""
+    before: String
+
+    """Return the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Retrieve the first n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    first: Int
+
+    """
+    Retrieve the last n elements from the list. Note that the system only allows fetching a maximum of 100 objects in a single query.
+    """
+    last: Int
+  ): ProductVariantCountableConnection
+
+  """Returns translated sale fields for the given language code."""
+  translation(
+    """A language code to return the translation for sale."""
+    languageCode: LanguageCodeEnum!
+  ): SaleTranslation
+
+  """
+  List of channels available for the sale.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  channelListings: [SaleChannelListing!]
+
+  """Sale value."""
+  discountValue: Float
+
+  """Currency code for sale."""
+  currency: String
+}
+
+enum SaleType @doc(category: "Discounts") {
+  FIXED
+  PERCENTAGE
+}
+
+"""Represents sale channel listing."""
+type SaleChannelListing implements Node @doc(category: "Discounts") {
+  id: ID!
+  channel: Channel!
+  discountValue: Float!
+  currency: String!
+}
+
+"""
+Represents voucher's original translatable fields and related translations.
+"""
+type VoucherTranslatableContent implements Node @doc(category: "Discounts") {
+  """ID of the voucher translatable content."""
+  id: ID!
+
+  """Name of the voucher."""
+  name: String
+
+  """Returns translated voucher fields for the given language code."""
+  translation(
+    """A language code to return the translation for voucher."""
+    languageCode: LanguageCodeEnum!
+  ): VoucherTranslation
+
+  """
+  Vouchers allow giving discounts to particular customers on categories, collections or specific products. They can be used during checkout by providing valid voucher codes.
+  
+  Requires one of the following permissions: MANAGE_DISCOUNTS.
+  """
+  voucher: Voucher @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""
+Represents menu item's original translatable fields and related translations.
+"""
+type MenuItemTranslatableContent implements Node @doc(category: "Menu") {
+  """ID of the menu item translatable content."""
+  id: ID!
+
+  """Name of the menu item."""
+  name: String!
+
+  """Returns translated menu item fields for the given language code."""
+  translation(
+    """A language code to return the translation for menu item."""
+    languageCode: LanguageCodeEnum!
+  ): MenuItemTranslation
+
+  """
+  Represents a single item of the related menu. Can store categories, collection or pages.
+  """
+  menuItem: MenuItem @deprecated(reason: "This field will be removed in Saleor 4.0. Get model fields from the root level queries.")
+}
+
+"""Represents menu item translations."""
+type MenuItemTranslation implements Node @doc(category: "Menu") {
+  """ID of the menu item translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the menu item."""
+  name: String!
+}
+
+"""
+Represents a single item of the related menu. Can store categories, collection or pages.
+"""
+type MenuItem implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String!
+  menu: Menu!
+  parent: MenuItem
+  category: Category
+
+  """
+  A collection associated with this menu item. Requires one of the following permissions to include the unpublished items: MANAGE_ORDERS, MANAGE_DISCOUNTS, MANAGE_PRODUCTS.
+  """
+  collection: Collection
+
+  """
+  A page associated with this menu item. Requires one of the following permissions to include unpublished items: MANAGE_PAGES.
+  """
+  page: Page
+  level: Int!
+  children: [MenuItem!]
+
+  """URL to the menu item."""
+  url: String
+
+  """Returns translated menu item fields for the given language code."""
+  translation(
+    """A language code to return the translation for menu item."""
+    languageCode: LanguageCodeEnum!
+  ): MenuItemTranslation
+}
+
+"""
+Represents a single menu - an object that is used to help navigate through the store.
+"""
+type Menu implements Node & ObjectWithMetadata @doc(category: "Menu") {
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+  name: String!
+  slug: String!
+  items: [MenuItem!]
+}
+
+"""
+Represents promotion's original translatable fields and related translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionTranslatableContent implements Node {
+  """ID of the promotion translatable content."""
+  id: ID!
+
+  """Name of the promotion."""
+  name: String!
+
+  """
+  Description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionTranslation
+}
+
+"""
+Represents promotion translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionTranslation implements Node {
+  """ID of the promotion translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the promotion."""
+  name: String
+
+  """
+  Translated description of the promotion.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
+"""
+Represents promotion rule's original translatable fields and related translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionRuleTranslatableContent implements Node {
+  """ID of the promotion rule translatable content."""
+  id: ID!
+
+  """Name of the promotion rule."""
+  name: String!
+
+  """
+  Description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+
+  """Returns translated promotion rule fields for the given language code."""
+  translation(
+    """A language code to return the translation for promotion rule."""
+    languageCode: LanguageCodeEnum!
+  ): PromotionRuleTranslation
+}
+
+"""
+Represents promotion rule translations.
+
+Added in Saleor 3.15.
+"""
+type PromotionRuleTranslation implements Node {
+  """ID of the promotion rule translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated name of the promotion rule."""
+  name: String
+
+  """
+  Translated description of the promotion rule.
+  
+  Rich text format. For reference see https://editorjs.io/
+  """
+  description: JSONString
+}
+
+enum TranslatableKinds {
+  ATTRIBUTE
+  ATTRIBUTE_VALUE
+  CATEGORY
+  COLLECTION
+  MENU_ITEM
+  PAGE
+  PRODUCT
+  PROMOTION
+  PROMOTION_RULE
+  SALE
+  SHIPPING_METHOD
+  VARIANT
+  VOUCHER
+}
+
+"""
+Channel-specific tax configuration.
+
+Added in Saleor 3.9.
+"""
+type TaxConfiguration implements Node & ObjectWithMetadata @doc(category: "Taxes") {
+  """The ID of the object."""
+  id: ID!
+
+  """List of private metadata items. Requires staff permissions to access."""
+  privateMetadata: [MetadataItem!]!
+
+  """
+  A single key from private metadata. Requires staff permissions to access.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafield(key: String!): String
+
+  """
+  Private metadata. Requires staff permissions to access. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  privateMetafields(keys: [String!]): Metadata
+
+  """List of public metadata items. Can be accessed without permissions."""
+  metadata: [MetadataItem!]!
+
+  """
+  A single key from public metadata.
+  
+  Tip: Use GraphQL aliases to fetch multiple keys.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafield(key: String!): String
+
+  """
+  Public metadata. Use `keys` to control which fields you want to include. The default is to include everything.
+  
+  Added in Saleor 3.3.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  metafields(keys: [String!]): Metadata
+
+  """A channel to which the tax configuration applies to."""
+  channel: Channel!
+
+  """Determines whether taxes are charged in the given channel."""
+  chargeTaxes: Boolean!
+
+  """
+  The default strategy to use for tax calculation in the given channel. Taxes can be calculated either using user-defined flat rates or with a tax app. Empty value means that no method is selected and taxes are not calculated.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes.
+  """
+  displayGrossPrices: Boolean!
+
+  """Determines whether prices are entered with the tax included."""
+  pricesEnteredWithTax: Boolean!
+
+  """List of country-specific exceptions in tax configuration."""
+  countries: [TaxConfigurationPerCountry!]!
+}
+
+enum TaxCalculationStrategy @doc(category: "Taxes") {
+  FLAT_RATES
+  TAX_APP
+}
+
+"""
+Country-specific exceptions of a channel's tax configuration.
+
+Added in Saleor 3.9.
+"""
+type TaxConfigurationPerCountry @doc(category: "Taxes") {
+  """Country in which this configuration applies."""
+  country: CountryDisplay!
+
+  """Determines whether taxes are charged in this country."""
+  chargeTaxes: Boolean!
+
+  """
+  A country-specific strategy to use for tax calculation. Taxes can be calculated either using user-defined flat rates or with a tax app. If not provided, use the value from the channel's tax configuration.
+  """
+  taxCalculationStrategy: TaxCalculationStrategy
+
+  """
+  Determines whether prices displayed in a storefront should include taxes for this country.
+  """
+  displayGrossPrices: Boolean!
+}
+
+type TaxConfigurationCountableConnection @doc(category: "Taxes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxConfigurationCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxConfigurationCountableEdge @doc(category: "Taxes") {
+  """The item at the end of the edge."""
+  node: TaxConfiguration!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxConfigurationFilterInput @doc(category: "Taxes") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+}
+
+type TaxClassCountableConnection @doc(category: "Taxes") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [TaxClassCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type TaxClassCountableEdge @doc(category: "Taxes") {
+  """The item at the end of the edge."""
+  node: TaxClass!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input TaxClassSortingInput @doc(category: "Taxes") {
+  """Specifies the direction in which to sort tax classes."""
+  direction: OrderDirection!
+
+  """Sort tax classes by the selected field."""
+  field: TaxClassSortField!
+}
+
+enum TaxClassSortField @doc(category: "Taxes") {
+  """Sort tax classes by name."""
+  NAME
+}
+
+input TaxClassFilterInput @doc(category: "Taxes") {
+  metadata: [MetadataFilter!]
+  ids: [ID!]
+  countries: [CountryCode!]
+}
+
+"""
+Tax class rates grouped by country.
+
+Added in Saleor 3.9.
+"""
+type TaxCountryConfiguration @doc(category: "Taxes") {
+  """A country for which tax class rates are grouped."""
+  country: CountryDisplay!
+
+  """List of tax class rates."""
+  taxClassCountryRates: [TaxClassCountryRate!]!
+}
+
+type StockCountableConnection @doc(category: "Products") {
+  """Pagination data for this connection."""
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+
+  """A total count of items in the collection."""
+  totalCount: Int
+}
+
+type StockCountableEdge @doc(category: "Products") {
+  """The item at the end of the edge."""
+  node: Stock!
+
+  """A cursor for use in pagination."""
+  cursor: String!
+}
+
+input StockFilterInput @doc(category: "Products") {
+  quantity: Float
+  search: String
+}
+
+"""
+Represents a shop resource containing general shop data and configuration.
+"""
+type Shop {
+  """List of available payment gateways."""
+  availablePaymentGateways(
+    """
+    A currency for which gateways will be returned. 
+    
+    DEPRECATED: this field will be removed in Saleor 4.0. Use `channel` argument instead.
+    """
+    currency: String
+
+    """Slug of a channel for which the data should be returned."""
+    channel: String
+  ): [PaymentGateway!]!
+
+  """List of available external authentications."""
+  availableExternalAuthentications: [ExternalAuthentication!]!
+
+  """Shipping methods that are available for the shop."""
+  availableShippingMethods(
+    """Slug of a channel for which the data should be returned."""
+    channel: String!
+
+    """Address for which available shipping methods should be returned."""
+    address: AddressInput
+  ): [ShippingMethod!]
+
+  """
+  List of all currencies supported by shop's channels.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  channelCurrencies: [String!]!
+
+  """List of countries available in the shop."""
+  countries(
+    """
+    A language code to return the translation for. 
+    
+    DEPRECATED: this field will be removed in Saleor 4.0.
+    """
+    languageCode: LanguageCodeEnum
+
+    """Filtering options for countries"""
+    filter: CountryFilterInput
+  ): [CountryDisplay!]!
+
+  """Shop's default country."""
+  defaultCountry: CountryDisplay
+
+  """
+  Default shop's email sender's name.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultMailSenderName: String
+
+  """
+  Default shop's email sender's address.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultMailSenderAddress: String
+
+  """Shop's description."""
+  description: String
+
+  """Shop's domain data."""
+  domain: Domain!
+
+  """List of the shops's supported languages."""
+  languages: [LanguageDisplay!]!
+
+  """Shop's name."""
+  name: String!
+
+  """List of available permissions."""
+  permissions: [Permission!]!
+
+  """List of possible phone prefixes."""
+  phonePrefixes: [String!]!
+
+  """Header text."""
+  headerText: String
+
+  """
+  Automatically approve all new fulfillments.
+  
+  Added in Saleor 3.1.
+  """
+  fulfillmentAutoApprove: Boolean!
+
+  """
+  Allow to approve fulfillments which are unpaid.
+  
+  Added in Saleor 3.1.
+  """
+  fulfillmentAllowUnpaid: Boolean!
+
+  """Enable inventory tracking."""
+  trackInventoryByDefault: Boolean
+
+  """Default weight unit."""
+  defaultWeightUnit: WeightUnitsEnum
+
+  """Returns translated shop fields for the given language code."""
+  translation(
+    """A language code to return the translation for shop."""
+    languageCode: LanguageCodeEnum!
+  ): ShopTranslation
+
+  """
+  Enable automatic fulfillment for all digital products.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  automaticFulfillmentDigitalProducts: Boolean
+
+  """
+  Default number of minutes stock will be reserved for anonymous checkout or null when stock reservation is disabled.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  reserveStockDurationAnonymousUser: Int
+
+  """
+  Default number of minutes stock will be reserved for authenticated checkout or null when stock reservation is disabled.
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  reserveStockDurationAuthenticatedUser: Int
+
+  """
+  Default number of maximum line quantity in single checkout (per single checkout line).
+  
+  Added in Saleor 3.1.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  limitQuantityPerCheckout: Int
+
+  """
+  Default number of max downloads per digital content URL.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultDigitalMaxDownloads: Int
+
+  """
+  Default number of days which digital content URL will be valid.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  defaultDigitalUrlValidDays: Int
+
+  """Company address."""
+  companyAddress: Address
+
+  """URL of a view where customers can set their password."""
+  customerSetPasswordUrl: String
+
+  """
+  List of staff notification recipients.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  staffNotificationRecipients: [StaffNotificationRecipient!]
+
+  """
+  Determines if account confirmation by email is enabled.
+  
+  Added in Saleor 3.14.
+  
+  Requires one of the following permissions: MANAGE_SETTINGS.
+  """
+  enableAccountConfirmationByEmail: Boolean
+
+  """
+  Resource limitations and current usage if any set for a shop
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER.
+  """
+  limits: LimitInfo!
+
+  """
+  Saleor API version.
+  
+  Requires one of the following permissions: AUTHENTICATED_STAFF_USER, AUTHENTICATED_APP.
+  """
+  version: String!
+
+  """
+  Minor Saleor API version.
+  
+  Added in Saleor 3.5.
+  """
+  schemaVersion: String!
+
+  """Include taxes in prices."""
+  includeTaxesInPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration.pricesEnteredWithTax` to determine whether prices are entered with tax.")
+
+  """Display prices with tax in store."""
+  displayGrossPrices: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `Channel.taxConfiguration` to determine whether to display gross or net prices.")
+
+  """Charge taxes on shipping."""
+  chargeTaxesOnShipping: Boolean! @deprecated(reason: "This field will be removed in Saleor 4.0. Use `ShippingMethodType.taxClass` to determine whether taxes are calculated for shipping methods; if a tax class is set, the taxes will be calculated, otherwise no tax rate will be applied.")
+}
+
+type ExternalAuthentication @doc(category: "Authentication") {
+  """ID of external authentication plugin."""
+  id: String!
+
+  """Name of external authentication plugin."""
+  name: String
+}
+
+input CountryFilterInput {
+  """
+  Boolean for filtering countries by having shipping zone assigned.If 'true', return countries with shipping zone assigned.If 'false', return countries without any shipping zone assigned.If the argument is not provided (null), return all countries.
+  """
+  attachedToShippingZones: Boolean
+}
+
+"""Represents shop's domain."""
+type Domain {
+  """The host name of the domain."""
+  host: String!
+
+  """Inform if SSL is enabled."""
+  sslEnabled: Boolean!
+
+  """Shop's absolute URL."""
+  url: String!
+}
+
+"""Represents shop translations."""
+type ShopTranslation implements Node @doc(category: "Shop") {
+  """ID of the shop translation."""
+  id: ID!
+
+  """Translation language."""
+  language: LanguageDisplay!
+
+  """Translated header text of the shop."""
+  headerText: String!
+
+  """Translated description of the shop."""
+  description: String!
+}
+
+"""
+Represents a recipient of email notifications send by Saleor, such as notifications about new orders. Notifications can be assigned to staff users or arbitrary email addresses.
+"""
+type StaffNotificationRecipient implements Node {
+  """The ID of the staff notification recipient."""
+  id: ID!
+
+  """Returns a user subscribed to email notifications."""
+  user: User
+
+  """Returns email address of a user subscribed to email notifications."""
+  email: String
+
+  """Determines if a notification active."""
+  active: Boolean
 }
 
 type LimitInfo {
@@ -13339,28 +13364,6 @@ type Promotion implements Node & ObjectWithMetadata & ObjectWithEvents @doc(cate
     """A language code to return the translation for promotion."""
     languageCode: LanguageCodeEnum!
   ): PromotionTranslation
-}
-
-interface ObjectWithEvents {
-  """The list of events associated with the object."""
-  events: [ObjectEvent!]
-}
-
-interface ObjectEvent {
-  id: ID!
-
-  """Date when event happened."""
-  date: DateTime!
-
-  """Promotion event type."""
-  type: String!
-
-  """
-  User or App that created the promotion event. 
-  
-  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
-  """
-  createdBy: UserOrApp
 }
 
 scalar JSON
@@ -32116,6 +32119,73 @@ type PromotionRuleDeletedEvent implements Node & ObjectEvent & PromotionRuleEven
 
   """The rule ID associated with the promotion event."""
   ruleId: String
+}
+
+type AppEventInstalled implements Node & ObjectEvent {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: String!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
+  """
+  createdBy: UserOrApp
+
+  """App event requestor type."""
+  requestorType: AppEventRequestorTypeEnum!
+}
+
+"""An enumeration."""
+enum AppEventRequestorTypeEnum {
+  USER
+  APP
+  SALEOR
+}
+
+type AppEventActivated implements Node & ObjectEvent {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: String!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
+  """
+  createdBy: UserOrApp
+
+  """App event requestor type."""
+  requestorType: AppEventRequestorTypeEnum!
+}
+
+type AppEventDeactivated implements Node & ObjectEvent {
+  id: ID!
+
+  """Date when event happened."""
+  date: DateTime!
+
+  """Promotion event type."""
+  type: String!
+
+  """
+  User or App that created the promotion event. 
+  
+  Requires one of the following permissions: MANAGE_STAFF, MANAGE_APPS.
+  """
+  createdBy: UserOrApp
+
+  """App event requestor type."""
+  requestorType: AppEventRequestorTypeEnum!
 }
 
 """_Any value scalar as defined by Federation spec."""

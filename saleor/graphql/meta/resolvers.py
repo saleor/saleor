@@ -125,9 +125,10 @@ def resolve_private_metadata(root: ModelWithMetadata, info: ResolveInfo):
 
 def resolve_event_type(instance):
     # Imports inside resolvers to avoid circular imports.
+    from ..app.types import APP_EVENTS_MAP
     from ..discount.types.promotions import PROMOTION_EVENT_MAP
 
     if isinstance(instance, EventModel):
-        MODEL_TO_TYPE_MAP = {**PROMOTION_EVENT_MAP}
-        return MODEL_TO_TYPE_MAP.get(instance.type, None)
+        model_to_type_map = {**PROMOTION_EVENT_MAP, **APP_EVENTS_MAP}
+        return model_to_type_map.get(instance.type, None)
     raise ValueError(f"Unknown type: {instance.__class__}")
