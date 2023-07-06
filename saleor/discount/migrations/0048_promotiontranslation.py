@@ -8,7 +8,7 @@ import saleor.core.utils.editorjs
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("discount", "0046_update_discounts_with_promotions"),
+        ("discount", "0047_orderlinediscount"),
     ]
 
     operations = [
