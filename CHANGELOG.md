@@ -65,6 +65,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
 `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- Add `search` to `giftCards` query - #13173 by @zedzior
 
 ### Saleor Apps
 

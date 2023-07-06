@@ -982,6 +982,15 @@ type Query {
     """
     filter: GiftCardFilterInput
 
+    """
+    Search gift cards by email and name of user, who created or used the gift card, and by code.
+    
+    Added in Saleor 3.15.
+    
+    Note: this API is currently in Feature Preview and can be subject to changes at later point.
+    """
+    search: String
+
     """Return the elements in the list that come before the specified cursor."""
     before: String
 
