@@ -9869,6 +9869,15 @@ type Checkout implements Node & ObjectWithMetadata @doc(category: "Checkout") {
   Note: this API is currently in Feature Preview and can be subject to changes at later point.
   """
   chargeStatus: CheckoutChargeStatusEnum!
+
+  """
+  List of problems with the checkout.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutProblem!]
 }
 
 """
@@ -10204,6 +10213,54 @@ type CheckoutLine implements Node & ObjectWithMetadata @doc(category: "Checkout"
 
   """Indicates whether the item need to be delivered."""
   requiresShipping: Boolean!
+
+  """
+  List of problems with the checkout line.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point.
+  """
+  problems: [CheckoutLineProblem!]
+}
+
+"""
+Represents an problem in the checkout line.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutLineProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
+
+"""
+Indicates insufficient stock for a given checkout line.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemInsufficientStock @doc(category: "Checkout") {
+  """Available quantity of a variant."""
+  availableQuantity: Int
+
+  """The line that has variant with insufficient stock."""
+  line: CheckoutLine!
+
+  """The variant with insufficient stock."""
+  variant: ProductVariant!
+}
+
+"""
+The variant assigned to the checkout line is not available.Placing the order will not be possible until solving this problem.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+type CheckoutLineProblemVariantNotAvailable @doc(category: "Checkout") {
+  """The line that has variant that is not available."""
+  line: CheckoutLine!
 }
 
 """
@@ -11889,6 +11946,15 @@ enum CheckoutChargeStatusEnum @doc(category: "Checkout") {
   FULL
   OVERCHARGED
 }
+
+"""
+Represents an problem in the checkout.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point.
+"""
+union CheckoutProblem = CheckoutLineProblemInsufficientStock | CheckoutLineProblemVariantNotAvailable
 
 type CheckoutCountableConnection @doc(category: "Checkout") {
   """Pagination data for this connection."""
