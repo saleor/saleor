@@ -51,7 +51,7 @@ class Category(ModelObjectType[models.Category]):
     name = graphene.String(required=True, description="Name of category")
     description = JSONString(description="Description of the category." + RICH_CONTENT)
     slug = graphene.String(required=True, description="Slug of the category.")
-    parent = graphene.Field(lambda: Category, description="Parent category")
+    parent = graphene.Field(lambda: Category, description="Parent category.")
     level = graphene.Int(required=True, description="Level of the category.")
     description_json = JSONString(
         description="Description of the category." + RICH_CONTENT,
