@@ -12,8 +12,7 @@ from ..product.utils import (
 from ..shipping_zone.utils import create_shipping_zone
 from ..utils import assign_permissions
 from ..warehouse.utils import create_warehouse, update_warehouse
-from .utils import checkout_create
-from .utils.checkout_payment_create_plain import checkout_dummy_payment_create_plain
+from .utils import checkout_create, raw_checkout_dummy_payment_create
 
 
 def prepare_product(
@@ -134,7 +133,7 @@ def test_unlogged_customer_should_not_be_able_to_buy_product_without_shipping_op
     assert checkout_data["availableCollectionPoints"] == []
 
     # Step 2 - Create dummy payment and verify no purchase was made
-    checkout_payment_data = checkout_dummy_payment_create_plain(
+    checkout_payment_data = raw_checkout_dummy_payment_create(
         e2e_not_logged_api_client, checkout_id, total_gross_amount
     )
     errors = checkout_payment_data["errors"]
