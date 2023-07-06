@@ -10,6 +10,7 @@ This issue tracks the release progress of Saleor <X.Y.Z>.
 
 ## Steps
 
+- [ ] Confirm scope related to Apps is ready to be released - @lkostrowski
 - [ ] Release alpha tag - @maarcingebala
 - [ ] Inform about alpha tag - @maarcingebala
 - [ ] Release alpha tag - @andrzejewsky
