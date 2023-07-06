@@ -304,7 +304,6 @@ def create_order_line(
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
-                "sale_id",
             ]
         )
 
