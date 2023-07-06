@@ -8625,10 +8625,10 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """Determine if the voucher should be applied once per order. If set to True, the voucher is applied to a single cheapest eligible product in checkout."""
   applyOncePerOrder: Boolean!
 
-  """Determine if the voucher is available only for staff members."""
+  """Determine if the voucher usage should be limited to one use per customer."""
   applyOncePerCustomer: Boolean!
 
-  """Determine if the voucher is only for staff."""
+  """Determine if the voucher is available only for staff members."""
   onlyForStaff: Boolean!
 
   """Determine minimum quantity of items for checkout."""

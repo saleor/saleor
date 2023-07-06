@@ -78,10 +78,12 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     )
     apply_once_per_customer = graphene.Boolean(
         required=True,
-        description="Determine if the voucher is available only for staff members.",
+        description="Determine if the voucher usage should be limited to one use per "
+        "customer.",
     )
     only_for_staff = graphene.Boolean(
-        required=True, description="Determine if the voucher is only for staff."
+        required=True,
+        description="Determine if the voucher is available only for " "staff members.",
     )
     min_checkout_items_quantity = graphene.Int(
         description="Determine minimum quantity of items for checkout."
