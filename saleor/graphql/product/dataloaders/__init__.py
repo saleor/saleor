@@ -37,6 +37,7 @@ from .products import (
     VariantChannelListingByVariantIdAndChannelIdLoader,
     VariantChannelListingByVariantIdAndChannelSlugLoader,
     VariantChannelListingByVariantIdLoader,
+    VariantChannelListingPromotionRuleByListingIdLoader,
     VariantsChannelListingByProductIdAndChannelSlugLoader,
 )
 
@@ -76,6 +77,7 @@ __all__ = [
     "VariantChannelListingByVariantIdAndChannelIdLoader",
     "VariantChannelListingByVariantIdLoader",
     "VariantsChannelListingByProductIdAndChannelSlugLoader",
+    "VariantChannelListingPromotionRuleByListingIdLoader",
     "ProductVariantsByProductIdAndChannel",
     "AvailableProductVariantsByProductIdAndChannel",
 ]

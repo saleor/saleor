@@ -8,6 +8,7 @@ from typing import (
     Dict,
     Iterable,
     List,
+    NamedTuple,
     Optional,
     Tuple,
     Union,
@@ -30,7 +31,12 @@ if TYPE_CHECKING:
     from ..account.models import Address, User
     from ..channel.models import Channel
     from ..discount.interface import VoucherInfo
-    from ..discount.models import CheckoutLineDiscount, Voucher
+    from ..discount.models import (
+        CheckoutLineDiscount,
+        Promotion,
+        PromotionRule,
+        Voucher,
+    )
     from ..plugins.manager import PluginsManager
     from ..product.models import (
         Collection,
@@ -39,6 +45,7 @@ if TYPE_CHECKING:
         ProductType,
         ProductVariant,
         ProductVariantChannelListing,
+        VariantChannelListingPromotionRule,
     )
     from ..tax.models import TaxClass, TaxConfiguration
     from .models import Checkout, CheckoutLine
@@ -53,6 +60,7 @@ class CheckoutLineInfo:
     product_type: "ProductType"
     collections: List["Collection"]
     discounts: List["CheckoutLineDiscount"]
+    rules_info: List["VariantPromotionRuleInfo"]
     channel: "Channel"
     tax_class: Optional["TaxClass"] = None
     voucher: Optional["Voucher"] = None
@@ -64,11 +72,17 @@ class CheckoutLineInfo:
         return None
 
     def get_promotion_discounts(self) -> List["CheckoutLineDiscount"]:
-        discounts = []
-        for discount in self.discounts:
-            if discount.type == DiscountType.PROMOTION:
-                discounts.append(discount)
-        return discounts
+        return [
+            discount
+            for discount in self.discounts
+            if discount.type == DiscountType.PROMOTION
+        ]
+
+
+class VariantPromotionRuleInfo(NamedTuple):
+    rule: "PromotionRule"
+    variant_listing_promotion_rule: "VariantChannelListingPromotionRule"
+    promotion: "Promotion"
 
 
 @dataclass
@@ -245,6 +259,7 @@ def fetch_checkout_lines(
         "variant__product__product_type__tax_class__country_rates",
         "variant__product__tax_class__country_rates",
         "variant__channel_listings__channel",
+        "variant__channel_listings__variantlistingpromotionrule__promotion_rule__promotion",
         "discounts",
     ]
     if prefetch_variant_attributes:
@@ -273,6 +288,20 @@ def fetch_checkout_lines(
             variant, checkout.channel_id
         )
 
+        listings_rules = (
+            variant_channel_listing.variantlistingpromotionrule.all()
+            if variant_channel_listing
+            else []
+        )
+        rules_info = [
+            VariantPromotionRuleInfo(
+                rule=listing_promotion_rule.promotion_rule,
+                variant_listing_promotion_rule=listing_promotion_rule,
+                promotion=listing_promotion_rule.promotion_rule.promotion,
+            )
+            for listing_promotion_rule in listings_rules
+        ]
+
         if not skip_recalculation and not _is_variant_valid(
             checkout, product, variant_channel_listing, product_channel_listing_mapping
         ):
@@ -288,6 +317,7 @@ def fetch_checkout_lines(
                         collections=collections,
                         tax_class=product.tax_class or product_type.tax_class,
                         discounts=discounts,
+                        rules_info=rules_info,
                         channel=channel,
                     )
                 )
@@ -303,6 +333,7 @@ def fetch_checkout_lines(
                 collections=collections,
                 tax_class=product.tax_class or product_type.tax_class,
                 discounts=discounts,
+                rules_info=rules_info,
                 channel=channel,
             )
         )

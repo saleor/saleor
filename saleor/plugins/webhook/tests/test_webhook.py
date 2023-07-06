@@ -24,7 +24,7 @@ from ....account.notifications import (
     send_account_confirmation,
 )
 from ....app.models import App
-from ....checkout.fetch import fetch_checkout_lines
+from ....checkout.fetch import VariantPromotionRuleInfo, fetch_checkout_lines
 from ....core import EventDeliveryStatus
 from ....core.models import EventDelivery, EventDeliveryAttempt, EventPayload
 from ....core.notification.utils import get_site_context
@@ -963,11 +963,19 @@ def test_checkout_payload_includes_promotions(
     )
     channel_listing.save(update_fields=["discounted_price_amount"])
 
-    channel_listing.variantlistingpromotionrule.create(
+    listing_promotion_rule = channel_listing.variantlistingpromotionrule.create(
         promotion_rule=rule,
         discount_amount=reward_value,
         currency=channel_listing.channel.currency_code,
     )
+
+    checkout_lines[0].rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines)
 

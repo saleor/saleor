@@ -5,6 +5,7 @@ import pytest
 from django.utils import timezone
 from freezegun import freeze_time
 
+from ....checkout.fetch import VariantPromotionRuleInfo
 from ....product.models import VariantChannelListingPromotionRule
 from ... import DiscountType, RewardValueType
 from ...models import CheckoutLineDiscount, PromotionRule
@@ -46,12 +47,19 @@ def test_create_fixed_discount(checkout_lines_info, promotion_without_rules):
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule,
         discount_amount=reward_value,
         currency=line_info1.channel.currency_code,
     )
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)
@@ -113,13 +121,21 @@ def test_create_fixed_discount_multiple_quantity_in_lines(
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule,
         discount_amount=reward_value,
         currency=line_info1.channel.currency_code,
     )
     expected_discount_amount = reward_value * line_info1.line.quantity
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(
@@ -183,12 +199,21 @@ def test_create_fixed_discount_multiple_quantity_in_lines_discount_bigger_than_t
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule,
         discount_amount=min(reward_value, listing.price.amount),
         currency=line_info1.channel.currency_code,
     )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
+
     expected_discount_amount = (listing.price * line_info1.line.quantity).amount
 
     # when
@@ -243,12 +268,20 @@ def test_create_percentage_discount(checkout_lines_info, promotion_without_rules
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule,
         discount_amount=discount_amount,
         currency=line_info1.channel.currency_code,
     )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)
@@ -314,12 +347,20 @@ def test_create_percentage_discount_multiple_quantity_in_lines(
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule,
         discount_amount=discount_amount,
         currency=line_info1.channel.currency_code,
     )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule,
+            variant_listing_promotion_rule=listing_promotion_rule,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     expected_discount_amount = discount_amount * line_info1.line.quantity
 
@@ -408,7 +449,10 @@ def test_create_discount_multiple_rules_applied(
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.bulk_create(
+    (
+        listing_promotion_rule_1,
+        listing_promotion_rule_2,
+    ) = VariantChannelListingPromotionRule.objects.bulk_create(
         [
             VariantChannelListingPromotionRule(
                 variant_channel_listing=listing,
@@ -424,6 +468,19 @@ def test_create_discount_multiple_rules_applied(
             ),
         ]
     )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_1,
+            variant_listing_promotion_rule=listing_promotion_rule_1,
+            promotion=promotion_without_rules,
+        ),
+        VariantPromotionRuleInfo(
+            rule=rule_2,
+            variant_listing_promotion_rule=listing_promotion_rule_2,
+            promotion=promotion_without_rules,
+        ),
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)
@@ -510,7 +567,10 @@ def test_two_promotions_applied_to_two_different_lines(
     listing_2.discounted_price_amount = discounted_price
     listing_2.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.bulk_create(
+    (
+        listing_promotion_rule_1,
+        listing_promotion_rule_2,
+    ) = VariantChannelListingPromotionRule.objects.bulk_create(
         [
             VariantChannelListingPromotionRule(
                 variant_channel_listing=listing_1,
@@ -526,6 +586,21 @@ def test_two_promotions_applied_to_two_different_lines(
             ),
         ]
     )
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_1,
+            variant_listing_promotion_rule=listing_promotion_rule_1,
+            promotion=promotion_without_rules,
+        )
+    ]
+    line_info2.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_2,
+            variant_listing_promotion_rule=listing_promotion_rule_2,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)
@@ -684,7 +759,7 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
     listing.discounted_price_amount = discounted_price
     listing.save(update_fields=["discounted_price_amount"])
 
-    VariantChannelListingPromotionRule.objects.create(
+    listing_promotion_rule_1 = VariantChannelListingPromotionRule.objects.create(
         variant_channel_listing=listing,
         promotion_rule=rule_1,
         discount_amount=reward_value_1,
@@ -712,6 +787,14 @@ def test_one_of_promotion_rule_not_valid_anymore_one_updated(
         ]
     )
     line_info1.discounts = [line_discount_1, line_discount_2]
+
+    line_info1.rules_info = [
+        VariantPromotionRuleInfo(
+            rule=rule_1,
+            variant_listing_promotion_rule=listing_promotion_rule_1,
+            promotion=promotion_without_rules,
+        )
+    ]
 
     # when
     create_or_update_discount_objects_from_promotion_for_checkout(checkout_lines_info)

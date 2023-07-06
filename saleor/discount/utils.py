@@ -41,7 +41,11 @@ from .models import (
 
 if TYPE_CHECKING:
     from ..account.models import User
-    from ..checkout.fetch import CheckoutInfo, CheckoutLineInfo
+    from ..checkout.fetch import (
+        CheckoutInfo,
+        CheckoutLineInfo,
+        VariantPromotionRuleInfo,
+    )
     from ..order.models import Order
     from ..plugins.manager import PluginsManager
     from ..product.models import (
@@ -818,15 +822,8 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
     line_discount_ids_to_remove = []
     updated_fields: List[str] = []
 
-    listing_id_to_listing_rule_map = _get_variant_listing_id_to_listing_rules_map(
-        lines_info
-    )
-
     for line_info in lines_info:
         line = line_info.line
-        variant_listing_promotion_rules = listing_id_to_listing_rule_map.get(
-            line_info.channel_listing.id, []
-        )
 
         # discount_amount based on the difference between discounted_price and price
         discount_amount = _get_discount_amount(line_info.channel_listing, line.quantity)
@@ -847,21 +844,19 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
         # delete the discount objects that are not valid anymore
         line_discount_ids_to_remove.extend(
             _get_discounts_that_are_not_valid_anymore(
-                variant_listing_promotion_rules,
+                line_info.rules_info,
                 rule_id_to_discount,  # type: ignore[arg-type]
                 line_info,
             )
         )
 
-        for variant_listing_promotion_rule in variant_listing_promotion_rules:
-            rule = variant_listing_promotion_rule.promotion_rule
-            discount_to_update = rule_id_to_discount.get(
-                variant_listing_promotion_rule.promotion_rule_id
-            )
+        for rule_info in line_info.rules_info:
+            rule = rule_info.rule
+            discount_to_update = rule_id_to_discount.get(rule.id)
             rule_discount_amount = _get_rule_discount_amount(
-                variant_listing_promotion_rule, line.quantity
+                rule_info.variant_listing_promotion_rule, line.quantity
             )
-            discount_name = _get_discount_name(rule)
+            discount_name = _get_discount_name(rule, rule_info.promotion)
             if not discount_to_update:
                 line_discount = CheckoutLineDiscount(
                     line=line,
@@ -880,7 +875,11 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
                 line_info.discounts.append(line_discount)
             else:
                 _update_line_discount(
-                    rule, rule_discount_amount, discount_to_update, updated_fields
+                    rule,
+                    rule_info.promotion,
+                    rule_discount_amount,
+                    discount_to_update,
+                    updated_fields,
                 )
 
                 line_discounts_to_update.append(discount_to_update)
@@ -893,25 +892,6 @@ def create_or_update_discount_objects_from_promotion_for_checkout(
         )
     if line_discount_ids_to_remove:
         CheckoutLineDiscount.objects.filter(id__in=line_discount_ids_to_remove).delete()
-
-
-def _get_variant_listing_id_to_listing_rules_map(
-    lines_info: Iterable["CheckoutLineInfo"],
-) -> Dict[int, List["VariantChannelListingPromotionRule"]]:
-    from ..product.models import VariantChannelListingPromotionRule
-
-    listing_ids = [line.channel_listing.id for line in lines_info]
-    listing_id_to_listing_rule_map = defaultdict(list)
-
-    listing_promotion_rule = VariantChannelListingPromotionRule.objects.filter(
-        variant_channel_listing_id__in=listing_ids
-    ).prefetch_related("promotion_rule__promotion")
-    for variant_listing_rule in listing_promotion_rule:
-        listing_id_to_listing_rule_map[
-            variant_listing_rule.variant_channel_listing_id
-        ].append(variant_listing_rule)
-
-    return listing_id_to_listing_rule_map
 
 
 def _get_discount_amount(
@@ -932,15 +912,12 @@ def _get_discount_amount(
 
 
 def _get_discounts_that_are_not_valid_anymore(
-    variant_listing_promotion_rules: Iterable["VariantChannelListingPromotionRule"],
+    rules_info: List["VariantPromotionRuleInfo"],
     rule_id_to_discount: Dict[int, "CheckoutLineDiscount"],
     line_info: "CheckoutLineInfo",
 ):
     discount_ids = []
-    rule_ids = {
-        variant_listing_promotion_rule.promotion_rule_id
-        for variant_listing_promotion_rule in variant_listing_promotion_rules
-    }
+    rule_ids = {rule_info.rule.id for rule_info in rules_info}
     for rule_id, discount in rule_id_to_discount.items():
         if rule_id not in rule_ids:
             discount_ids.append(discount.id)
@@ -956,14 +933,15 @@ def _get_rule_discount_amount(
     return discount_amount * line_quantity
 
 
-def _get_discount_name(rule: "PromotionRule"):
-    if rule.promotion.name and rule.name:
-        return f"{rule.promotion.name}: {rule.name}"
-    return rule.name or rule.promotion.name
+def _get_discount_name(rule: "PromotionRule", promotion: "Promotion"):
+    if promotion.name and rule.name:
+        return f"{promotion.name}: {rule.name}"
+    return rule.name or promotion.name
 
 
 def _update_line_discount(
     rule: "PromotionRule",
+    promotion: "Promotion",
     rule_discount_amount: Decimal,
     discount_to_update: "CheckoutLineDiscount",
     updated_fields: List[str],
@@ -979,7 +957,7 @@ def _update_line_discount(
     if discount_to_update.amount_value != rule_discount_amount:
         discount_to_update.amount_value = rule_discount_amount
         updated_fields.append("amount_value")
-    discount_name = _get_discount_name(rule)
+    discount_name = _get_discount_name(rule, promotion)
     if discount_to_update.name != discount_name:
         discount_to_update.name = discount_name
         updated_fields.append("name")

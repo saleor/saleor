@@ -352,7 +352,9 @@ def test_get_price_overridden_price_with_discount(
     )
 
     # when
-    price = variant.get_price(channel_listing, price_override=price_override)
+    price = variant.get_price(
+        channel_listing, price_override=price_override, promotion_rules=[rule_1, rule_2]
+    )
 
     # then
     assert price.amount == price_override - reward_value_2 - (

@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 import graphene
@@ -649,6 +649,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         self,
         channel_listing: "ProductVariantChannelListing",
         price_override: Optional["Decimal"] = None,
+        promotion_rules: Optional[Iterable["PromotionRule"]] = None,
     ) -> "Money":
         """Return the variant discounted price with applied promotions.
 
@@ -658,7 +659,7 @@ class ProductVariant(SortableModel, ModelWithMetadata, ModelWithExternalReferenc
         if price_override is None:
             return channel_listing.discounted_price or channel_listing.price
         price: "Money" = self.get_base_price(channel_listing, price_override)
-        rules = channel_listing.promotion_rules.all()
+        rules = promotion_rules or []
         return calculate_discounted_price_for_rules(
             price=price, rules=rules, currency=channel_listing.currency
         )

@@ -120,7 +120,9 @@ def test_percentage_discounts(product, channel_USD, promotion_without_rules):
     price = Decimal("10")
 
     # when
-    final_price = variant.get_price(variant_channel_listing, price)
+    final_price = variant.get_price(
+        variant_channel_listing, price, promotion_rules=[rule]
+    )
 
     # then
     assert final_price.amount == price - reward_value / 100 * price
@@ -151,7 +153,9 @@ def test_fixed_discounts(product, channel_USD, promotion_without_rules):
     price = Decimal("10")
 
     # when
-    final_price = variant.get_price(variant_channel_listing, price)
+    final_price = variant.get_price(
+        variant_channel_listing, price, promotion_rules=[rule]
+    )
 
     # then
     assert final_price.amount == price - reward_value
