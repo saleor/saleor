@@ -6,12 +6,14 @@ from ....account.models import User
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....giftcard.notifications import send_gift_card_notification
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.types import BaseInputObjectType, GiftCardError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 from .utils import clean_gift_card
@@ -44,6 +46,12 @@ class GiftCardResend(BaseMutation):
         doc_category = DOC_CATEGORY_GIFT_CARDS
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.NOTIFY_USER,
+                description="A notification for gift card resend.",
+            )
+        ]
 
     @classmethod
     def clean_input(cls, data):

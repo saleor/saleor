@@ -103,15 +103,18 @@ class ExternalAuthentication(BaseObjectType):
     name = graphene.String(description="Name of external authentication plugin.")
 
     class Meta:
+        description = "External authentication plugin."
         doc_category = DOC_CATEGORY_AUTH
 
 
 class Limits(graphene.ObjectType):
-    channels = graphene.Int()
-    orders = graphene.Int()
-    product_variants = graphene.Int()
-    staff_users = graphene.Int()
-    warehouses = graphene.Int()
+    channels = graphene.Int(description="Defines the number of channels.")
+    orders = graphene.Int(description="Defines the number of order.")
+    product_variants = graphene.Int(
+        description="Defines the number of product variants."
+    )
+    staff_users = graphene.Int(description="Defines the number of staff users.")
+    warehouses = graphene.Int(description="Defines the number of warehouses.")
 
 
 class LimitInfo(graphene.ObjectType):
@@ -125,6 +128,9 @@ class LimitInfo(graphene.ObjectType):
         required=True,
         description="Defines the allowed maximum resource usage, null means unlimited.",
     )
+
+    class Meta:
+        description = "Store the current and allowed usage."
 
 
 class Shop(graphene.ObjectType):

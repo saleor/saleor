@@ -7,12 +7,14 @@ from ....core.tracing import traced_atomic_transaction
 from ....giftcard import events, models
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.scalars import PositiveDecimal
 from ...core.types import GiftCardError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...core.validators import validate_price_precision
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ...utils.validators import check_for_duplicates
@@ -48,6 +50,12 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_UPDATED,
+                description="A gift card was updated.",
+            )
+        ]
 
     @classmethod
     def clean_expiry_date(cls, cleaned_input, instance):
