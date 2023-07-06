@@ -35,7 +35,7 @@ from ..enums import SaleType
 
 
 class SaleChannelListing(ModelObjectType[models.SaleChannelListing]):
-    id = graphene.GlobalID(required=True, description="The ID of the channel list.")
+    id = graphene.GlobalID(required=True, description="The ID of the channel listing.")
     channel = graphene.Field(
         Channel,
         required=True,
@@ -63,7 +63,7 @@ class SaleChannelListing(ModelObjectType[models.SaleChannelListing]):
 class Sale(ChannelContextTypeWithMetadata, ModelObjectType[models.Sale]):
     id = graphene.GlobalID(required=True, description="The ID of the sale.")
     name = graphene.String(required=True, description="The name of the sale.")
-    type = SaleType(required=True, description="Fixed or percent")
+    type = SaleType(required=True, description="Type of the sale, fixed or percentage.")
     start_date = graphene.DateTime(
         required=True, description="The start date and time of the sale."
     )

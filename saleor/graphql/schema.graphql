@@ -8346,7 +8346,7 @@ type Sale implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The name of the sale."""
   name: String!
 
-  """Fixed or percent"""
+  """Type of the sale, fixed or percentage."""
   type: SaleType!
 
   """The start date and time of the sale."""
@@ -8512,7 +8512,7 @@ type ProductVariantCountableEdge @doc(category: "Products") {
 
 """Represents sale channel listing."""
 type SaleChannelListing implements Node @doc(category: "Discounts") {
-  """The ID of the channel list."""
+  """The ID of the channel listing."""
   id: ID!
 
   """The channel in which the sale is available."""
@@ -8613,7 +8613,7 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The number of times a voucher can be used."""
   usageLimit: Int
 
-  """Determine if the voucher has been used."""
+  """Usage count of the voucher."""
   used: Int!
 
   """The start date and time of voucher."""
@@ -8622,10 +8622,10 @@ type Voucher implements Node & ObjectWithMetadata @doc(category: "Discounts") {
   """The end date and time of voucher."""
   endDate: DateTime
 
-  """Determine if the voucher should be applied once per order."""
+  """Determine if the voucher should be applied once per order. If set to True, the voucher is applied to a single cheapest eligible product in checkout."""
   applyOncePerOrder: Boolean!
 
-  """Determine if the voucher should be applied once per order."""
+  """Determine if the voucher is available only for staff members."""
   applyOncePerCustomer: Boolean!
 
   """Determine if the voucher is only for staff."""
@@ -8769,7 +8769,7 @@ enum VoucherTypeEnum @doc(category: "Discounts") {
 
 """Represents voucher channel listing."""
 type VoucherChannelListing implements Node @doc(category: "Discounts") {
-  """The ID of channel list."""
+  """The ID of channel listing."""
   id: ID!
 
   """The channel in which voucher can be applied."""

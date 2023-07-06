@@ -34,7 +34,7 @@ from ..enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 class VoucherChannelListing(ModelObjectType[models.VoucherChannelListing]):
-    id = graphene.GlobalID(required=True, description="The ID of channel list.")
+    id = graphene.GlobalID(required=True, description="The ID of channel listing.")
     channel = graphene.Field(
         Channel,
         required=True,
@@ -65,20 +65,20 @@ class Voucher(ChannelContextTypeWithMetadata[models.Voucher]):
     name = graphene.String(description="The name of the voucher.")
     code = graphene.String(required=True, description="The code of the voucher.")
     usage_limit = graphene.Int(description="The number of times a voucher can be used.")
-    used = graphene.Int(
-        required=True, description="Determine if the voucher has been used."
-    )
+    used = graphene.Int(required=True, description="Usage count of the voucher.")
     start_date = graphene.DateTime(
         required=True, description="The start date and time of voucher."
     )
     end_date = graphene.DateTime(description="The end date and time of voucher.")
     apply_once_per_order = graphene.Boolean(
         required=True,
-        description="Determine if the voucher should be applied once per order.",
+        description="Determine if the voucher should be applied once per order.If set "
+        "to True, the voucher is applied to a single cheapest eligible product in "
+        "checkout.",
     )
     apply_once_per_customer = graphene.Boolean(
         required=True,
-        description="Determine if the voucher should be applied once per order.",
+        description="Determine if the voucher is available only for staff members.",
     )
     only_for_staff = graphene.Boolean(
         required=True, description="Determine if the voucher is only for staff."
