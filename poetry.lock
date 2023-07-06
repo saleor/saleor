@@ -4233,13 +4233,13 @@ files = [
 
 [[package]]
 name = "types-redis"
-version = "4.6.0.1"
+version = "4.6.0.2"
 description = "Typing stubs for redis"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-redis-4.6.0.1.tar.gz", hash = "sha256:1254d525de7a45e2efaacb6969e67ad1dd5cc359a092022200583a3f04868669"},
-    {file = "types_redis-4.6.0.1-py3-none-any.whl", hash = "sha256:88ceb79c27f2084ad6f0b8514f8fcd8a740811f07c25f3fef5c9e843fc6c60a2"},
+    {file = "types-redis-4.6.0.2.tar.gz", hash = "sha256:d0efcd96f65fd2036437c29d8c12566cfdc549345d73eddacb0488b81aff9f9e"},
+    {file = "types_redis-4.6.0.2-py3-none-any.whl", hash = "sha256:a98f3386f44d045057696f3efc8869c53dda0060610e0fe3d8a4d391e2a8916a"},
 ]
 
 [package.dependencies]
@@ -4861,4 +4861,4 @@ test = ["pytest"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.9"
-content-hash = "2942d204210bd8fdce22da15e15b67e798af2d51029ebb0b3e427e993f96ea23"
+content-hash = "c6da32b690a4c9529ceb814633d4ba9bdecf91ba8977c79aef569ba7446156d7"
