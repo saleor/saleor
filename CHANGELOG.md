@@ -66,12 +66,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add metadata support for channels. #13230 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
 `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- Add `search` to `giftCards` query - #13173 by @zedzior
 
 ### Saleor Apps
 
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
 
 ### Other changes
+- Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
@@ -87,6 +89,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
 - Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
 
 # 3.14.0
 

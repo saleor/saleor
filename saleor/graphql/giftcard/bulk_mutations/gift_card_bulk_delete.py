@@ -2,10 +2,12 @@ import graphene
 
 from ....giftcard import models
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...core import ResolveInfo
 from ...core.descriptions import ADDED_IN_31
 from ...core.mutations import ModelBulkDeleteMutation
 from ...core.types import GiftCardError, NonNullList
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 
@@ -22,6 +24,12 @@ class GiftCardBulkDelete(ModelBulkDeleteMutation):
         object_type = GiftCard
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_DELETED,
+                description="A gift card was deleted.",
+            )
+        ]
 
     @classmethod
     def bulk_action(cls, info: ResolveInfo, queryset, /):

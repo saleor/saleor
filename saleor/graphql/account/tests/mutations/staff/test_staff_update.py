@@ -10,6 +10,8 @@ from freezegun import freeze_time
 from ......account.error_codes import AccountErrorCode
 from ......account.models import Group, User
 from ......core.utils.json_serializer import CustomJsonEncoder
+from ......giftcard.models import GiftCard
+from ......giftcard.search import update_gift_cards_search_vector
 from ......permission.enums import AccountPermissions
 from ......webhook.event_types import WebhookEventAsyncType
 from ......webhook.payloads import generate_meta, generate_requestor
@@ -620,3 +622,42 @@ def test_staff_update_update_email_assign_gift_cards_and_orders(
     assert gift_card.created_by_email == staff_user.email
     order.refresh_from_db()
     assert order.user == staff_user
+
+
+def test_staff_update_trigger_gift_card_search_vector_update(
+    staff_api_client, permission_manage_staff, gift_card_list
+):
+    # given
+    query = STAFF_UPDATE_MUTATIONS
+    new_email = "testuser@example.com"
+    user = staff_api_client.user
+
+    id = graphene.Node.to_global_id("User", user.id)
+    variables = {"id": id, "input": {"email": new_email}}
+
+    gift_card_1, gift_card_2, gift_card_3 = gift_card_list
+    gift_card_1.created_by = user
+    gift_card_2.used_by = user
+    gift_card_3.created_by_email = new_email
+    GiftCard.objects.bulk_update(
+        gift_card_list, ["created_by", "used_by", "created_by_email"]
+    )
+
+    update_gift_cards_search_vector(gift_card_list)
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is False
+
+    # when
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    # then
+    content = get_graphql_content(response)
+    assert not content["data"]["staffUpdate"]["errors"]
+    user.refresh_from_db()
+    assert user.email == new_email
+    for card in gift_card_list:
+        card.refresh_from_db()
+        assert card.search_index_dirty is True
