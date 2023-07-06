@@ -5,11 +5,11 @@ import graphene
 from ....core.enums import LanguageCodeEnum, TranslationErrorCode
 from ....tests.utils import get_graphql_content
 
-ATTRIBUTE_BULK_TRANSLATE_MUTATION = """
-    mutation AttributeBulkTranslate(
-        $translations: [AttributeBulkTranslateInput!]!
+PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION = """
+    mutation ProductVariantBulkTranslate(
+        $translations: [ProductVariantBulkTranslateInput!]!
     ) {
-        attributeBulkTranslate(translations: $translations) {
+        productVariantBulkTranslate(translations: $translations) {
             results {
                 errors {
                     path
@@ -31,81 +31,77 @@ ATTRIBUTE_BULK_TRANSLATE_MUTATION = """
 
 
 @patch("saleor.plugins.manager.PluginsManager.translation_created")
-def test_attribute_bulk_translate_creates_translations(
+def test_product_variant_variant_bulk_translate_creates_translations(
     created_webhook_mock,
     staff_api_client,
-    color_attribute,
+    variant,
     permission_manage_translations,
     settings,
 ):
     # given
-    assert color_attribute.translations.count() == 0
+    assert variant.translations.count() == 0
 
-    attr_global_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    variant_global_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     translations = [
         {
-            "id": attr_global_id,
+            "id": variant_global_id,
             "languageCode": LanguageCodeEnum.PL.name,
-            "translationFields": {
-                "name": "Czerwony",
-            },
+            "translationFields": {"name": "Product PL"},
         },
         {
-            "id": attr_global_id,
+            "id": variant_global_id,
             "languageCode": LanguageCodeEnum.DE.name,
-            "translationFields": {
-                "name": "Rot",
-            },
+            "translationFields": {"name": "Product DE"},
         },
     ]
 
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
 
-    assert color_attribute.translations.count() == 2
+    assert variant.translations.count() == 2
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert data["results"][0]["translation"]["name"] == "Czerwony"
-    assert data["results"][1]["translation"]["name"] == "Rot"
+    assert data["results"][0]["translation"]["name"] == "Product PL"
+    assert data["results"][1]["translation"]["name"] == "Product DE"
     assert created_webhook_mock.call_count == 2
 
 
 @patch("saleor.plugins.manager.PluginsManager.translation_updated")
-def test_attribute_bulk_translate_updates_translations(
+def test_product_variant_bulk_translate_updates_translations(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute_with_translations,
+    variant_with_translations,
     permission_manage_translations,
     settings,
 ):
     # given
-    assert color_attribute_with_translations.translations.count() == 2
+    assert variant_with_translations.translations.count() == 2
 
-    attr_global_id = graphene.Node.to_global_id(
-        "Attribute", color_attribute_with_translations.id
+    variant_global_id = graphene.Node.to_global_id(
+        "ProductVariant", variant_with_translations.id
     )
     translations = [
         {
-            "id": attr_global_id,
+            "id": variant_global_id,
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "NewCzerwony",
+                "name": "NewVariant PL",
             },
         },
         {
-            "id": attr_global_id,
+            "id": variant_global_id,
             "languageCode": LanguageCodeEnum.DE.name,
             "translationFields": {
-                "name": "NewRot",
+                "name": "NewVariant DE",
             },
         },
     ]
@@ -113,49 +109,49 @@ def test_attribute_bulk_translate_updates_translations(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
 
-    assert color_attribute_with_translations.translations.count() == 2
+    assert variant_with_translations.translations.count() == 2
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert data["results"][0]["translation"]["name"] == "NewCzerwony"
-    assert data["results"][1]["translation"]["name"] == "NewRot"
+    assert data["results"][0]["translation"]["name"] == "NewVariant PL"
+    assert data["results"][1]["translation"]["name"] == "NewVariant DE"
     assert updated_webhook_mock.call_count == 2
 
 
 @patch("saleor.plugins.manager.PluginsManager.translation_created")
-def test_attribute_bulk_translate_creates_translations_using_attr_external_ref(
+def test_product_variant_bulk_translate_creates_translations_using_attr_external_ref(
     created_webhook_mock,
     staff_api_client,
-    color_attribute,
+    variant,
     permission_manage_translations,
     settings,
 ):
     # given
-    assert color_attribute.translations.count() == 0
-    color_attribute.external_reference = "color_attribute"
-    color_attribute.save(update_fields=["external_reference"])
+    assert variant.translations.count() == 0
+    variant.external_reference = "variant-external-reference"
+    variant.save(update_fields=["external_reference"])
 
     translations = [
         {
-            "externalReference": color_attribute.external_reference,
+            "externalReference": variant.external_reference,
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "Czerwony",
+                "name": "Variant PL",
             },
         },
         {
-            "externalReference": color_attribute.external_reference,
+            "externalReference": variant.external_reference,
             "languageCode": LanguageCodeEnum.DE.name,
             "translationFields": {
-                "name": "Rot",
+                "name": "Variant DE",
             },
         },
     ]
@@ -163,48 +159,48 @@ def test_attribute_bulk_translate_creates_translations_using_attr_external_ref(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
-    assert color_attribute.translations.count() == 2
+    assert variant.translations.count() == 2
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert data["results"][0]["translation"]["name"] == "Czerwony"
-    assert data["results"][1]["translation"]["name"] == "Rot"
+    assert data["results"][0]["translation"]["name"] == "Variant PL"
+    assert data["results"][1]["translation"]["name"] == "Variant DE"
     assert created_webhook_mock.call_count == 2
 
 
 @patch("saleor.plugins.manager.PluginsManager.translation_updated")
-def test_attribute_bulk_translate_updates_translations_using_attr_external_ref(
+def test_product_variant_bulk_translate_updates_translations_using_attr_external_ref(
     updated_webhook_mock,
     staff_api_client,
-    color_attribute_with_translations,
+    variant_with_translations,
     permission_manage_translations,
     settings,
 ):
     # given
-    assert color_attribute_with_translations.translations.count() == 2
-    color_attribute_with_translations.external_reference = "color_attribute"
-    color_attribute_with_translations.save(update_fields=["external_reference"])
+    assert variant_with_translations.translations.count() == 2
+    variant_with_translations.external_reference = "variant-external-reference"
+    variant_with_translations.save(update_fields=["external_reference"])
 
     translations = [
         {
-            "externalReference": color_attribute_with_translations.external_reference,
+            "externalReference": variant_with_translations.external_reference,
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "NewCzerwony",
+                "name": "NewVariant PL",
             },
         },
         {
-            "externalReference": color_attribute_with_translations.external_reference,
+            "externalReference": variant_with_translations.external_reference,
             "languageCode": LanguageCodeEnum.DE.name,
             "translationFields": {
-                "name": "NewRot",
+                "name": "NewVariant DE",
             },
         },
     ]
@@ -212,42 +208,42 @@ def test_attribute_bulk_translate_updates_translations_using_attr_external_ref(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
 
-    assert color_attribute_with_translations.translations.count() == 2
+    assert variant_with_translations.translations.count() == 2
     assert not data["results"][0]["errors"]
     assert not data["results"][1]["errors"]
     assert data["count"] == 2
-    assert data["results"][0]["translation"]["name"] == "NewCzerwony"
-    assert data["results"][1]["translation"]["name"] == "NewRot"
+    assert data["results"][0]["translation"]["name"] == "NewVariant PL"
+    assert data["results"][1]["translation"]["name"] == "NewVariant DE"
     assert updated_webhook_mock.call_count == 2
 
 
-def test_attribute_bulk_translate_return_error_when_attr_id_and_external_ref(
+def test_product_variant_bulk_translate_return_error_when_attr_id_and_external_ref(
     staff_api_client,
-    color_attribute,
+    variant,
     permission_manage_translations,
     settings,
 ):
     # given
-    assert color_attribute.translations.count() == 0
-    color_attribute.external_reference = "color_attribute"
-    color_attribute.save(update_fields=["external_reference"])
-    attr_global_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    assert variant.translations.count() == 0
+    variant.external_reference = "variant-external-reference"
+    variant.save(update_fields=["external_reference"])
+    variant_global_id = graphene.Node.to_global_id("ProductVariant", variant.id)
 
     translations = [
         {
-            "id": attr_global_id,
-            "externalReference": color_attribute.external_reference,
+            "id": variant_global_id,
+            "externalReference": variant.external_reference,
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "Czerwony",
+                "name": "Variant PL",
             },
         }
     ]
@@ -255,14 +251,14 @@ def test_attribute_bulk_translate_return_error_when_attr_id_and_external_ref(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
-    assert color_attribute.translations.count() == 0
+    assert variant.translations.count() == 0
     assert data["count"] == 0
     message = "Argument 'id' cannot be combined with 'externalReference'"
     error = data["results"][0]["errors"][0]
@@ -270,19 +266,18 @@ def test_attribute_bulk_translate_return_error_when_attr_id_and_external_ref(
     assert error["message"] == message
 
 
-def test_attribute_bulk_translate_return_error_when_invalid_attr_id(
+def test_product_variant_bulk_translate_return_error_when_invalid_attr_id(
     staff_api_client,
     permission_manage_translations,
     settings,
 ):
     # given
-
     translations = [
         {
-            "id": graphene.Node.to_global_id("Attribute", -1),
+            "id": graphene.Node.to_global_id("ProductVariant", -1),
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "Czerwony",
+                "name": "Variant PL",
             },
         }
     ]
@@ -290,11 +285,11 @@ def test_attribute_bulk_translate_return_error_when_invalid_attr_id(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
     assert data["count"] == 0
@@ -305,19 +300,18 @@ def test_attribute_bulk_translate_return_error_when_invalid_attr_id(
     assert error["path"] == "id"
 
 
-def test_attribute_bulk_translate_return_error_when_invalid_attr_external_ref(
+def test_product_variant_bulk_translate_return_error_when_invalid_attr_external_ref(
     staff_api_client,
     permission_manage_translations,
     settings,
 ):
     # given
-
     translations = [
         {
             "externalReference": "invalid_reference",
             "languageCode": LanguageCodeEnum.PL.name,
             "translationFields": {
-                "name": "Czerwony",
+                "name": "Product PL",
             },
         }
     ]
@@ -325,11 +319,11 @@ def test_attribute_bulk_translate_return_error_when_invalid_attr_external_ref(
     # when
     staff_api_client.user.user_permissions.add(permission_manage_translations)
     response = staff_api_client.post_graphql(
-        ATTRIBUTE_BULK_TRANSLATE_MUTATION,
+        PRODUCT_VARIANT_BULK_TRANSLATE_MUTATION,
         {"translations": translations},
     )
     content = get_graphql_content(response)
-    data = content["data"]["attributeBulkTranslate"]
+    data = content["data"]["productVariantBulkTranslate"]
 
     # then
     assert data["count"] == 0

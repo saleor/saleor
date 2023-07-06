@@ -14028,6 +14028,27 @@ type Mutation {
   ): ProductUpdate @doc(category: "Products")
 
   """
+  Creates/updates translations for products.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  
+  Triggers the following webhook events:
+  - TRANSLATION_CREATED (async): A translation was created.
+  - TRANSLATION_UPDATED (async): A translation was updated.
+  """
+  productBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of product translations."""
+    translations: [ProductBulkTranslateInput!]!
+  ): ProductBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: [])
+
+  """
   Creates/updates translations for a product. 
   
   Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -14435,6 +14456,27 @@ type Mutation {
     """Translation language code."""
     languageCode: LanguageCodeEnum!
   ): ProductVariantTranslate @doc(category: "Products")
+
+  """
+  Creates/updates translations for products variants.
+  
+  Added in Saleor 3.15.
+  
+  Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+  
+  Requires one of the following permissions: MANAGE_TRANSLATIONS.
+  
+  Triggers the following webhook events:
+  - TRANSLATION_CREATED (async): A translation was created.
+  - TRANSLATION_UPDATED (async): A translation was updated.
+  """
+  productVariantBulkTranslate(
+    """Policies of error handling. DEFAULT: REJECT_EVERYTHING"""
+    errorPolicy: ErrorPolicyEnum
+
+    """List of products variants translations."""
+    translations: [ProductVariantBulkTranslateInput!]!
+  ): ProductVariantBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: [])
 
   """
   Manage product variant prices in channels. 
@@ -20383,6 +20425,71 @@ input ProductInput @doc(category: "Products") {
 }
 
 """
+Creates/updates translations for products.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+
+Triggers the following webhook events:
+- TRANSLATION_CREATED (async): A translation was created.
+- TRANSLATION_UPDATED (async): A translation was updated.
+"""
+type ProductBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: []) {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [ProductBulkTranslateResult!]!
+  errors: [ProductBulkTranslateError!]!
+}
+
+type ProductBulkTranslateResult @doc(category: "Products") {
+  """Product translation data."""
+  translation: ProductTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [ProductBulkTranslateError!]
+}
+
+type ProductBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum ProductTranslateErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input ProductBulkTranslateInput @doc(category: "Products") {
+  """Product ID."""
+  id: ID
+
+  """External reference of an product."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: TranslationInput!
+}
+
+"""
 Creates/updates translations for a product. 
 
 Requires one of the following permissions: MANAGE_TRANSLATIONS.
@@ -21348,6 +21455,71 @@ type ProductVariantTranslate @doc(category: "Products") {
 
 input NameTranslationInput {
   name: String
+}
+
+"""
+Creates/updates translations for products variants.
+
+Added in Saleor 3.15.
+
+Note: this API is currently in Feature Preview and can be subject to changes at later point. 
+
+Requires one of the following permissions: MANAGE_TRANSLATIONS.
+
+Triggers the following webhook events:
+- TRANSLATION_CREATED (async): A translation was created.
+- TRANSLATION_UPDATED (async): A translation was updated.
+"""
+type ProductVariantBulkTranslate @doc(category: "Products") @webhookEventsInfo(asyncEvents: [TRANSLATION_CREATED, TRANSLATION_UPDATED], syncEvents: []) {
+  """Returns how many translations were created/updated."""
+  count: Int!
+
+  """List of the translations."""
+  results: [ProductVariantBulkTranslateResult!]!
+  errors: [ProductVariantBulkTranslateError!]!
+}
+
+type ProductVariantBulkTranslateResult @doc(category: "Products") {
+  """Product variant translation data."""
+  translation: ProductVariantTranslation
+
+  """List of errors occurred on translation attempt."""
+  errors: [ProductVariantBulkTranslateError!]
+}
+
+type ProductVariantBulkTranslateError {
+  """
+  Path to field that caused the error. A value of `null` indicates that the error isn't associated with a particular field.
+  """
+  path: String
+
+  """The error message."""
+  message: String
+
+  """The error code."""
+  code: ProductVariantTranslateErrorCode!
+}
+
+"""An enumeration."""
+enum ProductVariantTranslateErrorCode @doc(category: "Products") {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
+input ProductVariantBulkTranslateInput @doc(category: "Products") {
+  """Product variant ID."""
+  id: ID
+
+  """External reference of a product variant."""
+  externalReference: String
+
+  """Translation language code."""
+  languageCode: LanguageCodeEnum!
+
+  """Translation fields."""
+  translationFields: NameTranslationInput!
 }
 
 """
