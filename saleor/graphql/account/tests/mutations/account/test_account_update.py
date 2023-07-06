@@ -3,6 +3,7 @@ from unittest.mock import patch
 from ......account.error_codes import AccountErrorCode
 from ......account.models import User
 from ......checkout import AddressType
+from ......giftcard.search import update_gift_cards_search_vector
 from .....tests.utils import assert_no_permission, get_graphql_content
 
 ACCOUNT_UPDATE_QUERY = """
@@ -177,3 +178,30 @@ def test_logged_customer_updates_metadata(
     assert not data["errors"]
     assert metadata in data["user"]["metadata"]
     mocked_customer_metadata_updated.assert_called_once_with(user_api_client.user)
+
+
+def test_logged_customer_update_names_trigger_gift_card_search_vector_update(
+    user_api_client, gift_card, gift_card_used, gift_card_expiry_date
+):
+    # given
+    first_name = "first"
+    last_name = "last"
+    gift_cards = [gift_card, gift_card_used, gift_card_expiry_date]
+
+    update_gift_cards_search_vector(gift_cards)
+    for card in gift_cards:
+        card.refresh_from_db()
+        assert card.search_index_dirty is False
+
+    variables = {"firstName": first_name, "lastName": last_name}
+
+    # when
+    response = user_api_client.post_graphql(ACCOUNT_UPDATE_QUERY, variables)
+
+    # then
+    content = get_graphql_content(response)
+    data = content["data"]["accountUpdate"]
+    assert not data["errors"]
+    for card in gift_cards:
+        card.refresh_from_db()
+        assert card.search_index_dirty is True
