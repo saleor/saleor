@@ -3205,10 +3205,10 @@ type EventDeliveryCountableEdge {
 
 """Event delivery."""
 type EventDelivery implements Node {
-  """The ID of Event Delivery"""
+  """The ID of an event delivery."""
   id: ID!
 
-  """creation time of event delivery."""
+  """Creation time of an event delivery."""
   createdAt: DateTime!
 
   """Event delivery status."""

@@ -109,9 +109,9 @@ class EventDeliveryAttemptCountableConnection(CountableConnection):
 
 
 class EventDelivery(ModelObjectType[core_models.EventDelivery]):
-    id = graphene.GlobalID(required=True, description="The ID of Event Delivery")
+    id = graphene.GlobalID(required=True, description="The ID of an event delivery.")
     created_at = graphene.DateTime(
-        required=True, description="creation time of event delivery."
+        required=True, description="Creation time of an event delivery."
     )
     status = EventDeliveryStatusEnum(
         description="Event delivery status.", required=True
