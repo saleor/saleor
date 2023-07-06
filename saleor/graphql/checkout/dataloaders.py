@@ -107,7 +107,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                         checkout_lines_discounts_map = dict(
                             zip(lines_pks, checkout_lines_discounts)
                         )
-                        listing_promotion_rules = dict(
+                        listing_promotion_rules_map = dict(
                             zip(channel_listing_ids, variant_listing_promotion_rules)
                         )
                         rule_map = dict(zip(rule_ids, promotion_rules))
@@ -125,7 +125,7 @@ class CheckoutLinesInfoByCheckoutTokenLoader(DataLoader[str, List[CheckoutLineIn
                                     (line.variant_id, checkout.channel_id)
                                 ]
                                 listing_promotion_rules = (
-                                    listing_promotion_rules[channel_listing.id]
+                                    listing_promotion_rules_map[channel_listing.id]
                                     if channel_listing
                                     else []
                                 )
