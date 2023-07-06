@@ -3459,6 +3459,7 @@ enum WebhookSampleEventTypeEnum @doc(category: "Webhooks") {
 
 """Represents warehouse."""
 type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
+  """The ID of the warehouse."""
   id: ID!
 
   """List of private metadata items. Requires staff permissions to access."""
@@ -3498,10 +3499,20 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.3.
   """
   metafields(keys: [String!]): Metadata
+
+  """Warehouse name."""
   name: String!
+
+  """Warehouse slug."""
   slug: String!
+
+  """Warehouse email."""
   email: String!
+
+  """Determine if the warehouse is private."""
   isPrivate: Boolean!
+
+  """Address of the warehouse."""
   address: Address!
 
   """Warehouse company name."""
@@ -3513,6 +3524,8 @@ type Warehouse implements Node & ObjectWithMetadata @doc(category: "Products") {
   Added in Saleor 3.1.
   """
   clickAndCollectOption: WarehouseClickAndCollectOptionEnum!
+
+  """Shipping zones supported by the warehouse."""
   shippingZones(
     """Return the elements in the list that come before the specified cursor."""
     before: String
@@ -7330,8 +7343,13 @@ scalar UUID
 
 """Represents stock."""
 type Stock implements Node @doc(category: "Products") {
+  """The ID of stock."""
   id: ID!
+
+  """The warehouse associated with the stock."""
   warehouse: Warehouse!
+
+  """Information about the product variant."""
   productVariant: ProductVariant!
 
   """
@@ -10839,6 +10857,7 @@ scalar PositiveDecimal
 
 """Represents allocation."""
 type Allocation implements Node @doc(category: "Products") {
+  """The ID of allocation."""
   id: ID!
 
   """
