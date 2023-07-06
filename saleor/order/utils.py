@@ -2,7 +2,6 @@ from decimal import Decimal
 from functools import wraps
 from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple, cast
 
-import graphene
 from django.db.models import QuerySet, Sum
 from django.utils import timezone
 from prices import Money, TaxedMoney
@@ -15,11 +14,17 @@ from ..core.utils.country import get_active_country
 from ..core.utils.translations import get_translation
 from ..core.weight import zero_weight
 from ..discount import DiscountType
-from ..discount.models import NotApplicable, OrderDiscount, Voucher, VoucherType
+from ..discount.models import (
+    NotApplicable,
+    OrderDiscount,
+    OrderLineDiscount,
+    Voucher,
+    VoucherType,
+)
 from ..discount.utils import (
     apply_discount_to_value,
+    get_discount_name,
     get_products_voucher_discount,
-    get_sale_id_applied_as_a_discount,
     validate_voucher_in_order,
 )
 from ..giftcard import events as gift_card_events
@@ -58,6 +63,7 @@ if TYPE_CHECKING:
     from ..checkout.fetch import CheckoutInfo
     from ..payment.models import Payment, TransactionItem
     from ..plugins.manager import PluginsManager
+    from ..product.models import ProductVariantChannelListing
 
 
 def get_order_country(order: Order) -> str:
@@ -214,7 +220,6 @@ def create_order_line(
     price_override = line_data.price_override
 
     product = variant.product
-    collections = product.collections.all()
     channel_listing = variant.channel_listings.get(channel=channel)
 
     # vouchers are not applied for new lines in unconfirmed/draft orders
@@ -222,7 +227,6 @@ def create_order_line(
         channel_listing,
         price_override=price_override,
     )
-    # TODO: rewrite for promotion
     if not discounts:
         untaxed_undiscounted_price = untaxed_unit_price
     else:
@@ -273,16 +277,8 @@ def create_order_line(
     )
 
     unit_discount = line.undiscounted_unit_price - line.unit_price
-    # TODO: rewrite for promotions
     if unit_discount.gross:
-        sale_id = get_sale_id_applied_as_a_discount(
-            product=product,
-            price=channel_listing.price,
-            discounts=discounts,
-            collections=collections,
-            channel=channel,
-            variant_id=variant.id,
-        )
+        create_order_line_discounts(line, channel_listing)
 
         tax_configuration = channel.tax_configuration
         prices_entered_with_tax = tax_configuration.prices_entered_with_tax
@@ -293,17 +289,18 @@ def create_order_line(
             discount_amount = unit_discount.net
         line.unit_discount = discount_amount
         line.unit_discount_value = discount_amount.amount
-        line.unit_discount_reason = (
-            f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
-        )
-        line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id else None
+        # Update for promotion
+        # line.unit_discount_reason = (
+        #     f"Sale: {graphene.Node.to_global_id('Sale', sale_id)}"
+        # )
+        # line.sale_id = graphene.Node.to_global_id("Sale", sale_id) if sale_id
+        # else None
 
         line.save(
             update_fields=[
                 "unit_discount_amount",
                 "unit_discount_value",
                 "unit_discount_reason",
-                "sale_id",
             ]
         )
 
@@ -322,6 +319,37 @@ def create_order_line(
         )
 
     return line
+
+
+def create_order_line_discounts(
+    line: "OrderLine", channel_listing: "ProductVariantChannelListing"
+):
+    line_discounts_to_create: List[OrderLineDiscount] = []
+    listing_promotion_rules = (
+        channel_listing.variantlistingpromotionrule.prefetch_related(
+            "promotion_rule", "promotion_rule__promotion"
+        ).all()
+    )
+    for listing_rule in listing_promotion_rules:
+        rule = listing_rule.promotion_rule
+        rule_discount_amount = listing_rule.discount_amount
+        line_discounts_to_create.append(
+            OrderLineDiscount(
+                line=line,
+                type=DiscountType.PROMOTION,
+                value_type=rule.reward_value_type,
+                value=rule.reward_value,
+                amount_value=rule_discount_amount,
+                currency=line.currency,
+                name=get_discount_name(rule, rule.promotion),
+                # TODO: set the promotion translation
+                translated_name="",
+                reason=None,
+                promotion_rule=rule,
+            )
+        )
+
+    OrderLineDiscount.objects.bulk_create(line_discounts_to_create)
 
 
 @traced_atomic_transaction()

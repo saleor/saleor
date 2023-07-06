@@ -9,7 +9,7 @@ import uuid
 class Migration(migrations.Migration):
     dependencies = [
         ("order", "0170_auto_20230529_1314"),
-        ("discount", "0046_update_discounts_with_promotions"),
+        ("discount", "0047_promotiontranslation"),
     ]
 
     operations = [
