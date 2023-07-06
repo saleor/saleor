@@ -1,7 +1,10 @@
+import datetime
 from datetime import timedelta
 
+import pytz
 from django.utils import timezone
 
+from ....product.models import ProductChannelListing, ProductVariantChannelListing
 from ....warehouse.models import Allocation, Reservation
 from ...core.utils import to_global_id_or_none
 from ...tests.utils import get_graphql_content
@@ -17,6 +20,11 @@ query checkout($id: ID) {
         variant{
           id
         }
+        line{
+          id
+        }
+      }
+      ... on CheckoutLineProblemVariantNotAvailable{
         line{
           id
         }
@@ -267,3 +275,151 @@ def test_checkout_with_multiple_same_variant_and_out_of_stock(
     assert to_global_id_or_none(checkout_line) in problem_line_ids
     assert to_global_id_or_none(second_checkout_line) in problem_line_ids
     assert to_global_id_or_none(checkout_line.variant) in problem_variant_ids
+
+
+def test_checkout_problems_when_product_is_not_published(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_line = checkout.lines.first()
+
+    product = checkout_line.variant.product
+    product.channel_listings.update(is_published=False)
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    assert (
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+
+
+def test_checkout_problems_when_product_doesnt_have_channel_listing(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_line = checkout.lines.first()
+
+    available_at = datetime.datetime.now(pytz.UTC) + datetime.timedelta(days=5)
+    product = checkout_line.variant.product
+    product.channel_listings.update(available_for_purchase_at=available_at)
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    assert (
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+
+
+def test_checkout_problems_when_product_is_not_available_to_purchase(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_line = checkout.lines.first()
+
+    product = checkout_line.variant.product
+    ProductChannelListing.objects.filter(product=product).delete()
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    assert (
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+
+
+def test_checkout_problems_when_product_variant_doesnt_have_channel_listing(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_line = checkout.lines.first()
+
+    variant = checkout_line.variant
+    ProductVariantChannelListing.objects.filter(variant=variant).delete()
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    assert (
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)
+
+
+def test_checkout_problems_when_variant_channel_listing_doesnt_have_price_amount(
+    checkout_with_items_and_shipping, api_client
+):
+    # given
+    checkout = checkout_with_items_and_shipping
+    checkout_line = checkout.lines.first()
+
+    variant = checkout_line.variant
+    ProductVariantChannelListing.objects.filter(variant=variant).update(
+        price_amount=None
+    )
+
+    checkout_id = to_global_id_or_none(checkout)
+    variables = {"id": checkout_id, "channel": checkout.channel.slug}
+
+    # when
+    response = api_client.post_graphql(QUERY_CHECKOUT_WITH_PROBLEMS, variables)
+
+    # then
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["id"] == checkout_id
+    assert len(content["data"]["checkout"]["problems"]) == 1
+    assert (
+        content["data"]["checkout"]["problems"][0]["__typename"]
+        == "CheckoutLineProblemVariantNotAvailable"
+    )
+    assert content["data"]["checkout"]["problems"][0]["line"][
+        "id"
+    ] == to_global_id_or_none(checkout_line)

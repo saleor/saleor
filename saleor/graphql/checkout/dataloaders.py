@@ -13,13 +13,19 @@ from ...checkout.fetch import (
 )
 from ...checkout.models import Checkout, CheckoutLine, CheckoutMetadata
 from ...checkout.problems import (
+    CHANNEL_SLUG,
     CHECKOUT_LINE_PROBLEM_TYPE,
     CHECKOUT_PROBLEM_TYPE,
+    COUNTRY_CODE,
+    PRODUCT_ID,
+    VARIANT_ID,
     get_checkout_lines_problems,
     get_checkout_problems,
 )
 from ...discount import VoucherType
 from ...payment.models import TransactionItem
+from ...product.models import ProductChannelListing
+from ...warehouse.models import Stock
 from ..account.dataloaders import AddressByIdLoader, UserByUserIdLoader
 from ..channel.dataloaders import ChannelByIdLoader
 from ..core.dataloaders import DataLoader
@@ -32,6 +38,7 @@ from ..plugins.dataloaders import get_plugin_manager_promise
 from ..product.dataloaders import (
     CollectionsByVariantIdLoader,
     ProductByVariantIdLoader,
+    ProductChannelListingByProductIdAndChannelSlugLoader,
     ProductTypeByVariantIdLoader,
     ProductVariantByIdLoader,
     VariantChannelListingByVariantIdAndChannelIdLoader,
@@ -484,50 +491,97 @@ class CheckoutLinesProblemsByCheckoutIdLoader(
 
         def _resolve_problems(data):
             checkout_infos, checkout_lines = data
-            checkout_lines_ids = []
-            checkout_lines_info_map = {}
-            checkout_lines_to_checkout_infos_map = {}
+            variant_data_set: set[
+                tuple[
+                    VARIANT_ID,
+                    CHANNEL_SLUG,
+                    COUNTRY_CODE,
+                ]
+            ] = set()
+            product_data_set: set[
+                tuple[
+                    PRODUCT_ID,
+                    CHANNEL_SLUG,
+                ]
+            ] = set()
             checkout_infos_map = {
                 checkout_info.checkout.pk: checkout_info
                 for checkout_info in checkout_infos
             }
             for lines in checkout_lines:
                 for line in lines:
-                    checkout_lines_ids.append(line.line.id)
-                    checkout_lines_info_map[line.line.id] = line
-                    checkout_lines_to_checkout_infos_map[
-                        line.line.id
-                    ] = checkout_infos_map[line.line.checkout_id]
-
-            def _prepare_problems(stocks):
-                lines_with_stock_per_checkout = defaultdict(list)
-                for line_id, variant_stocks in zip(checkout_lines_ids, stocks):
-                    checkout_id = checkout_lines_to_checkout_infos_map[
-                        line_id
-                    ].checkout.pk
-                    lines_with_stock_per_checkout[checkout_id].append(
-                        (checkout_lines_info_map[line_id], variant_stocks)
+                    variant_data_set.add(
+                        (
+                            line.variant.id,
+                            line.channel.slug,
+                            checkout_infos_map[line.line.checkout_id].checkout.country,
+                        )
                     )
+                    product_data_set.add(
+                        (
+                            line.product.id,
+                            line.channel.slug,
+                        )
+                    )
+            variant_data_list = list(variant_data_set)
+            product_data_list = list(product_data_set)
+
+            def _prepare_problems(data):
+                (
+                    variant_stocks,
+                    product_channel_listings,
+                ) = data
+                variant_stock_map: dict[
+                    tuple[
+                        VARIANT_ID,
+                        CHANNEL_SLUG,
+                        COUNTRY_CODE,
+                    ],
+                    Iterable[Stock],
+                ] = dict(zip(variant_data_list, variant_stocks))
+                product_channel_listings_map: dict[
+                    tuple[
+                        PRODUCT_ID,
+                        CHANNEL_SLUG,
+                    ],
+                    ProductChannelListing,
+                ] = dict(zip(product_data_set, product_channel_listings))
+
                 problems = {}
-                for (
-                    checkout_pk,
-                    lines_with_stock,
-                ) in lines_with_stock_per_checkout.items():
-                    problems[checkout_pk] = get_checkout_lines_problems(
-                        lines_with_stock
+
+                for checkout_info, lines in zip(checkout_infos, checkout_lines):
+                    checkout_id = checkout_info.checkout.pk
+                    problems[checkout_id] = get_checkout_lines_problems(
+                        checkout_info,
+                        lines,
+                        variant_stock_map,
+                        product_channel_listings_map,
                     )
                 return [problems.get(key, []) for key in keys]
 
-            return stock_dataloader.load_many(
+            variant_stocks = stock_dataloader.load_many(
                 [
-                    (
-                        checkout_lines_info_map[line_id].variant.id,
-                        checkout_lines_to_checkout_infos_map[line_id].checkout.country,
-                        checkout_lines_to_checkout_infos_map[line_id].channel.slug,
-                    )
-                    for line_id in checkout_lines_ids
+                    (variant_id, country_code, channel_slug)
+                    for variant_id, channel_slug, country_code in variant_data_list
                 ]
-            ).then(_prepare_problems)
+            )
+            product_channel_listings = (
+                ProductChannelListingByProductIdAndChannelSlugLoader(
+                    self.context
+                ).load_many(
+                    [
+                        (
+                            product_id,
+                            channel_slug,
+                        )
+                        for product_id, channel_slug in product_data_list
+                    ]
+                )
+            )
+
+            return Promise.all([variant_stocks, product_channel_listings]).then(
+                _prepare_problems
+            )
 
         checkout_infos = CheckoutInfoByCheckoutTokenLoader(self.context).load_many(keys)
         lines = CheckoutLinesInfoByCheckoutTokenLoader(self.context).load_many(keys)
