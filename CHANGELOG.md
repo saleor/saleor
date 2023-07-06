@@ -66,6 +66,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `GiftCardFilterInput.createdByEmail` filter - #13132 by @Smit-Parmar
 - Remove `Preview feature` label from `metafield`, `metafields`, `metadata`,
 `privateMetafield`, `privateMetafields` and `privateMetadata` fields - #13245 by @korycins
+- Add `search` to `giftCards` query - #13173 by @zedzior
 
 ### Saleor Apps
 
@@ -87,6 +88,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ACCOUNT_CONFIRMATION_REQUESTED` async event - #13162 by @SzymJ
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
 - Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
+- Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
 
 # 3.14.0
 
