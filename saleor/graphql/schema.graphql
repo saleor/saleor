@@ -1221,7 +1221,11 @@ type Query {
   """List of all tax rates available from tax gateway."""
   taxTypes: [TaxType!] @doc(category: "Taxes")
 
-  """Look up a checkout by token and slug of channel."""
+  """
+  Look up a checkout by id.
+  
+  Requires one of the following permissions to query checkouts that belong to other users: MANAGE_CHECKOUTS, IMPERSONATE_USER.
+  """
   checkout(
     """
     The checkout's ID.
