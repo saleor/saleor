@@ -74,6 +74,7 @@ Shipping methods can be removed by the user after it has been assigned to a chec
 - Introduce `Saleor-Schema-Version` HTTP header in app manifest fetching and app installation handshake requests. - #13075 by @przlada
 
 ### Other changes
+- Add POC of Core API tests - #13034 by @fowczarek
 
 - Expand metric units to support more types of products. - #13043 by @FremahA
 - Remove unused `django-versatileimagefield` package - #13148 by @SzymJ
