@@ -344,7 +344,7 @@ class ProductVariantChannelListing(
     ModelObjectType[models.ProductVariantChannelListing]
 ):
     id = graphene.GlobalID(
-        required=True, description="The ID Of the variant channel listing."
+        required=True, description="The ID of the variant channel listing."
     )
     channel = graphene.Field(
         Channel,

@@ -88,6 +88,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `ACCOUNT_DELETE_REQUESTED` async event - #13170 by @SzymJ
 - Add `ACCOUNT_CHANGE_EMAIL_REQUESTED` async event - #13233 by @SzymJ
 - Add missing descriptions to Shop module. - #13295 by @Smit-Parmar
+- Add missing descriptions to Product module. - #13259 by @FremahA
 - Add missing descriptions to Warehouse module. - #13264 by @Smit-Parmar
 - Add missing descriptions to Product module. - #13259 by @FremahA
 
