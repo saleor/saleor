@@ -6,10 +6,12 @@ from ....invoice import events, models
 from ....invoice.error_codes import InvoiceErrorCode
 from ....order import events as order_events
 from ....permission.enums import OrderPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.mutations import ModelMutation
 from ...core.types import InvoiceError
+from ...core.utils import WebhookEventInfo
 from ...order.types import Order
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import Invoice
@@ -26,6 +28,12 @@ class InvoiceRequest(ModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.INVOICE_REQUESTED,
+                description="An invoice was requested.",
+            )
+        ]
 
     class Arguments:
         order_id = graphene.ID(
