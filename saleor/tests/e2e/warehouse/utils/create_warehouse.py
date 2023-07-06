@@ -1,5 +1,5 @@
-from .. import DEFAULT_ADDRESS
-from ..utils import get_graphql_content
+from ... import DEFAULT_ADDRESS
+from ...utils import get_graphql_content
 
 WAREHOUSE_CREATE_MUTATION = """
 mutation createWarehouse($input: WarehouseCreateInput!) {
