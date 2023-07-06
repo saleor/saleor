@@ -19,7 +19,7 @@ mutation createPayment($checkoutId: ID, $input: PaymentInput!) {
 """
 
 
-def checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
+def raw_checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
     variables = {
         "checkoutId": checkout_id,
         "input": {
@@ -35,11 +35,21 @@ def checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
     )
     content = get_graphql_content(response)
 
-    assert content["data"]["checkoutPaymentCreate"]["errors"] == []
+    checkout_data = content["data"]["checkoutPaymentCreate"]
 
-    checkout_data = content["data"]["checkoutPaymentCreate"]["checkout"]
+    return checkout_data
+
+
+def checkout_dummy_payment_create(api_client, checkout_id, total_gross_amount):
+    checkout_payment_create_response = raw_checkout_dummy_payment_create(
+        api_client, checkout_id, total_gross_amount
+    )
+
+    assert checkout_payment_create_response["errors"] == []
+
+    checkout_data = checkout_payment_create_response["checkout"]
     assert checkout_data["id"] == checkout_id
-    payment_data = content["data"]["checkoutPaymentCreate"]["payment"]
+    payment_data = checkout_payment_create_response["payment"]
     assert payment_data["id"] is not None
 
     return payment_data
