@@ -3,11 +3,13 @@ import graphene
 from ....giftcard import events
 from ....giftcard.utils import activate_gift_card
 from ....permission.enums import GiftcardPermissions
+from ....webhook.event_types import WebhookEventAsyncType
 from ...app.dataloaders import get_app_promise
 from ...core import ResolveInfo
 from ...core.doc_category import DOC_CATEGORY_GIFT_CARDS
 from ...core.mutations import BaseMutation
 from ...core.types import GiftCardError
+from ...core.utils import WebhookEventInfo
 from ...plugins.dataloaders import get_plugin_manager_promise
 from ..types import GiftCard
 from .utils import clean_gift_card
@@ -25,6 +27,12 @@ class GiftCardActivate(BaseMutation):
         permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
+        webhook_events_info = [
+            WebhookEventInfo(
+                type=WebhookEventAsyncType.GIFT_CARD_STATUS_CHANGED,
+                description="A gift card was activated.",
+            )
+        ]
 
     @classmethod
     def perform_mutation(  # type: ignore[override]
